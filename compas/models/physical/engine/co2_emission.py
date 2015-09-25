@@ -84,11 +84,12 @@ def co2_emission():
         outputs=['identified_co2_emissions']
     )
 
-    co2_emission.add_function(
-        function=define_co2_error_function,
-        inputs=['co2_emissions_model', 'identified_co2_emissions'],
-        outputs=['co2_error_function']
-    )
+#     co2_emission.add_function(
+#         function=define_co2_error_function,
+#         inputs=['co2_emissions_model', 'identified_co2_emissions'],
+#         outputs=['co2_error_function'],
+#         weight=100
+#     )
 #
 #     co2_emission.add_function(
 #         function=define_co2_error_function_v1,
@@ -176,31 +177,31 @@ def co2_emission():
         function=calibrate_model_params_cold_vST,
         inputs=['co2_params_bounds', 'co2_error_function_cold',
                 'co2_params_warm'],
-        outputs=['co2_params']#_cold'] ## For cold start effect comment it change name to co2_params_cold
+        outputs=['co2_params_cold'] ## For cold start effect comment it change name to co2_params_cold
     )
 
-#     co2_emission.add_function(
-#         function=define_co2_error_function_vST,
-#         inputs=['co2_emissions_model',
-#                 'times', 'phases_integration_times', 'phases_distances',
-#                 'co2_emission_low', 'co2_emission_medium',
-#                 'co2_emission_high', 'co2_emission_extra_high'],
-#         outputs=['co2_error_function']
-#     )
-#
-#
-#     co2_emission.add_function(
-#         function=restrict_co2_params_bounds_vST,
-#         inputs=['co2_params_bounds', 'co2_params_cold'],
-#         outputs=['co2_params_bounds_restricted']
-#     )
-#
-#     co2_emission.add_function(
-#         function=calibrate_model_params_vST,
-#         inputs=['co2_params_bounds_restricted', 'co2_error_function',
-#                 'co2_params_cold'],
-#         outputs=['co2_params']
-#     )
+    co2_emission.add_function(
+        function=define_co2_error_function_vST,
+        inputs=['co2_emissions_model',
+                'times', 'phases_integration_times', 'phases_distances',
+                'co2_emission_low', 'co2_emission_medium',
+                'co2_emission_high', 'co2_emission_extra_high'],
+        outputs=['co2_error_function']
+    )
+
+
+    co2_emission.add_function(
+        function=restrict_co2_params_bounds_vST,
+        inputs=['co2_params_bounds', 'co2_params_cold'],
+        outputs=['co2_params_bounds_restricted']
+    )
+
+    co2_emission.add_function(
+        function=calibrate_model_params_vST,
+        inputs=['co2_params_bounds_restricted', 'co2_error_function',
+                'co2_params_cold'],
+        outputs=['co2_params']
+    )
 
     co2_emission.add_function(
         function=predict_co2_emissions,
