@@ -266,7 +266,7 @@ def identify_thermostat_engine_temperature(engine_temperatures):
     return m
 
 
-def identify_normalization_engine_temperature(engine_temperatures):
+def identify_normalization_engine_temperature_v1(engine_temperatures):
     """
     Identifies normalization engine temperature and its limits [°C].
 
@@ -285,6 +285,32 @@ def identify_normalization_engine_temperature(engine_temperatures):
     s = max(s, 20.0)
 
     return m, (m - s, max_temp)
+
+
+### Change made by ST
+def identify_normalization_engine_temperature(engine_temperatures, times):
+    """
+    Identifies normalization engine temperature and its limits [°C].
+
+    :param engine_temperatures:
+        Engine temperature vector [°C].
+    :type engine_temperatures: np.array
+
+    :return:
+        Normalization engine temperature and its limits [°C].
+    :rtype: (float, (float, float))
+    """
+
+    Iw = (times > 1000) & (times < 1780)
+
+    engine_temperatures_warm = engine_temperatures[Iw]
+
+    m, s = reject_outliers(engine_temperatures_warm, n=2)
+
+    max_temp = max(engine_temperatures_warm)
+#     s = max(s, 5.0) #max(s, 20.0)
+
+    return m - s, (m - 3*s, max_temp)
 
 
 def identify_initial_engine_temperature(engine_temperatures):

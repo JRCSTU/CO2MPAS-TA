@@ -89,21 +89,118 @@ def co2_emission():
         inputs=['co2_emissions_model', 'identified_co2_emissions'],
         outputs=['co2_error_function']
     )
+#
+#     co2_emission.add_function(
+#         function=define_co2_error_function_v1,
+#         inputs=['co2_emissions_model', 'cumulative_co2_emissions', 'times',
+#                 'phases_integration_times'],
+#         outputs=['co2_error_function'],
+#         weight=100
+#     )
+#
+#     co2_emission.add_function(
+#         function=calibrate_model_params,
+#         inputs=['co2_params_bounds', 'co2_error_function',
+#                 'co2_params_initial_guess'],
+#         outputs=['co2_params'],
+#         weight=100
+#     )
 
     co2_emission.add_function(
-        function=define_co2_error_function_v1,
-        inputs=['co2_emissions_model', 'cumulative_co2_emissions', 'times',
-                'phases_integration_times'],
-        outputs=['co2_error_function'],
-        weight=100
+        function=define_co2_emissions_model_warm_vST,
+        inputs=['engine_speeds_out', 'engine_powers_out',
+                'mean_piston_speeds', 'brake_mean_effective_pressures',
+                'engine_temperatures', 'engine_fuel_lower_heating_value',
+                'idle_engine_speed', 'engine_stroke', 'engine_capacity',
+                'engine_idle_fuel_consumption', 'fuel_carbon_content',
+                'engine_normalization_temperature'],
+        outputs=['co2_emissions_model_warm']
     )
 
     co2_emission.add_function(
-        function=calibrate_model_params,
-        inputs=['co2_params_bounds', 'co2_error_function',
+        function=define_co2_emissions_model_cold_vST,
+        inputs=['engine_speeds_out', 'engine_powers_out',
+                'mean_piston_speeds', 'brake_mean_effective_pressures',
+                'engine_temperatures', 'engine_fuel_lower_heating_value',
+                'idle_engine_speed', 'engine_stroke', 'engine_capacity',
+                'engine_idle_fuel_consumption', 'fuel_carbon_content',
+                'engine_normalization_temperature'],
+        outputs=['co2_emissions_model_cold']
+    )
+
+#     co2_emission.add_function(
+#         function=define_co2_emissions_model_cold_CumCO2_vST,
+#         inputs=['engine_speeds_out', 'engine_powers_out',
+#                 'mean_piston_speeds', 'brake_mean_effective_pressures',
+#                 'engine_temperatures', 'engine_fuel_lower_heating_value',
+#                 'idle_engine_speed', 'engine_stroke', 'engine_capacity',
+#                 'engine_idle_fuel_consumption', 'fuel_carbon_content',
+#                 'engine_normalization_temperature', 'phases_integration_times'],
+#         outputs=['co2_emissions_model_cold_CumCO2']
+#     )
+
+    co2_emission.add_function(
+        function=identify_co2_emissions_warm_and_cold_vST,
+        inputs=['identified_co2_emissions', 'engine_temperatures', 'engine_normalization_temperature'],
+        outputs=['identified_co2_emissions_warm', 'identified_co2_emissions_cold']
+    )
+
+    co2_emission.add_function(
+        function=define_co2_error_function_warm_vST,
+        inputs=['co2_emissions_model_warm', 'identified_co2_emissions_warm'],
+        outputs=['co2_error_function_warm']
+    )
+
+    co2_emission.add_function(
+        function=define_co2_error_function_cold_vST,
+        inputs=['co2_emissions_model_cold', 'identified_co2_emissions_cold'],
+        outputs=['co2_error_function_cold']
+    )
+
+#     co2_emission.add_function(
+#         function=define_co2_error_function_cold_CumCO2_vST,
+#         inputs=['co2_emissions_model_cold_CumCO2',
+#                 'times', 'phases_integration_times', 'phases_distances',
+#                 'co2_emission_low', 'co2_emission_medium'],
+#         outputs=['co2_error_function_cold_CumCO2']
+#     )
+
+    co2_emission.add_function(
+        function=calibrate_model_params_warm_vST,
+        inputs=['co2_params_bounds', 'co2_error_function_warm',
                 'co2_params_initial_guess'],
-        outputs=['co2_params']
+        outputs=['co2_params_warm'] ## For cold start effect comment it change name to co2_params
     )
+
+    co2_emission.add_function(
+        function=calibrate_model_params_cold_vST,
+        inputs=['co2_params_bounds', 'co2_error_function_cold',
+                'co2_params_warm'],
+        outputs=['co2_params']#_cold'] ## For cold start effect comment it change name to co2_params_cold
+    )
+
+#     co2_emission.add_function(
+#         function=define_co2_error_function_vST,
+#         inputs=['co2_emissions_model',
+#                 'times', 'phases_integration_times', 'phases_distances',
+#                 'co2_emission_low', 'co2_emission_medium',
+#                 'co2_emission_high', 'co2_emission_extra_high'],
+#         outputs=['co2_error_function']
+#     )
+#
+#
+#     co2_emission.add_function(
+#         function=restrict_co2_params_bounds_vST,
+#         inputs=['co2_params_bounds', 'co2_params_cold'],
+#         outputs=['co2_params_bounds_restricted']
+#     )
+#
+#     co2_emission.add_function(
+#         function=calibrate_model_params_vST,
+#         inputs=['co2_params_bounds_restricted', 'co2_error_function',
+#                 'co2_params_cold'],
+#         outputs=['co2_params']
+#     )
 
     co2_emission.add_function(
         function=predict_co2_emissions,

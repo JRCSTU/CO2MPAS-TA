@@ -130,9 +130,16 @@ def engine():
         outputs=['engine_thermostat_temperature']
     )
 
+#     engine.add_function(
+#         function=identify_normalization_engine_temperature,
+#         inputs=['engine_temperatures'],
+#         outputs=['engine_normalization_temperature',
+#                  'engine_normalization_temperature_window']
+#     )
+
     engine.add_function(
         function=identify_normalization_engine_temperature,
-        inputs=['engine_temperatures'],
+        inputs=['engine_temperatures', 'times'],
         outputs=['engine_normalization_temperature',
                  'engine_normalization_temperature_window']
     )
