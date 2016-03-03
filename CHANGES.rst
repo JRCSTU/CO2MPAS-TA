@@ -4,6 +4,14 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
+v1.1.1.fix1, 03-March 2016: "O'Udo" release
+================================================================
+1st POSTFIX release.
+
+- :gh:`169`, :gh:`169`: modified theta-filtering for real-data.
+- :gh:`171`: update forgotten ``simVehicle.ipynb`` notebook to run ok.
+
+
 v1.1.1, 09-Feb 2016: "O'snow" release
 ================================================================
 This release contains mostly model changes; some internal restructurings have
