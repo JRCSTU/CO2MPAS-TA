@@ -4,7 +4,15 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
-v1.1.1.fix1, 03-March 2016: "O'Udo" release
+v1.1.1.fix2, 09-March 2016: "O'Udo" 2nd release
+================================================================
+2nd POSTFIX release.
+
+- electrics, :gh:`143`: Add default value ``initial_state_of_charge := 99``.
+- clutch, :gh:`173`: FIX calibration failures with a `No inliers found` by `ransac.py` error.
+
+
+v1.1.1.fix1, 03-March 2016: "O'Udo" 1st release
 ================================================================
 1st POSTFIX release.
 
