@@ -643,14 +643,13 @@ def main(*args):
         _cmd_template(opts)
     else:
         do_datasync(
-                opts['<x-label>'], opts['<y-label>'],
-                opts['<ref-table>'], *opts['<sync-table>'],
-                out_path=opts['-O'],
-                prefix_cols=opts['--prefix-cols'],
-                force=opts['--force'],
-                no_clone=opts['--no-clone'],
-                interpolation_method=opts['--interp'],
-        )
+                    opts['<x-label>'], opts['<y-label>'],
+                    opts['<ref-table>'], *opts['<sync-table>'],
+                    out_path=opts['-O'],
+                    prefix_cols=opts['--prefix-cols'],
+                    force=opts['--force'],
+                    no_clone=opts['--no-clone'],
+                    interpolation_method=opts['--interp'])
 
 
 if __name__ == '__main__':
