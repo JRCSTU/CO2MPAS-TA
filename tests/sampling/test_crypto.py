@@ -48,7 +48,7 @@ class TCrypto(unittest.TestCase):
         ciphertext = crypto.tencrypt_any(pswdid, pswd, obj)
         msg = ('CASE:', case, ciphertext)
 
-        self.assertTrue(ciphertext.startswith(crypto.ENC_PREFIX), msg)
+        self.assertTrue(ciphertext.startswith('$'+crypto.ENC_PREFIX), msg)
 
         ## Check not generating indetical ciphers.
         #

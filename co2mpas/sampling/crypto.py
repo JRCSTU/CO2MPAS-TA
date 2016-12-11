@@ -6,7 +6,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 #
 """
-Master-encrypt 3rdp passwords stored in text-files and try limiting decryption on the host that generated them.
+Master-dencrypt 3rdp passwords stored in text-files and try limiting decryption on the host that generated them.
 
 The general idea is to use a ``master-password`` to securely store many passwords
 ( ``pswd-``, ``pswd-2``, etc), and always to require access to both places for
@@ -15,28 +15,28 @@ decrypting ``key`` & ``pswd``.
 Key Generation::
 
     _\|/^
-     (_oo    $master-pswd      .........     $salt    ---------------
-      |   ------------------->( PBKDF2* )<-----------/ host keyring /
-     /|\                       ''''|''''             ------^--------
-      |                            |$ram-key              /
-      LL   .-----. $priv-key   ....V....  $AES(priv-key) /
-           | App |----------->( AES-EAX )---------------+
-           '--+--'             '''''''''                 \
-               \                                          \
-                \               $pub-key             ------V--------
-                 '--------------------------------->/  filesystem  /
-                                                    ---------------
+     (_oo    $master-pswd      .........     $salt
+      |   ------------------->( PBKDF2* )<-------------------.
+     /|\                       ''''|''''                      \
+      |                            |$ram-key                   \
+      LL   .-----. $priv-key   ....V....  $AES(priv-key) -------+-------
+           | App |----------->( AES-EAX )-------------->/ host keyring /
+           '--+--'             '''''''''                --------^------
+               \                                               /
+                \               $pub-key                      /
+                 '-------------------------------------------'
+
 
 Encrypt 3rdp password::
 
     .-----.
-    | App |                   ---------------
-    '--+--'                  / host keyring /
-       |$pswd-i              ---------------
-     ..V..       $pub-key
-    ( RSA )<----------------------.
-     ''\''                         \
-        \     $RSA(pswd-i)    ------+--------
+    | App |
+    '--+--'
+       |$pswd-i
+     ..V..       $pub-key     ---------------
+    ( RSA )<-----------------/ host keyring /
+     ''\''                   ---------------
+        \     $RSA(pswd-i)    ---------------
          '------------------>/  filesystem  /
                              ---------------
 
@@ -49,11 +49,11 @@ Decrypt 3rdp password::
       |                     |$ram-key                +--/ host keyring /
       LL                ....V....   $AES(priv-key)  /   ---------------
                        ( AES-EAX )<----------------+
-                        ''''|''''                   \    ---------------
-                            |$priv-key               +--/  filesystem  /
-                          ..V..     $RSA(pswd-i)    /   ---------------
-                         ( RSA )<------------------'
-                          ''|''
+                        ''''|''''
+                            |$priv-key
+                          ..V..     $RSA(pswd-i)         ---------------
+                         ( RSA )<-----------------------/  filesystem  /
+                          ''|''                         ---------------
                             |$pswd-i
                             V
 
@@ -82,7 +82,8 @@ from typing import Text, Tuple, Union  # @UnusedImport
 #: The "service-name" for accessing semi-secret keys from :mod:`keyring`.
 KEYRING_ID = 'ec.jrc.co2mpas'
 SALT_LEN = MAC_LEN = NONCE_LEN = 16
-ENC_PREFIX = 'TRAES.1'  # version-like prefix for encrypted ciphers
+#: A version-like prefix for encrypted ciphers by this module.
+ENC_PREFIX = 'TRAES.1'
 #: Recommended by PY3: https://docs.python.org/3/library/hashlib.html
 PBKDF_NITERS = 10000
 PBKDF_MAC = 'sha256'
@@ -112,7 +113,7 @@ def hash_bytes_with_hw_mac(rbytes: bytes):
     blen = len(rbytes)
     nhashes = blen // HASH_LEN + bool(blen % HASH_LEN)
 
-    hw_mac_bytes = uuid.getnode().to_bytes(5, 'big')  # NetworkMAC is 48bit long
+    hw_mac_bytes = uuid.getnode().to_bytes(6, 'big')  # NetworkMAC is 48bit long
 
     hashes = []
     for i in range(0, nhashes * HASH_LEN, HASH_LEN):
@@ -208,9 +209,9 @@ def derive_key(pswdid: Text,
     return key
 
 
-def encrypt(key: bytes, plainbytes: bytes) -> Tuple[bytes, bytes, bytes]:
+def symencrypt(key: bytes, plainbytes: bytes) -> Tuple[bytes, bytes, bytes]:
     """
-    Low-level AES-EAX encrypt `plainbytes` and return side plainbytes in a tuple.
+    Low-level AES-EAX symmetric-encrypt `plainbytes` and return side plainbytes in a tuple.
 
     :param key:
         the encryption key (after pbkdf-ing user password).
@@ -228,9 +229,9 @@ def encrypt(key: bytes, plainbytes: bytes) -> Tuple[bytes, bytes, bytes]:
     return (nonce, mac, cipherbytes)
 
 
-def decrypt(key: bytes, nonce: bytes, mac: bytes, cipherbytes: bytes) -> bytes:
+def symdecrypt(key: bytes, nonce: bytes, mac: bytes, cipherbytes: bytes) -> bytes:
     """
-    Low-level decrypt `tuplebytes` encrypted with :func:`encrypt()`.
+    Low-level symmetric-decrypt `tuplebytes` encrypted with :func:`symencrypt()`.
 
     :param key:
         the decryption key (after pbkdf-ing user password).
@@ -267,7 +268,7 @@ def tencrypt_any(pswdid: Text, pswd: Text, plainobj) -> Text:
 
         TRAITAES_1: <base32(nonce(NONCE_LEN) + mac(16) + cipher)>
 
-    The :func:`encrypt()` does the actual crypto.
+    The :func:`symencrypt()` does the actual crypto.
 
     :param pswdid:
             Used to pbkdf the user-pswd--> encryption-key.
@@ -276,7 +277,7 @@ def tencrypt_any(pswdid: Text, pswd: Text, plainobj) -> Text:
 
     plainbytes = dill.dumps(plainobj)
     key = derive_key(pswdid, pswd)
-    tpl = encrypt(key, plainbytes)
+    tpl = symencrypt(key, plainbytes)
     tuplebytes = _tuple2bytes(*tpl)
     tuplebytes = base64.urlsafe_b64encode(tuplebytes)
 
@@ -285,13 +286,13 @@ def tencrypt_any(pswdid: Text, pswd: Text, plainobj) -> Text:
 
 def strip_text_encrypted(text_enc: Text) -> Text:
     """Returns the base64 body of the textual format or None. """
-    if text_enc.startswith(ENC_PREFIX):
-        return text_enc[len(ENC_PREFIX) + 1:].strip()  # +1 for ':' char
+    if text_enc.startswith('$'+ENC_PREFIX):
+        return text_enc[len(ENC_PREFIX) + 2:].strip()  # +1 for 2x'$' char
 
 
 def tdecrypt_any(pswdid: Text, pswd: Text, text_enc: Text):
     """
-    High-level decrypt `plainobj` encrypted with :func:`tencrypt_any()`.
+    High-level symmetric-decrypt `plainobj` encrypted with :func:`tencrypt_any()`.
 
     :return:
         none if `text_enc` not *TRAITAES_1* textual formatted
@@ -304,7 +305,7 @@ def tdecrypt_any(pswdid: Text, pswd: Text, text_enc: Text):
         (nonce, mac, cipherbytes) = _bytes2tuple(tuplebytes)
         key = derive_key(pswdid, pswd)
 
-        plainbytes = decrypt(key, nonce, mac, cipherbytes)
+        plainbytes = symdecrypt(key, nonce, mac, cipherbytes)
         plainobj = dill.loads(plainbytes)
 
         return plainobj
