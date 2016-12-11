@@ -82,11 +82,100 @@ def default_config_fpath():
     return osp.join(default_config_dir(), default_config_fname())
 
 
+class PeristentMixin:
+    """
+    A *cmd* and *spec* mixin to support storing of *persistent* traits into external file.
+
+    *Persistent traits (ptrais)* are those tagged with `config` + `persistent`boolean metadata.
+
+    This is the lifecycle of *persistent* traits (*ptraits*):
+
+    1. On app-init, invoke :meth:`load_pconfig_file()` to populate
+       the global :attr:`_pconfig` from disk.
+
+    2. On *cmd* or *spec* construction:
+       A. invoke its :meth:`apply_pconfig()` to populate their *ptraits* with values
+          read from disk (preferably after the regular config-values have been applied).
+       B. invoke its :meth:`observe_ptraits()` to start observing all *ptrait* changes.
+
+    3. On observed changes, the global :attr:`_pconfig` gets updated.
+
+    4. On app-exit, remember to invoke :meth:`store_pconfig_file()`
+       to stores any changed class-attribute on disk.
+
+    """
+
+    #: The "global" CLASS-property that dynamically receives changes from
+    #: *cmd* and *spec* traits with *peristent* traits.
+    #: NOTE: not to be modified by mixed-in classes.
+    _pconfig = trtc.Config()
+
+    #: A "global" CLASS-property holding persistent-trait values as loaded,
+    #: to be checked for inequality and decide if changes need storing.
+    _pconfig_orig = trtc.Config()
+
+    @classmethod
+    def load_pconfig_file(cls, fpath):
+        """Overrides :attr:`_persistent_config` with config-values from file."""
+
+        fpath = pndlu.ensure_file_ext(fpath, '.json')
+        if osp.isfile(fpath):
+            import json
+
+            with io.open(fpath, 'rt', encoding='utf-8') as finp:
+                cfg = json.load(finp)
+
+            if cfg:
+                cls._pconfig = trtc.Config(cfg)
+                cls._pconfig_orig = copy.deepcopy(cls._pconfig)
+
+    @classmethod
+    def store_pconfig_file(cls, fpath):
+        """
+        Copy traits with `config` + `dynamic` tags from config-classes into my :attr:`dynamic_config`.
+
+        :param self:
+            must be the final cmd currently executing, where updated values are to be stored
+        """
+        cfg = cls._pconfig
+        if cfg and cfg != cls._pconfig_orig:
+            import json
+
+            fpath = pndlu.ensure_file_ext(fpath, '.json')
+            with io.open(fpath, 'wt', encoding='utf-8') as fout:
+                json.dump(cfg, fout)
+
+    def apply_pconfig(self: trt.HasTraits):
+        """Invoked on construction to override ptraits with persistent-configs."""
+        cfg = type(self)._pconfig
+        if cfg:
+            ptraits = self.trait_names(config=True, persistent=True)
+            self._load_config(cfg, traits=ptraits)
+
+    def _ptrait_observed(self, change):
+        """The observe-handler for *persistent* traits."""
+        cls = type(self)
+        cls_name = cls.__name__
+        name = change['name']
+        value = change['new']
+
+        cls._pconfig[cls_name][name] = value
+
+    def observe_ptraits(self: trt.HasTraits):
+        """
+        Establishes observers for all *persistent* traits to update :attr:`persistent_config` class property.
+
+        Invoke this after regular config-values have been installed.
+        """
+        ptraits = self.trait_names(config=True, persistent=True)
+        self.observe(self._ptrait_observed, ptraits)
+
+
 ###################
 ##     Specs     ##
 ###################
 
-class Spec(trtc.LoggingConfigurable):
+class Spec(trtc.LoggingConfigurable, PeristentMixin):
     """Common properties for all configurables."""
     ## See module documentation for developer's guidelines.
 
@@ -146,6 +235,10 @@ class Spec(trtc.LoggingConfigurable):
                                  % (proposal['owner'].name, proposal['trait'].name))
         return value
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.observe_ptraits()
+
 
 ###################
 ##    Commands   ##
@@ -171,7 +264,7 @@ def build_sub_cmds(*subapp_classes):
                        for sa in subapp_classes)
 
 
-class Cmd(trtc.Application):
+class Cmd(trtc.Application, PeristentMixin):
     """Common machinery for all (sub-)commands. """
     ## INFO: Do not use it directly; inherit it.
     # See module documentation for developer's guidelines.
@@ -250,7 +343,6 @@ class Cmd(trtc.Application):
 
     def load_config_files(self):
         """Load default user-specified overrides config files.
-
 
         Config-files in descending orders:
 
@@ -439,19 +531,26 @@ class Cmd(trtc.Application):
 
     @trtc.catch_config_error
     def initialize(self, argv=None):
-        ## Invoked after __init__() by Cmd.launch_instance() to read configs.
-        #  It parses cl-args before file-configs, to detect sub-commands
-        #  and update any :attr:`config_file`,
-        #  load file-configs, and then re-apply cmd-line configs as overrides
-        #  (trick copied from `jupyter-core`).
-        self.parse_command_line(argv)
-        if self._is_dispatching():
-            ## Only the final child gets file-configs.
-            #  Also avoid contaminations with user if generating-config.
-            return
-        cl_config = copy.deepcopy(self.config)
-        self.load_config_files()
-        self.update_config(cl_config)
+        try:
+            ## Invoked after __init__() by Cmd.launch_instance() to read configs.
+            #  It parses cl-args before file-configs, to detect sub-commands
+            #  and update any :attr:`config_file`,
+            #  load file-configs, and then re-apply cmd-line configs as overrides
+            #  (trick copied from `jupyter-core`).
+            self.parse_command_line(argv)
+            if self._is_dispatching():
+                ## Only the final child gets file-configs.
+                #  Also avoid contaminations with user if generating-config.
+                return
+
+            ptraits_file = pndlu.ensure_file_ext(default_config_fpath(), '.json')
+            cl_config = copy.deepcopy(self.config)
+            self.load_config_files()
+            ## No need to :meth:`apply_pconfig()` below, already loaded above.
+            self.load_pconfig_file(ptraits_file)
+            self.update_config(cl_config)
+        finally:
+            self.observe_ptraits()
 
     print_config = trt.Bool(
         False,

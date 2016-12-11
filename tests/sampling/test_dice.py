@@ -8,6 +8,8 @@
 
 from co2mpas.__main__ import init_logging
 from co2mpas.sampling import baseapp, dice
+import io
+import json
 import logging
 import os
 import tempfile
@@ -16,8 +18,9 @@ import unittest
 
 import ddt
 
-import itertools as itt
 import os.path as osp
+import pandalone.utils as pndlu
+import traitlets as trt
 
 
 init_logging(level=logging.DEBUG)
@@ -276,3 +279,49 @@ class TApp(unittest.TestCase):
         cmd.class_config_section()
         cmd.class_config_rst_doc()
         cmd().print_help()
+
+
+def prepare_persistent_config_file(pfile):
+    j = {}
+    if osp.isfile(pfile):
+        with io.open(pfile, 'rt') as finp:
+            j = json.load(finp)
+
+    ## Add an arbitrary parameters in pfile to see if it is preserved.
+    j['ANY'] = {'a': 1}
+
+    ## Add an arbitrary parameters in pfile to see if it is preserved.
+    j['MyCmd'] = {'ptrait': False}
+
+    with io.open(pfile, 'wt') as fout:
+        json.dump(j, fout)
+
+
+class TBaseApp(unittest.TestCase):
+
+    def check_persistent_config_file(self, pfile, flag):
+        with io.open(pfile, 'rt') as finp:
+            j = json.load(finp)
+
+        self.assertEqual(j['ANY']['a'], 1, j)
+        self.assertEqual(j['MyCmd']['ptrait'], flag, j)
+
+    def test_ptraits(self,):
+        pfile = pndlu.ensure_file_ext(baseapp.default_config_fpath(), '.json')
+        prepare_persistent_config_file(pfile)
+
+        class MyCmd(baseapp.Cmd):
+            "No desc"
+            ptrait = trt.Bool().tag(config=True, persistent=True)
+
+        c = MyCmd()
+        self.check_persistent_config_file(pfile, False)
+        c.initialize([])
+        self.check_persistent_config_file(pfile, False)
+
+        c.ptrait = True
+        self.check_persistent_config_file(pfile, False)
+
+        c.store_pconfig_file(pfile)
+        self.check_persistent_config_file(pfile, True)
+
