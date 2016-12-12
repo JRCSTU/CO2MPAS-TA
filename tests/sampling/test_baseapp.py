@@ -15,6 +15,7 @@ import unittest
 
 import ddt
 
+import itertools as itt
 import os.path as osp
 import pandalone.utils as pndlu
 import traitlets as trt
@@ -41,6 +42,12 @@ def prepare_persistent_config_file(pfile):
 
     with io.open(pfile, 'wt') as fout:
         json.dump(j, fout)
+
+
+def mix_dics(d1, d2):
+    d = d1.copy()
+    d.update(d2)
+    return d
 
 
 @ddt.ddt
@@ -74,7 +81,7 @@ class TBaseApp(unittest.TestCase):
 
     @ddt.data(
         {}, {'config': False}, {'config': None}, {'config': 0}, {'config': 1}, {'config': -2})
-    def test_unconfig_ptraits(self, tags):
+    def test_invalid_ptraits(self, tags):
         class MyCmd(baseapp.Cmd):
             "No desc"
             bad_ptrait = trt.Bool().tag(persist=True, **tags)
@@ -88,3 +95,20 @@ class TBaseApp(unittest.TestCase):
         exp_msg = "Persistent trait 'bad_ptrait' not tagged as 'config'!"
         self.assertTrue(any(exp_msg in m for m in cm.output), cm.output)
 
+    @ddt.idata(mix_dics(d1, d2) for d1, d2 in itt.product(
+        [{}, {'config': False}, {'config': None}, {'config': 0}],
+        [{}, {'persist': False}, {'persist': None}, {'persist': 0}],
+    ))
+    def test_invalid_enctraits(self, tags):
+        class MyCmd(baseapp.Cmd):
+            "No desc"
+            bad_ptrait = trt.Bool().tag(encrypt=True, **tags)
+
+        c = MyCmd()
+        with self.assertLogs(c.log, logging.FATAL) as cm:
+            try:
+                c.initialize([])
+            except SystemExit:
+                pass
+        exp_msg = "Encrypted trait 'bad_ptrait' not tagged as 'config'/'persist'!"
+        self.assertTrue(any(exp_msg in m for m in cm.output), cm.output)

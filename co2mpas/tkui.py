@@ -710,6 +710,34 @@ class WidgetFlipper:
                 self._flip_cb((self, old_ix, flip_ix))
 
 
+def ask_password_UI(parent, prompt, ):
+    from .tkdialog import TkDialog
+
+    class PasswordUI(TkDialog):
+
+        def body(self, master):
+
+            ttk.Label(master, text=prompt).grid(row=0, sticky='e')
+
+            self.e1 = ttk.Entry(master, show='*', style='Pswd.TEntry')
+            self.e1.grid(row=0, column=1, sticky='we')
+
+            self.response = ttk.Label(master, anchor=tk.W)
+            self.response.grid(row=1, col=0, columnspan=2, sticky='nswe')
+
+            master.grid_rowconfigure(1, weight=1)
+            master.grid_columnconfigure(1, weight=1)
+
+            return self.e1  # initial focus
+
+        def apply(self):
+            print(self.e1.get())
+
+    pui = PasswordUI(parent, title=prompt)
+
+    return pui.e1.get()
+
+
 class LogPanel(ttk.Labelframe):
 
     """

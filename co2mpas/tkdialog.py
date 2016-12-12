@@ -10,14 +10,17 @@ The base widget for dialogs (i.e. password boxes).
 
 Adapted from http://effbot.org/tkinterbook/tkinter-dialog-windows.htm
 """
-from Tkinter import *
-import os
+import tkinter as tk
+import tkinter.ttk as ttk
 
-class Dialog(Toplevel):
 
-    def __init__(self, parent, title=None):
-
-        Toplevel.__init__(self, parent)
+class TkDialog(tk.Toplevel):
+    """
+    Override :meth:`body(), :meth:`validate()`, , :meth:`apply()` and
+    optionally :meth:`cancel()` & :meth:`buttonbox()`.
+    """
+    def __init__(self, parent, title, *args, **kwds):
+        super().__init__(parent, *args, **kwds)
         self.transient(parent)
 
         if title:
@@ -27,7 +30,7 @@ class Dialog(Toplevel):
 
         self.result = None
 
-        body = Frame(self)
+        body = ttk.Frame(self)
         self.initial_focus = self.body(body)
         body.pack(padx=5, pady=5)
 
@@ -51,34 +54,37 @@ class Dialog(Toplevel):
     # construction hooks
 
     def body(self, master):
-        # create dialog body.  return widget that should have
-        # initial focus.  this method should be overridden
+        """
+        Override to create the dialog-body.
 
-        pass
+        :return: the widget that should have initial focus.
+        """
 
     def buttonbox(self):
-        # add standard button box. override if you don't want the
-        # standard buttons
+        """"Add a standard button box; override if you don't want them."""
 
-        box = Frame(self)
+        box = ttk.Frame(self)
 
-        w = Button(box, text="OK", width=10, command=self.ok, default=ACTIVE)
-        w.pack(side=LEFT, padx=5, pady=5)
-        w = Button(box, text="Cancel", width=10, command=self.cancel)
-        w.pack(side=LEFT, padx=5, pady=5)
+        w = ttk.Button(box, text="OK", width=10, command=self.ok, default=tk.ACTIVE)
+        w.pack(side=tk.LEFT, padx=5, pady=5)
+        w = ttk.Button(box, text="Cancel", width=10, command=self.cancel)
+        w.pack(side=tk.LEFT, padx=5, pady=5)
 
         self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.cancel)
 
         box.pack()
 
-    #
-    # standard button semantics
+    def close(self):
+        self.parent.focus_set()  # Put focus back to the parent window.
+        self.destroy()
 
+    #
     def ok(self, event=None):
+        """Standard button semantics."""
 
         if not self.validate():
-            self.initial_focus.focus_set() # put focus back
+            self.initial_focus.focus_set()  # put focus back
             return
 
         self.withdraw()
@@ -86,21 +92,16 @@ class Dialog(Toplevel):
 
         self.apply()
 
-        self.cancel()
+        self.close()
 
     def cancel(self, event=None):
-
-        # put focus back to the parent window
-        self.parent.focus_set()
-        self.destroy()
+        self.close()
 
     #
     # command hooks
 
     def validate(self):
-
-        return 1 # override
+        return 1
 
     def apply(self):
-
-        pass # override
+        pass

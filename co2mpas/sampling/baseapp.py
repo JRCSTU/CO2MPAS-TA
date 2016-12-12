@@ -174,14 +174,51 @@ class PeristentMixin:
         """
         self.check_unconfig_ptraits()
         ptraits = self.trait_names(config=True, persist=True)
-        self.observe(self._ptrait_observed, ptraits)
+        if ptraits:
+            self.observe(self._ptrait_observed, ptraits)
+
+
+class EncryptMixin:
+    """
+    A *cmd* and *spec* mixin to support encrypting on-the-fly of *encrypted ptraits* (see :mod:`.crypto`).
+
+    *Encrypted ptraits (enctrais)* are those tagged with `config` + `persist` + `encrypt` boolean metadata.
+    """
+
+    def _handle_encrypted_ptrait(self, proposal):
+        from . import crypto
+
+        cls_name = type(self).__name__
+        trait = proposal['trait']
+        value = proposal['value']
+        if not crypto.strip_text_encrypted(value):
+            ## not encrypted value
+
+            pswdid = '%s.%s' % (cls_name, trait)
+            crypto.tencrypt_any(pswdid, _, value)  ## TODO: Move LoginCb to baseapp for pswd.
+
+    def check_unconfig_unpesist_enctraits(self):
+        for name, tr in self.traits(encrypt=True).items():
+            if tr.metadata.get('config') is not True or tr.metadata.get('persist') is not True:
+                raise trt.TraitError("Encrypted trait %r not tagged as 'config'/'persist'!" % name)
+
+    def monitor_enctraits(self: trt.HasTraits):
+        """
+        Establishes change handlers for all *encrypted* traits that encrypt plain-values on the fly.
+
+        Invoke this after regular config-values have been installed.
+        """
+        self.check_unconfig_unpesist_enctraits()
+        ptraits = self.trait_names(config=True, persist=True, encrypted=True)
+        if ptraits:
+            self._register_validator(self._handle_encrypted_ptrait, ptraits)
 
 
 ###################
 ##     Specs     ##
 ###################
 
-class Spec(trtc.LoggingConfigurable, PeristentMixin):
+class Spec(trtc.LoggingConfigurable, PeristentMixin, EncryptMixin):
     """Common properties for all configurables."""
     ## See module documentation for developer's guidelines.
 
@@ -270,7 +307,7 @@ def build_sub_cmds(*subapp_classes):
                        for sa in subapp_classes)
 
 
-class Cmd(trtc.Application, PeristentMixin):
+class Cmd(trtc.Application, PeristentMixin, EncryptMixin):
     """Common machinery for all (sub-)commands. """
     ## INFO: Do not use it directly; inherit it.
     # See module documentation for developer's guidelines.
@@ -557,6 +594,7 @@ class Cmd(trtc.Application, PeristentMixin):
             self.update_config(cl_config)
         finally:
             self.observe_ptraits()
+            self.monitor_enctraits()
 
     print_config = trt.Bool(
         False,

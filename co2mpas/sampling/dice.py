@@ -513,12 +513,13 @@ if __name__ == '__main__':
     #argv = 'project list  --reset-git-settings'.split()
     #argv = 'project init one'.split()
 
-    argv = 'config --help'.split()
+    argv = 'project current'.split()
     #argv = 'config list'.split()
 
     #argv = 'tstamp send'.split()
     # Invoked from IDEs, so enable debug-logging.
     main(argv, log_level=logging.DEBUG)
+    #main()
 
     #from traitlets.config import trtc.get_config
 

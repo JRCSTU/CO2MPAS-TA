@@ -286,7 +286,7 @@ def tencrypt_any(pswdid: Text, pswd: Text, plainobj) -> Text:
 
 def strip_text_encrypted(text_enc: Text) -> Text:
     """Returns the base64 body of the textual format or None. """
-    if text_enc.startswith('$'+ENC_PREFIX):
+    if text_enc.startswith("$%s$" % ENC_PREFIX):
         return text_enc[len(ENC_PREFIX) + 2:].strip()  # +1 for 2x'$' char
 
 
