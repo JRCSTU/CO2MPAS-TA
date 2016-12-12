@@ -31,6 +31,9 @@ from . import baseapp, project, CmdException
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 
 
+MAX_AUTH_ATTEMPTS = 5
+
+
 class LoginCb(baseapp.Spec):
     """Reads os-user & password from env-var based on `prompt`, used by :meth:`TStampSpec._log_into_server()`."""
 
@@ -124,14 +127,16 @@ class TStampSpec(baseapp.Spec):
         if not login_cb:
             login_cb = self.login_cb
 
-        for login_data in iter(lambda: login_cb.ask_user_pswd(prompt), None):
+        for i, login_data in enumerate(iter(lambda: login_cb.ask_user_pswd(prompt), None)):
+            if i > MAX_AUTH_ATTEMPTS:
+                raise CmdException("Too many failed attempts into %r!" % prompt)
             user, pswd = login_data
             try:
                 return login_cmd(user, pswd)
             except Exception as ex:
                 login_cb.report_failure('%r' % ex)
         else:
-            raise CmdException("User abort logging into %r email-server." % prompt)
+            raise CmdException("User abort logging into %r." % prompt)
 
 
 class TstampSender(TStampSpec):
