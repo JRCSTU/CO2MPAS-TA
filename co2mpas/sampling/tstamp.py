@@ -41,15 +41,11 @@ class LoginCb(baseapp.Spec):
         return re.sub('\W+', '_', prompt.strip()).upper()
 
     def ask_user_pswd(self, prompt: Text):
-
         var_name = self.convert_prompt_to_env_var(prompt)
         pswd = os.environ.get(var_name)
         self.log.debug('Found password in env-var %r? %s', var_name, bool(pswd))
         if pswd is not None:
-            user = self.user_name
-            if user is None:
-                user = getpass.getuser()
-            return user, pswd
+            return self.user_email, pswd
 
     def report_failure(self, err):
         self.log.error('%s', err)
@@ -59,20 +55,21 @@ class ConsoleLoginCb(LoginCb):
     """Reads password from environment or from console (if tty)."""
 
     def ask_user_pswd(self, prompt):
+        user = self.user_email
         creds = super().ask_user_pswd(prompt)
         if creds:
             user, pswd = creds
+
+            return user, pswd
+
         elif os.isatty(sys.stdin.fileno()):
             try:
                 pswd = getpass.getpass('%s? ' % prompt)
+
+                return user, pswd
+
             except KeyboardInterrupt:
-                return None
-
-            user = self.user_name
-            if user is None:
-                user = getpass.getuser()
-
-        return user, pswd
+                pass
 
 
 class TStampSpec(baseapp.Spec):
@@ -93,11 +90,6 @@ class TStampSpec(baseapp.Spec):
     ssl = trt.Bool(
         True,
         help="""Whether to talk TLS/SSL to the SMTP/IMAP server; configure `port` separately!"""
-    ).tag(config=True)
-
-    user = trt.Unicode(
-        None, allow_none=True,
-        help="""The user to authenticate with the SMTP/IMAP server."""
     ).tag(config=True)
 
     mail_kwds = trt.Dict(
