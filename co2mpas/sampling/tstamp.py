@@ -170,7 +170,7 @@ class TstampSender(TStampSpec):
 
     def _append_x_recipients(self, msg):
         x_recs = '\n'.join('X-Stamper-To: %s' % rec for rec in self.x_recipients)
-        msg = "\n\n%s\n%s" % (x_recs, msg)
+        msg = "%s\n\n%s" % (x_recs, msg)
 
         return msg
 
