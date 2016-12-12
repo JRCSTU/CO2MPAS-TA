@@ -13,6 +13,8 @@ import json
 import logging
 import unittest
 
+import ddt
+
 import os.path as osp
 import pandalone.utils as pndlu
 import traitlets as trt
@@ -41,6 +43,7 @@ def prepare_persistent_config_file(pfile):
         json.dump(j, fout)
 
 
+@ddt.ddt
 class TBaseApp(unittest.TestCase):
 
     def check_persistent_config_file(self, pfile, flag):
@@ -50,13 +53,13 @@ class TBaseApp(unittest.TestCase):
         self.assertEqual(j['ANY']['a'], 1, j)
         self.assertEqual(j['MyCmd']['ptrait'], flag, j)
 
-    def test_ptraits(self,):
+    def test_ptraits(self):
         pfile = pndlu.ensure_file_ext(baseapp.default_config_fpath(), '.json')
         prepare_persistent_config_file(pfile)
 
         class MyCmd(baseapp.Cmd):
             "No desc"
-            ptrait = trt.Bool().tag(config=True, persistTrue)
+            ptrait = trt.Bool().tag(config=True, persist=True)
 
         c = MyCmd()
         self.check_persistent_config_file(pfile, False)
@@ -69,10 +72,12 @@ class TBaseApp(unittest.TestCase):
         c.store_pconfig_file(pfile)
         self.check_persistent_config_file(pfile, True)
 
-    def test_unconfig_ptraits(self):
+    @ddt.data(
+        {}, {'config': False}, {'config': None}, {'config': 0}, {'config': 1}, {'config': -2})
+    def test_unconfig_ptraits(self, tags):
         class MyCmd(baseapp.Cmd):
             "No desc"
-            bad_ptrait = trt.Bool().tag(persist=True)
+            bad_ptrait = trt.Bool().tag(persist=True, **tags)
 
         c = MyCmd()
         with self.assertLogs(c.log, logging.FATAL) as cm:
@@ -82,3 +87,4 @@ class TBaseApp(unittest.TestCase):
                 pass
         exp_msg = "Persistent trait 'bad_ptrait' not tagged as 'config'!"
         self.assertTrue(any(exp_msg in m for m in cm.output), cm.output)
+
