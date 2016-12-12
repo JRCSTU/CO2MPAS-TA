@@ -86,7 +86,7 @@ class PeristentMixin:
     """
     A *cmd* and *spec* mixin to support storing of *persistent* traits into external file.
 
-    *Persistent traits (ptrais)* are those tagged with `config` + `persistent`boolean metadata.
+    *Persistent traits (ptrais)* are those tagged with `config` + `persistent` boolean metadata.
 
     This is the lifecycle of *persistent* traits (*ptraits*):
 
@@ -161,12 +161,18 @@ class PeristentMixin:
 
         cls._pconfig[cls_name][name] = value
 
+    def check_unconfig_ptraits(self):
+        for name, tr in self.traits(persistent=True).items():
+            if tr.metadata.get('config') is not True:
+                raise trt.TraitError("Persistent trait %r not tagged as 'config'!" % name)
+
     def observe_ptraits(self: trt.HasTraits):
         """
         Establishes observers for all *persistent* traits to update :attr:`persistent_config` class property.
 
         Invoke this after regular config-values have been installed.
         """
+        self.check_unconfig_ptraits()
         ptraits = self.trait_names(config=True, persistent=True)
         self.observe(self._ptrait_observed, ptraits)
 
