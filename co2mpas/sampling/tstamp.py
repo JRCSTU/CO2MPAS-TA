@@ -183,8 +183,6 @@ class TstampSender(TStampSpec):
         return mail
 
     def send_timestamped_email(self, msg, login_cb=None):
-        print(self.config)
-        return
         msg = self._sign_msg_mody(msg)
 
         msg = self._append_x_recipients(msg)
