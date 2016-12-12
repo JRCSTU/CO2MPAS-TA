@@ -931,8 +931,8 @@ class ProjectCmd(_PrjCmd):
         """Prints the currently open project."""
         def run(self, *args):
             if len(args) != 0:
-                raise CmdException('Cmd %r takes no arguments, received %r!'
-                                   % (self.name, args))
+                raise CmdException('Cmd %r takes no arguments, received %d: %r!'
+                                   % (self.name, len(args), args))
             return self.projects_db.current_project()
 
     class OpenCmd(_PrjCmd):

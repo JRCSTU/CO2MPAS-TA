@@ -56,7 +56,7 @@ class TBaseApp(unittest.TestCase):
 
         class MyCmd(baseapp.Cmd):
             "No desc"
-            ptrait = trt.Bool().tag(config=True, persistent=True)
+            ptrait = trt.Bool().tag(config=True, persistTrue)
 
         c = MyCmd()
         self.check_persistent_config_file(pfile, False)
@@ -72,7 +72,7 @@ class TBaseApp(unittest.TestCase):
     def test_unconfig_ptraits(self):
         class MyCmd(baseapp.Cmd):
             "No desc"
-            bad_ptrait = trt.Bool().tag(persistent=True)
+            bad_ptrait = trt.Bool().tag(persist=True)
 
         c = MyCmd()
         with self.assertLogs(c.log, logging.FATAL) as cm:
