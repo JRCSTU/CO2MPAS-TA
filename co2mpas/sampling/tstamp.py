@@ -180,7 +180,7 @@ class TstampSender(TStampSpec):
         return msg
 
     def _prepare_mail(self, msg):
-        mail = MIMEText(msg)
+        mail = MIMEText(msg, 'plain')
         mail['Subject'] = self.subject
         mail['From'] = self.from_address
         mail['To'] = ', '.join(self.timestamping_addresses)

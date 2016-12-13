@@ -43,7 +43,7 @@ class Report(baseapp.Spec):
         assert isinstance(tab, pd.DataFrame), (
             "The dice_report xlref(%s) for %r must resolve to a DataFrame, not type(%r): %s" %
             (dice_report_xlref, dice_report_xlref, type(tab), tab))
-        self.output_tables.append(tab)
+        self.output_tables.append(tab.to_json())
 
         return self.output_tables
 
