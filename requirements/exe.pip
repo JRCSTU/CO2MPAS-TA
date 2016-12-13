@@ -35,3 +35,4 @@ python-gnupg
 gitpython >= 2.1.0 ## Win+Cygwin support
 keyring
 transitions
+git+https://github.com/ipython/traitlets@master#egg=traitlets-5.0.0dev0

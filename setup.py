@@ -185,17 +185,20 @@ setup(
         'openpyxl>=2.4.0',
         'Pillow',           ## for tkui
         'toolz',
-        'flask'
+        'flask',
     ],
     extras_require={
         'dice': [
             'python-gnupg',
-            'gitpython >= 2.0.8', ## Due to https://github.com/gitpython-developers/GitPython/issues/332
+            'gitpython >= 2.1.0', ## Win+Cygwin support
             'keyring',
             'pycryptodome',
             'transitions',
+            #'traitlets >= 5.0.0dev0', #FIXME: traitlets DOES NOT WORK! use `pip install -r requirements/exe.pip`
         ],
     },
+    ## FIXME: traitlets DOES NOT WORK! use `pip install -r requirements/exe.pip`
+    #dependency_links=['git+https://github.com/ipython/traitlets@master#egg=traitlets-5.0.0dev0'],
     packages=find_packages(exclude=[
         'tests', 'tests.*',
         'doc', 'doc.*',
