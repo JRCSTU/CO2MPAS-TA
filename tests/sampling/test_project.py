@@ -42,7 +42,7 @@ class TApp(unittest.TestCase):
         dice.MainCmd.print_examples,
         dice.MainCmd.print_help,
     ),
-        project.project_subcmds))
+        project.all_subcmds))
     )
     def test_app(self, case):
         meth, cmd_cls = case
