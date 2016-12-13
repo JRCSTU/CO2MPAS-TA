@@ -277,6 +277,8 @@ def define_ttk_styles():
     style.configure('Logo.TLabel')
     style.configure('Filepath.TButton', anchor='w')
     style.configure('RO.Treeview', background='SystemButtonFace')  # NO, tags only
+    style.configure('OKDecision.TLabel', background='Green')
+    style.configure('SAMPLEDecision.TLabel', background='Red')
 
 
 LOGGING_TAGS = OrderedDict((
@@ -1845,7 +1847,7 @@ class DicePanel(ttk.Frame):
         decision_setters.append(fnt.partial(set_label_text, label))
 
         ttk.Label(frame, text='Decision:').grid(column=3, row=3, sticky='e')
-        label = ttk.Label(frame, style='Decision.TLabel')
+        dec_label = label = ttk.Label(frame, style='Decision.TLabel')
         label.grid(column=4, row=3, sticky='w')
         decision_setters.append(fnt.partial(set_label_text, label))
 
@@ -1867,6 +1869,8 @@ class DicePanel(ttk.Frame):
                 show_decisions(str(t) for t in (sig, num, mod100, decision))
             else:
                 show_decisions(default_texts)
+                decision = ''
+            dec_label['style'] = decision + 'Decision.TLabel'
 
         btn['command'] = parse_tstamp_response
 
