@@ -121,7 +121,7 @@ class ReportCmd(baseapp.Cmd):
 
     def _build_io_files_from_project(self, args) -> PFiles:
         project = self.projects_db.current_project()
-        pfiles = project.list_pfiles('inp', 'out', _as_index_paths=True)
+        pfiles = project.list_pfiles('out', _as_index_paths=True)
         if not pfiles:
             raise CmdException(
                 "Current %s contains no input/output files!" % project)
@@ -147,10 +147,10 @@ class ReportCmd(baseapp.Cmd):
                     "Cmd '%s --project' takes no arguments, received %d: %r!"
                     % (self.name, len(args), args))
 
-            self.log.info('Extracting report-parameters from current-project...')
+            self.log.info('Extracting Dice-report from current-project...')
             pfiles = self._build_io_files_from_project(args)
         else:
-            self.log.info('Extracting report-parameters from files %s...', args)
+            self.log.info('Extracting Dice-report from files %s...', args)
             if nargs < 1:
                 raise CmdException(
                     "Cmd %r takes at least one filepath as argument, received %d: %r!"
