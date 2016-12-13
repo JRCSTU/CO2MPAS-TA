@@ -796,7 +796,7 @@ class ProjectsDB(trtc.SingletonConfigurable, baseapp.Spec):
             the current :class:`Project` or fail
         """
         self.log.info('Creating project %r...', pname)
-        if not pname or not pname.isidentifier():
+        if not pname or not re.match('\w[\w-]+', pname):
             raise CmdException('Invalid name %r for a project!' % pname)
 
         prefname = _pname2ref_name(pname)
