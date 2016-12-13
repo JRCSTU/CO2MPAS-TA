@@ -1930,7 +1930,7 @@ class TkUI(object):
         slider = ttk.PanedWindow(root, orient=tk.VERTICAL)
         slider.grid(row=0, column=0, columnspan=3, sticky='nswe')
 
-        nb = ttk.Notebook(slider, height=460)
+        self.tabs = nb = ttk.Notebook(slider, height=460)
         slider.add(nb, weight=1)
 
         tab = SimulatePanel(nb, app=self)
@@ -1942,7 +1942,7 @@ class TkUI(object):
         tab = TemplatesPanel(nb, app=self)
         nb.add(tab, text='Templates & Samples', sticky='nwse')
 
-        tab = DicePanel(nb, app=self)
+        self.dice_tab = tab = DicePanel(nb, app=self)
         nb.add(tab, text='Dice', sticky='nswe')
 
         frame = LogPanel(slider, self, height=-260, log_level_cb=cmain.init_logging)
@@ -2158,7 +2158,7 @@ class TkUI(object):
         show_about(top, verbose=verbose)
 
     def prepare_dice_for_files(self, fpaths):
-        print("OKy DOKy")
+        self.tabs.select(self.dice_tab)
 
     def mainloop(self):
         try:
