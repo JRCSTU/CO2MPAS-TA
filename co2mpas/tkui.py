@@ -423,21 +423,7 @@ def tree_apply_columns(tree, columns):
         tree.column(c, **c_col_kwds)
 
 
-def make_file_tree(frame, **tree_kwds):
-    frame.grid_rowconfigure(0, weight=1)
-    frame.grid_columnconfigure(0, weight=1)
-
-    tree = ttk.Treeview(frame, **tree_kwds)
-    tree.grid(row=0, column=0, sticky='nswe')
-
-    # Setup scrollbars.
-    #
-    v_scrollbar = ttk.Scrollbar(frame, command=tree.yview)
-    h_scrollbar = ttk.Scrollbar(frame, orient=tk.HORIZONTAL, command=tree.xview)
-    tree.config(xscrollcommand=h_scrollbar.set, yscrollcommand=v_scrollbar.set)
-    v_scrollbar.grid(row=0, column=1, sticky='ns')
-    h_scrollbar.grid(row=1, column=0, sticky='ew')
-
+def make_files_tree(parent, **tree_kwds):
     columns = (
         ('#0', {
             'text': 'Filepath',
@@ -449,9 +435,9 @@ def make_file_tree(frame, **tree_kwds):
         ('size', {'anchor': tk.E, 'width': 64, 'stretch': False}),
         ('modified', {'anchor': tk.W, 'width': 164, 'stretch': False}),
     )
-    tree_apply_columns(tree, columns)
+    tree = make_tree(parent, columns, **tree_kwds)
 
-    ## Attach onto tree not to be GCed.
+    ## Attach icons onto tree not to be GCed.
     tree.excel_icon = read_image('icons/excel-olive-16.png')
     tree.file_icon = read_image('icons/file-olive-16.png')
     tree.folder_icon = read_image('icons/folder-olive-16.png')
@@ -479,6 +465,26 @@ def make_file_tree(frame, **tree_kwds):
         open_file_with_os(item)
 
     tree.bind("<Double-1>", on_double_click)
+
+    return tree
+
+
+def make_tree(parent, columns, **tree_kwds):
+    parent.grid_rowconfigure(0, weight=1)
+    parent.grid_columnconfigure(0, weight=1)
+
+    tree = ttk.Treeview(parent, **tree_kwds)
+    tree.grid(row=0, column=0, sticky='nswe')
+
+    # Setup scrollbars.
+    #
+    v_scrollbar = ttk.Scrollbar(parent, command=tree.yview)
+    h_scrollbar = ttk.Scrollbar(parent, orient=tk.HORIZONTAL, command=tree.xview)
+    tree.config(xscrollcommand=h_scrollbar.set, yscrollcommand=v_scrollbar.set)
+    v_scrollbar.grid(row=0, column=1, sticky='ns')
+    h_scrollbar.grid(row=1, column=0, sticky='ew')
+
+    tree_apply_columns(tree, columns)
 
     return tree
 
@@ -1062,7 +1068,7 @@ class SimulatePanel(ttk.Frame):
     def _build_inputs_tree(self, parent):
         tframe = ttk.Frame(parent, style='FrameTree.TFrame', height=260)
 
-        tree = make_file_tree(tframe, height=3)
+        tree = make_files_tree(tframe, height=3)
         self.inputs_tree = tree
 
         def ask_input_files():
@@ -1144,7 +1150,7 @@ class SimulatePanel(ttk.Frame):
         frame = ttk.Labelframe(parent, text="Output Result Files",
                                style='FileTree.TFrame', height=260)
 
-        tree = make_file_tree(frame, selectmode='none', height=3)
+        tree = make_files_tree(frame, selectmode='none', height=3)
         tree.tag_configure('ro', background='SystemButtonFace')
         self.outputs_tree = tree
         add_tooltip(tree, 'out_files_tree')
@@ -1760,11 +1766,8 @@ class DicePanel(ttk.Frame):
         widgets = {}  # To register widgets embeded in makdown-text.
 
         help_msg = dedent("""
-        The Project name is derived from the "Vehicle Family ID"  The I/O files must much that!
-        Project:   [wdg:project]
-        The I/O files are imported into the project for a unique Hash to be derived.
-        [wdg:files]
-
+        Select a Project and ensure the I/O files are imported, a unique Hash to be derived.
+        [wdg:projects]
         Clicking the "Dice Now!" button initiates the sampling procedure!
         [wdg:check_internet] [wdg:send_dice]
         Paste the timestampe email response "as is" below, and click "Decode" to see the OK/SAMPLE decision:
@@ -1776,16 +1779,31 @@ class DicePanel(ttk.Frame):
         textarea = tk.Text(self, font='TkDefaultFont',
                            background='SystemButtonFace',
                            foreground='orange',
-                           cursor='arrow')
+                           cursor='arrow',
+                           wrap=tk.NONE)
         textarea.pack(fill=tk.BOTH, expand=1)
 
         var = tk.StringVar()
         entry = ttk.Entry(textarea, textvariable=var, width=60)
         widgets['project'] = entry
 
-        frame = ttk.Frame(textarea)
-        tree = make_file_tree(frame, height=3)
-        widgets['files'] = frame
+        frame = ttk.Frame(textarea, width=100)
+        columns = (
+            ('#0', {
+                'text': 'Project',
+                'anchor': tk.W,
+                'stretch': True,
+                'minwidth': 32,
+                'width': 120}),
+            ('state', {'anchor': tk.CENTER, 'width': 64, 'stretch': False}),
+            ('n revs', {'anchor': tk.E, 'width': 48, 'stretch': False}),
+            ('n files', {'anchor': tk.E, 'width': 48, 'stretch': False}),
+            ('cur date', {'anchor': tk.W, 'width': 102, 'stretch': False}),
+            ('author', {'anchor': tk.W, 'width': 102, 'stretch': True}),
+            ('last action', {'anchor': tk.W, 'width': 164, 'stretch': True}),
+        )
+        tree = make_tree(frame, columns, height=4)
+        widgets['projects'] = frame
 
         btn = ttk.Button(textarea, text="Check Internet Connectivity",
                          style='CheckInternet.TButton')
@@ -1831,6 +1849,7 @@ class DicePanel(ttk.Frame):
         h_scrollbar.grid(row=1, column=0, sticky='ew')
 
         return frame
+
 
 class TkUI(object):
     """
