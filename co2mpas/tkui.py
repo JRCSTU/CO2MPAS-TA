@@ -1771,7 +1771,7 @@ class DicePanel(ttk.Frame):
         Clicking the "Dice Now!" button initiates the sampling procedure!
         [wdg:check_internet] [wdg:send_dice]
         Paste the timestampe email response "as is" below, and click "Decode" to see the OK/SAMPLE decision:
-        [wdg:tstamp_response] [wdg:decode] DECISION: [wdg:decision]
+        [wdg:tstamp_response][wdg:decode][wdg:decision]
         When dice has been rolled, print the "TAA Report" and archive the project, to be stored within TAA:
         [wdg:taa_report] [wdg:archive_project]
 
@@ -1820,9 +1820,55 @@ class DicePanel(ttk.Frame):
                          style='send_dice.TButton')
         widgets['decode'] = btn
 
-        btn = ttk.Label(textarea, text="OK/SAMPLE",
-                        style='Decision.TLabel')
-        widgets['decision'] = btn
+        frame = ttk.Frame(textarea, width=100)
+        widgets['decision'] = frame
+
+        def set_textarea_text(ta, t):
+            ta.delete('1.0', tk.END)
+            ta.insert('1.0', t)
+
+        def set_label_text(l, t):
+            l['text'] = t
+
+        decision_setters = []
+        label = tk.Text(frame, height=4, font='condensed 7', width=130)
+        label.grid(column=1, row=0, columnspan=4, sticky='w')
+        decision_setters.append(fnt.partial(set_textarea_text, label))
+
+        label = tk.Text(frame, height=6, font='condensed 7', width=130)
+        label.grid(column=1, row=1, columnspan=4, sticky='w')
+        decision_setters.append(fnt.partial(set_textarea_text, label))
+
+        ttk.Label(frame, text='MOD-100:').grid(column=1, row=3, sticky='e')
+        label = ttk.Label(frame, style='Mod100.TLabel')
+        label.grid(column=2, row=3, sticky='w')
+        decision_setters.append(fnt.partial(set_label_text, label))
+
+        ttk.Label(frame, text='Decision:').grid(column=3, row=3, sticky='e')
+        label = ttk.Label(frame, style='Decision.TLabel')
+        label.grid(column=4, row=3, sticky='w')
+        decision_setters.append(fnt.partial(set_label_text, label))
+
+        def show_decisions(texts):
+            for func, t in zip(decision_setters, texts):
+                func(t)
+
+        default_texts = ['<sig>', '<sig-number>', '<mod-100>', '<OK/SAMPLE>']
+        show_decisions(default_texts)
+
+        def parse_tstamp_response():
+            from .sampling import tstamp
+
+            tstamp_response = self.response_pastearea.get(1.0, tk.END)
+            if tstamp_response.strip():
+                c = tstamp.TstampReceiver()
+                sig, num, mod100, decision = c.parse_tsamp_response(tstamp_response)
+
+                show_decisions(str(t) for t in (sig, num, mod100, decision))
+            else:
+                show_decisions(default_texts)
+
+        btn['command'] = parse_tstamp_response
 
         btn = ttk.Button(textarea, text="TAA_Report",
                          style='send_dice.TButton')

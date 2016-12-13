@@ -214,52 +214,34 @@ class TstampSender(TStampSpec):
         return mail
 
 
-_PGP_SIGNATURE = b'-----BEGIN PGP SIGNATURE-----'  # noqa: E221
-_PGP_MESSAGE = b'-----BEGIN PGP MESSAGE-----'    # noqa: E221
 _PGP_SIG_REGEX = re.compile(
-    br"""
-        -----BEGIN PGP SIGNATURE-----
-        .+
-        Comment: Stamper Reference Id: (\d+)
-        \n\n
-        (.+?)
-        \n-----END PGP SIGNATURE-----
-    """,
-    re.DOTALL | re.VERBOSE)
+    br"-----BEGIN PGP SIGNED MESSAGE-----"
+    br"\s*(.+)"
+    br"-----BEGIN PGP SIGNATURE-----"
+    br".+Comment: Stamper Reference Id: (\d+)"
+    br"\n\n(.+?)\n"
+    br"-----END PGP SIGNATURE-----",
+    re.DOTALL)
 
 
 class TstampReceiver(TStampSpec):
     """IMAP & timestamp parameters and methods for receiving & parsing dice emails."""
 
-    def _split_pgp_clear_signed(self, mail_bytes: bytes) -> (bytes, bytes):
-        """
-        Look at GPG signed content (e.g. the message of a signed tag object),
-        whose payload is followed by a detached signature on it, and
-        split these two; do nothing if there is no signature following.
+    def _pgp_split(self, sig_msg_bytes: bytes) -> Tuple[bytes, bytes, bytes]:
+        m = _PGP_SIG_REGEX.search(sig_msg_bytes)
+        if not m:
+            raise CmdException("Invalid signed message: %r" % sig_msg_bytes)
 
-        :param tag:
-            As fetched from ``git cat-file tag v1.2.1``.
-        :return:
-            A 2-tuple(msg, sig), None if no sig found.
-        """
-        nl = b'\n'
-        lines = mail_bytes.split(nl)
-        for i, l in enumerate(lines):
-            if l.startswith(_PGP_SIGNATURE) or l.startswith(_PGP_MESSAGE):
-                sig = nl.join(lines[i:])
-                msg = nl.join(lines[:i]) + nl
+        msg, ts_id, sig = m.groups()
 
-                return msg, sig
+        return msg, ts_id, sig
 
-    def _pgp_sig2int(self, sig_bytes: bytes) -> int:
+    def _pgp_sig2int(self, sig: bytes) -> int:
         import base64
         import binascii
 
-        m = _PGP_SIG_REGEX.search(sig_bytes)
-        if not m:
-            raise CmdException("Invalid signature: %r" % sig_bytes)
-        sig = base64.decodebytes(m.group(0))
-        num = int(binascii.b2a_hex(sig), 16)
+        sig_bytes = base64.decodebytes(sig)
+        num = int(binascii.b2a_hex(sig_bytes), 16)
 
         return num
 
@@ -284,8 +266,10 @@ class TstampReceiver(TStampSpec):
 
     def parse_tsamp_response(self, mail_text: Text) -> int:
         mbytes = mail_text.encode('utf-8')
+
         # TODO: validate sig!
-        msg, sig = self._split_pgp_clear_signed(mbytes)
+
+        msg, ts_id, sig = self._pgp_split(mbytes)
         num = self._pgp_sig2int(sig)
         mod100 = num % 100
         decision = 'OK' if mod100 < 90 else 'SAMPLE'
