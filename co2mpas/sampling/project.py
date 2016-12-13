@@ -12,6 +12,7 @@ from datetime import datetime
 import io
 import json
 import os
+import re
 import textwrap
 from typing import (
     Any, Union, List, Dict, Sequence, Iterable, Optional, Text, Tuple, Callable)  # @UnusedImport
@@ -856,7 +857,7 @@ class ProjectsDB(trtc.SingletonConfigurable, baseapp.Spec):
             if verbose:
                 infos = OrderedDict(self._infos_fields(
                     pname=pname,
-                    fields='msg.state revs_count files_count last_cdata author msg.action'.split(),
+                    fields='msg.state revs_count files_count last_cdate author msg.action'.split(),
                     inv_value='<invalid>'))
             res[pname] = infos
 
@@ -1037,11 +1038,25 @@ class ProjectCmd(_PrjCmd):
         __report = None
 
         def run(self, *args):
-            self.log.info('Importing report files %s...', args)
             if len(args) > 0:
                 raise CmdException('Cmd %r takes no arguments, received %d: %r!'
                                    % (self.name, len(args), args))
-            return self.projects_db.current_project().do_tagreport()
+            from . import tstamp
+            from . import report
+
+            proj = self.projects_db.current_project()
+            if proj.state == 'wltp_iof':
+                self.log.info('Generating Dice report ...')
+                proj.do_tagreport()
+
+            pfiles = proj.list_pfiles('out', _as_index_paths=True)
+            rep = report.Report(config=self.config)
+            rep_msg = str(list(rep.yield_from_iofiles(pfiles)))
+
+            self.log.info('Sending Timestamp ...')
+            sender = tstamp.TstampSender(config=self.config)
+            login_cb = tstamp.ConsoleLoginCb(config=self.config)
+            sender.send_timestamped_email(rep_msg, login_cb)
 
     class ExamineCmd(_PrjCmd):
         """
