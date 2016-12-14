@@ -202,15 +202,15 @@ def define_tooltips():
         run_sync_btn: |-
             Runs the Synchronization utility.
 
-        sel_demo_folder_btn: |-
+        sel_ipython_folder_btn: |-
             Opens an Select-folder dialog to specify where to store the IPython-notebook(`.ipynb`) files.
-        demo_folder_btn: |-
+        ipython_folder_btn: |-
             The folder where the IPython-notebook(`.ipynb`) files have been stored.
             - Double-click to open it.
 
-        sel_ipython_folder_btn: |-
+        sel_demo_folder_btn: |-
             Opens an Select-folder dialog to specify where to store the demo CO2MPAS Input files.
-        ipython_folder_btn: |-
+        demo_folder_btn: |-
             The folder where the demo CO2MPAS Input files have been stored.
             - Double-click to open it.
 
@@ -1729,7 +1729,7 @@ class TemplatesPanel(ttk.Frame):
         widgets = {}  # To register widgets embeded in makdown-text.
 
         help_msg = dedent("""
-        - Opens a Select-folder dialog for storing DEMO INPUT  files:
+        - Opens a Select-folder dialog for storing DEMO INPUT files:
         [wdg:demo-files]
 
         - Opens a Select-folder dialog for storing IPYTHON NOTEBOOKS that may also run CO2MPAS and generate reports:
