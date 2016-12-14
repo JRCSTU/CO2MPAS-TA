@@ -274,7 +274,7 @@ class TstampReceiver(TStampSpec):
         mod100 = num % 100
         decision = 'OK' if mod100 < 90 else 'SAMPLE'
 
-        return sig, num, mod100, decision
+        return sig.decode(), num, mod100, decision
 
     # see https://pymotw.com/2/imaplib/ for IMAP example.
     def receive_timestamped_email(self, host, login_cb, ssl=False, **srv_kwds):

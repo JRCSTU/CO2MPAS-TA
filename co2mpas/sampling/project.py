@@ -500,6 +500,7 @@ class ProjectsDB(trtc.SingletonConfigurable, baseapp.Spec):
     __repo = None
 
     def __del__(self):
+        ## TODO: use weakref for proj/gitpython (recent)
         if self.__repo:
             self.__repo.git.clear_cache()
 
