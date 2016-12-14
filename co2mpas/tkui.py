@@ -64,7 +64,7 @@ from textwrap import dedent, indent
 from threading import Thread
 from tkinter import StringVar, ttk, filedialog
 import traceback
-from typing import Any, Union, Mapping, Text  # @UnusedImport
+from typing import Any, Union, Mapping, Text, Dict, Callable  # @UnusedImport
 import weakref
 import webbrowser
 
@@ -625,6 +625,42 @@ class HyperlinkManager:
             if tag[:6] == "hyper-":
                 self.links[tag]()
                 return
+
+
+class KeyHandler:
+    """A tkinter key-handler that records Shift/Ctrl/Alt states."""
+
+    shift = False
+    ctrl = False
+    alt = False
+
+    def __init__(self, key_cbs: Dict[Union[Text, int], Callable[[tk.Event, 'KeyHandler'], None]]):
+        self.key_cbs = key_cbs
+
+    def bind(self, widget):
+        widget.bind("<KeyPress>", self.key_press)
+        widget.bind("<KeyRelease>", self.key_release)
+
+    def _mark_modifier(self, keycode, state):
+        if keycode == 16:
+            self.shift = state
+        elif keycode == 17:
+            self.ctrl = state
+        elif keycode == 18:
+            self.alt = state
+
+    def key_press(self, ev):
+        #print('KP', keycode)
+        self._mark_modifier(ev.keycode, True)
+
+        key_cbs = self.key_cbs
+        cb = key_cbs.get(ev.keycode) or key_cbs.get(ev.keysym) or key_cbs.get(ev.char)
+        if cb:
+            return cb(ev, self)
+
+    def key_release(self, ev):
+        #print('KR', keycode)
+        self._mark_modifier(ev.keycode, False)
 
 
 class FlagButton(ttk.Button):
@@ -1855,7 +1891,7 @@ class DicePanel(ttk.Frame):
             for func, t in zip(decision_setters, texts):
                 func(t)
 
-        default_texts = ['<sig>', '<sig-number>', '<mod-100>', '<OK/SAMPLE>']
+        default_texts = ('<sig>', '<sig-number>', '<mod-100>', '<OK/SAMPLE>')
         show_decisions(default_texts)
 
         def parse_tstamp_response():
@@ -1864,13 +1900,25 @@ class DicePanel(ttk.Frame):
             tstamp_response = self.response_pastearea.get(1.0, tk.END)
             if tstamp_response.strip():
                 c = tstamp.TstampReceiver()
-                sig, num, mod100, decision = c.parse_tsamp_response(tstamp_response)
-
+                try:
+                    sig, num, mod100, decision = c.parse_tsamp_response(tstamp_response)
+                except Exception as ex:
+                    log.debug("Failed parsing tstamp response due to: %s", ex, exc_info=1)
+                    sig, num, mod100, decision = ('INVALID TSTAMP RESPONSE: %s' % ex, '', '', '')
                 show_decisions(str(t) for t in (sig, num, mod100, decision))
-            else:
-                show_decisions(default_texts)
-                decision = ''
             dec_label['style'] = decision + 'Decision.TLabel'
+
+        ## Parse timestamp on [Ctrl+Enter].
+        #
+        def handle_ctrl_return_key(ev, kh):
+            if kh.ctrl:
+                try:
+                    parse_tstamp_response()
+                finally:
+                    return 'break'
+
+        kc = KeyHandler({'Return': handle_ctrl_return_key})
+        kc.bind(self.response_pastearea)
 
         btn['command'] = parse_tstamp_response
 
