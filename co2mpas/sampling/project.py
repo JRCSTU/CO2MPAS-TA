@@ -324,6 +324,13 @@ class Project(transitions.Machine, baseapp.Spec):
         """Triggered by `do_createme()` on ENTER 'empty' state."""
         repo = self.projects_db.repo
         index = repo.index
+
+        ## Cleanup any files from old project.
+        #
+        old_fpaths = [e[0] for e in index.entries]
+        if old_fpaths:
+            index.remove(old_fpaths, working_tree=True, r=True, force=True)
+
         state_fpath = osp.join(repo.working_tree_dir, 'CO2MPAS')
         with io.open(state_fpath, 'wt') as fp:
             fp.write(self._make_readme())
