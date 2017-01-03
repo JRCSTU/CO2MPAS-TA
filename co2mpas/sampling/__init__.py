@@ -56,6 +56,9 @@ class PFiles(namedtuple('PFiles', all_io_kinds)):
     """
     Holder of project-files stored in the repository.
 
+    :ivar inp: ``[fname1, ...]``
+    :ivar out: ``[fname1, ...]``
+    :ivar other: ``{index: fname}``
     """
     ## INFO: Defined here to avoid circular deps between report.py <-> project.py,
     #  because it is used in their function declarations.

@@ -357,6 +357,39 @@ class TStraightStory(unittest.TestCase):
         self.assertIs(p, p2)
 
 
+class TInitCmd(unittest.TestCase):
+
+    def setUp(self):
+        self._project_repo = tempfile.TemporaryDirectory()
+        log.debug('Temp-repo: %s', self._project_repo)
+
+    def tearDown(self):
+        self._project_repo.cleanup()
+
+    @property
+    def _config(self):
+        c = get_config()
+        c.ProjectsDB.repo_path = self._project_repo.name
+        c.Spec.verbose = c.ProjectsDB.verbose = 0
+        return c
+
+    def make_new_project(self, proj):
+        cmd = project.ProjectCmd.InitCmd(config=self._config)
+        cmd.run(proj)
+
+        pdb = project.ProjectsDB.instance()
+        pdb.update_config(self._config)
+        p = pdb.current_project()
+        self.assertEqual(len(list(pdb.repo.head.commit.tree.traverse())), 1, list(pdb.repo.head.commit.tree.traverse()))
+
+        p.do_addfiles(pfiles=PFiles(inp=[_inp_fpath], out=[_out_fpath]))
+        self.assertEqual(len(list(pdb.repo.head.commit.tree.traverse())), 5, list(pdb.repo.head.commit.tree.traverse()))
+
+    def test_init_does_in_new_project(self):
+        self.make_new_project('foobar')
+        self.make_new_project('barfoo')
+
+
 class TBackupCmd(unittest.TestCase):
 
     def setUp(self):
