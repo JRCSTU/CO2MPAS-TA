@@ -20,9 +20,9 @@ Modules:
     co2_params
 """
 
-import co2mpas.dispatcher as dsp
+import dispatcher as dsp
 import sklearn.metrics as sk_met
-import co2mpas.dispatcher.utils as dsp_utl
+import dispatcher.utils as dsp_utl
 import logging
 import collections
 import pprint

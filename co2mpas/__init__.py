@@ -17,7 +17,6 @@
     ~datasync
     ~plot
     ~plan
-    ~dispatcher
     ~utils
     ~report
 

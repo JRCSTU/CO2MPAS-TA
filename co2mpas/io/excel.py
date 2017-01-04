@@ -18,7 +18,7 @@ import xlsxwriter.utility as xl_utl
 import inspect
 import itertools
 import regex
-import co2mpas.dispatcher.utils as dsp_utl
+import dispatcher.utils as dsp_utl
 import json
 import os.path as osp
 import functools

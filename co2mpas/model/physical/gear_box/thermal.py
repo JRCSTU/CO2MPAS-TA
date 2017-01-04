@@ -9,8 +9,8 @@
 It contains functions to calculate torque losses and the gear box temperature.
 """
 
-import co2mpas.dispatcher.utils as dsp_utl
-import co2mpas.dispatcher as dsp
+import dispatcher.utils as dsp_utl
+import dispatcher as dsp
 import math
 
 
@@ -246,7 +246,7 @@ def thermal():
 
     :return:
         The gear box thermal sub model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

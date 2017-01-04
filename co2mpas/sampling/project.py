@@ -614,8 +614,8 @@ class ProjectsDB(trtc.SingletonConfigurable, baseapp.Spec):
 
     @fnt.lru_cache()  # x6(!) faster!
     def _infos_dsp(self, fallback_value='<invalid>'):
-        from co2mpas.dispatcher import Dispatcher
-        from co2mpas.dispatcher.utils.dsp import DFun
+        from dispatcher import Dispatcher
+        from dispatcher.utils.dsp import DFun
 
         dfuns = [
             DFun('repo', lambda _infos: self.repo),

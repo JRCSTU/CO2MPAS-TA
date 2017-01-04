@@ -13,7 +13,7 @@ It contains models to compare/select the calibrated co2_params.
 import logging
 import copy
 import functools
-import co2mpas.dispatcher.utils as dsp_utl
+import dispatcher.utils as dsp_utl
 log = logging.getLogger(__name__)
 
 

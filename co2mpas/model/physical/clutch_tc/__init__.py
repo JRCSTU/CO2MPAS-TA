@@ -21,8 +21,8 @@ Sub-Modules:
     torque_converter
 """
 
-import co2mpas.dispatcher.utils as dsp_utl
-import co2mpas.dispatcher as dsp
+import dispatcher.utils as dsp_utl
+import dispatcher as dsp
 import scipy.interpolate as sci_itp
 import numpy as np
 
@@ -141,7 +141,7 @@ def clutch_torque_converter():
 
     :return:
         The clutch and torque-converter model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

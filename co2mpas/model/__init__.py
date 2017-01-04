@@ -19,8 +19,8 @@ It contains a comprehensive list of all CO2MPAS software models and sub-models:
     selector
 """
 
-import co2mpas.dispatcher.utils as dsp_utl
-import co2mpas.dispatcher as dsp
+import dispatcher.utils as dsp_utl
+import dispatcher as dsp
 
 
 def select_prediction_data(data, *new_data, theoretical=True):
@@ -123,7 +123,7 @@ def model():
 
     :return:
         The CO2MPAS model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     from .physical import physical

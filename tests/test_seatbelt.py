@@ -8,7 +8,7 @@
 from co2mpas.__main__ import init_logging, file_finder
 from co2mpas.batch import vehicle_processing_model
 import co2mpas.utils as co2_utl
-import co2mpas.dispatcher.utils as dsp_utl
+import dispatcher.utils as dsp_utl
 import os
 import os.path as osp
 import sys

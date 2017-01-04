@@ -30,7 +30,7 @@ import sklearn.ensemble as sk_ens
 import sklearn.tree as sk_tree
 import sklearn.metrics as sk_met
 import sklearn.cluster as sk_clu
-import co2mpas.dispatcher as dsp
+import dispatcher as dsp
 import co2mpas.utils as co2_utl
 
 
@@ -1220,7 +1220,7 @@ def electrics():
 
     :return:
         The electrics model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

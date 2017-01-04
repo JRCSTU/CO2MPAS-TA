@@ -14,7 +14,7 @@ import sklearn.pipeline as sk_pip
 import sklearn.feature_selection as sk_fsel
 import sklearn.ensemble as sk_ens
 import co2mpas.utils as co2_utl
-import co2mpas.dispatcher as dsp
+import dispatcher as dsp
 import itertools
 
 
@@ -408,7 +408,7 @@ def thermal():
 
     :return:
         The engine thermal model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

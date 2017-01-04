@@ -11,7 +11,7 @@ It contains functions that model the basic mechanics of the torque converter.
 
 import sklearn.metrics as sk_met
 import sklearn.ensemble as sk_ens
-import co2mpas.dispatcher as dsp
+import dispatcher as dsp
 import numpy as np
 
 
@@ -222,7 +222,7 @@ def torque_converter():
 
     :return:
         The torque converter model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(
