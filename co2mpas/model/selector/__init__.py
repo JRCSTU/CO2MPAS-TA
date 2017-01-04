@@ -704,8 +704,6 @@ def _selector(name, data_in, data_out, setting):
 
 def _errors(name, data_id, data_out, setting):
 
-    name = ''.join(k[0].upper() for k in name.split('_'))
-
     d = dsp.Dispatcher(
         name='%s-%s errors' % (name, data_id),
         description='Calculates the error of calibrated model.',
