@@ -186,9 +186,12 @@ setup(
         'Pillow',           ## for tkui
         'toolz',
         'flask',
-        'Pycel'
+        'Pycel',
+        'dispatcher'
     ],
-    dependency_links=['https://github.com/vinci1it2000/pycel/tarball/master#egg=Pycel'],
+    dependency_links=[
+        'https://github.com/vinci1it2000/pycel/tarball/master#egg=Pycel',
+        'https://github.com/vinci1it2000/dispatcher/tarball/master#egg=dispatcher'],
     extras_require={
         'dice': [
             'python-gnupg',

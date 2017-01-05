@@ -13,8 +13,8 @@ import scipy.optimize as sci_opt
 import sklearn.linear_model as sk_lim
 import co2mpas.utils as co2_utl
 import functools
-import co2mpas.dispatcher.utils as dsp_utl
-import co2mpas.dispatcher as dsp
+import dispatcher.utils as dsp_utl
+import dispatcher as dsp
 import numpy as np
 from .torque_converter import TorqueConverter
 
@@ -234,7 +234,7 @@ def clutch():
 
     :return:
         The clutch model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

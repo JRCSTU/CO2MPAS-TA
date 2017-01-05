@@ -27,7 +27,7 @@ Modules:
     defaults
 """
 
-import co2mpas.dispatcher as dsp
+import dispatcher as dsp
 import numpy as np
 import functools
 import co2mpas.utils as co2_utl
@@ -190,7 +190,7 @@ def physical():
 
     :return:
         The CO2MPAS physical model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

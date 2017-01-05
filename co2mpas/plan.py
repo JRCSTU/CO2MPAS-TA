@@ -9,7 +9,7 @@
 It contains functions to make a simulation plan.
 """
 import tqdm
-import co2mpas.dispatcher.utils as dsp_utl
+import dispatcher.utils as dsp_utl
 import co2mpas.utils as co2_utl
 import co2mpas.io as co2_io
 import co2mpas.batch as batch

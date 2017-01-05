@@ -14,8 +14,8 @@ import sklearn.metrics as sk_met
 import sklearn.tree as sk_tree
 import co2mpas.utils as co2_utl
 import numpy as np
-import co2mpas.dispatcher.utils as dsp_utl
-import co2mpas.dispatcher as dsp
+import dispatcher.utils as dsp_utl
+import dispatcher as dsp
 import lmfit
 
 
@@ -221,7 +221,7 @@ def cold_start():
 
     :return:
         The engine start/stop model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

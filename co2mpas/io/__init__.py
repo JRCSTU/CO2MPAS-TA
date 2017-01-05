@@ -28,9 +28,9 @@ import datetime
 import logging
 import pathlib
 import regex
-import co2mpas.dispatcher.utils as dsp_utl
+import dispatcher.utils as dsp_utl
 from co2mpas._version import version
-import co2mpas.dispatcher as dsp
+import dispatcher as dsp
 from . import schema, excel, dill
 import functools
 import itertools

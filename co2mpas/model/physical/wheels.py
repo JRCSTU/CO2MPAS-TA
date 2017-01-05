@@ -11,8 +11,8 @@ It contains functions that model the basic mechanics of the wheels.
 
 import math
 import numpy as np
-import co2mpas.dispatcher.utils as dsp_utl
-import co2mpas.dispatcher as dsp
+import dispatcher.utils as dsp_utl
+import dispatcher as dsp
 import co2mpas.utils as co2_utl
 from .gear_box import mechanical as gb_mec
 import regex
@@ -557,7 +557,7 @@ def wheels():
 
     :return:
         The wheels model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

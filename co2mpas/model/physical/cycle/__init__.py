@@ -22,8 +22,8 @@ Sub-Modules:
 
 """
 
-import co2mpas.dispatcher as dsp
-import co2mpas.dispatcher.utils as dsp_utl
+import dispatcher as dsp
+import dispatcher.utils as dsp_utl
 import numpy as np
 
 
@@ -132,7 +132,7 @@ def cycle():
 
     :return:
         The cycle model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

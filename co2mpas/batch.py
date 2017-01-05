@@ -15,8 +15,8 @@ import re
 
 from tqdm import tqdm
 
-import co2mpas.dispatcher as dsp
-import co2mpas.dispatcher.utils as dsp_utl
+import dispatcher as dsp
+import dispatcher.utils as dsp_utl
 import co2mpas.io.excel as excel
 import co2mpas.io.schema as schema
 import co2mpas.utils as co2_utl
@@ -35,7 +35,7 @@ def parse_dsp_solution(solution):
 
     :param solution:
         Co2mpas model after dispatching.
-    :type solution: co2mpas.dispatcher.Solution
+    :type solution: dispatcher.Solution
 
     :return:
         Mapped outputs.

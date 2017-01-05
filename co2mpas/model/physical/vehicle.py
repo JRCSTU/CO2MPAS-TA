@@ -9,8 +9,8 @@
 It contains functions that model the basic mechanics of the vehicle.
 """
 
-import co2mpas.dispatcher.utils as dsp_utl
-import co2mpas.dispatcher as dsp
+import dispatcher.utils as dsp_utl
+import dispatcher as dsp
 import scipy.interpolate as sci_itp
 import pykalman
 import numpy as np
@@ -374,7 +374,7 @@ def vehicle():
 
     :return:
         The vehicle model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

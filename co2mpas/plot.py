@@ -13,7 +13,7 @@ import logging
 import sys
 import os.path as osp
 import matplotlib.pyplot as plt
-import co2mpas.dispatcher.utils as dsp_utl
+import dispatcher.utils as dsp_utl
 
 log = logging.getLogger(__name__)
 
@@ -160,7 +160,7 @@ def plot_time_series(
 
     :param dsp:
         Co2mpas model.
-    :type dsp: co2mpas.dispatcher.Dispatcher
+    :type dsp: dispatcher.Dispatcher
 
     :param x_id:
         Id of X axes.

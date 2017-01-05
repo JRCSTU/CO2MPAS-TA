@@ -9,8 +9,8 @@
 It contains functions that model the basic mechanics of the final drive.
 """
 
-import co2mpas.dispatcher.utils as dsp_utl
-import co2mpas.dispatcher as dsp
+import dispatcher.utils as dsp_utl
+import dispatcher as dsp
 import logging
 import numpy as np
 log = logging.getLogger(__name__)
@@ -251,7 +251,7 @@ def final_drive():
 
     :return:
         The final drive model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

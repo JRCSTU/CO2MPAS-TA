@@ -36,7 +36,7 @@ proj_ver = read_project_version()
 prj_dir = abspath(join(dirname(__file__), '..'))
 
 sys.path.insert(0, prj_dir)
-sys.path.append(abspath(join(dirname(__file__), '_ext')))
+
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -54,8 +54,8 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
-    'autosummary',
-    'dsp_directive',
+    'dispatcher.ext.autosummary',
+    'dispatcher.ext.dsp_directive',
 ]
 
 autosummary_generate = True

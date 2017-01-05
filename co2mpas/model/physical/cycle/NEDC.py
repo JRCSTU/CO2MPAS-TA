@@ -11,8 +11,8 @@ It provides constants for the NEDC cycle.
 """
 
 import scipy.interpolate as sci_itp
-import co2mpas.dispatcher.utils as dsp_utl
-import co2mpas.dispatcher as dsp
+import dispatcher.utils as dsp_utl
+import dispatcher as dsp
 import numpy as np
 import functools
 
@@ -196,7 +196,7 @@ def nedc_cycle():
 
     :return:
         The wltp cycle model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

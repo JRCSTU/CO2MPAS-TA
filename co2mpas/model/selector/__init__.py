@@ -20,9 +20,9 @@ Modules:
     co2_params
 """
 
-import co2mpas.dispatcher as dsp
+import dispatcher as dsp
 import sklearn.metrics as sk_met
-import co2mpas.dispatcher.utils as dsp_utl
+import dispatcher.utils as dsp_utl
 import logging
 import collections
 import pprint
@@ -703,8 +703,6 @@ def _selector(name, data_in, data_out, setting):
 
 
 def _errors(name, data_id, data_out, setting):
-
-    name = ''.join(k[0].upper() for k in name.split('_'))
 
     d = dsp.Dispatcher(
         name='%s-%s errors' % (name, data_id),

@@ -9,12 +9,12 @@
 It contains reporting functions for output results.
 """
 
-import co2mpas.dispatcher as dsp
+import dispatcher as dsp
 import collections
 import functools
 import numpy as np
 import sklearn.metrics as sk_met
-import co2mpas.dispatcher.utils as dsp_utl
+import dispatcher.utils as dsp_utl
 import co2mpas.utils as co2_utl
 import co2mpas.io.excel as co2_exl
 import dill

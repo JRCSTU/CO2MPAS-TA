@@ -14,7 +14,7 @@ import logging
 log = logging.getLogger(__name__)
 
 import dill
-import co2mpas.dispatcher.utils as dsp_utl
+import dispatcher.utils as dsp_utl
 
 __all__ = ['load_from_dill', 'save_dill']
 

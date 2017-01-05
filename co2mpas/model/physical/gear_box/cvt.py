@@ -10,7 +10,7 @@ It contains functions that model the basic mechanics of a CVT.
 """
 
 
-import co2mpas.dispatcher as dsp
+import dispatcher as dsp
 import sklearn.ensemble as sk_ens
 import numpy as np
 
@@ -136,7 +136,7 @@ def cvt_model():
 
     :return:
         The gear box model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

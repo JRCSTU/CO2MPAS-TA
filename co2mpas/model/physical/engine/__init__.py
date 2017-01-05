@@ -27,8 +27,8 @@ import co2mpas.model.physical.defaults as defaults
 import numpy as np
 import sklearn.metrics as sk_met
 from sklearn.cluster import DBSCAN
-import co2mpas.dispatcher.utils as dsp_utl
-import co2mpas.dispatcher as dsp
+import dispatcher.utils as dsp_utl
+import dispatcher as dsp
 import co2mpas.utils as co2_utl
 import functools
 
@@ -971,7 +971,7 @@ def engine():
 
     :return:
         The engine model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

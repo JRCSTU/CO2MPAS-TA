@@ -26,7 +26,7 @@ import sys
 from sklearn.linear_model import RANSACRegressor
 import yaml
 
-import co2mpas.dispatcher.utils as dsp_utl
+import dispatcher.utils as dsp_utl
 import networkx as nx
 import numpy as np
 import pandalone.utils as putils

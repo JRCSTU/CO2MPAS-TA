@@ -9,10 +9,10 @@ loggers:
     # PIL.Image: {}
     # co2mpas: {}
     # co2mpas.__main__: {}
-    # co2mpas.dispatcher: {}
-    # co2mpas.dispatcher.utils: {}
-    # co2mpas.dispatcher.utils.des: {}
-    # co2mpas.dispatcher.utils.drw: {}
+    # dispatcher: {}
+    # dispatcher.utils: {}
+    # dispatcher.utils.des: {}
+    # dispatcher.utils.drw: {}
     # co2mpas.functions: {}
     # co2mpas.functions.model: {}
     # co2mpas.functions.model.selector: {}

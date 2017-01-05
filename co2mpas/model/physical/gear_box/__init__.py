@@ -23,9 +23,9 @@ Sub-Modules:
 """
 
 
-import co2mpas.dispatcher as dsp
+import dispatcher as dsp
 import math
-import co2mpas.dispatcher.utils as dsp_utl
+import dispatcher.utils as dsp_utl
 import co2mpas.model.physical.defaults as defaults
 import functools
 import numpy as np
@@ -611,7 +611,7 @@ def gear_box():
 
     :return:
         The gear box model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

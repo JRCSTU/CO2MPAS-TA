@@ -16,7 +16,7 @@ import scipy.optimize as sci_opt
 import scipy.stats as sci_sta
 import sklearn.cluster as sk_clu
 import sklearn.metrics as sk_met
-import co2mpas.dispatcher as dsp
+import dispatcher as dsp
 import co2mpas.utils as co2_utl
 import numpy as np
 import co2mpas.model.physical.defaults as defaults
@@ -574,7 +574,7 @@ def mechanical():
 
     :return:
         The gear box mechanical model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

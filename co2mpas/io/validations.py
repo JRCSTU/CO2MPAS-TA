@@ -12,7 +12,7 @@ It provides the CO2MPAS validation formulas.
 
 import numpy as np
 import copy
-import co2mpas.dispatcher.utils as dsp_utl
+import dispatcher.utils as dsp_utl
 import co2mpas.utils as co2_utl
 from . import constants
 import functools

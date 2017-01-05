@@ -18,8 +18,8 @@ import scipy.interpolate as sci_itp
 import scipy.optimize as sci_opt
 import sklearn.metrics as sk_met
 import sklearn.tree as sk_tree
-import co2mpas.dispatcher.utils as dsp_utl
-import co2mpas.dispatcher as dsp
+import dispatcher.utils as dsp_utl
+import dispatcher as dsp
 import co2mpas.model.physical.defaults as defaults
 import co2mpas.utils as co2_utl
 import numpy as np
@@ -1519,7 +1519,7 @@ def at_gear():
 
     :return:
         The A/T gear shifting model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(
@@ -1815,7 +1815,7 @@ def at_cmv():
 
     :return:
         The corrected matrix velocity model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(
@@ -1856,7 +1856,7 @@ def at_cmv_cold_hot():
 
     :return:
         The corrected matrix velocity with cold/hot model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(
@@ -1904,7 +1904,7 @@ def at_dt_va():
 
     :return:
         The decision tree with velocity & acceleration model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(
@@ -1942,7 +1942,7 @@ def at_dt_vap():
 
     :return:
         The decision tree with velocity, acceleration, & power model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(
@@ -1986,7 +1986,7 @@ def at_dt_vat():
 
     :return:
         The decision tree with velocity, acceleration, & temperature model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(
@@ -2032,7 +2032,7 @@ def at_dt_vatp():
     :return:
         The decision tree with velocity, acceleration, temperature & power
         model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(
@@ -2084,7 +2084,7 @@ def at_gspv():
 
     :return:
         The gear shifting power velocity model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(
@@ -2124,7 +2124,7 @@ def at_gspv_cold_hot():
 
     :return:
         The gear shifting power velocity with cold/hot model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(

@@ -13,8 +13,8 @@ It provides constants for the WLTP cycle.
 
 import wltp.experiment as wltp_exp
 import wltp.model as wltp_mdl
-import co2mpas.dispatcher as dsp
-import co2mpas.dispatcher.utils as dsp_utl
+import dispatcher as dsp
+import dispatcher.utils as dsp_utl
 import logging
 import copy
 import numpy as np
@@ -375,7 +375,7 @@ def wltp_cycle():
 
     :return:
         The wltp cycle model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(
@@ -459,7 +459,7 @@ def calculate_wltp_velocities():
 
     :return:
         The wltp cycle model.
-    :rtype: co2mpas.dispatcher.Dispatcher
+    :rtype: dispatcher.Dispatcher
     """
 
     d = dsp.Dispatcher(
