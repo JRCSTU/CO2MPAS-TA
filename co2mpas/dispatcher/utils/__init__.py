@@ -41,6 +41,7 @@ Sub-Modules:
     drw
     dsp
     exc
+    exl
     gen
     io
     sol
@@ -49,25 +50,12 @@ Sub-Modules:
 
 __author__ = 'Vincenzo Arcidiacono'
 __all__ = []
-from . import alg
-from .alg import *
-
-__all__ += alg.__all__
 
 from . import cst
 from .cst import *
 
 __all__ += cst.__all__
 
-from . import des
-from .des import *
-
-__all__ += des.__all__
-
-from . import drw
-from .drw import *
-
-__all__ += drw.__all__
 
 from . import dsp
 from .dsp import *
@@ -79,6 +67,11 @@ from .exc import *
 
 __all__ += exc.__all__
 
+from . import exl
+from .exl import *
+
+__all__ += exl.__all__
+
 from . import gen
 from .gen import *
 
@@ -88,13 +81,3 @@ from . import io
 from .io import *
 
 __all__ += io.__all__
-
-from . import sol
-from .sol import *
-
-__all__ += sol.__all__
-
-from . import web
-from .web import *
-
-__all__ += web.__all__

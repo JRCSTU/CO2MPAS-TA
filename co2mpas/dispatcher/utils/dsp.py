@@ -9,11 +9,11 @@
 """
 It provides tools to create models with the :func:`~dispatcher.Dispatcher`.
 """
-from collections import OrderedDict
-from copy import deepcopy
-from functools import partial, reduce
-from inspect import signature, Parameter, _POSITIONAL_OR_KEYWORD
-from itertools import repeat, chain
+import collections
+import inspect
+import copy
+import functools
+import itertools
 import types
 from .base import Base
 from .exc import DispatcherError, DispatcherAbort
@@ -22,11 +22,20 @@ from .gen import Token
 
 __author__ = 'Vincenzo Arcidiacono'
 
-__all__ = ['combine_dicts', 'bypass', 'summation', 'map_dict', 'map_list',
-           'selector', 'replicate_value', 'add_args', 'parse_args',
+__all__ = ['stlp', 'combine_dicts', 'bypass', 'summation', 'map_dict',
+           'map_list', 'selector', 'replicate_value', 'add_args', 'parse_args',
            'stack_nested_keys', 'get_nested_dicts', 'are_in_nested_dicts',
            'combine_nested_dicts', 'SubDispatch', 'ReplicateFunction',
-           'SubDispatchFunction', 'SubDispatchPipe']
+           'SubDispatchFunction', 'SubDispatchPipe', 'parent_func']
+
+
+def stlp(s):
+    """
+    Converts a string in a tuple.
+    """
+    if isinstance(s, str):
+        return s,
+    return s
 
 
 def combine_dicts(*dicts, copy=False, base=None):
@@ -65,7 +74,7 @@ def combine_dicts(*dicts, copy=False, base=None):
                 cd.update(d)
 
     # Return combined dict.
-    return {k: deepcopy(v) for k, v in cd.items()} if copy else cd
+    return {k: copy.deepcopy(v) for k, v in cd.items()} if copy else cd
 
 
 def bypass(*inputs, copy=False):
@@ -95,7 +104,7 @@ def bypass(*inputs, copy=False):
     if len(inputs) == 1:
         inputs = inputs[0]  # Same inputs.
 
-    return deepcopy(inputs) if copy else inputs  # Return inputs.
+    return copy.deepcopy(inputs) if copy else inputs  # Return inputs.
 
 
 def summation(*inputs):
@@ -117,7 +126,7 @@ def summation(*inputs):
     """
 
     # Return the sum of the input values.
-    return reduce(lambda x, y: x + y, inputs)
+    return functools.reduce(lambda x, y: x + y, inputs)
 
 
 def map_dict(key_map, *dicts, copy=False, base=None):
@@ -272,7 +281,7 @@ def selector(keys, dictionary, copy=False, output_type='dict',
 
     if output_type == 'list':  # Select as list.
         res = [dictionary[k] for k in keys if check(k)]
-        return deepcopy(res) if copy else res
+        return copy.deepcopy(res) if copy else res
     elif output_type == 'values':
         return bypass(*[dictionary[k] for k in keys if check(k)], copy=copy)
 
@@ -309,6 +318,25 @@ def replicate_value(value, n=2, copy=True):
     """
 
     return bypass(*[value] * n, copy=copy)  # Return replicated values.
+
+
+def parent_func(func, input_id=None):
+
+    if isinstance(func, functools.partial):
+        if input_id is not None:
+            # noinspection PyTypeChecker
+            input_id += len(func.args)
+        return parent_func(func.func, input_id=input_id)
+
+    elif isinstance(func, add_args):
+        if input_id is not None:
+            input_id -= func.n
+        return parent_func(func.func, input_id=input_id)
+
+    if input_id is None:
+        return func
+    else:
+        return func, input_id
 
 
 class add_args(object):
@@ -362,23 +390,24 @@ class add_args(object):
 
     def __deepcopy__(self, memo):
         cls = add_args(
-            func=deepcopy(self.func, memo),
+            func=copy.deepcopy(self.func, memo),
             n=self.n,
-            callback=deepcopy(self.callback, memo)
+            callback=copy.deepcopy(self.callback, memo)
         )
         return cls
 
 
 def _get_signature(func, n=1):
-    sig = signature(func)  # Get function signature.
+    sig = inspect.signature(func)  # Get function signature.
 
     def ept_par():  # Return none signature parameter.
         name = Token('none')
-        return name, Parameter(name, _POSITIONAL_OR_KEYWORD)
+        return name, inspect.Parameter(name, inspect._POSITIONAL_OR_KEYWORD)
 
     # Update signature parameters.
-    par = chain(*([p() for p in repeat(ept_par, n)], sig.parameters.items()))
-    sig._parameters = types.MappingProxyType(OrderedDict(par))
+    par = itertools.chain(*([p() for p in itertools.repeat(ept_par, n)],
+                            sig.parameters.items()))
+    sig._parameters = types.MappingProxyType(collections.OrderedDict(par))
 
     return sig
 
@@ -558,7 +587,7 @@ class parse_args(add_args):
 
     def __deepcopy__(self, memo):
         cls = parse_args(
-            func=deepcopy(self.func, memo),
+            func=copy.deepcopy(self.func, memo),
             magic_arg=self.magic_arg,
         )
         return cls
@@ -674,7 +703,7 @@ class SubDispatch(Base):
         self.solution = Solution(dsp)
 
     def __call__(self, *input_dicts, copy_input_dicts=False, _sol_output=None,
-                 _sol_stopper=None):
+                 _sol=None):
 
         # Combine input dictionaries.
         i = combine_dicts(*input_dicts, copy=copy_input_dicts)
@@ -682,14 +711,15 @@ class SubDispatch(Base):
         # Dispatch the function calls.
         self.solution = self.dsp.dispatch(
             i, self.outputs, self.cutoff, self.inputs_dist, self.wildcard,
-            self.no_call, self.shrink, self.rm_unused_nds, stopper=_sol_stopper
+            self.no_call, self.shrink, self.rm_unused_nds,
+            stopper=_sol and _sol[1].stopper
         )
 
-        return self._return(self.solution, _sol_output)
+        return self._return(self.solution, _sol_output, _sol)
 
-    def _return(self, solution, _sol_output):
+    def _return(self, solution, _sol_output, _sol):
         outs = self.outputs
-
+        solution.parent = _sol
         # Store solution.
         if _sol_output is not None:
             _sol_output['solution'] = solution
@@ -711,7 +741,7 @@ class SubDispatch(Base):
         return solution  # Return outputs.
 
     def copy(self):
-        return deepcopy(self)
+        return copy.deepcopy(self)
 
 
 class ReplicateFunction(object):
@@ -720,7 +750,7 @@ class ReplicateFunction(object):
     """
 
     def __init__(self, function, *args, **kwargs):
-        self.function = partial(function, *args, **kwargs)
+        self.function = functools.partial(function, *args, **kwargs)
         self.__name__ = function.__name__
         self.__doc__ = function.__doc__
 
@@ -862,11 +892,11 @@ class SubDispatchFunction(SubDispatch):
         elif len(outputs) == 1:
             self.output_type = 'values'
 
-    def __call__(self, *args, _sol_output=None, _sol_stopper=None, **kwargs):
+    def __call__(self, *args, _sol_output=None, _sol=None, **kwargs):
         # Namespace shortcuts.
         dsp, inputs = self.dsp, map_list(self.inputs, *args)
         self.solution = sol = self._sol.copy_structure()
-        sol.stopper = _sol_stopper or dsp.stopper
+        sol.stopper = (_sol and _sol[1].stopper) or dsp.stopper
 
         # Check multiple values for the same argument.
         i = next((i for i in kwargs if i in inputs), None)
@@ -893,7 +923,7 @@ class SubDispatchFunction(SubDispatch):
         sol.run()
 
         # Return outputs sorted.
-        return self._return(sol, _sol_output)
+        return self._return(sol, _sol_output, _sol)
 
 
 class SubDispatchPipe(SubDispatchFunction):
@@ -1012,20 +1042,20 @@ class SubDispatchPipe(SubDispatchFunction):
 
         self.pipe = [_make_tks(*v['task'][-1]) for v in self._sol.pipe.values()]
 
-    def __call__(self, *args, _sol_output=None, _sol_stopper=None):
+    def __call__(self, *args, _sol_output=None, _sol=None):
         dsp, inputs = self.dsp, map_list(self.inputs, *args)
-        key_map, sub_dsp = {}, {}
-        for k, s in self._sol.sub_dsp.items():
+        key_map, sub_sol = {}, {}
+        for k, s in self._sol.sub_sol.items():
             ns = s.copy_structure(dist=1)
-            ns.stopper = _sol_stopper or ns.stopper
-            ns.sub_dsp = sub_dsp
+            ns.stopper = (_sol and _sol[1].stopper) or ns.stopper
+            ns.sub_sol = sub_sol
             key_map[s] = ns
-            sub_dsp[k] = ns
+            sub_sol[ns.index] = ns
 
         sol = key_map[self._sol]
         sol.inputs.update(inputs)
 
-        for s in sub_dsp.values():
+        for s in sub_sol.values():
             s._init_workflow(clean=False)
 
         for v, s, nxt_nds, nxt_dsp in self.pipe:
@@ -1041,7 +1071,7 @@ class SubDispatchPipe(SubDispatchFunction):
             s._see_remote_link_node(v)
 
         # Return outputs sorted.
-        return self._return(sol, _sol_output)
+        return self._return(sol, _sol_output, _sol)
 
 
 class DFun(object):
@@ -1094,7 +1124,6 @@ class DFun(object):
         return cp
 
     def inspect_inputs(self):
-        import inspect
         fun_params = inspect.signature(self.fun).parameters
         assert not any(p.kind for p in fun_params.values()
                        if p.kind != inspect.Parameter.POSITIONAL_OR_KEYWORD), (

@@ -45,7 +45,7 @@ def calculate_gear_shifts(gears):
     :rtype: numpy.array
     """
 
-    return np.append([False], np.diff(gears) != 0)
+    return np.ediff1d(gears, None, [0]) != 0
 
 
 def get_gear_box_efficiency_constants(has_torque_converter):
@@ -757,7 +757,7 @@ def gear_box():
             'accelerations': 'accelerations',
             'velocity_speed_ratios': 'velocity_speed_ratios',
             'engine_speeds_out': 'engine_speeds_out',
-            'final_drive_ratio': 'final_drive_ratio',
+            'final_drive_ratios': 'final_drive_ratios',
             'gear_box_speeds_out': 'gear_box_speeds_out',
             'gear_box_ratios': 'gear_box_ratios',
             'gear_box_type': dsp_utl.SINK,

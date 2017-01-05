@@ -1,6 +1,19 @@
-from .cst import NONE
-from copy import _reconstruct
+# coding=utf-8
+# -*- coding: UTF-8 -*-
+#
+# Copyright 2014-2016 European Commission (JRC);
+# Licensed under the EUPL (the 'Licence');
+# You may not use this work except in compliance with the Licence.
+# You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
+
+"""
+It provides a base class to for dispatcher objects.
+"""
+
+import copy
 import threading
+import tempfile
+from .cst import NONE
 
 
 class Base(object):
@@ -10,13 +23,13 @@ class Base(object):
             if i not in memo:
                 memo[i] = threading.Event()
         rv = super(Base, self).__reduce_ex__(4)
-        return _reconstruct(self, rv, 1, memo)
+        return copy._reconstruct(self, rv, 1, memo)
 
     def plot(self, workflow=None, view=True, depth=-1, name=NONE, comment=NONE,
              format=NONE, engine=NONE, encoding=NONE, graph_attr=NONE,
              node_attr=NONE, edge_attr=NONE, body=NONE, node_styles=NONE,
              node_data=NONE, node_function=NONE, edge_data=NONE, max_lines=NONE,
-             max_width=NONE):
+             max_width=NONE, directory=None, sites=None):
         """
         Plots the Dispatcher with a graph in the DOT language with Graphviz.
 
@@ -111,7 +124,7 @@ class Base(object):
 
         :return:
             A directed graph source code in the DOT language.
-        :rtype: graphviz.dot.Digraph
+        :rtype: SiteMap
 
         Example:
 
@@ -155,7 +168,11 @@ class Base(object):
         sitemap = SiteMap()
         sitemap.add_items(self, workflow=workflow, depth=depth, **options)
         if view:
-            sitemap.site(view=True)
+            directory = directory or tempfile.mkdtemp()
+            if sites is None:
+                sitemap.render(directory=directory, view=True)
+            else:
+                sites.add(sitemap.site(root_path=directory, view=True))
         return sitemap
 
     def get_node(self, *node_ids, node_attr=NONE):
@@ -231,44 +248,23 @@ class Base(object):
 
             >>> sub_dsp, sub_dsp_id = d.get_node('Sub-dispatcher')
         """
+        kw = {}
+
+        from .sol import Solution
         if node_attr is NONE:
-            from .sol import Solution
             node_attr = 'output' if isinstance(self, Solution) else 'auto'
+
+        if isinstance(self, Solution):
+            kw['solution'] = self
 
         from .alg import get_sub_node
         dsp = getattr(self, 'dsp', self)
 
         # Returns the node.
-        return get_sub_node(dsp, node_ids, node_attr=node_attr)
+        return get_sub_node(dsp, node_ids, node_attr=node_attr, **kw)
 
-    def get_full_node_id(self, *node_ids):
-        """
-        Returns the full node id.
 
-        :param node_ids:
-            A sequence of node ids or a single node id. The id order identifies
-            a dispatcher sub-level.
-
-            If it is empty it will return the full id of the dispatcher.
-        :type node_ids: str
-
-        :return:
-            Full node id and related .
-        :rtype: tuple[str], tuple[Dispatcher]
-        """
-
-        if not node_ids:
-            n, dsp = NONE, getattr(self, 'dsp', self)
-        else:
-            n, dsp = node_ids[-1], self.get_node(*node_ids, node_attr='dsp')[0]
-
-        def _parent(n_id, d):
-            if d._parent:
-                l = _parent(*d._parent)
-                if n_id is not NONE:
-                    l.append(n_id)
-                return l
-
-            return [] if n_id is NONE else [n_id]
-
-        return tuple(_parent(n, dsp))
+    def search_node_description(self, node_id, what='description'):
+        dsp = getattr(self, 'dsp', self)
+        from .des import search_node_description
+        return search_node_description(node_id, dsp.nodes[node_id], dsp, what)

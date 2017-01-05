@@ -12,14 +12,11 @@ It contains basic algorithms, numerical tricks, and data processing tasks.
 
 __author__ = 'Vincenzo Arcidiacono'
 
-from heapq import heappush, heappop
+import heapq
 from .gen import pairwise, counter
 from .cst import EMPTY, NONE
-from .dsp import SubDispatch, bypass, selector, map_dict
-from .des import parent_func, search_node_description
-from collections import OrderedDict
-
-__all__ = ['stlp']
+from .dsp import SubDispatch, bypass, selector, map_dict, stlp, parent_func
+import collections
 
 
 # modified from NetworkX library
@@ -293,11 +290,6 @@ def replace_remote_link(dsp, nodes_bunch, link_map):
             node['remote_links'] = links
 
 
-def stlp(s):
-    if isinstance(s, str):
-        return s,
-    return s
-
 
 def _iter_list_nodes(l):
     for v in l:
@@ -547,7 +539,6 @@ def get_sub_node(dsp, path, node_attr='auto', solution=NONE, _level=0,
         try:
             if node['type'] == 'function':
                 try:
-                    solution = solution.sub_dsp[dsp]
                     solution = solution.workflow.node[node_id]['solution']
                 except (KeyError, AttributeError):
                     solution = EMPTY
@@ -568,17 +559,17 @@ def get_sub_node(dsp, path, node_attr='auto', solution=NONE, _level=0,
         # Return the sub node.
         if node_attr == 'auto' and node['type'] != 'data':  # Auto: function.
             node_attr = 'function'
-        elif node_attr == 'auto' and solution is not EMPTY and node_id in solution.sub_dsp.get(dsp, ()):  # Auto: data output.
-                data = solution.sub_dsp[dsp][node_id]
+        elif node_attr == 'auto' and solution is not EMPTY and node_id in solution:  # Auto: data output.
+                data = solution[node_id]
         elif node_attr == 'output' and node['type'] != 'data':
             data = solution.workflow.node[node_id]['solution']
         elif node_attr == 'output' and node['type'] == 'data':
-            data = solution.sub_dsp[dsp][node_id]
+            data = solution[node_id]
         elif node_attr == 'description':  # Search and return node description.
-            data = search_node_description(node_id, node, dsp)
+            data = dsp.search_node_description(node_id)
         elif node_attr == 'value_type' and node['type'] == 'data':
             # Search and return data node value's type.
-            data = search_node_description(node_id, node, dsp, node_attr)
+            data = dsp.search_node_description(node_id, node_attr)
         elif node_attr == 'default_value':
             data = dsp.default_values[node_id]
         elif node_attr == 'dsp':
@@ -716,7 +707,7 @@ def dijkstra(graph, source, targets=None, cutoff=None, weight=True):
     c = counter(1)
     fringe = [(0, 0, source)]  # Use heapq with (distance,label) tuples.
     while fringe:
-        (d, _, v) = heappop(fringe)
+        (d, _, v) = heapq.heappop(fringe)
 
         dist[v] = d
 
@@ -737,7 +728,7 @@ def dijkstra(graph, source, targets=None, cutoff=None, weight=True):
             elif w not in seen or vw_dist < seen[w]:
                 seen[w] = vw_dist
 
-                heappush(fringe, (vw_dist, c(), w))
+                heapq.heappush(fringe, (vw_dist, c(), w))
 
                 paths[w] = paths[v] + [w]
 
@@ -995,7 +986,7 @@ def rm_cycles_iter(graph, nodes_bunch, reached_nodes, edge_to_rm, wait_in):
             rm_cycles_iter(sub_g, data_n, reached_nodes, edge_to_rm, wait_in)
 
 
-class DspPipe(OrderedDict):
+class DspPipe(collections.OrderedDict):
     def __repr__(self):
         return "<%s instance at %s>" % (self.__class__.__name__, id(self))
 
@@ -1027,7 +1018,7 @@ def get_full_pipe(sol, base=()):
         if n in s._errors:
             p['error'] = s._errors[n]
 
-        node_id = d.get_full_node_id(n)
+        node_id = s.full_name + (n,)
 
         if base != node_id[:len(base)]:
             raise ValueError('%s != %s' % (node_id[:len(base)], base))
@@ -1056,8 +1047,8 @@ def _sort_sk_wait_in(sol):
         w = set()
         L = []
         for n, a in s.dsp.sub_dsp_nodes.items():
-            if 'function' in a and a['function'] in s.sub_dsp:
-                sub_sol = s.sub_dsp[a['function']]
+            if 'function' in a and s.index + a['index'] in s.sub_sol:
+                sub_sol = s.sub_sol[s.index + a['index']]
                 n_d, l = _get_sk_wait_in(sub_sol)
                 L += l
                 wi = {k for k, v in sub_sol._wait_in.items() if v is True}
@@ -1090,7 +1081,7 @@ def _union_workflow(sol, node_id=None, bfs=None):
 
     for n, a in sol.dsp.sub_dsp_nodes.items():
         if 'function' in a:
-            s = sol.sub_dsp.get(a['function'], None)
+            s = sol.sub_sol.get(sol.index + a['index'], None)
             if s:
                 _union_workflow(s, node_id=n, bfs=j)
     return j

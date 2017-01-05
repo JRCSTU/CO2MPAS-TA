@@ -186,7 +186,9 @@ setup(
         'Pillow',           ## for tkui
         'toolz',
         'flask',
+        'Pycel'
     ],
+    dependency_links=['https://github.com/vinci1it2000/pycel/tarball/master#egg=Pycel'],
     extras_require={
         'dice': [
             'python-gnupg',

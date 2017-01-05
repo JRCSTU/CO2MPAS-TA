@@ -11,25 +11,21 @@ It contains a comprehensive list of all modules and classes within dispatcher.
 
 Docstrings should provide sufficient understanding for any individual function.
 """
-from collections import OrderedDict
-from datetime import datetime
-from heapq import heappush, heappop
+import collections
+import heapq
 import logging
-from .alg import (add_edge_fun, remove_edge_fun, stlp, get_full_pipe,
-                  _sort_sk_wait_in)
+from datetime import datetime
+from .alg import add_edge_fun, remove_edge_fun, get_full_pipe, _sort_sk_wait_in
 from .cst import START, NONE, PLOT
-from .des import parent_func
-from .dsp import SubDispatch
+from .dsp import SubDispatch, stlp, parent_func
 from .exc import DispatcherError, DispatcherAbort
 from .base import Base
 
 
-__all__ = ['Solution']
-
 log = logging.getLogger(__name__)
 
 
-class Solution(Base, OrderedDict):
+class Solution(Base, collections.OrderedDict):
     def __hash__(self):
         return id(self)
 
@@ -49,6 +45,7 @@ class Solution(Base, OrderedDict):
         self.cutoff = cutoff
         self._wait_in = wait_in or {}
         self.outputs = set(outputs or ())
+        self.parent = None
 
         from .. import Dispatcher
         self._set_dsp_features(dsp or Dispatcher())
@@ -149,8 +146,8 @@ class Solution(Base, OrderedDict):
         self.workflow = DiGraph()
         self._visited = set()
         self._wf_pred = self.workflow.pred
-        self._errors = OrderedDict()
-        self.sub_dsp = {self.dsp: self}
+        self._errors = collections.OrderedDict()
+        self.sub_sol = {self.index: self}
         self.fringe = []  # Use heapq with (distance, wait, label).
         self.dist, self.seen, self._meet = {START: -1}, {START: -1}, {START: -1}
         self._update_methods()
@@ -184,7 +181,7 @@ class Solution(Base, OrderedDict):
 
     def run(self):
         # Initialized and terminated dispatcher sets.
-        dsp_closed, dsp_init = set(), {self.dsp}
+        dsp_closed, dsp_init = set(), {self.index}
 
         # Reset function pipe.
         pipe = self._pipe = []
@@ -197,22 +194,24 @@ class Solution(Base, OrderedDict):
         dsp_closed_add = dsp_closed.add
         fringe, check_cutoff = self.fringe, self.check_cutoff
 
-        def _dsp_closed_add(dsp):
-            dsp_closed_add(dsp)
-            for v in dsp.sub_dsp_nodes.values():
-                _dsp_closed_add(v['function'])
+        def _dsp_closed_add(sol):
+            dsp_closed_add(sol.index)
+            for v in sol.dsp.sub_dsp_nodes.values():
+                s = sol.sub_sol.get(sol.index + v['index'], None)
+                if s:
+                    _dsp_closed_add(s)
 
         while fringe:
             # Visit the closest available node.
-            n = (d, _, (v, sol)) = heappop(fringe)
+            n = (d, _, (v, sol)) = heapq.heappop(fringe)
 
             if sol.stopper.is_set():
                 raise DispatcherAbort(self, "Stop requested.")
             # Skip terminated sub-dispatcher or visited nodes.
-            if sol.dsp in dsp_closed or (v is not START and v in sol.dist):
+            if sol.index in dsp_closed or (v is not START and v in sol.dist):
                 continue
 
-            dsp_init_add(sol.dsp)  # Update initialized dispatcher sets.
+            dsp_init_add(sol.index)  # Update initialized dispatcher sets.
 
             pipe_append(n)  # Add node to the pipe.
 
@@ -221,7 +220,7 @@ class Solution(Base, OrderedDict):
                 if self is sol:
                     break  # Reach all targets.
                 else:
-                    _dsp_closed_add(sol.dsp)  # Terminated sub-dispatcher.
+                    _dsp_closed_add(sol)  # Terminated sub-dispatcher.
 
             # See remote link node.
             sol._see_remote_link_node(v, fringe, d, check_dsp)
@@ -262,15 +261,44 @@ class Solution(Base, OrderedDict):
         y._update_methods()
         return y
 
+    @property
+    def full_name(self):
+        """
+        Returns the full node id.
+
+        :param node_ids:
+            A sequence of node ids or a single node id. The id order identifies
+            a dispatcher sub-level.
+
+            If it is empty it will return the full id of the dispatcher.
+        :type node_ids: str
+
+        :return:
+            Full node id and related .
+        :rtype: tuple[str], tuple[Dispatcher]
+        """
+
+        sub_sol = self.sub_sol
+        def _get_id(path):
+            p, i = path[:-1], path[-1:]
+            if p:
+                for k, v in sub_sol[p].nodes.items():
+                    if v['index'] == i:
+                        return _get_id(p) + (k,)
+            s = sub_sol[path]
+            return (s.parent and (s.parent[1].full_name + s.parent[:1])) or ()
+
+        return _get_id(self.index)
+
     def _add_out_dsp_inputs(self):
         # Nodes that are out of the dispatcher nodes.
         o = sorted(set(self.inputs).difference(self.nodes))
 
         # Add nodes that are out of the dispatcher nodes.
         if self.no_call:
-            self.update(OrderedDict.fromkeys(o, None))
+            self.update(collections.OrderedDict.fromkeys(o, None))
         else:
-            self.update(OrderedDict((k, self.inputs[k]) for k in o))
+            self.update(collections.OrderedDict((k, self.inputs[k]) for k in o))
 
     def _check_targets(self):
         """
@@ -429,7 +457,7 @@ class Solution(Base, OrderedDict):
             for k, v in estimations.items():  # Calculate length.
                 if k is not START:
                     d = dist[k] + edg_length(edg[k][node_id], node_attr)
-                    heappush(est, (d, k, v))
+                    heapq.heappush(est, (d, k, v))
 
             # The estimation with minimum distance from the starting node.
             estimations = {est[0][1]: est[0][2]}
@@ -573,12 +601,12 @@ class Solution(Base, OrderedDict):
 
         else:
             # namespace shortcuts for speed.
-            n, has, sub_dsp = self.nodes, self.workflow.has_edge, self.sub_dsp
+            n, has, sub_sol = self.nodes, self.workflow.has_edge, self.sub_sol
 
             def no_visited_in_sub_dsp(i):
                 node = n[i]
                 if node['type'] == 'dispatcher' and has(i, node_id):
-                    visited = sub_dsp[node['function']]._visited
+                    visited = sub_sol[self.index + node['index']]._visited
                     return node['inputs'][node_id] not in visited
                 return True
 
@@ -652,8 +680,7 @@ class Solution(Base, OrderedDict):
                 fun = node_attr['function']
 
                 if isinstance(parent_func(fun), SubDispatch):
-                    res = fun(*args, _sol_output=attr,
-                              _sol_stopper=self.stopper)
+                    res = fun(*args, _sol_output=attr, _sol=(node_id, self))
                 else:
                     res = fun(*args)
 
@@ -772,7 +799,7 @@ class Solution(Base, OrderedDict):
 
                 vd = (True, w, self.index + node['index'])  # Virtual distance.
 
-                heappush(fringe, (vw_dist, vd, (w, self)))  # Add to heapq.
+                heapq.heappush(fringe, (vw_dist, vd, (w, self)))  # Add to heapq.
 
             return True
 
@@ -786,7 +813,7 @@ class Solution(Base, OrderedDict):
             vd = (wait_in, data_id, self.index + index)  # Virtual distance.
 
             # Add node to heapq.
-            heappush(fringe, (initial_dist, vd, (data_id, self)))
+            heapq.heappush(fringe, (initial_dist, vd, (data_id, self)))
 
             return True
         return False
@@ -918,7 +945,7 @@ class Solution(Base, OrderedDict):
             vd = (w_wait_in + int(wait_in), node_id, self.index + index)
 
             # Add to heapq.
-            heappush(fringe, (dist, vd, (node_id, self)))
+            heapq.heappush(fringe, (dist, vd, (node_id, self)))
 
             return True  # The node is visible.
         return False  # The node is not visible.
@@ -941,7 +968,7 @@ class Solution(Base, OrderedDict):
 
             if node_type == 'dispatcher' and succ[n]:
                 add_visited(n)  # Add to visited nodes.
-                self.sub_dsp[nodes[n]['function']]._remove_unused_nodes()
+                self.sub_sol[self.index + nodes[n]['index']]._remove_unused_nodes()
                 continue  # Skip sub-dispatcher node with outputs.
 
             wf_remove_node(n)  # Remove unused node.
@@ -970,10 +997,10 @@ class Solution(Base, OrderedDict):
             stopper=self.stopper
         )
 
-        sol.sub_dsp = self.sub_dsp
+        sol.sub_sol = self.sub_sol
 
         for f in sol.fringe:  # Update the fringe.
-            heappush(fringe, (initial_dist + f[0], (2,) + f[1][1:], f[-1]))
+            heapq.heappush(fringe, (initial_dist + f[0], (2,) + f[1][1:], f[-1]))
 
         return sol
 
@@ -1005,9 +1032,9 @@ class Solution(Base, OrderedDict):
             value = self[node_id]  # Get data output.
 
             for (dsp_id, dsp), type in node['remote_links']:
-                if 'child' == type and check_dsp(dsp):
+                if 'child' == type and check_dsp(self.index[:-1]):
                     # Get node id of remote sub-dispatcher.
-                    sol = self.sub_dsp[dsp]
+                    sol = self.sub_sol[self.index[:-1]]
                     for n_id in stlp(dsp.nodes[dsp_id]['outputs'][node_id]):
                         b = n_id in sol._visited  # Node has been visited.
 
@@ -1056,7 +1083,7 @@ class Solution(Base, OrderedDict):
         # Namespace shortcuts.
         node = self.nodes[dsp_id]
         dsp, pred = node['function'], self._wf_pred[dsp_id]
-        distances, sub_dsp = self.dist, self.sub_dsp
+        distances, sub_sol = self.dist, self.sub_sol
 
         iv_nodes = [node_id]  # Nodes do be added as initial values.
 
@@ -1081,7 +1108,7 @@ class Solution(Base, OrderedDict):
                     return False  # Some error occurs.
 
             # Initialize the sub-dispatcher.
-            sub_dsp[dsp] = sol = self._init_sub_dsp(
+            sub_sol[self.index + node['index']] = sol = self._init_sub_dsp(
                 dsp, fringe, node['outputs'], no_call, initial_dist,
                 node['index']
             )
@@ -1089,7 +1116,7 @@ class Solution(Base, OrderedDict):
 
             distances[dsp_id] = initial_dist  # Update min distance.
         else:
-            sol = sub_dsp[dsp]
+            sol = sub_sol[self.index + node['index']]
 
         for n_id in iv_nodes:
             # Namespace shortcuts.
@@ -1117,7 +1144,7 @@ class Solution(Base, OrderedDict):
             raise ex
 
         self._errors[node_id] = msg % ((node_id, ex) + args)
-        node_id = '/'.join(self.dsp.get_full_node_id(node_id))
+        node_id = '/'.join(self.full_name + (node_id,))
 
         if self.raises:
             raise DispatcherError(self, msg, node_id, ex, *args, **kwargs)

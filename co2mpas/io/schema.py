@@ -14,7 +14,6 @@ from collections import Iterable, OrderedDict
 import numpy as np
 import datetime
 import os.path as osp
-from lmfit import Parameters, Parameter
 from schema import Schema, Use, And, Or, Optional, SchemaError
 from sklearn.tree import DecisionTreeClassifier
 import pprint
@@ -23,10 +22,6 @@ from . import validations
 from . import excel
 import functools
 from co2mpas.model.physical.gear_box.at_gear import CMV, MVL, GSPV
-from co2mpas.model.physical.clutch_tc.clutch import ClutchModel
-from co2mpas.model.physical.clutch_tc.torque_converter import TorqueConverter
-from co2mpas.model.physical.engine.start_stop import StartStopModel
-from co2mpas.model.physical.engine.thermal import ThermalModel
 
 log = logging.getLogger(__name__)
 
@@ -67,6 +62,12 @@ def _ta_mode(data):
                  'following data cannot be used:\n %s\n'
                  'If you want to include these data use the cmd batch.',
                  ',\n'.join(diff))
+        return False
+
+    if not dsp_utl.are_in_nested_dicts(data, 'flag', 'vehicle_family_id'):
+        log.info('Since CO2MPAS is launched in type approval mode the '
+                 '`vehicle_family_id` is required!\n'
+                 'If you want to run without it use the cmd batch.')
         return False
     return True
 
@@ -255,6 +256,12 @@ def _eval(s, error=None, **kwargs):
     error = error or 'cannot be eval!'
 
     def _eval(x):
+        from lmfit import Parameters, Parameter
+        from co2mpas.model.physical.clutch_tc.clutch import ClutchModel
+        from co2mpas.model.physical.clutch_tc.torque_converter import \
+            TorqueConverter
+        from co2mpas.model.physical.engine.start_stop import StartStopModel
+        from co2mpas.model.physical.engine.thermal import ThermalModel
         return eval(x)
     return Or(And(str, Use(_eval), s), s, error=error)
 
@@ -380,6 +387,7 @@ def _dtc(error=None, read=True, **kwargs):
 
 
 def _parameters2str(data):
+    from lmfit import Parameters, Parameter
     if isinstance(data, Parameters):
         s = []
         for k, v in data.items():
@@ -399,6 +407,7 @@ def _parameters2str(data):
 
 def _parameters(error=None, read=True):
     if read:
+        from lmfit import Parameters
         return _type(type=Parameters, error=error)
     else:
         return And(_parameters(), Use(_parameters2str), error=error)
@@ -557,6 +566,7 @@ def define_data_schema(read=True):
         'optimal_efficiency': dictarray,
         'velocity_speed_ratios': index_dict,
         'gear_box_ratios': index_dict,
+        'final_drive_ratios': index_dict,
         'speed_velocity_ratios': index_dict,
         'full_load_speeds': np_array_sorted,
         'full_load_torques': np_array,
