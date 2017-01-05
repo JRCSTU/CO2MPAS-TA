@@ -557,6 +557,7 @@ class ProjectsDB(trtc.SingletonConfigurable, baseapp.Spec):
             cw.set_value('core', 'ignorecase', False)
             cw.set_value('user', 'email', self.user_email)
             cw.set_value('user', 'name', self.user_name)
+            cw.set_value('gc', 'auto', 0)   # To salvage user-mistakes.
             cw.set_value(
                 'alias', 'lg',
                 r"log --graph --abbrev-commit --decorate --date=relative "
