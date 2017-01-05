@@ -164,7 +164,7 @@ class TProjectsDBStory(unittest.TestCase):
         res = list(cmd.run())
         self.assertEqual(res, ['* foo'])
 
-    @ddt.data('sp ace', '%fg', '1ffg')
+    @ddt.data('sp ace', '%fg', '1ffg&', 'kung@fu')
     def test_3b_add_bad_project__fail(self, pname):
         cmd = project.ProjectCmd.InitCmd(config=self._config)
         with self.assertRaisesRegex(baseapp.CmdException, "Invalid name '%s' for a project!" % pname):
