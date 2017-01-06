@@ -144,9 +144,8 @@ def plot_model_graphs(model_ids=None, view_in_browser=True,
         module = sys.modules[module_path]
         dsp = getattr(module, object_name)()
         depth = -1 if depth is None else depth
-        filename = osp.join(output_folder, dsp.name) if output_folder else None
-        dot = dsp.plot(view=view_in_browser, depth=depth, filename=filename,
-                       **kwargs)
+        dot = dsp.plot(view=view_in_browser, depth=depth,
+                       directory=output_folder, **kwargs)
 
         dot_graphs.append(dot)
 
