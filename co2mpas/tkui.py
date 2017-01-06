@@ -2219,13 +2219,13 @@ class TkUI(object):
 
 
 def main():
+    cmain.init_logging()
     app = TkUI()
     app.mainloop()
 
 if __name__ == '__main__':
     if __package__ is None:
         __package__ = "co2mpas"  # @ReservedAssignment
-    cmain.init_logging()
 
     if sys.version_info < (3, 5):
         sys.exit("Sorry, Python >= 3.5 is required,"
