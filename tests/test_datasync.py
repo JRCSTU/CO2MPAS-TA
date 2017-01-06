@@ -199,7 +199,9 @@ class HighSync(unittest.TestCase):
         from tests import _tutils as tutils # XXX import chaos if outside!
         x, y = case
         with tempfile.TemporaryDirectory(prefix='co2mpas_%s_'%__name__) as d:
-            with tutils.assertRaisesRegex(self, cmain.CmdException, 'not found in rows'):
+            with tutils.assertRaisesRegex(self, cmain.CmdException,
+                "Cannot read sync-sheet\([^\)]*\) due to: Columns \([^\)]*\) "
+                "not found in table of sheet\([^\)]*\) in book\([^\)]*\)!"):
                 datasync.do_datasync(x, y,
                         '%s#Sheet1!' % _sync_fname,
                         'Sheet2',
