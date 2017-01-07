@@ -245,29 +245,6 @@ def _parse_list_response(line):
 
 
 ###################
-##     Specs     ##
-###################
-
-class GpgSpec(trtc.SingletonConfigurable, baseapp.Spec):
-    """Provider of GnuPG high-level methods."""
-
-    exec_path = trt.Unicode(
-        None, allow_none=True,
-        help="""
-        The path to GnuPG executable;
-        if None, the first `gpg` command in PATH variable is used (currently: '{gpgexec}'),
-        unless the GPG_EXECUTABLE environ-variable is set.
-        """.format(gpgexec=pndlu.convpath(pndlu.which('gpg')))).tag(config=True)
-
-    home = trt.Unicode(
-        None, allow_none=True,
-        help="""
-        The default home directory containing the keys; if None given and nor env-var GNUPGHOME exist,
-        the executable decides (e.g. `~/.gpg` on POSIX, `%APPDATA%\Roaming\GnuPG` on Windows).
-        """).tag(config=True)
-
-
-###################
 ##    Commands   ##
 ###################
 

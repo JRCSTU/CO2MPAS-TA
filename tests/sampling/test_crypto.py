@@ -8,14 +8,16 @@
 
 from co2mpas.__main__ import init_logging
 from co2mpas.sampling import crypto
-import doctest
 import logging
+import shutil
+import tempfile
 import unittest
 
 import ddt
 
 import itertools as itt
 import os.path as osp
+import traitlets.config as trtc
 
 
 init_logging(level=logging.DEBUG)
@@ -24,45 +26,78 @@ log = logging.getLogger(__name__)
 
 mydir = osp.dirname(__file__)
 
-texts = ('', ' ', 'a' * 2048, '123', 'asdfasd|*(KJ|KL97GDk;')
-objs = ('', ' ', 'a' * 2048, 1244, b'\x22', {1: 'a', '2': {3, b'\x04'}})
+_texts = ('', ' ', 'a' * 2048, '123', 'asdfasd|*(KJ|KL97GDk;')
+_objs = ('', ' ', 'a' * 2048, 1244, b'\x22', {1: 'a', '2': {3, b'\x04'}})
 
-ciphertexts = set()
+_ciphertexts = set()
 
 
-class TestDoctest(unittest.TestCase):
-    def runTest(self):
-        failure_count, test_count = doctest.testmod(
-            crypto,
-            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS)
-        self.assertGreater(test_count, 0, (failure_count, test_count))
-        self.assertEqual(failure_count, 0, (failure_count, test_count))
+# class TestDoctest(unittest.TestCase):
+#     def runTest(self):
+#         failure_count, test_count = doctest.testmod(
+#             crypto,
+#             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS)
+#         self.assertGreater(test_count, 0, (failure_count, test_count))
+#         self.assertEqual(failure_count, 0, (failure_count, test_count))
+
+
+def _gpg_gen_key(GPG, key_length, name_real, name_email):
+    key = GPG.gen_key(
+        GPG.gen_key_input(key_length=key_length,
+                          name_real=name_real,
+                          name_email=name_email))
+    assert key.fingerprint
+
+    return key.fingerprint
+
+
+def _gpg_del_key(GPG, fingerprint):
+    log.debug('Deleting secret+pub: %s', fingerprint)
+    d = GPG.delete_keys(fingerprint, secret=1)
+    assert (d.status, d.stderr) == ('ok', ''), (
+        "Failed DELETING pgp-secret: %s" % d.stderr)
+    d = GPG.delete_keys(fingerprint)
+    assert (d.status, d.stderr) == ('ok', ''), (
+        "Failed DELETING pgp-public: %s" % d.stderr)
 
 
 @ddt.ddt
-class TCrypto(unittest.TestCase):
+class TSafeDepotSpec(unittest.TestCase):
 
-    @ddt.idata(itt.product(('user', '&^a09|*(K}'), texts, objs))
-    def test_encrypt_text(self, case):
-        pswdid, pswd, obj = case
-        ciphertext = crypto.tencrypt_any(pswdid, pswd, obj)
+    @classmethod
+    def setUpClass(cls):
+        cfg = trtc.get_config()
+        cfg.SafeDepotSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        safedepot = crypto.SafeDepotSpec.instance(config=cfg)
+
+        key_fingerprint = _gpg_gen_key(safedepot.GPG,
+                                       key_length=1024,
+                                       name_real='test user',
+                                       name_email='test@test.com')
+        safedepot.master_key = key_fingerprint
+
+    @classmethod
+    def tearDownClass(cls):
+        safedepot = crypto.SafeDepotSpec.instance()
+        assert safedepot.gnupghome
+        _gpg_del_key(safedepot.GPG, safedepot.master_key)
+        shutil.rmtree(safedepot.gnupghome)
+
+    @ddt.idata(itt.product(('user', '&^a09|*(K}'), _objs))
+    def test_1_dencrypt(self, case):
+        pswdid, obj = case
+        safedepot = crypto.SafeDepotSpec.instance()
+
+        ciphertext = safedepot.encryptobj('enc_test', obj)
         msg = ('CASE:', case, ciphertext)
 
-        self.assertTrue(ciphertext.startswith('$'+crypto.ENC_PREFIX), msg)
+        self.assertTrue(crypto.is_pgp_encrypted(ciphertext), msg)
 
         ## Check not generating indetical ciphers.
         #
-        self.assertNotIn(ciphertext, ciphertexts)
-        ciphertexts.add(ciphertext)
+        self.assertNotIn(ciphertext, _ciphertexts)
+        _ciphertexts.add(ciphertext)
 
-        plainbytes2 = crypto.tdecrypt_any(pswdid, pswd, ciphertext)
+        plainbytes2 = safedepot.decryptobj(pswdid, ciphertext)
         self.assertEqual(obj, plainbytes2, msg)
 
-    @ddt.idata(texts)
-    def test_derive_key(self, pswd):
-        k1 = crypto.derive_key('test_derive_key', pswd)
-        k2 = crypto.derive_key('test_derive_key', pswd)
-
-        SHA256_LEN = 32
-        self.assertEqual(len(k1), SHA256_LEN, pswd)
-        self.assertEqual(k1, k2, pswd)
