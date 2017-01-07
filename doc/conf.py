@@ -54,8 +54,8 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
-    'dispatcher.ext.autosummary',
-    'dispatcher.ext.dsp_directive',
+    'schedula.ext.autosummary',
+    'schedula.ext.dsp_directive',
 ]
 
 autosummary_generate = True

@@ -15,8 +15,8 @@ import re
 
 from tqdm import tqdm
 
-import dispatcher as dsp
-import dispatcher.utils as dsp_utl
+import schedula as dsp
+import schedula.utils as dsp_utl
 import co2mpas.io.excel as excel
 import co2mpas.io.schema as schema
 import co2mpas.utils as co2_utl
@@ -35,7 +35,7 @@ def parse_dsp_solution(solution):
 
     :param solution:
         Co2mpas model after dispatching.
-    :type solution: dispatcher.Solution
+    :type solution: schedula.Solution
 
     :return:
         Mapped outputs.
@@ -497,7 +497,7 @@ def vehicle_processing_model():
 
     :return:
         The vehicle-processing model.
-    :rtype: Dispatcher
+    :rtype: schedula.Dispatcher
     """
 
     d = dsp.Dispatcher(

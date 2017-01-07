@@ -11,8 +11,8 @@ It provides constants for the NEDC cycle.
 """
 
 import scipy.interpolate as sci_itp
-import dispatcher.utils as dsp_utl
-import dispatcher as dsp
+import schedula.utils as dsp_utl
+import schedula as dsp
 import numpy as np
 import functools
 
@@ -196,7 +196,7 @@ def nedc_cycle():
 
     :return:
         The wltp cycle model.
-    :rtype: dispatcher.Dispatcher
+    :rtype: schedula.Dispatcher
     """
 
     d = dsp.Dispatcher(

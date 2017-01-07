@@ -11,8 +11,8 @@ It contains functions that model the basic mechanics of the wheels.
 
 import math
 import numpy as np
-import dispatcher.utils as dsp_utl
-import dispatcher as dsp
+import schedula.utils as dsp_utl
+import schedula as dsp
 import co2mpas.utils as co2_utl
 from .gear_box import mechanical as gb_mec
 import regex
@@ -557,7 +557,7 @@ def wheels():
 
     :return:
         The wheels model.
-    :rtype: dispatcher.Dispatcher
+    :rtype: schedula.Dispatcher
     """
 
     d = dsp.Dispatcher(

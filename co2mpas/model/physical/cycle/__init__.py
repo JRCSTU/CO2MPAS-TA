@@ -22,8 +22,8 @@ Sub-Modules:
 
 """
 
-import dispatcher as dsp
-import dispatcher.utils as dsp_utl
+import schedula as dsp
+import schedula.utils as dsp_utl
 import numpy as np
 
 
@@ -132,7 +132,7 @@ def cycle():
 
     :return:
         The cycle model.
-    :rtype: dispatcher.Dispatcher
+    :rtype: schedula.Dispatcher
     """
 
     d = dsp.Dispatcher(

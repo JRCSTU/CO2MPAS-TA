@@ -624,8 +624,8 @@ class ProjectsDB(trtc.SingletonConfigurable, baseapp.Spec):
 
     @fnt.lru_cache()  # x6(!) faster!
     def _infos_dsp(self, fallback_value='<invalid>'):
-        from dispatcher import Dispatcher
-        from dispatcher.utils.dsp import DFun
+        from schedula import Dispatcher
+        from schedula.utils.dsp import DFun
 
         dfuns = [
             DFun('repo', lambda _infos: self.repo),
@@ -710,7 +710,7 @@ class ProjectsDB(trtc.SingletonConfigurable, baseapp.Spec):
 
     def _infos_fields(self, pname: Text=None, fields: Sequence[Text]=None, inv_value=None) -> List[Tuple[Text, Any]]:
         """Runs repo examination code returning all requested fields (even failed ones)."""
-        from ..dispatcher import utils
+        from schedula import utils
 
         dsp = self._infos_dsp()
         inputs = {'_infos': 'ok', '_inp_prj': pname}

@@ -9,8 +9,8 @@
 It contains functions that model the basic mechanics of the vehicle.
 """
 
-import dispatcher.utils as dsp_utl
-import dispatcher as dsp
+import schedula.utils as dsp_utl
+import schedula as dsp
 import scipy.interpolate as sci_itp
 import pykalman
 import numpy as np
@@ -374,7 +374,7 @@ def vehicle():
 
     :return:
         The vehicle model.
-    :rtype: dispatcher.Dispatcher
+    :rtype: schedula.Dispatcher
     """
 
     d = dsp.Dispatcher(

@@ -14,8 +14,8 @@ import sklearn.metrics as sk_met
 import sklearn.tree as sk_tree
 import co2mpas.utils as co2_utl
 import numpy as np
-import dispatcher.utils as dsp_utl
-import dispatcher as dsp
+import schedula.utils as dsp_utl
+import schedula as dsp
 import lmfit
 
 
@@ -221,7 +221,7 @@ def cold_start():
 
     :return:
         The engine start/stop model.
-    :rtype: dispatcher.Dispatcher
+    :rtype: schedula.Dispatcher
     """
 
     d = dsp.Dispatcher(

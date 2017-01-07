@@ -9,12 +9,12 @@
 It contains reporting functions for output results.
 """
 
-import dispatcher as dsp
+import schedula as dsp
 import collections
 import functools
 import numpy as np
 import sklearn.metrics as sk_met
-import dispatcher.utils as dsp_utl
+import schedula.utils as dsp_utl
 import co2mpas.utils as co2_utl
 import co2mpas.io.excel as co2_exl
 import dill

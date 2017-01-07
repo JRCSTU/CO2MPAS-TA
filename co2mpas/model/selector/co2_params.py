@@ -13,7 +13,7 @@ It contains models to compare/select the calibrated co2_params.
 import logging
 import copy
 import functools
-import dispatcher.utils as dsp_utl
+import schedula.utils as dsp_utl
 log = logging.getLogger(__name__)
 
 

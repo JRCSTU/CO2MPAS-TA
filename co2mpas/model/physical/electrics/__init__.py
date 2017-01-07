@@ -30,7 +30,7 @@ import sklearn.ensemble as sk_ens
 import sklearn.tree as sk_tree
 import sklearn.metrics as sk_met
 import sklearn.cluster as sk_clu
-import dispatcher as dsp
+import schedula as dsp
 import co2mpas.utils as co2_utl
 
 
@@ -1220,7 +1220,7 @@ def electrics():
 
     :return:
         The electrics model.
-    :rtype: dispatcher.Dispatcher
+    :rtype: schedula.Dispatcher
     """
 
     d = dsp.Dispatcher(

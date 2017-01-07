@@ -13,7 +13,7 @@ import logging
 import sys
 import os.path as osp
 import matplotlib.pyplot as plt
-import dispatcher.utils as dsp_utl
+import schedula.utils as dsp_utl
 
 log = logging.getLogger(__name__)
 
@@ -123,7 +123,7 @@ def plot_model_graphs(model_ids=None, view_in_browser=True,
     :type depth: int, optional
 
     :param kwargs:
-        Optional :func:`dispatcher.utils.drw.dsp2dot` keywords.
+        Optional :func:`schedula.utils.drw.dsp2dot` keywords.
     :type kwargs: dict
 
     :return:
@@ -159,7 +159,7 @@ def plot_time_series(
 
     :param dsp:
         Co2mpas model.
-    :type dsp: dispatcher.Dispatcher
+    :type dsp: schedula.Dispatcher
 
     :param x_id:
         Id of X axes.
