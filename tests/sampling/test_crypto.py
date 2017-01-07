@@ -12,6 +12,7 @@ import logging
 import shutil
 import tempfile
 import unittest
+import contextlib
 
 import ddt
 
@@ -27,7 +28,7 @@ log = logging.getLogger(__name__)
 mydir = osp.dirname(__file__)
 
 _texts = ('', ' ', 'a' * 2048, '123', 'asdfasd|*(KJ|KL97GDk;')
-_objs = ('', ' ', 'a' * 2048, 1244, b'\x22', {1: 'a', '2': {3, b'\x04'}})
+_objs = ('', ' ', None, 'a' * 2048, 1244, b'\x22', {1: 'a', '2': {3, b'\x04'}})
 
 _ciphertexts = set()
 
@@ -61,6 +62,16 @@ def _gpg_del_key(GPG, fingerprint):
         "Failed DELETING pgp-public: %s" % d.stderr)
 
 
+@contextlib.contextmanager
+def _temp_master_key(safedepot, master_key):
+    oldkey = safedepot.master_key
+    safedepot.master_key = master_key
+    try:
+        yield safedepot
+    finally:
+        safedepot.master_key = oldkey
+
+
 @ddt.ddt
 class TSafeDepotSpec(unittest.TestCase):
 
@@ -70,10 +81,11 @@ class TSafeDepotSpec(unittest.TestCase):
         cfg.SafeDepotSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         safedepot = crypto.SafeDepotSpec.instance(config=cfg)
 
-        key_fingerprint = _gpg_gen_key(safedepot.GPG,
-                                       key_length=1024,
-                                       name_real='test user',
-                                       name_email='test@test.com')
+        key_fingerprint = _gpg_gen_key(
+            safedepot.GPG,
+            key_length=1024,
+            name_real='test user',
+            name_email='test@test.com')
         safedepot.master_key = key_fingerprint
 
     @classmethod
@@ -101,3 +113,30 @@ class TSafeDepotSpec(unittest.TestCase):
         plainbytes2 = safedepot.decryptobj(pswdid, ciphertext)
         self.assertEqual(obj, plainbytes2, msg)
 
+    def test_2_many_master_keys(self):
+        safedepot = crypto.SafeDepotSpec.instance()
+        key_fingerprint = _gpg_gen_key(
+            safedepot.GPG,
+            key_length=1024,
+            name_real='test user2',
+            name_email='test2@test.com')
+        try:
+            with _temp_master_key(safedepot, None):
+                with self.assertRaisesRegex(ValueError, 'Cannot guess master-key! Found 2 keys'):
+                    safedepot.encryptobj('enc_test', b'')
+        finally:
+            _gpg_del_key(safedepot.GPG, key_fingerprint)
+
+    def test_3_no_master_key(self):
+        safedepot = crypto.SafeDepotSpec.instance()
+        _gpg_del_key(safedepot.GPG, safedepot.master_key)
+        try:
+            with _temp_master_key(safedepot, None):
+                with self.assertRaisesRegex(ValueError, 'Cannot guess master-key! Found 0 keys'):
+                    safedepot.encryptobj('enc_test', b'')
+        finally:
+            safedepot.master_key = _gpg_gen_key(
+                safedepot.GPG,
+                key_length=1024,
+                name_real='test user3',
+                name_email='test2@test.com')
