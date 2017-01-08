@@ -81,12 +81,12 @@ class TSafeDepotSpec(unittest.TestCase):
         cfg.SafeDepotSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         safedepot = crypto.SafeDepotSpec.instance(config=cfg)
 
-        key_fingerprint = _gpg_gen_key(
+        fingerprint = _gpg_gen_key(
             safedepot.GPG,
             key_length=1024,
             name_real='test user',
             name_email='test@test.com')
-        safedepot.master_key = key_fingerprint
+        safedepot.master_key = fingerprint
 
     @classmethod
     def tearDownClass(cls):
@@ -115,7 +115,7 @@ class TSafeDepotSpec(unittest.TestCase):
 
     def test_2_many_master_keys(self):
         safedepot = crypto.SafeDepotSpec.instance()
-        key_fingerprint = _gpg_gen_key(
+        fingerprint = _gpg_gen_key(
             safedepot.GPG,
             key_length=1024,
             name_real='test user2',
@@ -125,7 +125,7 @@ class TSafeDepotSpec(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'Cannot guess master-key! Found 2 keys'):
                     safedepot.encryptobj('enc_test', b'')
         finally:
-            _gpg_del_key(safedepot.GPG, key_fingerprint)
+            _gpg_del_key(safedepot.GPG, fingerprint)
 
     def test_3_no_master_key(self):
         safedepot = crypto.SafeDepotSpec.instance()
@@ -140,3 +140,20 @@ class TSafeDepotSpec(unittest.TestCase):
                 key_length=1024,
                 name_real='test user3',
                 name_email='test2@test.com')
+
+    def test_5_no_sec_key(self):
+        safedepot = crypto.SafeDepotSpec.instance()
+        fingerprint = _gpg_gen_key(
+            safedepot.GPG,
+            key_length=1024,
+            name_real='test user2',
+            name_email='test2@test.com')
+        safedepot.GPG.delete_keys(fingerprint, secret=1)
+        try:
+            with _temp_master_key(safedepot, fingerprint):
+                chiphered = safedepot.encryptobj('enc_test', b'foo')
+                with self.assertRaisesRegex(ValueError, r"PswdId\('enc_test'\): decryption failed"):
+                    safedepot.decryptobj('enc_test', chiphered)
+        finally:
+            safedepot.GPG.delete_keys(fingerprint, secret=0)
+

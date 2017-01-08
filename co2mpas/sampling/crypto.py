@@ -126,19 +126,21 @@ class SafeDepotSpec(trtc.SingletonConfigurable, GnuPGSpec):
             Discard `pswd` immediately after encryption,
             to reduce opportunity window of greping it from memory.
         """
-        assert not is_pgp_encrypted(plainobj), "Password '%s': already encrypted!" % pswdid
+        assert not is_pgp_encrypted(plainobj), "PswdId('%s'): already encrypted!" % pswdid
 
         import dill
 
         try:
             plainbytes = dill.dumps(plainobj)  # type: bytes
-            cipher = self.GPG.encrypt(plainbytes, self._guess_master_key(), armor=True)
-            if not cipher.ok:
-                raise ValueError("Password '%s': %s: %s" % (pswdid, cipher.status, cipher.stderr))
-
-            return str(cipher)
         except Exception as ex:
-                raise ValueError("Password '%s': encryption failed due to: %s" % (pswdid, ex))
+                raise ValueError("PswdId('%s'): encryption failed due to: %s" % (pswdid, ex))
+
+        cipher = self.GPG.encrypt(plainbytes, self._guess_master_key(), armor=True)
+        if not cipher.ok:
+            self.log.debug("PswdId('%s'): encryption stderr: %s", pswdid, cipher.status, cipher.stderr)
+            raise ValueError("PswdId('%s'): %s!" % (pswdid, cipher.status))
+
+        return str(cipher)
 
     def decryptobj(self, pswdid: Text, armor_text: Text):
         """
@@ -154,16 +156,18 @@ class SafeDepotSpec(trtc.SingletonConfigurable, GnuPGSpec):
             to reduce opportunity window of greping it from memory.
         """
         if not is_pgp_encrypted:
-            raise ValueError("Password '%s': cannot encrypt!  Not in pgp-armor format!" % pswdid)
+            raise ValueError("PswdId('%s'): cannot encrypt!  Not in pgp-armor format!" % pswdid)
 
         try:
             plain = self.GPG.decrypt(armor_text)
-            if not plain.ok:
-                raise ValueError("Password '%s': %s: %s" % (pswdid, plain.status, plain.stderr))
-
-            import dill
-            plainobj = dill.loads(plain.data)
-
-            return plainobj
         except Exception as ex:
-                raise ValueError("Password '%s': decryption failed due to: %s" % (pswdid, ex))
+            raise ValueError("PswdId('%s'): decryption failed due to: %s" % (pswdid, ex))
+
+        if not plain.ok:
+            self.log.debug("PswdId('%s'): decryption stderr: %s", pswdid, plain.status, plain.stderr)
+            raise ValueError("PswdId('%s'): %s!" % (pswdid, plain.status))
+
+        import dill
+        plainobj = dill.loads(plain.data)
+
+        return plainobj
