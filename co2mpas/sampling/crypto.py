@@ -66,6 +66,10 @@ class GnuPGSpec(baseapp.Spec):
         help="""A list of additional cmd-line options to pass to the GPG binary."""
     ).tag(config=True)
 
+    @trt.observe('gpgbinary', 'gnupghome', 'keyring', 'secret_keyring', 'options')
+    def _gpg_args_changed(self, change):
+        self._GPG = None
+
     @property
     def GPG(self):
         import gnupg
