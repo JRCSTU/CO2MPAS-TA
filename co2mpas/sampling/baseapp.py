@@ -134,7 +134,7 @@ class PeristentMixin:
         """
         Copy traits with `config` + `dynamic` tags from config-classes into my :attr:`dynamic_config`.
 
-        :param self:
+        :param cls:
             must be the final cmd currently executing, where updated values are to be stored
         """
         cfg = cls._pconfig
@@ -191,16 +191,15 @@ class EncryptMixin:
         cls_name = type(self).__name__
         trait = proposal['trait']
         value = proposal['value']
-        if not crypto.strip_text_encrypted(value):
-            ## not encrypted value
+        pswdid = '%s.%s' % (cls_name, trait)
+        if not crypto.is_pgp_encrypted(value):
+            safedepot = crypto.SafeDepotSpec.instance(config=self.config)
+            safedepot.encryptobj(pswdid, value)  ## TODO: Move LoginCb to baseapp for pswd.
 
-            pswdid = '%s.%s' % (cls_name, trait)
-            crypto.tencrypt_any(pswdid, _, value)  ## TODO: Move LoginCb to baseapp for pswd.
-
-    def check_unconfig_unpesist_enctraits(self):
+    def check_unconfig_unpersist_enctraits(self):
         for name, tr in self.traits(encrypt=True).items():
             if tr.metadata.get('config') is not True or tr.metadata.get('persist') is not True:
-                raise trt.TraitError("Encrypted trait %r not tagged as 'config'/'persist'!" % name)
+                raise trt.TraitError("Encrypted trait %r not tagged as 'config' + 'persist'!" % name)
 
     def monitor_enctraits(self: trt.HasTraits):
         """
@@ -208,7 +207,7 @@ class EncryptMixin:
 
         Invoke this after regular config-values have been installed.
         """
-        self.check_unconfig_unpesist_enctraits()
+        self.check_unconfig_unpersist_enctraits()
         ptraits = self.trait_names(config=True, persist=True, encrypted=True)
         if ptraits:
             self._register_validator(self._handle_encrypted_ptrait, ptraits)
@@ -281,6 +280,7 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, EncryptMixin):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.observe_ptraits()
+        self.monitor_enctraits()
 
 
 ###################

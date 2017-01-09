@@ -81,7 +81,18 @@ class TBaseApp(unittest.TestCase):
 
     @ddt.data(
         {}, {'config': False}, {'config': None}, {'config': 0}, {'config': 1}, {'config': -2})
-    def test_invalid_ptraits(self, tags):
+    def test_invalid_ptraits_on_spec(self, tags):
+        class MySpec(baseapp.Spec):
+            "No desc"
+            bad_ptrait = trt.Bool().tag(persist=True, **tags)
+
+        with self.assertRaisesRegex(trt.TraitError,
+                                    "Persistent trait 'bad_ptrait' not tagged as 'config'!"):
+            c = MySpec()
+
+    @ddt.data(
+        {}, {'config': False}, {'config': None}, {'config': 0}, {'config': 1}, {'config': -2})
+    def test_invalid_ptraits_on_cmd(self, tags):
         class MyCmd(baseapp.Cmd):
             "No desc"
             bad_ptrait = trt.Bool().tag(persist=True, **tags)
@@ -99,7 +110,20 @@ class TBaseApp(unittest.TestCase):
         [{}, {'config': False}, {'config': None}, {'config': 0}],
         [{}, {'persist': False}, {'persist': None}, {'persist': 0}],
     ))
-    def test_invalid_enctraits(self, tags):
+    def test_invalid_enctraits_on_specs(self, tags):
+        class MySpec(baseapp.Spec):
+            "No desc"
+            bad_ptrait = trt.Bool().tag(encrypt=True, **tags)
+
+        with self.assertRaisesRegex(trt.TraitError,
+                                    "Encrypted trait 'bad_ptrait' not tagged as 'config' \+ 'persist'!"):
+            c = MySpec()
+
+    @ddt.idata(mix_dics(d1, d2) for d1, d2 in itt.product(
+        [{}, {'config': False}, {'config': None}, {'config': 0}],
+        [{}, {'persist': False}, {'persist': None}, {'persist': 0}],
+    ))
+    def test_invalid_enctraits_on_cmds(self, tags):
         class MyCmd(baseapp.Cmd):
             "No desc"
             bad_ptrait = trt.Bool().tag(encrypt=True, **tags)
@@ -110,5 +134,5 @@ class TBaseApp(unittest.TestCase):
                 c.initialize([])
             except SystemExit:
                 pass
-        exp_msg = "Encrypted trait 'bad_ptrait' not tagged as 'config'/'persist'!"
+        exp_msg = "Encrypted trait 'bad_ptrait' not tagged as 'config' + 'persist'!"
         self.assertTrue(any(exp_msg in m for m in cm.output), cm.output)
