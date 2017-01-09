@@ -17,31 +17,19 @@ from co2mpas.__main__ import init_logging
 from co2mpas.sampling import baseapp, CmdException
 from co2mpas.sampling.baseapp import (APPNAME, Cmd, build_sub_cmds,
                                       chain_cmds)  # @UnusedImport
-from collections import defaultdict, MutableMapping, OrderedDict, namedtuple
-import io
 import logging
 import os
 import re
-import shutil
-import tempfile
 import textwrap
 import types
 from typing import Sequence, Text, List
 
-from boltons.setutils import IndexedSet as iset
-from toolz import dicttoolz as dtz, itertoolz as itz
-
-import functools as fnt
-import itertools as itt
 import os.path as osp
 import pandalone.utils as pndlu
-import pandas as pd  # SLOW!
 import traitlets as trt
-import traitlets.config as trtc
 
 
-# TODO: move to pandalone
-__title__   = APPNAME
+__title__ = APPNAME
 __summary__ = pndlu.first_line(__doc__)
 
 
@@ -89,101 +77,6 @@ def app_config_dir():
 
     return osp.abspath(osp.join(home_dir, '.co2dice'))
 
-#gpg_path = trt.Unicode(
-#    'gpg',
-#    allow_none=True,
-#    help="""
-#    The path to GnuPG executable;
-#    if None, the first `gpg` command in PATH variable is used (currently: '{gpgexec}'),
-#    unless the GPG_EXECUTABLE environ-variable is set.
-#    """.format(gpgexec=pndlu.convpath(shutil.which('gpg')))
-#).tag(config=True)
-
-
-def _describe_gpg(gpg):
-    gpg_path = gpg.gpgbinary
-    if not osp.isabs(gpg_path):
-        gpg_path = shutil.pndlu.which(gpg_path)
-
-    ver = str(gpg.version)
-    nprivkeys = len(gpg.list_keys(True))
-    nallkeys = len(gpg.list_keys())
-    return gpg_path, ver, nprivkeys, nallkeys
-
-
-def collect_gpgs():
-    inc_errors=1
-    gpg_kws={}
-    gpg_paths = iset(itt.chain.from_iterable(pndlu.where(prog) for prog in ('gpg2', 'gpg')))
-    gnupghome = osp.expanduser('~/.gnupg')
-    gpg_avail = []
-    for gpg_path in gpg_paths:
-        try:
-            gpg = gnupg.GPG(gpgbinary=gpg_path, **gpg_kws)
-            row = _describe_gpg(gpg)
-        except Exception as ex:
-            #raise
-            if inc_errors:
-                row = (gpg_path, '%s: %s' % (type(ex).__name__, str(ex)), None, None)
-            else:
-                continue
-        gpg_avail.append(row)
-
-    cols= ['GnuPG path', 'Version', '#PRIV', '#TOTAL']
-    gpg_avail = pd.DataFrame(gpg_avail, columns=cols)
-    return gpg_avail
-
-
-#gpg_avail = collect_gpgs()
-
-def gpg_del_gened_key(gpg, fingerprint):
-    log.debug('Deleting secret+pub: %s', fingerprint)
-    d = gpg.delete_keys(fingerprint, secret=1)
-    assert (d.status, d.stderr) == ('ok', ''), (
-            "Failed DELETING pgp-secret: %s" % d.stderr)
-    d=gpg.delete_keys(fingerprint)
-    assert (d.status, d.stderr) == ('ok', ''), (
-            "Failed DELETING pgp-secret: %s" % d.stderr)
-
-
-def gpg_genkey(name_email, name_real, name_comment=None, key_type='RSA', key_length=2048, **kwds):
-    """See https://www.gnupg.org/documentation/manuals/gnupg/Unattended-GPG-key-generation.html#Unattended-GPG-key-generation"""
-    args = locals().copy()
-    args.pop('kwds')
-    return gpg.gen_key_input(**args)
-
-def _has_repeatitive_prefix(word, limit, char=None):
-    c = word[0]
-    if not char or c == char:
-        for i  in range(1, limit):
-            if word[i] != c:
-                break
-        else:
-            return True
-
-def gpg_gen_interesting_keys(gpg, name_real, name_email, key_length,
-        predicate, nkeys=1, runs=0):
-    keys = []
-    for i in itt.count(1):
-        del_key = True
-        key = gpg.gen_key(gpg.gen_key_input(key_length=key_length,
-                name_real=name_real, name_email=name_email))
-        try:
-            log.debug('Created-%i: %s', i, key.fingerprint)
-            if predicate(key.fingerprint):
-                del_key = False
-                keys.append(key.fingerprint)
-                keyid = key.fingerprint[24:]
-                log.info('FOUND-%i: %s-->%s', i, keyid, key.fingerprint)
-                nkeys -= 1
-                if nkeys == 0:
-                    break
-        finally:
-            if del_key:
-                gpg_del_gened_key(gpg, key.fingerprint)
-    return keys
-
-
 _list_response_regex = re.compile(r'\((?P<flags>.*?)\) "(?P<delimiter>.*)" (?P<name>.*)')
 
 
@@ -191,57 +84,6 @@ def _parse_list_response(line):
     flags, delimiter, mailbox_name = _list_response_regex.match(line).groups()
     mailbox_name = mailbox_name.strip('"')
     return (flags, delimiter, mailbox_name)
-
-
-#class DiceGPG(gnupg.GPG):
-#    def __init__(self, *args, **kws):
-#        super().__init__(*args, **kws)
-#
-#    def verify_detached_armor(self, sig: str, data: str):
-#    #def verify_file(self, file, data_filename=None):
-#        """Verify `sig` on the `data`."""
-#        logger = gnupg.logger
-#        #with tempfile.NamedTemporaryFile(mode='wt+',
-#        #                encoding='latin-1') as sig_fp:
-#        #sig_fp.write(sig)
-#        #sig_fp.flush(); sig_fp.seek(0) ## paranoid seek(), Windows at least)
-#        #sig_fn = sig_fp.name
-#        sig_fn = osp.join(tempfile.gettempdir(), 'sig.sig')
-#        logger.debug('Wrote sig to temp file: %r', sig_fn)
-#
-#        args = ['--verify', gnupg.no_quote(sig_fn), '-']
-#        result = self.result_map['verify'](self)
-#        data_stream = io.BytesIO(data.encode(self.encoding))
-#        self._handle_io(args, data_stream, result, binary=True)
-#        return result
-#
-#
-#    def verify_detached(self, sig: bytes, msg: bytes):
-#        with tempfile.NamedTemporaryFile('wb+', prefix='co2dice_') as sig_fp:
-#            with tempfile.NamedTemporaryFile('wb+', prefix='co2dice_') as msg_fp:
-#                sig_fp.write(sig)
-#                sig_fp.flush()
-#                sig_fp.seek(0) ## paranoid seek(), Windows at least)
-#
-#                msg_fp.write(msg)
-#                msg_fp.flush();
-#                msg_fp.seek(0)
-#
-#                sig_fn = gnupg.no_quote(sig_fp.name)
-#                msg_fn = gnupg.no_quote(msg_fp.name)
-#                args = ['--verify', sig_fn, msg_fn]
-#                result = self.result_map['verify'](self)
-#                p = self._open_subprocess(args)
-#                self._collect_output(p, result, stdin=p.stdin)
-#                return result
-#
-#def __GPG__init__(self, my_gpg_key):
-#    gpg_prog = 'gpg2.exe'
-#    gpg2_path = pndlu.which(prog)
-#    self.assertIsNotNone(gpg2_path)
-#    gpg=gnupg.GPG(r'C:\Program Files (x86)\GNU\GnuPG\gpg2.exe')
-#    self.my_gpg_key
-#    self._cfg = read_config('co2mpas')
 
 
 ###################
@@ -471,9 +313,9 @@ if __name__ == '__main__':
     argv = '--debug'.split()
     #argv = '--help'.split()
     argv = '--help-all'.split()
-    #argv = 'gen-config'.split()
-    #argv = 'gen-config --help-all'.split()
-    #argv = 'gen-config help'.split()
+    #argv = 'config init'.split()
+    #argv = 'config init --help-all'.split()
+    #argv = 'config init help'.split()
     #argv = '--debug --log-level=0 --Mail.port=6 --Mail.user="ggg" abc def'.split()
     #argv = 'project --help-all'.split()
     #argv = '--debug'.split()

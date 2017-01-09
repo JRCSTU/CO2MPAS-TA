@@ -42,7 +42,7 @@ _ciphertexts = set()
 #         self.assertEqual(failure_count, 0, (failure_count, test_count))
 
 
-def _gpg_gen_key(GPG, key_length, name_real, name_email):
+def gpg_gen_key(GPG, key_length, name_real, name_email):
     key = GPG.gen_key(
         GPG.gen_key_input(key_length=key_length,
                           name_real=name_real,
@@ -52,7 +52,7 @@ def _gpg_gen_key(GPG, key_length, name_real, name_email):
     return key.fingerprint
 
 
-def _gpg_del_key(GPG, fingerprint):
+def gpg_del_key(GPG, fingerprint):
     log.debug('Deleting secret+pub: %s', fingerprint)
     d = GPG.delete_keys(fingerprint, secret=1)
     assert (d.status, d.stderr) == ('ok', ''), (
@@ -81,7 +81,7 @@ class TSafeDepotSpec(unittest.TestCase):
         cfg.SafeDepotSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         safedepot = crypto.SafeDepotSpec.instance(config=cfg)
 
-        fingerprint = _gpg_gen_key(
+        fingerprint = gpg_gen_key(
             safedepot.GPG,
             key_length=1024,
             name_real='test user',
@@ -92,7 +92,7 @@ class TSafeDepotSpec(unittest.TestCase):
     def tearDownClass(cls):
         safedepot = crypto.SafeDepotSpec.instance()
         assert safedepot.gnupghome
-        _gpg_del_key(safedepot.GPG, safedepot.master_key)
+        gpg_del_key(safedepot.GPG, safedepot.master_key)
         shutil.rmtree(safedepot.gnupghome)
 
     @ddt.idata(itt.product(('user', '&^a09|*(K}'), _objs))
@@ -115,7 +115,7 @@ class TSafeDepotSpec(unittest.TestCase):
 
     def test_2_many_master_keys(self):
         safedepot = crypto.SafeDepotSpec.instance()
-        fingerprint = _gpg_gen_key(
+        fingerprint = gpg_gen_key(
             safedepot.GPG,
             key_length=1024,
             name_real='test user2',
@@ -125,17 +125,17 @@ class TSafeDepotSpec(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'Cannot guess master-key! Found 2 keys'):
                     safedepot.encryptobj('enc_test', b'')
         finally:
-            _gpg_del_key(safedepot.GPG, fingerprint)
+            gpg_del_key(safedepot.GPG, fingerprint)
 
     def test_3_no_master_key(self):
         safedepot = crypto.SafeDepotSpec.instance()
-        _gpg_del_key(safedepot.GPG, safedepot.master_key)
+        gpg_del_key(safedepot.GPG, safedepot.master_key)
         try:
             with _temp_master_key(safedepot, None):
                 with self.assertRaisesRegex(ValueError, 'Cannot guess master-key! Found 0 keys'):
                     safedepot.encryptobj('enc_test', b'')
         finally:
-            safedepot.master_key = _gpg_gen_key(
+            safedepot.master_key = gpg_gen_key(
                 safedepot.GPG,
                 key_length=1024,
                 name_real='test user3',
@@ -143,7 +143,7 @@ class TSafeDepotSpec(unittest.TestCase):
 
     def test_5_no_sec_key(self):
         safedepot = crypto.SafeDepotSpec.instance()
-        fingerprint = _gpg_gen_key(
+        fingerprint = gpg_gen_key(
             safedepot.GPG,
             key_length=1024,
             name_real='test user2',

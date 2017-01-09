@@ -116,7 +116,12 @@ class PeristentMixin:
 
     @classmethod
     def load_pconfig_file(cls, fpath):
-        """Overrides :attr:`_persistent_config` with config-values from file."""
+        """
+        Overrides :attr:`_persistent_config` with config-values from file.
+
+        Currently invoked only by the final *Cmd* on its :meth:`Cmd.initialize()`.
+        You have to invoke it for "stand-alone" *Specs*.
+        """
 
         fpath = pndlu.ensure_file_ext(fpath, '.json')
         if osp.isfile(fpath):
@@ -132,7 +137,7 @@ class PeristentMixin:
     @classmethod
     def store_pconfig_file(cls, fpath):
         """
-        Copy traits with `config` + `dynamic` tags from config-classes into my :attr:`dynamic_config`.
+        Stores ptrait-values from the global :attr:`_pconfig`into `fpath` as JSON.
 
         :param cls:
             must be the final cmd currently executing, where updated values are to be stored
@@ -143,7 +148,7 @@ class PeristentMixin:
 
             fpath = pndlu.ensure_file_ext(fpath, '.json')
             with io.open(fpath, 'wt', encoding='utf-8') as fout:
-                json.dump(cfg, fout)
+                json.dump(cfg, fout, indent=2)
 
     def apply_pconfig(self: trt.HasTraits):
         """Invoked on construction to override ptraits with persistent-configs."""
@@ -178,46 +183,11 @@ class PeristentMixin:
             self.observe(self._ptrait_observed, ptraits)
 
 
-class EncryptMixin:
-    """
-    A *cmd* and *spec* mixin to support encrypting on-the-fly of *encrypted ptraits* (see :mod:`.crypto`).
-
-    *Encrypted ptraits (enctrais)* are those tagged with `config` + `persist` + `encrypt` boolean metadata.
-    """
-
-    def _handle_encrypted_ptrait(self, proposal):
-        from . import crypto
-
-        cls_name = type(self).__name__
-        trait = proposal['trait']
-        value = proposal['value']
-        pswdid = '%s.%s' % (cls_name, trait)
-        if not crypto.is_pgp_encrypted(value):
-            safedepot = crypto.SafeDepotSpec.instance(config=self.config)
-            safedepot.encryptobj(pswdid, value)  ## TODO: Move LoginCb to baseapp for pswd.
-
-    def check_unconfig_unpersist_enctraits(self):
-        for name, tr in self.traits(encrypt=True).items():
-            if tr.metadata.get('config') is not True or tr.metadata.get('persist') is not True:
-                raise trt.TraitError("Encrypted trait %r not tagged as 'config' + 'persist'!" % name)
-
-    def monitor_enctraits(self: trt.HasTraits):
-        """
-        Establishes change handlers for all *encrypted* traits that encrypt plain-values on the fly.
-
-        Invoke this after regular config-values have been installed.
-        """
-        self.check_unconfig_unpersist_enctraits()
-        ptraits = self.trait_names(config=True, persist=True, encrypted=True)
-        if ptraits:
-            self._register_validator(self._handle_encrypted_ptrait, ptraits)
-
-
 ###################
 ##     Specs     ##
 ###################
 
-class Spec(trtc.LoggingConfigurable, PeristentMixin, EncryptMixin):
+class Spec(trtc.LoggingConfigurable, PeristentMixin):
     """Common properties for all configurables."""
     ## See module documentation for developer's guidelines.
 
@@ -280,7 +250,6 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, EncryptMixin):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.observe_ptraits()
-        self.monitor_enctraits()
 
 
 ###################
@@ -307,7 +276,7 @@ def build_sub_cmds(*subapp_classes):
                        for sa in subapp_classes)
 
 
-class Cmd(trtc.Application, PeristentMixin, EncryptMixin):
+class Cmd(trtc.Application, PeristentMixin):
     """Common machinery for all (sub-)commands. """
     ## INFO: Do not use it directly; inherit it.
     # See module documentation for developer's guidelines.
@@ -325,7 +294,7 @@ class Cmd(trtc.Application, PeristentMixin, EncryptMixin):
         Any extensions are ignored, and '.json' or '.py' are searched (in this order).
         If the path specified resolves to a folder, the filename `{appname}_config.[json | py]` is appended;
         Any command-line values take precendance over the `{confvar}` envvar.
-        Use `gen-config` sub-command to produce a skeleton of the config-file.
+        Use `config init` sub-command to produce a skeleton of the config-file.
         """.format(appname=APPNAME, confvar=CONF_VAR_NAME, pathsep=osp.pathsep)
     ).tag(config=True)
 
@@ -593,8 +562,7 @@ class Cmd(trtc.Application, PeristentMixin, EncryptMixin):
             self.load_pconfig_file(ptraits_file)
             self.update_config(cl_config)
         finally:
-            self.observe_ptraits()
-            self.monitor_enctraits()
+            self.observe_ptraits()  # TODO: Why finally observe_traits()?
 
     print_config = trt.Bool(
         False,

@@ -11,15 +11,14 @@ PGP-dencrypt passwords so as to be stored in text-files.
 The general idea is to use a PGP key to securely store many passwords in configuration files.
 The code using these passwords must never store them as is, but use and immediately discard them.
 """
+from co2mpas.sampling import baseapp
 import logging
-import os
 import re
 from typing import Text, Tuple, Union  # @UnusedImport
+
 import traitlets as trt
 import traitlets.config as trtc
-import pandalone.utils as pndlu
 
-from co2mpas.sampling import baseapp
 
 log = logging.getLogger(__name__)
 
@@ -113,7 +112,8 @@ class SafeDepotSpec(trtc.SingletonConfigurable, GnuPGSpec):
             nseckeys = len(seckeys)
             if nseckeys != 1:
                 raise ValueError("Cannot guess master-key! Found %d keys in secret keyring."
-                                 "\n  Please set the `SafeDepotSpec.master_key` configurable parameter."  % nseckeys)
+                                 "\n  Please set the `SafeDepotSpec.master_key` configurable parameter." %
+                                 nseckeys)
 
             master_key = seckeys[0]['fingerprint']
 
@@ -175,3 +175,80 @@ class SafeDepotSpec(trtc.SingletonConfigurable, GnuPGSpec):
         plainobj = dill.loads(plain.data)
 
         return plainobj
+
+#    def verify_detached_armor(self, sig: str, data: str):
+#    #def verify_file(self, file, data_filename=None):
+#        """Verify `sig` on the `data`."""
+#        logger = gnupg.logger
+#        #with tempfile.NamedTemporaryFile(mode='wt+',
+#        #                encoding='latin-1') as sig_fp:
+#        #sig_fp.write(sig)
+#        #sig_fp.flush(); sig_fp.seek(0) ## paranoid seek(), Windows at least)
+#        #sig_fn = sig_fp.name
+#        sig_fn = osp.join(tempfile.gettempdir(), 'sig.sig')
+#        logger.debug('Wrote sig to temp file: %r', sig_fn)
+#
+#        args = ['--verify', gnupg.no_quote(sig_fn), '-']
+#        result = self.result_map['verify'](self)
+#        data_stream = io.BytesIO(data.encode(self.encoding))
+#        self._handle_io(args, data_stream, result, binary=True)
+#        return result
+#
+#
+#    def verify_detached(self, sig: bytes, msg: bytes):
+#        with tempfile.NamedTemporaryFile('wb+', prefix='co2dice_') as sig_fp:
+#            with tempfile.NamedTemporaryFile('wb+', prefix='co2dice_') as msg_fp:
+#                sig_fp.write(sig)
+#                sig_fp.flush()
+#                sig_fp.seek(0) ## paranoid seek(), Windows at least)
+#
+#                msg_fp.write(msg)
+#                msg_fp.flush();
+#                msg_fp.seek(0)
+#
+#                sig_fn = gnupg.no_quote(sig_fp.name)
+#                msg_fn = gnupg.no_quote(msg_fp.name)
+#                args = ['--verify', sig_fn, msg_fn]
+#                result = self.result_map['verify'](self)
+#                p = self._open_subprocess(args)
+#                self._collect_output(p, result, stdin=p.stdin)
+#                return result
+#
+
+class Cipher(trt.TraitType):
+    """A trait that auto-dencrypts its value (can be anything)."""
+
+    def instance_init(self, obj):
+        super().instance_init(obj)
+        if self.metadata.get('config') is not True or self.metadata.get('persist') is not True:
+            raise trt.TraitError("Cipher-trait '%s.%s' not tagged as 'config' + 'persist'!" %
+                                 (type(obj).__name__, self.name))
+
+    @staticmethod
+    def safe_depot(obj):
+        return SafeDepotSpec.instance(config=obj.config)
+
+    def validate(self, obj, value):
+        if value is not None:
+            cls_name = type(obj).__name__
+            pswdid = '%s.%s' % (cls_name, self.name)
+            if not is_pgp_encrypted(value):
+                safedepot = self.safe_depot(obj)
+                safedepot.log.debug("Auto-encrypting cipher-trait(%r)...", pswdid)
+                value = safedepot.encryptobj(pswdid, value)
+
+        return value
+
+    def get(self, obj, cls=None):
+        value = super().get(obj, cls)
+        if value is not None:
+            cls_name = type(obj).__name__
+            pswdid = '%s.%s' % (cls_name, self.name)
+            if not is_pgp_encrypted(value):
+                raise trt.TraitError("Cipher-trait(%r) should have been encrypted!" % pswdid)
+
+            safedepot = self.safe_depot(obj)
+            safedepot.log.debug("Auto-decrypting cipher-trait(%r)...", pswdid)
+            value = safedepot.decryptobj(pswdid, value)
+
+        return value
