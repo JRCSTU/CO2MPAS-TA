@@ -27,7 +27,7 @@ Modules:
     defaults
 """
 
-import dispatcher as dsp
+import schedula as dsp
 import numpy as np
 import functools
 import co2mpas.utils as co2_utl
@@ -190,7 +190,7 @@ def physical():
 
     :return:
         The CO2MPAS physical model.
-    :rtype: dispatcher.Dispatcher
+    :rtype: schedula.Dispatcher
     """
 
     d = dsp.Dispatcher(

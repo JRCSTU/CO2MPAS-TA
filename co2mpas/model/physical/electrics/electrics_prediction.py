@@ -9,8 +9,8 @@
 It contains functions to predict the electrics of the vehicle.
 """
 
-import dispatcher as dsp
-import dispatcher.utils as dsp_utl
+import schedula as dsp
+import schedula.utils as dsp_utl
 
 
 def calculate_battery_current(

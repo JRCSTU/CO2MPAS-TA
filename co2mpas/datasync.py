@@ -144,7 +144,7 @@ from co2mpas.__main__ import CmdException, init_logging, build_version_string, \
     parse_overrides
 import openpyxl
 import shutil
-import dispatcher.utils as dsp_utl
+import schedula.utils as dsp_utl
 import collections
 
 

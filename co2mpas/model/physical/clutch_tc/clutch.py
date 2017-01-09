@@ -13,8 +13,8 @@ import scipy.optimize as sci_opt
 import sklearn.linear_model as sk_lim
 import co2mpas.utils as co2_utl
 import functools
-import dispatcher.utils as dsp_utl
-import dispatcher as dsp
+import schedula.utils as dsp_utl
+import schedula as dsp
 import numpy as np
 from .torque_converter import TorqueConverter
 
@@ -234,7 +234,7 @@ def clutch():
 
     :return:
         The clutch model.
-    :rtype: dispatcher.Dispatcher
+    :rtype: schedula.Dispatcher
     """
 
     d = dsp.Dispatcher(

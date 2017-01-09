@@ -17,7 +17,7 @@ import os.path as osp
 from schema import Schema, Use, And, Or, Optional, SchemaError
 from sklearn.tree import DecisionTreeClassifier
 import pprint
-import dispatcher.utils as dsp_utl
+import schedula.utils as dsp_utl
 from . import validations
 from . import excel
 import functools

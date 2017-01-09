@@ -28,9 +28,9 @@ import datetime
 import logging
 import pathlib
 import regex
-import dispatcher.utils as dsp_utl
+import schedula.utils as dsp_utl
 from co2mpas._version import version
-import dispatcher as dsp
+import schedula as dsp
 from . import schema, excel, dill
 import functools
 import itertools

@@ -9,8 +9,8 @@
 It contains functions to calculate torque losses and the gear box temperature.
 """
 
-import dispatcher.utils as dsp_utl
-import dispatcher as dsp
+import schedula.utils as dsp_utl
+import schedula as dsp
 import math
 
 
@@ -246,7 +246,7 @@ def thermal():
 
     :return:
         The gear box thermal sub model.
-    :rtype: dispatcher.Dispatcher
+    :rtype: schedula.Dispatcher
     """
 
     d = dsp.Dispatcher(

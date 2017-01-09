@@ -9,8 +9,8 @@
 It contains functions that model the basic mechanics of the final drive.
 """
 
-import dispatcher.utils as dsp_utl
-import dispatcher as dsp
+import schedula.utils as dsp_utl
+import schedula as dsp
 import logging
 import numpy as np
 log = logging.getLogger(__name__)
@@ -251,7 +251,7 @@ def final_drive():
 
     :return:
         The final drive model.
-    :rtype: dispatcher.Dispatcher
+    :rtype: schedula.Dispatcher
     """
 
     d = dsp.Dispatcher(

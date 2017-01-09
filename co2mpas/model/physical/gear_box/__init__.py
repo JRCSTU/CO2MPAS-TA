@@ -23,9 +23,9 @@ Sub-Modules:
 """
 
 
-import dispatcher as dsp
+import schedula as dsp
 import math
-import dispatcher.utils as dsp_utl
+import schedula.utils as dsp_utl
 import co2mpas.model.physical.defaults as defaults
 import functools
 import numpy as np
@@ -611,7 +611,7 @@ def gear_box():
 
     :return:
         The gear box model.
-    :rtype: dispatcher.Dispatcher
+    :rtype: schedula.Dispatcher
     """
 
     d = dsp.Dispatcher(

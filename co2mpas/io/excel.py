@@ -18,7 +18,7 @@ import xlsxwriter.utility as xl_utl
 import inspect
 import itertools
 import regex
-import dispatcher.utils as dsp_utl
+import schedula.utils as dsp_utl
 import json
 import os.path as osp
 import functools

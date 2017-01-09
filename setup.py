@@ -185,10 +185,10 @@ setup(
         'openpyxl>=2.4.0',
         'Pillow',           ## for tkui
         'toolz',
-        'dispatcher'
+        'schedula'
     ],
     dependency_links=[
-        'https://github.com/vinci1it2000/dispatcher/tarball/master#egg=dispatcher'
+        'https://github.com/vinci1it2000/schedula/tarball/master#egg=schedula'
     ],
     extras_require={
         'dice': [

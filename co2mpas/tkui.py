@@ -2020,7 +2020,7 @@ class TkUI(object):
     def start_job(self, thread, result_listener):
         self._job_thread = thread
 
-        from dispatcher import Dispatcher
+        from schedula import Dispatcher
         Dispatcher.stopper.clear()
 
         #: Cludge for GUI to receive Plan's output filenames.
@@ -2030,7 +2030,7 @@ class TkUI(object):
         thread.start()
 
     def signal_job_to_stop(self):
-        from dispatcher import Dispatcher
+        from schedula import Dispatcher
         Dispatcher.stopper.set()
 
         #: Cludge for GUI to receive Plan's output filenames.
@@ -2042,7 +2042,7 @@ class TkUI(object):
 
     def is_stop_job_signaled(self):
         """Returns true if signaled, but job might be already dead; check also :meth:`is_job_alive()`."""
-        from dispatcher import Dispatcher
+        from schedula import Dispatcher
         return self._job_thread and Dispatcher.stopper.is_set()
 
     def _add_window_icon(self, win):

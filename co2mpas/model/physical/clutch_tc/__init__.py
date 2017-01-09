@@ -21,8 +21,8 @@ Sub-Modules:
     torque_converter
 """
 
-import dispatcher.utils as dsp_utl
-import dispatcher as dsp
+import schedula.utils as dsp_utl
+import schedula as dsp
 import scipy.interpolate as sci_itp
 import numpy as np
 
@@ -141,7 +141,7 @@ def clutch_torque_converter():
 
     :return:
         The clutch and torque-converter model.
-    :rtype: dispatcher.Dispatcher
+    :rtype: schedula.Dispatcher
     """
 
     d = dsp.Dispatcher(

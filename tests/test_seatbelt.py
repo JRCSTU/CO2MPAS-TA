@@ -7,8 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 from co2mpas.__main__ import init_logging, file_finder
 from co2mpas.batch import vehicle_processing_model
-import co2mpas.utils as co2_utl
-import dispatcher.utils as dsp_utl
+import schedula.utils as dsp_utl
 import os
 import os.path as osp
 import sys
@@ -19,6 +18,7 @@ import numpy as np
 from sklearn.metrics import mean_absolute_error
 from pprint import pformat
 from scipy.interpolate import InterpolatedUnivariateSpline as Spline
+
 
 def _bool_env_var(var_name, default):
     v = os.environ.get(var_name, default)
@@ -73,7 +73,7 @@ class SeatBelt(unittest.TestCase):
                 if ratio:
                     nv, ov = pformat(nv), pformat(ov)
                     if DATA_DIFF_RATIO == 0:
-                        err.append("Failed [%r]: %s !~= %s" %(k, nv, ov))
+                        err.append("Failed [%r]: %s !~= %s" % (k, nv, ov))
                     else:
                         err.append(msg %(ratio, DATA_DIFF_RATIO, k, nv, ov))
 

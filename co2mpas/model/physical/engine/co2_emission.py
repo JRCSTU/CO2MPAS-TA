@@ -18,8 +18,8 @@ import numpy.ma as ma
 import scipy.integrate as sci_itg
 import scipy.stats as sci_sta
 import sklearn.metrics as sk_met
-import dispatcher.utils as dsp_utl
-import dispatcher as dsp
+import schedula.utils as dsp_utl
+import schedula as dsp
 import co2mpas.utils as co2_utl
 import co2mpas.model.physical.defaults as defaults
 
@@ -2393,7 +2393,7 @@ def co2_emission():
 
     :return:
         The engine CO2 emission sub model.
-    :rtype: dispatcher.Dispatcher
+    :rtype: schedula.Dispatcher
     """
 
     d = dsp.Dispatcher(

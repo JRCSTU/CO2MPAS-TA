@@ -20,9 +20,9 @@ Modules:
     co2_params
 """
 
-import dispatcher as dsp
+import schedula as dsp
 import sklearn.metrics as sk_met
-import dispatcher.utils as dsp_utl
+import schedula.utils as dsp_utl
 import logging
 import collections
 import pprint

@@ -19,8 +19,8 @@ It contains a comprehensive list of all CO2MPAS software models and sub-models:
     selector
 """
 
-import dispatcher.utils as dsp_utl
-import dispatcher as dsp
+import schedula.utils as dsp_utl
+import schedula as dsp
 
 
 def select_prediction_data(data, *new_data, theoretical=True):
@@ -123,7 +123,7 @@ def model():
 
     :return:
         The CO2MPAS model.
-    :rtype: dispatcher.Dispatcher
+    :rtype: schedula.Dispatcher
     """
 
     from .physical import physical
