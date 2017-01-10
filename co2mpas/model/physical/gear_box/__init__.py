@@ -48,20 +48,24 @@ def calculate_gear_shifts(gears):
     return np.ediff1d(gears, None, [0]) != 0
 
 
-def get_gear_box_efficiency_constants(has_torque_converter):
+def get_gear_box_efficiency_constants(has_torque_converter, gear_box_type):
     """
     Returns vehicle gear box efficiency constants (gbp00, gbp10, and gbp01).
 
     :param has_torque_converter:
-        Gear box type (manual or automatic or cvt).
+        Does the vehicle use torque converter?
     :type has_torque_converter: bool
+
+    :param gear_box_type:
+        Gear box type (manual or automatic or cvt).
+    :type gear_box_type: str
 
     :return:
         Vehicle gear box efficiency constants (gbp00, gbp10, and gbp01).
     :rtype: dict
     """
     PARAMS = defaults.dfl.functions.get_gear_box_efficiency_constants.PARAMS
-    return PARAMS[has_torque_converter]
+    return PARAMS[has_torque_converter and gear_box_type != 'cvt']
 
 
 def _linear(x, m, q):
@@ -627,7 +631,7 @@ def gear_box():
 
     d.add_function(
         function=get_gear_box_efficiency_constants,
-        inputs=['has_torque_converter'],
+        inputs=['has_torque_converter', 'gear_box_type'],
         outputs=['gear_box_efficiency_constants'],
     )
 
