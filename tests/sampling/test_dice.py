@@ -217,6 +217,37 @@ KTv1GRz3C2ofyMwqx4TGueTHr8ANtNm7ByUEVLzmCq3Aod6r5CGXUg==
 #         emails = dice.receive_timestamped_email(mail_server, LoginCb(), ssl=True)
 #         log.info(emails)
 #
+#    def _has_repeatitive_prefix(self, word, limit, char=None):
+#        c = word[0]
+#        if not char or c == char:
+#            for i  in range(1, limit):
+#                if word[i] != c:
+#                    break
+#            else:
+#                return True
+#
+#    def gpg_gen_interesting_keys(self, gpg, name_real, name_email, key_length,
+#            predicate, nkeys=1, runs=0):
+#        keys = []
+#        for i in itt.count(1):
+#            del_key = True
+#            key = gpg.gen_key(gpg.gen_key_input(key_length=key_length,
+#                    name_real=name_real, name_email=name_email))
+#            try:
+#                log.debug('Created-%i: %s', i, key.fingerprint)
+#                if predicate(key.fingerprint):
+#                    del_key = False
+#                    keys.append(key.fingerprint)
+#                    keyid = key.fingerprint[24:]
+#                    log.info('FOUND-%i: %s-->%s', i, keyid, key.fingerprint)
+#                    nkeys -= 1
+#                    if nkeys == 0:
+#                        break
+#            finally:
+#                if del_key:
+#                    gpg_del_gened_key(gpg, key.fingerprint)
+#        return keys
+#
 #     @unittest.skip('Enabled it to generate test-keys!!')
 #     def test_gen_key_proof_of_work(self):
 #         import gnupg
@@ -227,14 +258,14 @@ KTv1GRz3C2ofyMwqx4TGueTHr8ANtNm7ByUEVLzmCq3Aod6r5CGXUg==
 #
 #         def key_predicate(fingerprint):
 #             keyid = fingerprint[24:]
-#             return dice._has_repeatitive_prefix(keyid, limit=2)
+#             return self._has_repeatitive_prefix(keyid, limit=2)
 #
 #         def keyid_starts_repetitively(fingerprint):
 #             keyid = fingerprint[24:]
-#             return dice._has_repeatitive_prefix(keyid, limit=2)
+#             return self._has_repeatitive_prefix(keyid, limit=2)
 #         def keyid_n_fingerprint_start_repetitively(fingerprint):
 #             keyid = fingerprint[24:]
-#             return dice._has_repeatitive_prefix(keyid, limit=2)
+#             return self._has_repeatitive_prefix(keyid, limit=2)
 #
 #         name_real='Sampling Test',
 #         name_email='sampling@co2mpas.jrc.ec.europa.eu'

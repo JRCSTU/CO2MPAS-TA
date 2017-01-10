@@ -213,7 +213,7 @@ class SafeDepotSpec(trtc.SingletonConfigurable, GnuPGSpec):
 #                p = self._open_subprocess(args)
 #                self._collect_output(p, result, stdin=p.stdin)
 #                return result
-#
+
 
 class Cipher(trt.TraitType):
     """A trait that auto-dencrypts its value (can be anything)."""
