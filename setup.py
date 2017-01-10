@@ -188,7 +188,7 @@ setup(
         'schedula'
     ],
     dependency_links=[
-        'https://github.com/vinci1it2000/schedula/tarball/master#egg=schedula'
+        'https://github.com/vinci1it2000/schedula/tarball/master#egg=schedula-0.0.1'
     ],
     extras_require={
         'dice': [
