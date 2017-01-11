@@ -109,11 +109,6 @@ class MainCmd(Cmd):
     version = __version__
     #examples = """TODO: Write cmd-line examples."""
 
-    print_config = trt.Bool(
-        False,
-        help="""Enable it to print the configurations before launching any command."""
-    ).tag(config=True)
-
     def __init__(self, **kwds):
         from co2mpas.sampling import project, report, tstamp
         sub_cmds = build_sub_cmds(
@@ -135,7 +130,7 @@ class ConfigCmd(Cmd):
     """
     Manage configuration-options loaded from filesystem.
 
-    Read also the help message for `--config-files` generic option.
+    Read also the help message for `--config-paths` generic option.
     """
 
     class InitCmd(Cmd):
@@ -150,37 +145,21 @@ class ConfigCmd(Cmd):
         """
 
         ## Class-docstring CANNOT contain string-interpolations!
-        description = trt.Unicode(__doc__.format(confpath=pndlu.convpath('~/.%s_config.py' % APPNAME),
-                                  appname=APPNAME))
+        description = trt.Unicode(__doc__.format(
+            confpath=baseapp.default_config_fpaths()[0],
+            appname=APPNAME))
 
         examples = trt.Unicode("""
             Generate a config-file at your home folder:
-
                 co2dice config init ~/my_conf
 
-            Re-use this custom config-file:
-
-                co2dice --config-files=~/my_conf  ...
+            To re-use this custom config-file alone, use:
+                co2dice --config-paths=~/my_conf  ...
             """)
 
-        force = trt.Bool(
-            False,
-            help="""Force overwriting config-file, even if it already exists."""
-        ).tag(config=True)
-
-        def __init__(self, **kwds):
-            dkwds = {
-                'cmd_flags': {
-                    ('f', 'force'): (
-                        {'InitCmd': {'force': True}, },
-                        pndlu.first_line(ConfigCmd.InitCmd.force.help)
-                    )
-                },
-            }
-            dkwds.update(kwds)
-            super().__init__(**dkwds)
-
         def run(self, *args):
+            ## Have to modify `classes` after `initialize()`, or else,
+            #  duplicate classes conflict.
             self.classes = all_configurables()
             args = args or [None]
             for fpath in args:
@@ -205,7 +184,7 @@ class ConfigCmd(Cmd):
         def __init__(self, **kwds):
             dkwds = {'conf_classes': all_configurables()}
             dkwds.update(kwds)
-            super().__init__(**kwds)
+            super().__init__(**dkwds)
 
         def run(self, *args):
             if len(args) > 0:

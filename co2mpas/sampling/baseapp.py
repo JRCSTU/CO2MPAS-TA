@@ -308,6 +308,11 @@ class Cmd(trtc.Application, PeristentMixin):
         name = class2cmd_name(type(self))
         return name
 
+    force = trt.Bool(
+        False,
+        help="""Force overwriting config-file, even if it already exists."""
+    ).tag(config=True)
+
     config_paths = trt.List(
         trt.Unicode(),
         None, allow_none=True,
@@ -316,8 +321,9 @@ class Cmd(trtc.Application, PeristentMixin):
 
         If false, and no `{confvar}` envvar is defined, defaults to:
             {default}
-        Multiple values may be given, and each value may one or multiple paths be separated by '{pathsep}'.
-        All paths collected are considered in descending order (1st one overrides the rest).
+        Multiple values may be given, and each value may be a single or multiple paths
+        separated by '{pathsep}'.  All paths collected are considered in descending order
+        (1st one overrides the rest).
         For paths resolving to folders, the filename `{appname}_config.[json | py]` is appended;
         otherwise, any file-extensions are ignored, and '.py' and/or '.json' are loaded (in this order).
 
@@ -329,6 +335,14 @@ class Cmd(trtc.Application, PeristentMixin):
             A value in configuration files are ignored!  Set this from command-line
             (or in code, before invoking :meth:`Cmd.initialize()`).
             Any command-line values take precedence over the `{confvar}` envvar.
+
+        Examples:
+            To read and apply, in descending order `~/my_conf`, `/tmp/conf.py`  `~/.co2dice.json`
+            issue:
+                <cmd> --config-paths=~/my_conf:/tmp/conf.py  --config-paths=~/.co2dice.json  ...
+
+
+
         """.format(appname=APPNAME, confvar=CONFIG_VAR_NAME,
                    default=default_config_fpaths(), pathsep=osp.pathsep)
     ).tag(config=True)
@@ -486,46 +500,20 @@ class Cmd(trtc.Application, PeristentMixin):
 
                 return config
 
-    def _check_non_encrypted_in_config_files(self, config):
+    def load_configurables_from_files(self) -> Tuple[trtc.Config, trtc.Config]:
         """
-        For all configurable-classes, scan `config` for non-encrypted values.
+        Load :attr:`config_paths`, :attr:`persist_path` and maintain :attr:`loaded_config_files` list.
 
-        Must be invoked before reading peristent config file.
-        """
-        from . import crypto
-
-        for cls in self._classes_with_config_traits():
-            clsname = cls.__name__
-            for ctraitname, ctrait in cls.class_traits(config=True).items():
-                if not isinstance(ctrait, crypto.Cipher):
-                    continue
-                key = '%s.%s' % (clsname, ctraitname)
-                if key not in config:
-                    continue
-                val = config[clsname][ctraitname]
-                if crypto.is_pgp_encrypted(val):
-                    continue
-                if self.raise_config_file_errors:
-                    raise trt.TraitError(
-                        "Found non-encrypted param '%s.%s' in static-configs!" %
-                        (clsname, ctraitname))
-                self.log.error(
-                    "Found non-encrypted param '%s.%s' in static-configs!",
-                    clsname, ctraitname)
-
-    def load_configurables_from_files(self):
-        """
-        Load :attr:`config_paths`, :attr:`persist_path`) and maintain :attr:`loaded_config_files` list.
+        :return:
+            A 2 tuple ``(static_config, persist_config)``, where the 2nd might be `None`.
 
         Configuration files are read and merged in descending orders:
 
-        1. Cmd-line arguments (as stored on :attr:`cli_config`);
-
-        2. Persistent parameters from ``.json`` files, either in:
+        1. Persistent parameters from ``.json`` files, either in:
            - :envvar:`<APPNAME>_PERSIST_PATH`, or if not set,
            - :attr:`persist_path` (see its default-value);
 
-        3. Static parameters from ``.json`` and/or ``.py`` files, either in:
+        2. Static parameters from ``.json`` and/or ``.py`` files, either in:
            - :envvar:`<APPNAME>_CONFIG_PATHS`, or if not set,
            - :attr:`config_paths` (see its default-value).
 
@@ -533,19 +521,13 @@ class Cmd(trtc.Application, PeristentMixin):
         """
         self.loaded_config_files = []
         try:
-            config = self._read_config_from_static_files()
-
-            self._check_non_encrypted_in_config_files(config)
-
+            static_config = self._read_config_from_static_files()
             persist_config = self._read_config_from_persist_file()
-            if persist_config:
-                config.merge(persist_config)
         finally:
+            ## To be consistent, even in errors.
             self.loaded_config_files = self.loaded_config_files[::-1]
 
-        config.merge(self.cli_config)
-
-        self.update_config(config)
+        return static_config, persist_config
 
     def write_default_config(self, config_file=None, force=False):
         if not config_file:
@@ -671,7 +653,7 @@ class Cmd(trtc.Application, PeristentMixin):
             ## Set some nice defaults for root-CMDs.
             #
             'cmd_aliases': {
-                'config-files': 'Cmd.config_paths',
+                'config-paths': 'Cmd.config_paths',
             },
             'cmd_flags': {
                 ('d', 'debug'): (
@@ -695,6 +677,7 @@ class Cmd(trtc.Application, PeristentMixin):
                 ('f', 'force'): (
                     {
                         'Spec': {'force': True},
+                        'Cmd': {'force': True},
                     },
                     pndlu.first_line(Spec.force.help)
                 )
@@ -705,6 +688,34 @@ class Cmd(trtc.Application, PeristentMixin):
         dkwds.update(kwds)
         super().__init__(**dkwds)
 
+    def _check_non_encrypted_in_config_files(self, static_config, persist_config,
+                                             all_configurables):
+        """
+        For all configurable-classes, scan *static-configs* for non-encrypted values.
+
+        Must be invoked before reading peristent config file.
+        """
+        from . import crypto
+
+        for cls in all_configurables:
+            clsname = cls.__name__
+            for ctraitname, ctrait in cls.class_traits(config=True).items():
+                if not isinstance(ctrait, crypto.Cipher):
+                    continue
+                key = '%s.%s' % (clsname, ctraitname)
+                if key not in static_config:
+                    continue
+                val = static_config[clsname][ctraitname]
+                if crypto.is_pgp_encrypted(val):
+                    continue
+                if self.raise_config_file_errors:
+                    raise trt.TraitError(
+                        "Found non-encrypted param '%s.%s' in static-configs!" %
+                        (clsname, ctraitname))
+                self.log.error(
+                    "Found non-encrypted param '%s.%s' in static-configs!",
+                    clsname, ctraitname)
+
     def _is_dispatching(self):
         """True if dispatching to another command."""
         return bool(self.subapp)
@@ -712,12 +723,13 @@ class Cmd(trtc.Application, PeristentMixin):
     @trtc.catch_config_error
     def initialize(self, argv=None):
         """
-        Invoked after __init__() by Cmd.launch_instance() to read configs.
+        Invoked after __init__() by Cmd.launch_instance() to read & validate configs.
 
         It parses cl-args before file-configs, to detect sub-commands
         and update any :attr:`config_paths`, then it reads all file-configs, and
-        then re-apply cmd-line configs as overrides
-        (trick copied from `jupyter-core`).
+        then re-apply cmd-line configs as overrides (trick copied from `jupyter-core`).
+
+        It also validates config-values for :class:`crypto.Cipher` traits.
         """
         self.parse_command_line(argv)
         if self._is_dispatching():
@@ -725,7 +737,22 @@ class Cmd(trtc.Application, PeristentMixin):
             #  Also avoid contaminations with user if generating-config.
             return
 
-        self.load_configurables_from_files()
+        ## NOTE: Dependency to specific app BELOW!
+        #  Cannot use :attr:`conf_classes` because not all commands need all of them,
+        #  besides, *argparse* complains with same-named subcmds.
+        #
+        from . import dice
+        all_configurables = dice.all_configurables()
+
+        static_config, persist_config = self.load_configurables_from_files()
+        self._check_non_encrypted_in_config_files(static_config, persist_config,
+                                                  all_configurables)
+
+        if persist_config:
+            static_config.merge(persist_config)
+        static_config.merge(self.cli_config)
+
+        self.update_config(static_config)
         self.observe_ptraits()
 
     print_config = trt.Bool(
