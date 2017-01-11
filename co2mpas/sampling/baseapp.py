@@ -455,7 +455,7 @@ class Cmd(trtc.Application, PeristentMixin):
                             " %s has higher priority: %s",
                             filename, cfpath, cfpath,
                             json.dumps(collisions, indent=2)
-                            )
+                        )
                 loaded[cfpath] = config
 
                 new_config.merge(config)
@@ -494,14 +494,24 @@ class Cmd(trtc.Application, PeristentMixin):
         """
         from . import crypto
 
-        log = self.log
         for cls in self._classes_with_config_traits():
             clsname = cls.__name__
-            for ctrait in cls.class_trait_names(config=True):
-                if isinstance(ctrait, crypto.Cipher):
-                    val = config[clsname][ctrait]
-                    if val and not crypto.is_pgp_encrypted(val):
-                        log.error("Found non-encrypted param '%s.%s'!", clsname, ctrait)
+            for ctraitname, ctrait in cls.class_traits(config=True).items():
+                if not isinstance(ctrait, crypto.Cipher):
+                    continue
+                key = '%s.%s' % (clsname, ctraitname)
+                if key not in config:
+                    continue
+                val = config[clsname][ctraitname]
+                if crypto.is_pgp_encrypted(val):
+                    continue
+                if self.raise_config_file_errors:
+                    raise trt.TraitError(
+                        "Found non-encrypted param '%s.%s' in static-configs!" %
+                        (clsname, ctraitname))
+                self.log.error(
+                    "Found non-encrypted param '%s.%s' in static-configs!",
+                    clsname, ctraitname)
 
     def load_configurables_from_files(self):
         """

@@ -183,6 +183,44 @@ class TPConfFiles(unittest.TestCase):
             cmd.initialize([])
             self.check_cmd_params(cmd, (1, 1, 1))
 
+    def test_check_non_encrypted_in_config_files(self):
+        class MyCmd(baseapp.Cmd):
+            "Ok Cmd"
+            enc = crypto.Cipher().tag(config=True, persist=True)
+
+        with tempfile.TemporaryDirectory(prefix='co2conf-') as tdir:
+            js = '{"MyCmd": {"enc": "BAD_ENC"}}'
+
+            persist_path = osp.join(tdir, 'a.json')
+            with io.open(persist_path, 'w') as fp:
+                fp.write(js)
+
+            ## Setup safedepot not to scream.
+            #
+            safedepot = crypto.SafeDepotSpec.instance()
+            safedepot.gnupghome = tdir
+            fingerprint = cryptotc.gpg_gen_key(
+                safedepot.GPG,
+                key_length=1024,
+                name_real='test user',
+                name_email='test@test.com')
+            safedepot.master_key = fingerprint
+
+            cmd = MyCmd()
+            cmd.config_paths = [persist_path]
+
+            with self.assertLogs(cmd.log, 'ERROR') as cm:
+                cmd.initialize([])
+            self.assertEqual(cmd.enc, "BAD_ENC")
+            logmsg = "Found non-encrypted param 'MyCmd.enc' in static-configs!"
+            self.assertIn(logmsg, [r.message for r in cm.records], cm.records)
+
+            ## But if persist-config, autoencrypted
+            cmd = MyCmd()
+            cmd.persist_path = persist_path
+            cmd.initialize([])
+            self.assertTrue(crypto.is_pgp_encrypted(cmd.enc), cmd.enc)
+
 
 @ddt.ddt
 class TBase(unittest.TestCase):
