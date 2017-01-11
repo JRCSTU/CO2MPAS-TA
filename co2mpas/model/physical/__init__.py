@@ -336,6 +336,7 @@ def physical():
             'final_drive_ratio': 'final_drive_ratio',
             'final_drive_ratios': 'final_drive_ratios',
             'gear_box_ratios': 'gear_box_ratios',
+            'gear_box_type': 'gear_box_type',
             'gears': 'gears',
             'velocity_speed_ratios': 'velocity_speed_ratios',
             'final_drive_torque_loss': 'final_drive_torque_loss',

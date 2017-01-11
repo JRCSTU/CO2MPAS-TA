@@ -76,12 +76,15 @@ class TorqueConverter(object):
             accelerations, velocities, gear_box_speeds_in, gears
         )
 
-        regressor.fit(X[b, :], y[b])
-        self.regressor = regressor
-        models = enumerate((self.model, self.no_model))
-        a = params, X
-        error = sk_met.mean_absolute_error
-        m = min([(error(y, m(*a)), i, m) for i, m in models])[-1]
+        if b.any():
+            regressor.fit(X[b, :], y[b])
+            self.regressor = regressor
+            models = enumerate((self.model, self.no_model))
+            a = params, X
+            error = sk_met.mean_absolute_error
+            m = min([(error(y, m(*a)), i, m) for i, m in models])[-1]
+        else:
+            m = self.no_model
 
         self.predict = m
 

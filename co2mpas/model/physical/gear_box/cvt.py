@@ -64,7 +64,7 @@ def calibrate_cvt(
     return model
 
 
-def predict_gear_box_speeds_in__gears_and_max_gear(
+def predict_gear_box_speeds_in(
         cvt, velocities, accelerations, gear_box_powers_out):
     """
     Predicts gear box speed vector, gear vector, and maximum gear [RPM, -, -].
@@ -92,7 +92,23 @@ def predict_gear_box_speeds_in__gears_and_max_gear(
 
     X = np.column_stack((velocities, accelerations, gear_box_powers_out))
 
-    return cvt(X), np.ones_like(gear_box_powers_out, dtype=int), 1
+    return cvt(X)
+
+
+def predict_gears(velocities):
+    """
+    Predicts gear vector [-].
+
+    :param velocities:
+        Vehicle velocity [km/h].
+    :type velocities: numpy.array
+
+    :return:
+        Gear vector [-].
+    :rtype: numpy.array
+    """
+
+    return np.ones_like(velocities, dtype=int)
 
 
 def identify_max_speed_velocity_ratio(
@@ -151,11 +167,22 @@ def cvt_model():
         outputs=['CVT']
     )
 
+    d.add_data(
+        data_id='max_gear',
+        default_value=1
+    )
+
     d.add_function(
-        function=predict_gear_box_speeds_in__gears_and_max_gear,
+        function=predict_gears,
+        inputs=['velocities'],
+        outputs=['gears'],
+    )
+
+    d.add_function(
+        function=predict_gear_box_speeds_in,
         inputs=['CVT', 'velocities', 'accelerations',
                 'gear_box_powers_out'],
-        outputs=['gear_box_speeds_in', 'gears', 'max_gear'],
+        outputs=['gear_box_speeds_in'],
         out_weight={'gear_box_speeds_in': 10}
     )
 
