@@ -11,8 +11,10 @@ from co2mpas.sampling import baseapp, crypto
 import io
 import json
 import logging
+import os
 import shutil
 import tempfile
+from unittest import mock
 import unittest
 
 import ddt
@@ -57,6 +59,132 @@ def mix_dics(d1, d2):
 
 
 @ddt.ddt
+class TPConfFiles(unittest.TestCase):
+    def check_cmd_params(self, cmd, values):
+        self.assertSequenceEqual([cmd.a, cmd.b, cmd.c], values)
+
+    @mock.patch('co2mpas.sampling.baseapp.default_config_fname', lambda: 'c')
+    @ddt.data(
+        (None, None, []),
+        (['cc', 'cc.json'], None, []),
+
+
+        ## Because of ext-stripping.
+        (['b.py', 'a.json'], None, ['b.json', 'a.py']),
+        (['c.json'], None, ['c.json']),
+
+        ## Because 'c' monekypatched default-name.
+        ([''], None, ['c.py', 'c.json']),
+
+        (['a'], None, ['a.py']),
+        (['b'], None, ['b.json']),
+        (['c'], None, ['c.py', 'c.json']),
+
+        (['c.json', 'c.py'], None, ['c.json', 'c.py']),
+        (['c.json;c.py'], None, ['c.json', 'c.py']),
+
+        (['c', 'c.json;c.py'], None, ['c.py', 'c.json']),
+        (['c;c.json', 'c.py'], None, ['c.py', 'c.json']),
+
+        (['a', 'b'], None, ['a.py', 'b.json']),
+        (['b', 'a'], None, ['b.json', 'a.py']),
+        (['c'], None, ['c.py', 'c.json']),
+        (['a', 'c'], None, ['a.py', 'c.py', 'c.json']),
+        (['a', 'c'], None, ['a.py', 'c.py', 'c.json']),
+        (['a;c'], None, ['a.py', 'c.py', 'c.json']),
+        (['a;b', 'c'], None, ['a.py', 'b.json', 'c.py', 'c.json']),
+
+        (None, 'a', ['a.py']),
+        (None, 'b', ['b.json']),
+        (None, 'c', ['c.py', 'c.json']),
+        (None, 'b;c', ['b.json', 'c.py', 'c.json']),
+
+        ('b', 'a', ['b.json']),
+    )
+    def test_collect_static_fpaths(self, case):
+        with tempfile.TemporaryDirectory(prefix='co2conf-') as tdir:
+            for f in ('a.py', 'b.json', 'c.py', 'c.json'):
+                io.open(osp.join(tdir, f), 'w').close()
+
+            try:
+                param, var, exp = case
+                exp = [osp.join(tdir, f) for f in exp]
+
+                cmd = baseapp.Cmd()
+                if param is not None:
+                    cmd.config_paths = [osp.join(tdir, ff)
+                                        for f in param
+                                        for ff in f.split(os.pathsep)]
+                if var is not None:
+                    os.environ['CO2DICE_CONFIG_PATH'] = os.pathsep.join(
+                        osp.join(tdir, ff)
+                        for f in var
+                        for ff in f.split(os.pathsep))
+
+                paths = cmd._collect_static_fpaths()
+                self.assertListEqual(paths, exp)
+            finally:
+                try:
+                    del os.environ['CO2DICE_CONFIG_PATH']
+                except:
+                    pass
+
+    def test_move_both_config_persist_files(self):
+        class MyCmd(baseapp.Cmd):
+            "Ok Cmd"
+            a = trt.Int().tag(config=True)
+            b = trt.Int().tag(config=True)
+            c = trt.Int().tag(config=True, persist=True)
+
+        texts = ("c.MyCmd.a=3\nc.MyCmd.b=3;c.MyCmd.c=3",
+                 '{"MyCmd": {"a": 1, "b": 1, "c": 1}}',
+                 '{"MyCmd": {"a": 2,  "c": 2}}')
+
+        cmd = MyCmd()
+        self.check_cmd_params(cmd, (0, 0, 0))
+        cmd.initialize([])
+        self.check_cmd_params(cmd, (0, 0, 0))
+
+        with tempfile.TemporaryDirectory(prefix='co2conf-') as tdir:
+            fnames = [osp.join(tdir, f)
+                      for f in
+                      ('stat.py', 'stat.json', 'dyna.json')]
+            for f, txt in zip(fnames, texts):
+                with io.open(f, 'wt') as fp:
+                    fp.write(txt)
+
+            cmd = MyCmd()
+            cmd.config_paths = fnames[:2]
+            cmd.persist_path = fnames[2]
+            cmd.initialize([])
+            self.check_cmd_params(cmd, (2, 3, 2))
+
+            cmd = MyCmd()
+            cmd.config_paths = [fnames[1], fnames[0]]
+            cmd.persist_path = fnames[2]
+            cmd.initialize([])
+            self.check_cmd_params(cmd, (2, 1, 2))
+
+            cmd = MyCmd()
+            cmd.config_paths = fnames[:2]
+            cmd.persist_path = ''
+            cmd.initialize([])
+            self.check_cmd_params(cmd, (3, 3, 3))
+
+            cmd = MyCmd()
+            cmd.config_paths = fnames[:1]
+            cmd.persist_path = ''
+            cmd.initialize([])
+            self.check_cmd_params(cmd, (3, 3, 3))
+
+            cmd = MyCmd()
+            cmd.config_paths = [fnames[1] + osp.pathsep + fnames[0]]
+            cmd.persist_path = ''
+            cmd.initialize([])
+            self.check_cmd_params(cmd, (1, 1, 1))
+
+
+@ddt.ddt
 class TBase(unittest.TestCase):
 
     def check_persistent_config_file(self, pfile, clsname=None, trait=None, value=None):
@@ -79,7 +207,7 @@ class TBase(unittest.TestCase):
 class TPTraits(TBase):
 
     def test_ptraits_spec(self):
-        pfile = pndlu.ensure_file_ext(baseapp.default_config_fpath(), '.json')
+        pfile = pndlu.ensure_file_ext(baseapp.default_persist_fpath(), '.json')
         prepare_persistent_config_file(pfile)
 
         class MySpec(baseapp.Spec):
@@ -87,18 +215,18 @@ class TPTraits(TBase):
             ptrait = trt.Bool().tag(config=True, persist=True)
 
         c = MySpec()
-        c.load_pconfig_file(pfile)  # Needed bc only final Cmds load ptraits.
+        c.load_pconfig(pfile)  # Needed bc only final Cmds load ptraits.
 
         self.check_persistent_config_file(pfile, 'MySpec', 'ptrait', False)
 
         c.ptrait = True
         self.check_persistent_config_file(pfile, 'MySpec', 'ptrait', False)
 
-        c.store_pconfig_file(pfile)
+        c.store_pconfig(pfile)
         self.check_persistent_config_file(pfile, 'MySpec', 'ptrait', True)
 
     def test_ptraits_cmd(self):
-        pfile = pndlu.ensure_file_ext(baseapp.default_config_fpath(), '.json')
+        pfile = pndlu.ensure_file_ext(baseapp.default_persist_fpath(), '.json')
         prepare_persistent_config_file(pfile)
 
         class MyCmd(baseapp.Cmd):
@@ -113,7 +241,7 @@ class TPTraits(TBase):
         c.ptrait = True
         self.check_persistent_config_file(pfile, 'MyCmd', 'ptrait', False)
 
-        c.store_pconfig_file(pfile)
+        c.store_pconfig(pfile)
         self.check_persistent_config_file(pfile, 'MyCmd', 'ptrait', True)
 
     @ddt.data(
@@ -167,7 +295,7 @@ class TCipherTraits(TBase):
         shutil.rmtree(safedepot.gnupghome)
 
     def test_chiphertraits_spec(self):
-        pfile = pndlu.ensure_file_ext(baseapp.default_config_fpath(), '.json')
+        pfile = pndlu.ensure_file_ext(baseapp.default_persist_fpath(), '.json')
         prepare_persistent_config_file(pfile)
 
         class MySpec(baseapp.Spec):
@@ -176,7 +304,7 @@ class TCipherTraits(TBase):
             ctrait = crypto.Cipher(allow_none=True).tag(config=True, persist=True)
 
         c = MySpec()
-        c.load_pconfig_file(pfile)  # Needed bc only final Cmds load ptraits.
+        c.load_pconfig(pfile)  # Needed bc only final Cmds load ptraits.
 
         val = c.ctrait = 'foo'
         cipher = c._trait_values['ctrait']
@@ -187,11 +315,11 @@ class TCipherTraits(TBase):
 
         j = self.check_persistent_config_file(pfile)
         self.assertNotIn('ctrait', j['MySpec'], j)
-        c.store_pconfig_file(pfile)
+        c.store_pconfig(pfile)
         self.check_persistent_config_file(pfile, 'MySpec', 'ctrait', cipher)
 
     def test_chiphertraits_cmd(self):
-        pfile = pndlu.ensure_file_ext(baseapp.default_config_fpath(), '.json')
+        pfile = pndlu.ensure_file_ext(baseapp.default_persist_fpath(), '.json')
         prepare_persistent_config_file(pfile)
 
         class MyCmd(baseapp.Cmd):
@@ -211,7 +339,7 @@ class TCipherTraits(TBase):
 
         j = self.check_persistent_config_file(pfile)
         self.assertNotIn('ctrait', j['MyCmd'], j)
-        c.store_pconfig_file(pfile)
+        c.store_pconfig(pfile)
         self.check_persistent_config_file(pfile, 'MyCmd', 'ctrait', cipher)
 
     @ddt.idata(mix_dics(d1, d2) for d1, d2 in itt.product(

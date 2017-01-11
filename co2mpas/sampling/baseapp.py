@@ -47,19 +47,21 @@ from boltons.setutils import IndexedSet as iset
 from ipython_genutils.text import indent, wrap_paragraphs, dedent
 from toolz import dicttoolz as dtz, itertoolz as itz
 
+import itertools as itt
 import os.path as osp
 import pandalone.utils as pndlu
 import traitlets as trt
 import traitlets.config as trtc
 
 from . import CmdException
-from ..__main__ import init_logging
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
+from ..__main__ import init_logging
 
 
 ## INFO: Modify the following variables on a different application.
 APPNAME = 'co2dice'
-CONF_VAR_NAME = '%s_CONFIG_FILE' % APPNAME.upper()
+CONFIG_VAR_NAME = '%s_CONFIG_PATH' % APPNAME.upper()
+PERSIST_VAR_NAME = '%s_PERSIST_PATH' % APPNAME.upper()
 
 try:
     _mydir = osp.dirname(__file__)
@@ -77,9 +79,15 @@ def default_config_dir():
     return pndlu.convpath('~/.%s' % APPNAME)
 
 
-def default_config_fpath():
+def default_config_fpaths():
     """The full path of to user's config-file, without extension."""
-    return osp.join(default_config_dir(), default_config_fname())
+    return [osp.join(default_config_dir(), default_config_fname()),
+            osp.join(pndlu.convpath(_mydir), default_config_fname())]
+
+
+def default_persist_fpath():
+    """The full path of to user's persistent config-file, without extension."""
+    return osp.join(default_config_dir(), '%s_runtime' % APPNAME)
 
 
 class PeristentMixin:
@@ -90,18 +98,20 @@ class PeristentMixin:
 
     This is the lifecycle of *persistent* traits (*ptraits*):
 
-    1. On app-init, invoke :meth:`load_pconfig_file()` to populate
-       the global :attr:`_pconfig` from disk.
+    1. On app-init, invoke :meth:`load_pconfig()` to read runtime-params from disk
+        and populate the global :attr:`_pconfig` (and attr:`_pconfig_orig`).
 
-    2. On *cmd* or *spec* construction:
-       A. invoke its :meth:`apply_pconfig()` to populate their *ptraits* with values
-          read from disk (preferably after the regular config-values have been applied).
-       B. invoke its :meth:`observe_ptraits()` to start observing all *ptrait* changes.
+    2. Merge pconfig with any regular config-values (preferably overriding them).
 
-    3. On observed changes, the global :attr:`_pconfig` gets updated.
+    3. On each *cmd* or *spec* construction:
+       B. Ensure :meth:`trtc.Configurable.update_config()` is invoked and then
+       C. invoke :meth:`observe_ptraits()` to mirror any ptrait-changes
+          on global :attr:`_pconfig`.
 
-    4. On app-exit, remember to invoke :meth:`store_pconfig_file()`
-       to stores any changed class-attribute on disk.
+    4. On observed changes, indeed the global :attr:`_pconfig` gets updated.
+
+    5. On app-exit, remember to invoke :meth:`store_pconfig()`
+       to store any changes on disk.
 
     """
 
@@ -115,32 +125,51 @@ class PeristentMixin:
     _pconfig_orig = trtc.Config()
 
     @classmethod
-    def load_pconfig_file(cls, fpath):
+    def load_pconfig(cls, fpath: Text):
         """
-        Overrides :attr:`_persistent_config` with config-values from file.
+        Load persistent config into global :attr:`_pconfig` & :attr:`_pconfig_orig`.
 
-        Currently invoked only by the final *Cmd* on its :meth:`Cmd.initialize()`.
-        You have to invoke it for "stand-alone" *Specs*.
+        :param cls:
+            This mixin where updated ptrait-values are to be stored *globally*.
+        :return:
+            A tuple ``(fpath, Config())`` with the read persistent config parameters.
+            Config might be `None` if file not found.
+        :raise:
+            Any exception while reading json and converting it
+            into :class:`trtc.Config`, unless file does not exist.
+
+        .. Note::
+            It does not apply the loaded configs - you have to
+            invoke :meth:`trtc.Configurable.update_config()`.
+
+            Currently both methods invoked by the final *Cmd* on :meth:`Cmd.initialize()`.
+            You have to invoke them for "stand-alone" *Specs* or pass
+            an already merged :class:`trtc.Config` instance.
         """
+        import json
 
+        cfg = None
         fpath = pndlu.ensure_file_ext(fpath, '.json')
-        if osp.isfile(fpath):
-            import json
-
+        try:
             with io.open(fpath, 'rt', encoding='utf-8') as finp:
                 cfg = json.load(finp)
+        except FileNotFoundError:
+            pass
+        else:
+            cfg = trtc.Config(cfg)
 
-            if cfg:
-                cls._pconfig = trtc.Config(cfg)
-                cls._pconfig_orig = copy.deepcopy(cls._pconfig)
+            cls._pconfig = cfg
+            cls._pconfig_orig = copy.deepcopy(cfg)
+
+        return fpath, cfg
 
     @classmethod
-    def store_pconfig_file(cls, fpath):
+    def store_pconfig(cls, fpath: Text):
         """
         Stores ptrait-values from the global :attr:`_pconfig`into `fpath` as JSON.
 
         :param cls:
-            must be the final cmd currently executing, where updated values are to be stored
+            This mixin where updated ptrait-values are to be stored *globally*.
         """
         cfg = cls._pconfig
         if cfg and cfg != cls._pconfig_orig:
@@ -149,13 +178,6 @@ class PeristentMixin:
             fpath = pndlu.ensure_file_ext(fpath, '.json')
             with io.open(fpath, 'wt', encoding='utf-8') as fout:
                 json.dump(cfg, fout, indent=2)
-
-    def apply_pconfig(self: trt.HasTraits):
-        """Invoked on construction to override ptraits with persistent-configs."""
-        cfg = type(self)._pconfig
-        if cfg:
-            ptraits = self.trait_names(config=True, persist=True)
-            self._load_config(cfg, traits=ptraits)
 
     def _ptrait_observed(self, change):
         """The observe-handler for *persistent* traits."""
@@ -224,7 +246,7 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin):
         False,
         ## INFO: Add force flag explanations here.
         help="""
-        Force various sub-commands perform their duties without complaints.
+        Force various sub-commands to perform their duties without complaints.
 
         - project backup: Whether to overwrite existing archives or to create intermediate folders.
         """).tag(config=True)
@@ -286,16 +308,51 @@ class Cmd(trtc.Application, PeristentMixin):
         name = class2cmd_name(type(self))
         return name
 
-    config_files = trt.Unicode(
+    config_paths = trt.List(
+        trt.Unicode(),
         None, allow_none=True,
         help="""
-        Absolute/relative path(s) to config files to OVERRIDE default configs.
-        Multiple paths are separated by '{pathsep}' in descending order.
-        Any extensions are ignored, and '.json' or '.py' are searched (in this order).
-        If the path specified resolves to a folder, the filename `{appname}_config.[json | py]` is appended;
-        Any command-line values take precendance over the `{confvar}` envvar.
-        Use `config init` sub-command to produce a skeleton of the config-file.
-        """.format(appname=APPNAME, confvar=CONF_VAR_NAME, pathsep=osp.pathsep)
+        Absolute/relative path(s) to read "static" configurable parameters from.
+
+        If false, and no `{confvar}` envvar is defined, defaults to:
+            {default}
+        Multiple values may be given, and each value may one or multiple paths be separated by '{pathsep}'.
+        All paths collected are considered in descending order (1st one overrides the rest).
+        For paths resolving to folders, the filename `{appname}_config.[json | py]` is appended;
+        otherwise, any file-extensions are ignored, and '.py' and/or '.json' are loaded (in this order).
+
+
+        Tip:
+            Use `config init` sub-command to produce a skeleton of the config-file.
+
+        Note:
+            A value in configuration files are ignored!  Set this from command-line
+            (or in code, before invoking :meth:`Cmd.initialize()`).
+            Any command-line values take precedence over the `{confvar}` envvar.
+        """.format(appname=APPNAME, confvar=CONFIG_VAR_NAME,
+                   default=default_config_fpaths(), pathsep=osp.pathsep)
+    ).tag(config=True)
+
+    persist_path = trt.Unicode(
+        None, allow_none=True,
+        help="""
+        Absolute/relative path to read/write persistent parameters on runtime, if `{confvar}` envvar is not defined.
+
+        If false, and no `{confvar}` envvar is defined, defaults to:
+            {default}
+        If path resolves to a folder, the filename `{appname}_runtime.json` is appended;
+        otherwise, the file-extensions is assumed to be `.json`.
+        Persistent-parameters override "static" ones.
+
+        Tip:
+            Use `config init` sub-command to produce a skeleton of the config-file.
+
+        Note:
+            A value in configuration files are ignored!  Set this from command-line
+            (or in code, before invoking :meth:`Cmd.initialize()`).
+            Any command-line values take precedence over the `{confvar}` envvar.
+        """.format(appname=APPNAME, confvar=PERSIST_VAR_NAME,
+                   default=default_persist_fpath())
     ).tag(config=True)
 
     @trt.default('log')
@@ -303,85 +360,186 @@ class Cmd(trtc.Application, PeristentMixin):
         ## Use a regular logger.
         return logging.getLogger(type(self).__name__)
 
-    @property
-    def user_config_fpaths(self):
-        fpaths = []
-        config_files = os.environ.get(CONF_VAR_NAME, self.config_files)
-        if config_files:
-            def _procfpath(p):
-                p = pndlu.convpath(p)
-                if osp.isdir(p):
-                    p = osp.join(p, default_config_fname())
-                else:
-                    p = osp.splitext(p)[0]
-                return p
-
-            fpaths = config_files.split(osp.pathsep)
-            fpaths = [_procfpath(p) for p in fpaths]
-
-        return fpaths
-
-    #: A list of 2-tuples ``(folder, fname(s))`` with loaded config-files
-    #: in descending order (last overrides previous), to answer inquires afterwards.
+    #: A list of loaded config-files in descending order
+    #: (1st overrides rest), to answer inquires afterwards.
     loaded_config_files = []
 
-    def load_config_file(self, filename, path=None):
-        # Overridden just to maintain :attr:`loaded_config_files` list.
+    def _derive_config_fpaths(self, path: Text) -> List[Text]:
+        """Return multiple *existent* fpaths for each config-file path (folder/file)."""
+        new_paths = []
+
+        def try_json_and_py(basepath):
+            found = False
+            for ext in ('.py', '.json'):
+                f = pndlu.ensure_file_ext(basepath, ext)
+                if osp.isfile(f):
+                    new_paths.append(f)
+                    found = True
+
+            return found
+
+        for p in path.split(os.pathsep):
+            p = pndlu.convpath(p)
+            if osp.isdir(p):
+                try_json_and_py(osp.join(p, default_config_fname()))
+            else:
+                found = try_json_and_py(p)
+                ## Do not strip ext if has matched WITH ext.
+                if not found:
+                    try_json_and_py(osp.splitext(p)[0])
+
+        return new_paths
+
+    def _collect_static_fpaths(self):
+        config_paths = (self.config_paths or
+                        os.environ.get(CONFIG_VAR_NAME, '').split(os.pathsep) or
+                        default_config_fpaths())
+        config_paths = list(iset(itt.chain(
+            existing_fpaths
+            for cf in config_paths
+            for existing_fpaths in self._derive_config_fpaths(cf))))
+
+        return config_paths
+
+    def _read_config_from_json_or_py(self, cfpath: Text):
         """
-        The :attr:`loaded_config_files` would contain eventually::
-
-            [['co2dice_config.py', 'co2dice_config.json']),
-            ('D:\cur_dir\', None)
-            ('G:\some_dir\', ['some.py']),
-            ('G:\another_dir\', ['other_conf.json'])]
-
+        :param cfpath:
+            The absolute config-file path with either ``.py`` or ``.json`` ext.
         """
-        super().load_config_file(filename, path)
+        log = self.log
+        loaders = {
+            '.py': trtc.PyFileConfigLoader,
+            '.json': trtc.JSONFileConfigLoader,
+        }
+        ext = osp.splitext(cfpath)[1]
+        loader = loaders.get(str.lower(ext))
+        assert loader, cfpath  # Must exist.
 
-        ## Reproduce trait-loaders logic and
-        #  report any existing config files.
-        #
-        fname, _ = osp.splitext(filename)
-        if not isinstance(path, (list, tuple)):
-            path = [path]
-        for p in path:
-            found = []
-            for e in ('.py', '.json'):
-                fpath = osp.join(p, fname + e)
-                p, f = osp.split(fpath)
-                if osp.isfile(fpath):
-                    found.append(f)
-            self.loaded_config_files.insert(0, (p, found or None))
+        config = None
+        try:
+            config = loader(cfpath, path=None, log=log).load_config()
+        except trtc.ConfigFileNotFound:
+            ## Config-file deleted between collecting its name and reading it.
+            pass
+        except Exception as ex:
+            if self.raise_config_file_errors:
+                raise
+            log.error("Skipped loading config-file '%s' due to: %s",
+                      cfpath, ex, exc_info=True)
+        else:
+            log.debug("Loaded config-file: %s", cfpath)
 
-    def load_config_files(self):
-        """Load default user-specified overrides config files.
+        return config
 
-        Config-files in descending orders:
-
-        - user-overrides:
-          - :envvar:`<APPNAME>_CONFIG_FILE`, or if not set,
-          - :attr:`config_file`;
-
-        - default config-files:
-            - ~/.<appname>/<appname>_config.{json,py} and
-            - <this-file's-folder>/<appname>_config.{json,py}.
+    def _read_config_from_static_files(self):
         """
-        # Load "standard" configs,
-        #      path-list in descending priority order.
-        #
-        paths = list(iset([default_config_dir(), _mydir]))
-        self.load_config_file(default_config_fname(), path=paths)
+        Sideffect: Updates also the :attr:`loaded_config_files` list.
+        """
+        config_paths = self._collect_static_fpaths()
 
-        # Load "user" configs.
-        #
-        user_conf_fpaths = self.user_config_fpaths
-        for fp in user_conf_fpaths[::-1]:
-            cdir, cfname = osp.split(fp)
-            self.load_config_file(cfname, path=cdir)
+        new_config = trtc.Config()
+        ## Registry to detect collisions.
+        loaded = {}  # type: Dict[Text, Config]
+
+        for cfpath in config_paths[::-1]:
+            config = self._read_config_from_json_or_py(cfpath)
+            if config:
+                self.loaded_config_files.append(cfpath)
+
+                for filename, earlier_config in loaded.items():
+                    collisions = earlier_config.collisions(config)
+                    if collisions:
+                        import json
+                        self.log.warning(
+                            "Collisions detected in %s and %s config files."
+                            " %s has higher priority: %s",
+                            filename, cfpath, cfpath,
+                            json.dumps(collisions, indent=2)
+                            )
+                loaded[cfpath] = config
+
+                new_config.merge(config)
+
+        return new_config
+
+    def _read_config_from_persist_file(self):
+        """
+        Sideffect: Updates also the :attr:`loaded_config_files` list.
+        """
+        persist_path = (self.persist_path or
+                        os.environ.get(PERSIST_VAR_NAME) or
+                        default_persist_fpath())
+        persist_path = pndlu.convpath(persist_path)
+        try:
+            persist_path, config = self.load_pconfig(persist_path)
+        except Exception as ex:
+            if self.raise_config_file_errors:
+                raise
+            self.log.error("Skipped loading persist-file '%s' due to: %s",
+                           persist_path, ex, exc_info=True)
+        else:
+            if not config:
+                self.log.info("No persist-file found in: %s", persist_path)
+            else:
+                self.log.debug("Loaded persist-file: %s", persist_path)
+                self.loaded_config_files.append(persist_path)
+
+                return config
+
+    def _check_non_encrypted_in_config_files(self, config):
+        """
+        For all configurable-classes, scan `config` for non-encrypted values.
+
+        Must be invoked before reading peristent config file.
+        """
+        from . import crypto
+
+        log = self.log
+        for cls in self._classes_with_config_traits():
+            clsname = cls.__name__
+            for ctrait in cls.class_trait_names(config=True):
+                if isinstance(ctrait, crypto.Cipher):
+                    val = config[clsname][ctrait]
+                    if val and not crypto.is_pgp_encrypted(val):
+                        log.error("Found non-encrypted param '%s.%s'!", clsname, ctrait)
+
+    def load_configurables_from_files(self):
+        """
+        Load :attr:`config_paths`, :attr:`persist_path`) and maintain :attr:`loaded_config_files` list.
+
+        Configuration files are read and merged in descending orders:
+
+        1. Cmd-line arguments (as stored on :attr:`cli_config`);
+
+        2. Persistent parameters from ``.json`` files, either in:
+           - :envvar:`<APPNAME>_PERSIST_PATH`, or if not set,
+           - :attr:`persist_path` (see its default-value);
+
+        3. Static parameters from ``.json`` and/or ``.py`` files, either in:
+           - :envvar:`<APPNAME>_CONFIG_PATHS`, or if not set,
+           - :attr:`config_paths` (see its default-value).
+
+        Code adapted from :meth:`load_config_file` & :meth:`Application._load_config_files`.
+        """
+        self.loaded_config_files = []
+        try:
+            config = self._read_config_from_static_files()
+
+            self._check_non_encrypted_in_config_files(config)
+
+            persist_config = self._read_config_from_persist_file()
+            if persist_config:
+                config.merge(persist_config)
+        finally:
+            self.loaded_config_files = self.loaded_config_files[::-1]
+
+        config.merge(self.cli_config)
+
+        self.update_config(config)
 
     def write_default_config(self, config_file=None, force=False):
         if not config_file:
-            config_file = default_config_fpath()
+            config_file = default_config_fpaths()[0]
         else:
             config_file = pndlu.convpath(config_file)
             if osp.isdir(config_file):
@@ -503,7 +661,7 @@ class Cmd(trtc.Application, PeristentMixin):
             ## Set some nice defaults for root-CMDs.
             #
             'cmd_aliases': {
-                'config-files': 'Cmd.config_files',
+                'config-files': 'Cmd.config_paths',
             },
             'cmd_flags': {
                 ('d', 'debug'): (
@@ -543,26 +701,22 @@ class Cmd(trtc.Application, PeristentMixin):
 
     @trtc.catch_config_error
     def initialize(self, argv=None):
-        try:
-            ## Invoked after __init__() by Cmd.launch_instance() to read configs.
-            #  It parses cl-args before file-configs, to detect sub-commands
-            #  and update any :attr:`config_file`,
-            #  load file-configs, and then re-apply cmd-line configs as overrides
-            #  (trick copied from `jupyter-core`).
-            self.parse_command_line(argv)
-            if self._is_dispatching():
-                ## Only the final child gets file-configs.
-                #  Also avoid contaminations with user if generating-config.
-                return
+        """
+        Invoked after __init__() by Cmd.launch_instance() to read configs.
 
-            ptraits_file = pndlu.ensure_file_ext(default_config_fpath(), '.json')
-            cl_config = copy.deepcopy(self.config)
-            self.load_config_files()
-            ## No need to :meth:`apply_pconfig()` below, already loaded above.
-            self.load_pconfig_file(ptraits_file)
-            self.update_config(cl_config)
-        finally:
-            self.observe_ptraits()  # TODO: Why finally observe_traits()?
+        It parses cl-args before file-configs, to detect sub-commands
+        and update any :attr:`config_paths`, then it reads all file-configs, and
+        then re-apply cmd-line configs as overrides
+        (trick copied from `jupyter-core`).
+        """
+        self.parse_command_line(argv)
+        if self._is_dispatching():
+            ## Only the final child reads file-configs.
+            #  Also avoid contaminations with user if generating-config.
+            return
+
+        self.load_configurables_from_files()
+        self.observe_ptraits()
 
     print_config = trt.Bool(
         False,
