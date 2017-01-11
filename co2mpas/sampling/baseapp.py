@@ -405,8 +405,10 @@ class Cmd(trtc.Application, PeristentMixin):
         return new_paths
 
     def _collect_static_fpaths(self):
+        env_paths = os.environ.get(CONFIG_VAR_NAME)
+        env_paths = env_paths and [env_paths]
         config_paths = (self.config_paths or
-                        os.environ.get(CONFIG_VAR_NAME, '').split(os.pathsep) or
+                        env_paths or
                         default_config_fpaths())
         config_paths = list(iset(itt.chain(
             existing_fpaths
