@@ -575,6 +575,14 @@ class Cmd(trtc.Application, PeristentMixin):
         lines.append('')
         print(os.linesep.join(lines))
 
+    ## Needed because some sub-cmd name clash and
+    #  *argparse* screams about conflicts.
+    #  See https://github.com/ipython/traitlets/pull/360
+    def _create_loader(self, argv, aliases, flags, classes):
+        return trtc.KVArgParseConfigLoader(
+            argv, aliases, flags, classes=classes,
+            log=self.log, conflict_handler='resolve')
+
     default_subcmd = trt.Unicode(
         None, allow_none=True,
         help="The name of the sub-command to use if unspecified.")
