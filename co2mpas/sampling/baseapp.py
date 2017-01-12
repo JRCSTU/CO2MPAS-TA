@@ -238,9 +238,15 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin):
         Make various sub-commands increase their verbosity (not to be confused with --debug):
         Can be a boolean or 0, 1(==True), 2, ....
 
-        - project list  : List project with the "long" format.
-        - project infos : Whether to include also info about the repo-configuration (when 2).
-        """).tag(config=True)
+        Commands using this flag:
+        ~~~~~~~~~~~~~~~~~~~~~~~~~
+        `co2dice project list`
+            List project with the "long" format.
+        `co2dice project infos`
+            Whether to include also info about the repo-configuration (when 2).
+        `co2dice config show`
+            Print parameters for all intermediate classes.
+          """).tag(config=True)
 
     force = trt.Bool(
         False,
@@ -248,7 +254,12 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin):
         help="""
         Force various sub-commands to perform their duties without complaints.
 
-        - project backup: Whether to overwrite existing archives or to create intermediate folders.
+        Commands using this flag:
+        ~~~~~~~~~~~~~~~~~~~~~~~~~
+        `project backup`
+            Whether to overwrite existing archives or to create intermediate folders.
+        `config init`
+            Overwrite config-file, even if it already exists.
         """).tag(config=True)
 
     user_name = trt.Unicode(
@@ -419,9 +430,14 @@ class Cmd(trtc.Application, PeristentMixin):
         name = class2cmd_name(type(self))
         return name
 
+    verbose = trt.Union(
+        (trt.Integer(0), trt.Bool(False)),
+        ## INFO: Add verbose flag explanations here.
+        help=Spec.verbose.help).tag(config=True)
+
     force = trt.Bool(
         False,
-        help="""Force overwriting config-file, even if it already exists."""
+        help=Spec.force.help
     ).tag(config=True)
 
     config_paths = trt.List(
@@ -752,6 +768,7 @@ class Cmd(trtc.Application, PeristentMixin):
                 ('v', 'verbose'): (
                     {
                         'Spec': {'verbose': True},
+                        'Cmd': {'verbose': True},
                     },
                     pndlu.first_line(Spec.verbose.help)
                 ),
