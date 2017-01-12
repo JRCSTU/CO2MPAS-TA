@@ -788,8 +788,23 @@ class Cmd(trtc.Application, PeristentMixin):
         dkwds.update(kwds)
         super().__init__(**dkwds)
 
-    def _check_non_encrypted_in_config_files(self, static_config, persist_config,
-                                             all_configurables):
+    def all_app_configurables(self):
+        """
+        Return the full config-classes, typically for running validity checks on app startup.
+
+        :return:
+            an ordered-set of all apps
+
+        Could not use :attr:`classes` because not all commands load all of them; actually
+        that attribute should be limited to classes facilitating user interaction.
+        And had to be a Cmd-method so that it can inlude this cmd's classes, even if
+        the cmd has been created temporarilly (e.g. for some TC).
+        """
+        ## INFO: Forward-dependency to specific App, instead of Abbstract-method to be overriden in TCs.
+        from . import dice
+        return iset(itt.chain(dice.all_app_configurables(), self.classes))
+
+    def _check_non_encrypted_in_config_files(self, static_config, persist_config):
         """
         For all configurable-classes, scan *static-configs* for non-encrypted values.
 
@@ -797,6 +812,7 @@ class Cmd(trtc.Application, PeristentMixin):
         """
         from . import crypto
 
+        all_configurables = self.all_app_configurables()
         for cls in all_configurables:
             clsname = cls.__name__
             for ctraitname, ctrait in cls.class_traits(config=True).items():
@@ -837,16 +853,8 @@ class Cmd(trtc.Application, PeristentMixin):
             #  Also avoid contaminations with user if generating-config.
             return
 
-        ## NOTE: Dependency to specific app BELOW!
-        #  Cannot use :attr:`conf_classes` because not all commands need all of them,
-        #  besides, *argparse* complains with same-named subcmds.
-        #
-        from . import dice
-        all_configurables = dice.all_configurables()
-
         static_config, persist_config = self.load_configurables_from_files()
-        self._check_non_encrypted_in_config_files(static_config, persist_config,
-                                                  all_configurables)
+        self._check_non_encrypted_in_config_files(static_config, persist_config)
 
         if persist_config:
             static_config.merge(persist_config)

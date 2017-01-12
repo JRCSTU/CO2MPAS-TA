@@ -329,7 +329,7 @@ class TApp(unittest.TestCase):
         res = list(cmd.run())
         ## Count Cmd-lines not starting with '  +--trait'.
         ncmdlines = sum(1 for r in res if r[0] != ' ')
-        self.assertGreaterEqual(ncmdlines, len(dice.all_configurables()), res)
+        self.assertGreaterEqual(ncmdlines, len(cmd.all_app_configurables()), res)
 
     @ddt.data(*dice.all_cmds())
     def test_all_cmds_help_smoketest(self, cmd: baseapp.Cmd):

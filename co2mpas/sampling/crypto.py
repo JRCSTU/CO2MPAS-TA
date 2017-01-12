@@ -89,8 +89,7 @@ _pgp_regex = re.compile(r'^\s*-----[A-Z ]*PGP[A-Z ]*-----.+-----[A-Z ]*PGP[A-Z ]
 
 
 def is_pgp_encrypted(obj) -> bool:
-
-    return isinstance(obj, str) and _pgp_regex.match(obj)
+    return bool(isinstance(obj, str) and _pgp_regex.match(obj))
 
 
 class SafeDepotSpec(trtc.SingletonConfigurable, GnuPGSpec):

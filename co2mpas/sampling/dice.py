@@ -22,7 +22,7 @@ import os
 import re
 import textwrap
 import types
-from typing import Sequence, Text, List
+from typing import Sequence, Text, List, Tuple
 
 import os.path as osp
 import pandalone.utils as pndlu
@@ -159,8 +159,8 @@ class ConfigCmd(Cmd):
 
         def run(self, *args):
             ## Prefer to modify `classes` after `initialize()`, or else,
-            #  duplicate classes conflict, and cmd becomes fatty :-)
-            self.classes = all_configurables()
+            #  the cmd options would be irrelevant and fatty :-)
+            self.classes = self.all_app_configurables()
             args = args or [None]
             for fpath in args:
                 self.write_default_config(fpath, self.force)
@@ -226,8 +226,8 @@ class ConfigCmd(Cmd):
 
         def _yield_configs_and_defaults(self, config):
             ## Prefer to modify `classes` after `initialize()`, or else,
-            #  duplicate classes conflict, and cmd becomes fatty :-)
-            self.classes = all_configurables()
+            #  the cmd options would be irrelevant and fatty :-)
+            self.classes = self.all_app_configurables()
             for cls in self._classes_with_config_traits():
                 clsname = cls.__name__
                 cls_printed = False
@@ -253,10 +253,9 @@ class ConfigCmd(Cmd):
                                    % (self.name, len(args), args))
 
             config = self._loaded_config
-            if self.onfiles:
-                yield from self._yield_file_configs(config)
-            else:
-                yield from self._yield_configs_and_defaults(config)
+            yield from (self._yield_file_configs(config)
+                        if self.onfiles else
+                        self._yield_configs_and_defaults(config))
 
     def __init__(self, **kwds):
             dkwds = {'subcommands': baseapp.build_sub_cmds(*config_subcmds)}
@@ -292,7 +291,7 @@ def all_cmds():
 
 ## INFO: Add all SPECs here.
 #
-def all_configurables():
+def all_app_configurables() -> Tuple:
     from co2mpas.sampling import project, report, tstamp
     return all_cmds() + (
         baseapp.Spec, project.ProjectsDB,
