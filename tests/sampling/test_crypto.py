@@ -63,44 +63,44 @@ def gpg_del_key(GPG, fingerprint):
 
 
 @contextlib.contextmanager
-def _temp_master_key(safedepot, master_key):
-    oldkey = safedepot.master_key
-    safedepot.master_key = master_key
+def _temp_master_key(vault, master_key):
+    oldkey = vault.master_key
+    vault.master_key = master_key
     try:
-        yield safedepot
+        yield vault
     finally:
-        safedepot.master_key = oldkey
+        vault.master_key = oldkey
 
 
 @ddt.ddt
-class TSafeDepotSpec(unittest.TestCase):
+class TVaultSpec(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
         cfg = trtc.get_config()
-        cfg.SafeDepotSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
-        safedepot = crypto.SafeDepotSpec.instance(config=cfg)
+        cfg.VaultSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        vault = crypto.VaultSpec.instance(config=cfg)
 
         fingerprint = gpg_gen_key(
-            safedepot.GPG,
+            vault.GPG,
             key_length=1024,
             name_real='test user',
             name_email='test@test.com')
-        safedepot.master_key = fingerprint
+        vault.master_key = fingerprint
 
     @classmethod
     def tearDownClass(cls):
-        safedepot = crypto.SafeDepotSpec.instance()
-        assert safedepot.gnupghome
-        gpg_del_key(safedepot.GPG, safedepot.master_key)
-        shutil.rmtree(safedepot.gnupghome)
+        vault = crypto.VaultSpec.instance()
+        assert vault.gnupghome
+        gpg_del_key(vault.GPG, vault.master_key)
+        shutil.rmtree(vault.gnupghome)
 
     @ddt.idata(itt.product(('user', '&^a09|*(K}'), _objs))
     def test_1_dencrypt(self, case):
         pswdid, obj = case
-        safedepot = crypto.SafeDepotSpec.instance()
+        vault = crypto.VaultSpec.instance()
 
-        ciphertext = safedepot.encryptobj('enc_test', obj)
+        ciphertext = vault.encryptobj('enc_test', obj)
         msg = ('CASE:', case, ciphertext)
 
         self.assertTrue(crypto.is_pgp_encrypted(ciphertext), msg)
@@ -110,50 +110,50 @@ class TSafeDepotSpec(unittest.TestCase):
         self.assertNotIn(ciphertext, _ciphertexts)
         _ciphertexts.add(ciphertext)
 
-        plainbytes2 = safedepot.decryptobj(pswdid, ciphertext)
+        plainbytes2 = vault.decryptobj(pswdid, ciphertext)
         self.assertEqual(obj, plainbytes2, msg)
 
     def test_2_many_master_keys(self):
-        safedepot = crypto.SafeDepotSpec.instance()
+        vault = crypto.VaultSpec.instance()
         fingerprint = gpg_gen_key(
-            safedepot.GPG,
+            vault.GPG,
             key_length=1024,
             name_real='test user2',
             name_email='test2@test.com')
         try:
-            with _temp_master_key(safedepot, None):
+            with _temp_master_key(vault, None):
                 with self.assertRaisesRegex(ValueError, 'Cannot guess master-key! Found 2 keys'):
-                    safedepot.encryptobj('enc_test', b'')
+                    vault.encryptobj('enc_test', b'')
         finally:
-            gpg_del_key(safedepot.GPG, fingerprint)
+            gpg_del_key(vault.GPG, fingerprint)
 
     def test_3_no_master_key(self):
-        safedepot = crypto.SafeDepotSpec.instance()
-        gpg_del_key(safedepot.GPG, safedepot.master_key)
+        vault = crypto.VaultSpec.instance()
+        gpg_del_key(vault.GPG, vault.master_key)
         try:
-            with _temp_master_key(safedepot, None):
+            with _temp_master_key(vault, None):
                 with self.assertRaisesRegex(ValueError, 'Cannot guess master-key! Found 0 keys'):
-                    safedepot.encryptobj('enc_test', b'')
+                    vault.encryptobj('enc_test', b'')
         finally:
-            safedepot.master_key = gpg_gen_key(
-                safedepot.GPG,
+            vault.master_key = gpg_gen_key(
+                vault.GPG,
                 key_length=1024,
                 name_real='test user3',
                 name_email='test2@test.com')
 
     def test_5_no_sec_key(self):
-        safedepot = crypto.SafeDepotSpec.instance()
+        vault = crypto.VaultSpec.instance()
         fingerprint = gpg_gen_key(
-            safedepot.GPG,
+            vault.GPG,
             key_length=1024,
             name_real='test user2',
             name_email='test2@test.com')
-        safedepot.GPG.delete_keys(fingerprint, secret=1)
+        vault.GPG.delete_keys(fingerprint, secret=1)
         try:
-            with _temp_master_key(safedepot, fingerprint):
-                chiphered = safedepot.encryptobj('enc_test', b'foo')
+            with _temp_master_key(vault, fingerprint):
+                chiphered = vault.encryptobj('enc_test', b'foo')
                 with self.assertRaisesRegex(ValueError, r"PswdId\('enc_test'\): decryption failed"):
-                    safedepot.decryptobj('enc_test', chiphered)
+                    vault.decryptobj('enc_test', chiphered)
         finally:
-            safedepot.GPG.delete_keys(fingerprint, secret=0)
+            vault.GPG.delete_keys(fingerprint, secret=0)
 

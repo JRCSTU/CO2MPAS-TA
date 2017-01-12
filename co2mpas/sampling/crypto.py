@@ -92,12 +92,12 @@ def is_pgp_encrypted(obj) -> bool:
     return bool(isinstance(obj, str) and _pgp_regex.match(obj))
 
 
-def safe_depot(config):
-    """Use this to get hold of the *safedepot* singletton."""
-    return SafeDepotSpec.instance(config=config)
+def get_vault(config):
+    """Use this to get hold of the *vault* singletton."""
+    return VaultSpec.instance(config=config)
 
 
-class SafeDepotSpec(trtc.SingletonConfigurable, GnuPGSpec):
+class VaultSpec(trtc.SingletonConfigurable, GnuPGSpec):
     """A store of 3rdp passwords and othe secret objects in textual format."""
 
     master_key = trt.Unicode(
@@ -116,7 +116,7 @@ class SafeDepotSpec(trtc.SingletonConfigurable, GnuPGSpec):
             nseckeys = len(seckeys)
             if nseckeys != 1:
                 raise ValueError("Cannot guess master-key! Found %d keys in secret keyring."
-                                 "\n  Please set the `SafeDepotSpec.master_key` configurable parameter." %
+                                 "\n  Please set the `VaultSpec.master_key` configurable parameter." %
                                  nseckeys)
 
             master_key = seckeys[0]['fingerprint']
@@ -227,8 +227,8 @@ class Cipher(trt.TraitType):
             cls_name = type(obj).__name__
             pswdid = '%s.%s' % (cls_name, self.name)
             if not is_pgp_encrypted(value):
-                safedepot = safe_depot(obj.config)
-                safedepot.log.debug("Auto-encrypting cipher-trait(%r)...", pswdid)
-                value = safedepot.encryptobj(pswdid, value)
+                vault = get_vault(obj.config)
+                vault.log.debug("Auto-encrypting cipher-trait(%r)...", pswdid)
+                value = vault.encryptobj(pswdid, value)
 
         return value

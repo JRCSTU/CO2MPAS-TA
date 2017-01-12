@@ -354,7 +354,7 @@ if __name__ == '__main__':
     argv = None
     ## DEBUG AID ARGS, remember to delete them once developed.
     #argv = ''.split()
-    argv = '--debug'.split()
+    #argv = '--debug'.split()
     #argv = '--help'.split()
     argv = '--help-all'.split()
     #argv = 'config init'.split()
@@ -364,20 +364,20 @@ if __name__ == '__main__':
     #argv = 'project --help-all'.split()
     #argv = '--debug'.split()
     #argv = 'project list --help-all'.split()
-#     argv = 'project --Project.reset_settings=True'.split()
+    #argv = 'project --Project.reset_settings=True'.split()
     #argv = 'project --reset-git-settings'.split()
     #argv = 'project infos --help-all'.split()
     #argv = 'project infos'.split()
-    argv = 'project --help-all'.split()
-    argv = 'project examine --as-json --verbose --debug'.split()
-    argv = 'project examine --Project.verbose=2 --debug'.split()
-#     argv = 'project list  --Project.reset_settings=True'.split()
+    #argv = 'project --help-all'.split()
+    #argv = 'project examine --as-json --verbose --debug'.split()
+    #argv = 'project examine --Project.verbose=2 --debug'.split()
+    #argv = 'project list  --Project.reset_settings=True'.split()
     #argv = '--Project.reset_settings=True'.split()
     #argv = 'project list  --reset-git-settings'.split()
     #argv = 'project init one'.split()
 
-    argv = 'project current'.split()
-    #argv = 'config list'.split()
+    #argv = 'project current'.split()
+    #argv = 'config paths'.split()
 
     #argv = 'tstamp send'.split()
     # Invoked from IDEs, so enable debug-logging.

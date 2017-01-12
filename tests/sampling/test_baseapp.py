@@ -232,16 +232,16 @@ class TPConfFiles(unittest.TestCase):
             with io.open(persist_path, 'w') as fp:
                 fp.write(js)
 
-            ## Setup safedepot not to scream.
+            ## Setup vault not to scream.
             #
-            safedepot = crypto.SafeDepotSpec.instance()
-            safedepot.gnupghome = tdir
+            vault = crypto.VaultSpec.instance()
+            vault.gnupghome = tdir
             fingerprint = cryptotc.gpg_gen_key(
-                safedepot.GPG,
+                vault.GPG,
                 key_length=1024,
                 name_real='test user',
                 name_email='test@test.com')
-            safedepot.master_key = fingerprint
+            vault.master_key = fingerprint
 
             cmd = MyCmd()
             cmd.config_paths = [persist_path]
@@ -384,21 +384,21 @@ class TCipherTraits(TBase):
     def setUpClass(cls):
         cls._tdir = tdir = tempfile.mkdtemp(prefix='co2cipher-')
         cfg = trtc.get_config()
-        cfg.SafeDepotSpec.gnupghome = tdir
-        safedepot = crypto.SafeDepotSpec.instance(config=cfg)
+        cfg.VaultSpec.gnupghome = tdir
+        vault = crypto.VaultSpec.instance(config=cfg)
 
         fingerprint = cryptotc.gpg_gen_key(
-            safedepot.GPG,
+            vault.GPG,
             key_length=1024,
             name_real='test user',
             name_email='test@test.com')
-        safedepot.master_key = fingerprint
+        vault.master_key = fingerprint
 
     @classmethod
     def tearDownClass(cls):
-        safedepot = crypto.SafeDepotSpec.instance()
-        assert safedepot.gnupghome
-        cryptotc.gpg_del_key(safedepot.GPG, safedepot.master_key)
+        vault = crypto.VaultSpec.instance()
+        assert vault.gnupghome
+        cryptotc.gpg_del_key(vault.GPG, vault.master_key)
         shutil.rmtree(cls._tdir)
 
     def test_chiphertraits_spec(self):

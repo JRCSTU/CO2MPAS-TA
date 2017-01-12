@@ -813,7 +813,7 @@ class Cmd(trtc.Application, PeristentMixin):
         from . import crypto
 
         any_encrypted = 0
-        safedepot = None  # lazily created
+        vault = None  # lazily created
         screams = []
         all_configurables = {c.__name__: c for c in self.all_app_configurables()}
         configs = [c for c in (static_config, persist_config) if c]
@@ -841,10 +841,10 @@ class Cmd(trtc.Application, PeristentMixin):
 
                         key = '%s.%s' % (clsname, tname)
                         if encrypt_plain:
-                            if not safedepot:
-                                safedepot = crypto.safe_depot(self.config)
+                            if not vault:
+                                vault = crypto.get_vault(self.config)
                             self.log.info("Auto-encrypting cipher-trait(%r)...", key)
-                            config[clsname][tname] = safedepot.encryptobj(key, tvalue)
+                            config[clsname][tname] = vault.encryptobj(key, tvalue)
                             any_encrypted += 1
                         else:
                             screams.append(key)
