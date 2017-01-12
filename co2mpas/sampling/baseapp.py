@@ -82,7 +82,7 @@ def default_config_dir():
 def default_config_fpaths():
     """The full path of to user's config-file, without extension."""
     return [osp.join(default_config_dir(), default_config_fname()),
-            osp.join(pndlu.convpath(_mydir), default_config_fname())]
+            osp.join(pndlu.convpath(_mydir), default_config_fname()), '/bb']
 
 
 def default_persist_fpath():
@@ -345,15 +345,15 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
             ... ('c/c/', None),
             ... ('d/',   'F1'),
             ... ('d/',   None),
-            ... ('c/c/', 'FF')]
-            [('c/c/',   'FF')
-             ('d/',     'F1'),
-            ('a/b/',   ['F1', 'F2']),
-             ('c/c/',   [])]
+            ... ('c/c/', 'FF')])
+            [('a/b/',   ['F1', 'F2']),
+             ('c/c/',   []),
+             ('d/',     ['F1']),
+             ('c/c/',   ['FF'])]
         """
         consolidated = []
         prev = None
-        for b, f in visited_files[::-1]:
+        for b, f in visited_files:
             if not prev:            # loop start
                 prev = (b, [])
             elif prev[0] != b:      # new dir
@@ -373,7 +373,7 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
 
     def collect_fpaths(self, path_list: List[Text]):
         """
-        Collects a Locate and (``.json|.py``) files present in the `path_list`.
+        Collects all (``.json|.py``) files present in the `path_list`, (descending order).
 
         :param path_list:
             A list of paths (absolute, relative, dir or folders)
@@ -402,22 +402,20 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
         def _derive_config_fpaths(path: Text) -> List[Text]:
             """Return multiple *existent* fpaths for each config-file path (folder/file)."""
 
-            for p in path.split(os.pathsep):
-                p = pndlu.convpath(p)
-                if osp.isdir(p):
-                    try_json_and_py(osp.join(p, default_config_fname()))
-                else:
-                    found = try_json_and_py(p)
-                    ## Do not strip ext if has matched WITH ext.
-                    if not found:
-                        try_json_and_py(osp.splitext(p)[0])
+            p = pndlu.convpath(path)
+            if osp.isdir(p):
+                try_json_and_py(osp.join(p, default_config_fname()))
+            else:
+                found = try_json_and_py(p)
+                ## Do not strip ext if has matched WITH ext.
+                if not found:
+                    try_json_and_py(osp.splitext(p)[0])
 
-            return new_paths
+        for cf1 in path_list:
+            for cf2 in cf1.split(os.pathsep):
+                _derive_config_fpaths(cf2)
 
-        return list(iset(itt.chain(
-                    existing_fpaths
-                    for cf in path_list
-                    for existing_fpaths in _derive_config_fpaths(cf))))
+        return list(new_paths)
 
 
 class Cmd(trtc.Application, PeristentMixin):
@@ -548,6 +546,10 @@ class Cmd(trtc.Application, PeristentMixin):
         return config
 
     def _read_config_from_static_files(self, config_paths):
+        """
+        :param config_paths:
+            full normalized paths (descending order, 1st overrides the rest)
+        """
         new_config = trtc.Config()
         ## Registry to detect collisions.
         loaded = {}  # type: Dict[Text, Config]
@@ -585,10 +587,10 @@ class Cmd(trtc.Application, PeristentMixin):
                            persist_path, ex, exc_info=True)
         else:
             self._cfgfiles_registry.file_visited(persist_path, miss=not bool(config))
-            if config:
-                self.log.debug("Loaded persist-file: %s", persist_path)
-
-                return config
+            self.log.debug("%s persist-file: %s",
+                           'Loaded' if config else 'Skipped loading',
+                           persist_path)
+            return config
 
     def load_configurables_from_files(self) -> Tuple[trtc.Config, trtc.Config]:
         """
@@ -610,9 +612,9 @@ class Cmd(trtc.Application, PeristentMixin):
         Code adapted from :meth:`load_config_file` & :meth:`Application._load_config_files`.
         """
         with self._cfgfiles_registry:
+            persist_config = self._read_config_from_persist_file()
             static_paths = self._collect_static_fpaths()
             static_config = self._read_config_from_static_files(static_paths)
-            persist_config = self._read_config_from_persist_file()
 
         return static_config, persist_config
 
