@@ -182,7 +182,7 @@ class ConfigCmd(Cmd):
 
     class ShowCmd(Cmd):
         """
-        Print the configuration parameters, as loaded from the config-files, or default ones, but before any validations.
+        Print configurations (defaults | ondisk | TODO:merged) before any validations.
 
         Alternatively, you may use the `--Cmd.print_config=True` global option on each command.
 

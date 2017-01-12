@@ -140,7 +140,7 @@ class PeristentMixin:
 
         .. Note::
             It does not apply the loaded configs - you have to
-            invoke :meth:`trtc.Configurable.update_config()`.
+            invoke :meth:`trtc.Configurable.update_config(cls._pconfig)`.
 
             Currently both methods invoked by the final *Cmd* on :meth:`Cmd.initialize()`.
             You have to invoke them for "stand-alone" *Specs* or pass
@@ -538,7 +538,7 @@ class Cmd(trtc.Application, PeristentMixin):
         except Exception as ex:
             if self.raise_config_file_errors:
                 raise
-            log.error("Skipped loading config-file '%s' due to: %s",
+            log.error("Failed loading config-file '%s' due to: %s",
                       cfpath, ex, exc_info=True)
         else:
             log.debug("Loaded config-file: %s", cfpath)
@@ -583,12 +583,12 @@ class Cmd(trtc.Application, PeristentMixin):
         except Exception as ex:
             if self.raise_config_file_errors:
                 raise
-            self.log.error("Skipped loading persist-file '%s' due to: %s",
+            self.log.error("Failed loading persist-file '%s' due to: %s",
                            persist_path, ex, exc_info=True)
         else:
             self._cfgfiles_registry.file_visited(persist_path, miss=not bool(config))
             self.log.debug("%s persist-file: %s",
-                           'Loaded' if config else 'Skipped loading',
+                           'Loaded' if config else 'Missing',
                            persist_path)
             return config
 
@@ -804,33 +804,62 @@ class Cmd(trtc.Application, PeristentMixin):
         from . import dice
         return iset(itt.chain(dice.all_app_configurables(), self.classes))
 
-    def _check_non_encrypted_in_config_files(self, static_config, persist_config):
+    def _validate_cipher_traits_against_config_files(self, static_config, persist_config):
         """
-        For all configurable-classes, scan *static-configs* for non-encrypted values.
+        Check plaintext :class:`crypto.Cipher` config-values and encrypt them if *persistent*, scream if *static*.
 
-        Must be invoked before reading peristent config file.
+        Must be invoked before applying configs.
         """
         from . import crypto
 
-        all_configurables = self.all_app_configurables()
-        for cls in all_configurables:
-            clsname = cls.__name__
-            for ctraitname, ctrait in cls.class_traits(config=True).items():
-                if not isinstance(ctrait, crypto.Cipher):
-                    continue
-                key = '%s.%s' % (clsname, ctraitname)
-                if key not in static_config:
-                    continue
-                val = static_config[clsname][ctraitname]
-                if crypto.is_pgp_encrypted(val):
-                    continue
-                if self.raise_config_file_errors:
-                    raise trt.TraitError(
-                        "Found non-encrypted param '%s.%s' in static-configs!" %
-                        (clsname, ctraitname))
-                self.log.error(
-                    "Found non-encrypted param '%s.%s' in static-configs!",
-                    clsname, ctraitname)
+        any_encrypted = 0
+        safedepot = None  # lazily created
+        screams = []
+        all_configurables = {c.__name__: c for c in self.all_app_configurables()}
+        configs = [c for c in (static_config, persist_config) if c]
+        try:
+            for config, encrypt_plain, config_source in zip(configs,
+                                                            (False, True),
+                                                            ('static', 'persist')):
+                for clsname, traits in config.items():
+                    cls = all_configurables.get(clsname)
+                    if not cls:
+                        self.log.warn("Unknwon class %r in *%s* file-configs while ecrypting values.",
+                                      config_source, clsname)
+                        continue
+
+                    for tname, tvalue in traits.items():
+                        ctraits = cls.class_traits(config=True)
+                        ctrait = ctraits.get(tname)
+                        if not isinstance(ctrait, crypto.Cipher):
+                            continue
+
+                        ## Scream on static, encrypt on persistent.
+                        #
+                        if crypto.is_pgp_encrypted(tvalue):
+                            continue
+
+                        key = '%s.%s' % (clsname, tname)
+                        if encrypt_plain:
+                            if not safedepot:
+                                safedepot = crypto.safe_depot(self.config)
+                            self.log.info("Auto-encrypting cipher-trait(%r)...", key)
+                            config[clsname][tname] = safedepot.encryptobj(key, tvalue)
+                            any_encrypted += 1
+                        else:
+                            screams.append(key)
+        finally:
+            if any_encrypted:
+                self.log.info("Updating persistent config %r with %d auto-encrypted values...",
+                              self.persist_path, any_encrypted)
+                self.store_pconfig(self.persist_path)
+
+        if screams:
+            msg = "Found %d non-encrypted params in static-configs: %s" % (len(screams), screams)
+            if self.raise_config_file_errors:
+                raise trt.TraitError(msg)
+            else:
+                self.log.error(msg)
 
     def _is_dispatching(self):
         """True if dispatching to another command."""
@@ -854,7 +883,7 @@ class Cmd(trtc.Application, PeristentMixin):
             return
 
         static_config, persist_config = self.load_configurables_from_files()
-        self._check_non_encrypted_in_config_files(static_config, persist_config)
+        self._validate_cipher_traits_against_config_files(static_config, persist_config)
 
         if persist_config:
             static_config.merge(persist_config)

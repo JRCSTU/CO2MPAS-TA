@@ -92,6 +92,11 @@ def is_pgp_encrypted(obj) -> bool:
     return bool(isinstance(obj, str) and _pgp_regex.match(obj))
 
 
+def safe_depot(config):
+    """Use this to get hold of the *safedepot* singletton."""
+    return SafeDepotSpec.instance(config=config)
+
+
 class SafeDepotSpec(trtc.SingletonConfigurable, GnuPGSpec):
     """A store of 3rdp passwords and othe secret objects in textual format."""
 
@@ -217,37 +222,13 @@ class SafeDepotSpec(trtc.SingletonConfigurable, GnuPGSpec):
 class Cipher(trt.TraitType):
     """A trait that auto-dencrypts its value (can be anything)."""
 
-    def instance_init(self, obj):
-        super().instance_init(obj)
-        if self.metadata.get('config') is not True or self.metadata.get('persist') is not True:
-            raise trt.TraitError("Cipher-trait '%s.%s' not tagged as 'config' + 'persist'!" %
-                                 (type(obj).__name__, self.name))
-
-    @staticmethod
-    def safe_depot(obj):
-        return SafeDepotSpec.instance(config=obj.config)
-
     def validate(self, obj, value):
         if value is not None:
             cls_name = type(obj).__name__
             pswdid = '%s.%s' % (cls_name, self.name)
             if not is_pgp_encrypted(value):
-                safedepot = self.safe_depot(obj)
+                safedepot = safe_depot(obj.config)
                 safedepot.log.debug("Auto-encrypting cipher-trait(%r)...", pswdid)
                 value = safedepot.encryptobj(pswdid, value)
-
-        return value
-
-    def get(self, obj, cls=None):
-        value = super().get(obj, cls)
-        if value is not None:
-            cls_name = type(obj).__name__
-            pswdid = '%s.%s' % (cls_name, self.name)
-            if not is_pgp_encrypted(value):
-                raise trt.TraitError("Cipher-trait(%r) should have been encrypted!" % pswdid)
-
-            safedepot = self.safe_depot(obj)
-            safedepot.log.debug("Auto-decrypting cipher-trait(%r)...", pswdid)
-            value = safedepot.decryptobj(pswdid, value)
 
         return value

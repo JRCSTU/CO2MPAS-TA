@@ -35,23 +35,6 @@ log = logging.getLogger(__name__)
 mydir = osp.dirname(__file__)
 
 
-def prepare_persistent_config_file(pfile):
-    j = {}
-    if osp.isfile(pfile):
-        with io.open(pfile, 'rt') as finp:
-            j = json.load(finp)
-
-    ## Add an arbitrary parameters in pfile to see if it is preserved.
-    j['ANY'] = {'a': 1}
-
-    ## Add an arbitrary parameters in pfile to see if it is preserved.
-    j['MyCmd'] = {'ptrait': False}
-    j['MySpec'] = {'ptrait': False}
-
-    with io.open(pfile, 'wt') as fout:
-        json.dump(j, fout)
-
-
 def mix_dics(d1, d2):
     d = d1.copy()
     d.update(d2)
@@ -265,8 +248,8 @@ class TPConfFiles(unittest.TestCase):
 
             with self.assertLogs(cmd.log, 'ERROR') as cm:
                 cmd.initialize([])
-            self.assertEqual(cmd.enc, "BAD_ENC")
-            logmsg = "Found non-encrypted param 'MyCmd.enc' in static-configs!"
+            self.assertNotEqual(cmd.enc, "BAD_ENC")
+            logmsg = "Found 1 non-encrypted params in static-configs: ['MyCmd.enc']"
             self.assertIn(logmsg, [r.message for r in cm.records], cm.records)
 
             ## But if persist-config, autoencrypted
@@ -295,11 +278,39 @@ class TBase(unittest.TestCase):
         return j
 
 
+def prepare_persistent_config_file(pfile, extra_configs=None):
+    j = {}
+    if osp.isfile(pfile):
+        with io.open(pfile, 'rt') as finp:
+            j = json.load(finp)
+
+    ## Add an arbitrary parameters in pfile to see if it is preserved.
+    j['ANY'] = {'a': 1}
+
+    ## Add an arbitrary parameters in pfile to see if it is preserved.
+    j['MyCmd'] = {'ptrait': False}
+    j['MySpec'] = {'ptrait': False}
+
+    if extra_configs:
+        j.update(extra_configs)
+
+    with io.open(pfile, 'wt') as fout:
+        json.dump(j, fout)
+
+
 @ddt.ddt
 class TPTraits(TBase):
+    @classmethod
+    def setUpClass(cls):
+        cls._tdir = tempfile.mkdtemp(prefix='co2persist-')
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls._tdir)
+
 
     def test_ptraits_spec(self):
-        pfile = pndlu.ensure_file_ext(baseapp.default_persist_fpath(), '.json')
+        pfile = osp.join(self._tdir, 'foo.json')
         prepare_persistent_config_file(pfile)
 
         class MySpec(baseapp.Spec):
@@ -307,7 +318,10 @@ class TPTraits(TBase):
             ptrait = trt.Bool().tag(config=True, persist=True)
 
         c = MySpec()
-        c.load_pconfig(pfile)  # Needed bc only final Cmds load ptraits.
+        ## Needed bc only final Cmds load ptraits.
+        #
+        c.load_pconfig(pfile)
+        c.update_config(c._pconfig)
 
         self.check_persistent_config_file(pfile, 'MySpec', 'ptrait', False)
 
@@ -318,7 +332,7 @@ class TPTraits(TBase):
         self.check_persistent_config_file(pfile, 'MySpec', 'ptrait', True)
 
     def test_ptraits_cmd(self):
-        pfile = pndlu.ensure_file_ext(baseapp.default_persist_fpath(), '.json')
+        pfile = osp.join(self._tdir, 'foo.json')
         prepare_persistent_config_file(pfile)
 
         class MyCmd(baseapp.Cmd):
@@ -368,8 +382,9 @@ class TPTraits(TBase):
 class TCipherTraits(TBase):
     @classmethod
     def setUpClass(cls):
+        cls._tdir = tdir = tempfile.mkdtemp(prefix='co2cipher-')
         cfg = trtc.get_config()
-        cfg.SafeDepotSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        cfg.SafeDepotSpec.gnupghome = tdir
         safedepot = crypto.SafeDepotSpec.instance(config=cfg)
 
         fingerprint = cryptotc.gpg_gen_key(
@@ -384,78 +399,78 @@ class TCipherTraits(TBase):
         safedepot = crypto.SafeDepotSpec.instance()
         assert safedepot.gnupghome
         cryptotc.gpg_del_key(safedepot.GPG, safedepot.master_key)
-        shutil.rmtree(safedepot.gnupghome)
+        shutil.rmtree(cls._tdir)
 
     def test_chiphertraits_spec(self):
-        pfile = pndlu.ensure_file_ext(baseapp.default_persist_fpath(), '.json')
-        prepare_persistent_config_file(pfile)
+        plainval = 'foo'
+        pfile = osp.join(self._tdir, 'foo.json')
+        prepare_persistent_config_file(pfile, {'MySpec': {'ctrait': plainval}})
 
         class MySpec(baseapp.Spec):
             "OK Spec"
 
-            ctrait = crypto.Cipher(allow_none=True).tag(config=True, persist=True)
+            ctrait = crypto.Cipher(None, allow_none=True).tag(config=True, persist=True)
 
         c = MySpec()
-        c.load_pconfig(pfile)  # Needed bc only final Cmds load ptraits.
+        ## Needed bc only final Cmds load ptraits.
+        #
+        c.load_pconfig(pfile)
+        self.assertIsNone(c.ctrait)
+        c.update_config(c._pconfig)
 
-        val = c.ctrait = 'foo'
-        cipher = c._trait_values['ctrait']
-        self.assertEqual(c.ctrait, 'foo')  # Preserved among gets.
-        self.assertEqual(c.ctrait, 'foo')  # Preserved among gets.
-        self.assertNotEqual(cipher, val)
-        self.assertTrue(crypto.is_pgp_encrypted(cipher), cipher)
+        cipher0 = c.ctrait      # from pconfig-file
+        self.assertTrue(crypto.is_pgp_encrypted(cipher0))
+
+        c.ctrait = plainval
+        cipher1 = c.ctrait      # 1st runtime encryption
+        self.assertTrue(crypto.is_pgp_encrypted(cipher1))
+        self.assertEqual(c.ctrait, cipher1)  # Preserved among gets.
+        self.assertNotEqual(cipher0, cipher1)
+        self.assertEqual(cipher1, c._trait_values['ctrait'])
+
+        c.ctrait = plainval
+        cipher2 = c.ctrait      # 2nd runtime encryption
+        self.assertTrue(crypto.is_pgp_encrypted(cipher2))
+        self.assertNotEqual(cipher1, cipher2)  # Due to encryption nonse.
 
         j = self.check_persistent_config_file(pfile)
-        self.assertNotIn('ctrait', j['MySpec'], j)
         c.store_pconfig(pfile)
-        self.check_persistent_config_file(pfile, 'MySpec', 'ctrait', cipher)
+        self.check_persistent_config_file(pfile, 'MySpec', 'ctrait', cipher2)
 
     def test_chiphertraits_cmd(self):
-        pfile = pndlu.ensure_file_ext(baseapp.default_persist_fpath(), '.json')
-        prepare_persistent_config_file(pfile)
+        plainval = 'foo'
+        pfile = osp.join(self._tdir, 'foo.json')
+        prepare_persistent_config_file(pfile, {'MyCmd': {'ctrait': plainval}})
 
         class MyCmd(baseapp.Cmd):
             "OK Cmd"
 
-            ctrait = crypto.Cipher(allow_none=True).tag(config=True, persist=True)
+            ctrait = crypto.Cipher(None, allow_none=True).tag(config=True, persist=True)
 
         c = MyCmd()
+        self.assertIsNone(c.ctrait)
+
+        c.config_paths = [self._tdir]
+        c.persist_path = pfile
         c.initialize([])
 
-        val = c.ctrait = 'foo'
-        cipher = c._trait_values['ctrait']
-        self.assertEqual(c.ctrait, 'foo')  # Preserved among gets.
-        self.assertEqual(c.ctrait, 'foo')  # Preserved among gets.
-        self.assertNotEqual(cipher, val)
-        self.assertTrue(crypto.is_pgp_encrypted(cipher), cipher)
+        cipher0 = c.ctrait      # from pconfig-file
+        self.assertIsNotNone(c.ctrait)
+        self.assertTrue(crypto.is_pgp_encrypted(cipher0))
+
+        c.ctrait = plainval
+        cipher1 = c.ctrait      # 1st runtime encryption
+        self.assertTrue(crypto.is_pgp_encrypted(cipher1))
+        self.assertEqual(c.ctrait, cipher1)  # Preserved among gets.
+        self.assertNotEqual(cipher0, cipher1)
+        self.assertEqual(cipher1, c._trait_values['ctrait'])
+
+        c.ctrait = plainval
+        cipher2 = c.ctrait      # 2nd runtime encryption
+        self.assertTrue(crypto.is_pgp_encrypted(cipher2))
+        self.assertNotEqual(cipher1, cipher2)  # Due to encryption nonse.
 
         j = self.check_persistent_config_file(pfile)
-        self.assertNotIn('ctrait', j['MyCmd'], j)
         c.store_pconfig(pfile)
-        self.check_persistent_config_file(pfile, 'MyCmd', 'ctrait', cipher)
+        self.check_persistent_config_file(pfile, 'MyCmd', 'ctrait', cipher2)
 
-    @ddt.idata(mix_dics(d1, d2) for d1, d2 in itt.product(
-        [{}, {'config': False}, {'config': None}, {'config': 0}],
-        [{}, {'persist': False}, {'persist': None}, {'persist': 0}],
-    ))
-    def test_invalid_enctraits_on_specs(self, tags):
-        class MySpec(baseapp.Spec):
-            "Spec with invalid cipher-trait"
-            bad_ptrait = crypto.Cipher(allow_none=True).tag(**tags)
-
-        with self.assertRaisesRegex(trt.TraitError,
-                                    r"Cipher-trait 'MySpec.bad_ptrait' not tagged as 'config' \+ 'persist'!"):
-            MySpec()
-
-    @ddt.idata(mix_dics(d1, d2) for d1, d2 in itt.product(
-        [{}, {'config': False}, {'config': None}, {'config': 0}],
-        [{}, {'persist': False}, {'persist': None}, {'persist': 0}],
-    ))
-    def test_invalid_enctraits_on_cmds(self, tags):
-        class MyCmd(baseapp.Cmd):
-            "Cmd with invalid cipher-trait"
-            bad_ptrait = crypto.Cipher(allow_none=True).tag(**tags)
-
-        with self.assertRaisesRegex(trt.TraitError,
-                                    r"Cipher-trait 'MyCmd.bad_ptrait' not tagged as 'config' \+ 'persist'!"):
-            MyCmd()
