@@ -37,6 +37,7 @@ To run nested commands, use :func:`baseapp.chain_cmds()` like that::
 .. [#] http://traitlets.readthedocs.io/
 """
 from collections import OrderedDict
+import contextlib
 import copy
 import io
 import logging
@@ -44,7 +45,6 @@ import os
 from typing import Sequence, Text, Any, Tuple, List  # @UnusedImport
 
 from boltons.setutils import IndexedSet as iset
-from ipython_genutils.text import indent, wrap_paragraphs, dedent
 from toolz import dicttoolz as dtz, itertoolz as itz
 
 import itertools as itt
@@ -298,6 +298,117 @@ def build_sub_cmds(*subapp_classes):
                        for sa in subapp_classes)
 
 
+class CfgFilesRegistry(contextlib.ContextDecorator):
+    """
+    Locate and account config-files (``.json|.py``).
+
+    - Collects a Locate and (``.json|.py``) files present in the `path_list`, or
+    - Invoke this for every "manually" visited config-file, successful or not.
+    """
+
+    #: A list of 2-tuples ``(folder, fname(s))`` with loaded config-files
+    #: in descending order (1st overrides later).
+    visited_files = []
+
+    def __enter__(self):
+        self.visited_files = []
+        return self
+
+    def __exit__(self, *exc):
+        self.visited_files = self._consolidate(self.visited_files)
+        return False
+
+    @staticmethod
+    def _consolidate(visited_files):
+        """
+        Reverse and remove multiple, empty records.
+
+        Example::
+
+            >>> _consolidate([
+            ... ('a/b/', None),
+            ... ('a/b/', 'F1'),
+            ... ('a/b/', 'F2'),
+            ... ('a/b/', None),
+            ... ('c/c/', None),
+            ... ('c/c/', None),
+            ... ('d/',   'F1'),
+            ... ('d/',   None),
+            ... ('c/c/', 'FF')]
+            [('c/c/',   'FF')
+             ('d/',     'F1'),
+            ('a/b/',   ['F1', 'F2']),
+             ('c/c/',   [])]
+        """
+        consolidated = []
+        prev = None
+        for b, f in visited_files[::-1]:
+            if not prev:            # loop start
+                prev = (b, [])
+            elif prev[0] != b:      # new dir
+                consolidated.append(prev)
+                prev = (b, [])
+            if f:
+                prev[1].append(f)
+        if prev:
+            consolidated.append(prev)
+
+        return consolidated
+
+    def file_visited(self, fpath, miss=False):
+        """Invoke this for every visited config-file, successful or not."""
+        base, fname = osp.split(fpath)
+        self.visited_files.append((base, None if miss else fname))
+
+    def collect_fpaths(self, path_list: List[Text]):
+        """
+        Collects a Locate and (``.json|.py``) files present in the `path_list`.
+
+        :param path_list:
+            A list of paths (absolute, relative, dir or folders)
+            each one possibly separated by `osp.pathsep`.
+        :return:
+            fully-normalized paths, with ext
+        """
+        new_paths = iset()
+
+        def try_json_and_py(basepath):
+            found_any = False
+            for ext in ('.py', '.json'):
+                f = pndlu.ensure_file_ext(basepath, ext)
+                if f in new_paths:
+                    continue
+
+                if osp.isfile(f):
+                    new_paths.add(f)
+                    self.file_visited(f)
+                    found_any = True
+                else:
+                    self.file_visited(f, True)
+
+            return found_any
+
+        def _derive_config_fpaths(path: Text) -> List[Text]:
+            """Return multiple *existent* fpaths for each config-file path (folder/file)."""
+
+            for p in path.split(os.pathsep):
+                p = pndlu.convpath(p)
+                if osp.isdir(p):
+                    try_json_and_py(osp.join(p, default_config_fname()))
+                else:
+                    found = try_json_and_py(p)
+                    ## Do not strip ext if has matched WITH ext.
+                    if not found:
+                        try_json_and_py(osp.splitext(p)[0])
+
+            return new_paths
+
+        return list(iset(itt.chain(
+                    existing_fpaths
+                    for cf in path_list
+                    for existing_fpaths in _derive_config_fpaths(cf))))
+
+
 class Cmd(trtc.Application, PeristentMixin):
     """Common machinery for all (sub-)commands. """
     ## INFO: Do not use it directly; inherit it.
@@ -374,48 +485,21 @@ class Cmd(trtc.Application, PeristentMixin):
         ## Use a regular logger.
         return logging.getLogger(type(self).__name__)
 
-    #: A list of loaded config-files in descending order
-    #: (1st overrides rest), to answer inquires afterwards.
-    loaded_config_files = []
+    _cfgfiles_registry = CfgFilesRegistry()
 
-    def _derive_config_fpaths(self, path: Text) -> List[Text]:
-        """Return multiple *existent* fpaths for each config-file path (folder/file)."""
-        new_paths = []
-
-        def try_json_and_py(basepath):
-            found = False
-            for ext in ('.py', '.json'):
-                f = pndlu.ensure_file_ext(basepath, ext)
-                if osp.isfile(f):
-                    new_paths.append(f)
-                    found = True
-
-            return found
-
-        for p in path.split(os.pathsep):
-            p = pndlu.convpath(p)
-            if osp.isdir(p):
-                try_json_and_py(osp.join(p, default_config_fname()))
-            else:
-                found = try_json_and_py(p)
-                ## Do not strip ext if has matched WITH ext.
-                if not found:
-                    try_json_and_py(osp.splitext(p)[0])
-
-        return new_paths
+    @property
+    def loaded_config_files(self):
+        return self._cfgfiles_registry.visited_files
 
     def _collect_static_fpaths(self):
+        """Return fully-normalized paths, with ext."""
         env_paths = os.environ.get(CONFIG_VAR_NAME)
         env_paths = env_paths and [env_paths]
         config_paths = (self.config_paths or
                         env_paths or
                         default_config_fpaths())
-        config_paths = list(iset(itt.chain(
-            existing_fpaths
-            for cf in config_paths
-            for existing_fpaths in self._derive_config_fpaths(cf))))
 
-        return config_paths
+        return self._cfgfiles_registry.collect_fpaths(config_paths)
 
     def _read_config_from_json_or_py(self, cfpath: Text):
         """
@@ -447,12 +531,7 @@ class Cmd(trtc.Application, PeristentMixin):
 
         return config
 
-    def _read_config_from_static_files(self):
-        """
-        Sideffect: Updates also the :attr:`loaded_config_files` list.
-        """
-        config_paths = self._collect_static_fpaths()
-
+    def _read_config_from_static_files(self, config_paths):
         new_config = trtc.Config()
         ## Registry to detect collisions.
         loaded = {}  # type: Dict[Text, Config]
@@ -460,8 +539,6 @@ class Cmd(trtc.Application, PeristentMixin):
         for cfpath in config_paths[::-1]:
             config = self._read_config_from_json_or_py(cfpath)
             if config:
-                self.loaded_config_files.append(cfpath)
-
                 for filename, earlier_config in loaded.items():
                     collisions = earlier_config.collisions(config)
                     if collisions:
@@ -479,9 +556,6 @@ class Cmd(trtc.Application, PeristentMixin):
         return new_config
 
     def _read_config_from_persist_file(self):
-        """
-        Sideffect: Updates also the :attr:`loaded_config_files` list.
-        """
         persist_path = (self.persist_path or
                         os.environ.get(PERSIST_VAR_NAME) or
                         default_persist_fpath())
@@ -494,17 +568,15 @@ class Cmd(trtc.Application, PeristentMixin):
             self.log.error("Skipped loading persist-file '%s' due to: %s",
                            persist_path, ex, exc_info=True)
         else:
-            if not config:
-                self.log.info("No persist-file found in: %s", persist_path)
-            else:
+            self._cfgfiles_registry.file_visited(persist_path, miss=not bool(config))
+            if config:
                 self.log.debug("Loaded persist-file: %s", persist_path)
-                self.loaded_config_files.append(persist_path)
 
                 return config
 
     def load_configurables_from_files(self) -> Tuple[trtc.Config, trtc.Config]:
         """
-        Load :attr:`config_paths`, :attr:`persist_path` and maintain :attr:`loaded_config_files` list.
+        Load :attr:`config_paths`, :attr:`persist_path` and maintain :attr:`config_registry`.
 
         :return:
             A 2 tuple ``(static_config, persist_config)``, where the 2nd might be `None`.
@@ -521,13 +593,10 @@ class Cmd(trtc.Application, PeristentMixin):
 
         Code adapted from :meth:`load_config_file` & :meth:`Application._load_config_files`.
         """
-        self.loaded_config_files = []
-        try:
-            static_config = self._read_config_from_static_files()
+        with self._cfgfiles_registry:
+            static_paths = self._collect_static_fpaths()
+            static_config = self._read_config_from_static_files(static_paths)
             persist_config = self._read_config_from_persist_file()
-        finally:
-            ## To be consistent, even in errors.
-            self.loaded_config_files = self.loaded_config_files[::-1]
 
         return static_config, persist_config
 
@@ -553,6 +622,8 @@ class Cmd(trtc.Application, PeristentMixin):
             fp.write(config_text)
 
     def print_subcommands(self):
+        from ipython_genutils.text import indent, wrap_paragraphs, dedent
+
         """Print the subcommand part of the help."""
         ## Overridden, to print "default" sub-cmd.
         if not self.subcommands:

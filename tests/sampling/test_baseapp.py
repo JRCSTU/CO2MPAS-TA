@@ -58,6 +58,62 @@ def mix_dics(d1, d2):
     return d
 
 
+class TCfgFilesRegistry(unittest.TestCase):
+
+    def test_consolidate_1(self):
+        visited = [
+            ('D:\\Apps\\cygwin64\\home\\anastkn\\.co2dice', 'co2dice_config.py'),
+            ('D:\\Apps\\cygwin64\\home\\anastkn\\.co2dice', 'co2dice_config.json'),
+            ('d:\\apps\\cygwin64\\home\\anastkn\\work\\compas.vinz\\co2mpas\\sampling', None),
+            ('d:\\apps\\cygwin64\\home\\anastkn\\work\\compas.vinz\\co2mpas\\sampling', None),
+            ('d:\\apps\\cygwin64\\home\\anastkn\\work\\compas.vinz\\co2mpas\\sampling', None),
+            ('d:\\apps\\cygwin64\\home\\anastkn\\work\\compas.vinz\\co2mpas\\sampling', None),
+            ('D:\\Apps\\cygwin64\\home\\anastkn\\.co2dice', None)
+        ]
+        c = baseapp.CfgFilesRegistry()
+        cons = c._consolidate(visited)
+
+        exp = [
+            ('D:\\Apps\\cygwin64\\home\\anastkn\\.co2dice', []),
+            ('d:\\apps\\cygwin64\\home\\anastkn\\work\\compas.vinz\\co2mpas\\sampling', []),
+            ('D:\\Apps\\cygwin64\\home\\anastkn\\.co2dice', ['co2dice_config.json', 'co2dice_config.py'])
+        ]
+        #print('FF\n', cons)
+        self.assertListEqual(cons, exp, visited)
+
+    def test_consolidate_2(self):
+        visited =  [
+            ('C:\\Users\\anastkn\\.co2dice', 'co2dice_config.py'),
+            ('C:\\Users\\anastkn\\.co2dice', None),
+            ('D:\\Work\\compas.vinz\\co2mpas\\sampling', None),
+            ('D:\\Work\\compas.vinz\\co2mpas\\sampling', None),
+            ('D:\\Work\\compas.vinz\\co2mpas\\sampling', None),
+            ('D:\\Work\\compas.vinz\\co2mpas\\sampling', None),
+            ('C:\\Users\\anastkn\\.co2dice', 'co2dice_runtime.json')
+        ]
+        c = baseapp.CfgFilesRegistry()
+        cons = c._consolidate(visited)
+
+        exp = [
+            ('C:\\Users\\anastkn\\.co2dice', ['co2dice_runtime.json']),
+            ('D:\\Work\\compas.vinz\\co2mpas\\sampling', []),
+            ('C:\\Users\\anastkn\\.co2dice', ['co2dice_config.py'])
+        ]
+        print('FF\n', cons)
+        self.assertListEqual(cons, exp, visited)
+
+    def test_default_loaded_paths(self):
+        f = '%s.py' % baseapp.default_config_fpaths()[0]
+
+        ## Ensure at least one default home config-file.
+        if not osp.isfile(f):
+            io.open(f, 'w').close()
+        cmd = baseapp.Cmd()
+        cmd.initialize([])
+        self.assertGreaterEqual(len(cmd.loaded_config_files), 1)
+        print(cmd._cfgfiles_registry.visited_files)
+
+
 @ddt.ddt
 class TPConfFiles(unittest.TestCase):
     def check_cmd_params(self, cmd, values):

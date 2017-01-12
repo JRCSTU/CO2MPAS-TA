@@ -165,15 +165,17 @@ class ConfigCmd(Cmd):
             for fpath in args:
                 self.write_default_config(fpath, self.force)
 
-    class ListCmd(Cmd):
-        """List search-paths and actual config-files loaded in descending orders (last one overrides previous)."""
+    class PathsCmd(Cmd):
+        """List search-paths and actual config-files loaded in descending order."""
         def run(self, *args):
             if len(args) > 0:
                 raise CmdException('Cmd %r takes no arguments, received %d: %r!'
                                    % (self.name, len(args), args))
 
+            sep = osp.sep
+
             def format_tuple(path, files: List[Text]):
-                endpath = osp.sep if path[-1] != osp.sep else ''
+                endpath = sep if path[-1] != sep else ''
                 return '%s%s: %s' % (path, endpath, files or '')
 
             return (format_tuple(p, f) for p, f in self.loaded_config_files)
@@ -201,7 +203,7 @@ class ConfigCmd(Cmd):
 
 config_subcmds = (
     ConfigCmd.InitCmd,
-    ConfigCmd.ListCmd,
+    ConfigCmd.PathsCmd,
     ConfigCmd.ShowCmd,
 )
 
