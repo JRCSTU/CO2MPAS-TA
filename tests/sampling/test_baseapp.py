@@ -82,7 +82,7 @@ class TCfgFilesRegistry(unittest.TestCase):
 
     def test_consolidate_2(self):
         visited =  [
-            ('C:\\Users\\anastkn\\.co2dice', 'co2dice_runtime.json'),
+            ('C:\\Users\\anastkn\\.co2dice', 'co2dice_persist.json'),
             ('C:\\Users\\anastkn\\.co2dice', 'co2dice_config.py'),
             ('C:\\Users\\anastkn\\.co2dice', None),
             ('D:\\Work\\compas.vinz\\co2mpas\\sampling', None),
@@ -94,7 +94,7 @@ class TCfgFilesRegistry(unittest.TestCase):
         cons = c._consolidate(visited)
 
         exp =   [
-            ('C:\\Users\\anastkn\\.co2dice', ['co2dice_runtime.json', 'co2dice_config.py']),
+            ('C:\\Users\\anastkn\\.co2dice', ['co2dice_persist.json', 'co2dice_config.py']),
             ('D:\\Work\\compas.vinz\\co2mpas\\sampling', [])
         ]
         #print('FF\n', cons)

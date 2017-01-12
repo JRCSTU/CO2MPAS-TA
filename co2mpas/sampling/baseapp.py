@@ -87,7 +87,7 @@ def default_config_fpaths():
 
 def default_persist_fpath():
     """The full path of to user's persistent config-file, without extension."""
-    return osp.join(default_config_dir(), '%s_runtime' % APPNAME)
+    return osp.join(default_config_dir(), '%s_persist' % APPNAME)
 
 
 class PeristentMixin:
@@ -98,7 +98,7 @@ class PeristentMixin:
 
     This is the lifecycle of *persistent* traits (*ptraits*):
 
-    1. On app-init, invoke :meth:`load_pconfig()` to read runtime-params from disk
+    1. On app-init, invoke :meth:`load_pconfig()` to read persist-params from disk
         and populate the global :attr:`_pconfig` (and attr:`_pconfig_orig`).
 
     2. Merge pconfig with any regular config-values (preferably overriding them).
@@ -479,7 +479,7 @@ class Cmd(trtc.Application, PeristentMixin):
 
         If false, and no `{confvar}` envvar is defined, defaults to:
             {default}
-        If path resolves to a folder, the filename `{appname}_runtime.json` is appended;
+        If path resolves to a folder, the filename `{appname}_persist.json` is appended;
         otherwise, the file-extensions is assumed to be `.json`.
         Persistent-parameters override "static" ones.
 
