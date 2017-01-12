@@ -520,7 +520,11 @@ Generic terms
     OEM
         Original Equipment Manufacturers, eg. a Vehicle manufacturer
 
+    Capped cycles
+        For vehicles that cannot follow the standard WLTP cycle (for example, because they have not enough power to reach the maximum speed) it is still possible to use the |co2mpas| tool to predict the NEDC |co2| emission. For these capped cycles, the WLTP cycle may last more than 1800 seconds and the WLTP subphases may vary in duration. Therefore there is a need to indicate the exact duration of each subphase. This can be done by filling in, the corresponding bag_phases vector in the input file which define the phases integration time [1,1,1,...,2,2,2,...,3,3,3,...,4,4,4]. Providing this input for WLTP cycles together with the other standard vectorial inputs such as speed,engine speed, etc. allows |co2mpas| to process a "modified" WLTP and get calibrated properly. The NEDC that is predictes corresponds to the respective NEDC velocity profile and gearshifting that applies to the capped cycle, which is provided in the appropriate tab. Note that, providing NEDC velocity and gear shifting profile is not allowed for normal vehicles.
 
+
+        
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
 .. |CO2| replace:: CO\ :sub:`2`
 .. |NOx| replace:: NO\ :sub:`x`\
