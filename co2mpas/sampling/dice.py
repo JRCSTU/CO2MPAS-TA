@@ -158,8 +158,8 @@ class ConfigCmd(Cmd):
             """)
 
         def run(self, *args):
-            ## Have to modify `classes` after `initialize()`, or else,
-            #  duplicate classes conflict.
+            ## Prefer to modify `classes` after `initialize()`, or else,
+            #  duplicate classes conflict, and cmd becomes fatty :-)
             self.classes = all_configurables()
             args = args or [None]
             for fpath in args:
@@ -181,19 +181,82 @@ class ConfigCmd(Cmd):
             return (format_tuple(p, f) for p, f in self.loaded_config_files)
 
     class ShowCmd(Cmd):
-        """Print the actual configuration parameters as loaded from the config-files."""
+        """
+        Print the configuration parameters, as loaded from the config-files, or default ones, but before any validations.
+
+        Alternatively, you may use the `--Cmd.print_config=True` global option on each command.
+
+        Warning:
+            Running this command before encrypting sensitive persistent parameters,
+            will print them plaintext!
+        """
+
+        onfiles = trt.Bool(
+            False,
+            help="""Show only configuration parameters stored on disk files."""
+        ).tag(config=True)
 
         def __init__(self, **kwds):
-            dkwds = {'conf_classes': all_configurables()}
-            dkwds.update(kwds)
-            super().__init__(**dkwds)
+                kwds.setdefault('cmd_flags', {
+                    'onfiles': ({
+                        'ShowCmd': {'onfiles': True}},
+                        pndlu.first_line(ConfigCmd.ShowCmd.onfiles.help)
+                    )
+                })
+                super().__init__(**kwds)
+
+        def initialize(self, argv=None):
+            self.parse_command_line(argv)
+            static_config, persist_config = self.load_configurables_from_files()
+            if persist_config:
+                static_config.merge(persist_config)
+            static_config.merge(self.cli_config)
+            ## Stop from applying file-configs - or any validations will scream.
+
+            self._loaded_config = static_config
+
+        def _yield_file_configs(self, config):
+            for k, v in config.items():
+                yield k
+                try:
+                    for kk, vv in v.items():
+                        yield '  +--%s = %s' % (kk, vv)
+                except:
+                    yield '  +--%s' % v
+
+        def _yield_configs_and_defaults(self, config):
+            ## Prefer to modify `classes` after `initialize()`, or else,
+            #  duplicate classes conflict, and cmd becomes fatty :-)
+            self.classes = all_configurables()
+            for cls in self._classes_with_config_traits():
+                clsname = cls.__name__
+                cls_printed = False
+
+                cls_traits = (cls.class_traits(config=True)
+                              if self.verbose else
+                              cls.class_own_traits(config=True))
+                for name, trait in sorted(cls_traits.items()):
+                    key = '%s.%s' % (clsname, name)
+                    if key in config:
+                        val = config[clsname][name]
+                    else:
+                        val = trait.default_value_repr()
+
+                    if not cls_printed:
+                        yield clsname
+                        cls_printed = True
+                    yield '  +--%s = %s' % (name, val)
 
         def run(self, *args):
             if len(args) > 0:
                 raise CmdException('Cmd %r takes no arguments, received %d: %r!'
                                    % (self.name, len(args), args))
 
-            return self.config
+            config = self._loaded_config
+            if self.onfiles:
+                yield from self._yield_file_configs(config)
+            else:
+                yield from self._yield_configs_and_defaults(config)
 
     def __init__(self, **kwds):
             dkwds = {'subcommands': baseapp.build_sub_cmds(*config_subcmds)}
@@ -215,6 +278,7 @@ def all_cmds():
     from co2mpas.sampling import project, report, tstamp
     return (
         (
+            baseapp.Cmd,
             MainCmd,
             project.ProjectCmd,
             report.ReportCmd,

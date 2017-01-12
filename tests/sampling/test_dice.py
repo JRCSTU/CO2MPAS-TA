@@ -18,6 +18,7 @@ import unittest
 
 import ddt
 
+import itertools as itt
 import os.path as osp
 import pandalone.utils as pndlu
 import traitlets as trt
@@ -292,7 +293,7 @@ class TApp(unittest.TestCase):
         cmd = dice.MainCmd(config=c)
         meth(cmd)
 
-    def test_gen_conf(self):
+    def test_config_init(self):
         c = get_config()
         c.MainCmd.raise_config_file_errors = True
         cmd = baseapp.chain_cmds([dice.ConfigCmd.InitCmd], config=c)
@@ -303,6 +304,32 @@ class TApp(unittest.TestCase):
                             (conf_fpath, os.listdir(osp.split(conf_fpath)[0])))
             stat = os.stat(conf_fpath)
             self.assertGreater(stat.st_size, 7000, stat)
+
+    def test_config_paths(self):
+        c = get_config()
+        c.MainCmd.raise_config_file_errors = True
+        cmd = baseapp.chain_cmds([dice.ConfigCmd.PathsCmd], config=c)
+        res = list(cmd.run())
+        self.assertGreaterEqual(len(res), 2, res)
+
+    def test_config_show(self):
+        c = get_config()
+        c.MainCmd.raise_config_file_errors = True
+        cmd = baseapp.chain_cmds([dice.ConfigCmd.ShowCmd], config=c)
+        res = list(cmd.run())
+        ## Count Cmd-lines not starting with '  +--trait'.
+        ncmdlines = sum(1 for r in res if r[0] != ' ')
+        self.assertGreaterEqual(ncmdlines, 10, res)  # I counted at least 10...
+
+    def test_config_show_verbose(self):
+        c = get_config()
+        c.ShowCmd.verbose = 1
+        c.MainCmd.raise_config_file_errors = True
+        cmd = baseapp.chain_cmds([dice.ConfigCmd.ShowCmd], config=c)
+        res = list(cmd.run())
+        ## Count Cmd-lines not starting with '  +--trait'.
+        ncmdlines = sum(1 for r in res if r[0] != ' ')
+        self.assertGreaterEqual(ncmdlines, len(dice.all_configurables()), res)
 
     @ddt.data(*dice.all_cmds())
     def test_all_cmds_help_smoketest(self, cmd: baseapp.Cmd):
