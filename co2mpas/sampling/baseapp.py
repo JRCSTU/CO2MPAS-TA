@@ -496,6 +496,11 @@ class Cmd(trtc.Application, PeristentMixin):
                    default=default_persist_fpath())
     ).tag(config=True)
 
+    encrypt = trt.Bool(
+        False,
+        help="""Whether to validate/encrypt all config-classes(true), or just the current's command(false)."""
+    ).tag(config=True)
+
     @trt.default('log')
     def _log(self):
         ## Use a regular logger.
@@ -773,6 +778,12 @@ class Cmd(trtc.Application, PeristentMixin):
                         'Cmd': {'force': True},
                     },
                     pndlu.first_line(Spec.force.help)
+                ),
+                'encrypt': (
+                    {
+                        'Cmd': {'encrypt': True},
+                    },
+                    pndlu.first_line(Cmd.encrypt.help)
                 )
             },
         }
@@ -822,8 +833,8 @@ class Cmd(trtc.Application, PeristentMixin):
                 for clsname, traits in config.items():
                     cls = config_classes.get(clsname)
                     if not cls:
-                        self.log.warn("Unknwon class %r in *%s* file-configs while ecrypting values.",
-                                      config_source, clsname)
+                        self.log.warn("Unknown class `%s` in *%s* file-configs while ecrypting values.",
+                                      clsname, config_source)
                         continue
 
                     for tname, tvalue in traits.items():
@@ -853,16 +864,19 @@ class Cmd(trtc.Application, PeristentMixin):
                             screams.append(key)
 
         try:
-            ## Loop for the trick of 2-passes.
+            # If --encrypt, got directly to pass-2.
+            pass_2 = self.encrypt
+            ## Loop for the 2-passes trick.
             #
-            break_on_irregularities = True
-            config_classes = {c.__name__: c for c in self.classes}
             while True:
+                scan_classes = (self.all_app_configurables()
+                                if pass_2
+                                else self.classes)
+                config_classes = {c.__name__: c for c in scan_classes}
                 try:
-                    scan_config(config_classes, break_on_irregularities)
+                    scan_config(config_classes, not pass_2)
                 except NextPass:
-                    break_on_irregularities = False
-                    config_classes = {c.__name__: c for c in self.all_app_configurables()}
+                    pass_2 = True
                 else:
                     break
         finally:
