@@ -124,19 +124,22 @@ def identify_clutch_window(
     if not gear_shifts.any():
         return 0.0, 0.0
 
-    model = ClutchModel()
     delta = engine_speeds_out - engine_speeds_out_hot - cold_start_speeds_delta
     X = np.column_stack(
         (accelerations, velocities, gear_box_speeds_in, gears)
     )
 
     def _error(v):
+        dn, up = v
+        if up - dn > max_clutch_window_width:
+            return np.inf
         clutch_phases = calculate_clutch_phases(times, gear_shifts, v)
-        model.fit(clutch_phases, None, None, delta, accelerations,
-                  velocities, gear_box_speeds_in, gears)
+        model = calibrate_clutch_prediction_model(
+            clutch_phases, accelerations, delta, velocities,
+            gear_box_speeds_in, gears)
         return np.mean(np.abs(delta - model.model(clutch_phases, X)))
 
-    dt = max_clutch_window_width / 2
+    dt = max_clutch_window_width
     Ns = int(dt / max(np.min(np.diff(times)), 0.5)) + 1
     return tuple(sci_opt.brute(_error, ((-dt, 0), (dt, 0)), Ns=Ns, finish=None))
 

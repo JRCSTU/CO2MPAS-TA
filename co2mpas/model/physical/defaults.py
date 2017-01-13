@@ -65,7 +65,7 @@ class Values(co2_utl.Constants):
     alternator_start_window_width = 4.0
 
     #: Maximum clutch window width [s].
-    max_clutch_window_width = 4.0
+    max_clutch_window_width = 2.0
 
     #: Threshold vehicle velocity for gear correction due to full load curve
     #: [km/h].
