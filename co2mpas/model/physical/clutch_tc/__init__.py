@@ -193,7 +193,8 @@ def clutch_torque_converter():
             'clutch_speeds_delta': 'clutch_tc_speeds_delta',
             'clutch_window': 'clutch_window',
             'clutch_model': 'clutch_model',
-            'k_factor_curve': 'k_factor_curve'
+            'k_factor_curve': 'k_factor_curve',
+            'clutch_phases': 'clutch_phases'
         }
     )
 

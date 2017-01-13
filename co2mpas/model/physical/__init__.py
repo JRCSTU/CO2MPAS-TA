@@ -483,7 +483,8 @@ def physical():
             'stand_still_torque_ratio': 'stand_still_torque_ratio',
             'lockup_speed_ratio': 'lockup_speed_ratio',
             'clutch_tc_powers': 'clutch_tc_powers',
-            'has_torque_converter': 'has_torque_converter'
+            'has_torque_converter': 'has_torque_converter',
+            'clutch_phases': 'clutch_phases'
         }
     )
 
