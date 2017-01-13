@@ -119,7 +119,6 @@ class MainCmd(Cmd):
         with self.hold_trait_notifications():
             dkwds = {
                 'name': __title__,
-                ##'default_subcmd': 'project', ## Confusing for the user.
                 'subcommands': sub_cmds,
             }
             dkwds.update(kwds)

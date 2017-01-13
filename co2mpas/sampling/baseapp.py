@@ -654,15 +654,10 @@ class Cmd(trtc.Application, PeristentMixin):
             lines.append(p)
         lines.append('')
         for subc, (cls, hlp) in self.subcommands.items():
-            if self.default_subcmd == subc:
-                subc = '%s[*]' % subc
             lines.append(subc)
 
             if hlp:
                 lines.append(indent(dedent(hlp.strip())))
-        if self.default_subcmd:
-            lines.append('')
-            lines.append("""Note: The asterisk '[*]' marks the "default" sub-command to run when none specified.""")
         lines.append('')
         print(os.linesep.join(lines))
 
@@ -673,10 +668,6 @@ class Cmd(trtc.Application, PeristentMixin):
         return trtc.KVArgParseConfigLoader(
             argv, aliases, flags, classes=classes,
             log=self.log, conflict_handler='resolve')
-
-    default_subcmd = trt.Unicode(
-        None, allow_none=True,
-        help="The name of the sub-command to use if unspecified.")
 
     conf_classes = trt.List(
         trt.Type(trtc.Configurable), default_value=[],
@@ -908,8 +899,6 @@ class Cmd(trtc.Application, PeristentMixin):
 
         if self.subapp is not None:
             pass
-        elif self.default_subcmd:
-            self.initialize_subcommand(self.default_subcmd, self.argv)
         else:
             return self.run(*self.extra_args)
 

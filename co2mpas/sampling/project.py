@@ -1120,7 +1120,6 @@ class ProjectCmd(_PrjCmd):
             dkwds = {
                 'conf_classes': [ProjectsDB, Project],
                 'subcommands': baseapp.build_sub_cmds(*all_subcmds),
-                #'default_subcmd': 'current', ## Does not help the user.
                 'cmd_flags': {
                     'reset-git-settings': (
                         {
