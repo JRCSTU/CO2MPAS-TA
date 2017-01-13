@@ -33,8 +33,6 @@ __title__ = APPNAME
 __summary__ = pndlu.first_line(__doc__)
 
 
-log = logging.getLogger(__name__)
-
 try:
     _mydir = osp.dirname(__file__)
 except:
@@ -333,6 +331,8 @@ def main(argv=None, log_level=None, **app_init_kwds):
         If `None`, use :data:`sys.argv`; use ``[]`` to explicitely use no-args.
     """
     init_logging(level=log_level)
+    log = logging.getLogger(__name__)
+
     try:
         ##MainCmd.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!
         app = MainCmd.instance(**app_init_kwds)

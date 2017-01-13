@@ -12,15 +12,11 @@ The general idea is to use a PGP key to securely store many passwords in configu
 The code using these passwords must never store them as is, but use and immediately discard them.
 """
 from co2mpas.sampling import baseapp
-import logging
 import re
 from typing import Text, Tuple, Union  # @UnusedImport
 
 import traitlets as trt
 import traitlets.config as trtc
-
-
-log = logging.getLogger(__name__)
 
 
 class GnuPGSpec(baseapp.Spec):
