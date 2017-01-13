@@ -57,7 +57,7 @@ from . import CmdException
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 from ..__main__ import init_logging
 
-
+################################################
 ## INFO: Modify the following variables on a different application.
 APPNAME = 'co2dice'
 CONFIG_VAR_NAME = '%s_CONFIG_PATH' % APPNAME.upper()
@@ -82,12 +82,14 @@ def default_config_dir():
 def default_config_fpaths():
     """The full path of to user's config-file, without extension."""
     return [osp.join(default_config_dir(), default_config_fname()),
-            osp.join(pndlu.convpath(_mydir), default_config_fname()), '/bb']
+            osp.join(pndlu.convpath(_mydir), default_config_fname())]
 
 
 def default_persist_fpath():
     """The full path of to user's persistent config-file, without extension."""
     return osp.join(default_config_dir(), '%s_persist' % APPNAME)
+#
+################################################
 
 
 class PeristentMixin:
@@ -781,17 +783,15 @@ class Cmd(trtc.Application, PeristentMixin):
 
     def all_app_configurables(self):
         """
-        Return the full config-classes, typically for running validity checks on app startup.
+        Return any configurable-class, to validate/report them on app startup.
 
         :return:
-            an ordered-set of all apps
+            an ordered-set of all app configurables (*cmds* + *specs*)
 
-        Could not use :attr:`classes` because not all commands load all of them; actually
-        that attribute should be limited to classes facilitating user interaction.
-        And had to be a Cmd-method so that it can inlude this cmd's classes, even if
-        the cmd has been created temporarilly (e.g. for some TC).
+        It has to be a Cmd-method so that it can include this cmd's classes,
+        even if the cmd has been created temporarilly (e.g. for some TC).
         """
-        ## INFO: Forward-dependency to specific App, instead of Abbstract-method to be overriden in TCs.
+        ## INFO: Circular-dep instead of abstract-method, so need not override in TCs.
         from . import dice
         return iset(itt.chain(dice.all_app_configurables(), self.classes))
 
@@ -799,21 +799,28 @@ class Cmd(trtc.Application, PeristentMixin):
         """
         Check plaintext :class:`crypto.Cipher` config-values and encrypt them if *persistent*, scream if *static*.
 
-        Must be invoked before applying configs.
+        To speed-up app start-app, run in 2 "passes" (the 2nd pass is optional):
+
+        - Pass-1 checks configs only for current Cmd's :attr:`classes`, and
+          if any iregularities are detected, then laucnh
+        - Pass-2 to searches :meth:`all_app_configurables()`.
         """
         from . import crypto
 
-        any_encrypted = 0
+        class NextPass(Exception):  # used to break the loop.
+            pass
+
+        ntraits_encrypted = 0   # Counts encrypt-operations of *persist* traits.
+        screams = []            # Collect non-encrypted *static* traits.
+        configs = [c for c in (static_config, persist_config) if c]  # `persist_config` might be None.
         vault = None  # lazily created
-        screams = []
-        all_configurables = {c.__name__: c for c in self.all_app_configurables()}
-        configs = [c for c in (static_config, persist_config) if c]
-        try:
+
+        def scan_config(config_classes, break_on_irregularities):
             for config, encrypt_plain, config_source in zip(configs,
                                                             (False, True),
                                                             ('static', 'persist')):
                 for clsname, traits in config.items():
-                    cls = all_configurables.get(clsname)
+                    cls = config_classes.get(clsname)
                     if not cls:
                         self.log.warn("Unknwon class %r in *%s* file-configs while ecrypting values.",
                                       config_source, clsname)
@@ -830,19 +837,40 @@ class Cmd(trtc.Application, PeristentMixin):
                         if crypto.is_pgp_encrypted(tvalue):
                             continue
 
+                        ## Irregularities have been found!
+
+                        if break_on_irregularities:
+                            raise NextPass()
+
                         key = '%s.%s' % (clsname, tname)
                         if encrypt_plain:
                             if not vault:
                                 vault = crypto.get_vault(self.config)
                             self.log.info("Auto-encrypting cipher-trait(%r)...", key)
                             config[clsname][tname] = vault.encryptobj(key, tvalue)
-                            any_encrypted += 1
+                            ntraits_encrypted += 1
                         else:
                             screams.append(key)
+
+        try:
+            ## Loop for the trick of 2-passes.
+            #
+            break_on_irregularities = True
+            config_classes = {c.__name__: c for c in self.classes}
+            while True:
+                try:
+                    scan_config(config_classes, break_on_irregularities)
+                except NextPass:
+                    break_on_irregularities = False
+                    config_classes = {c.__name__: c for c in self.all_app_configurables()}
+                else:
+                    break
         finally:
-            if any_encrypted:
+            ## Ensure any encrypted traits are saved.
+            #
+            if ntraits_encrypted:
                 self.log.info("Updating persistent config %r with %d auto-encrypted values...",
-                              self.persist_path, any_encrypted)
+                              self.persist_path, ntraits_encrypted)
                 self.store_pconfig(self.persist_path)
 
         if screams:

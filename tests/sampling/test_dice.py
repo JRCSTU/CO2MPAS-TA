@@ -7,9 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
-from co2mpas.sampling import baseapp, dice
-import io
-import json
+from co2mpas.sampling import baseapp, dice, cfgcmd
 import logging
 import os
 import tempfile
@@ -18,10 +16,7 @@ import unittest
 
 import ddt
 
-import itertools as itt
 import os.path as osp
-import pandalone.utils as pndlu
-import traitlets as trt
 
 
 init_logging(level=logging.DEBUG)
@@ -296,7 +291,7 @@ class TApp(unittest.TestCase):
     def test_config_init(self):
         c = get_config()
         c.MainCmd.raise_config_file_errors = True
-        cmd = baseapp.chain_cmds([dice.ConfigCmd.InitCmd], config=c)
+        cmd = baseapp.chain_cmds([cfgcmd.ConfigCmd.InitCmd], config=c)
         with tempfile.TemporaryDirectory() as td:
             conf_fpath = osp.join(td, 'cc.py')
             cmd.run(conf_fpath)
@@ -308,14 +303,14 @@ class TApp(unittest.TestCase):
     def test_config_paths(self):
         c = get_config()
         c.MainCmd.raise_config_file_errors = True
-        cmd = baseapp.chain_cmds([dice.ConfigCmd.PathsCmd], config=c)
+        cmd = baseapp.chain_cmds([cfgcmd.ConfigCmd.PathsCmd], config=c)
         res = list(cmd.run())
         self.assertGreaterEqual(len(res), 2, res)
 
     def test_config_show(self):
         c = get_config()
         c.MainCmd.raise_config_file_errors = True
-        cmd = baseapp.chain_cmds([dice.ConfigCmd.ShowCmd], config=c)
+        cmd = baseapp.chain_cmds([cfgcmd.ConfigCmd.ShowCmd], config=c)
         res = list(cmd.run())
         ## Count Cmd-lines not starting with '  +--trait'.
         ncmdlines = sum(1 for r in res if r[0] != ' ')
@@ -325,7 +320,7 @@ class TApp(unittest.TestCase):
         c = get_config()
         c.ShowCmd.verbose = 1
         c.MainCmd.raise_config_file_errors = True
-        cmd = baseapp.chain_cmds([dice.ConfigCmd.ShowCmd], config=c)
+        cmd = baseapp.chain_cmds([cfgcmd.ConfigCmd.ShowCmd], config=c)
         res = list(cmd.run())
         ## Count Cmd-lines not starting with '  +--trait'.
         ncmdlines = sum(1 for r in res if r[0] != ' ')
