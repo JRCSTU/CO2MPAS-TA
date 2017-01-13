@@ -180,6 +180,11 @@ class Values(co2_utl.Constants):
 
 #: Container of internal function parameters.
 class Functions(co2_utl.Constants):
+    class calibrate_clutch_prediction_model(co2_utl.Constants):
+        #: Delta time that identifies the previous engine speed to calibrate
+        #: the clutch model [s].
+        prev_dt = 1
+
     class _tech_mult_factors(co2_utl.Constants):
         #: Multiplication factors of the engine parameters [-].
         factors = {

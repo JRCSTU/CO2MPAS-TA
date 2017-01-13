@@ -163,7 +163,6 @@ class ClutchModel(TorqueConverter):
             delta = functools.partial(np.interp, xp=times, fp=d)
             t = times - self.prev_dt
             gbs = np.interp(t, xp=times, fp=X[:, -2])
-
             for i in np.where(clutch_phases)[0]:
                 x = tuple(X[i]) + (gbs[i] + delta(t[i]),)
                 d[i] = predict([x])
@@ -208,8 +207,9 @@ def calibrate_clutch_prediction_model(
         Clutch prediction model.
     :rtype: ClutchModel
     """
-
-    model = ClutchModel()
+    from ..defaults import dfl
+    prev_dt = dfl.functions.calibrate_clutch_prediction_model.prev_dt
+    model = ClutchModel(prev_dt=prev_dt)
     es = np.interp(times - model.prev_dt, times,
                    gear_box_speeds_in + delta_speeds)
     model.fit(times, clutch_phases, None, None, delta_speeds, accelerations,
