@@ -66,6 +66,7 @@ calibration = {
     'n_dyno_axes': True,
     'times': True,
     'velocities': True,
+    'obd_velocities': True,
     'bag_phases': True,
     'engine_speeds_out': True,
     'engine_coolant_temperatures': True,
