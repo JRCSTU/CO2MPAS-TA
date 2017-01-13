@@ -97,6 +97,10 @@ Vehicle general characteristics
         - nominal width of the tyre, in [mm];
         - ratio of height to width [%]; and
         - the load index (e.g., 195/55R16\).
+         In case that the front and rear wheels are equipped with tyres of different radius (tyres of different width do not
+         affect |co2mpas|), then the size of the tyres fitted in the powered axle should be declared as input to |co2mpas|.
+         For vehicles with different front and rear wheels tyres tested in 4x4 mode, then the size of the tyres from the wheels
+         where the OBD/CAN vehicle speed signal is measured should be declared as input to |co2mpas|.
 
     ``gear_box_type``
         Indicate the kind of gear box among automatic transmission, manual transmission, or
