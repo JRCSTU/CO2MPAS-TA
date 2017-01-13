@@ -87,10 +87,8 @@ Vehicle general characteristics
         during the subsequent 1 minute.
 
     ``final_drive_ratio``
-        Any ratio to be multiplied with all `gear_box_ratios`.
-        If the final drive ratio is included in the gearbox ratios, set this input to 1.
-        If the car has two different final drive ratios, set this variable to 1 and provide
-        the total ratios in `gear_box_ratios` (each gearbox ratio multiplied by its final drive ratio).
+        Provide the ratio to be multiplied with all `gear_box_ratios`. If the car has two different final drive ratios,       
+        leave the final_drive_ratio cell blank and provide the appropriate final drive ratios in the gear_box_ratios tab
 
     ``tyre_code``
         Tyre code of the tyres used in the WLTP test (e.g., P195/55R16 85H\).
