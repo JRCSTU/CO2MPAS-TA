@@ -462,9 +462,7 @@ Generic terms
         The capability of |co2mpas| to duplicate the exact simulation results when running repeatedly
         *on the same* computer.
         This is guaranteed by using non-stohastic algorthms (or using always the same random-seed).
-        However, note that differences in the output of |co2mpas| between 2 identical runs
-        (same computer, same input file, same flags) may occur due to the rounding of decimals >= 12th position.
-
+        
     reproducibility
     replicability
         The capability of |co2mpas| to duplicate the exact same simulation results on **a different computer**.
