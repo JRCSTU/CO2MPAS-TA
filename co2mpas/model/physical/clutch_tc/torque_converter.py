@@ -50,16 +50,16 @@ class TorqueConverter(object):
 
     def _fit_sub_set(self, params, calibration_speed_threshold, stop_velocity,
                      speeds_delta, accelerations, velocities,
-                     gear_box_speeds_in, gears):
+                     gear_box_speeds_in, gears, *args):
         b = np.isclose(accelerations, (0,)) & (velocities < stop_velocity)
         return ~(b & (abs(speeds_delta) > calibration_speed_threshold))
 
-    def fit(self, params, calibration_speed_threshold,
+    def fit(self, times, params, calibration_speed_threshold,
             stop_velocity, speeds_delta, accelerations,
             velocities, gear_box_speeds_in, gears, *args):
 
         X = np.column_stack(
-            (accelerations, velocities, gear_box_speeds_in, gears)
+            (accelerations, velocities, gear_box_speeds_in, gears) + args
         )
         y = speeds_delta
 
@@ -80,7 +80,7 @@ class TorqueConverter(object):
             regressor.fit(X[b, :], y[b])
             self.regressor = regressor
             models = enumerate((self.model, self.no_model))
-            a = params, X
+            a = times, params, self._prediction_inputs(X)
             error = sk_met.mean_absolute_error
             m = min([(error(y, m(*a)), i, m) for i, m in models])[-1]
         else:
@@ -91,10 +91,14 @@ class TorqueConverter(object):
         return self
 
     @staticmethod
-    def no_model(params, X):
+    def _prediction_inputs(X):
+        return X
+
+    @staticmethod
+    def no_model(times, params, X):
         return np.zeros(X.shape[0])
 
-    def model(self, params, X):
+    def model(self, times, params, X):
         lm_vel, lm_acc = params
         d = np.zeros(X.shape[0])
         a, v = X[:, 0], X[:, 1]
@@ -106,11 +110,15 @@ class TorqueConverter(object):
 
 
 def calibrate_torque_converter_model(
-        lock_up_tc_limits, calibration_tc_speed_threshold, stop_velocity,
+        times, lock_up_tc_limits, calibration_tc_speed_threshold, stop_velocity,
         torque_converter_speeds_delta, accelerations, velocities,
         gear_box_speeds_in, gears):
     """
     Calibrate torque converter model.
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
 
     :param lock_up_tc_limits:
         Limits (vel, acc) when torque converter is active [km/h, m/s].
@@ -150,7 +158,7 @@ def calibrate_torque_converter_model(
     """
 
     model = TorqueConverter()
-    model.fit(lock_up_tc_limits, calibration_tc_speed_threshold,
+    model.fit(times, lock_up_tc_limits, calibration_tc_speed_threshold,
               stop_velocity, torque_converter_speeds_delta,
               accelerations, velocities, gear_box_speeds_in, gears)
 
@@ -158,10 +166,14 @@ def calibrate_torque_converter_model(
 
 
 def predict_torque_converter_speeds_delta(
-        lock_up_tc_limits, torque_converter_model, accelerations, velocities,
-        gear_box_speeds_in, gears):
+        times, lock_up_tc_limits, torque_converter_model, accelerations,
+        velocities, gear_box_speeds_in, gears):
     """
     Predicts engine speed delta due to the torque converter [RPM].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
 
     :param lock_up_tc_limits:
         Limits (vel, acc) when torque converter is active [km/h, m/s].
@@ -196,7 +208,7 @@ def predict_torque_converter_speeds_delta(
         (accelerations, velocities, gear_box_speeds_in, gears)
     )
 
-    return torque_converter_model(lock_up_tc_limits, X)
+    return torque_converter_model(times, lock_up_tc_limits, X)
 
 
 def default_tc_k_factor_curve():
@@ -258,7 +270,7 @@ def torque_converter():
 
     d.add_function(
         function=calibrate_torque_converter_model,
-        inputs=['lock_up_tc_limits', 'calibration_tc_speed_threshold',
+        inputs=['times', 'lock_up_tc_limits', 'calibration_tc_speed_threshold',
                 'stop_velocity', 'torque_converter_speeds_delta',
                 'accelerations', 'velocities', 'gear_box_speeds_in', 'gears'],
         outputs=['torque_converter_model']
@@ -266,8 +278,8 @@ def torque_converter():
 
     d.add_function(
         function=predict_torque_converter_speeds_delta,
-        inputs=['lock_up_tc_limits', 'torque_converter_model', 'accelerations',
-                'velocities', 'gear_box_speeds_in', 'gears'],
+        inputs=['times', 'lock_up_tc_limits', 'torque_converter_model',
+                'accelerations', 'velocities', 'gear_box_speeds_in', 'gears'],
         outputs=['torque_converter_speeds_delta']
     )
 
