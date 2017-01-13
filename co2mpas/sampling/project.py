@@ -30,9 +30,7 @@ import traitlets.config as trtc
 
 from . import baseapp, dice, CmdException, PFiles
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
-
-
-PROJECT_VERSION = '0.0.2'  # TODO: Move to `co2mpas/_version.py`.
+from .._version import __dice_report_version__
 
 
 def split_version(v):
@@ -260,7 +258,7 @@ class Project(transitions.Machine, baseapp.Spec):
 
     def _make_commit_msg(self, action):
         action = '\n'.join(textwrap.wrap(action, width=50))
-        cmsg = _CommitMsg(self.pname, self.state, action, PROJECT_VERSION)
+        cmsg = _CommitMsg(self.pname, self.state, action, __dice_report_version__)
         return json.dumps(cmsg._asdict(), indent=2)
 
     @classmethod
