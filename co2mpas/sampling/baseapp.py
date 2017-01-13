@@ -34,6 +34,8 @@ To run nested commands, use :func:`baseapp.chain_cmds()` like that::
 3. Some utility code depends on trait-defaults (i.e. construction of help-messages), so for certain properties
    (e.g. description), it is preferable to set them as traits-with-defaults on class-attributes.
 
+4. Listen `Good Bait <https://www.youtube.com/watch?v=CE4bl5rk5OQ>`_ after 1:43.
+
 .. [#] http://traitlets.readthedocs.io/
 """
 from collections import OrderedDict
@@ -750,7 +752,10 @@ class Cmd(trtc.Application, PeristentMixin):
             ## Set some nice defaults for root-CMDs.
             #
             'cmd_aliases': {
-                'config-paths': 'Cmd.config_paths',
+                'config-paths': ('Cmd.config_paths',
+                                 pndlu.first_line(Cmd.config_paths.help)),
+                'persist-path': ('Cmd.persist_path',
+                                 pndlu.first_line(Cmd.persist_path.help)),
             },
             'cmd_flags': {
                 ('d', 'debug'): (
