@@ -163,9 +163,9 @@ class ClutchModel(TorqueConverter):
             delta = functools.partial(np.interp, xp=times, fp=d)
             t = times - self.prev_dt
             gbs = np.interp(t, xp=times, fp=X[:, -2])
-            for i in np.where(clutch_phases)[0]:
-                x = tuple(X[i]) + (gbs[i] + delta(t[i]),)
-                d[i] = predict([x])
+            i = np.where(clutch_phases)[0]
+            for i, a in zip(i, np.column_stack((gbs, t, X))[i]):
+                d[i] = predict([tuple(a[2:]) + (a[0] + delta(a[1]),)])[0]
         return d
 
 
