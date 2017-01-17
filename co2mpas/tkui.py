@@ -1982,16 +1982,28 @@ class TkUI(object):
         slider.add(nb, weight=1)
 
         tab = SimulatePanel(nb, app=self)
-        nb.add(tab, text='Simulate', sticky='nswe')
+        img = read_image('icons/car-olive-16.png')
+        nb.add(tab, text='Simulate', sticky='nswe',
+               image=img, compound='top')
+        nb.sim_icon = img
 
         tab = SyncronizePanel(nb, app=self)
-        nb.add(tab, text='Synchronize', sticky='nwse')
+        img = read_image('icons/align_center-olive-16.png')
+        nb.add(tab, text='Synchronize', sticky='nwse',
+               image=img, compound='top')
+        nb.sync_icon = img
 
         tab = TemplatesPanel(nb, app=self)
-        nb.add(tab, text='Templates & Samples', sticky='nwse')
+        img = read_image('icons/excel-olive-16.png')
+        nb.add(tab, text='Templates & Samples', sticky='nwse',
+               image=img, compound='top')
+        nb.excel_icon = img
 
         self.dice_tab = tab = DicePanel(nb, app=self)
-        nb.add(tab, text='Dice', sticky='nswe')
+        img = read_image('icons/dice-orange-16.png')
+        nb.add(tab, text='Dice', sticky='nswe',
+               image=img, compound='top')
+        nb.dice_icon = img
 
         frame = LogPanel(slider, self, height=-260, log_level_cb=cmain.init_logging)
         slider.add(frame, weight=3)
