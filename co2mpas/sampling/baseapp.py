@@ -989,12 +989,10 @@ def chain_cmds(app_classes: Sequence[type(trtc.Application)],
     """
     Instantiate(optionally) a list of ``[cmd, subcmd, ...]`` and link each one as child of its predecessor.
 
-    TODO: FIX `chain_cmds()`, argv not working!
-
     :param argv:
         cmdline args for the the 1st cmd.
         Make sure they do not specify some cub-cmds.
-        Do NOT replace with `sys.argv` if none.
+        Replaced with `sys.argv` if undefined.
         Note: you have to "know" the correct nesting-order of the commands ;-)
     :return:
         the 1st cmd, to invoke :meth:`start()` on it

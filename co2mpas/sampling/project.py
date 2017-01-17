@@ -33,6 +33,8 @@ from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  
 from .._version import __dice_report_version__
 
 
+## TODO: Convert Multi-Projects per Repo-->OneRepo per project.
+
 def split_version(v):
     return v.split('.')
 
@@ -551,17 +553,21 @@ class ProjectsDB(trtc.SingletonConfigurable, baseapp.Spec):
 
     def _write_repo_configs(self):
         with self.repo.config_writer() as cw:
-            cw.set_value('core', 'filemode', False)
-            cw.set_value('core', 'ignorecase', False)
-            cw.set_value('user', 'email', self.user_email)
-            cw.set_value('user', 'name', self.user_name)
-            cw.set_value('gc', 'auto', 0)   # To salvage user-mistakes.
-            cw.set_value(
-                'alias', 'lg',
-                r"log --graph --abbrev-commit --decorate --date=relative "
-                r"--format=format:'%C(bold blue)%h%C(reset) "
-                r"- %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- "
-                r"%an%C(reset)%C(bold yellow)%d%C(reset)' --all")
+            gconfigs = [
+                ('core.filemode', False),
+                ('core.ignorecase', False),
+                ('user.email', self.user_email),
+                ('user.name', self.user_name),
+                ('gc.auto', 0),                 # To salvage user-mistakes.
+                ('alias.lg',                    # Famous alias for inspecting history.
+                    r"log --graph --abbrev-commit --decorate --date=relative "
+                    r"--format=format:'%C(bold blue)%h%C(reset) "
+                    r"- %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- "
+                    r"%an%C(reset)%C(bold yellow)%d%C(reset)' --all"),
+            ]
+            for key, val in gconfigs:
+                sec, prop = key.split('.')
+                cw.set_value(sec, prop, val)
 
     def read_git_settings(self, prefix: Text=None, config_level: Text=None):  # -> List(Text):
         """
