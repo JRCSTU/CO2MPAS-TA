@@ -206,6 +206,7 @@ def clutch_torque_converter():
         dsp=torque_converter(),
         dsp_id='torque_converter',
         inputs={
+            'times': 'times',
             'lock_up_tc_limits': 'lock_up_tc_limits',
             'calibration_tc_speed_threshold': 'calibration_tc_speed_threshold',
             'stop_velocity': 'stop_velocity',
