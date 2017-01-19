@@ -16,7 +16,6 @@ Use the `batch` sub-command to simulate a vehicle contained in an excel-file.
 
 
 USAGE:
-  co2mpas gui         [-v | -q | --logconf=<conf-file>]
   co2mpas ta          [-f] [-O=<output-folder>] [<input-path>]...
   co2mpas batch       [-v | -q | --logconf=<conf-file>] [-f]
                       [--overwrite-cache] [-O=<output-folder>]
@@ -32,6 +31,7 @@ USAGE:
                       (--list | [--graph-depth=<levels>] [<models> ...])
   co2mpas modelconf   [-v | -q | --logconf=<conf-file>] [-f]
                       [--modelconf=<yaml-file>] [-O=<output-folder>]
+  co2mpas gui         [-v | -q | --logconf=<conf-file>]
   co2mpas             [-v | -q | --logconf=<conf-file>] (--version | -V)
   co2mpas             --help
 
@@ -79,7 +79,7 @@ Miscellaneous:
 
 
 SUB-COMMANDS:
-    gui             Launches co2mpas GUI.
+    gui             Launches co2mpas GUI (DEPRECATED: Use `co2gui` command).
     ta              Simulate vehicle in type approval mode for all <input-path>
                     excel-files & folder. If no <input-path> given, reads all
                     excel-files from current-dir. It reads just the declaration
@@ -455,6 +455,8 @@ def _cmd_modelconf(opts):
 
 def _cmd_gui(opts):
     from co2mpas import tkui
+    log.warning("`co2mpas gui` cmd has been Deprecated, and will be removed  in from the next release!"
+                "\n  Please use the decicated `co2gui` command.")
     tkui.main()
 
 

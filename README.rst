@@ -372,6 +372,7 @@ you have installed |co2mpas| (see :ref:`install` above) and type::
                           (--list | [--graph-depth=<levels>] [<models> ...])
       co2mpas modelconf   [-v | -q | --logconf=<conf-file>] [-f]
                           [--modelconf=<yaml-file>] [-O=<output-folder>]
+      co2mpas gui         [-v | -q | --logconf=<conf-file>]
       co2mpas             [-v | -q | --logconf=<conf-file>] (--version | -V)
       co2mpas             --help
 
@@ -419,7 +420,7 @@ you have installed |co2mpas| (see :ref:`install` above) and type::
 
 
     SUB-COMMANDS:
-        gui             Launches co2mpas GUI.
+        gui             Launches co2mpas GUI (DEPRECATED: Use `co2gui` command).
         ta              Simulate vehicle in type approval mode for all <input-path>
                         excel-files & folder. If no <input-path> given, reads all
                         excel-files from current-dir. It reads just the declaration

@@ -74,10 +74,10 @@ import os.path as osp
 import tkinter as tk
 import traitlets as trt
 
+APPNAME = 'co2mpas'
 
-log = logging.getLogger('tkui')
+log = logging.getLogger(APPNAME)
 
-app_name = 'co2mpas'
 user_guidelines_url = 'https://co2mpas.io/usage.html'
 issues_url = 'https://github.com/JRCSTU/CO2MPAS-TA/issues'
 MOTDs = dedent("""\
@@ -227,7 +227,7 @@ about_txt = """
 
 
 def show_about(root, about_txt=about_txt, verbose=False):
-    root.title("About %s" % app_name)
+    root.title("About %s" % APPNAME)
 
     textarea = tk.Text(root, wrap=tk.WORD,
                        background='SystemButtonFace',
@@ -1992,7 +1992,7 @@ class TkUI(object):
         if not root:
             root = tk.Tk()
         self.root = root
-        root.title("%s-%s" % (app_name, __version__))
+        root.title("%s-%s" % (APPNAME, __version__))
 
         define_ttk_styles()
 
@@ -2046,7 +2046,7 @@ class TkUI(object):
         # Menubar
         #
         menubar = tk.Menu(root)
-        menubar.add_command(label="About %r" % app_name, command=fnt.partial(self.show_about_window, slider))
+        menubar.add_command(label="About %r" % APPNAME, command=fnt.partial(self.show_about_window, slider))
 
         def open_console():
             homdedir = os.environ['HOME']
@@ -2263,10 +2263,48 @@ class TkUI(object):
                 pass
 
 
-def main():
-    cmain.init_logging()
-    app = TkUI()
-    app.mainloop()
+class Co2guiCmd(baseapp.Cmd):
+    """
+    Run CO2MPAS to simulate & dice the results using a desktop GUI.
+
+    This is root command for co2mpas "dice"; use subcommands or preferably GUI to accomplish sampling.
+
+    TIP:
+      If you bump into blocking errors, please use the `co2dice project backup` command and
+      send the generated archive-file back to "CO2MPAS-Team <co2mpas@jrc.ec.europa.eu>",
+      for examination.
+
+    NOTE:
+      Do not run concurrently multiple instances!
+    """
+
+    name = trt.Unicode(APPNAME)
+    version = trt.Unicode(__version__)
+    #examples = """TODO: Write cmd-line examples."""
+
+    def run(self):
+        app = TkUI()
+        app.mainloop()
+
+
+def main(argv=None, log_level=None, **app_init_kwds):
+    cmain.init_logging(level=log_level)
+    log = logging.getLogger(__name__)
+
+    try:
+        ##MainCmd.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!
+        app = Co2guiCmd.instance(**app_init_kwds)
+        baseapp.run_cmd(app, argv)
+    except (baseapp.CmdException, trt.TraitError) as ex:
+        ## Suppress stack-trace for "expected" errors.
+        log.debug('App exited due to: %s', ex, exc_info=1)
+        exit(ex.args[0])
+    except Exception as ex:
+        ## Shell will see any exception x2, but we have to log it anyways,
+        #  in case log has been redirected to a file.
+        #
+        log.error('Launch failed due to: %s', ex, exc_info=1)
+        raise ex
 
 if __name__ == '__main__':
     if __package__ is None:
