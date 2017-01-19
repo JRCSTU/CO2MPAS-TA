@@ -154,9 +154,11 @@ def define_tooltips():
             - Incompatible with any other flags and options;
             - The output-folder cannot be empty;
         open_dice_btn: |-
-            Switches to the `Dice` tab, prepared for the output files generated
+            Switches to the `Dice` taband imports all output files generated
             during the most recent `Run TA` command.
             - Enabled only when output files have been generated.
+            - You can still switch to `Dice` tab and select manually
+              which files to import.
         stop_job_btn: |-
             Aborts a "job" that has started with the Run or Run TA buttons.
 
@@ -426,6 +428,10 @@ def tree_apply_columns(tree, columns):
 
 
 def make_files_tree(parent, **tree_kwds):
+    """
+    :param parent:
+        will host scrollbars, so nothing else must have been added.
+    """
     columns = (
         ('#0', {
             'text': 'Filepath',
@@ -472,6 +478,10 @@ def make_files_tree(parent, **tree_kwds):
 
 
 def make_tree(parent, columns, **tree_kwds):
+    """
+    :param parent:
+        will host scrollbars, so nothing else must have been added.
+    """
     parent.grid_rowconfigure(0, weight=1)
     parent.grid_columnconfigure(0, weight=1)
 
@@ -1186,12 +1196,24 @@ class SimulatePanel(ttk.Frame):
 
     def _make_output_tree(self, parent):
         frame = ttk.Labelframe(parent, text="Output Result Files",
-                               style='FileTree.TFrame', height=260)
+                               style='OutputFiles.TFrame')
 
-        tree = make_files_tree(frame, selectmode='none', height=3)
+        tree_frame = ttk.Frame(frame, style='FileTree.TFrame', height=260)
+        tree_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
+
+        tree = make_files_tree(tree_frame, selectmode='none', height=3)
         tree.tag_configure('ro', background='SystemButtonFace')
         self.outputs_tree = tree
         add_tooltip(tree, 'out_files_tree')
+
+        ## TODO: selectively add dice GUI.
+        self._open_dice_btn = btn = ttk.Button(
+            frame,
+            text="Import to Dice...", style='DICE.TButton',
+            command=fnt.partial(self.app.prepare_dice_for_files, self.outputs_tree.get_children()))
+        add_icon(btn, 'icons/to_dice-orange-32.png ')
+        btn.pack(side=tk.LEFT, fill=tk.BOTH,)
+        add_tooltip(btn, 'open_dice_btn')
 
         return frame
 
@@ -1353,20 +1375,12 @@ class SimulatePanel(ttk.Frame):
         btn.grid(column=2, row=4, sticky='nswe')
         add_tooltip(btn, 'run_ta_btn')
 
-        self._open_dice_btn = btn = ttk.Button(
-            frame,
-            text="Dice...", style='DICE.TButton',
-            command=fnt.partial(self.app.prepare_dice_for_files, self.outputs_tree.get_children()))
-        add_icon(btn, 'icons/dice-orange-32.png ')
-        btn.grid(column=3, row=4, sticky='nswe')
-        add_tooltip(btn, 'open_dice_btn')
-
         def stop_job_clicked():
             self.app.signal_job_to_stop()
             self.mediate_guistate()
         self._stop_job_btn = btn = ttk.Button(frame, text="Stop", command=stop_job_clicked)
         add_icon(btn, 'icons/hand-red-32.png')
-        btn.grid(column=4, row=4, sticky='nswe')
+        btn.grid(column=3, row=4, sticky='nswe')
         add_tooltip(btn, 'stop_job_btn')
 
         frame.columnconfigure(0, weight=1)
@@ -1999,6 +2013,7 @@ class TkUI(object):
                image=img, compound='top')
         nb.excel_icon = img
 
+        ## TODO: selectively add dice GUI.
         self.dice_tab = tab = DicePanel(nb, app=self)
         img = read_image('icons/dice-orange-16.png')
         nb.add(tab, text='Dice', sticky='nswe',
