@@ -10,15 +10,14 @@ It contains functions that model the basic mechanics of the clutch.
 """
 
 import scipy.optimize as sci_opt
-import sklearn.linear_model as sk_lim
-import co2mpas.utils as co2_utl
 import functools
-import schedula.utils as dsp_utl
 import schedula as dsp
 import numpy as np
 from .torque_converter import TorqueConverter
 
-def calculate_clutch_phases(times, gear_shifts, clutch_window):
+
+def calculate_clutch_phases(
+        times, velocities, gears, gear_shifts, stop_velocity, clutch_window):
     """
     Calculate when the clutch is active [-].
 
@@ -26,9 +25,21 @@ def calculate_clutch_phases(times, gear_shifts, clutch_window):
         Time vector [s].
     :type times: numpy.array
 
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array
+
+    :param gears:
+        Gear vector [-].
+    :type gears: numpy.array
+
     :param gear_shifts:
         When there is a gear shifting [-].
     :type gear_shifts: numpy.array
+
+    :param stop_velocity:
+        Maximum velocity to consider the vehicle stopped [km/h].
+    :type stop_velocity: float
 
     :param clutch_window:
         Clutching time window [s].
@@ -44,7 +55,7 @@ def calculate_clutch_phases(times, gear_shifts, clutch_window):
 
     for t in times[gear_shifts]:
         b |= ((t + dn) <= times) & (times <= (t + up))
-
+    b &= (gears > 0) & (velocities > stop_velocity)
     return b
 
 
@@ -84,7 +95,8 @@ def identify_clutch_speeds_delta(
 def identify_clutch_window(
         times, accelerations, gear_shifts, engine_speeds_out,
         engine_speeds_out_hot, cold_start_speeds_delta,
-        max_clutch_window_width, velocities, gear_box_speeds_in, gears):
+        max_clutch_window_width, velocities, gear_box_speeds_in, gears,
+        stop_velocity):
     """
     Identifies clutching time window [s].
 
@@ -116,6 +128,22 @@ def identify_clutch_window(
         Maximum clutch window width [s].
     :type max_clutch_window_width: float
 
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array
+
+    :param gear_box_speeds_in:
+        Gear box speed vector [RPM].
+    :type gear_box_speeds_in: numpy.array
+
+    :param gears:
+        Gear vector [-].
+    :type gears: numpy.array
+
+    :param stop_velocity:
+        Maximum velocity to consider the vehicle stopped [km/h].
+    :type stop_velocity: float
+
     :return:
         Clutching time window [s].
     :rtype: tuple
@@ -128,12 +156,15 @@ def identify_clutch_window(
     X = np.column_stack(
         (accelerations, velocities, gear_box_speeds_in, gears)
     )
-
+    calculate_c_p = functools.partial(
+        calculate_clutch_phases, times, velocities, gears, gear_shifts,
+        stop_velocity
+    )
     def _error(v):
         dn, up = v
         if up - dn > max_clutch_window_width:
             return np.inf
-        clutch_phases = calculate_clutch_phases(times, gear_shifts, v)
+        clutch_phases = calculate_c_p(v)
         model = calibrate_clutch_prediction_model(
             times, clutch_phases, accelerations, delta, velocities,
             gear_box_speeds_in, gears)
@@ -282,13 +313,19 @@ def clutch():
         description='Models the clutch.'
     )
 
+    from ..defaults import dfl
+    d.add_data(
+        data_id='stop_velocity',
+        default_value=dfl.values.stop_velocity
+    )
+
     d.add_function(
         function=calculate_clutch_phases,
-        inputs=['times', 'gear_shifts', 'clutch_window'],
+        inputs=['times', 'velocities', 'gears', 'gear_shifts', 'stop_velocity',
+                'clutch_window'],
         outputs=['clutch_phases']
     )
 
-    from ..defaults import dfl
     d.add_data(
         data_id='max_clutch_window_width',
         default_value=dfl.values.max_clutch_window_width
@@ -299,7 +336,7 @@ def clutch():
         inputs=['times', 'accelerations', 'gear_shifts', 'engine_speeds_out',
                 'engine_speeds_out_hot', 'cold_start_speeds_delta',
                 'max_clutch_window_width', 'velocities', 'gear_box_speeds_in',
-                'gears'],
+                'gears', 'stop_velocity'],
         outputs=['clutch_window']
     )
 

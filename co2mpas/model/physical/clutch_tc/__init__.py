@@ -187,7 +187,8 @@ def clutch_torque_converter():
             'cold_start_speeds_delta': 'cold_start_speeds_delta',
             'velocities': 'velocities',
             'gear_box_speeds_in': 'gear_box_speeds_in',
-            'gears': 'gears'
+            'gears': 'gears',
+            'stop_velocity': 'stop_velocity'
         },
         outputs={
             'clutch_speeds_delta': 'clutch_tc_speeds_delta',
