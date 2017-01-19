@@ -76,15 +76,15 @@ Vehicle general characteristics
         Indicate the engine speed in warm conditions during idling, expressed in revolutions per minute [rpm].
 
     ``engine_idle_fuel_consumption``
-        Provide the fuel consumption of the vehicle in warm conditions during idling.
-        The idling fuel consumption of the vehicle, expressed in grams of fuel per second [gFuel/sec]
-        should be measured when velocity of the engine is 0, the start-stop system is disengaged, and
-        the battery state of charge is at balance conditions. For |co2mpas| purposes,
-        the engine idle fuel consumption can be measured as follows: after a WLTP pysical test,
-        when the engine is warm, leave the car to idle and make a constant measure of fuel consumption for 2 minutes.
-        Disregard the first minute (in which the FC can be affected by the electric system),
-        then calculate idle fuel consumption as the average fuel consumption of the vehicle
-        during the subsequent 1 minute.
+        Provide the fuel consumption of the vehicle in warm conditions during idling. The idling fuel consumption
+        of the vehicle,      expressed in grams of fuel per second [gFuel/sec] should be measured when:
+        * velocity of the vehicle is 0
+        * the start-stop system is disengaged
+        * the battery state of charge is at balance conditions.
+         For CO2MPAS purposes, the engine idle fuel consumption can be measured as follows: Just after a WLTP physical test,
+         when the engine is still warm, leave the car to idle for 3 minutes so that it stabilizes. Then make a constant measurement
+         of fuel consumption for 2 minutes. Disregard the first minute, then calculate idle fuel consumption as the average fuel
+         consumption of the vehicle during the subsequent 1 minute.
 
     ``final_drive_ratio``
         Provide the ratio to be multiplied with all `gear_box_ratios`. If the car has two different final drive ratios,       
