@@ -28,7 +28,7 @@ boltons
 pykalman
 wltp
 openpyxl>=2.4.0
-git+https://github.com/vinci1it2000/schedula.git
+schedula
 
 ## Dice
 python-gnupg
