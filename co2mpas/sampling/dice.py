@@ -107,24 +107,15 @@ class MainCmd(Cmd):
     version = __version__
     #examples = """TODO: Write cmd-line examples."""
 
-    def __init__(self, **kwds):
-        # Note: do not use `build_sub_cmds()` to avoid loading subcmd-tree.
-        sub_cmds = {
-            'project': ('co2mpas.sampling.project.ProjectCmd',
-                        "Commands to administer the storage repo of TA *projects*."),
-            'report': ('co2mpas.sampling.report.ReportCmd',
-                       "Extract the report parameters from the co2mpas input/output files, or from *current-project*."),
-            'tstamp': ('co2mpas.sampling.tstamp.TstampCmd',
-                       "Commands to manage the communications with the Timestamp server."),
-            'config': ('co2mpas.sampling.cfgcmd.ConfigCmd',
-                       "Commands to manage configuration-options loaded from filesystem.")}
-        with self.hold_trait_notifications():
-            dkwds = {
-                'name': APPNAME,
-                'subcommands': sub_cmds,
-            }
-            dkwds.update(kwds)
-            super().__init__(**dkwds)
+    subcommands = {
+        'project': ('co2mpas.sampling.project.ProjectCmd',
+                    "Commands to administer the storage repo of TA *projects*."),
+        'report': ('co2mpas.sampling.report.ReportCmd',
+                   "Extract the report parameters from the co2mpas input/output files, or from *current-project*."),
+        'tstamp': ('co2mpas.sampling.tstamp.TstampCmd',
+                   "Commands to manage the communications with the Timestamp server."),
+        'config': ('co2mpas.sampling.cfgcmd.ConfigCmd',
+                   "Commands to manage configuration-options loaded from filesystem.")}
 
 
 ####################################
