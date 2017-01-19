@@ -20,6 +20,7 @@ import pprint
 import schedula.utils as dsp_utl
 from . import validations
 from . import excel
+import regex
 import functools
 from co2mpas.model.physical.gear_box.at_gear import CMV, MVL, GSPV
 
@@ -709,6 +710,7 @@ def define_data_schema(read=True):
         'identified_co2_emissions': np_array,
         'motive_powers': np_array,
         'on_engine': np_array_bool,
+        'clutch_phases': np_array_bool,
         'on_idle': np_array_bool,
         'state_of_charges': np_array,
         'times': np_array_sorted,
@@ -732,6 +734,18 @@ def define_data_schema(read=True):
     return Schema(schema)
 
 
+_re_vehicle_family_id = regex.compile(
+    r'^[A-Z]{2}-\d{1,2}-[A-Z]{1}.{1}.{1}-\d{4}-\d{4}$'
+)
+
+
+def _vehicle_family_id(error=None, **kwargs):
+    def m(s):
+        return _re_vehicle_family_id.match(s)
+    error = error or 'Invalid format!'
+    return And(_string(**kwargs), m, error=error)
+
+
 @functools.lru_cache(None)
 def define_flags_schema(read=True):
     string = _string(read=read)
@@ -742,7 +756,7 @@ def define_flags_schema(read=True):
 
     schema = {
         _compare_str('input_version'): string,
-        _compare_str('vehicle_family_id'): string,
+        _compare_str('vehicle_family_id'): _vehicle_family_id(read=read),
         _compare_str('modelconf'): isfile,
 
         _compare_str('soft_validation'): _bool,
@@ -774,4 +788,4 @@ def define_flags_schema(read=True):
 
         schema = {k: And(v, Or(f, Use(str))) for k, v in schema.items()}
 
-    return Schema(schema, error='Flag not defined!')
+    return Schema(schema)

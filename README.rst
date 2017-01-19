@@ -1432,19 +1432,19 @@ require the use of ``pip`` command from a *console* to install:
 
   .. code-block:: console
 
-      pip install co2mpas==1.0.1 ... # Other options, like above.
+      pip install co2mpas==1.0.1 --process-dependency-links ... # Other options, like above.
 
 - **Specific branch** from the GitHub-sources:
 
   .. code-block:: console
 
-      pip install git+https://github.com/JRCSTU/co2mpas.git@dev
+      pip install git+https://github.com/JRCSTU/co2mpas.git@dev --process-dependency-links
 
 - **Specific commit** from the GitHub-sources:
 
   .. code-block:: console
 
-      pip install git+https://github.com/JRCSTU/co2mpas.git@2927346f4c513a
+      pip install git+https://github.com/JRCSTU/co2mpas.git@2927346f4c513a --process-dependency-links
 
 - **Speed-up download**:
   append  the ``--use-mirrors`` option in the ``pip`` command.
@@ -1481,7 +1481,7 @@ require the use of ``pip`` command from a *console* to install:
 
      .. code-block:: console
 
-        pip install co2mpas  --no-index  -f path/to/co2mpas_packages
+        pip install co2mpas  --no-index  -f path/to/co2mpas_packages --process-dependency-links
 
 
 Install Multiple versions in parallel

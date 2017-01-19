@@ -188,7 +188,8 @@ setup(
         'schedula'
     ],
     dependency_links=[
-        'https://github.com/vinci1it2000/schedula/tarball/master#egg=schedula-0.0.1'
+        'https://github.com/vinci1it2000/schedula/tarball/master#egg=schedula-0.0.1',
+        'https://github.com/ipython/traitlets/tarball/master#egg=traitlets-5.0.0dev0',
     ],
     extras_require={
         'dice': [
@@ -197,11 +198,9 @@ setup(
             'keyring',
             'pycryptodome',
             'transitions',
-            #'traitlets >= 5.0.0dev0', #FIXME: traitlets DOES NOT WORK! use `pip install -r requirements/exe.pip`
+            'traitlets',
         ],
     },
-    ## FIXME: traitlets DOES NOT WORK! use `pip install -r requirements/exe.pip`
-    #dependency_links=['git+https://github.com/ipython/traitlets@master#egg=traitlets-5.0.0dev0'],
     packages=find_packages(exclude=[
         'tests', 'tests.*',
         'doc', 'doc.*',

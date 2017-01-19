@@ -10,15 +10,14 @@ It contains functions that model the basic mechanics of the clutch.
 """
 
 import scipy.optimize as sci_opt
-import sklearn.linear_model as sk_lim
-import co2mpas.utils as co2_utl
 import functools
-import schedula.utils as dsp_utl
 import schedula as dsp
 import numpy as np
 from .torque_converter import TorqueConverter
 
-def calculate_clutch_phases(times, gear_shifts, clutch_window):
+
+def calculate_clutch_phases(
+        times, velocities, gears, gear_shifts, stop_velocity, clutch_window):
     """
     Calculate when the clutch is active [-].
 
@@ -26,9 +25,21 @@ def calculate_clutch_phases(times, gear_shifts, clutch_window):
         Time vector [s].
     :type times: numpy.array
 
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array
+
+    :param gears:
+        Gear vector [-].
+    :type gears: numpy.array
+
     :param gear_shifts:
         When there is a gear shifting [-].
     :type gear_shifts: numpy.array
+
+    :param stop_velocity:
+        Maximum velocity to consider the vehicle stopped [km/h].
+    :type stop_velocity: float
 
     :param clutch_window:
         Clutching time window [s].
@@ -44,7 +55,7 @@ def calculate_clutch_phases(times, gear_shifts, clutch_window):
 
     for t in times[gear_shifts]:
         b |= ((t + dn) <= times) & (times <= (t + up))
-
+    b &= (gears > 0) & (velocities > stop_velocity)
     return b
 
 
@@ -84,7 +95,8 @@ def identify_clutch_speeds_delta(
 def identify_clutch_window(
         times, accelerations, gear_shifts, engine_speeds_out,
         engine_speeds_out_hot, cold_start_speeds_delta,
-        max_clutch_window_width, velocities, gear_box_speeds_in, gears):
+        max_clutch_window_width, velocities, gear_box_speeds_in, gears,
+        stop_velocity):
     """
     Identifies clutching time window [s].
 
@@ -116,6 +128,22 @@ def identify_clutch_window(
         Maximum clutch window width [s].
     :type max_clutch_window_width: float
 
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array
+
+    :param gear_box_speeds_in:
+        Gear box speed vector [RPM].
+    :type gear_box_speeds_in: numpy.array
+
+    :param gears:
+        Gear vector [-].
+    :type gears: numpy.array
+
+    :param stop_velocity:
+        Maximum velocity to consider the vehicle stopped [km/h].
+    :type stop_velocity: float
+
     :return:
         Clutching time window [s].
     :rtype: tuple
@@ -124,39 +152,63 @@ def identify_clutch_window(
     if not gear_shifts.any():
         return 0.0, 0.0
 
-    model = ClutchModel()
     delta = engine_speeds_out - engine_speeds_out_hot - cold_start_speeds_delta
     X = np.column_stack(
         (accelerations, velocities, gear_box_speeds_in, gears)
     )
-
+    calculate_c_p = functools.partial(
+        calculate_clutch_phases, times, velocities, gears, gear_shifts,
+        stop_velocity
+    )
     def _error(v):
-        clutch_phases = calculate_clutch_phases(times, gear_shifts, v)
-        model.fit(clutch_phases, None, None, delta, accelerations,
-                  velocities, gear_box_speeds_in, gears)
-        return np.mean(np.abs(delta - model.model(clutch_phases, X)))
+        dn, up = v
+        if up - dn > max_clutch_window_width:
+            return np.inf
+        clutch_phases = calculate_c_p(v)
+        model = calibrate_clutch_prediction_model(
+            times, clutch_phases, accelerations, delta, velocities,
+            gear_box_speeds_in, gears)
+        return np.mean(np.abs(delta - model.model(times, clutch_phases, X)))
 
-    dt = max_clutch_window_width / 2
+    dt = max_clutch_window_width
     Ns = int(dt / max(np.min(np.diff(times)), 0.5)) + 1
     return tuple(sci_opt.brute(_error, ((-dt, 0), (dt, 0)), Ns=Ns, finish=None))
 
 
 class ClutchModel(TorqueConverter):
+    def __init__(self, prev_dt=1):
+        super(ClutchModel, self).__init__()
+        self.prev_dt = prev_dt
+
     def _fit_sub_set(self, clutch_phases, *args):
         return clutch_phases
 
-    def model(self, clutch_phases, X):
+    @staticmethod
+    def _prediction_inputs(X):
+        return X[:, :-1]
+
+    def model(self, times, clutch_phases, X):
         d = np.zeros(X.shape[0])
         if clutch_phases.any():
-            d[clutch_phases] = self.regressor.predict(X[clutch_phases])
+            predict = self.regressor.predict
+            delta = functools.partial(np.interp, xp=times, fp=d)
+            t = times - self.prev_dt
+            gbs = np.interp(t, xp=times, fp=X[:, -2])
+            i = np.where(clutch_phases)[0]
+            for i, a in zip(i, np.column_stack((gbs, t, X))[i]):
+                d[i] = predict([tuple(a[2:]) + (a[0] + delta(a[1]),)])[0]
         return d
 
 
 def calibrate_clutch_prediction_model(
-        clutch_phases, accelerations, delta_speeds, velocities,
+        times, clutch_phases, accelerations, delta_speeds, velocities,
         gear_box_speeds_in, gears):
     """
     Calibrate clutch prediction model.
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
 
     :param clutch_phases:
         When the clutch is active [-].
@@ -166,24 +218,39 @@ def calibrate_clutch_prediction_model(
         Acceleration vector [m/s2].
     :type accelerations: numpy.array
 
-    :param clutch_speeds_delta:
+    :param delta_speeds:
         Engine speed delta due to the clutch [RPM].
-    :type clutch_speeds_delta: numpy.array
+    :type delta_speeds: numpy.array
+
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array
+
+    :param gear_box_speeds_in:
+        Gear box speed vector [RPM].
+    :type gear_box_speeds_in: numpy.array
+
+    :param gears:
+        Gear vector [-].
+    :type gears: numpy.array
 
     :return:
         Clutch prediction model.
     :rtype: ClutchModel
     """
-
-    model = ClutchModel()
-    model.fit(clutch_phases, None, None, delta_speeds, accelerations,
-              velocities, gear_box_speeds_in, gears)
+    from ..defaults import dfl
+    prev_dt = dfl.functions.calibrate_clutch_prediction_model.prev_dt
+    model = ClutchModel(prev_dt=prev_dt)
+    es = np.interp(times - model.prev_dt, times,
+                   gear_box_speeds_in + delta_speeds)
+    model.fit(times, clutch_phases, None, None, delta_speeds, accelerations,
+              velocities, gear_box_speeds_in, gears, es)
 
     return model
 
 
 def predict_clutch_speeds_delta(
-        clutch_model, clutch_phases, accelerations, velocities,
+        clutch_model, times, clutch_phases, accelerations, velocities,
         gear_box_speeds_in, gears):
     """
     Predicts engine speed delta due to the clutch [RPM].
@@ -191,6 +258,10 @@ def predict_clutch_speeds_delta(
     :param clutch_model:
         Clutch prediction model.
     :type clutch_model: function
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
 
     :param clutch_phases:
         When the clutch is active [-].
@@ -205,7 +276,7 @@ def predict_clutch_speeds_delta(
     :rtype: numpy.array
     """
     X = np.column_stack((accelerations, velocities, gear_box_speeds_in, gears))
-    return clutch_model(clutch_phases, X)
+    return clutch_model(times, clutch_phases, X)
 
 
 def default_clutch_k_factor_curve():
@@ -242,13 +313,19 @@ def clutch():
         description='Models the clutch.'
     )
 
+    from ..defaults import dfl
+    d.add_data(
+        data_id='stop_velocity',
+        default_value=dfl.values.stop_velocity
+    )
+
     d.add_function(
         function=calculate_clutch_phases,
-        inputs=['times', 'gear_shifts', 'clutch_window'],
+        inputs=['times', 'velocities', 'gears', 'gear_shifts', 'stop_velocity',
+                'clutch_window'],
         outputs=['clutch_phases']
     )
 
-    from ..defaults import dfl
     d.add_data(
         data_id='max_clutch_window_width',
         default_value=dfl.values.max_clutch_window_width
@@ -259,7 +336,7 @@ def clutch():
         inputs=['times', 'accelerations', 'gear_shifts', 'engine_speeds_out',
                 'engine_speeds_out_hot', 'cold_start_speeds_delta',
                 'max_clutch_window_width', 'velocities', 'gear_box_speeds_in',
-                'gears'],
+                'gears', 'stop_velocity'],
         outputs=['clutch_window']
     )
 
@@ -272,14 +349,15 @@ def clutch():
 
     d.add_function(
         function=calibrate_clutch_prediction_model,
-        inputs=['clutch_phases', 'accelerations', 'clutch_speeds_delta',
-                'velocities', 'gear_box_speeds_in', 'gears'],
+        inputs=['times', 'clutch_phases', 'accelerations',
+                'clutch_speeds_delta', 'velocities', 'gear_box_speeds_in',
+                'gears'],
         outputs=['clutch_model']
     )
 
     d.add_function(
         function=predict_clutch_speeds_delta,
-        inputs=['clutch_model', 'clutch_phases', 'accelerations',
+        inputs=['clutch_model', 'times', 'clutch_phases', 'accelerations',
                 'velocities', 'gear_box_speeds_in', 'gears'],
         outputs=['clutch_speeds_delta']
     )

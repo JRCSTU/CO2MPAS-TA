@@ -65,7 +65,7 @@ class Values(co2_utl.Constants):
     alternator_start_window_width = 4.0
 
     #: Maximum clutch window width [s].
-    max_clutch_window_width = 4.0
+    max_clutch_window_width = 2.0
 
     #: Threshold vehicle velocity for gear correction due to full load curve
     #: [km/h].
@@ -180,6 +180,11 @@ class Values(co2_utl.Constants):
 
 #: Container of internal function parameters.
 class Functions(co2_utl.Constants):
+    class calibrate_clutch_prediction_model(co2_utl.Constants):
+        #: Delta time that identifies the previous engine speed to calibrate
+        #: the clutch model [s].
+        prev_dt = 1
+
     class _tech_mult_factors(co2_utl.Constants):
         #: Multiplication factors of the engine parameters [-].
         factors = {

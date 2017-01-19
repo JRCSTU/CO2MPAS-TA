@@ -124,11 +124,11 @@ def default_has_torque_converter(gear_box_type):
 
 
 def clutch_domain(kwargs):
-    return not kwargs['has_torque_converter']
+    return not kwargs['has_torque_converter'] or kwargs['gear_box_type'] == 'cvt'
 
 
 def torque_converter_domain(kwargs):
-    return kwargs['has_torque_converter']
+    return kwargs['has_torque_converter'] and kwargs['gear_box_type'] != 'cvt'
 
 
 def clutch_torque_converter():
@@ -174,6 +174,7 @@ def clutch_torque_converter():
             'times': 'times',
             'accelerations': 'accelerations',
             'has_torque_converter': dsp_utl.SINK,
+            'gear_box_type': dsp_utl.SINK,
             'clutch_model': 'clutch_model',
             'clutch_window': 'clutch_window',
             'clutch_tc_speeds_delta': 'clutch_speeds_delta',
@@ -186,13 +187,15 @@ def clutch_torque_converter():
             'cold_start_speeds_delta': 'cold_start_speeds_delta',
             'velocities': 'velocities',
             'gear_box_speeds_in': 'gear_box_speeds_in',
-            'gears': 'gears'
+            'gears': 'gears',
+            'stop_velocity': 'stop_velocity'
         },
         outputs={
             'clutch_speeds_delta': 'clutch_tc_speeds_delta',
             'clutch_window': 'clutch_window',
             'clutch_model': 'clutch_model',
-            'k_factor_curve': 'k_factor_curve'
+            'k_factor_curve': 'k_factor_curve',
+            'clutch_phases': 'clutch_phases'
         }
     )
 
@@ -204,12 +207,14 @@ def clutch_torque_converter():
         dsp=torque_converter(),
         dsp_id='torque_converter',
         inputs={
+            'times': 'times',
             'lock_up_tc_limits': 'lock_up_tc_limits',
             'calibration_tc_speed_threshold': 'calibration_tc_speed_threshold',
             'stop_velocity': 'stop_velocity',
             'velocities': 'velocities',
             'accelerations': 'accelerations',
             'has_torque_converter': dsp_utl.SINK,
+            'gear_box_type': dsp_utl.SINK,
             'gears': 'gears',
             'clutch_tc_speeds_delta': 'torque_converter_speeds_delta',
             'engine_speeds_out_hot': ('gear_box_speeds_in',

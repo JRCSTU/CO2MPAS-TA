@@ -12,7 +12,7 @@ import datetime
 import functools
 import logging
 import re
-
+import threading
 from tqdm import tqdm
 
 import schedula as dsp
@@ -108,6 +108,7 @@ def process_folder_files(input_files, output_folder,
 
     time_elapsed = (datetime.datetime.today() - start_time).total_seconds()
     log.info('Done! [%s sec]', time_elapsed)
+    _pause_for_sites_shutdown()
 
 
 class _custom_tqdm(tqdm):
@@ -175,6 +176,20 @@ def _process_folder_files(*args, result_listener=None, **kwargs):
     return summary, start_time
 
 SITES = set()
+SITES_STOPPER = threading.Event()
+
+
+def _pause_for_sites_shutdown():
+    if SITES:
+        import time
+        try:
+            while not SITES_STOPPER.is_set():
+                time.sleep(1)
+        except (KeyboardInterrupt, SystemExit):
+            pass
+        for site in SITES:
+            site.shutdown()
+
 
 # noinspection PyUnusedLocal
 def plot_model_workflow(output_file_name=None, vehicle_name='', **kw):
@@ -303,7 +318,7 @@ def _save_summary(fpath, start_time, summary):
     if summary:
         from co2mpas.io.excel import _df2excel
         from co2mpas.io import _dd2df, _sort_key, _co2mpas_info2df, _add_units
-        import pandas as pd
+        from pandas import MultiIndex, ExcelWriter
 
         p_keys = ('cycle', 'stage', 'usage', 'param')
 
@@ -311,9 +326,9 @@ def _save_summary(fpath, start_time, summary):
             summary, index=['vehicle_name'], depth=3,
             col_key=functools.partial(_sort_key, p_keys=p_keys)
         )
-        df.columns = pd.MultiIndex.from_tuples(_add_units(df.columns))
+        df.columns = MultiIndex.from_tuples(_add_units(df.columns))
 
-        writer = pd.ExcelWriter(fpath, engine='xlsxwriter')
+        writer = ExcelWriter(fpath, engine='xlsxwriter')
 
         _df2excel(writer, 'summary', df, named_ranges=())
 
@@ -394,15 +409,15 @@ def prepare_data(raw_data, variation, input_file_name, overwrite_cache,
         'scope': 'plan' if has_plan else 'base',
     }
     r = {}
-    import pandalone.xleash as xleash
+    from pandalone.xleash import SheetsFactory, lasso
     from co2mpas.io import check_xlasso
     import pandas as pd
 
-    sheets_factory = xleash.SheetsFactory()
+    sheets_factory = SheetsFactory()
 
     for k, v in excel._parse_values(variation, match, "in variations"):
         if isinstance(v, str) and check_xlasso(v):
-            v = xleash.lasso(v, sheets_factory, url_file=input_file_name)
+            v = lasso(v, sheets_factory, url_file=input_file_name)
         dsp_utl.get_nested_dicts(r, *k[:-1])[k[-1]] = v
 
     if 'plan' in r:

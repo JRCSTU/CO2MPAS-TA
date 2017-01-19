@@ -2201,11 +2201,15 @@ def calculate_optimal_efficiency(params, mean_piston_speeds):
 
 def _calculate_optimal_point(params, n_speed):
     A, B, C = _fuel_ABC(n_speed, **params)
+    # noinspection PyTypeChecker
+    b = np.isclose(A, 0.0)
+    # noinspection PyTypeChecker
+    A = np.where(b, np.sign(C) * defaults.dfl.EPS, A)
     ac4, B2 = 4 * A * C, B ** 2
     sabc = np.sqrt(ac4 * B2)
     n = sabc - ac4
 
-    y = 2 * C - sabc / (2 * A)
+    y = np.where(b, np.nan, 2 * C - sabc / (2 * A))
     eff = n / (B - np.sqrt(B2 - sabc - n))
 
     return y, eff

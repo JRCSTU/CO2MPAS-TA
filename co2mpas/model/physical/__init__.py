@@ -336,6 +336,7 @@ def physical():
             'final_drive_ratio': 'final_drive_ratio',
             'final_drive_ratios': 'final_drive_ratios',
             'gear_box_ratios': 'gear_box_ratios',
+            'gear_box_type': 'gear_box_type',
             'gears': 'gears',
             'velocity_speed_ratios': 'velocity_speed_ratios',
             'final_drive_torque_loss': 'final_drive_torque_loss',
@@ -482,7 +483,8 @@ def physical():
             'stand_still_torque_ratio': 'stand_still_torque_ratio',
             'lockup_speed_ratio': 'lockup_speed_ratio',
             'clutch_tc_powers': 'clutch_tc_powers',
-            'has_torque_converter': 'has_torque_converter'
+            'has_torque_converter': 'has_torque_converter',
+            'clutch_phases': 'clutch_phases'
         }
     )
 

@@ -58,7 +58,8 @@ def hard_validation(data, usage, stage, cycle, *args):
             _check_prediction_gears_not_mt,
             _check_lean_burn_tech,
             _check_vva,
-            _check_scr
+            _check_scr,
+            _check_has_torque_converter
         )
         for check in checks:
             c = check(data, usage, stage, cycle, *args)
@@ -243,4 +244,14 @@ def _check_scr(data, usage, stage, cycle, *args):
               "`ignition_type = '%s'`." \
               "Hence, set `has_selective_catalytic_reduction = False` or " \
               "set `ignition_type = 'compression'`!" % it
+        return s, msg
+
+
+def _check_has_torque_converter(data, *args):
+    s = ('gear_box_type', 'has_torque_converter')
+    if data.get(s[1], False) and data.get(s[0], '') == 'manual':
+        msg = "`has_torque_converter` cannot be 'True' when " \
+              "`gear_box_type` is 'manual'." \
+              "Hence, set `has_torque_converter = False` or " \
+              "set `gear_box_type != 'manual'`!"
         return s, msg

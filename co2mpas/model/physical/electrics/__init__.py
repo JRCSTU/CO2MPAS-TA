@@ -841,8 +841,8 @@ class Alternator_status_model(object):
             self.charge = lambda X: np.zeros(len(X), dtype=bool)
 
     def _fit_boundaries(self, alternator_statuses, state_of_charges, times):
-        n = len(alternator_statuses)
-        mask = _mask_boolean_phases(alternator_statuses == 1)
+        n, b = len(alternator_statuses), alternator_statuses == 1
+        mask = _mask_boolean_phases(b)
         self.max, self.min = 100.0, 0.0
         _max, _min, balance = [], [], ()
         from ..defaults import dfl
@@ -871,7 +871,7 @@ class Alternator_status_model(object):
         elif _max:
             self.max = _max = min(self.max, max(0.0, max(_max)))
             self.min = _max - min_dsoc
-        else:
+        elif b.any():
             balance = _identify_balance_soc(times, state_of_charges)
             # noinspection PyTypeChecker
             std = np.sqrt(np.mean((balance - state_of_charges) ** 2)) * 2

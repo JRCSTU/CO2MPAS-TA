@@ -2065,6 +2065,7 @@ class TkUI(object):
 
         from schedula import Dispatcher
         Dispatcher.stopper.clear()
+        cbatch.SITES_STOPPER.clear()
 
         #: Cludge for GUI to receive Plan's output filenames.
         from co2mpas import plan
@@ -2075,6 +2076,7 @@ class TkUI(object):
     def signal_job_to_stop(self):
         from schedula import Dispatcher
         Dispatcher.stopper.set()
+        cbatch.SITES_STOPPER.set()
 
         #: Cludge for GUI to receive Plan's output filenames.
         from co2mpas import plan

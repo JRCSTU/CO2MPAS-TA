@@ -197,7 +197,7 @@ def calculate_final_drive_powers_in(
     return final_drive_powers_out / final_drive_efficiencies
 
 
-def calculate_final_drive_ratios(final_drive_ratio, gear_box_ratios):
+def calculate_final_drive_ratios(final_drive_ratio, gear_box_ratios=(1,)):
     """
     Defines final drive ratios for each gear [-].
 
@@ -207,7 +207,7 @@ def calculate_final_drive_ratios(final_drive_ratio, gear_box_ratios):
 
     :param gear_box_ratios:
         Gear box ratios [-].
-    :type gear_box_ratios: dict
+    :type gear_box_ratios: dict, optional
 
     :return:
         Final drive ratios [-].
@@ -239,6 +239,10 @@ def calculate_final_drive_ratio_vector(final_drive_ratios, gears):
     d.update(final_drive_ratios)
 
     return np.vectorize(d.get)(gears)
+
+
+def is_cvt(gear_box_type, *args):
+    return gear_box_type == 'cvt'
 
 
 def final_drive():
@@ -275,6 +279,13 @@ def final_drive():
         function=calculate_final_drive_ratios,
         inputs=['final_drive_ratio', 'velocity_speed_ratios'],
         outputs=['final_drive_ratios']
+    )
+
+    d.add_function(
+        function=dsp_utl.add_args(calculate_final_drive_ratios),
+        inputs=['gear_box_type', 'final_drive_ratio'],
+        outputs=['final_drive_ratios'],
+        input_domain=is_cvt
     )
 
     d.add_function(
