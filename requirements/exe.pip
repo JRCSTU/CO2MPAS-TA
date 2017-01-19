@@ -2,6 +2,8 @@
 
 ## C-backends (under Anaconda use `conda` to install them)
 #
+--process-dependency-links
+
 pandas
 numpy
 scipy
