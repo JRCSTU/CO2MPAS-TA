@@ -87,10 +87,8 @@ Vehicle general characteristics
         during the subsequent 1 minute.
 
     ``final_drive_ratio``
-        Any ratio to be multiplied with all `gear_box_ratios`.
-        If the final drive ratio is included in the gearbox ratios, set this input to 1.
-        If the car has two different final drive ratios, set this variable to 1 and provide
-        the total ratios in `gear_box_ratios` (each gearbox ratio multiplied by its final drive ratio).
+        Provide the ratio to be multiplied with all `gear_box_ratios`. If the car has two different final drive ratios,       
+        leave the final_drive_ratio cell blank and provide the appropriate final drive ratios in the gear_box_ratios tab
 
     ``tyre_code``
         Tyre code of the tyres used in the WLTP test (e.g., P195/55R16 85H\).
@@ -99,6 +97,10 @@ Vehicle general characteristics
         - nominal width of the tyre, in [mm];
         - ratio of height to width [%]; and
         - the load index (e.g., 195/55R16\).
+         In case that the front and rear wheels are equipped with tyres of different radius (tyres of different width do not
+         affect |co2mpas|), then the size of the tyres fitted in the powered axle should be declared as input to |co2mpas|.
+         For vehicles with different front and rear wheels tyres tested in 4x4 mode, then the size of the tyres from the wheels
+         where the OBD/CAN vehicle speed signal is measured should be declared as input to |co2mpas|.
 
     ``gear_box_type``
         Indicate the kind of gear box among automatic transmission, manual transmission, or
@@ -462,9 +464,7 @@ Generic terms
         The capability of |co2mpas| to duplicate the exact simulation results when running repeatedly
         *on the same* computer.
         This is guaranteed by using non-stohastic algorthms (or using always the same random-seed).
-        However, note that differences in the output of |co2mpas| between 2 identical runs
-        (same computer, same input file, same flags) may occur due to the rounding of decimals >= 12th position.
-
+        
     reproducibility
     replicability
         The capability of |co2mpas| to duplicate the exact same simulation results on **a different computer**.
@@ -520,7 +520,11 @@ Generic terms
     OEM
         Original Equipment Manufacturers, eg. a Vehicle manufacturer
 
+    Capped cycles
+        For vehicles that cannot follow the standard WLTP cycle (for example, because they have not enough power to reach the maximum speed) it is still possible to use the |co2mpas| tool to predict the NEDC |co2| emission. For these capped cycles, the WLTP cycle may last more than 1800 seconds and the WLTP subphases may vary in duration. Therefore there is a need to indicate the exact duration of each subphase. This can be done by filling in, the corresponding bag_phases vector in the input file which define the phases integration time [1,1,1,...,2,2,2,...,3,3,3,...,4,4,4]. Providing this input for WLTP cycles together with the other standard vectorial inputs such as speed,engine speed, etc. allows |co2mpas| to process a "modified" WLTP and get calibrated properly. The NEDC that is predictes corresponds to the respective NEDC velocity profile and gearshifting that applies to the capped cycle, which is provided in the appropriate tab. Note that, providing NEDC velocity and gear shifting profile is not allowed for normal vehicles.
 
+
+        
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
 .. |CO2| replace:: CO\ :sub:`2`
 .. |NOx| replace:: NO\ :sub:`x`\
