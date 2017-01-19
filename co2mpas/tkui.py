@@ -49,39 +49,30 @@ Layout::
 #    - http://www.iconsdb.com/red-icons/red-play-icons.html
 #    - https://material.io/icons/#
 
+from co2mpas import (__main__ as cmain, __version__,
+                     batch as cbatch,
+                     __updated__, __copyright__, __license__, __uri__)  # @UnusedImport
+from co2mpas.sampling import baseapp
+from co2mpas.utils import stds_redirected, parse_key_value_pair
 from collections import Counter, OrderedDict, namedtuple, ChainMap
 import datetime
-from idlelib.ToolTip import ToolTip
 import io
 import logging
 import os
-from pandalone import utils as putils
-from queue import Queue
-import random
 import re
 import sys
 from textwrap import dedent, indent
-from threading import Thread
 from tkinter import StringVar, ttk, filedialog
-import traceback
 from typing import Any, Union, Mapping, Text, Dict, Callable  # @UnusedImport
 import weakref
-import webbrowser
 
-from PIL import Image, ImageTk
-import docopt
 from toolz import dicttoolz as dtz
 import yaml
 
-from co2mpas import (__main__ as cmain, __version__,
-                     __updated__, __copyright__, __license__, __uri__)  # @UnusedImport
-from co2mpas import datasync
-import co2mpas.batch as cbatch
-from co2mpas.utils import stds_redirected, parse_key_value_pair
 import functools as fnt
 import os.path as osp
-import pkg_resources as pkg
 import tkinter as tk
+import traitlets as trt
 
 
 log = logging.getLogger('tkui')
@@ -313,6 +304,8 @@ def labelize_str(s):
 
 
 def open_file_with_os(fpath):
+    from pandalone import utils as putils
+
     if fpath.strip():
         log.info("Opening file %r...", fpath)
         try:
@@ -331,6 +324,7 @@ def attach_open_file_popup(widget, var):
 
 
 def open_url(url):
+    import webbrowser
     webbrowser.open_new(url)
 
 
@@ -397,6 +391,9 @@ _loaded_icons = weakref.WeakValueDictionary()
 
 
 def read_image(fpath):
+    from PIL import Image, ImageTk
+    import pkg_resources as pkg
+
     icon = _loaded_icons.get(fpath)
     if not icon:
         with pkg.resource_stream('co2mpas', fpath) as fd:  # @UndefinedVariable
@@ -506,6 +503,8 @@ def add_tooltip(widget, key, allow_misses=False, no_lookup=False):
     :param no_lookup:
         If true, uses the `key` as tooltip text.
     """
+    from idlelib.ToolTip import ToolTip
+
     if no_lookup:
         tooltip_text = key
     else:
@@ -873,6 +872,8 @@ class LogPanel(ttk.Labelframe):
         self.bind('<Destroy>', self._stop_intercepting_exceptions)
 
     def _setup_logging_components(self, formatter_specs, log_threshold):
+        from queue import Queue
+
         log_panel = self
         log_textarea = self._log_text
 
@@ -907,6 +908,8 @@ class LogPanel(ttk.Labelframe):
                             except Exception:
                                 ## Must not raise any errors, or
                                 #  infinite recursion here.
+                                import traceback
+
                                 print("Failed emitting log into UI: %s" %
                                       traceback.format_exc(), file=sys.stderr)
 
@@ -1446,6 +1449,8 @@ class SimulatePanel(ttk.Frame):
         self.update()
 
     def reconstruct_cmd_args_from_gui(self):
+        from pandalone import utils as putils
+
         cmd_kwds = OrderedDict()
 
         out_folder = self.out_folder_var.get()
@@ -1474,6 +1479,8 @@ class SimulatePanel(ttk.Frame):
         return inp_paths, out_folder, cmd_kwds
 
     def _do_run_job(self, is_ta):
+        from threading import Thread
+
         app = self.app
         job_name = "CO2MPAS-TA" if is_ta else "CO2MPAS"
 
@@ -1651,6 +1658,9 @@ and double-click on the result file to open it,
                         no_lookup=True)
 
         def ask_save_template_file():
+            from . import datasync
+            import docopt
+
             file = filedialog.asksaveasfilename(
                 parent=self,
                 title='Save Synchronization Template File',
@@ -1701,6 +1711,8 @@ and double-click on the result file to open it,
         widgets['out-file'] = frame
 
         def run_sync():
+            from . import datasync
+
             inp_file = self.inp_var.get()
             if not osp.isfile(inp_file):
                 raise ValueError('File %r does not exist!' % inp_file)
@@ -1757,6 +1769,8 @@ class TemplatesPanel(ttk.Frame):
         textarea.pack(fill=tk.BOTH, expand=1)
 
         def store_demos(folder):
+            import docopt
+
             opts = docopt.Dict()
             opts['--force'] = True
             opts['<output-folder>'] = folder
@@ -1767,6 +1781,8 @@ class TemplatesPanel(ttk.Frame):
         widgets['demo-files'] = frame
 
         def store_ipythons(folder):
+            import docopt
+
             opts = docopt.Dict()
             opts['--force'] = True
             opts['<output-folder>'] = folder
@@ -2178,6 +2194,8 @@ class TkUI(object):
                 if motd_ix is not None:
                     msg = MOTDs[motd_ix]
                 else:
+                    import random
+
                     msg = random.choice(MOTDs)
                 self.status('Tip: %s', msg, level='help')
 
