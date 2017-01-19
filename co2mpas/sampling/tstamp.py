@@ -448,6 +448,6 @@ if __name__ == '__main__':
 
     #TstampCmd(config=c).run('--text ')
     from . import dice
-    dice.run_cmd(baseapp.chain_cmds(
+    baseapp.run_cmd(baseapp.chain_cmds(
         [dice.MainCmd, TstampCmd],
         config=c))

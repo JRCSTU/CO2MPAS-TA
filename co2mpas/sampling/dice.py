@@ -159,32 +159,6 @@ def all_app_configurables() -> Tuple:
 ####################################
 
 
-def run_cmd(cmd: Cmd, argv: Sequence[Text]=None):
-    """
-    Executes a (possibly nested) command, and print its (possibly lazy) results to `stdout`.
-
-    Remember to have logging setup properly before invoking this.
-
-    :param cmd:
-        Use :func:`make_app()`, or :func:`chain_cmds()` if you want to prepare
-        a nested cmd instead.
-    :param argv:
-        If `None`, use :data:`sys.argv`; use ``[]`` to explicitely use no-args.
-    :return:
-        May yield, so check if a type:`GeneratorType`.
-    """
-    cmd.initialize(argv)
-    res = cmd.start()
-    if res is not None:
-        if isinstance(res, types.GeneratorType):
-            for i in res:
-                print(i)
-        elif isinstance(res, (tuple, list)):
-            print(os.linesep.join(res))
-        else:
-            print(res)
-
-
 def main(argv=None, log_level=None, **app_init_kwds):
     """
     :param argv:
@@ -196,7 +170,7 @@ def main(argv=None, log_level=None, **app_init_kwds):
     try:
         ##MainCmd.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!
         app = MainCmd.instance(**app_init_kwds)
-        run_cmd(app, argv)
+        baseapp.run_cmd(app, argv)
     except (CmdException, trt.TraitError) as ex:
         ## Suppress stack-trace for "expected" errors.
         log.debug('App exited due to: %s', ex, exc_info=1)
@@ -248,4 +222,4 @@ if __name__ == '__main__':
     #c = trtc.get_config()
     #c.Application.log_level=0
     #c.Spec.log_level='ERROR'
-    #run_cmd(chain_cmds([MainCmd, ProjectCmd, ProjectCmd.InitCmd], argv=['project_foo']))
+    #baseapp.run_cmd(chain_cmds([MainCmd, ProjectCmd, ProjectCmd.InitCmd], argv=['project_foo']))

@@ -1157,6 +1157,6 @@ if __name__ == '__main__':
     #argv = ''.split()
     #argv = '--debug'.split()
 
-    dice.run_cmd(baseapp.chain_cmds(
+    baseapp.run_cmd(baseapp.chain_cmds(
         [dice.MainCmd, ProjectCmd, ProjectCmd.ListCmd],
         config=c))  # argv=['project_foo']))

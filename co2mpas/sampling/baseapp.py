@@ -1014,3 +1014,29 @@ def chain_cmds(app_classes: Sequence[type(trtc.Application)],
 
     app_classes[0]._instance = app
     return root
+
+
+def run_cmd(cmd: Cmd, argv: Sequence[Text]=None):
+    """
+    Executes a (possibly nested) command, and print its (possibly lazy) results to `stdout`.
+
+    Remember to have logging setup properly before invoking this.
+
+    :param cmd:
+        Use :func:`make_app()`, or :func:`chain_cmds()` if you want to prepare
+        a nested cmd instead.
+    :param argv:
+        If `None`, use :data:`sys.argv`; use ``[]`` to explicitely use no-args.
+    :return:
+        May yield, so check if a type:`GeneratorType`.
+    """
+    cmd.initialize(argv)
+    res = cmd.start()
+    if res is not None:
+        if isinstance(res, types.GeneratorType):
+            for i in res:
+                print(i)
+        elif isinstance(res, (tuple, list)):
+            print(os.linesep.join(res))
+        else:
+            print(res)
