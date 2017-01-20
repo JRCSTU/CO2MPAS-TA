@@ -117,7 +117,7 @@ def define_tooltips():
         out_folder_entry: |-
             Select the folder to write the Output files using the button to the right.
             - CO2MPAS will save there results with the date and time appended in their filenames.
-            - If feld is not empty, double-click to open and inspect the specified folder.
+            - If the specified folder is not empty, double-click to open and inspect it.
         sel_out_folder_btn: |-
             Opens a Folder-dialog to select the Output Folder for the field to the left.
 
