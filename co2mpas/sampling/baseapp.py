@@ -620,11 +620,11 @@ class Cmd(trtc.Application, PeristentMixin):
 
         is_overwrite = osp.isfile(config_file)
         if is_overwrite and not force:
-            raise CmdException("Config-file %r already exists!\n  Specify `--force` to overwrite." %
-                               config_file)
+            raise CmdException("Config-file '%s' already exists!"
+                               "\n  Specify `--force` to overwrite." % config_file)
 
         op = 'Over-writting' if is_overwrite else 'Writting'
-        self.log.info('%s config-file %r...', op, config_file)
+        self.log.info("%s config-file '%s'...", op, config_file)
         pndlu.ensure_dir_exists(os.path.dirname(config_file), 0o700)
         config_text = self.generate_config_file()
         with io.open(config_file, mode='wt') as fp:
@@ -1014,6 +1014,8 @@ def run_cmd(cmd: Cmd, argv: Sequence[Text]=None):
     :return:
         May yield, so check if a type:`GeneratorType`.
     """
+    import types
+
     cmd.initialize(argv)
     res = cmd.start()
     if res is not None:

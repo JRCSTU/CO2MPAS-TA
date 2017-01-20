@@ -2267,9 +2267,7 @@ class TkUI(object):
 
 class Co2guiCmd(baseapp.Cmd):
     """
-    Run CO2MPAS to simulate & dice the results using a desktop GUI.
-
-    This is root command for co2mpas "dice"; use subcommands or preferably GUI to accomplish sampling.
+    Run CO2MPAS GUI to simulate and (optionally) dice the results.
 
     TIP:
       If you bump into blocking errors, please use the `co2dice project backup` command and
@@ -2313,6 +2311,6 @@ if __name__ == '__main__':
         __package__ = "co2mpas"  # @ReservedAssignment
 
     if sys.version_info < (3, 5):
-        sys.exit("Sorry, Python >= 3.5 is required,"
-                 " but found: {}".format(sys.version_info))
+        sys.exit("Sorry, Python >= 3.5 is required, but found: {}"
+                 .format(sys.version_info))
     main()
