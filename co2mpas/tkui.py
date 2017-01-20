@@ -163,7 +163,7 @@ def define_tooltips():
                 @=: PYTHON expression
                  =: STRING
             - Example:
-                flag.engineering?=on  flag.plot_workflow?=yes  inputs.final_drive_ratio*=4.35
+                flag.engineering_mode?=on  flag.plot_workflow?=yes  inputs.final_drive_ratio*=4.35
 
         engineering_mode: |-
             the model uses all the available input data (not only the declaration inputs),
