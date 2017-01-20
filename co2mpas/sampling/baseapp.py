@@ -822,8 +822,10 @@ class Cmd(trtc.Application, PeristentMixin):
                 for clsname, traits in config.items():
                     cls = config_classes.get(clsname)
                     if not cls:
-                        self.log.warn("Unknown class `%s` in *%s* file-configs while ecrypting values.",
-                                      clsname, config_source)
+                        if not break_on_irregularities:  # Only scream when full check.
+                            self.log.warn(
+                                "Unknown class `%s` in *%s* file-configs while ecrypting values.",
+                                clsname, config_source)
                         continue
 
                     for tname, tvalue in traits.items():
@@ -946,7 +948,7 @@ class Cmd(trtc.Application, PeristentMixin):
             cmd_line = ' '.join(cl.name
                                 for cl in reversed(self.my_cmd_chain()))
             raise CmdException("Specify one of the sub-commands: "
-                               "\n    %s\nor type: \n    %s -h"
+                               "\n    %s\nor type: \n    %s --help"
                                % (', '.join(self.subcommands.keys()), cmd_line))
         assert False, "Override run() method in cmd subclasses."
 
