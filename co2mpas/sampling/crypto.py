@@ -236,18 +236,18 @@ class Cipher(trt.TraitType):
     def decrypted(self, obj: trt.HasTraits):
         """
         Decrypts a cipher trait of some instance.
-        
+
         :param obj:
             The instance holding the trait-values.
         :return:
             The unencrypted object, or None if trait-value was None.
 
-        .. Tip:: 
+        .. Tip::
             Invoke it on the class, not on the trait: ``ObjClass.ctrait.decrypt(obj)``.
         """
         assert isinstance(obj, trt.HasTraits), "%r not a HasTraits!" % obj
 
-        value = self.get(obj)
+        value = self.get(obj, type(obj))
         if value is not None:
             cls_name = type(obj).__name__
             pswdid = '%s.%s' % (cls_name, self.name)
