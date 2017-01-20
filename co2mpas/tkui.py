@@ -139,7 +139,7 @@ def define_tooltips():
             Launches the CO2MPAS BATCH command.
             - Populate the "Inputs" list with (at least one) files & folders;
             - Compatible with all flags and options (including ENGINEERING/DECLARATION mode);
-            - The output-folder cannot be empty.
+            - Make sure the indicated output-folder exists.
         run_ta_btn: |-
             Runs the CO2MPAS TA command for a single file in DECLARATION mode.
             - Incompatible with any other flags and options;
