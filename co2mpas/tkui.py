@@ -141,9 +141,9 @@ def define_tooltips():
             - Compatible with all flags and options (including ENGINEERING/DECLARATION mode);
             - Make sure the indicated output-folder exists.
         run_ta_btn: |-
-            Runs the CO2MPAS TA command for a single file in DECLARATION mode.
+            Runs the CO2MPAS TA command in DECLARATION mode.
             - Incompatible with any other flags and options;
-            - The output-folder cannot be empty;
+            - Make sure the indicated output-folder exists.
         open_dice_btn: |-
             Switches to the `Dice` tab and imports all output files generated
             during the most recent `Run TA` command.
