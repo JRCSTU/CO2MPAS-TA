@@ -341,6 +341,7 @@ class TPTraits(TBase):
 
         c = MyCmd()
         self.check_persistent_config_file(pfile, 'MyCmd', 'ptrait', False)
+        c.persist_path = pfile
         c.initialize([])
         self.check_persistent_config_file(pfile, 'MyCmd', 'ptrait', False)
 
