@@ -449,7 +449,7 @@ def _cmd_gui(opts):
     from co2mpas import tkui
     log.warning("`co2mpas gui` cmd has been Deprecated, and will be removed  in from the next release!"
                 "\n  Please use the decicated `co2gui` command.")
-    tkui.main()
+    tkui.main([])
 
 
 def _main(*args):
