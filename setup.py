@@ -188,15 +188,12 @@ setup(
         'schedula'
     ],
     dependency_links=[
-        'https://github.com/vinci1it2000/schedula/tarball/master#egg=schedula-0.0.1',
         'https://github.com/ankostis/traitlets/tarball/dev#egg=traitlets-5.0.0ank',
     ],
     extras_require={
         'dice': [
             'python-gnupg',
             'gitpython >= 2.1.0', ## Win+Cygwin support
-            'keyring',
-            'pycryptodome',
             'transitions',
             'traitlets',
         ],
