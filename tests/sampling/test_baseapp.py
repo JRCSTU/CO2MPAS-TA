@@ -466,10 +466,14 @@ class TCipherTraits(TBase):
         self.assertNotEqual(cipher0, cipher1)
         self.assertEqual(cipher1, c._trait_values['ctrait'])
 
+        self.assertEqual(MyCmd.ctrait.decrypted(c), plainval)
+
         c.ctrait = plainval
         cipher2 = c.ctrait      # 2nd runtime encryption
         self.assertTrue(crypto.is_pgp_encrypted(cipher2))
         self.assertNotEqual(cipher1, cipher2)  # Due to encryption nonse.
+
+        self.assertEqual(MyCmd.ctrait.decrypted(c), plainval)
 
         j = self.check_persistent_config_file(pfile)
         c.store_pconfig(pfile)

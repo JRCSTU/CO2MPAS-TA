@@ -66,7 +66,7 @@ class GnuPGSpec(baseapp.Spec):
         self._GPG = None
 
     @property
-    def GPG(self):
+    def GPG(self) -> 'gnupg.GPG':
         import gnupg
         GPG = getattr(self, '_GPG', None)
         if not GPG:
@@ -99,7 +99,7 @@ class VaultSpec(trtc.SingletonConfigurable, GnuPGSpec):
         if there are encrypted configuration params."""
     ).tag(config=True)
 
-    def _guess_master_key(self):
+    def _guess_master_key(self) -> Text:
         master_key = self.master_key
         if not master_key:
             GPG = self.GPG
@@ -120,6 +120,8 @@ class VaultSpec(trtc.SingletonConfigurable, GnuPGSpec):
 
         :param pswdid:
             Used to identify the encrypted item when reporting problems.
+        :return:
+            PGP-armored text
 
         .. Tip::
             Discard `pswd` immediately after encryption,
@@ -147,6 +149,8 @@ class VaultSpec(trtc.SingletonConfigurable, GnuPGSpec):
 
         :param pswdid:
             Used to identify the encrypted item when reporting problems.
+        :return:
+            The original object unencrypted.
         :raise ValueError:
             when decryption fail
 
@@ -227,4 +231,30 @@ class Cipher(trt.TraitType):
                 vault.log.debug("Auto-encrypting cipher-trait(%r)...", pswdid)
                 value = vault.encryptobj(pswdid, value)
 
+        return value
+
+    def decrypted(self, obj: trt.HasTraits):
+        """
+        Decrypts a cipher trait of some instance.
+        
+        :param obj:
+            The instance holding the trait-values.
+        :return:
+            The unencrypted object, or None if trait-value was None.
+
+        .. Tip:: 
+            Invoke it on the class, not on the trait: ``ObjClass.ctrait.decrypt(obj)``.
+        """
+        assert isinstance(obj, trt.HasTraits), "%r not a HasTraits!" % obj
+
+        value = self.get(obj)
+        if value is not None:
+            cls_name = type(obj).__name__
+            pswdid = '%s.%s' % (cls_name, self.name)
+            if not is_pgp_encrypted(value):
+                self.log.warning("Found non-encrypted param %r!", pswdid)
+            else:
+                vault = get_vault(obj.config)
+                vault.log.debug("Decrypting cipher-trait(%r)...", pswdid)
+                value = vault.decryptobj(pswdid, value)
         return value

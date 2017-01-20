@@ -157,3 +157,6 @@ class TVaultSpec(unittest.TestCase):
         finally:
             vault.GPG.delete_keys(fingerprint, secret=0)
 
+
+class TCipherTrait(unittest.TestCase):
+    """See :class:`tests.sampling.test_baseapp`."""
