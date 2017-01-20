@@ -77,18 +77,19 @@ Vehicle general characteristics
 
     ``engine_idle_fuel_consumption``
         Provide the fuel consumption of the vehicle in warm conditions during idling. The idling fuel consumption
-        of the vehicle,      expressed in grams of fuel per second [gFuel/sec] should be measured when:
+        of the vehicle, expressed in grams of fuel per second [gFuel/sec] should be measured when:
         * velocity of the vehicle is 0
         * the start-stop system is disengaged
         * the battery state of charge is at balance conditions.
-         For CO2MPAS purposes, the engine idle fuel consumption can be measured as follows: Just after a WLTP physical test,
-         when the engine is still warm, leave the car to idle for 3 minutes so that it stabilizes. Then make a constant measurement
-         of fuel consumption for 2 minutes. Disregard the first minute, then calculate idle fuel consumption as the average fuel
-         consumption of the vehicle during the subsequent 1 minute.
+         For |co2mpas| purposes, the engine idle fuel consumption can be measured as follows: just after a WLTP physical test,
+         when the engine is still warm, leave the car to idle for 3 minutes so that it stabilizes. Then make a constant
+         measurement of fuel consumption for 2 minutes. Disregard the first minute, then calculate idle fuel consumption as the
+         average fuel consumption of the vehicle during the subsequent 1 minute.
 
     ``final_drive_ratio``
-        Provide the ratio to be multiplied with all `gear_box_ratios`. If the car has two different final drive ratios,       
-        leave the final_drive_ratio cell blank and provide the appropriate final drive ratios in the gear_box_ratios tab
+        Provide the ratio to be multiplied with all `gear_box_ratios`. If the car has more than 1 final drive ratio,       
+        set the final_drive_ratio cell to 1 and provide the appropriate final drive ratio for each gear in the gear_box_ratios
+        tab
 
     ``tyre_code``
         Tyre code of the tyres used in the WLTP test (e.g., P195/55R16 85H\).
@@ -206,34 +207,34 @@ Targets
 -------
 .. glossary::
     ``co2_emissions_low.WLTP-H``
-        Phase low, |CO2| emissions bag values [gCO2/km], not corrected for RCB, not rounded WLTP-H test measurements.
+        Phase low, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-H test measurements.
 
     ``co2_emissions_medium.WLTP-H``
-        Phase medium, |CO2| emissions bag values [gCO2/km], not corrected for RCB, not rounded WLTP-H test measurements.
+        Phase medium, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-H test measurements.
 
     ``co2_emissions_high.WLTP-H``
-        Phase high, |CO2| emissions bag values [gCO2/km], not corrected for RCB, not rounded WLTP-H test measurements.
+        Phase high, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-H test measurements.
 
     ``co2_emissions_extra_high.WLTP-H``
-        Phase extra high, |CO2| emissions bag values [gCO2/km], not corrected for RCB, not rounded WLTP-H test measurements.
+        Phase extra high, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-H test measurements.
 
     ``co2_emissions_low.WLTP-L``
-        Phase low, |CO2| emissions bag values [gCO2/km], not corrected for RCB, not rounded WLTP-L test measurements.
+        Phase low, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-L test measurements.
 
     ``co2_emissions_medium.WLTP-L``
-        Phase medium, |CO2| emissions bag values [gCO2/km], not corrected for RCB, not rounded WLTP-L test measurements.
+        Phase medium, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-L test measurements.
 
     ``co2_emissions_high.WLTP-L``
-        Phase high, |CO2| emissions bag values [gCO2/km], not corrected for RCB, not rounded WLTP-L test measurements.
+        Phase high, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-L test measurements.
 
     ``co2_emissions_extra_high.WLTP-L``
-        Phase extra high, |CO2| emissions bag values [gCO2/km], not corrected for RCB, not rounded WLTP-L test measurements.
+        Phase extra high, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-L test measurements.
 
     ``target declared_co2_emission_value.NEDC-H``
-        Declared value for NEDC vehicle H [gCO2/km]. Value should be Ki factor corrected.
+        Declared value for NEDC vehicle H [g|CO2|/km]. Value should be Ki factor corrected.
 
     ``target declared_co2_emission_value.NEDC-L``
-        Declared value for NEDC vehicle L [gCO2/km]. Value should be Ki factor corrected.
+        Declared value for NEDC vehicle L [g|CO2|/km]. Value should be Ki factor corrected.
 
     ``ta_certificate_number``
         Type approving body certificate number. This number is printed in the output file of |co2mpas|
@@ -311,7 +312,7 @@ If no input is provided, the |co2mpas| model will use the default value.
     ``ki_factor``
         For vehicles without `has_periodically_regenerating_systems` ``ki_factor`` is set to 1.
         For vehicles with periodically regenerating systems, if not provided,
-        this value is set to 1.05.
+        this value is set to 1.05. The ``ki_factor`` to be used for |co2mpas| is the same value used for NEDC physical tests.
 
     VVA
     Variable Valve Actuation
@@ -522,8 +523,12 @@ Generic terms
 
     Capped cycles
         For vehicles that cannot follow the standard WLTP cycle (for example, because they have not enough power to reach the maximum speed) it is still possible to use the |co2mpas| tool to predict the NEDC |co2| emission. For these capped cycles, the WLTP cycle may last more than 1800 seconds and the WLTP subphases may vary in duration. Therefore there is a need to indicate the exact duration of each subphase. This can be done by filling in, the corresponding bag_phases vector in the input file which define the phases integration time [1,1,1,...,2,2,2,...,3,3,3,...,4,4,4]. Providing this input for WLTP cycles together with the other standard vectorial inputs such as speed,engine speed, etc. allows |co2mpas| to process a "modified" WLTP and get calibrated properly. The NEDC that is predictes corresponds to the respective NEDC velocity profile and gearshifting that applies to the capped cycle, which is provided in the appropriate tab. Note that, providing NEDC velocity and gear shifting profile is not allowed for normal vehicles.
-
-
+        
+    Rotational mass
+        The rotational mass is defined in the WLTP GTR (ECE/TRANS/WP.29/GRPE/2016/3) as the equivalent effective mass of all
+the  wheels and vehicle components rotating with the wheels on the road while the gearbox is placed in neutral, in kg. It shall
+be measured or calculated using an appropriate technique agreed upon by the responsible authority. Alternatively, it may be 
+estimated to be 3 per cent of the sum of the mass in running order and 25 kg.
         
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
 .. |CO2| replace:: CO\ :sub:`2`

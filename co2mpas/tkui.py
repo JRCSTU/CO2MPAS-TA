@@ -111,7 +111,7 @@ def define_tooltips():
             Opens a Folder-dialog to select a Folder with CO2MPAS Input files,
             to be added into the Inputs-list to the left.
         del_inp_btn: |-
-            Deletes selected items from the list o Input files & folders to the left.
+            Deletes selected items from the list of Input files & folders of the left.
             - Pressing [Delete] key on selected items also removes them from the list.
 
         out_folder_entry: |-
