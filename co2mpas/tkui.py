@@ -145,7 +145,7 @@ def define_tooltips():
             - Incompatible with any other flags and options;
             - The output-folder cannot be empty;
         open_dice_btn: |-
-            Switches to the `Dice` taband imports all output files generated
+            Switches to the `Dice` tab and imports all output files generated
             during the most recent `Run TA` command.
             - Enabled only when output files have been generated.
             - You can still switch to `Dice` tab and select manually
