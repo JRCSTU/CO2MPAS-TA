@@ -207,34 +207,34 @@ Targets
 -------
 .. glossary::
     ``co2_emissions_low.WLTP-H``
-        Phase low, |CO2| emissions bag values [gCO2/km], not corrected for RCB, not rounded WLTP-H test measurements.
+        Phase low, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-H test measurements.
 
     ``co2_emissions_medium.WLTP-H``
-        Phase medium, |CO2| emissions bag values [gCO2/km], not corrected for RCB, not rounded WLTP-H test measurements.
+        Phase medium, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-H test measurements.
 
     ``co2_emissions_high.WLTP-H``
-        Phase high, |CO2| emissions bag values [gCO2/km], not corrected for RCB, not rounded WLTP-H test measurements.
+        Phase high, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-H test measurements.
 
     ``co2_emissions_extra_high.WLTP-H``
-        Phase extra high, |CO2| emissions bag values [gCO2/km], not corrected for RCB, not rounded WLTP-H test measurements.
+        Phase extra high, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-H test measurements.
 
     ``co2_emissions_low.WLTP-L``
-        Phase low, |CO2| emissions bag values [gCO2/km], not corrected for RCB, not rounded WLTP-L test measurements.
+        Phase low, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-L test measurements.
 
     ``co2_emissions_medium.WLTP-L``
-        Phase medium, |CO2| emissions bag values [gCO2/km], not corrected for RCB, not rounded WLTP-L test measurements.
+        Phase medium, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-L test measurements.
 
     ``co2_emissions_high.WLTP-L``
-        Phase high, |CO2| emissions bag values [gCO2/km], not corrected for RCB, not rounded WLTP-L test measurements.
+        Phase high, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-L test measurements.
 
     ``co2_emissions_extra_high.WLTP-L``
-        Phase extra high, |CO2| emissions bag values [gCO2/km], not corrected for RCB, not rounded WLTP-L test measurements.
+        Phase extra high, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-L test measurements.
 
     ``target declared_co2_emission_value.NEDC-H``
-        Declared value for NEDC vehicle H [gCO2/km]. Value should be Ki factor corrected.
+        Declared value for NEDC vehicle H [g|CO2|/km]. Value should be Ki factor corrected.
 
     ``target declared_co2_emission_value.NEDC-L``
-        Declared value for NEDC vehicle L [gCO2/km]. Value should be Ki factor corrected.
+        Declared value for NEDC vehicle L [g|CO2|/km]. Value should be Ki factor corrected.
 
     ``ta_certificate_number``
         Type approving body certificate number. This number is printed in the output file of |co2mpas|
