@@ -88,11 +88,6 @@ def is_pgp_encrypted(obj) -> bool:
     return bool(isinstance(obj, str) and _pgp_regex.match(obj))
 
 
-def get_vault(config):
-    """Use this to get hold of the *vault* singletton."""
-    return VaultSpec.instance(config=config)
-
-
 class VaultSpec(trtc.SingletonConfigurable, GnuPGSpec):
     """A store of 3rdp passwords and othe secret objects in textual format."""
 
@@ -213,6 +208,11 @@ class VaultSpec(trtc.SingletonConfigurable, GnuPGSpec):
 #                p = self._open_subprocess(args)
 #                self._collect_output(p, result, stdin=p.stdin)
 #                return result
+
+
+def get_vault(config) -> VaultSpec:
+    """Use this to get hold of the *vault* singletton."""
+    return VaultSpec.instance(config=config)
 
 
 class Cipher(trt.TraitType):

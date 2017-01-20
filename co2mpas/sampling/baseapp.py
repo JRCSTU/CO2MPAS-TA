@@ -832,6 +832,8 @@ class Cmd(trtc.Application, PeristentMixin):
         vault = None  # lazily created
 
         def scan_config(config_classes, break_on_irregularities):
+            nonlocal vault, ntraits_encrypted
+
             for config, encrypt_plain, config_source in zip(configs,
                                                             (False, True),
                                                             ('static', 'persist')):
