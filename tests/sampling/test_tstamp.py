@@ -9,11 +9,7 @@
 from co2mpas.__main__ import init_logging
 from co2mpas.sampling import tstamp
 import logging
-from traitlets.config import get_config
-import types
 import unittest
-
-import ddt
 
 import os.path as osp
 

@@ -1070,8 +1070,7 @@ class ProjectCmd(_PrjCmd):
 
             self.log.info('Sending Timestamp ...')
             sender = tstamp.TstampSender(config=self.config)
-            login_cb = tstamp.ConsoleLoginCb(config=self.config)
-            sender.send_timestamped_email(rep_msg, login_cb)
+            sender.send_timestamped_email(rep_msg)
 
     class ExamineCmd(_PrjCmd):
         """

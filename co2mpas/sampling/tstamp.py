@@ -12,7 +12,6 @@
 
 from collections import (
     defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
-from email.mime.text import MIMEText
 import getpass
 import imaplib
 import io
@@ -27,56 +26,16 @@ from typing import (
 import traitlets as trt
 import traitlets.config as trtc
 
-from . import baseapp, dice, project, CmdException
+from . import CmdException, baseapp, dice, crypto, project
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
-
-
-MAX_AUTH_ATTEMPTS = 5
-
-
-class LoginCb(baseapp.Spec):
-    """Reads os-user & password from env-var based on `prompt`, used by :meth:`TStampSpec._log_into_server()`."""
-
-    def __init__(self, *args, user: Text=None, **kwds):
-        super().__init__(*args, **kwds)
-
-    def convert_prompt_to_env_var(self, prompt: Text):
-        return re.sub('\W+', '_', prompt.strip()).upper()
-
-    def ask_user_pswd(self, prompt: Text):
-        var_name = self.convert_prompt_to_env_var(prompt)
-        pswd = os.environ.get(var_name)
-        self.log.debug('Found password in env-var %r? %s', var_name, bool(pswd))
-        if pswd is not None:
-            return self.user_email, pswd
-
-    def report_failure(self, err):
-        self.log.error('%s', err)
-
-
-class ConsoleLoginCb(LoginCb):
-    """Reads password from environment or from console (if tty)."""
-
-    def ask_user_pswd(self, prompt):
-        user = self.user_email
-        creds = super().ask_user_pswd(prompt)
-        if creds:
-            user, pswd = creds
-
-            return user, pswd
-
-        elif os.isatty(sys.stdin.fileno()):
-            try:
-                pswd = getpass.getpass('%s? ' % prompt)
-
-                return user, pswd
-
-            except KeyboardInterrupt:
-                pass
 
 
 class TStampSpec(dice.DiceSpec):
     """Common parameters and methods for both SMTP(sending emails) & IMAP(receiving emails)."""
+
+    user_pswd = crypto.Cipher(None,
+        help="""The SMTP/IMAP server's password matching `user_name` param."""
+    ).tag(config=True)
 
     host = trt.Unicode(
         '',
@@ -103,40 +62,6 @@ class TStampSpec(dice.DiceSpec):
             `local_hostname` and `source_address`.
         """
     ).tag(config=True)
-
-    login_cb = trt.Instance(ConsoleLoginCb, (), {},
-                            help="If none, replaced by a new :class:`ConsoleLoginCb` instance.")
-
-    def _log_into_server(self, login_cmd, prompt, login_cb=None):
-        """
-        Connects a credential-source(`login_cb`) to a consumer(`login_cmd`).
-
-        :param login_cmd:
-            A function like::
-
-        :param login_cb:
-            An object with 2 methods::
-
-                ask_user_pswd(prompt) --> (user, pswd)  ## or `None` to abort.
-                report_failure(obj)
-
-                    login_cmd(user, pswd) --> xyz  ## `xyz` might be the server.
-
-            If none, an instance of :class:`ConsoleLoginCb` is used.
-        """
-        if not login_cb:
-            login_cb = self.login_cb
-
-        for i, login_data in enumerate(iter(lambda: login_cb.ask_user_pswd(prompt), None)):
-            if i > MAX_AUTH_ATTEMPTS:
-                raise CmdException("Too many failed attempts into %r!" % prompt)
-            user, pswd = login_data
-            try:
-                return login_cmd(user, pswd)
-            except Exception as ex:
-                login_cb.report_failure('%r' % ex)
-        else:
-            raise CmdException("User abort logging into %r." % prompt)
 
 
 class TstampSender(TStampSpec):
@@ -180,6 +105,8 @@ class TstampSender(TStampSpec):
         return msg
 
     def _prepare_mail(self, msg):
+        from email.mime.text import MIMEText
+
         mail = MIMEText(msg, 'plain')
         mail['Subject'] = self.subject
         mail['From'] = self.from_address
@@ -187,7 +114,7 @@ class TstampSender(TStampSpec):
 
         return mail
 
-    def send_timestamped_email(self, msg, login_cb=None):
+    def send_timestamped_email(self, msg):
         msg = self._sign_msg_mody(msg)
 
         msg = self._append_x_recipients(msg)
@@ -205,10 +132,10 @@ class TstampSender(TStampSpec):
                       self.x_recipients)
         mail = self._prepare_mail(msg)
 
-        prompt = 'SMTP pswd for %s' % host
         with (smtplib.SMTP_SSL(host, **srv_kwds)
               if self.ssl else smtplib.SMTP(host, **srv_kwds)) as srv:
-            self._log_into_server(srv.login, prompt, login_cb)
+            TstampSender.user_pswd.decrypted(self)
+            srv.login(self.user_name, self.user_pswd)
 
             srv.send_message(mail)
         return mail
@@ -280,24 +207,16 @@ class TstampReceiver(TStampSpec):
     def receive_timestamped_email(self, host, login_cb, ssl=False, **srv_kwds):
         prompt = 'IMAP(%r)' % host
 
-        def login_cmd(user, pswd):
-            srv = (imaplib.IMAP4_SSL(host, **srv_kwds)
-                   if ssl else imaplib.IMAP4(host, **srv_kwds))
-            repl = srv.login(user, pswd)
+        with (imaplib.IMAP4_SSL(host, **srv_kwds)
+              if ssl else imaplib.IMAP4(host, **srv_kwds)) as srv:
+            repl = srv.login(self.user_name, self.user_pswd)
             """GMAIL-2FAuth: imaplib.error: b'[ALERT] Application-specific password required:
             https://support.google.com/accounts/answer/185833 (Failure)'"""
             self.log.debug("Sent %s-user/pswd, server replied: %s", prompt, repl)
-            return srv
 
-        srv = self._log_into_server(login_cmd, prompt, login_cb)
-        try:
             resp = srv.list()
             print(resp[0])
-            return [srv.retr(i + 1) for i, msg_id in zip(range(10), resp[1])]
-        finally:
-            resp = srv.logout()
-            if resp:
-                self.log.warning('While closing %s srv responded: %s', prompt, resp)
+            return [srv.retr(i + 1) for i, msg_id in zip(range(10), resp[1])]  # @UnusedVariable
 
 
 ###################
@@ -388,9 +307,7 @@ class TstampCmd(baseapp.Cmd):
                 self.log.info('Time-stamping files %r...', file)
                 with io.open(file, 'rt') as fin:
                     mail_text = fin.read()
-            sender = self.sender
-            login_cb = ConsoleLoginCb(config=self.config)
-            sender.send_timestamped_email(mail_text, login_cb)
+            self.sender.send_timestamped_email(mail_text)
 
     class ParseCmd(_Subcmd):
         """

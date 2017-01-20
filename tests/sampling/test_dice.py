@@ -41,23 +41,6 @@ mydir = osp.dirname(__file__)
 #         ssl: true
 # """
 #
-# # b=lambda: (input('User? '), getpass('Paswd? '))
-# class LoginCb(object):
-#     max_smtp_login_attempts = 3
-#
-#
-#     def ask_user_pswd(self, mail_server):
-#         self.max_smtp_login_attempts -= 1
-#         if self.max_smtp_login_attempts > 0:
-#             return 'konstantinos.anagnostopoulos', 'zhseme1T'
-#
-#     def report_failure(self, errmsg):
-#         print(errmsg)
-#
-# # with open(fpath) as fp:
-# #     # Create a text/plain message
-# #     msg = MIMEText(fp.read())
-
 _signed_msg = """
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA256
@@ -201,17 +184,6 @@ KTv1GRz3C2ofyMwqx4TGueTHr8ANtNm7ByUEVLzmCq3Aod6r5CGXUg==
 #
 # @ddt.ddt
 # class TDice(unittest.TestCase):
-#
-#     @unittest.skip('FFF')
-#     def test_send_email(self):
-#         cfg = _make_test_cfg()
-#         email = dice.send_timestamped_email(msg, login_cb=LoginCb(), **cfg['mail_server'])
-#         log.info(email)
-#
-#     @unittest.skip('FFF')
-#     def test_receive_emails(self):
-#         emails = dice.receive_timestamped_email(mail_server, LoginCb(), ssl=True)
-#         log.info(emails)
 #
 #    def _has_repeatitive_prefix(self, word, limit, char=None):
 #        c = word[0]
