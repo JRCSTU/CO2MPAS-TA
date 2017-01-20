@@ -266,24 +266,6 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin):
             Overwrite config-file, even if it already exists.
         """).tag(config=True)
 
-    user_name = trt.Unicode(
-        '<Name Surname>',
-        help="""The Name & Surname of the default user invoking the app.  Must not be empty!"""
-    ).tag(config=True)
-
-    user_email = trt.Unicode(
-        '<email-address>',
-        help="""The email address of the default user invoking the app. Must not be empty!"""
-    ).tag(config=True)
-
-    @trt.validate('user_name', 'user_email')
-    def _valid_user(self, proposal):
-        value = proposal['value']
-        if not value:
-            raise trt.TraitError('%s.%s must not be empty!'
-                                 % (proposal['owner'].name, proposal['trait'].name))
-        return value
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.observe_ptraits()

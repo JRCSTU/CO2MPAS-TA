@@ -27,7 +27,7 @@ from typing import (
 import traitlets as trt
 import traitlets.config as trtc
 
-from . import baseapp, project, CmdException
+from . import baseapp, dice, project, CmdException
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 
 
@@ -75,7 +75,7 @@ class ConsoleLoginCb(LoginCb):
                 pass
 
 
-class TStampSpec(baseapp.Spec):
+class TStampSpec(dice.DiceSpec):
     """Common parameters and methods for both SMTP(sending emails) & IMAP(receiving emails)."""
 
     host = trt.Unicode(

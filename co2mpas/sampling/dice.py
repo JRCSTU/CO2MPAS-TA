@@ -84,6 +84,29 @@ def _parse_list_response(line):
     return (flags, delimiter, mailbox_name)
 
 
+class DiceSpec(baseapp.Spec):
+    """Common parameters dice functionality."""
+
+    user_name = trt.Unicode(
+        '<Name Surname>',
+        help="""The Name & Surname of the default user invoking the app.  Must not be empty!"""
+    ).tag(config=True)
+
+    user_email = trt.Unicode(
+        '<email-address>',
+        help="""The email address of the default user invoking the app. Must not be empty!"""
+    ).tag(config=True)
+
+    @trt.validate('user_name', 'user_email')
+    def _valid_user(self, proposal):
+        value = proposal['value']
+        if not value:
+            raise trt.TraitError('%s.%s must not be empty!'
+                                 % (proposal['owner'].name, proposal['trait'].name))
+        return value
+
+
+
 ###################
 ##    Commands   ##
 ###################

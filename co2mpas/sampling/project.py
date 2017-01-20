@@ -103,7 +103,7 @@ def _evarg(event, dname, dtype=None):
     return data
 
 
-class Project(transitions.Machine, baseapp.Spec):
+class Project(transitions.Machine, dice.DiceSpec):
     """The Finite State Machine for the currently checked-out project."""
 
     @classmethod
@@ -214,6 +214,7 @@ class Project(transitions.Machine, baseapp.Spec):
             ## TODO: MERGE `tagged` state with `wltp_iof`??
             ['do_sendmail', 'tagged', 'mailed'],
 
+            ## TODO: RENAME do_mailrecv-->do_parsemail??
             ['do_mailrecv', 'mailed', 'dice_yes', '_cond_is_dice_yes'],
             ['do_mailrecv', 'mailed', 'dice_no'],
 
@@ -456,6 +457,7 @@ class Project(transitions.Machine, baseapp.Spec):
         """
         self.log.info('TODO: Receiving email: %s...', event.kwargs)
         mail = _evarg(event, 'mail')
+        ## TODO: Parse response email!
         import random
         is_dice = random.random() > 0.5
 
@@ -552,19 +554,19 @@ class ProjectsDB(trtc.SingletonConfigurable, baseapp.Spec):
         return self.__repo
 
     def _write_repo_configs(self):
+        gconfigs = [
+            ('core.filemode', False),
+            ('core.ignorecase', False),
+            ('user.email', self.user_email),
+            ('user.name', self.user_name),
+            ('gc.auto', 0),                 # To salvage user-mistakes.
+            ('alias.lg',                    # Famous alias for inspecting history.
+                r"log --graph --abbrev-commit --decorate --date=relative "
+                r"--format=format:'%C(bold blue)%h%C(reset) "
+                r"- %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- "
+                r"%an%C(reset)%C(bold yellow)%d%C(reset)' --all"),
+        ]
         with self.repo.config_writer() as cw:
-            gconfigs = [
-                ('core.filemode', False),
-                ('core.ignorecase', False),
-                ('user.email', self.user_email),
-                ('user.name', self.user_name),
-                ('gc.auto', 0),                 # To salvage user-mistakes.
-                ('alias.lg',                    # Famous alias for inspecting history.
-                    r"log --graph --abbrev-commit --decorate --date=relative "
-                    r"--format=format:'%C(bold blue)%h%C(reset) "
-                    r"- %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- "
-                    r"%an%C(reset)%C(bold yellow)%d%C(reset)' --all"),
-            ]
             for key, val in gconfigs:
                 sec, prop = key.split('.')
                 cw.set_value(sec, prop, val)
@@ -1141,9 +1143,9 @@ class ProjectCmd(_PrjCmd):
             super().__init__(**dkwds)
 
 all_subcmds = (ProjectCmd.ListCmd, ProjectCmd.CurrentCmd, ProjectCmd.OpenCmd, ProjectCmd.InitCmd,
-                   ProjectCmd.AddFileCmd, ProjectCmd.TagReportCmd,
-                   ProjectCmd.TstampCmd,
-                   ProjectCmd.ExamineCmd, ProjectCmd.BackupCmd)
+               ProjectCmd.AddFileCmd, ProjectCmd.TagReportCmd,
+               ProjectCmd.TstampCmd,
+               ProjectCmd.ExamineCmd, ProjectCmd.BackupCmd)
 
 if __name__ == '__main__':
     from traitlets.config import get_config
