@@ -71,24 +71,22 @@ class ConfigCmd(baseapp.Cmd):
 
     class ShowCmd(baseapp.Cmd):
         """
-        Print configurations (defaults | ondisk | TODO:merged) before any validations.
+        Print configurations (defaults | files | merged) before any validations.
 
         - Use --verbose to view config-params on all intermediate classes.
         - Similarly, you may also add `--Cmd.print_config=True` global option
           on any command to view more targeted results.
         """
 
-        onfiles = trt.Bool(
-            False,
-            help="""Show only configuration parameters stored on disk files."""
+        source = trt.CaselessStrEnum(
+            'merged default files'.split(), default_value='merged', allow_none=False,
+            help="""Show configuration parameters in code, stored on disk files, or merged."""
         ).tag(config=True)
 
         def __init__(self, **kwds):
-                kwds.setdefault('cmd_flags', {
-                    'onfiles': ({
-                        'ShowCmd': {'onfiles': True}},
-                        pndlu.first_line(ConfigCmd.ShowCmd.onfiles.help)
-                    )
+                kwds.setdefault('cmd_aliases', {
+                    ('s', 'source'): ('ShowCmd.source',
+                                    pndlu.first_line(ConfigCmd.ShowCmd.source.help))
                 })
                 kwds.setdefault('encrypt', True)  # Encrypted ALL freshly edited pconfigs.
                 kwds.setdefault('raise_config_file_errors', False)
@@ -116,7 +114,7 @@ class ConfigCmd(baseapp.Cmd):
                 except:
                     yield '  +--%s' % v
 
-        def _yield_configs_and_defaults(self, config):
+        def _yield_configs_and_defaults(self, config, merged: bool):
             ## Prefer to modify `classes` after `initialize()`, or else,
             #  the cmd options would be irrelevant and fatty :-)
             self.classes = self.all_app_configurables()
@@ -129,7 +127,7 @@ class ConfigCmd(baseapp.Cmd):
                               cls.class_own_traits(config=True))
                 for name, trait in sorted(cls_traits.items()):
                     key = '%s.%s' % (clsname, name)
-                    if key in config:
+                    if merged and key in config:
                         val = config[clsname][name]
                     else:
                         val = trait.default_value_repr()
@@ -146,9 +144,17 @@ class ConfigCmd(baseapp.Cmd):
                                    % (self.name, len(args), args))
 
             config = self._loaded_config
-            yield from (self._yield_file_configs(config)
-                        if self.onfiles else
-                        self._yield_configs_and_defaults(config))
+            source = self.source.lower()
+            if source == 'files':
+                func = self._yield_file_configs
+            elif source == 'default':
+                func = lambda cfg: self._yield_configs_and_defaults(cfg, merged=False)
+            elif source == 'merged':
+                func = lambda cfg: self._yield_configs_and_defaults(cfg, merged=True)
+            else:
+                raise AssertionError('Impossible enum: %s' % source)
+
+            yield from func(config)
 
     def __init__(self, **kwds):
             dkwds = {'subcommands': baseapp.build_sub_cmds(*config_subcmds)}
