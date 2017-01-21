@@ -73,7 +73,9 @@ class ConfigCmd(baseapp.Cmd):
         """
         Print configurations (defaults | ondisk | TODO:merged) before any validations.
 
-        Alternatively, you may use the `--Cmd.print_config=True` global option on each command.
+        - Use --verbose to view config-params on all intermediate classes.
+        - Similarly, you may also add `--Cmd.print_config=True` global option
+          on any command to view more targeted results.
         """
 
         onfiles = trt.Bool(
@@ -133,7 +135,8 @@ class ConfigCmd(baseapp.Cmd):
                         val = trait.default_value_repr()
 
                     if not cls_printed:
-                        yield clsname
+                        base_classes = ','.join(p.__name__ for p in cls.__bases__)
+                        yield '%s(%s)' % (clsname, base_classes)
                         cls_printed = True
                     yield '  +--%s = %s' % (name, val)
 
