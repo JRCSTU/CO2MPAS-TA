@@ -62,6 +62,21 @@ class GnuPGSpec(baseapp.Spec):
         help="""A list of additional cmd-line options to pass to the GPG binary."""
     ).tag(config=True)
 
+    master_key = trt.Unicode(
+        None, allow_none=True,
+        help="""
+        The key-id (or recipient) of a secret PGP key to use for various crytpo operations.
+
+        Usage in subclasses:
+            VaultSpec:         dencrypt 3rdp passwords
+            TstampSenderSpec:  sign email to timestamp service
+
+        You MUST set either this configurable option or `GPGKEY` env-var, if you have
+        If you have more than one private keys in your PGP-keyring, or else
+        the application will fail to start when any of the usages above is initiated.
+        """
+    ).tag(config=True)
+
     @trt.observe('gpgbinary', 'gnupghome', 'keyring', 'secret_keyring', 'options')
     def _gpg_args_changed(self, change):
         self._GPG = None
@@ -91,17 +106,6 @@ def is_pgp_encrypted(obj) -> bool:
 
 class VaultSpec(trtc.SingletonConfigurable, GnuPGSpec):
     """A store of 3rdp passwords and othe secret objects in textual format."""
-
-    master_key = trt.Unicode(
-        None, allow_none=True,
-        help="""
-        The key-id (or recipient) of a secret PGP key to use when dencrypting 3rdp passwords.
-
-        You MUST set either this configurable option or `GPGKEY` env-var, if you have
-        If you have more than one private keys in your PGP-keyring, or else
-        the application will fail to start when there are encrypted configuration params.
-        """
-    ).tag(config=True)
 
     def _guess_master_key(self) -> Text:
         master_key = self.master_key or os.environ.get('GPGKEY')
