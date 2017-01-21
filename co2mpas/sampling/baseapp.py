@@ -572,6 +572,7 @@ class Cmd(trtc.Application, PeristentMixin):
         try:
             persist_path, config = self.load_pconfig(persist_path)
         except Exception as ex:
+            self._cfgfiles_registry.file_visited(persist_path)
             if self.raise_config_file_errors:
                 raise
             self.log.error("Failed loading persist-file '%s' due to: %s",
@@ -855,7 +856,7 @@ class Cmd(trtc.Application, PeristentMixin):
                             screams.append(key)
 
         try:
-            # If --encrypt, got directly to pass-2.
+            # If --encrypt, go directly to pass-2.
             pass_2 = self.encrypt
             ## Loop for the 2-passes trick.
             #

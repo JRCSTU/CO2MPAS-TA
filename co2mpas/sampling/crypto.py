@@ -220,16 +220,19 @@ def get_vault(config) -> VaultSpec:
 
 
 class Cipher(trt.TraitType):
-    """A trait that auto-dencrypts its value (can be anything)."""
+    """A trait that auto-dencrypts its value using PGP (can be anything that is Dill-ed)."""
+
+    info_text = 'any value (will be PGP-encrypted)'
 
     def validate(self, obj, value):
-        if value is not None:
+        if value is None or is_pgp_encrypted(value):
+            pass
+        else:
             cls_name = type(obj).__name__
             pswdid = '%s.%s' % (cls_name, self.name)
-            if not is_pgp_encrypted(value):
-                vault = get_vault(obj.config)
-                vault.log.debug("Auto-encrypting cipher-trait(%r)...", pswdid)
-                value = vault.encryptobj(pswdid, value)
+            vault = get_vault(obj.config)
+            vault.log.debug("Auto-encrypting cipher-trait(%r)...", pswdid)
+            value = vault.encryptobj(pswdid, value)
 
         return value
 
