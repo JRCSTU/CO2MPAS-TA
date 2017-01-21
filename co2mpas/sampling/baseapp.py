@@ -135,6 +135,8 @@ class PeristentMixin:
 
         :param cls:
             This mixin where updated ptrait-values are to be stored *globally*.
+        :param fpath:
+            abs/relative file-path, with/without ``'.json'`` extension
         :return:
             A tuple ``(fpath, Config())`` with the read persistent config parameters.
             Config might be `None` if file not found.
@@ -564,11 +566,17 @@ class Cmd(trtc.Application, PeristentMixin):
 
         return new_config
 
-    def _read_config_from_persist_file(self):
+    @property
+    def _resolved_persist_file(self):
+        """Returns the 1st value in config, env, or default-value (might contain ``.json``)."""
         persist_path = (self.persist_path or
                         os.environ.get(PERSIST_VAR_NAME) or
                         default_persist_fpath())
         persist_path = pndlu.convpath(persist_path)
+        return persist_path
+
+    def _read_config_from_persist_file(self):
+        persist_path = self._resolved_persist_file
         try:
             persist_path, config = self.load_pconfig(persist_path)
         except Exception as ex:
@@ -874,10 +882,11 @@ class Cmd(trtc.Application, PeristentMixin):
         finally:
             ## Ensure any encrypted traits are saved.
             #
+            persist_path = self._resolved_persist_file
             if ntraits_encrypted:
                 self.log.info("Updating persistent config %r with %d auto-encrypted values...",
-                              self.persist_path, ntraits_encrypted)
-                self.store_pconfig(self.persist_path)
+                              persist_path, ntraits_encrypted)
+                self.store_pconfig(persist_path)
 
         if screams:
             msg = "Found %d non-encrypted params in static-configs: %s" % (len(screams), screams)
