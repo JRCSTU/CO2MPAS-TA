@@ -151,7 +151,7 @@ setup(
         # PEP426-field actually not used by `pip`, hence
         # included also in /requirements/developmnet.pip.
         'setuptools',
-        'setuptools-git >= 0.3',  # Example given like that in PY docs.
+        'setuptools-git>=0.3',  # Example given like that in PY docs.
         'wheel',
     ],
     # dev_requires=[
@@ -193,9 +193,9 @@ setup(
     extras_require={
         'dice': [
             'python-gnupg',
-            'gitpython >= 2.1.0', ## Win+Cygwin support
+            'gitpython>=2.1.0', ## Win+Cygwin support
             'transitions',
-            'traitlets',
+            'traitlets>=5.0.0dev',
         ],
     },
     packages=find_packages(exclude=[
