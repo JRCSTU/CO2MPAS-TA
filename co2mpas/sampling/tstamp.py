@@ -12,10 +12,8 @@
 
 from collections import (
     defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
-import getpass
 import imaplib
 import io
-import os
 import re
 import smtplib
 import sys
@@ -33,7 +31,8 @@ from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  
 class TStampSpec(dice.DiceSpec):
     """Common parameters and methods for both SMTP(sending emails) & IMAP(receiving emails)."""
 
-    user_pswd = crypto.Cipher(None,
+    user_pswd = crypto.Cipher(
+        allow_none=True,
         help="""The SMTP/IMAP server's password matching `user_name` param."""
     ).tag(config=True)
 
@@ -125,7 +124,8 @@ class TstampSender(TStampSpec):
         if port is not None:
             srv_kwds['port'] = port
 
-        self.log.info("Timestamping dice-report from %r through %r%s to %s-->%s",
+        self.log.info("Timestamping %d-char email from %r through %r%s to %s-->%s",
+                      len(msg),
                       self.from_address,
                       host, srv_kwds or '',
                       self.timestamping_addresses,
@@ -134,8 +134,7 @@ class TstampSender(TStampSpec):
 
         with (smtplib.SMTP_SSL(host, **srv_kwds)
               if self.ssl else smtplib.SMTP(host, **srv_kwds)) as srv:
-            TstampSender.user_pswd.decrypted(self)
-            srv.login(self.user_name, self.user_pswd)
+            srv.login(self.user_name, TstampSender.user_pswd.decrypted(self))
 
             srv.send_message(mail)
         return mail
@@ -152,7 +151,7 @@ _PGP_SIG_REGEX = re.compile(
 
 
 class TstampReceiver(TStampSpec):
-    """IMAP & timestamp parameters and methods for receiving & parsing dice emails."""
+    """IMAP & timestamp parameters and methods for receiving & parsing dice-report emails."""
 
     def _pgp_split(self, sig_msg_bytes: bytes) -> Tuple[bytes, bytes, bytes]:
         m = _PGP_SIG_REGEX.search(sig_msg_bytes)
@@ -237,9 +236,9 @@ class TstampCmd(baseapp.Cmd):
 
     class SendCmd(_Subcmd):
         """
-        Send dice-reports to be timestamped and parse back the response.
+        Send emails to be timestamped and parse back the response.
 
-        The time-stamp service will disseminate the dice-report to the TA authorities & oversight bodies.
+        The time-stamp service is used to disseminate the dice-report to the TA authorities & oversight bodies.
         From its response the sampling decision will be deduced.
 
         Many options related to sending & receiving the email are expected to be stored in the config-file.
@@ -342,7 +341,7 @@ class TstampCmd(baseapp.Cmd):
     def __init__(self, **kwds):
         with self.hold_trait_notifications():
             dkwds = {
-                'conf_classes': [project.ProjectsDB, TstampSender, TstampReceiver],
+                'conf_classes': [project.ProjectsDB, TstampReceiver],
                 'subcommands': baseapp.build_sub_cmds(*all_subcmds),
             }
             dkwds.update(kwds)
