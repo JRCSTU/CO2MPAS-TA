@@ -12,6 +12,7 @@ The general idea is to use a PGP key to securely store many passwords in configu
 The code using these passwords must never store them as is, but use and immediately discard them.
 """
 from co2mpas.sampling import baseapp
+import os
 import re
 from typing import Text, Tuple, Union  # @UnusedImport
 
@@ -95,19 +96,22 @@ class VaultSpec(trtc.SingletonConfigurable, GnuPGSpec):
         None, allow_none=True,
         help="""
         The key-id (or recipient) of a secret PGP key to use when dencrypting 3rdp passwords.
-        You MUST set this configurable option, or else the application will fail to start
-        if there are encrypted configuration params."""
+
+        You MUST set either this configurable option or `GPGKEY` env-var, if you have
+        If you have more than one private keys in your PGP-keyring, or else
+        the application will fail to start when there are encrypted configuration params.
+        """
     ).tag(config=True)
 
     def _guess_master_key(self) -> Text:
-        master_key = self.master_key
+        master_key = self.master_key or os.environ.get('GPGKEY')
         if not master_key:
             GPG = self.GPG
             seckeys = GPG.list_keys(secret=True)
             nseckeys = len(seckeys)
             if nseckeys != 1:
                 raise ValueError("Cannot guess master-key! Found %d keys in secret keyring."
-                                 "\n  Please set the `VaultSpec.master_key` configurable parameter." %
+                                 "\n  Please set the `VaultSpec.master_key` config-param or `GPGKEY` env-var." %
                                  nseckeys)
 
             master_key = seckeys[0]['fingerprint']
