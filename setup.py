@@ -185,7 +185,7 @@ setup(
         'openpyxl>=2.4.0',
         'Pillow',           ## for tkui
         'toolz',
-        'schedula'
+        'schedula>=0.1.1'
     ],
     dependency_links=[
         'https://github.com/ankostis/traitlets/tarball/dev#egg=traitlets-5.0.0ank',
