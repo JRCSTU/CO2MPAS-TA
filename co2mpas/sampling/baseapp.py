@@ -472,7 +472,7 @@ class Cmd(trtc.Application, PeristentMixin):
         Persistent-parameters override "static" ones.
 
         Tip:
-            Use `config init` sub-command to produce a skeleton of the config-file.
+            Use `{appname} config init` sub-command to produce a skeleton of the config-file.
 
         Note:
             A value in configuration files are ignored!  Set this from command-line
@@ -484,7 +484,12 @@ class Cmd(trtc.Application, PeristentMixin):
 
     encrypt = trt.Bool(
         False,
-        help="""Whether to validate/encrypt all config-classes(true), or just the current's command(false)."""
+        help="""
+        Encrypt ciphered-configs on app startup: True: all classes, False: current-cmd's only
+
+        Sample cmd to encrypt any freshly edited persistent-configs:
+               %s --encrypt
+        """ % APPNAME
     ).tag(config=True)
 
     @trt.default('log')
@@ -897,7 +902,7 @@ class Cmd(trtc.Application, PeristentMixin):
 
     def _is_dispatching(self):
         """True if dispatching to another command."""
-        return bool(self.subapp)
+        return isinstance(self.subapp, trtc.Application)  # subapp == trait | subcmd | None
 
     @trtc.catch_config_error
     def initialize(self, argv=None):
@@ -940,9 +945,7 @@ class Cmd(trtc.Application, PeristentMixin):
         if self.print_config:
             self.log.info('Running cmd %r with config: \n  %s', self.name, self.config)
 
-        if self.subapp is not None:
-            pass
-        else:
+        if self.subapp is None:
             return self.run(*self.extra_args)
 
         return self.subapp.start()

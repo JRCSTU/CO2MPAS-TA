@@ -5,12 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 #
-"""
-co2dice: prepare/sign/send/receive/validate/archive Type Approval sampling emails of *co2mpas*.
-
-.. Warning::
-    Do not run multiple instances!
-"""
+"""co2dice: prepare/sign/send/receive/validate/archive Type Approval sampling emails of *co2mpas*."""
 
 from co2mpas import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 from co2mpas.__main__ import init_logging
@@ -106,7 +101,6 @@ class DiceSpec(baseapp.Spec):
         return value
 
 
-
 ###################
 ##    Commands   ##
 ###################
@@ -115,7 +109,7 @@ class MainCmd(Cmd):
     """
     co2dice: prepare/sign/send/receive/validate & archive Type Approval sampling emails for *co2mpas*.
 
-    This is root command for co2mpas "dice"; use subcommands or preferably GUI to accomplish sampling.
+    This is the root command for co2mpas "dice"; use subcommands or preferably GUI to accomplish sampling.
 
     TIP:
       If you bump into blocking errors, please use the `co2dice project backup` command and
