@@ -13,7 +13,6 @@ from typing import Sequence, Text, List, Tuple    # @UnusedImport
 import os.path as osp
 import pandalone.utils as pndlu
 import traitlets as trt
-import traitlets.config as trtc
 
 
 class ConfigCmd(baseapp.Cmd):
@@ -75,10 +74,6 @@ class ConfigCmd(baseapp.Cmd):
         Print configurations (defaults | ondisk | TODO:merged) before any validations.
 
         Alternatively, you may use the `--Cmd.print_config=True` global option on each command.
-
-        Warning:
-            Running this command before encrypting sensitive persistent parameters,
-            will print them plaintext!
         """
 
         onfiles = trt.Bool(
@@ -93,15 +88,20 @@ class ConfigCmd(baseapp.Cmd):
                         pndlu.first_line(ConfigCmd.ShowCmd.onfiles.help)
                     )
                 })
+                kwds.setdefault('encrypt', True)  # Encrypted ALL freshly edited pconfigs.
+                kwds.setdefault('raise_config_file_errors', False)
                 super().__init__(**kwds)
 
         def initialize(self, argv=None):
+            ## Copied from `Cmd.initialize()`.
+            #
             self.parse_command_line(argv)
             static_config, persist_config = self.load_configurables_from_files()
+            self._validate_cipher_traits_against_config_files(static_config, persist_config)
             if persist_config:
                 static_config.merge(persist_config)
             static_config.merge(self.cli_config)
-            ## Stop from applying file-configs - or any validations will scream.
+            ## Stop from applying file-configs - or any trait-validations will scream.
 
             self._loaded_config = static_config
 
