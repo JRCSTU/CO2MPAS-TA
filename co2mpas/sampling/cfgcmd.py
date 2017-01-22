@@ -114,14 +114,14 @@ class ConfigCmd(baseapp.Cmd):
         """
 
         source = FuzzyEnum(
-            'merged default files'.split(), default_value='merged', allow_none=False,
+            'defaults files merged'.split(), default_value='merged', allow_none=False,
             help="""Show configuration parameters in code, stored on disk files, or merged."""
         ).tag(config=True)
 
         def __init__(self, **kwds):
                 kwds.setdefault('cmd_aliases', {
                     ('s', 'source'): ('ShowCmd.source',
-                                    pndlu.first_line(ConfigCmd.ShowCmd.source.help))
+                                      pndlu.first_line(ConfigCmd.ShowCmd.source.help))
                 })
                 kwds.setdefault('encrypt', True)  # Encrypted ALL freshly edited pconfigs.
                 kwds.setdefault('raise_config_file_errors', False)
@@ -152,6 +152,10 @@ class ConfigCmd(baseapp.Cmd):
         def _yield_configs_and_defaults(self, config, merged: bool):
             ## Prefer to modify `classes` after `initialize()`, or else,
             #  the cmd options would be irrelevant and fatty :-)
+            if merged:
+                ## Merging below works only if all classes visited.
+                self.verbose = True
+
             self.classes = self.all_app_configurables()
             for cls in self._classes_with_config_traits():
                 clsname = cls.__name__
