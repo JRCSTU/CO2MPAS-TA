@@ -37,7 +37,7 @@ class TStampSpec(dice.DiceSpec):
     ).tag(config=True)
 
     host = trt.Unicode(
-        '',
+        None, _none=False,
         help="""The SMTP/IMAP server, e.g. 'smtp.gmail.com'."""
     ).tag(config=True)
 
@@ -61,6 +61,14 @@ class TStampSpec(dice.DiceSpec):
             `local_hostname` and `source_address`.
         """
     ).tag(config=True)
+
+    @trt.validate('host')
+    def _valid_host(self, proposal):
+        value = proposal['value']
+        if not value:
+            raise trt.TraitError('%s.%s must not be empty!'
+                                 % (proposal['owner'].name, proposal['trait'].name))
+        return value
 
 
 class TstampSender(TStampSpec):
@@ -94,7 +102,7 @@ class TstampSender(TStampSpec):
         """
     ).tag(config=True)
 
-    def _sign_msg_mody(self, text):
+    def _sign_msg_body(self, text):
         return text
 
     def _append_x_recipients(self, msg):
@@ -114,7 +122,7 @@ class TstampSender(TStampSpec):
         return mail
 
     def send_timestamped_email(self, msg):
-        msg = self._sign_msg_mody(msg)
+        msg = self._sign_msg_body(msg)
 
         msg = self._append_x_recipients(msg)
 
