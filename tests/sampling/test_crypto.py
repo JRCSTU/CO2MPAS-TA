@@ -73,6 +73,53 @@ def _temp_master_key(vault, master_key):
 
 
 @ddt.ddt
+class TGnuPGSpec(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.cfg = cfg = trtc.get_config()
+        cfg.GnuPGSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        gpg_spec = crypto.GnuPGSpec(config=cfg)
+
+        fingerprint = gpg_gen_key(
+            gpg_spec.GPG,
+            key_length=1024,
+            name_real='test user',
+            name_email='test@test.com')
+        cfg.GnuPGSpec.master_key = fingerprint
+
+    @classmethod
+    def tearDownClass(cls):
+        gpg_spec = crypto.GnuPGSpec(config=cls.cfg)
+        assert gpg_spec.gnupghome
+        gpg_del_key(gpg_spec.GPG, gpg_spec.master_key)
+        shutil.rmtree(gpg_spec.gnupghome)
+
+    def test_sign_verify(self):
+        msg = 'Hi there'
+        gpg_spec = crypto.GnuPGSpec(config=self.cfg)
+        signed = gpg_spec.clearsign_text(msg)
+        self.assertIsInstance(signed, str)
+
+        verified = gpg_spec.GPG.verify(signed)
+        print('\n'.join('%s = %s' % (k, v) for k, v in vars(verified).items()))
+        self.assertTrue(verified.valid)
+
+        import time
+        time.sleep(0.3)
+
+        signed2 = gpg_spec.clearsign_text(msg)
+        self.assertIsInstance(signed2, str)
+        self.assertNotEqual(signed, signed2)
+
+        verified2 = gpg_spec.GPG.verify(signed2)
+        print('\n'.join('%s = %s' % (k, v) for k, v in vars(verified2).items()))
+
+        self.assertEqual(verified.fingerprint, verified2.fingerprint)
+        self.assertNotEqual(verified.signature_id, verified2.signature_id)
+
+
+@ddt.ddt
 class TVaultSpec(unittest.TestCase):
 
     @classmethod

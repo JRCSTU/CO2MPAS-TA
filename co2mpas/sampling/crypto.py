@@ -116,6 +116,8 @@ class GnuPGSpec(baseapp.Spec):
                 keyring=self.keyring,
                 options=self.options,
                 secret_keyring=self.secret_keyring)
+            GPG.encoding = 'utf-8'
+
         return GPG
 
     def encryptobj(self, pswdid: Text, plainobj) -> Text:
@@ -171,13 +173,63 @@ class GnuPGSpec(baseapp.Spec):
             raise ValueError("PswdId('%s'): decryption failed due to: %s" % (pswdid, ex))
 
         if not plain.ok:
-            self.log.debug("PswdId('%s'): decryption stderr: %s", pswdid, plain.status, plain.stderr)
+            self.log.debug("PswdId('%s'): decryption stderr: %s", pswdid, plain.stderr)
             raise ValueError("PswdId('%s'): %s!" % (pswdid, plain.status))
 
         import dill
         plainobj = dill.loads(plain.data)
 
         return plainobj
+
+    def clearsign_text(self, text: Text) -> Text:
+        """Clear-signs a textual-message with :attr:`master_key`."""
+        try:
+            signed = self.GPG.sign(text, keyid=self._guess_master_key())
+        except Exception as ex:
+            raise ValueError("Signing failed due to: %s" % ex)
+
+        if not signed.data:
+            self.log.debug("Signing stderr: %s", signed.stderr)
+            raise ValueError("No signed due to: %s!" % getattr(signed, 'status'))
+
+        return str(signed)
+
+#     ## NO, very simple, do it directly in client code.
+#     def verify_clearsigned(self, text: Text) -> bool:
+#         """Verifies a clear-signed textual-message."""
+#         try:
+#             verified = self.GPG.verify(text)
+#         except Exception as ex:
+#             raise ValueError("Verification failed due to: %s" % ex)
+#
+#         return verified.valid
+#             signature_id = IWLTrxduQKe1P7qGAUauyyNSpJ4
+#             trust_text = TRUST_ULTIMATE
+#             valid = True
+#             key_status = None
+#             expire_timestamp = 0
+#             key_id = D720C846A2891883
+#             trust_level = 4
+#             stderr = [GNUPG:] NEWSIG
+#                 gpg: Signature made 01/22/17 02:37:10 W. Europe Standard Time using RSA key ID A2891883
+#                 [GNUPG:] SIG_ID IWLTrxduQKe1P7qGAUauyyNSpJ4 2017-01-22 1485049030
+#                 gpg: checking the trustdb
+#                 gpg: 3 marginal(s) needed, 1 complete(s) needed, PGP trust model
+#                 gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+#                 [GNUPG:] GOODSIG D720C846A2891883 test user <test@test.com>
+#                 gpg: Good signature from "test user <test@test.com>" [ultimate]
+#                 [GNUPG:] VALIDSIG C0DE766CF516CB3CE2DDE616D720C846A2891883 2017-01-22 1
+#                                485049030 0 4 0 1 8 01 C0DE766CF516CB3CE2DDE616D720C846A2891883
+#                 [GNUPG:] TRUST_ULTIMATE
+#             timestamp = 1485049030
+#             data = b''
+#             gpg = <gnupg.GPG object at 0x0000028DB4B1BBA8>
+#             username = test user <test@test.com>
+#             sig_timestamp = 1485049030
+#             fingerprint = C0DE766CF516CB3CE2DDE616D720C846A2891883
+#             status = signature valid
+#             pubkey_fingerprint = C0DE766CF516CB3CE2DDE616D720C846A2891883
+#             creation_date = 2017-01-22
 
 #    def verify_detached_armor(self, sig: str, data: str):
 #    #def verify_file(self, file, data_filename=None):
