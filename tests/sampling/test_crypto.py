@@ -81,7 +81,7 @@ class TGnuPGSpecBinary(unittest.TestCase):
                 crypto.GnuPGSpec().GPG
 
             cfg = trtc.get_config()
-            cfg.GnuPGSpec.gpgbinary = 'gpg'
+            cfg.GnuPGSpec.gnupgexe = 'gpg'
             crypto.GnuPGSpec(config=cfg).GPG
 
 
