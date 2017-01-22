@@ -76,7 +76,7 @@ class TGnuPGSpecBinary(unittest.TestCase):
     def test_GPG_EXECUTABLE(self):
         from unittest.mock import patch
 
-        with patch.dict('os.environ', {'GPG_EXECUTABLE': '/bad_path'}):  # @UndefinedVariable
+        with patch.dict('os.environ', {'GNUPGEXE': '/bad_path'}):  # @UndefinedVariable
             with self.assertRaisesRegex(OSError, 'Unable to run gpg - it may not be available.'):
                 crypto.GnuPGSpec().GPG
 

@@ -31,13 +31,13 @@ class GnuPGSpec(baseapp.Spec):
     """
     Configurable parameters for instantiating a GnuPG instance
 
-    Class-parameters override values of `GPG_EXECUTABLE` and `GNUPGHOME` environ-variables.
+    Class-parameters override values of `GNUPGEXE` and `GNUPGHOME` environ-variables.
     """
 
     gpgbinary = trt.Unicode(
         None, allow_none=True,
         help="The path to GnuPG executable; if None, first `gpg` in PATH used, "
-        "unless GPG_EXECUTABLE env-variable is set."
+        "unless GNUPGEXE env-variable is set."
     ).tag(config=True)
 
     gnupghome = trt.Unicode(
@@ -106,7 +106,7 @@ class GnuPGSpec(baseapp.Spec):
         import gnupg
         GPG = getattr(self, '_GPG', None)
         if not GPG:
-            gpgbinary = self.gpgbinary or os.environ.get('GPG_EXECUTABLE', 'gpg')
+            gpgbinary = self.gpgbinary or os.environ.get('GNUPGEXE', 'gpg')
             GPG = self._GPG = gnupg.GPG(
                 gpgbinary=gpgbinary,
                 gnupghome=self.gnupghome,
