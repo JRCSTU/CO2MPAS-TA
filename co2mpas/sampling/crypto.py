@@ -20,6 +20,13 @@ import traitlets as trt
 import traitlets.config as trtc
 
 
+_pgp_regex = re.compile(r'^\s*-----[A-Z ]*PGP[A-Z ]*-----.+-----[A-Z ]*PGP[A-Z ]*-----\s*$', re.DOTALL)
+
+
+def is_pgp_encrypted(obj) -> bool:
+    return bool(isinstance(obj, str) and _pgp_regex.match(obj))
+
+
 class GnuPGSpec(baseapp.Spec):
     """
     Configurable parameters for instantiating a GnuPG instance
@@ -38,8 +45,8 @@ class GnuPGSpec(baseapp.Spec):
     gnupghome = trt.Unicode(
         None, allow_none=True,
         help="""
-        The full pathname containing the keys to where we can find the public and private keyrings;
-        if None, the executable decides (POSIX: `~/.gpg`, Windows: `%APPDATA%\Roaming\GnuPG`),
+        The full pathname containing the keys to where we can find the public and private keyrings.
+        If None, the executable decides (POSIX: `~/.gpg`, Windows: `%APPDATA%\Roaming\GnuPG`),
         unless the GNUPGHOME env-variable is set.
         """
     ).tag(config=True)
@@ -81,32 +88,6 @@ class GnuPGSpec(baseapp.Spec):
     def _gpg_args_changed(self, change):
         self._GPG = None
 
-    @property
-    def GPG(self) -> 'gnupg.GPG':
-        import gnupg
-        GPG = getattr(self, '_GPG', None)
-        if not GPG:
-            GPG = self._GPG = gnupg.GPG(
-                gpgbinary=self.gpgbinary,
-                gnupghome=self.gnupghome,
-                verbose=self.verbose,
-                use_agent=True,
-                keyring=self.keyring,
-                options=self.options,
-                secret_keyring=self.secret_keyring)
-        return GPG
-
-
-_pgp_regex = re.compile(r'^\s*-----[A-Z ]*PGP[A-Z ]*-----.+-----[A-Z ]*PGP[A-Z ]*-----\s*$', re.DOTALL)
-
-
-def is_pgp_encrypted(obj) -> bool:
-    return bool(isinstance(obj, str) and _pgp_regex.match(obj))
-
-
-class VaultSpec(trtc.SingletonConfigurable, GnuPGSpec):
-    """A store of 3rdp passwords and othe secret objects in textual format."""
-
     def _guess_master_key(self) -> Text:
         master_key = self.master_key or os.environ.get('GPGKEY')
         if not master_key:
@@ -121,6 +102,21 @@ class VaultSpec(trtc.SingletonConfigurable, GnuPGSpec):
             master_key = seckeys[0]['fingerprint']
 
         return master_key
+
+    @property
+    def GPG(self) -> 'gnupg.GPG':
+        import gnupg
+        GPG = getattr(self, '_GPG', None)
+        if not GPG:
+            GPG = self._GPG = gnupg.GPG(
+                gpgbinary=self.gpgbinary,
+                gnupghome=self.gnupghome,
+                verbose=self.verbose,
+                use_agent=True,
+                keyring=self.keyring,
+                options=self.options,
+                secret_keyring=self.secret_keyring)
+        return GPG
 
     def encryptobj(self, pswdid: Text, plainobj) -> Text:
         """
@@ -220,6 +216,10 @@ class VaultSpec(trtc.SingletonConfigurable, GnuPGSpec):
 #                p = self._open_subprocess(args)
 #                self._collect_output(p, result, stdin=p.stdin)
 #                return result
+
+
+class VaultSpec(trtc.SingletonConfigurable, GnuPGSpec):
+    """A store of 3rdp passwords and othe secret objects in textual format."""
 
 
 def get_vault(config) -> VaultSpec:
