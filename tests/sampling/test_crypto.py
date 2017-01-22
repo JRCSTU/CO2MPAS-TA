@@ -72,6 +72,19 @@ def _temp_master_key(vault, master_key):
         vault.master_key = oldkey
 
 
+class TGnuPGSpecBinary(unittest.TestCase):
+    def test_GPG_EXECUTABLE(self):
+        from unittest.mock import patch
+
+        with patch.dict('os.environ', {'GPG_EXECUTABLE': '/bad_path'}):  # @UndefinedVariable
+            with self.assertRaisesRegex(OSError, 'Unable to run gpg - it may not be available.'):
+                crypto.GnuPGSpec().GPG
+
+            cfg = trtc.get_config()
+            cfg.GnuPGSpec.gpgbinary = 'gpg'
+            crypto.GnuPGSpec(config=cfg).GPG
+
+
 @ddt.ddt
 class TGnuPGSpec(unittest.TestCase):
 
@@ -106,7 +119,7 @@ class TGnuPGSpec(unittest.TestCase):
         self.assertTrue(verified.valid)
 
         import time
-        time.sleep(0.3)
+        time.sleep(1)  # Timestamp is the only differene.
 
         signed2 = gpg_spec.clearsign_text(msg)
         self.assertIsInstance(signed2, str)

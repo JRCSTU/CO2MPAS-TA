@@ -35,11 +35,9 @@ class GnuPGSpec(baseapp.Spec):
     """
 
     gpgbinary = trt.Unicode(
-        'gpg', allow_none=True,
-        help="""
-        The path to GnuPG executable; if None, the first `gpg` command in PATH variable is used,
-        unless the GPG_EXECUTABLE env-variable is set.
-        """
+        None, allow_none=True,
+        help="The path to GnuPG executable; if None, first `gpg` in PATH used, "
+        "unless GPG_EXECUTABLE env-variable is set."
     ).tag(config=True)
 
     gnupghome = trt.Unicode(
@@ -108,8 +106,9 @@ class GnuPGSpec(baseapp.Spec):
         import gnupg
         GPG = getattr(self, '_GPG', None)
         if not GPG:
+            gpgbinary = self.gpgbinary or os.environ.get('GPG_EXECUTABLE', 'gpg')
             GPG = self._GPG = gnupg.GPG(
-                gpgbinary=self.gpgbinary,
+                gpgbinary=gpgbinary,
                 gnupghome=self.gnupghome,
                 verbose=self.verbose,
                 use_agent=True,
