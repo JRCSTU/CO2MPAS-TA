@@ -11,6 +11,7 @@ from co2mpas.sampling import crypto
 import contextlib
 import io
 import logging
+import re
 import shutil
 import tempfile
 import unittest
@@ -91,33 +92,17 @@ class TGnuPGSpecBinary(unittest.TestCase):
 #
 
 _clearsigned_msgs = [
-    # MSG,     VALID,     CLEARSIGNED
-    ('hi gpg', True, tw.dedent("""
+    # MSG,     CLEARSIGNED
+    ('hi gpg', tw.dedent("""
         -----BEGIN PGP SIGNED MESSAGE-----
-        Hash: SHA256
 
         hi gpg
         -----BEGIN PGP SIGNATURE-----
         Version: GnuPG v2
 
-        iQEcBAEBCAAGBQJW3YK+AAoJEDOsPX8JK97lgTAH/2C2TF5dsVaEWqI5grhHnERK
-        kMkq9sHK5Gi3g8VbRB5gcaSM0xN3YmdzQlwp1kKdbQTffUwJk9U4ErQ9LT7RJNaH
-        e5Rr9w45nRiSjAyJME4858kWNv0vvRdloB58y/eRzcO5WfTsOQsnl471Lct6wSN1
-        gQHZcRQVW4p18rJ9kaeBr5C9H2vg5CRTfrwMKDRX+ntGj1HY/obl4Kb2IgWSLDcd
-        5uGImNIDu3gQ15ibh1bIwH8/ya8tg38JBNhlYdvt9/y24jgsKKO+iOHVLUMj7LO6
-        q1mI64ULC1SlW2KBKdGV0xDcq+YA3GoXhD5FDPS70cTQ+DBkx1lUa6xmZgBR0uE=
-        =ctnm
-        -----END PGP SIGNATURE-----
-    """)),
-    ('hi gpg', False, tw.dedent("""
-        -----BEGIN PGP SIGNED MESSAGE-----
-
-        hi gpg
-        -----BEGIN PGP SIGNATURE-----
-
         BAG SIGnature but valid format
         -----END PGP SIGNATURE-----""")),
-    ('', False, tw.dedent("""
+    ('', tw.dedent("""
         -----BEGIN PGP SIGNED MESSAGE-----
 
 
@@ -126,20 +111,23 @@ _clearsigned_msgs = [
         BAG SIGnature but valid format
         -----END PGP SIGNATURE-----
     """)),
-    ('hi gpg\n', False, tw.dedent("""
+    ('One\n-TWO\r\n--abc\nTHREE', tw.dedent("""
         Blah Blah
 
         -----BEGIN PGP SIGNED MESSAGE-----
         Hash: SHA256
 
-        hi gpg
-
+        One
+        - -TWO\r
+        --abc
+        - THREE
         -----BEGIN PGP SIGNATURE-----
         Version: GnuPG v2
 
         =ctnm
-        -----END PGP SIGNATURE-----""")),
-    ('hi gpg\r\nLL\n', False, tw.dedent("""
+        -----END PGP SIGNATURE-----
+    """)),
+    ('hi gpg\r\nLL\n', tw.dedent("""
         -----BEGIN PGP SIGNED MESSAGE-----
 
         hi gpg\r
@@ -152,7 +140,7 @@ _clearsigned_msgs = [
 
         Blqah Bklah
     """)),
-    (None, False, tw.dedent("""
+    (None, tw.dedent("""
         -----BEGIN PGP SIGNED MESSAGE-----
         Hash: asfdf
         Hash
@@ -163,7 +151,7 @@ _clearsigned_msgs = [
         =ctnm
         -----END PGP SIGNATURE-----
     """)),
-    (None, False, tw.dedent("""
+    (None, tw.dedent("""
         -----BEGIN PGP SIGNED MESSAGE-----
         Hash:
 
@@ -173,7 +161,7 @@ _clearsigned_msgs = [
         =ctnm
         -----END PGP SIGNATURE-----
     """)),
-    (None, False, tw.dedent("""
+    (None, tw.dedent("""
         -----BEGIN PGP SIGNED MESSAGE-----
 
         hi gpg
@@ -181,12 +169,21 @@ _clearsigned_msgs = [
 
         -----END PGP SIGNATURE-----
     """)),
-    (None, False, tw.dedent("""
+    (None, tw.dedent("""
         -----BEGIN PGP SIGNED MESSAGE-----
 
         -----BEGIN PGP SIGNATURE-----
 
-        BAG SIGnature but valid format
+        BAG SIG, no plaintext
+        -----END PGP SIGNATURE-----
+    """)),
+    (None, tw.dedent("""
+        -----BEGIN PGP SIGNED MESSAGE-----
+
+        No0 SIG empty-line
+        -----BEGIN PGP SIGNATURE-----
+        BAG SIG
+        BAG SIG
         -----END PGP SIGNATURE-----
     """)),
 ]
@@ -217,11 +214,23 @@ class TGnuPGSpec(unittest.TestCase):
 
     @ddt.data(*_clearsigned_msgs)
     def test_parse_clearsigned(self, case):
-        exp_msg, sig_valid, clearsigned = case
-        groups = crypto.split_clearsigned_signed(clearsigned)
+        exp_msg, clearsigned = case
+
+        groups = crypto.split_clearsigned(clearsigned)
         if isinstance(exp_msg, str):
             self.assertIsInstance(groups, dict)
             self.assertEqual(groups['msg'], exp_msg)
+            self.assertIsNotNone(groups['sig'])
+        else:
+            self.assertIsNone(groups)
+
+        ## Check with \r\n at the end.
+        #
+        clearsigned = re.sub('$\n^', '\r\n', clearsigned, re.MULTILINE)
+        groups = crypto.split_clearsigned(clearsigned)
+        if isinstance(exp_msg, str):
+            self.assertIsInstance(groups, dict)
+            self.assertEqual(groups['msg'], re.sub('$\n^', '\r\n', exp_msg), re.MULTILINE)
             self.assertIsNotNone(groups['sig'])
         else:
             self.assertIsNone(groups)
@@ -248,6 +257,13 @@ class TGnuPGSpec(unittest.TestCase):
 
         self.assertEqual(verified.fingerprint, verified2.fingerprint)
         self.assertNotEqual(verified.signature_id, verified2.signature_id)
+
+        ## Check parsing.
+        #
+        groups = crypto.split_clearsigned(signed2)
+        self.assertIsInstance(groups, dict)
+        self.assertEqual(groups['msg'], msg)
+        self.assertIsNotNone(groups['sig'])
 
 
 @ddt.ddt

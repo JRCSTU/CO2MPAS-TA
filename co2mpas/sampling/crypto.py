@@ -16,7 +16,7 @@ from co2mpas.sampling import baseapp
 import io
 import os
 import re
-from typing import Text, Tuple, Union  # @UnusedImport
+from typing import Text, Tuple, Union, Dict  # @UnusedImport
 
 import os.path as osp
 import traitlets as trt
@@ -29,23 +29,50 @@ _pgp_regex = re.compile(r'^\s*-----[A-Z ]*PGP[A-Z ]*-----.+-----[A-Z ]*PGP[A-Z ]
 def is_pgp_encrypted(obj) -> bool:
     return bool(isinstance(obj, str) and _pgp_regex.match(obj))
 
+
 _PGP_CLEARSIG_REGEX = re.compile(
     r"""
-        ^-----BEGIN\ PGP\ SIGNED\ MESSAGE-----\r?\n
-        (?:^\w+:\ [^\r\n]+?\r?\n)*
-        ^\r?\n
-        (?P<msg>^.*?)\r?\n
-        (?P<sig>^-----BEGIN\ PGP\ SIGNATURE-----\r?\n
-        (?:.*^Comment: Stamper Reference Id: (?P<stamper_id>\d+)\r?\n)?.+?
-        \r?\n^-----END\ PGP\ SIGNATURE-----$)
+(?P<armor>
+    ^-----BEGIN\ PGP\ SIGNED\ MESSAGE-----\r?\n
+    (?:^Hash:\ [^\r\n]+\r?\n)*
+    ^\r?\n
+    (?P<msg>^.*?)\r?\n
+    (?P<sig>^-----BEGIN\ PGP\ SIGNATURE-----\r?\n
+    (?:
+      .*
+      (?:^Comment:\ Stamper\ Reference\ Id:\ (?P<stamper>\d+)\r?\n)?
+      .*
+    )?
+    ^\r?\n
+    .+                                            ## Almost...
+    ^-----END\ PGP\ SIGNATURE-----(?:\r?\n)?)
+)
     """,
     re.DOTALL | re.VERBOSE | re.MULTILINE)
+_PGP_DEDASHIFY_REGEX = re.compile(r'^- ', re.MULTILINE)
 
 
-def split_clearsigned_signed(text: str) -> (Text, Text):
-    ## See http://gnupg.10057.n7.nabble.com/splitting-up-an-inline-signed-OpenPGP-message-td48681.html#a48715
+def split_clearsigned(text: str) -> Dict:
+    """
+    Parses text RFC 4880 PGP-signed message with ``gpg --clearsing`` command.
+
+    : return:
+        a dict with keys:
+        - `armor`: the whole clearsigned text (sig included).
+        - `msg`: the plaintext
+        - `sig`: the armored signature
+        - `stamper`: the id in case it was signed by stamper
+
+    .. seealso::
+        - https://tools.ietf.org/html/rfc4880#page-59
+        - http://gnupg.10057.n7.nabble.com/splitting-up-an-inline-signed-OpenPGP-message-td48681.html#a48715
+    """
     m = _PGP_CLEARSIG_REGEX.search(text)
-    return m and m.groupdict()
+    if m:
+        groups = m.groupdict()
+        groups['msg'] = _PGP_DEDASHIFY_REGEX.sub('', groups['msg'])
+
+        return groups
 
 class GnuPGSpec(baseapp.Spec):
     """
