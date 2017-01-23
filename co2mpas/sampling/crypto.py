@@ -88,16 +88,21 @@ class GnuPGSpec(baseapp.Spec):
     gnupgexe = trt.Unicode(
         None, allow_none=True,
         help="The path to GnuPG executable; if None, first `gpg` in PATH used, "
-        "unless GNUPGEXE env-variable is set."
+        "unless `GNUPGEXE`(%s) env-variable is set." % os.environ.get('GNUPGEXE')
     ).tag(config=True)
 
     gnupghome = trt.Unicode(
         None, allow_none=True,
         help="""
-        The full pathname containing the keys to where we can find the public and private keyrings.
-        If None, the executable decides (POSIX: `~/.gpg`, Windows: `%APPDATA%\Roaming\GnuPG`),
-        unless the GNUPGHOME env-variable is set.
-        """
+        The full pathname to the folder containing the public and private PGP-keyrings.
+
+        If None, the executable decides:
+          - POSIX:   %s/.gpg
+          - Windows: %s\\GnuPG,
+        unless the `GNUPGHOME`(%s) env-variable is set.
+        """ % (os.environ.get('HOME', '~'),
+               os.environ.get('APPDATA', '%APPDATA%'),
+               os.environ.get('GNUPGHOME'))
     ).tag(config=True)
 
     keyring = trt.Unicode(
@@ -124,13 +129,13 @@ class GnuPGSpec(baseapp.Spec):
         The key-id (or recipient) of a secret PGP key to use for various crytpo operations.
 
         Usage in subclasses:
-            VaultSpec:         dencrypt 3rdp passwords
-            TstampSenderSpec:  sign email to timestamp service
+          - VaultSpec:         dencrypt 3rdp passwords
+          - TstampSenderSpec:  sign email to timestamp service
 
-        You MUST set either this configurable option or `GPGKEY` env-var, if you have
+        You MUST set either this configurable option or `GPGKEY`(%s) env-variable, if you have
         If you have more than one private keys in your PGP-keyring, or else
         the application will fail to start when any of the usages above is initiated.
-        """
+        """ % os.environ.get('GPGKEY')
     ).tag(config=True)
 
     @trt.observe('gnupgexe', 'gnupghome', 'keyring', 'secret_keyring', 'options')
@@ -151,6 +156,26 @@ class GnuPGSpec(baseapp.Spec):
             master_key = seckeys[0]['fingerprint']
 
         return master_key
+
+    @property
+    def gnupgexe_resolved(self):
+        """Used for printing configurations."""
+        import shutil
+
+        gpg_exepath = self.gnupgexe or os.environ.get('GNUPGEXE', 'gpg')
+        gpg_exepath = shutil.which(gpg_exepath) or gpg_exepath
+        return gpg_exepath
+
+    @property
+    def gnupghome_resolved(self):
+        """Used for printing configurations."""
+        gnupghome = self.gnupghome
+        if not gnupghome:
+            if os.name == 'nt':
+                gnupghome = '%s\\GnuPG' % os.environ.get('APPDATA', '%APPDATA%')
+            else:
+                gnupghome = '%s/.gnupg' % os.environ.get('HOME', '~')
+        return gnupghome
 
     @property
     def GPG(self) -> 'gnupg.GPG':
