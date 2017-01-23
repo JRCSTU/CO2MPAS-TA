@@ -8,16 +8,18 @@
 
 from co2mpas.__main__ import init_logging
 from co2mpas.sampling import crypto
+import contextlib
+import io
 import logging
 import shutil
 import tempfile
 import unittest
-import contextlib
 
 import ddt
 
 import itertools as itt
 import os.path as osp
+import textwrap as tw
 import traitlets.config as trtc
 
 
@@ -26,6 +28,7 @@ init_logging(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 mydir = osp.dirname(__file__)
+myproj = osp.join(mydir, '..', '..')
 
 _texts = ('', ' ', 'a' * 2048, '123', 'asdfasd|*(KJ|KL97GDk;')
 _objs = ('', ' ', None, 'a' * 2048, 1244, b'\x22', {1: 'a', '2': {3, b'\x04'}})
@@ -73,6 +76,8 @@ def _temp_master_key(vault, master_key):
 
 
 class TGnuPGSpecBinary(unittest.TestCase):
+    ## Separate class for no classSetUp/ClassTearDown methods.
+
     def test_GPG_EXECUTABLE(self):
         from unittest.mock import patch
 
@@ -83,6 +88,108 @@ class TGnuPGSpecBinary(unittest.TestCase):
             cfg = trtc.get_config()
             cfg.GnuPGSpec.gnupgexe = 'gpg'
             crypto.GnuPGSpec(config=cfg).GPG
+#
+
+_clearsigned_msgs = [
+    # MSG,     VALID,     CLEARSIGNED
+    ('hi gpg', True, tw.dedent("""
+        -----BEGIN PGP SIGNED MESSAGE-----
+        Hash: SHA256
+
+        hi gpg
+        -----BEGIN PGP SIGNATURE-----
+        Version: GnuPG v2
+
+        iQEcBAEBCAAGBQJW3YK+AAoJEDOsPX8JK97lgTAH/2C2TF5dsVaEWqI5grhHnERK
+        kMkq9sHK5Gi3g8VbRB5gcaSM0xN3YmdzQlwp1kKdbQTffUwJk9U4ErQ9LT7RJNaH
+        e5Rr9w45nRiSjAyJME4858kWNv0vvRdloB58y/eRzcO5WfTsOQsnl471Lct6wSN1
+        gQHZcRQVW4p18rJ9kaeBr5C9H2vg5CRTfrwMKDRX+ntGj1HY/obl4Kb2IgWSLDcd
+        5uGImNIDu3gQ15ibh1bIwH8/ya8tg38JBNhlYdvt9/y24jgsKKO+iOHVLUMj7LO6
+        q1mI64ULC1SlW2KBKdGV0xDcq+YA3GoXhD5FDPS70cTQ+DBkx1lUa6xmZgBR0uE=
+        =ctnm
+        -----END PGP SIGNATURE-----
+    """)),
+    ('hi gpg', False, tw.dedent("""
+        -----BEGIN PGP SIGNED MESSAGE-----
+
+        hi gpg
+        -----BEGIN PGP SIGNATURE-----
+
+        BAG SIGnature but valid format
+        -----END PGP SIGNATURE-----""")),
+    ('', False, tw.dedent("""
+        -----BEGIN PGP SIGNED MESSAGE-----
+
+
+        -----BEGIN PGP SIGNATURE-----
+
+        BAG SIGnature but valid format
+        -----END PGP SIGNATURE-----
+    """)),
+    ('hi gpg\n', False, tw.dedent("""
+        Blah Blah
+
+        -----BEGIN PGP SIGNED MESSAGE-----
+        Hash: SHA256
+
+        hi gpg
+
+        -----BEGIN PGP SIGNATURE-----
+        Version: GnuPG v2
+
+        =ctnm
+        -----END PGP SIGNATURE-----""")),
+    ('hi gpg\r\nLL\n', False, tw.dedent("""
+        -----BEGIN PGP SIGNED MESSAGE-----
+
+        hi gpg\r
+        LL
+
+        -----BEGIN PGP SIGNATURE-----
+
+        =ctnm
+        -----END PGP SIGNATURE-----
+
+        Blqah Bklah
+    """)),
+    (None, False, tw.dedent("""
+        -----BEGIN PGP SIGNED MESSAGE-----
+        Hash: asfdf
+        Hash
+
+        hi gpg
+        -----BEGIN PGP SIGNATURE-----
+
+        =ctnm
+        -----END PGP SIGNATURE-----
+    """)),
+    (None, False, tw.dedent("""
+        -----BEGIN PGP SIGNED MESSAGE-----
+        Hash:
+
+        hi gpg
+        -----BEGIN PGP SIGNATURE-----
+
+        =ctnm
+        -----END PGP SIGNATURE-----
+    """)),
+    (None, False, tw.dedent("""
+        -----BEGIN PGP SIGNED MESSAGE-----
+
+        hi gpg
+        -----BEGIN PGP SIGNATURE-----
+
+        -----END PGP SIGNATURE-----
+    """)),
+    (None, False, tw.dedent("""
+        -----BEGIN PGP SIGNED MESSAGE-----
+
+        -----BEGIN PGP SIGNATURE-----
+
+        BAG SIGnature but valid format
+        -----END PGP SIGNATURE-----
+    """)),
+]
 
 
 @ddt.ddt
@@ -108,7 +215,18 @@ class TGnuPGSpec(unittest.TestCase):
         gpg_del_key(gpg_spec.GPG, gpg_spec.master_key)
         shutil.rmtree(gpg_spec.gnupghome)
 
-    def test_sign_verify(self):
+    @ddt.data(*_clearsigned_msgs)
+    def test_parse_clearsigned(self, case):
+        exp_msg, sig_valid, clearsigned = case
+        groups = crypto.split_clearsigned_signed(clearsigned)
+        if isinstance(exp_msg, str):
+            self.assertIsInstance(groups, dict)
+            self.assertEqual(groups['msg'], exp_msg)
+            self.assertIsNotNone(groups['sig'])
+        else:
+            self.assertIsNone(groups)
+
+    def test_clearsign_verify(self):
         msg = 'Hi there'
         gpg_spec = crypto.GnuPGSpec(config=self.cfg)
         signed = gpg_spec.clearsign_text(msg)

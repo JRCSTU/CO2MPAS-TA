@@ -11,11 +11,14 @@ PGP-dencrypt passwords so as to be stored in text-files.
 The general idea is to use a PGP key to securely store many passwords in configuration files.
 The code using these passwords must never store them as is, but use and immediately discard them.
 """
+
 from co2mpas.sampling import baseapp
+import io
 import os
 import re
 from typing import Text, Tuple, Union  # @UnusedImport
 
+import os.path as osp
 import traitlets as trt
 import traitlets.config as trtc
 
@@ -26,6 +29,23 @@ _pgp_regex = re.compile(r'^\s*-----[A-Z ]*PGP[A-Z ]*-----.+-----[A-Z ]*PGP[A-Z ]
 def is_pgp_encrypted(obj) -> bool:
     return bool(isinstance(obj, str) and _pgp_regex.match(obj))
 
+_PGP_CLEARSIG_REGEX = re.compile(
+    r"""
+        ^-----BEGIN\ PGP\ SIGNED\ MESSAGE-----\r?\n
+        (?:^\w+:\ [^\r\n]+?\r?\n)*
+        ^\r?\n
+        (?P<msg>^.*?)\r?\n
+        (?P<sig>^-----BEGIN\ PGP\ SIGNATURE-----\r?\n
+        (?:.*^Comment: Stamper Reference Id: (?P<stamper_id>\d+)\r?\n)?.+?
+        \r?\n^-----END\ PGP\ SIGNATURE-----$)
+    """,
+    re.DOTALL | re.VERBOSE | re.MULTILINE)
+
+
+def split_clearsigned_signed(text: str) -> (Text, Text):
+    ## See http://gnupg.10057.n7.nabble.com/splitting-up-an-inline-signed-OpenPGP-message-td48681.html#a48715
+    m = _PGP_CLEARSIG_REGEX.search(text)
+    return m and m.groupdict()
 
 class GnuPGSpec(baseapp.Spec):
     """
