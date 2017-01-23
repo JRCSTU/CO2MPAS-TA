@@ -488,7 +488,9 @@ class ProjectsDB(trtc.SingletonConfigurable, baseapp.Spec):
         help="""
         The path to the Git repository to store TA files (signed and exchanged).
         If relative, it joined against default config-dir: '{confdir}'
-        """.format(confdir=baseapp.default_config_dir())).tag(config=True)
+        """.format(confdir=baseapp.default_config_dir())
+    ).tag(config=True)
+
     reset_settings = trt.Bool(
         False,
         help="""
@@ -513,21 +515,18 @@ class ProjectsDB(trtc.SingletonConfigurable, baseapp.Spec):
         if self.__repo:
             self.__repo.git.clear_cache()
 
-    def _setup_repo(self, repo_path):
-        if self.__repo:
-            if self.__repo.working_dir == repo_path:
-                self.log.debug('Reusing repo %r...', repo_path)
-                return
-            else:
-                ## Clean up old repo,
-                #  or else... https://github.com/gitpython-developers/GitPython/issues/508
-                self.__repo.git.clear_cache()
-                ## Xmm, nai...
-                self._current_project = None
-
+    @property
+    def repopath_resolved(self):
+        """Used internally AND for printing configurations."""
+        repo_path = self.repo_path
         if not osp.isabs(repo_path):
             repo_path = osp.join(baseapp.default_config_dir(), repo_path)
         repo_path = pndlu.convpath(repo_path)
+
+        return repo_path
+
+    def _setup_repo(self):
+        repo_path = self.repopath_resolved
         pndlu.ensure_dir_exists(repo_path)
         try:
             self.log.debug('Opening repo %r...', repo_path)
@@ -545,12 +544,23 @@ class ProjectsDB(trtc.SingletonConfigurable, baseapp.Spec):
     @trt.observe('repo_path')
     def _repo_path_changed(self, change):
         self.log.debug('CHANGE repo %r-->%r...', change['old'], change['new'])
-        self._setup_repo(change['new'])
+        repo_path = change['new']
+        if self.__repo:
+            if self.__repo.working_dir == repo_path:
+                self.log.debug('Reusing repo %r...', repo_path)
+                return
+            else:
+                ## Clean up old repo,
+                #  or else... https://github.com/gitpython-developers/GitPython/issues/508
+                self.__repo.git.clear_cache()
+                ## Xmm, nai...
+                self._current_project = None
+            self.__repo = None
 
     @property
     def repo(self):
         if not self.__repo:
-            self._setup_repo(self.repo_path)
+            self._setup_repo()
         return self.__repo
 
     def _write_repo_configs(self):
