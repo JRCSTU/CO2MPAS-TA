@@ -499,6 +499,18 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         when the regular owner running the app has changed.
         """).tag(config=True)
 
+    sign_commits = trt.Bool(
+        False,
+        help="""Whether to PGP-sign all commits."""
+    ).tag(config=True)
+
+    @trt.observe('sign_commits')
+    def _rewrite_git_configs(self, change):
+        if self.__repo:
+            self.log.info("Resetting settings to enable signed-commits of repo(%s)...",
+                          self.__repo.git_dir)
+            self._write_repo_configs()
+
     ## Useless, see https://github.com/ipython/traitlets/issues/287
     # @trt.validate('repo_path')
     # def _normalize_path(self, proposal):
@@ -532,7 +544,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             self.log.debug('Opening repo %r...', repo_path)
             self.__repo = git.Repo(repo_path)
             if self.reset_settings:
-                self.log.info('Resetting to default settings of repo %r...',
+                self.log.info("Resetting to default settings of repo(%s)...",
                               self.__repo.git_dir)
                 self._write_repo_configs()
         except git.InvalidGitRepositoryError as ex:
@@ -576,6 +588,10 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
                 r"- %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- "
                 r"%an%C(reset)%C(bold yellow)%d%C(reset)' --all"),
         ]
+        if self.sign_commits:
+            # See also: https://help.github.com/articles/telling-git-about-your-gpg-key/
+            gconfigs.append('commit.gpgsign', True)
+
         with self.repo.config_writer() as cw:
             for key, val in gconfigs:
                 sec, prop = key.split('.')
