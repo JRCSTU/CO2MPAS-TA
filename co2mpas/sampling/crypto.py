@@ -82,6 +82,41 @@ def split_clearsigned(text: str) -> Dict:
 
         return groups
 
+
+def _import_key_from_config_tuple(
+        GPG,trust, import_kwds, fingerprint, issec, armor_text):
+    """
+    :param ktuple:
+        A 5-tuple (see :attr:`GnuPGSpec.keys_to_import`).
+    """
+    GPG.import_keys()
+
+
+def _import_keys_from_config(GPG, keys_to_import):
+    """
+    Ensure all Secret/Public keys in :attr:`keys_to_import` are loaded in the GnuPG keyring.
+
+    :param GPG:
+        A properly configured instance of :class:`gnupg.GPG` ffrom *python-gnupg* project.
+    :param keys_to_import:
+        A list of 5-tuples (see :attr:`GnuPGSpec.keys_to_import`).
+    """
+    pub_keyids_cfg = set(ktuple[2] for ktuple in keys_to_import if not ktuple[3])
+    sec_keyids_cfg = set(ktuple[2] for ktuple in keys_to_import if ktuple[3])
+
+    pub_keyids_ring = set(k['fingerprint'] for k in GPG.list_keys(secret=False))
+    sec_keyids_ring = set(k['fingerprint'] for k in GPG.list_keys(secret=True))
+
+    pub_keyids_load = pub_keyids_cfg - pub_keyids_ring
+    sec_keyids_load = sec_keyids_cfg - sec_keyids_ring
+
+    keyids_load = sec_keyids_load + pub_keyids_load
+
+    keys_load = [ktuple for ktuple in keys_to_import if ktuple[2] in keyids_load]
+    for key in keys_load:
+        _import_key_from_config_tuple(GPG, *key)
+
+
 class GnuPGSpec(baseapp.Spec):
     """
     Configurable parameters for instantiating a GnuPG instance
@@ -146,6 +181,22 @@ class GnuPGSpec(baseapp.Spec):
         """ % os.environ.get('GPGKEY')
     ).tag(config=True)
 
+    #: See :func:`_import_keys_from_config`.
+    keys_to_import = trt.List(
+        trt.Tuple(
+            trt.Int(help="trust level"),
+            trt.Dict(help="import kwds"),
+            trt.Unicode(None, allow_none=False, help="long(!) fingerpint"),
+            trt.Bool(None, allow_none=False, help="public(false)/secret(true)"),
+            trt.Unicode(None, allow_none=False, help="armored key"),
+        ),
+        None, allow_none=True,
+        help="""
+        Private/public keys to import from armored texts as a list of 5-tuples:
+            [(trust-level(int), import-kwds(dict), fingerprint(str), pub/priv(bool), armored-key(str)), ...]
+        """
+    ).tag(config=True)
+
     @trt.observe('gnupgexe', 'gnupghome', 'keyring', 'secret_keyring', 'options')
     def _remove_cached_GPG(self, change):
         self._GPG = None
@@ -200,6 +251,8 @@ class GnuPGSpec(baseapp.Spec):
                 options=self.options,
                 secret_keyring=self.secret_keyring)
             GPG.encoding = 'utf-8'
+
+            import_keys(GPG, self.keys_to_import)
 
         return GPG
 

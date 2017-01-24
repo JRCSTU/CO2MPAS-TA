@@ -34,7 +34,10 @@ myproj = osp.join(mydir, '..', '..')
 _texts = ('', ' ', 'a' * 2048, '123', 'asdfasd|*(KJ|KL97GDk;')
 _objs = ('', ' ', None, 'a' * 2048, 1244, b'\x22', {1: 'a', '2': {3, b'\x04'}})
 
-_ciphertexts = set()
+test_pgp_key = tw.dedent(
+    """
+    -----BEGIN PGP PRIVATE KEY BLOCK-----
+    Version: GnuPG v2
 
 
 # class TestDoctest(unittest.TestCase):
