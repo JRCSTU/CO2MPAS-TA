@@ -17,7 +17,6 @@ import io
 import re
 import smtplib
 import sys
-import tempfile
 from typing import (
     List, Sequence, Iterable, Text, Tuple, Dict, Callable)  # @UnusedImport
 
@@ -152,7 +151,6 @@ class TstampSender(TstampSpec):
         return smtplib.SMTP_SSL if self.ssl else smtplib.SMTP
 
     def send_timestamped_email(self, msg):
-        msg = self.clearsign_text(msg)
         msg = self._append_x_recipients(msg)
 
         self.log.info("Timestamping %d-char email from '%s' to %s-->%s",
@@ -200,25 +198,6 @@ class TstampReceiver(TstampSpec):
         num = int(binascii.b2a_hex(sig_bytes), 16)
 
         return num
-
-    def _verify_detached_armor(self, sig: str, data: str):
-        """Verify `sig` on the `data`."""
-    #def verify_file(self, file, data_filename=None):
-        #with tempfile.NamedTemporaryFile(mode='wt+',
-        #                encoding='latin-1') as sig_fp:
-        #sig_fp.write(sig)
-        #sig_fp.flush(); sig_fp.seek(0) ## paranoid seek(), Windows at least)
-        #sig_fn = sig_fp.name
-        with tempfile.TemporaryFile('wb+', prefix='dicesig_') as dicesig_file:
-            sig_fn = dicesig_file.name
-            self.log.debug('Wrote sig to temp file: %r', sig_fn)
-
-            args = ['--verify', gnupg.no_quote(sig_fn), '-']
-            result = self.result_map['verify'](self)
-            data_stream = io.BytesIO(data.encode(self.encoding))
-            self._handle_io(args, data_stream, result, binary=True)
-
-            return result
 
     def parse_tsamp_response(self, mail_text: Text) -> int:
         mbytes = mail_text.encode('utf-8')
