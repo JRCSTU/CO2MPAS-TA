@@ -920,7 +920,7 @@ class ProjectsDB(trtc.SingletonConfigurable, baseapp.Spec):
 class _PrjCmd(baseapp.Cmd):
     @property
     def projects_db(self):
-        p = ProjectsDB.instance()
+        p = ProjectsDB.instance(config=self.config)
         p.config = self.config
         return p
 

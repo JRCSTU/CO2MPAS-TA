@@ -102,7 +102,7 @@ class ReportCmd(baseapp.Cmd):
 
     @property
     def projects_db(self):
-        p = project.ProjectsDB.instance()
+        p = project.ProjectsDB.instance(config=self.config)
         p.config = self.config
         return p
 

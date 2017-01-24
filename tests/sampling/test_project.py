@@ -88,7 +88,7 @@ class TProjectsDBStory(unittest.TestCase):
         self.assertIsNone(res)
         self.assertIsNone(cmd.projects_db._current_project)
 
-        pdb = project.ProjectsDB.instance()
+        pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
 
         res = pdb.proj_list(verbose=1)
@@ -105,7 +105,7 @@ class TProjectsDBStory(unittest.TestCase):
         self.assertIsNotNone(res)
         self.assertIsNone(cmd.projects_db._current_project)
 
-        pdb = project.ProjectsDB.instance()
+        pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
         self._check_infos_shapes(pdb)
         self.assertIsNone(pdb._current_project)
@@ -133,7 +133,7 @@ class TProjectsDBStory(unittest.TestCase):
         res = cmd.run()
         self.assertEqual(res, ['* foo'])
 
-        pdb = project.ProjectsDB.instance()
+        pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
 
         res = pdb.proj_list(verbose=1)
@@ -151,7 +151,7 @@ class TProjectsDBStory(unittest.TestCase):
         res = cmd.run()
         self.assertRegex(res, 'msg.project += foo')
 
-        pdb = project.ProjectsDB.instance()
+        pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
         self._check_infos_shapes(pdb)
 
@@ -191,7 +191,7 @@ class TProjectsDBStory(unittest.TestCase):
         res = cmd.run()
         self.assertSequenceEqual(res, ['* bar', '  foo'])
 
-        pdb = project.ProjectsDB.instance()
+        pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
 
         res = pdb.proj_list(verbose=1)
@@ -209,7 +209,7 @@ class TProjectsDBStory(unittest.TestCase):
         res = cmd.run()
         self.assertRegex(res, 'msg.project += bar')
 
-        pdb = project.ProjectsDB.instance()
+        pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
         self._check_infos_shapes(pdb)
 
@@ -218,7 +218,7 @@ class TProjectsDBStory(unittest.TestCase):
         res = cmd.run('foo')
         self.assertRegex(res, 'msg.project += bar')
 
-        pdb = project.ProjectsDB.instance()
+        pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
         self._check_infos_shapes(pdb, 'foo')
 
@@ -234,7 +234,7 @@ class TProjectsDBStory(unittest.TestCase):
         res = cmd.run()
         self.assertEqual(str(res), 'Project(%s: empty)' % pname)
 
-        pdb = project.ProjectsDB.instance()
+        pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
         self._check_infos_shapes(pdb, pname)
 
@@ -284,7 +284,7 @@ class TStraightStory(unittest.TestCase):
         self.assertEqual(res.state, 'empty')
 
     def test_2a_import_io(self):
-        pdb = project.ProjectsDB.instance()
+        pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
         p = pdb.current_project()
 
@@ -296,7 +296,7 @@ class TStraightStory(unittest.TestCase):
         self.assertIs(p, p2)
 
     def test_3_list_iofiles(self):
-        pdb = project.ProjectsDB.instance()
+        pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
         p = pdb.current_project()
 
@@ -308,7 +308,7 @@ class TStraightStory(unittest.TestCase):
 
     def test_4_tag(self):
         ## FIXME: Del tmp-repo denied with old pythingit.
-        pdb = project.ProjectsDB.instance()
+        pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
         p = pdb.current_project()
 
@@ -320,7 +320,7 @@ class TStraightStory(unittest.TestCase):
         self.assertIs(p, p2)
 
     def test_5_send_email(self):
-        pdb = project.ProjectsDB.instance()
+        pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
         p = pdb.current_project()
 
@@ -332,7 +332,7 @@ class TStraightStory(unittest.TestCase):
         self.assertIs(p, p2)
 
     def test_6_receive_email(self):
-        pdb = project.ProjectsDB.instance()
+        pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
         p = pdb.current_project()
 
@@ -344,7 +344,7 @@ class TStraightStory(unittest.TestCase):
         self.assertIs(p, p2)
 
     def test_7_add_nedc_files(self):
-        pdb = project.ProjectsDB.instance()
+        pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
         p = pdb.current_project()
 
@@ -377,7 +377,7 @@ class TInitCmd(unittest.TestCase):
         cmd = project.ProjectCmd.InitCmd(config=self._config)
         cmd.run(proj)
 
-        pdb = project.ProjectsDB.instance()
+        pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
         p = pdb.current_project()
         self.assertEqual(len(list(pdb.repo.head.commit.tree.traverse())), 1, list(pdb.repo.head.commit.tree.traverse()))
