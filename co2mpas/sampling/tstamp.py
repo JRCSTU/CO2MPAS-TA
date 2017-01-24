@@ -28,7 +28,7 @@ from . import CmdException, baseapp, dice, crypto, project
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 
 
-class TStampSpec(dice.DiceSpec):
+class TstampSpec(dice.DiceSpec, crypto.GnuPGSpec):
     """Common parameters and methods for both SMTP(sending emails) & IMAP(receiving emails)."""
 
     user_pswd = crypto.Cipher(
@@ -71,8 +71,33 @@ class TStampSpec(dice.DiceSpec):
                                  % (proposal['owner'].name, proposal['trait'].name))
         return value
 
+    def choose_server_class(self):
+        raise NotImplemented()
 
-class TstampSender(TStampSpec):
+    def make_server(self):
+        host = self.host
+        port = self.port
+        srv_kwds = self.mail_kwds.copy()
+        if port is not None:
+            srv_kwds['port'] = port
+        srv_cls = self.choose_server_class()
+
+        self.log.info("Login %s: %s@%s(%s)...", srv_cls.__name__,
+                      self.user_name, host, srv_kwds or '')
+        return srv_cls(host, **srv_kwds)
+
+    def check_login(self):
+        ok = False
+        with self.make_server() as srv:
+            try:
+                srv.login(self.user_name, TstampSender.user_pswd.decrypted(self))
+                ok = True
+            finally:
+                self.log.info("Login %s: %s@%s ok? %s", type(srv).__name__,
+                              self.user_name, srv.sock, ok)
+
+
+class TstampSender(TstampSpec):
     """SMTP & timestamp parameters and methods for sending dice emails."""
 
     login = trt.CaselessStrEnum(
@@ -103,9 +128,6 @@ class TstampSender(TStampSpec):
         """
     ).tag(config=True)
 
-    def _sign_msg_body(self, text):
-        return text
-
     def _append_x_recipients(self, msg):
         x_recs = '\n'.join('X-Stamper-To: %s' % rec for rec in self.x_recipients)
         msg = "%s\n\n%s" % (x_recs, msg)
@@ -122,30 +144,25 @@ class TstampSender(TStampSpec):
 
         return mail
 
-    def send_timestamped_email(self, msg):
-        msg = self._sign_msg_body(msg)
+    def choose_server_class(self):
+        return smtplib.SMTP_SSL if self.ssl else smtplib.SMTP
 
+    def send_timestamped_email(self, msg):
+        msg = self.clearsign_text(msg)
         msg = self._append_x_recipients(msg)
 
-        host = self.host
-        port = self.port
-        srv_kwds = self.mail_kwds.copy()
-        if port is not None:
-            srv_kwds['port'] = port
-
-        self.log.info("Timestamping %d-char email from %r through %r%s to %s-->%s",
+        self.log.info("Timestamping %d-char email from '%s' to %s-->%s",
                       len(msg),
                       self.from_address,
-                      host, srv_kwds or '',
                       self.timestamping_addresses,
                       self.x_recipients)
         mail = self._prepare_mail(msg)
 
-        with (smtplib.SMTP_SSL(host, **srv_kwds)
-              if self.ssl else smtplib.SMTP(host, **srv_kwds)) as srv:
+        with self.make_server() as srv:
             srv.login(self.user_name, TstampSender.user_pswd.decrypted(self))
 
             srv.send_message(mail)
+
         return mail
 
 
@@ -159,7 +176,7 @@ _PGP_SIG_REGEX = re.compile(
     re.DOTALL)
 
 
-class TstampReceiver(TStampSpec):
+class TstampReceiver(TstampSpec):
     """IMAP & timestamp parameters and methods for receiving & parsing dice-report emails."""
 
     def _pgp_split(self, sig_msg_bytes: bytes) -> Tuple[bytes, bytes, bytes]:
@@ -211,16 +228,16 @@ class TstampReceiver(TStampSpec):
 
         return sig.decode(), num, mod100, decision
 
-    # see https://pymotw.com/2/imaplib/ for IMAP example.
-    def receive_timestamped_email(self, host, login_cb, ssl=False, **srv_kwds):
-        prompt = 'IMAP(%r)' % host
+    def choose_server_class(self):
+        return imaplib.IMAP4_SSL if self.ssl else imaplib.IMAP4
 
-        with (imaplib.IMAP4_SSL(host, **srv_kwds)
-              if ssl else imaplib.IMAP4(host, **srv_kwds)) as srv:
-            repl = srv.login(self.user_name, self.user_pswd)
+    # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
+    def receive_timestamped_email(self):
+        with self.make_server() as srv:
+            repl = srv.login(self.user_name, TstampReceiver.user_pswd.decrypted(self))
             """GMAIL-2FAuth: imaplib.error: b'[ALERT] Application-specific password required:
             https://support.google.com/accounts/answer/185833 (Failure)'"""
-            self.log.debug("Sent %s-user/pswd, server replied: %s", prompt, repl)
+            self.log.debug("Sent IMAP user/pswd, server replied: %s", repl)
 
             resp = srv.list()
             print(resp[0])
@@ -280,14 +297,6 @@ class TstampCmd(baseapp.Cmd):
             help="""If not null, read mail body from the specified file."""
         ).tag(config=True)
 
-        __sender = None
-
-        @property
-        def sender(self):
-            if not self.__sender:
-                self.__sender = TstampSender(config=self.config)
-            return self.__sender
-
         def __init__(self, **kwds):
             with self.hold_trait_notifications():
                 dkwds = {
@@ -308,6 +317,7 @@ class TstampCmd(baseapp.Cmd):
 
             file = self.file
 
+            sender = TstampSender(config=self.config)
             if not file:
                 self.log.warning("Time-stamping STDIN; paste message verbatim!")
                 mail_text = sys.stdin.read()
@@ -315,7 +325,8 @@ class TstampCmd(baseapp.Cmd):
                 self.log.info('Time-stamping files %r...', file)
                 with io.open(file, 'rt') as fin:
                     mail_text = fin.read()
-            self.sender.send_timestamped_email(mail_text)
+
+            sender.send_timestamped_email(mail_text)
 
     class ParseCmd(_Subcmd):
         """
@@ -325,13 +336,30 @@ class TstampCmd(baseapp.Cmd):
             cat <mail> | co2dice tstamp parse
         """
 
-        __recver = None
+        def run(self, *args):
+            nargs = len(args)
+            if nargs > 0:
+                raise CmdException(
+                    "Cmd '%s' takes no arguments, received %d: %r!"
+                    % (self.name, len(args), args))
 
-        @property
-        def recver(self) -> TstampReceiver:
-            if not self.__recver:
-                self.__recver = TstampReceiver(config=self.config)
-            return self.__recver
+            rcver = TstampReceiver(config=self.config)
+            mail_text = sys.stdin.read()
+            decision_tuple = rcver.parse_tsamp_response(mail_text)
+
+            return ('SIG: %s\nNUM: %s\nMOD100: %s\nDECISION: %s' %
+                    decision_tuple)
+
+    class LoginCmd(_Subcmd):
+        """Attempts to login into SMTP server. """
+
+        def __init__(self, **kwds):
+            with self.hold_trait_notifications():
+                dkwds = {
+                    'conf_classes': [TstampSender, TstampReceiver],
+                }
+                dkwds.update(kwds)
+                super().__init__(**dkwds)
 
         def run(self, *args):
             nargs = len(args)
@@ -340,39 +368,15 @@ class TstampCmd(baseapp.Cmd):
                     "Cmd '%s' takes no arguments, received %d: %r!"
                     % (self.name, len(args), args))
 
-            rcver = self.recver
-            mail_text = sys.stdin.read()
-            decision_tuple = rcver.parse_tsamp_response(mail_text)
+            sender = TstampSender(config=self.config)
+            sender.check_login()
 
-            return ('SIG: %s\nNUM: %s\nMOD100: %s\nDECISION: %s' %
-                    decision_tuple)
+            rcver = TstampReceiver(config=self.config)
+            rcver.check_login()
 
     def __init__(self, **kwds):
-        with self.hold_trait_notifications():
-            dkwds = {
-                'conf_classes': [project.ProjectsDB, TstampReceiver],
-                'subcommands': baseapp.build_sub_cmds(*all_subcmds),
-            }
-            dkwds.update(kwds)
-            super().__init__(**dkwds)
-
-all_subcmds = (TstampCmd.SendCmd, TstampCmd.ParseCmd)
+        kwds.setdefault('subcommands', baseapp.build_sub_cmds(*all_subcmds))
+        super().__init__(**kwds)
 
 
-if __name__ == '__main__':
-    from traitlets.config import get_config
-    # Invoked from IDEs, so enable debug-logging.
-    c = get_config()
-    c.Application.log_level = 0
-    #c.Spec.log_level='ERROR'
-
-    argv = None
-    ## DEBUG AID ARGS, remember to delete them once developed.
-    #argv = ''.split()
-    #argv = '--debug'.split()
-
-    #TstampCmd(config=c).run('--text ')
-    from . import dice
-    baseapp.run_cmd(baseapp.chain_cmds(
-        [dice.MainCmd, TstampCmd],
-        config=c))
+all_subcmds = (TstampCmd.SendCmd, TstampCmd.ParseCmd, TstampCmd.LoginCmd,)

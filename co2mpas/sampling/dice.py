@@ -200,7 +200,7 @@ if __name__ == '__main__':
     argv = '--help-all'.split()
     #argv = 'config init'.split()
     #argv = 'config init --help-all'.split()
-    #argv = 'config init help'.split()
+    #argv = 'config paths'.split()
     #argv = '--debug --log-level=0 --Mail.port=6 --Mail.user="ggg" abc def'.split()
     #argv = 'project --help-all'.split()
     #argv = '--debug'.split()
@@ -221,6 +221,7 @@ if __name__ == '__main__':
     #argv = 'config paths'.split()
 
     #argv = 'tstamp send'.split()
+    argv = 'tstamp login'.split()
     # Invoked from IDEs, so enable debug-logging.
     main(argv, log_level=logging.DEBUG)
     #main()
