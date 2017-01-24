@@ -464,7 +464,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         event.kwargs['action'] = is_dice and 'Run NEDC now!' or 'Spared...'
 
 
-class ProjectsDB(trtc.SingletonConfigurable, baseapp.Spec):
+class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
     """A git-based repository storing the TA projects (containing signed-files and sampling-responses).
 
     It handles checkouts but delegates index modifications to `Project` spec.
