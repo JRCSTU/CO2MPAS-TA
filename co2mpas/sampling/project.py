@@ -554,7 +554,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             self._write_repo_configs()
 
     @trt.observe('repo_path')
-    def _repo_path_changed(self, change):
+    def _cleanup_old_repo(self, change):
         self.log.debug('CHANGE repo %r-->%r...', change['old'], change['new'])
         repo_path = change['new']
         if self.__repo:

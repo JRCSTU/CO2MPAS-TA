@@ -147,7 +147,7 @@ class GnuPGSpec(baseapp.Spec):
     ).tag(config=True)
 
     @trt.observe('gnupgexe', 'gnupghome', 'keyring', 'secret_keyring', 'options')
-    def _gpg_args_changed(self, change):
+    def _remove_cached_GPG(self, change):
         self._GPG = None
 
     def _guess_master_key(self) -> Text:

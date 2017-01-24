@@ -229,8 +229,7 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin):
                          help="Set the log level by value or name.").tag(config=True)
 
     @trt.observe('log_level')
-    def _log_level_changed(self, change):
-        """Adjust the log level when log_level is set."""
+    def _change_level_on_my_logger(self, change):
         new = change['new']
         if isinstance(new, str):
             new = getattr(logging, new)
