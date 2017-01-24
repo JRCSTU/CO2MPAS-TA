@@ -10,8 +10,8 @@
 from . import baseapp, CmdException
 from typing import Sequence, Text, List, Tuple    # @UnusedImport
 
+import os
 import os.path as osp
-import pandalone.utils as pndlu
 import traitlets as trt
 
 
@@ -90,19 +90,32 @@ class ConfigCmd(baseapp.Cmd):
                 self.write_default_config(fpath, self.force)
 
     class PathsCmd(baseapp.Cmd):
-        """List search-paths and actual config-files loaded in descending order."""
+        """List resolved various paths and actual config-files loaded (descending order)."""
         def run(self, *args):
             if len(args) > 0:
                 raise CmdException('Cmd %r takes no arguments, received %d: %r!'
                                    % (self.name, len(args), args))
 
+            from . import project
+            from . import crypto
+
             sep = osp.sep
 
             def format_tuple(path, files: List[Text]):
                 endpath = sep if path[-1] != sep else ''
-                return '%s%s: %s' % (path, endpath, files or '')
+                return '  +--%s%s: %s' % (path, endpath, files or '')
 
-            return (format_tuple(p, f) for p, f in self.loaded_config_files)
+            yield "CONFIG:"
+            yield from (format_tuple(p, f) for p, f in self.loaded_config_files)
+
+            yield "PROJECTS:"
+            repo = project.ProjectsDB.instance(config=self.config)
+            yield "  +--repopath: %s" % repo.repopath_resolved
+
+            yield "GnuPG:"
+            gpg = crypto.GnuPGSpec(config=self.config)
+            yield "  +--gnupgexe: %s" % gpg.gnupgexe_resolved
+            yield "  +--gnupghome: %s" % gpg.gnupghome_resolved
 
     class ShowCmd(baseapp.Cmd):
         """
@@ -119,6 +132,8 @@ class ConfigCmd(baseapp.Cmd):
         ).tag(config=True)
 
         def __init__(self, **kwds):
+                import pandalone.utils as pndlu
+
                 kwds.setdefault('cmd_aliases', {
                     ('s', 'source'): ('ShowCmd.source',
                                       pndlu.first_line(ConfigCmd.ShowCmd.source.help))
