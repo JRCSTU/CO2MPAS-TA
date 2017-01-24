@@ -11,6 +11,7 @@ from co2mpas.sampling import crypto
 import contextlib
 import io
 import logging
+from pprint import pprint as pp
 import re
 import shutil
 import tempfile
@@ -215,6 +216,56 @@ _clearsigned_msgs = [
 ]
 
 
+_signed_tag = tw.dedent("""\
+        object 76b8bf7312770a488eaeab4424d080dea3272435
+        type commit
+        tag test_tag
+        tagger Kostis Anagnostopoulos <ankostis@gmail.com> 1485272439 +0100
+
+        - Is bytes (utf-8 encodable);
+        - all lines end with LF, and any trailing whitespace truncated;
+        - any line can start with dashes;
+        - any empty lines at the bottom are truncated,
+        - apart from the last LF, which IS part of the msg.
+        -----BEGIN PGP SIGNATURE-----
+        Version: GnuPG v2
+
+        iJwEAAEIAAYFAliHdXwACgkQ/77EoYwAhAMxDgQAhlqOjb0bHGxLcyYIpFg9kEmp
+        4poL5eA7cdmq3eU1jXTfb5UXJV6BnP+DUsJ4TG+7KoUimgli0djG7ZisRvNYBWGD
+        PNO2X5LqNx7tzgj/fQT5CzWcWMXfjUd337pfoj3K3kDroCNl7oQl/bSIR46z9l/3
+        JS/kbngOONtzIkPbQvU=
+        =bEkN
+        -----END PGP SIGNATURE-----
+    """).encode('utf-8')
+
+
+_splitted_signed_tag = [
+    tw.dedent("""\
+        object 76b8bf7312770a488eaeab4424d080dea3272435
+        type commit
+        tag test_tag
+        tagger Kostis Anagnostopoulos <ankostis@gmail.com> 1485272439 +0100
+
+        - Is bytes (utf-8 encodable);
+        - all lines end with LF, and any trailing whitespace truncated;
+        - any line can start with dashes;
+        - any empty lines at the bottom are truncated,
+        - apart from the last LF, which IS part of the msg.
+        """).encode('utf-8'),
+    tw.dedent("""\
+        -----BEGIN PGP SIGNATURE-----
+        Version: GnuPG v2
+
+        iJwEAAEIAAYFAliHdXwACgkQ/77EoYwAhAMxDgQAhlqOjb0bHGxLcyYIpFg9kEmp
+        4poL5eA7cdmq3eU1jXTfb5UXJV6BnP+DUsJ4TG+7KoUimgli0djG7ZisRvNYBWGD
+        PNO2X5LqNx7tzgj/fQT5CzWcWMXfjUd337pfoj3K3kDroCNl7oQl/bSIR46z9l/3
+        JS/kbngOONtzIkPbQvU=
+        =bEkN
+        -----END PGP SIGNATURE-----
+        """).encode('utf-8')
+]
+
+
 @ddt.ddt
 class TGnuPGSpec(unittest.TestCase):
 
@@ -262,6 +313,34 @@ class TGnuPGSpec(unittest.TestCase):
             self.assertIsNotNone(groups['sig'])
         else:
             self.assertIsNone(groups)
+
+    def test_parse_git_tags(self):
+        import git
+
+        repo = git.Repo(myproj)
+
+        tagref = repo.tag('refs/tags/test_tag')
+        tag = tagref.tag
+        self.assertEqual(tag.hexsha, '0abf209dbf4c30370c1e2c7625f75a2aa0f0c9db')
+        self.assertEqual(tagref.commit.hexsha, '76b8bf7312770a488eaeab4424d080dea3272435')
+
+        bytes_sink = io.BytesIO()
+        tag.stream_data(bytes_sink)
+        tag_bytes = bytes_sink.getvalue()
+        self.assertEqual(tag_bytes, _signed_tag)
+
+        res = crypto.split_git_signed(tag_bytes)
+        self.assertEqual(len(res), 2)
+        msg, sig = res  # encode(sys.getdefaultencoding())
+        print(msg,)
+        print(_splitted_signed_tag[0])
+        self.assertEqual(msg, _splitted_signed_tag[0])
+        self.assertEqual(sig, _splitted_signed_tag[1])
+
+        gpg_spec = crypto.GnuPGSpec(config=self.cfg)
+        ver = gpg_spec.verify_detached(sig, msg)
+        pp(vars(ver))
+        self.assertTrue(ver)
 
     def test_clearsign_verify(self):
         msg = 'Hi there'

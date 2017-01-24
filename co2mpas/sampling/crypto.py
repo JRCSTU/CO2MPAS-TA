@@ -60,7 +60,30 @@ def split_clearsigned(text: str) -> Dict:
     """
     Parses text RFC 4880 PGP-signed message with ``gpg --clearsing`` command.
 
-    : return:
+    Clear-signed messages are like that::
+
+        -----BEGIN PGP SIGNED MESSAGE-----
+        Hash: MD5                                ## Optional
+
+        - --The\r\n
+        Message\r\n
+        body\r\n
+        \r\n
+        \r\n                                    ## This last newline chars ARE NOT part of `msg`.
+        -----BEGIN PGP SIGNATURE-----
+        Header: value
+
+        InvalidSig/gdgdfgdggdf2dgdfg9g8g97gfggdfg6sdf3qw
+        2dgdfg9g8g97gfggdfg6sdfipowqoerifkl&9
+        pi23o5890tuao=
+        -----END PGP SIGNATURE-----
+
+    Specifically for the message note that:
+      - All message lines, except the last one, end with CRLF;
+      - any trailing whitespace from all lines are removed;
+      - any line starting with `'-'` is prepended with `'- '`.
+
+    :return:
         a dict with keys:
         - `armor`: the whole armored text, plaintext + sig included.
         - `msg`: the plaintext de-dashified, rfc4880 clear-sign-normalized
@@ -81,6 +104,60 @@ def split_clearsigned(text: str) -> Dict:
         groups['msg'] = msg
 
         return groups
+
+
+_pgp_signature_banner = b'-----BEGIN PGP SIGNATURE-----'
+
+
+def split_git_signed(tag_content: bytes) -> (bytes, bytes):
+    """
+    Split PGP-signed Git objects (tags & commits) into plaintext & armor signature.
+
+    Git-signed descriptions are bytes like that::
+
+        object 76b8bf7312770a488eaeab4424d080dea3272435
+        type commit
+        tag test_tag
+        tagger Kostis Anagnostopoulos <ankostis@gmail.com> 1485272439 +0100
+
+        - Is bytes (utf-8 encodable);
+        - all lines end with LF, and any trailing whitespace truncated;
+        - any line can start with dashes;
+        - any empty lines at the bottom are truncated,
+        - apart from the last LF, which IS part of the msg.
+        -----BEGIN PGP SIGNATURE-----
+        Version: GnuPG v2
+
+        iJwEAAEIAAYFAliHdXwACgkQ/77EoYwAhAMxDgQAhlqOjb0bHGxLcyYIpFg9kEmp
+        4poL5eA7cdmq3eU1jXTfb5UXJV6BnP+DUsJ4TG+7KoUimgli0djG7ZisRvNYBWGD
+        PNO2X5LqNx7tzgj/fQT5CzWcWMXfjUd337pfoj3K3kDroCNl7oQl/bSIR46z9l/3
+        JS/kbngOONtzIkPbQvU=
+        =bEkN
+        -----END PGP SIGNATURE-----
+
+    Differences of Git-detach (vs Clearsign):
+      - bytes vs string;
+      - no msg-banner (only sig-banner), msg start from the very top;
+      - LF instead of CRLF;
+      - last msg newline preserved;
+      - no de-dashification.
+
+    In both formats, anything above or below armor is ignored (including newlines).
+
+
+    :param tag_content:
+            As fetched from ``git cat-file tag v1.2.1``, using LF and utf-8 encodable.
+    :return:
+            A 2-tuple(msg, sig), None if no sig found.
+
+    See: https://lists.gnupg.org/pipermail/gnupg-users/2014-August/050780.html
+    """
+    nl = b'\n'
+    lines = tag_content.split(nl)
+    for i, l in enumerate(lines):
+        if l.startswith(_pgp_signature_banner):
+            return nl.join(lines[:i]) + nl, nl.join(lines[i:])
+
 
 class GnuPGSpec(baseapp.Spec):
     """
@@ -332,10 +409,7 @@ class GnuPGSpec(baseapp.Spec):
 #     ## NO, very simple, do it directly in client code.
 #     def verify_clearsigned(self, text: Text) -> bool:
 #         """Verifies a clear-signed textual-message."""
-#         try:
-#             verified = self.GPG.verify(text)
-#         except Exception as ex:
-#             raise ValueError("Verification failed due to: %s" % ex)
+#        verified = self.GPG.verify(text)
 #
 #         return verified.valid
 #             signature_id = IWLTrxduQKe1P7qGAUauyyNSpJ4
@@ -366,43 +440,26 @@ class GnuPGSpec(baseapp.Spec):
 #             pubkey_fingerprint = C0DE766CF516CB3CE2DDE616D720C846A2891883
 #             creation_date = 2017-01-22
 
-#    def verify_detached_armor(self, sig: str, data: str):
-#    #def verify_file(self, file, data_filename=None):
-#        """Verify `sig` on the `data`."""
-#        logger = gnupg.logger
-#        #with tempfile.NamedTemporaryFile(mode='wt+',
-#        #                encoding='latin-1') as sig_fp:
-#        #sig_fp.write(sig)
-#        #sig_fp.flush(); sig_fp.seek(0) ## paranoid seek(), Windows at least)
-#        #sig_fn = sig_fp.name
-#        sig_fn = osp.join(tempfile.gettempdir(), 'sig.sig')
-#        logger.debug('Wrote sig to temp file: %r', sig_fn)
-#
-#        args = ['--verify', gnupg.no_quote(sig_fn), '-']
-#        result = self.result_map['verify'](self)
-#        data_stream = io.BytesIO(data.encode(self.encoding))
-#        self._handle_io(args, data_stream, result, binary=True)
-#        return result
-#
-#
-#    def verify_detached(self, sig: bytes, msg: bytes):
-#        with tempfile.NamedTemporaryFile('wb+', prefix='co2dice_') as sig_fp:
-#            with tempfile.NamedTemporaryFile('wb+', prefix='co2dice_') as msg_fp:
-#                sig_fp.write(sig)
-#                sig_fp.flush()
-#                sig_fp.seek(0) ## paranoid seek(), Windows at least)
-#
-#                msg_fp.write(msg)
-#                msg_fp.flush();
-#                msg_fp.seek(0)
-#
-#                sig_fn = gnupg.no_quote(sig_fp.name)
-#                msg_fn = gnupg.no_quote(msg_fp.name)
-#                args = ['--verify', sig_fn, msg_fn]
-#                result = self.result_map['verify'](self)
-#                p = self._open_subprocess(args)
-#                self._collect_output(p, result, stdin=p.stdin)
-#                return result
+    def verify_detached(self, sig: bytes, data: bytes):
+        """Verify `sig` on the `data`."""
+        import gnupg
+        import tempfile
+
+        assert isinstance(data, bytes), data
+        assert isinstance(sig, bytes), sig
+
+        with tempfile.TemporaryDirectory() as tdir:
+            sig_fn = osp.join(tdir, 'sig')
+            with io.open(sig_fn, 'wb+') as sig_fp:
+                sig_fp.write(sig)
+
+            GPG = self.GPG
+            args = ['--verify', gnupg.no_quote(sig_fn), '-']
+            result = GPG.result_map['verify'](GPG)
+            data_stream = io.BytesIO(data)
+            GPG._handle_io(args, data_stream, result, binary=True)
+
+        return result
 
 
 class VaultSpec(trtc.SingletonConfigurable, GnuPGSpec):
