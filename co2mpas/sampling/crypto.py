@@ -306,6 +306,7 @@ class GnuPGSpec(baseapp.Spec):
             result = result.stderr
             return result if ' error' in result else 'ok'
 
+        ## TODO: Fail if not imported keys/trust!
         keys_res = GPG.import_keys(keys_armor)
         if trust_text:
             trust_res = import_trust(trust_text)

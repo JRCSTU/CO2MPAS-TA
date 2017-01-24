@@ -59,8 +59,6 @@ test_pgp_key = tw.dedent(
     -----END PGP PRIVATE KEY BLOCK-----
     """)
 test_pgp_trust = tw.dedent("""\
-    # List of assigned trustvalues, created 01/24/17 18:16:11 Eur
-    # (Use "gpg --import-ownertrust" to restore them)
     8922372A2983334307D7DA90FFBEC4A18C008403:4:
     """)
 
