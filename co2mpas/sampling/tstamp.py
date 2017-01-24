@@ -32,7 +32,6 @@ class TstampSpec(dice.DiceSpec, crypto.GnuPGSpec):
     """Common parameters and methods for both SMTP(sending emails) & IMAP(receiving emails)."""
 
     user_pswd = crypto.Cipher(
-        allow_none=True,
         help="""
         The SMTP/IMAP server's password matching `user_name` param.
 
@@ -42,7 +41,7 @@ class TstampSpec(dice.DiceSpec, crypto.GnuPGSpec):
     ).tag(config=True)
 
     host = trt.Unicode(
-        None, _none=False,
+        allow_none=False,
         help="""The SMTP/IMAP server, e.g. 'smtp.gmail.com'."""
     ).tag(config=True)
 
@@ -51,7 +50,7 @@ class TstampSpec(dice.DiceSpec, crypto.GnuPGSpec):
         allow_none=True,
         help="""
             The SMTP/IMAP server's port, usually 587/465 for SSL, 25 otherwise.
-            If undefined, defaults to 0 and does its best.
+            If undefined, does its best.
         """).tag(config=True)
 
     ssl = trt.Bool(
@@ -121,7 +120,7 @@ class TstampSender(TstampSpec):
     ).tag(config=True)
 
     subject = trt.Unicode(
-        None, allow_none=False,
+        '[dice test]', allow_none=False,
         help="""The subject-line to use for email sent to timestamp service. """
     ).tag(config=True)
 

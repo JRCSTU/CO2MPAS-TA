@@ -810,7 +810,7 @@ class Cmd(trtc.Application, PeristentMixin):
         """
         Check plaintext :class:`crypto.Cipher` config-values and encrypt them if *persistent*, scream if *static*.
 
-        To speed-up app start-app, run in 2 "passes" (the 2nd pass is optional):
+        COMPLICATE: to speed-up app start-app, run in 2 "passes" (the 2nd pass is optional):
 
         - Pass-1 checks configs only for current Cmd's :attr:`classes`, and
           if any iregularities are detected, then laucnh
@@ -821,17 +821,29 @@ class Cmd(trtc.Application, PeristentMixin):
         class NextPass(Exception):  # used to break the loop.
             pass
 
+        ## Input records: since `persist_config` might be None,
+        #  conditional create them
+        #
+        configs = zip((c for c in (static_config, persist_config) if c),
+                      (False, True),
+                      ('static', 'persist'))
+        ## Vault lazily created if needed,
+        #  configed with user-input...
+        #
+        vault = None  # lazily created
+        vault_config = static_config.copy()
+        if persist_config:
+            vault_config.merge(persist_config)
+        vault_config.merge(self.cli_config)
+        ## Outputs
+        #
         ntraits_encrypted = 0   # Counts encrypt-operations of *persist* traits.
         screams = []            # Collect non-encrypted *static* traits.
-        configs = [c for c in (static_config, persist_config) if c]  # `persist_config` might be None.
-        vault = None  # lazily created
 
         def scan_config(config_classes, break_on_irregularities):
             nonlocal vault, ntraits_encrypted
 
-            for config, encrypt_plain, config_source in zip(configs,
-                                                            (False, True),
-                                                            ('static', 'persist')):
+            for config, encrypt_plain, config_source in configs:
                 for clsname, traits in config.items():
                     cls = config_classes.get(clsname)
                     if not cls:
@@ -860,7 +872,7 @@ class Cmd(trtc.Application, PeristentMixin):
                         key = '%s.%s' % (clsname, tname)
                         if encrypt_plain:
                             if not vault:
-                                vault = crypto.get_vault(self.config)
+                                vault = crypto.get_vault(vault_config)
                             self.log.info("Auto-encrypting cipher-trait(%r)...", key)
                             config[clsname][tname] = vault.encryptobj(key, tvalue)
                             ntraits_encrypted += 1
