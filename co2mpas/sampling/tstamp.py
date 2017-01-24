@@ -33,7 +33,12 @@ class TstampSpec(dice.DiceSpec, crypto.GnuPGSpec):
 
     user_pswd = crypto.Cipher(
         allow_none=True,
-        help="""The SMTP/IMAP server's password matching `user_name` param."""
+        help="""
+        The SMTP/IMAP server's password matching `user_name` param.
+
+        For *GMail* with 2-factor authentication, see:
+            https://support.google.com/accounts/answer/185833
+        """
     ).tag(config=True)
 
     host = trt.Unicode(
@@ -116,14 +121,14 @@ class TstampSender(TstampSpec):
     ).tag(config=True)
 
     subject = trt.Unicode(
-        '[dice test]',
+        None, allow_none=False,
         help="""The subject-line to use for email sent to timestamp service. """
     ).tag(config=True)
 
     from_address = trt.Unicode(
         None,
-        allow_none=False,
-        help="""Your email-address to use as `From:` for email sent to timestamp service.
+        allow_none=True,
+        help="""Your email-address to use as `From:` for timestamp email, or none to use `user_email`.
         Specify you correct address, or else you will never receive the sampling flag!
         """
     ).tag(config=True)
@@ -139,7 +144,7 @@ class TstampSender(TstampSpec):
 
         mail = MIMEText(msg, 'plain')
         mail['Subject'] = self.subject
-        mail['From'] = self.from_address
+        mail['From'] = self.from_address or self.user_email
         mail['To'] = ', '.join(self.timestamping_addresses)
 
         return mail
