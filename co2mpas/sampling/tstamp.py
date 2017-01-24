@@ -294,9 +294,8 @@ class TstampCmd(baseapp.Cmd):
         def run(self, *args):
             nargs = len(args)
             if nargs > 0:
-                raise CmdException(
-                    "Cmd '%s' takes no arguments, received %d: %r!"
-                    % (self.name, len(args), args))
+                raise CmdException("Cmd '%s' takes no arguments, received %d: %r!"
+                                   % (self.name, len(args), args))
 
             file = self.file
 
@@ -322,9 +321,8 @@ class TstampCmd(baseapp.Cmd):
         def run(self, *args):
             nargs = len(args)
             if nargs > 0:
-                raise CmdException(
-                    "Cmd '%s' takes no arguments, received %d: %r!"
-                    % (self.name, len(args), args))
+                raise CmdException("Cmd '%s' takes no arguments, received %d: %r!"
+                                   % (self.name, len(args), args))
 
             rcver = TstampReceiver(config=self.config)
             mail_text = sys.stdin.read()
@@ -338,18 +336,14 @@ class TstampCmd(baseapp.Cmd):
 
         def __init__(self, **kwds):
             with self.hold_trait_notifications():
-                dkwds = {
-                    'conf_classes': [TstampSender, TstampReceiver],
-                }
-                dkwds.update(kwds)
-                super().__init__(**dkwds)
+                kwds.setdefault('conf_classes', [TstampSender, TstampReceiver])
+                super().__init__(**kwds)
 
         def run(self, *args):
             nargs = len(args)
             if nargs > 0:
-                raise CmdException(
-                    "Cmd '%s' takes no arguments, received %d: %r!"
-                    % (self.name, len(args), args))
+                raise CmdException("Cmd '%s' takes no arguments, received %d: %r!"
+                                   % (self.name, len(args), args))
 
             sender = TstampSender(config=self.config)
             sender.check_login()
