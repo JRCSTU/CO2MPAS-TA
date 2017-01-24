@@ -211,11 +211,44 @@ class PeristentMixin:
             self.observe(self._ptrait_observed, ptraits)
 
 
+class HasCiphersMixin:
+    """Mixin for :class:`trtc.Configurable` that may have :class:`crypto.Cipher` traits"""
+
+    def decipher(self, cipher_trait: Text):
+        """
+        Decrypts a cipher trait of some instance.
+
+        :param obj:
+            The instance holding the trait-values.
+        :return:
+            The unencrypted object, or None if trait-value was None.
+
+        .. Tip::
+            Invoke it on the class, not on the trait: ``ObjClass.ctrait.decrypt(obj)``.
+        """
+        from . import crypto
+
+        assert isinstance(cipher_trait, str), "%s is not a trait-name!" % cipher_trait
+
+        value = getattr(self, cipher_trait, None)
+        if value is not None:
+            cls_name = type(self).__name__
+            pswdid = '%s.%s' % (cls_name, cipher_trait)
+            if not crypto.is_pgp_encrypted(value):
+                self.log.warning("Found non-encrypted param %r!", pswdid)
+            else:
+                vault = crypto.get_vault(self.config)
+                vault.log.debug("Decrypting cipher-trait(%r)...", pswdid)
+                value = vault.decryptobj(pswdid, value)
+
+        return value
+
+
 ###################
 ##     Specs     ##
 ###################
 
-class Spec(trtc.LoggingConfigurable, PeristentMixin):
+class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
     """Common properties for all configurables."""
     ## See module documentation for developer's guidelines.
 
@@ -405,7 +438,7 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
         return list(new_paths)
 
 
-class Cmd(trtc.Application, PeristentMixin):
+class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
     """Common machinery for all (sub-)commands. """
     ## INFO: Do not use it directly; inherit it.
     # See module documentation for developer's guidelines.

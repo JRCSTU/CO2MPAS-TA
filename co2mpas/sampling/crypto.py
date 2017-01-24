@@ -473,8 +473,10 @@ def get_vault(config) -> VaultSpec:
 
 class Cipher(trt.TraitType):
     """A trait that auto-dencrypts its value using PGP (can be anything that is Dill-ed)."""
+    ## See also :class:`baseapp.HasCiphersMixin`
 
     info_text = 'any value (will be PGP-encrypted)'
+    allow_none = True
 
     def validate(self, obj, value):
         if value is None or is_pgp_encrypted(value):
@@ -486,30 +488,4 @@ class Cipher(trt.TraitType):
             vault.log.debug("Auto-encrypting cipher-trait(%r)...", pswdid)
             value = vault.encryptobj(pswdid, value)
 
-        return value
-
-    def decrypted(self, obj: trt.HasTraits):
-        """
-        Decrypts a cipher trait of some instance.
-
-        :param obj:
-            The instance holding the trait-values.
-        :return:
-            The unencrypted object, or None if trait-value was None.
-
-        .. Tip::
-            Invoke it on the class, not on the trait: ``ObjClass.ctrait.decrypt(obj)``.
-        """
-        assert isinstance(obj, trt.HasTraits), "%r not a HasTraits!" % obj
-
-        value = self.get(obj, type(obj))
-        if value is not None:
-            cls_name = type(obj).__name__
-            pswdid = '%s.%s' % (cls_name, self.name)
-            if not is_pgp_encrypted(value):
-                self.log.warning("Found non-encrypted param %r!", pswdid)
-            else:
-                vault = get_vault(obj.config)
-                vault.log.debug("Decrypting cipher-trait(%r)...", pswdid)
-                value = vault.decryptobj(pswdid, value)
         return value

@@ -94,7 +94,7 @@ class TstampSpec(dice.DiceSpec, crypto.GnuPGSpec):
         ok = False
         with self.make_server() as srv:
             try:
-                srv.login(self.user_name, TstampSender.user_pswd.decrypted(self))
+                srv.login(self.user_name, self.decipher('user_pswd'))
                 ok = True
             finally:
                 self.log.info("Login %s: %s@%s ok? %s", type(srv).__name__,
@@ -163,7 +163,7 @@ class TstampSender(TstampSpec):
         mail = self._prepare_mail(msg)
 
         with self.make_server() as srv:
-            srv.login(self.user_name, TstampSender.user_pswd.decrypted(self))
+            srv.login(self.user_name, self.decipher('user_pswd'))
 
             srv.send_message(mail)
 
@@ -238,7 +238,7 @@ class TstampReceiver(TstampSpec):
     # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
     def receive_timestamped_email(self):
         with self.make_server() as srv:
-            repl = srv.login(self.user_name, TstampReceiver.user_pswd.decrypted(self))
+            repl = srv.login(self.user_name, self.decipher('user_pswd'))
             """GMAIL-2FAuth: imaplib.error: b'[ALERT] Application-specific password required:
             https://support.google.com/accounts/answer/185833 (Failure)'"""
             self.log.debug("Sent IMAP user/pswd, server replied: %s", repl)
