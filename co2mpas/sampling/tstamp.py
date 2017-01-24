@@ -42,6 +42,7 @@ class TStampSpec(dice.DiceSpec):
     ).tag(config=True)
 
     port = trt.Int(
+        None,
         allow_none=True,
         help="""
             The SMTP/IMAP server's port, usually 587/465 for SSL, 25 otherwise.
