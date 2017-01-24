@@ -111,7 +111,7 @@ _clearsigned_msgs = [
         BAG SIGnature but valid format
         -----END PGP SIGNATURE-----
     """)),
-    ('One\n-TWO\r\n--abc\nTHREE', tw.dedent("""
+    ('One\r\n-TWO\r\n--abc\r\nTHREE', tw.dedent("""
         Blah Blah
 
         -----BEGIN PGP SIGNED MESSAGE-----
@@ -127,7 +127,7 @@ _clearsigned_msgs = [
         =ctnm
         -----END PGP SIGNATURE-----
     """)),
-    ('hi gpg\r\nLL\n', tw.dedent("""
+    ('hi gpg\r\nLL\r\n', tw.dedent("""
         -----BEGIN PGP SIGNED MESSAGE-----
 
         hi gpg\r

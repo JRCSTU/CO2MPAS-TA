@@ -30,26 +30,30 @@ def is_pgp_encrypted(obj) -> bool:
     return bool(isinstance(obj, str) and _pgp_regex.match(obj))
 
 
-_PGP_CLEARSIG_REGEX = re.compile(
+_pgp_clearsig_regex = re.compile(
     r"""
-(?P<armor>
-    ^-----BEGIN\ PGP\ SIGNED\ MESSAGE-----\r?\n
-    (?:^Hash:\ [^\r\n]+\r?\n)*
-    ^\r?\n
-    (?P<msg>^.*?)\r?\n
-    (?P<sig>^-----BEGIN\ PGP\ SIGNATURE-----\r?\n
-    (?:
-      .*
-      (?:^Comment:\ Stamper\ Reference\ Id:\ (?P<stamper>\d+)\r?\n)?
-      .*
-    )?
-    ^\r?\n
-    .+                                            ## Almost...
-    ^-----END\ PGP\ SIGNATURE-----(?:\r?\n)?)
-)
+    (?P<armor>
+        ^-{5}BEGIN\ PGP\ SIGNED\ MESSAGE-{5}\r?\n
+        (?:^Hash:\ [^\r\n]+\r?\n)*                   ## 'Hash:'-header(s)
+        ^\r?\n                                       ## blank-line
+        (?P<msg>^.*?)
+        \r?\n                                        ## NOT part of plaintext!
+        (?P<sig>
+            ^-{5}BEGIN\ PGP\ SIGNATURE-{5}\r?\n
+            (?:
+              .*
+              (?:^Comment:\ Stamper\ Reference\ Id:\ (?P<stamper>\d+)\r?\n)?
+              .*
+            )?
+            ^\r?\n                                   ## blank-line
+            [^-]+                                    ## sig-body
+            ^-{5}END\ PGP\ SIGNATURE-{5}(?:\r?\n)?
+        )
+    )
     """,
     re.DOTALL | re.VERBOSE | re.MULTILINE)
-_PGP_DEDASHIFY_REGEX = re.compile(r'^- ', re.MULTILINE)
+_pgp_clearsig_dedashify_regex = re.compile(r'^- ', re.MULTILINE)
+_pgp_clearsig_eol_canonical_regex = re.compile(r'[ \t\r]*\n')
 
 
 def split_clearsigned(text: str) -> Dict:
@@ -58,8 +62,9 @@ def split_clearsigned(text: str) -> Dict:
 
     : return:
         a dict with keys:
-        - `armor`: the whole clearsigned text (sig included).
-        - `msg`: the plaintext
+        - `armor`: the whole armored text, plaintext + sig included.
+        - `msg`: the plaintext de-dashified, rfc4880 clear-sign-normalized
+          CRLF everywhere apart without any eol at the very end.
         - `sig`: the armored signature
         - `stamper`: the id in case it was signed by stamper
 
@@ -67,10 +72,13 @@ def split_clearsigned(text: str) -> Dict:
         - https://tools.ietf.org/html/rfc4880#page-59
         - http://gnupg.10057.n7.nabble.com/splitting-up-an-inline-signed-OpenPGP-message-td48681.html#a48715
     """
-    m = _PGP_CLEARSIG_REGEX.search(text)
+    m = _pgp_clearsig_regex.search(text)
     if m:
         groups = m.groupdict()
-        groups['msg'] = _PGP_DEDASHIFY_REGEX.sub('', groups['msg'])
+        msg = groups['msg']
+        msg = _pgp_clearsig_dedashify_regex.sub('', msg)
+        msg = _pgp_clearsig_eol_canonical_regex.sub('\r\n', msg)
+        groups['msg'] = msg
 
         return groups
 
