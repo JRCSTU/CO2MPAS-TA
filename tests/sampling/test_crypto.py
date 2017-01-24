@@ -34,8 +34,34 @@ myproj = osp.join(mydir, '..', '..')
 _texts = ('', ' ', 'a' * 2048, '123', 'asdfasd|*(KJ|KL97GDk;')
 _objs = ('', ' ', None, 'a' * 2048, 1244, b'\x22', {1: 'a', '2': {3, b'\x04'}})
 
-_ciphertexts = set()
+test_pgp_key = tw.dedent(
+    """
+    -----BEGIN PGP PRIVATE KEY BLOCK-----
+    Version: GnuPG v2
 
+    lQHYBFbirf0BBADdjkrRSJ+ua9RvlzZsrpr4tAvj6+rK9eRwuue+jaIu5JucIvV5
+    nq5AlsQGACTy88qsnYcbqqro15AURdZ3fS2uy4yGvcNzMNP0w6Jh+DPZM9ubZXXQ
+    xsejMltjynHe3gJNeBy5D7xGOURv1sAaHoCxYw4zC/SjkbnNqpvMZNmvTwARAQAB
+    AAP/UyULsdepyUjBK/GY5JdwJAZZcfr+nZVC2gViY9H+O8/iD+nUqoQgy69ouAHE
+    3AIenMHvSrQ1OHVxJhKBZk0tX3lUZ60W8yBY5GydWu0ylHeTXzU2tgCqMDi36TKE
+    w/p1jx5nkJ6qwfXtMTWLsaWOllRaGOpOv+pR3yEkRmTQe20CAOvbwxax33bFDXJM
+    WSL0GEdTXDM/M5XdoFoV+M9wnx4eJj4yPnL0SkpWgkq38FtwrINdxg46OfOw7hml
+    hlKXz80CAPB52jgRTImm2VAENdMa0O+yu5YDmRyyuyJWyoYdNQlbOrzraQjiJTfQ
+    zsv9bfvpxeFS+PRXyAenwRV3qQryR4sCALAvfd068PZkg4K3+TP5F45fFBTfnHqR
+    eCeUX/uU4CYzh+LcM5E89IQ45O+FIwUgyvVx8kyUe79vwlzbJXnf/1mjlrQxU2Ft
+    cGxpbmcgVGVzdCA8c2FtcGxpbmdAY28ybXBhcy5qcmMuZWMuZXVyb3BhLmV1Poi5
+    BBMBCAAjBQJW4q39AhsvBwsJCAcDAgEGFQgCCQoLBBYCAwECHgECF4AACgkQ/77E
+    oYwAhAN16QQAp79/wkUQNqXZTWhY5ji/jazisK4ggaJcWIvpsrbiwL1wJ5ZbbY/9
+    gHXslyDWhyKK/KbgAdAurAXgekRDLTXxR1c+Q0hm0phrmyhIENRbwF04T2S4JExQ
+    PiKw+6RfuxfTV22f6sRSkwuK4MP9veZ/0u6Mid6kRHJFo+mVus8XuZA=
+    =clrj
+    -----END PGP PRIVATE KEY BLOCK-----
+    """)
+test_pgp_trust = tw.dedent("""\
+    # List of assigned trustvalues, created 01/24/17 18:16:11 Eur
+    # (Use "gpg --import-ownertrust" to restore them)
+    8922372A2983334307D7DA90FFBEC4A18C008403:4:
+    """)
 
 # class TestDoctest(unittest.TestCase):
 #     def runTest(self):
@@ -196,6 +222,8 @@ class TGnuPGSpec(unittest.TestCase):
     def setUpClass(cls):
         cls.cfg = cfg = trtc.get_config()
         cfg.GnuPGSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        cfg.GnuPGSpec.keys_to_import = test_pgp_key
+        cfg.GnuPGSpec.trust_to_import = test_pgp_trust
         gpg_spec = crypto.GnuPGSpec(config=cfg)
 
         fingerprint = gpg_gen_key(
@@ -264,6 +292,9 @@ class TGnuPGSpec(unittest.TestCase):
         self.assertIsInstance(groups, dict)
         self.assertEqual(groups['msg'], msg)
         self.assertIsNotNone(groups['sig'])
+
+
+_ciphertexts = set()
 
 
 @ddt.ddt

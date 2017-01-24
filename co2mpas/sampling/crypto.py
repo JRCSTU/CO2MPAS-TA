@@ -146,7 +146,25 @@ class GnuPGSpec(baseapp.Spec):
         """ % os.environ.get('GPGKEY')
     ).tag(config=True)
 
-    @trt.observe('gnupgexe', 'gnupghome', 'keyring', 'secret_keyring', 'options')
+    keys_to_import = trt.Unicode(
+        None, allow_none=True,
+        help="""
+        The armored text of all keys (pub/sec) to import.
+
+        Use and concatenate the out of these commands:
+            gpg --export-secret-keys <key-id-1> ..
+            gpg --export-keys <key-id-1> ..
+        """
+    ).tag(config=True)
+
+    #:
+    trust_to_import = trt.Unicode(
+        None, allow_none=True,
+        help="The text of ``gpg --export-owner-trust`` to import."
+    ).tag(config=True)
+
+    @trt.observe('gnupgexe', 'gnupghome', 'keyring', 'secret_keyring', 'options',
+                 'keys_to_import', 'trust_to_import')
     def _remove_cached_GPG(self, change):
         self._GPG = None
 
@@ -185,6 +203,37 @@ class GnuPGSpec(baseapp.Spec):
                 gnupghome = '%s/.gnupg' % os.environ.get('HOME', '~')
         return gnupghome
 
+    def _import_keys_and_trust(self, GPG, keys_armor, trust_text):
+        """
+        Load in GPG-keyring from :attr:`GnuPGSpec.keys_to_import` and :attr:`GnuPGSpec.trust_to_import`.
+
+        :param GPG:
+            Given to avoid inf recursion.
+        """
+        import gnupg
+
+        log = self.log
+
+        def import_trust(trust_text):
+            ## Remember to submit to *gnupg* project.
+            class NoResult(object):
+                def handle_status(self, key, value):
+                    pass
+
+            log.debug('--import-owner input: %r', trust_text[:256])
+            data = gnupg._make_binary_stream(trust_text, GPG.encoding)
+            result = NoResult()
+            GPG._handle_io(['--import-ownertrust'], data, result, binary=True)
+            data.close()
+
+            result = result.stderr
+            return result if ' error' in result else 'ok'
+
+        keys_res = GPG.import_keys(keys_armor)
+        if trust_text:
+            trust_res = import_trust(trust_text)
+        log.info('Import: Keys: %s, Trust: %s', keys_res.summary(), trust_res)
+
     @property
     def GPG(self) -> 'gnupg.GPG':
         import gnupg
@@ -200,6 +249,9 @@ class GnuPGSpec(baseapp.Spec):
                 options=self.options,
                 secret_keyring=self.secret_keyring)
             GPG.encoding = 'utf-8'
+
+            if self.keys_to_import:
+                self._import_keys_and_trust(GPG, self.keys_to_import, self.trust_to_import)
 
         return GPG
 
