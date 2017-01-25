@@ -10,6 +10,7 @@ from collections import (
 from collections import namedtuple
 import imaplib
 import io
+import re
 import smtplib
 import sys
 from typing import (
@@ -169,10 +170,17 @@ class TstampSender(TstampSpec):
         return mail
 
 
+_stamper_regex = re.compile(r"Comment: Stamper Reference Id: (\d+)")
+
 #DiceResponse = namedtuple('DiceResponse',
 #                          '')
 class TstampReceiver(TstampSpec):
     """IMAP & timestamp parameters and methods for receiving & parsing dice-report emails."""
+
+    def _capture_stamper_id(self, ts_heads: Text) -> int:
+        m = _stamper_regex.search(ts_heads)
+        if m:
+            return int(m.group(1))
 
     def _pgp_sig2int(self, sig: bytes) -> int:
         import base64
@@ -191,7 +199,8 @@ class TstampReceiver(TstampSpec):
             raise ValueError("Cannot verify timestamp-reponse signature due to: %s" % ts_ver.status)
 
         csig = crypto.split_clearsigned(mail_text)
-        if not csig.stamper:
+        stamper_id = self._capture_stamper_id(csig.sigheads)
+        if not stamper_id:
             self.log.error("Timestamp-response had no *stamper-id*: %s\n%s",
                            pformat(csig), pformat(vars(ts_ver)))
             raise ValueError("Timestamp-response had no *stamper-id*: %s" % csig.sig)
@@ -209,7 +218,7 @@ class TstampReceiver(TstampSpec):
             'tstamp': pformat(vars(ts_ver)),
             'tstamp_sig': csig.sig,
             'tstamp_sig_date': ts_ver.creation_date,
-            'stamper_id': csig.stamper,
+            'stamper_id': stamper_id,
             'tag': pformat(vars(tag_ver)),
             'tag_keyid': tag_ver.key_id,
             'tag_sig_date': ts_ver.creation_date,

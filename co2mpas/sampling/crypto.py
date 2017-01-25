@@ -39,25 +39,20 @@ _pgp_clearsig_regex = re.compile(
         ^\r?\n                                       ## blank-line
         (?P<msg>^.*?)
         \r?\n                                        ## NOT part of plaintext!
-        (?P<sig>
+        (?:
             ^-{5}BEGIN\ PGP\ SIGNATURE-{5}\r?\n
-            (?:
-              .*
-              (?:^Comment:\ Stamper\ Reference\ Id:\ (?P<stamper>\d+)\r?\n)?
-              .*
-            )?
+            (?P<sigheads>.*?)
             ^\r?\n                                   ## blank-line
-            [^-]+                                    ## sig-body
+            (?P<sig>[^-]+)
             ^-{5}END\ PGP\ SIGNATURE-{5}(?:\r?\n)?
         )
-    )
-    """,
+    )    """,
     re.DOTALL | re.VERBOSE | re.MULTILINE)
 _pgp_clearsig_dedashify_regex = re.compile(r'^- ', re.MULTILINE)
 _pgp_clearsig_eol_canonical_regex = re.compile(r'[ \t\r]*\n')
 
 
-Clearsigned = namedtuple('Clearsigned', 'armor msg sig stamper')
+Clearsigned = namedtuple('Clearsigned', 'armor msg sig sigheads')
 
 
 def split_clearsigned(text: str) -> Dict:
