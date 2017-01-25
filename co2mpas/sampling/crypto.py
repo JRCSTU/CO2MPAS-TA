@@ -202,9 +202,10 @@ class GnuPGSpec(baseapp.Spec):
         help="""The file-name of alternative secret keyring file to use, or TODO: list of such keyrings.."""
     ).tag(config=True)
 
-    options = trt.List(
+    gnupgoptions = trt.List(
         trt.Unicode(None, allow_none=False),
-        None, allow_none=True,
+        default_value=['--allow-weak-digest-algos'],  # Timestamp's algos use MD5!
+        allow_none=True,
         help="""A list of additional cmd-line options to pass to the GPG binary."""
     ).tag(config=True)
 
@@ -330,7 +331,7 @@ class GnuPGSpec(baseapp.Spec):
                 verbose=self.verbose,
                 use_agent=True,
                 keyring=self.keyring,
-                options=self.options,
+                options=self.gnupgoptions,
                 secret_keyring=self.secret_keyring)
             GPG.encoding = 'utf-8'
 
