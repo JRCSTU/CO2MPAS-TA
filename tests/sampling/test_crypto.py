@@ -294,7 +294,7 @@ class TGnuPGSpec(unittest.TestCase):
     def test_parse_clearsigned(self, case):
         exp_msg, clearsigned = case
 
-        csig = crypto.split_clearsigned(clearsigned)
+        csig = crypto.pgp_split_clearsigned(clearsigned)
         if isinstance(exp_msg, str):
             self.assertIsInstance(csig, tuple)
             self.assertEqual(len(csig), 4)
@@ -306,7 +306,7 @@ class TGnuPGSpec(unittest.TestCase):
         ## Check with \r\n at the end.
         #
         clearsigned = re.sub('$\n^', '\r\n', clearsigned, re.MULTILINE)
-        csig = crypto.split_clearsigned(clearsigned)
+        csig = crypto.pgp_split_clearsigned(clearsigned)
         if isinstance(exp_msg, str):
             self.assertIsInstance(csig, tuple)
             self.assertEqual(len(csig), 4)
@@ -330,7 +330,7 @@ class TGnuPGSpec(unittest.TestCase):
         tag_bytes = bytes_sink.getvalue()
         self.assertEqual(tag_bytes, _signed_tag)
 
-        res = crypto.split_git_signed(tag_bytes)
+        res = crypto.pgp_split_sig(tag_bytes)
         self.assertEqual(len(res), 2)
         msg, sig = res  # encode(sys.getdefaultencoding())
         print(msg,)
@@ -368,7 +368,7 @@ class TGnuPGSpec(unittest.TestCase):
 
         ## Check parsing.
         #
-        csig = crypto.split_clearsigned(signed2)
+        csig = crypto.pgp_split_clearsigned(signed2)
         self.assertIsInstance(csig, tuple)
         self.assertEqual(csig.msg, msg)
         self.assertIsNotNone(csig.sig)

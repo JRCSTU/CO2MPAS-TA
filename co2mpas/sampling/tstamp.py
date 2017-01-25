@@ -211,7 +211,7 @@ class TstampReceiver(TstampSpec):
             self.log.error("Cannot verify timestamp-response's signature due to: %s", pformat(vars(ts_ver)))
             raise ValueError("Cannot verify timestamp-reponse signature due to: %s" % ts_ver.status)
 
-        csig = crypto.split_clearsigned(mail_text)
+        csig = crypto.pgp_split_clearsigned(mail_text)
         stamper_id, tag = self._capture_stamper_msg_and_id(csig.msg, csig.sigheads)
         if not stamper_id:
             self.log.error("Timestamp-response had no *stamper-id*: %s\n%s",

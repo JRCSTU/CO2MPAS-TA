@@ -48,16 +48,28 @@ _pgp_clearsig_regex = re.compile(
         )
     )    """,
     re.DOTALL | re.VERBOSE | re.MULTILINE)
-_pgp_clearsig_dedashify_regex = re.compile(r'^- ', re.MULTILINE)
-_pgp_clearsig_eol_canonical_regex = re.compile(r'[ \t\r]*\n')
-_git_detachsig_strip_top_empty_lines_regexb = re.compile(br'^\s*\n?')
-_git_detachsig_canonical_regexb = re.compile(br'\s*$|[ \t\r]*\n')
+
+_pgp_clearsig_dedashify_regex = re.compile(
+    r'^- ', re.MULTILINE)
+
+_pgp_clearsig_eol_canonical_regex = re.compile(
+    r'[ \t\r]*\n')
+
+#: The `'gpgsig '` optional prefix works for signed Git-commits.
+_pgp_signature_banner_regex = re.compile(
+    br'^(?:gpgsig )?-----BEGIN PGP SIGNATURE-----', re.MULTILINE)
+
+_git_detachsig_strip_top_empty_lines_regexb = re.compile(
+    br'^\s*\n?')
+
+_git_detachsig_canonical_regexb = re.compile(
+    br'\s*$|[ \t\r]*\n')
 
 
-Clearsigned = namedtuple('Clearsigned', 'armor msg sig sigheads')
+CSigParts = namedtuple('CSigParts', 'armor msg sig sigheads')
 
 
-def split_clearsigned(text: str) -> Dict:
+def pgp_split_clearsigned(text: str) -> Dict:
     """
     Parses text RFC 4880 PGP-signed message with ``gpg --clearsing`` command.
 
@@ -104,19 +116,15 @@ def split_clearsigned(text: str) -> Dict:
         msg = _pgp_clearsig_eol_canonical_regex.sub('\r\n', msg)
         groups['msg'] = msg
 
-        return Clearsigned(**groups)
+        return CSigParts(**groups)
 
 
-#: The `'gpgsig '` optional prefix works for signed Git-commits.
-_pgp_signature_banner_regex = re.compile(br'^(?:gpgsig )?-----BEGIN PGP SIGNATURE-----',
-                                         re.MULTILINE)
-
-
-def split_git_signed(git_content: bytes) -> (bytes, bytes):
+def pgp_split_sig(git_content: bytes) -> (bytes, bytes):
     """
-    Split PGP-signed Git objects (tags & commits) into plaintext & armor signature.
+    Split any PGP-signed text in 2 parts: top-part (armored or not), armored-sig.
 
-    Git-signed descriptions are bytes like that::
+    Git objects (tags & commits) are structured like this, but in bytes,
+    like that::
 
         object 76b8bf7312770a488eaeab4424d080dea3272435
         type commit
@@ -480,7 +488,7 @@ class GnuPGSpec(baseapp.Spec):
         return result
 
     def verify_git_signed(self, git_bytes: bytes):
-        msg, sig = split_git_signed(git_bytes)
+        msg, sig = pgp_split_sig(git_bytes)
         msg = _git_detachsig_canonical_regexb.sub(b'\n', msg)
         msg = _git_detachsig_strip_top_empty_lines_regexb.sub(b'', msg)
         return self.verify_detached(sig, msg)
