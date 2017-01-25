@@ -473,6 +473,10 @@ class GnuPGSpec(baseapp.Spec):
 
         return result
 
+    def verify_git_signed(self, git_bytes: bytes):
+        msg, sig = split_git_signed(git_bytes)
+        return self.verify_detached(sig, msg)
+
 
 class VaultSpec(trtc.SingletonConfigurable, GnuPGSpec):
     """A store of 3rdp passwords and othe secret objects in textual format."""
