@@ -170,17 +170,26 @@ class TstampSender(TstampSpec):
         return mail
 
 
-_stamper_regex = re.compile(r"Comment: Stamper Reference Id: (\d+)")
+_stamper_id_regex = re.compile(r"Comment: Stamper Reference Id: (\d+)")
+_stamper_banner_regex = re.compile(r"^#{56}\r?\n(?:^#[^\n]*\n)+^#{56}\r?\n\r?\n\r?\n(.*)",
+                                   re.MULTILINE | re.DOTALL)
+
 
 #DiceResponse = namedtuple('DiceResponse',
 #                          '')
 class TstampReceiver(TstampSpec):
     """IMAP & timestamp parameters and methods for receiving & parsing dice-report emails."""
 
-    def _capture_stamper_id(self, ts_heads: Text) -> int:
-        m = _stamper_regex.search(ts_heads)
+    def _capture_stamper_msg_and_id(self, ts_msg: Text, ts_heads: Text) -> int:
+        stamper_id = msg = None
+        m = _stamper_id_regex.search(ts_heads)
         if m:
-            return int(m.group(1))
+            stamper_id = int(m.group(1))
+        m = _stamper_banner_regex.search(ts_msg)
+        if m:
+            msg = m.group(1)
+
+        return stamper_id, msg
 
     def _pgp_sig2int(self, sig_id: str) -> int:
         import base64
@@ -202,14 +211,15 @@ class TstampReceiver(TstampSpec):
             raise ValueError("Cannot verify timestamp-reponse signature due to: %s" % ts_ver.status)
 
         csig = crypto.split_clearsigned(mail_text)
-        stamper_id = self._capture_stamper_id(csig.sigheads)
+        stamper_id, tag = self._capture_stamper_msg_and_id(csig.msg, csig.sigheads)
         if not stamper_id:
             self.log.error("Timestamp-response had no *stamper-id*: %s\n%s",
                            pformat(csig), pformat(vars(ts_ver)))
             raise ValueError("Timestamp-response had no *stamper-id*: %s" % csig.sig)
 
         # Verify inner tag.
-        tag_ver = self.verify_git_signed(csig.msg.encode('utf-8'))
+        if tag:
+            tag_ver = self.verify_git_signed(tag.encode('utf-8'))
 
         num = self._pgp_sig2int(ts_ver.signature_id)
         dice100 = num % 100

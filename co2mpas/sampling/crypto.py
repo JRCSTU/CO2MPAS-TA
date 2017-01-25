@@ -50,6 +50,7 @@ _pgp_clearsig_regex = re.compile(
     re.DOTALL | re.VERBOSE | re.MULTILINE)
 _pgp_clearsig_dedashify_regex = re.compile(r'^- ', re.MULTILINE)
 _pgp_clearsig_eol_canonical_regex = re.compile(r'[ \t\r]*\n')
+_pgp_clearsig_eol_canonical_regexb = re.compile(br'[ \t\r]*\n')
 
 
 Clearsigned = namedtuple('Clearsigned', 'armor msg sig sigheads')
@@ -470,6 +471,7 @@ class GnuPGSpec(baseapp.Spec):
 
     def verify_git_signed(self, git_bytes: bytes):
         msg, sig = split_git_signed(git_bytes)
+        msg = _pgp_clearsig_eol_canonical_regexb.sub(b'\n', msg)
         return self.verify_detached(sig, msg)
 
 
