@@ -223,12 +223,14 @@ class GnuPGSpec(baseapp.Spec):
         """ % os.environ.get('GPGKEY')
     ).tag(config=True)
 
-    keys_to_import = trt.Unicode(
-        None, allow_none=True,
+    keys_to_import = trt.List(
+        trt.Unicode(
+            None, allow_none=True,
+        ),
         help="""
-        The armored text of all keys (pub/sec) to import.
+        Armored text of keys (pub/sec) to import.
 
-        Use and concatenate the out of these commands:
+        Use and one of these commands:
             gpg --export-secret-keys <key-id-1> ..
             gpg --export-keys <key-id-1> ..
         """
@@ -280,7 +282,7 @@ class GnuPGSpec(baseapp.Spec):
                 gnupghome = '%s/.gnupg' % os.environ.get('HOME', '~')
         return gnupghome
 
-    def _import_keys_and_trust(self, GPG, keys_armor, trust_text):
+    def _import_keys_and_trust(self, GPG, key_blocks, trust_text):
         """
         Load in GPG-keyring from :attr:`GnuPGSpec.keys_to_import` and :attr:`GnuPGSpec.trust_to_import`.
 
@@ -307,10 +309,14 @@ class GnuPGSpec(baseapp.Spec):
             return result if ' error' in result else 'ok'
 
         ## TODO: Fail if not imported keys/trust!
-        keys_res = GPG.import_keys(keys_armor)
+        keys_res = []
+        for armor_key in key_blocks:
+            keys_res.append(GPG.import_keys(armor_key))
         if trust_text:
             trust_res = import_trust(trust_text)
-        log.info('Import: Keys: %s, Trust: %s', keys_res.summary(), trust_res)
+
+        key_summaries = [k.summary() for k in keys_res]
+        log.info('Import: Keys: %s, Trust: %s', key_summaries, trust_res)
 
     @property
     def GPG(self) -> 'gnupg.GPG':
