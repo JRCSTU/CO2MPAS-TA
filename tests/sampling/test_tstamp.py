@@ -14,6 +14,8 @@ import shutil
 import tempfile
 import unittest
 
+import ddt
+
 import os.path as osp
 import textwrap as tw
 import traitlets.config as trtc
@@ -127,7 +129,8 @@ test_pgp_trust = tw.dedent("""\
     4B12BCD5788511063B543190E09DF30600000000:5:
     """)
 
-_tstamp_response = """ #@IgnorePep8
+_tstamp_responses = [
+""" #@IgnorePep8
  by mail-zone.jrc.it
  (Sun Java(tm) System Messaging Server 7.3-11.01 64bit (built Sep  1 2009))
  with SMTP id <0OKA00BLJZCS1BF0@mail-zone.jrc.it> for
@@ -206,9 +209,72 @@ SjzL9Fp7gP5OsJZ1uRMtP9MzMTjvjMS1IKmNwPvVsvSe+77S3+urMgklH7ciypsT
 
 extra stuff
 
+""",
 """
+-----BEGIN PGP SIGNED MESSAGE-----
+
+########################################################
+#
+# This is a proof of posting certificate from
+# stamper.itconsult.co.uk certifying that a user
+# claiming to be:-
+#     ankostis@gmail.com
+# requested that this message be sent to:-
+#     post@stamper.itconsult.co.uk
+#     ankostis@gmail.com
+#     konstantinos.anagnostopoulos@ext.jrc.ec.europa.eu
+#
+# This certificate was issued at 23:00 (GMT)
+# on Tuesday 24 January 2017 with reference 0941144
+#
+# CAUTION: while the message may well be from the sender
+#          indicated in the "From:" header, the sender
+#          has NOT been authenticated by this service
+#
+# For information about the Stamper service see
+#        http://www.itconsult.co.uk/stamper.htm
+#
+########################################################
 
 
+object 76b8bf7312770a488eaeab4424d080dea3272435
+type commit
+tag test_tag
+tagger Kostis Anagnostopoulos <ankostis@gmail.com> 1485272439 +0100
+
+- - Is bytes (utf-8 encodable);
+- - all lines end with LF, and any trailing whitespace truncated;
+- - any line can start with dashes;
+- - any empty lines at the bottom are truncated,
+- - apart from the last LF, which IS part of the msg.
+- -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iJwEAAEIAAYFAliHdXwACgkQ/77EoYwAhAMxDgQAhlqOjb0bHGxLcyYIpFg9kEmp
+4poL5eA7cdmq3eU1jXTfb5UXJV6BnP+DUsJ4TG+7KoUimgli0djG7ZisRvNYBWGD
+PNO2X5LqNx7tzgj/fQT5CzWcWMXfjUd337pfoj3K3kDroCNl7oQl/bSIR46z9l/3
+JS/kbngOONtzIkPbQvU=
+=bEkN
+- -----END PGP SIGNATURE-----
+
+-----BEGIN PGP SIGNATURE-----
+Version: 2.6.3i
+Charset: noconv
+Comment: Stamper Reference Id: 0941144
+
+iQEVAgUBWIfccIGVnbVwth+BAQEuzgf7B7SxVeN+410yNZE8UHSfHfPBuSsUSMkr
+oyyyp1VtLnFHk4vPKgaPQ23f6o6poRlWI18qDWV7q2MbElA+VvxyH3pIpCMCndik
+KUmmZIas27iC6jI6EHMdYLPN3fydsPLdxPzKItuBSlFdkoVU65D925C2Pmq3ErGE
+5w7ouRQXAfF7lOd1V0JF8NhGZF/MtkFv6ZhkrC+JHpJXk0/J6i7mvLOGJRlclE7v
+K1nTqtFTPxDfDEnBZgzDNT6jD4rsPyDhNIydJsESc9ypVPB7ExwVKQT4wfSH+FLE
+aVryU+Z1cn1UO+59VsUeoaUcJqr7wNmwR5Zzyzp7Obm7ZlEvE5Gqfg==
+=y4Fb
+-----END PGP SIGNATURE-----
+"""
+]
+
+
+@ddt.ddt
 class TRX(unittest.TestCase):
 
     @classmethod
@@ -226,7 +292,8 @@ class TRX(unittest.TestCase):
     def tearDownClass(cls):
         shutil.rmtree(cls.gnupghome)
 
-    def test_timestamp_verify(self):
+    @ddt.data(*_tstamp_responses)
+    def test_timestamp_verify(self, tstamp_response):
         rcv = tstamp.TstampReceiver(config=self.cfg)
-        resp = rcv.parse_tsamp_response(_tstamp_response)
+        resp = rcv.parse_tsamp_response(tstamp_response)
         pp(resp)

@@ -182,12 +182,15 @@ class TstampReceiver(TstampSpec):
         if m:
             return int(m.group(1))
 
-    def _pgp_sig2int(self, sig: bytes) -> int:
+    def _pgp_sig2int(self, sig_id: str) -> int:
         import base64
         import binascii
 
-        sig_bytes = base64.decodebytes(sig)
+        sig_bytes = base64.b64decode(sig_id + '==')
         num = int(binascii.b2a_hex(sig_bytes), 16)
+
+        ## Cancel the effect of trailing zeros.
+        num = int(''.join(d for d in str(num) if d != '0'))
 
         return num
 
@@ -208,8 +211,7 @@ class TstampReceiver(TstampSpec):
         # Verify inner tag.
         tag_ver = self.verify_git_signed(csig.msg.encode('utf-8'))
 
-        ##TODO:use ts_ver.signature_id?
-        num = self._pgp_sig2int(csig.sig.encode('utf-8'))
+        num = self._pgp_sig2int(ts_ver.signature_id)
         dice100 = num % 100
         decision = 'OK' if dice100 < 90 else 'SAMPLE'
 
