@@ -13,6 +13,7 @@ The code using these passwords must never store them as is, but use and immediat
 """
 
 from co2mpas.sampling import baseapp
+from collections import namedtuple
 import io
 import os
 import re
@@ -54,6 +55,9 @@ _pgp_clearsig_regex = re.compile(
     re.DOTALL | re.VERBOSE | re.MULTILINE)
 _pgp_clearsig_dedashify_regex = re.compile(r'^- ', re.MULTILINE)
 _pgp_clearsig_eol_canonical_regex = re.compile(r'[ \t\r]*\n')
+
+
+Clearsigned = namedtuple('Clearsigned', 'armor msg sig stamper')
 
 
 def split_clearsigned(text: str) -> Dict:
@@ -103,7 +107,7 @@ def split_clearsigned(text: str) -> Dict:
         msg = _pgp_clearsig_eol_canonical_regex.sub('\r\n', msg)
         groups['msg'] = msg
 
-        return groups
+        return Clearsigned(**groups)
 
 
 _pgp_signature_banner = b'-----BEGIN PGP SIGNATURE-----'

@@ -294,24 +294,26 @@ class TGnuPGSpec(unittest.TestCase):
     def test_parse_clearsigned(self, case):
         exp_msg, clearsigned = case
 
-        groups = crypto.split_clearsigned(clearsigned)
+        csig = crypto.split_clearsigned(clearsigned)
         if isinstance(exp_msg, str):
-            self.assertIsInstance(groups, dict)
-            self.assertEqual(groups['msg'], exp_msg)
-            self.assertIsNotNone(groups['sig'])
+            self.assertIsInstance(csig, tuple)
+            self.assertEqual(len(csig), 4)
+            self.assertEqual(csig.msg, exp_msg)
+            self.assertIsNotNone(csig.sig)
         else:
-            self.assertIsNone(groups)
+            self.assertIsNone(csig)
 
         ## Check with \r\n at the end.
         #
         clearsigned = re.sub('$\n^', '\r\n', clearsigned, re.MULTILINE)
-        groups = crypto.split_clearsigned(clearsigned)
+        csig = crypto.split_clearsigned(clearsigned)
         if isinstance(exp_msg, str):
-            self.assertIsInstance(groups, dict)
-            self.assertEqual(groups['msg'], re.sub('$\n^', '\r\n', exp_msg), re.MULTILINE)
-            self.assertIsNotNone(groups['sig'])
+            self.assertIsInstance(csig, tuple)
+            self.assertEqual(len(csig), 4)
+            self.assertEqual(csig.msg, re.sub('$\n^', '\r\n', exp_msg), re.MULTILINE)
+            self.assertIsNotNone(csig.sig)
         else:
-            self.assertIsNone(groups)
+            self.assertIsNone(csig)
 
     def test_parse_git_tags(self):
         import git
@@ -366,10 +368,10 @@ class TGnuPGSpec(unittest.TestCase):
 
         ## Check parsing.
         #
-        groups = crypto.split_clearsigned(signed2)
-        self.assertIsInstance(groups, dict)
-        self.assertEqual(groups['msg'], msg)
-        self.assertIsNotNone(groups['sig'])
+        csig = crypto.split_clearsigned(signed2)
+        self.assertIsInstance(csig, tuple)
+        self.assertEqual(csig.msg, msg)
+        self.assertIsNotNone(csig.sig)
 
 
 _ciphertexts = set()
