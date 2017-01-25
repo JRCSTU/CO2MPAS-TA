@@ -107,10 +107,12 @@ def split_clearsigned(text: str) -> Dict:
         return Clearsigned(**groups)
 
 
-_pgp_signature_banner = b'-----BEGIN PGP SIGNATURE-----'
+#: The `'gpgsig '` optional prefix works for signed Git-commits.
+_pgp_signature_banner_regex = re.compile(br'^(?:gpgsig )?-----BEGIN PGP SIGNATURE-----',
+                                         re.MULTILINE)
 
 
-def split_git_signed(tag_content: bytes) -> (bytes, bytes):
+def split_git_signed(git_content: bytes) -> (bytes, bytes):
     """
     Split PGP-signed Git objects (tags & commits) into plaintext & armor signature.
 
@@ -146,18 +148,18 @@ def split_git_signed(tag_content: bytes) -> (bytes, bytes):
     In both formats, anything above or below armor is ignored (including newlines).
 
 
-    :param tag_content:
-            As fetched from ``git cat-file tag v1.2.1``, using LF and utf-8 encodable.
+    :param git_content:
+            Bytes as fetched from ``git cat-file tag/commit <HASHID>``.
     :return:
             A 2-tuple(msg, sig), None if no sig found.
 
     See: https://lists.gnupg.org/pipermail/gnupg-users/2014-August/050780.html
     """
-    nl = b'\n'
-    lines = tag_content.split(nl)
-    for i, l in enumerate(lines):
-        if l.startswith(_pgp_signature_banner):
-            return nl.join(lines[:i]) + nl, nl.join(lines[i:])
+    m = _pgp_signature_banner_regex.search(git_content)
+    if m:
+        split_pos = m.start()
+
+        return git_content[:split_pos], git_content[split_pos:]
 
 
 class GnuPGSpec(baseapp.Spec):
