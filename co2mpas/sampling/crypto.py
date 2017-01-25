@@ -246,8 +246,10 @@ class GnuPGSpec(baseapp.Spec):
         help="The text of ``gpg --export-owner-trust`` to import."
     ).tag(config=True)
 
-    @trt.observe('gnupgexe', 'gnupghome', 'keyring', 'secret_keyring', 'options',
-                 'keys_to_import', 'trust_to_import')
+    #: Lazily created.
+    _GPG = None
+
+    @trt.observe('gnupgexe', 'gnupghome', 'keyring', 'secret_keyring', 'options')
     def _remove_cached_GPG(self, change):
         self._GPG = None
 
@@ -286,7 +288,12 @@ class GnuPGSpec(baseapp.Spec):
                 gnupghome = '%s/.gnupg' % os.environ.get('HOME', '~')
         return gnupghome
 
-    def _import_keys_and_trust(self, GPG, key_blocks, trust_text):
+    @trt.observe('keys_to_import', 'trust_to_import')
+    def _reimport_keys_and_trust(self, change):
+        if self._GPG:
+            self._import_keys_and_trust(self._GPG)
+
+    def _import_keys_and_trust(self, GPG):
         """
         Load in GPG-keyring from :attr:`GnuPGSpec.keys_to_import` and :attr:`GnuPGSpec.trust_to_import`.
 
@@ -314,10 +321,10 @@ class GnuPGSpec(baseapp.Spec):
 
         ## TODO: Fail if not imported keys/trust!
         keys_res = []
-        for armor_key in key_blocks:
+        for armor_key in self.keys_to_import:
             keys_res.append(GPG.import_keys(armor_key))
-        if trust_text:
-            trust_res = import_trust(trust_text)
+        if self.trust_to_import:
+            trust_res = import_trust(self.trust_to_import)
 
         key_summaries = [k.summary() for k in keys_res]
         log.info('Import: Keys: %s, Trust: %s', key_summaries, trust_res)
@@ -325,7 +332,7 @@ class GnuPGSpec(baseapp.Spec):
     @property
     def GPG(self) -> 'gnupg.GPG':
         import gnupg
-        GPG = getattr(self, '_GPG', None)
+        GPG = self._GPG
         if not GPG:
             gnupgexe = self.gnupgexe or os.environ.get('GNUPGEXE', 'gpg')
             GPG = self._GPG = gnupg.GPG(
@@ -339,7 +346,7 @@ class GnuPGSpec(baseapp.Spec):
             GPG.encoding = 'utf-8'
 
             if self.keys_to_import:
-                self._import_keys_and_trust(GPG, self.keys_to_import, self.trust_to_import)
+                self._import_keys_and_trust(GPG)
 
         return GPG
 
