@@ -5,16 +5,11 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """A *report* contains the co2mpas-run values to time-stamp and disseminate to TA authorities & oversight bodies."""
-#
-###################
-##     Specs     ##
-###################
-
 from collections import (
     defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
+from collections import namedtuple
 import imaplib
 import io
-import re
 import smtplib
 import sys
 from typing import (
@@ -25,6 +20,12 @@ import traitlets.config as trtc
 
 from . import CmdException, baseapp, dice, crypto, project
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
+
+
+#
+###################
+##     Specs     ##
+###################
 
 
 class TstampSpec(dice.DiceSpec, crypto.GnuPGSpec):
@@ -168,27 +169,10 @@ class TstampSender(TstampSpec):
         return mail
 
 
-_PGP_SIG_REGEX = re.compile(
-    br"-----BEGIN PGP SIGNED MESSAGE-----"
-    br"\s*(.+)"
-    br"-----BEGIN PGP SIGNATURE-----"
-    br".+Comment: Stamper Reference Id: (\d+)"
-    br"\n\n(.+?)\n"
-    br"-----END PGP SIGNATURE-----",
-    re.DOTALL)
-
-
+#DiceResponse = namedtuple('DiceResponse',
+#                          '')
 class TstampReceiver(TstampSpec):
     """IMAP & timestamp parameters and methods for receiving & parsing dice-report emails."""
-
-    def _pgp_split(self, sig_msg_bytes: bytes) -> Tuple[bytes, bytes, bytes]:
-        m = _PGP_SIG_REGEX.search(sig_msg_bytes)
-        if not m:
-            raise CmdException("Invalid signed message: %r" % sig_msg_bytes)
-
-        msg, ts_id, sig = m.groups()
-
-        return msg, ts_id, sig
 
     def _pgp_sig2int(self, sig: bytes) -> int:
         import base64
@@ -200,16 +184,39 @@ class TstampReceiver(TstampSpec):
         return num
 
     def parse_tsamp_response(self, mail_text: Text) -> int:
-        mbytes = mail_text.encode('utf-8')
+        from pprint import pformat
+        ts_ver = self.GPG.verify(mail_text)
+        if not ts_ver:
+            self.log.error("Cannot verify timestamp-response's signature due to: %s", pformat(vars(ts_ver)))
+            raise ValueError("Cannot verify timestamp-reponse signature due to: %s" % ts_ver.status)
 
-        # TODO: validate sig!
+        csig = crypto.split_clearsigned(mail_text)
+        if not csig.stamper:
+            self.log.error("Timestamp-response had no *stamper-id*: %s\n%s",
+                           pformat(csig), pformat(vars(ts_ver)))
+            raise ValueError("Timestamp-response had no *stamper-id*: %s" % csig.sig)
 
-        msg, ts_id, sig = self._pgp_split(mbytes)
-        num = self._pgp_sig2int(sig)
-        mod100 = num % 100
-        decision = 'OK' if mod100 < 90 else 'SAMPLE'
+        # Verify inner tag.
+        tag_ver = self.verify_git_signed(csig.msg.encode('utf-8'))
 
-        return sig.decode(), num, mod100, decision
+        ##TODO:use ts_ver.signature_id?
+        num = self._pgp_sig2int(csig.sig.encode('utf-8'))
+        dice100 = num % 100
+        decision = 'OK' if dice100 < 90 else 'SAMPLE'
+
+        #self.log.info("Timestamp sig did not verify: %s", pformat(vars(ts_ver)))
+        return {
+            'tstamp': pformat(vars(ts_ver)),
+            'tstamp_sig': csig.sig,
+            'tstamp_sig_date': ts_ver.creation_date,
+            'stamper_id': csig.stamper,
+            'tag': pformat(vars(tag_ver)),
+            'tag_keyid': tag_ver.key_id,
+            'tag_sig_date': ts_ver.creation_date,
+            'dice': num,
+            'dice_100': dice100,
+            'dice_flag': decision,
+        }
 
     def choose_server_class(self):
         return imaplib.IMAP4_SSL if self.ssl else imaplib.IMAP4
@@ -324,12 +331,13 @@ class TstampCmd(baseapp.Cmd):
                 raise CmdException("Cmd '%s' takes no arguments, received %d: %r!"
                                    % (self.name, len(args), args))
 
+            from pprint import pformat
+
             rcver = TstampReceiver(config=self.config)
             mail_text = sys.stdin.read()
-            decision_tuple = rcver.parse_tsamp_response(mail_text)
+            res = rcver.parse_tsamp_response(mail_text)
 
-            return ('SIG: %s\nNUM: %s\nMOD100: %s\nDECISION: %s' %
-                    decision_tuple)
+            return pformat(res)
 
     class LoginCmd(_Subcmd):
         """Attempts to login into SMTP server. """
