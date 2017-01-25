@@ -199,7 +199,8 @@ class TstampReceiver(TstampSpec):
         num = int(binascii.b2a_hex(sig_bytes), 16)
 
         ## Cancel the effect of trailing zeros.
-        num = int(''.join(d for d in str(num) if d != '0'))
+
+        num = int(str(num).strip('0'))
 
         return num
 
