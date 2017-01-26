@@ -309,9 +309,8 @@ class TstampCmd(baseapp.Cmd):
             """)
 
         def __init__(self, **kwds):
-            with self.hold_trait_notifications():
-                kwds.setdefault('conf_classes', [TstampSender])
-                super().__init__(**kwds)
+            kwds.setdefault('conf_classes', [TstampSender])
+            super().__init__(**kwds)
 
         def run(self, *args):
             self.log.info('Timestamping %r...', args)
@@ -338,6 +337,10 @@ class TstampCmd(baseapp.Cmd):
         SYNTAX
             cat <mail> | co2dice tstamp parse
         """
+
+        def __init__(self, **kwds):
+            kwds.setdefault('conf_classes', [TstampReceiver])
+            super().__init__(**kwds)
 
         def run(self, *args):
             from pprint import pformat
