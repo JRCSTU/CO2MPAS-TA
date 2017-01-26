@@ -283,74 +283,53 @@ class _Subcmd(baseapp.Cmd):
 
 
 class TstampCmd(baseapp.Cmd):
-    """Commands to manage the communications with the Timestamp server."""
+    """
+    Commands to manage the communications with the Timestamp server.
+
+    The time-stamp service is used to disseminate the *dice-report* to the TA authorities
+    and to oversight bodies.
+    From its response the *sampling decision* is be deduced.
+    """
 
     class SendCmd(_Subcmd):
         """
-        Send emails to be timestamped and parse back the response.
-
-        The time-stamp service is used to disseminate the dice-report to the TA authorities & oversight bodies.
-        From its response the sampling decision will be deduced.
-
-        Many options related to sending & receiving the email are expected to be stored in the config-file.
-
-        - The sending command is NOT to be used directly (just for experimenting).
-          If neither `--file` nor `--project` given, reads dice-report from stdin.
-        - The receiving command waits for the response.and returns: 1: SAMPLE | 0: NO-SAMPLE
-          Any other code is an error-code - communicate it to JRC.
+        Send emails to be timestamped.
 
         SYNTAX
-            co2dice tstamp send [ file=<dice-report-file> ]
-            co2dice tstamp send [ file=<dice-report-file> ]
-            co2dice tstamp recv
+            co2dice tstamp send [ <dice-report-file> ...]
+
+        - Do not use this command directly (unless experimenting) - preffer the `co2dice project tstamp` command.
+        - If no files are given, it reads from STDIN.
+        - Many options related to sending & receiving the email are expected to be stored in the config-file.
         """
 
         examples = trt.Unicode("""
-            To wait for the response after you have sent the dice-report, use this bash commands:
-
-                co2dice tstamp recv
-                if [ $? -eq 0 ]; then
-                    echo "NO-SAMPLE"
-                elif [ $? -eq 1 ]; then
-                    echo "SAMPLE!"
-                else
-                    echo "ERROR CODE: $?"
+            To send a dice-report for a prepared project you have to know the `vehicle_family_id`:
+                git  cat-file  tag  tstamps/RL-12-BM3-2017-0001/1 | co2dice tstamp send
             """)
-
-        file = trt.Unicode(
-            None, allow_none=True,
-            help="""If not null, read mail body from the specified file."""
-        ).tag(config=True)
 
         def __init__(self, **kwds):
             with self.hold_trait_notifications():
-                dkwds = {
-                    'conf_classes': [project.ProjectsDB, TstampSender],
-                    'cmd_aliases': {
-                        'file': 'SendCmd.file',
-                    },
-                }
-                dkwds.update(kwds)
-                super().__init__(**dkwds)
+                kwds.setdefault('conf_classes', [TstampSender])
+                super().__init__(**kwds)
 
         def run(self, *args):
-            nargs = len(args)
-            if nargs > 0:
-                raise CmdException("Cmd '%s' takes no arguments, received %d: %r!"
-                                   % (self.name, len(args), args))
+            self.log.info('Timestamping %r...', args)
 
-            file = self.file
+            files = self.extra_args
+            if not files:
+                files = '-'
 
             sender = TstampSender(config=self.config)
-            if not file:
-                self.log.warning("Time-stamping STDIN; paste message verbatim!")
-                mail_text = sys.stdin.read()
-            else:
-                self.log.info('Time-stamping files %r...', file)
-                with io.open(file, 'rt') as fin:
-                    mail_text = fin.read()
+            for file in files:
+                if file == '-':
+                    self.log.info("TimeReading STDIN; paste message verbatim!")
+                    mail_text = sys.stdin.read()
+                else:
+                    with io.open(file, 'rt') as fin:
+                        mail_text = fin.read()
 
-            sender.send_timestamped_email(mail_text)
+                sender.send_timestamped_email(mail_text)
 
     class ParseCmd(_Subcmd):
         """
@@ -361,18 +340,44 @@ class TstampCmd(baseapp.Cmd):
         """
 
         def run(self, *args):
-            nargs = len(args)
-            if nargs > 0:
-                raise CmdException("Cmd '%s' takes no arguments, received %d: %r!"
-                                   % (self.name, len(args), args))
-
             from pprint import pformat
 
-            rcver = TstampReceiver(config=self.config)
-            mail_text = sys.stdin.read()
-            res = rcver.parse_tsamp_response(mail_text)
+            self.log.info('Timestamping %r...', args)
 
-            return pformat(res)
+            files = self.extra_args
+            if not files:
+                files = '-'
+
+            rcver = TstampReceiver(config=self.config)
+            for file in files:
+                if file == '-':
+                    self.log.info("TimeReading STDIN; paste message verbatim!")
+                    mail_text = sys.stdin.read()
+                else:
+                    with io.open(file, 'rt') as fin:
+                        mail_text = fin.read()
+
+                resp = rcver.parse_tsamp_response(mail_text)
+
+                yield pformat(resp)
+
+    class RecvCmd(_Subcmd):
+        """
+        TODO: tstamp receive command
+
+        The receiving command waits for the response.and returns: 1: SAMPLE | 0: NO-SAMPLE
+        Any other code is an error-code - communicate it to JRC.
+
+        To wait for the response after you have sent the dice-report, use this bash commands:
+
+            co2dice tstamp recv
+            if [ $? -eq 0 ]; then
+                echo "NO-SAMPLE"
+            elif [ $? -eq 1 ]; then
+                echo "SAMPLE!"
+            else
+                    echo "ERROR CODE: $?"
+        """
 
     class LoginCmd(_Subcmd):
         """Attempts to login into SMTP server. """
