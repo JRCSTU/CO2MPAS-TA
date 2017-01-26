@@ -56,7 +56,7 @@ fRAw0pl/l+eGW3adMctTOxaX3lI/nz+g2QTEURgDHxLGaghDEGuy1VyjFFt0WXef
 =AFgK
 -----END PGP PRIVATE KEY BLOCK-----
 """,
-"""
+""" #@IgnorePep8
 ## Timestamp-service's keys, as imported from:
 #  from: http://www.itconsult.co.uk/stamper/stampinf.htm
 #
@@ -137,12 +137,12 @@ El4C5af/8COxQcDn608=
 """,
 ]
 
-test_pgp_trust = None ;tw.dedent("""\
+test_pgp_trust = tw.dedent("""\
     ## CO2MPAS test-key
     5464E04EE547D1FEDCAC4342B124C999CBBB52FF:6:
     """)
 
-_tstamp_responses = [
+_tstamp_responses = [(941136, 73067027546711278998606707046990800438319974, 74, 'OK',
 """ #@IgnorePep8
  by mail-zone.jrc.it
  (Sun Java(tm) System Messaging Server 7.3-11.01 64bit (built Sep  1 2009))
@@ -222,8 +222,8 @@ SjzL9Fp7gP5OsJZ1uRMtP9MzMTjvjMS1IKmNwPvVsvSe+77S3+urMgklH7ciypsT
 
 extra stuff
 
-""",
-"""
+"""), (941144, 952127830529303358097249027859671292141160969241, 41, 'OK',
+""" #@IgnorePep8
 -----BEGIN PGP SIGNED MESSAGE-----
 
 ########################################################
@@ -283,7 +283,7 @@ K1nTqtFTPxDfDEnBZgzDNT6jD4rsPyDhNIydJsESc9ypVPB7ExwVKQT4wfSH+FLE
 aVryU+Z1cn1UO+59VsUeoaUcJqr7wNmwR5Zzyzp7Obm7ZlEvE5Gqfg==
 =y4Fb
 -----END PGP SIGNATURE-----
-"""
+""")
 ]
 
 
@@ -306,7 +306,18 @@ class TRX(unittest.TestCase):
         shutil.rmtree(cls.gnupghome)
 
     @ddt.data(*_tstamp_responses)
-    def test_timestamp_verify(self, tstamp_response):
+    def test_timestamp_verify(self, case):
+        stamper_id, dice, dice100, dice_decision, tstamp_response = case
         rcv = tstamp.TstampReceiver(config=self.cfg)
         resp = rcv.parse_tsamp_response(tstamp_response)
         pp(resp)
+        self.assertEqual(resp['tstamp']['stamper_id'], stamper_id)
+        self.assertDictContainsSubset({
+            'dice': dice,
+            'dice_100': dice100,
+            'dice_decision': dice_decision,
+        }, resp)
+        self.assertDictContainsSubset({
+            'key_id': '81959DB570B61F81',
+            'pubkey_fingerprint': '4B12BCD5788511063B543190E09DF306',
+        }, resp['tstamp']['sig'])

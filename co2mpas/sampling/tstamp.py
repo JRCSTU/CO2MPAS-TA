@@ -214,7 +214,6 @@ class TstampReceiver(TstampSpec):
             self.log.error("Cannot verify timestamp-response's signature due to: %s", pformat(ts_verdict))
             raise ValueError("Cannot verify timestamp-reponse signature due to: %s" % ts_ver.status)
         if not ts_ver.valid:
-
             self.log.warning(
                 tw.dedent("""\
                 Timestamp's signature is valid, but not *trusted*!
@@ -241,16 +240,17 @@ class TstampReceiver(TstampSpec):
 
         #self.log.info("Timestamp sig did not verify: %s", pformat(tag_verdict))
         return {
-            'tstamp': pformat(ts_verdict),
-            'tstamp_sig': csig.sig,
-            'tstamp_sig_date': ts_ver.creation_date,
-            'stamper_id': stamper_id,
-            'tag': pformat(tag_verdict),
-            'tag_keyid': tag_ver.key_id,
-            'tag_sig_date': ts_ver.creation_date,
+            'tstamp': {
+                'sig': ts_verdict,
+                'sig_armor': csig.sig,
+                'stamper_id': stamper_id,
+            },
+            'tag': {
+                'sig': tag_verdict,
+            },
             'dice': num,
             'dice_100': dice100,
-            'dice_flag': decision,
+            'dice_decision': decision,
         }
 
     def choose_server_class(self):
