@@ -795,7 +795,7 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
                         'Spec': {'log_level': 0},
                         'Cmd': {
                             'raise_config_file_errors': True,
-                            'print_config': True,
+                            'config_show': True,
                         },
                     },
                     "Log more logging, fail on configuration errors, "
@@ -814,6 +814,12 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
                         'Cmd': {'force': True},
                     },
                     pndlu.first_line(Spec.force.help)
+                ),
+                'config-show': (
+                    {
+                        'Cmd': {'config_show': True},
+                    },
+                    pndlu.first_line(Cmd.config_show.help),
                 ),
                 'encrypt': (
                     {
@@ -978,7 +984,7 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
         self.update_config(static_config)
         self.observe_ptraits()
 
-    print_config = trt.Bool(
+    config_show = trt.Bool(
         False,
         help="""Enable it to print the configurations before launching any command."""
     ).tag(config=True)
@@ -989,8 +995,10 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
         If overriden, better invoke :func:`super()`, but even better
         to override :meth:``run()`.
         """
-        if self.print_config:
-            self.log.info('Running cmd %r with config: \n  %s', self.name, self.config)
+        if self.config_show:
+            from pprint import pformat
+            self.log.info('Running cmd %r with config: \n  %s',
+                          self.name, pformat(self.config))
 
         if self.subapp is None:
             return self.run(*self.extra_args)

@@ -129,7 +129,7 @@ class ConfigCmd(baseapp.Cmd):
             co2dice config show [OPTIONS] --source file
 
         - Use --verbose to view config-params on all intermediate classes.
-        - Similarly, you may also add `--Cmd.print_config=True` global option
+        - Similarly, you may also add `--show-config` global option
           on any command to view more targeted results.
         - Might not print accurately the defaults/merged for all(!) traits.
         """
