@@ -337,6 +337,8 @@ class GpgSpec(baseapp.Spec):
             keys_res.append(GPG.import_keys(armor_key))
         if self.trust_to_import:
             trust_res = import_trust(self.trust_to_import)
+        else:
+            trust_res = 'no trust found'
 
         key_summaries = [k.summary() for k in keys_res]
         log.info('Import: Keys: %s, Trust: %s', key_summaries, trust_res)
