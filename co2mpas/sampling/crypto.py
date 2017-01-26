@@ -177,7 +177,7 @@ class GpgSpec(baseapp.Spec):
     Class-parameters override values the following environment variables (if exist):
     - :attr:`GpgSpec.gnupgexe`   --> `GNUPGEXE`
     - :attr:`GpgSpec.gnupghome`  --> `GNUPGHOME`
-    - :attr:`GpgSpec.master_key` --> `GPGKEY`
+    - :attr:`GpgSpec.master_key` --> `GNUPGKEY`
 
     """
 
@@ -225,7 +225,7 @@ class GpgSpec(baseapp.Spec):
     ).tag(config=True)
 
     master_key = trt.Unicode(
-        None, allow_none=True,
+        os.environ.get('GNUPGKEY'), allow_none=True,
         help="""
         The key-id (or recipient) of a *secret* PGP key to use for various crytpo operations.
 
@@ -233,10 +233,10 @@ class GpgSpec(baseapp.Spec):
           - VaultSpec:         dencrypt 3rdp passwords
           - TstampSenderSpec:  sign email to timestamp service
 
-        You MUST set either this configurable option or `GPGKEY`(%s) env-variable, if you have
+        You MUST set either this configurable option or `GNUPGKEY`(%s) env-variable, if you have
         If you have more than one private keys in your PGP-keyring, or else
         the application will fail to start when any of the usages above is initiated.
-        """ % os.environ.get('GPGKEY')
+        """ % os.environ.get('GNUPGKEY')
     ).tag(config=True)
 
     keys_to_import = trt.List(
@@ -265,15 +265,15 @@ class GpgSpec(baseapp.Spec):
     def _remove_cached_GPG(self, change):
         self._GPG = None
 
-    def _guess_master_key(self) -> Text:
-        master_key = self.master_key or os.environ.get('GPGKEY')
+    def master_key_resolved(self) -> Text:
+        master_key = self.master_key
         if not master_key:
             GPG = self.GPG
             seckeys = GPG.list_keys(secret=True)
             nseckeys = len(seckeys)
             if nseckeys != 1:
                 raise ValueError("Cannot guess master-key! Found %d keys in secret keyring."
-                                 "\n  Please set the `VaultSpec.master_key` config-param or `GPGKEY` env-var." %
+                                 "\n  Please set the `VaultSpec.master_key` config-param or `GNUPGKEY` env-var." %
                                  nseckeys)
 
             master_key = seckeys[0]['fingerprint']
@@ -386,7 +386,7 @@ class GpgSpec(baseapp.Spec):
         except Exception as ex:
                 raise ValueError("PswdId('%s'): encryption failed due to: %s" % (pswdid, ex))
 
-        cipher = self.GPG.encrypt(plainbytes, self._guess_master_key(), armor=True)
+        cipher = self.GPG.encrypt(plainbytes, self.master_key_resolved(), armor=True)
         if not cipher.ok:
             self.log.debug("PswdId('%s'): encryption stderr: %s", pswdid, cipher.status, cipher.stderr)
             raise ValueError("PswdId('%s'): %s!" % (pswdid, cipher.status))
@@ -428,7 +428,7 @@ class GpgSpec(baseapp.Spec):
     def clearsign_text(self, text: Text) -> Text:
         """Clear-signs a textual-message with :attr:`master_key`."""
         try:
-            signed = self.GPG.sign(text, keyid=self._guess_master_key())
+            signed = self.GPG.sign(text, keyid=self.master_key_resolved())
         except Exception as ex:
             raise ValueError("Signing failed due to: %s" % ex)
 
