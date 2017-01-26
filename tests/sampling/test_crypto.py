@@ -465,3 +465,79 @@ class TVaultSpec(unittest.TestCase):
 
 class TCipherTrait(unittest.TestCase):
     """See :class:`tests.sampling.test_baseapp`."""
+
+
+#class TDice(unittest.TestCase):
+#
+#    def gpg_del_gened_key(self, gpg, fingerprint):
+#        log.debug('Deleting secret+pub: %s', fingerprint)
+#        d = gpg.delete_keys(fingerprint, secret=1)
+#        assert (d.status, d.stderr) == ('ok', ''), (
+#            "Failed DELETING pgp-secret: %s" % d.stderr)
+#        d = gpg.delete_keys(fingerprint)
+#        assert (d.status, d.stderr) == ('ok', ''), (
+#            "Failed DELETING pgp-secret: %s" % d.stderr)
+#
+##    def _has_repeatitive_prefix(self, word, limit, char=None):
+##        c = word[0]
+##        if not char or c == char:
+##            for i  in range(1, limit):
+##                if word[i] != c:
+##                    break
+##            else:
+##                return True
+##
+#
+#    _repeatitive_regex = re.compile(r'(?P<l>.)(?P=l){2,}')
+#
+#    def _is_vanity_keyid(self, keyid):
+#        """Search repeatitive letters"""
+#        regex = self._repeatitive_regex
+#        m1 = regex.search(keyid[:8])
+#        m2 = regex.search(keyid[8:])
+#        return m1 and m2
+#
+#    def gpg_gen_interesting_keys(self, gpg, nkeys=1, runs=0, **key_data):
+#        predicate = self._is_vanity_keyid
+#        keys = []
+#        for i in itt.count(1):
+#            del_key = True
+#            key = gpg.gen_key(gpg.gen_key_input(**key_data))
+#            try:
+#                log.debug('Created-%i: %s', i, key.fingerprint)
+#                if predicate(key.fingerprint[24:]):
+#                    del_key = False
+#                    keys.append(key.fingerprint)
+#                    keyid = key.fingerprint[24:]
+#                    log.info('FOUND-%i: %s-->%s', i, keyid, key.fingerprint)
+#                    nkeys -= 1
+#                    if nkeys == 0:
+#                        break
+#            finally:
+#                if del_key:
+#                    self.gpg_del_gened_key(gpg, key.fingerprint)
+#            if runs > 0 and i >= runs:
+#                break
+#
+#        return keys
+#
+#    #@unittest.skip('Enabled it to generate test-keys!!')
+#    def test_gen_key_proof_of_work(self):
+#        import os
+#        import gnupg
+#
+#        gnupghome = 'temp.gpg'
+#        try:
+#            os.mkdir(gnupghome)
+#        except FileExistsError:
+#            pass
+#
+#        gpg = gnupg.GPG(gnupghome=gnupghome)
+#
+#        self.gpg_gen_interesting_keys(
+#            gpg, runs=0,
+#            name_real='CO2MPAS Test',
+#            name_email='sampling@co2mpas.jrc.ec.europa.eu',
+#            key_length=1024,
+#            expire_date='6m',
+#        )
