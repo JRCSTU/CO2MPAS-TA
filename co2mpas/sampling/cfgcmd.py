@@ -10,7 +10,6 @@
 from . import baseapp, CmdException
 from typing import Sequence, Text, List, Tuple    # @UnusedImport
 
-import os
 import os.path as osp
 import traitlets as trt
 
@@ -90,7 +89,11 @@ class ConfigCmd(baseapp.Cmd):
                 self.write_default_config(fpath, self.force)
 
     class PathsCmd(baseapp.Cmd):
-        """List resolved various paths and actual config-files loaded (descending order)."""
+        """
+        List resolved various paths and actual config-files loaded (descending order).
+
+        This is more accurate that `co2dice config show` cmd.
+        """
         def run(self, *args):
             if len(args) > 0:
                 raise CmdException('Cmd %r takes no arguments, received %d: %r!'
@@ -128,6 +131,7 @@ class ConfigCmd(baseapp.Cmd):
         - Use --verbose to view config-params on all intermediate classes.
         - Similarly, you may also add `--Cmd.print_config=True` global option
           on any command to view more targeted results.
+        - Might not print accurately the defaults/merged for all(!) traits.
         """
 
         source = FuzzyEnum(
@@ -213,10 +217,10 @@ class ConfigCmd(baseapp.Cmd):
                     if merged and key in config:
                         val = config[clsname][name]
                     else:
-                        val = trait.default_value_repr()
+                        val = repr(trait.default())
 
                     if not cls_printed:
-                        base_classes = ','.join(p.__name__ for p in cls.__bases__)
+                        base_classes = ', '.join(p.__name__ for p in cls.__bases__)
                         yield '%s(%s)' % (clsname, base_classes)
                         cls_printed = True
                     yield '  +--%s = %s' % (name, val)
