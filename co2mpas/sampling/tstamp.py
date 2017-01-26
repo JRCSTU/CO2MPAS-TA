@@ -383,6 +383,8 @@ class TstampCmd(baseapp.Cmd):
             else
                     echo "ERROR CODE: $?"
         """
+        def run(self, *args):
+            raise CmdException("Not implemented yet!")
 
     class LoginCmd(_Subcmd):
         """Attempts to login into SMTP server. """
@@ -409,4 +411,4 @@ class TstampCmd(baseapp.Cmd):
         super().__init__(**kwds)
 
 
-all_subcmds = (TstampCmd.SendCmd, TstampCmd.ParseCmd, TstampCmd.LoginCmd,)
+all_subcmds = (TstampCmd.LoginCmd, TstampCmd.SendCmd, TstampCmd.RecvCmd, TstampCmd.ParseCmd)
