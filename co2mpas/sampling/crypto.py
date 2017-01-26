@@ -175,9 +175,9 @@ class GnuPGSpec(baseapp.Spec):
     Configurable parameters for instantiating a GnuPG instance
 
     Class-parameters override values the following environment variables (if exist):
-    - `GnuPGSpec.gnupgexe   --> GNUPGEXE`
-    - `GnuPGSpec.gnupghome  --> GNUPGHOME`
-    - `GnuPGSpec.master_key --> GPGKEY`
+    - :attr:`GnuPGSpec.gnupgexe`   --> `GNUPGEXE`
+    - :attr:`GnuPGSpec.gnupghome`  --> `GNUPGHOME`
+    - :attr:`GnuPGSpec.master_key` --> `GPGKEY`
 
     """
 
@@ -215,7 +215,11 @@ class GnuPGSpec(baseapp.Spec):
 
     gnupgoptions = trt.List(
         trt.Unicode(None, allow_none=False),
-        default_value=['--allow-weak-digest-algos'],  # Timestamp's algos use MD5!
+        default_value=[
+            '--allow-weak-digest-algos',  # Timestamp-service's key use MD5!
+            '--armor',
+            '--keyid-format', 'long',
+        ],
         allow_none=True,
         help="""A list of additional cmd-line options to pass to the GPG binary."""
     ).tag(config=True)
@@ -223,7 +227,7 @@ class GnuPGSpec(baseapp.Spec):
     master_key = trt.Unicode(
         None, allow_none=True,
         help="""
-        The key-id (or recipient) of a secret PGP key to use for various crytpo operations.
+        The key-id (or recipient) of a *secret* PGP key to use for various crytpo operations.
 
         Usage in subclasses:
           - VaultSpec:         dencrypt 3rdp passwords
@@ -303,7 +307,7 @@ class GnuPGSpec(baseapp.Spec):
 
     def _import_keys_and_trust(self, GPG):
         """
-        Load in GPG-keyring from :attr:`GnuPGSpec.keys_to_import` and :attr:`GnuPGSpec.trust_to_import`.
+        Load in GPG-keyring from :attr:`keys_to_import` and :attr:`trust_to_import`.
 
         :param GPG:
             Given to avoid inf recursion.
