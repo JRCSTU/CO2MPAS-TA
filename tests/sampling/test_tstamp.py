@@ -142,7 +142,8 @@ test_pgp_trust = tw.dedent("""\
     5464E04EE547D1FEDCAC4342B124C999CBBB52FF:6:
     """)
 
-_tstamp_responses = [(941136, 73067027546711278998606707046990800438319974, 74, 'OK',
+_tstamp_responses = [(941136, '346C4B1FDF5343D6F4B0BF10D660FEDC25B66', 74, 'OK',
+                      {'trust_text': None},
 """ #@IgnorePep8
  by mail-zone.jrc.it
  (Sun Java(tm) System Messaging Server 7.3-11.01 64bit (built Sep  1 2009))
@@ -222,7 +223,8 @@ SjzL9Fp7gP5OsJZ1uRMtP9MzMTjvjMS1IKmNwPvVsvSe+77S3+urMgklH7ciypsT
 
 extra stuff
 
-"""), (941144, 952127830529303358097249027859671292141160969241, 41, 'OK',
+"""), (941144, 'A6C6E3771EA412EE56B4E61A10CDE90776D53419', 41, 'OK',
+       {'trust_text': None},
 """ #@IgnorePep8
 -----BEGIN PGP SIGNED MESSAGE-----
 
@@ -307,14 +309,15 @@ class TRX(unittest.TestCase):
 
     @ddt.data(*_tstamp_responses)
     def test_timestamp_verify(self, case):
-        stamper_id, dice, dice100, dice_decision, tstamp_response = case
+        (stamper_id, dice, dice100, dice_decision,
+         tag_verdict, tstamp_response) = case
         rcv = tstamp.TstampReceiver(config=self.cfg)
         resp = rcv.parse_tsamp_response(tstamp_response)
         pp(resp)
         self.assertEqual(resp['tstamp']['stamper_id'], stamper_id)
         self.assertDictContainsSubset({
-            'dice': dice,
-            'dice_100': dice100,
+            'dice_hex': dice,
+            'dice_%100': dice100,
             'dice_decision': dice_decision,
         }, resp)
         self.assertDictContainsSubset({

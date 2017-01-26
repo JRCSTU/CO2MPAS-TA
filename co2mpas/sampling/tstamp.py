@@ -268,8 +268,8 @@ class TstampReceiver(TstampSpec):
             'tag': {
                 'sig': tag_verdict,
             },
-            'dice': num,
-            'dice_100': dice100,
+            'dice_hex': '%X' % num,
+            'dice_%100': dice100,
             'dice_decision': decision,
         }
 
