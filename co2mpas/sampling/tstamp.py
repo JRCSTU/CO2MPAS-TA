@@ -157,7 +157,7 @@ class TstampSender(TstampSpec):
     def choose_server_class(self):
         return smtplib.SMTP_SSL if self.ssl else smtplib.SMTP
 
-    def send_timestamped_email(self, msg):
+    def send_timestamped_email(self, msg, dry_run=False):
         from pprint import pformat
 
         ver = self.verify_git_signed(msg.encode('utf-8'))
@@ -175,16 +175,17 @@ class TstampSender(TstampSpec):
         msg = self._append_x_recipients(msg)
         mail = self._prepare_mail(msg)
 
-        self.log.info("Timestamping %d-char email from '%s' to %s-->%s",
-                      len(msg),
-                      self.from_address,
-                      self.timestamping_addresses,
-                      self.x_recipients)
-
         with self.make_server() as srv:
             srv.login(self.user_account, self.decipher('user_pswd'))
 
-            srv.send_message(mail)
+            from logging import WARNING, INFO
+            level = WARNING if dry_run else INFO
+            prefix = "DRY-RUN:  No email has been sent!\n  " if dry_run else ''
+            self.log.log(level, "%sTimestamping %d-char email from '%s' to %s-->%s",
+                         prefix, len(msg), self.from_address,
+                         self.timestamping_addresses, self.x_recipients)
+            if not dry_run:
+                srv.send_message(mail)
 
         return mail
 
@@ -327,8 +328,23 @@ class TstampCmd(baseapp.Cmd):
                 git  cat-file  tag  tstamps/RL-12-BM3-2017-0001/1 | co2dice tstamp send
             """)
 
+        dry_run = trt.Bool(
+            help="Verify dice-report and login to SMTP-server but do not actually send email to timestamp-service."
+        ).tag(config=True)
+
         def __init__(self, **kwds):
+            from pandalone import utils as pndlu
+
             kwds.setdefault('conf_classes', [TstampSender])
+            kwds.setdefault('cmd_flags', {
+                ('n', 'dry-run'): (
+                    {
+                        'SendCmd': {'dry_run': True},
+                    },
+                    pndlu.first_line(TstampCmd.SendCmd.dry_run.help)
+                )
+            })
+
             super().__init__(**kwds)
 
         def run(self, *args):
@@ -347,7 +363,7 @@ class TstampCmd(baseapp.Cmd):
                     with io.open(file, 'rt') as fin:
                         mail_text = fin.read()
 
-                sender.send_timestamped_email(mail_text)
+                sender.send_timestamped_email(mail_text, dry_run=self.dry_run)
 
     class ParseCmd(_Subcmd):
         """
