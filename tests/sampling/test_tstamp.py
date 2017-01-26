@@ -285,6 +285,65 @@ K1nTqtFTPxDfDEnBZgzDNT6jD4rsPyDhNIydJsESc9ypVPB7ExwVKQT4wfSH+FLE
 aVryU+Z1cn1UO+59VsUeoaUcJqr7wNmwR5Zzyzp7Obm7ZlEvE5Gqfg==
 =y4Fb
 -----END PGP SIGNATURE-----
+"""), (941518, 'A100EBD962AEA3349AFC6396D48015131BCA866F', 19, 'OK',
+       {'trust_text': 'TRUST_FULLY'},
+""" #@IgnorePep8
+-----BEGIN PGP SIGNED MESSAGE-----
+
+########################################################
+#
+# This is a proof of posting certificate from
+# stamper.itconsult.co.uk certifying that a user
+# claiming to be:-
+#     ankostis@gmail.com
+# requested that this message be sent to:-
+#     post@stamper.itconsult.co.uk
+#     ankostis@gmail.com
+#     konstantinos.anagnostopoulos@ext.jrc.ec.europa.eu
+#
+# This certificate was issued at 23:00 (GMT)
+# on Thursday 26 January 2017 with reference 0941518
+#
+# CAUTION: while the message may well be from the sender
+#          indicated in the "From:" header, the sender
+#          has NOT been authenticated by this service
+#
+# For information about the Stamper service see
+#        http://www.itconsult.co.uk/stamper.htm
+#
+########################################################
+
+
+object 3334bcde283480883f2fb209efcf84ae24da8335
+type commit
+tag tests/signed_by_CBBB52FF
+tagger Kostis Anagnostopoulos <ankostis@gmail.com> 1485442847 +0100
+
+Test-tag for crypto TCs, signed by:
+  CO2MPAS Test <sampling@co2mpas.jrc.ec.europa.eu>  1024R/B124C999CBBB52FF 2017-01-26 [expires: 2017-07-25]
+- -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iJwEAAEIAAYFAliKDx8ACgkQsSTJmcu7Uv9HsAP+KmK4+cSXvScwg5UHDq7VVj1B
+XjtEHZp6VwKndmMCQNIOsyR3F7o5qsleU2NympSVxQyOTL0WlFaJqdNMSLwqV/px
+oWZdPlYCw6lc1BFjRkYF5YVCb6E7dJG6WbUJTVys5lt3AIIN3l1WuO2JlhmXvubN
+021zAo8TJIn1aFQEkVw=
+=nxOG
+- -----END PGP SIGNATURE-----
+
+-----BEGIN PGP SIGNATURE-----
+Version: 2.6.3i
+Charset: noconv
+Comment: Stamper Reference Id: 0941518
+
+iQEVAgUBWIp/cIGVnbVwth+BAQFHYgf9FlwGDnTXG8n6z9mxY3D/0iyQPCBcl7GA
+F82u0+R/QjCxEpy/CpdAKPH0r3wbFvyvBHgmxwkHFY/dpk1g9NyRVp7Fj/ANGuNx
+QF3ORr0JG55ZjxpHZM+OZye0PWWIrvMpqK4Rv+EEWFgYoo4/RJmX0uyjTW3eRBxy
+gzZN0TCHF5YFHWJcsaqiAFogszuFcaHaq2v9m+8X252knKM9NZ/0mIjjQhRynNss
+0d7bzQbtRJFJOHgYC7WRBgaRsokNbMVNUaWvygiC+Q7ccV7mVVvNQZ3fqQMiSKxH
+oCxi53i/Agi1pCvJ/WCC9HJ7papOA9+Gd2R7x3F2XVRSP1+/9g7wRA==
+=OVvz
+-----END PGP SIGNATURE-----
 """)
 ]
 
@@ -324,3 +383,4 @@ class TRX(unittest.TestCase):
             'key_id': '81959DB570B61F81',
             'pubkey_fingerprint': '4B12BCD5788511063B543190E09DF306',
         }, resp['tstamp']['sig'])
+        self.assertDictContainsSubset(tag_verdict, resp['tag']['sig'])
