@@ -121,6 +121,10 @@ class ConfigCmd(baseapp.Cmd):
         """
         Print configurations (defaults | files | merged) before any validations.
 
+        SYNTAX
+            co2dice config show [--source=(merged | default)] [<class-1> ...]
+            co2dice config show --source file
+
         - Use --verbose to view config-params on all intermediate classes.
         - Similarly, you may also add `--Cmd.print_config=True` global option
           on any command to view more targeted results.
@@ -155,7 +159,9 @@ class ConfigCmd(baseapp.Cmd):
 
             self._loaded_config = static_config
 
-        def _yield_file_configs(self, config):
+        def _yield_file_configs(self, config, classes=None):
+            assert not classes, (classes, "should be empty")
+
             for k, v in config.items():
                 yield k
                 try:
@@ -164,21 +170,44 @@ class ConfigCmd(baseapp.Cmd):
                 except:
                     yield '  +--%s' % v
 
-        def _yield_configs_and_defaults(self, config, merged: bool):
-            ## Prefer to modify `classes` after `initialize()`, or else,
-            #  the cmd options would be irrelevant and fatty :-)
-            if merged:
-                ## Merging below works only if all classes visited.
-                self.verbose = True
+        def _yield_configs_and_defaults(self, config, class_names, merged: bool):
+            from boltons.setutils import IndexedSet as iset
 
+            ## Prefer to modify `class_names` after `initialize()`, or else,
+            #  the cmd options would be irrelevant and fatty :-)
             self.classes = self.all_app_configurables()
-            for cls in self._classes_with_config_traits():
+
+            ## Merging works only if all class_names visited.
+            show_own_traits_only = not (self.verbose or merged)
+
+            classes = list(self._classes_with_config_traits())
+            if class_names:
+                ## On specific class_names show all inherited traits.
+                show_own_traits_only = False
+
+                ## Preserve order and report misses.
+                #
+                class_names = iset(class_names)
+                all_classes = {cls.__name__: cls
+                               for cls
+                               in classes}
+                all_cls_names = all_classes.keys()
+                unknown_names = class_names - all_cls_names
+                matched_names = class_names & all_cls_names
+                classes = [all_classes[cname] for cname in matched_names]
+                if unknown_names:
+                    self.log.warning('Unknown classes given: %s', ', '.join(unknown_names))
+
+            for cls in classes:
                 clsname = cls.__name__
+                if class_names and clsname not in class_names:
+                    continue
+
                 cls_printed = False
 
-                cls_traits = (cls.class_traits(config=True)
-                              if self.verbose else
-                              cls.class_own_traits(config=True))
+                cls_traits = (cls.class_own_traits(config=True)
+                              if show_own_traits_only else
+                              cls.class_traits(config=True))
                 for name, trait in sorted(cls_traits.items()):
                     key = '%s.%s' % (clsname, name)
                     if merged and key in config:
@@ -193,22 +222,25 @@ class ConfigCmd(baseapp.Cmd):
                     yield '  +--%s = %s' % (name, val)
 
         def run(self, *args):
-            if len(args) > 0:
-                raise CmdException('Cmd %r takes no arguments, received %d: %r!'
-                                   % (self.name, len(args), args))
-
-            config = self._loaded_config
             source = self.source.lower()
             if source == 'files':
+                if len(args) > 0:
+                    raise CmdException("Cmd '%s --source files' takes no arguments, received %d: %r!"
+                                       % (self.name, len(args), args))
+
                 func = self._yield_file_configs
             elif source == 'defaults':
-                func = lambda cfg: self._yield_configs_and_defaults(cfg, merged=False)
+                func = lambda cfg, classes: self._yield_configs_and_defaults(
+                    cfg, classes, merged=False)
             elif source == 'merged':
-                func = lambda cfg: self._yield_configs_and_defaults(cfg, merged=True)
+                func = lambda cfg, classes: self._yield_configs_and_defaults(
+                    cfg, classes, merged=True)
             else:
                 raise AssertionError('Impossible enum: %s' % source)
 
-            yield from func(config)
+            config = self._loaded_config
+
+            yield from func(config, args)
 
     def __init__(self, **kwds):
             dkwds = {'subcommands': baseapp.build_sub_cmds(*config_subcmds)}
