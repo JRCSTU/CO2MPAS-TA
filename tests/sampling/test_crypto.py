@@ -37,26 +37,25 @@ _objs = ('', ' ', None, 'a' * 2048, 1244, b'\x22', {1: 'a', '2': {3, b'\x04'}})
 
 test_pgp_key = [tw.dedent(
     """
-    -----BEGIN PGP PRIVATE KEY BLOCK-----
-    Version: GnuPG v2
+        -----BEGIN PGP PRIVATE KEY BLOCK-----
 
-    lQHYBFbirf0BBADdjkrRSJ+ua9RvlzZsrpr4tAvj6+rK9eRwuue+jaIu5JucIvV5
-    nq5AlsQGACTy88qsnYcbqqro15AURdZ3fS2uy4yGvcNzMNP0w6Jh+DPZM9ubZXXQ
-    xsejMltjynHe3gJNeBy5D7xGOURv1sAaHoCxYw4zC/SjkbnNqpvMZNmvTwARAQAB
-    AAP/UyULsdepyUjBK/GY5JdwJAZZcfr+nZVC2gViY9H+O8/iD+nUqoQgy69ouAHE
-    3AIenMHvSrQ1OHVxJhKBZk0tX3lUZ60W8yBY5GydWu0ylHeTXzU2tgCqMDi36TKE
-    w/p1jx5nkJ6qwfXtMTWLsaWOllRaGOpOv+pR3yEkRmTQe20CAOvbwxax33bFDXJM
-    WSL0GEdTXDM/M5XdoFoV+M9wnx4eJj4yPnL0SkpWgkq38FtwrINdxg46OfOw7hml
-    hlKXz80CAPB52jgRTImm2VAENdMa0O+yu5YDmRyyuyJWyoYdNQlbOrzraQjiJTfQ
-    zsv9bfvpxeFS+PRXyAenwRV3qQryR4sCALAvfd068PZkg4K3+TP5F45fFBTfnHqR
-    eCeUX/uU4CYzh+LcM5E89IQ45O+FIwUgyvVx8kyUe79vwlzbJXnf/1mjlrQxU2Ft
-    cGxpbmcgVGVzdCA8c2FtcGxpbmdAY28ybXBhcy5qcmMuZWMuZXVyb3BhLmV1Poi5
-    BBMBCAAjBQJW4q39AhsvBwsJCAcDAgEGFQgCCQoLBBYCAwECHgECF4AACgkQ/77E
-    oYwAhAN16QQAp79/wkUQNqXZTWhY5ji/jazisK4ggaJcWIvpsrbiwL1wJ5ZbbY/9
-    gHXslyDWhyKK/KbgAdAurAXgekRDLTXxR1c+Q0hm0phrmyhIENRbwF04T2S4JExQ
-    PiKw+6RfuxfTV22f6sRSkwuK4MP9veZ/0u6Mid6kRHJFo+mVus8XuZA=
-    =clrj
-    -----END PGP PRIVATE KEY BLOCK-----
+        lQHYBFiJ7q0BBAC7SXZw+XbnbT9QuB7mQUlMaw9NPtqj8iRRvJZOejV0PSY0F1Ub
+        jNhLlmrBX+m4zoPtreEmjeGOa5uPDoqqiD1ft9kWf9Byr1Uq3L++NtDwIcetZzl1
+        hHiG/wtY7kaWDZRgHXKMbf5TPjsFKyXS8lnyIRlD6nuU4xvMTzmiCdp4FQARAQAB
+        AAP9Erl8SDzEvMwRG7igzDwEQEnm4H3zfZcotuxQKb3xqLKxZl1b0rKQ8HO0Liuw
+        8hthmMp8224teh/7kECvr++JlSN8+EiXZ+DTffFdMRZKfAkB6uktfRNIuY98qH0h
+        AUgRS0StXQEPgm3SzguzA+1TYTa2Khay8wVjIXCBU0M6EbkCAMO+T94VICGNlUXm
+        mC/R1VdzO8o9XVFWhfGVUvVR0U4tzb5+izLSf4aau74OnICGqHnIQaEmU1DVit22
+        ALQlgGkCAPTwvDKRkSfDAKhvOu5Flb7k0AsC5wdQMQrfs0m5lwXDhuojB2XB77zG
+        ODwkhWIT46qGZZlvmcKPSQcOXnkpBM0B/ii7PsEWw7SNgVnRjOGeKpu/drpluUwa
+        uT0B9x6sy+Fyx/IVZuNRsbG4Xetay7MeC+m7MaLAwe+ZezmgxVT4kn2gq7QwQ08y
+        TVBBUyBUZXN0IDxzYW1wbGluZ0BjbzJtcGFzLmpyYy5lYy5ldXJvcGEuZXU+iL8E
+        EwEIACkFAliJ7q0CGy8FCQDtTgAHCwkIBwMCAQYVCAIJCgsEFgIDAQIeAQIXgAAK
+        CRCxJMmZy7tS/53UA/9G+m7bmn/HCKSRsH4fIkveq4jZRVmq1NEPmXm4pXCwROGK
+        fRAw0pl/l+eGW3adMctTOxaX3lI/nz+g2QTEURgDHxLGaghDEGuy1VyjFFt0WXef
+        2l5xTONpi4gs/G4M1+TY/MantEDRUJPh3EMgoEuT0H6gffhxsejI/YD1BH0RGQ==
+        =AFgK
+        -----END PGP PRIVATE KEY BLOCK-----
     """)
 ]
 test_pgp_trust = tw.dedent("""\
@@ -215,7 +214,7 @@ _clearsigned_msgs = [
 ]
 
 
-_signed_tag = tw.dedent("""\
+_signed_tag_old = tw.dedent("""\
         object 76b8bf7312770a488eaeab4424d080dea3272435
         type commit
         tag test_tag
@@ -237,29 +236,45 @@ _signed_tag = tw.dedent("""\
         -----END PGP SIGNATURE-----
     """).encode('utf-8')
 
+_signed_tag = tw.dedent("""\
+        object 3334bcde283480883f2fb209efcf84ae24da8335
+        type commit
+        tag tests/signed_by_CBBB52FF
+        tagger Kostis Anagnostopoulos <ankostis@gmail.com> 1485442847 +0100
+
+        Test-tag for crypto TCs, signed by:
+          CO2MPAS Test <sampling@co2mpas.jrc.ec.europa.eu>  1024R/B124C999CBBB52FF 2017-01-26 [expires: 2017-07-25]
+        -----BEGIN PGP SIGNATURE-----
+        Version: GnuPG v2
+
+        iJwEAAEIAAYFAliKDx8ACgkQsSTJmcu7Uv9HsAP+KmK4+cSXvScwg5UHDq7VVj1B
+        XjtEHZp6VwKndmMCQNIOsyR3F7o5qsleU2NympSVxQyOTL0WlFaJqdNMSLwqV/px
+        oWZdPlYCw6lc1BFjRkYF5YVCb6E7dJG6WbUJTVys5lt3AIIN3l1WuO2JlhmXvubN
+        021zAo8TJIn1aFQEkVw=
+        =nxOG
+        -----END PGP SIGNATURE-----
+    """).encode('utf-8')
+
 
 _splitted_signed_tag = [
     tw.dedent("""\
-        object 76b8bf7312770a488eaeab4424d080dea3272435
+        object 3334bcde283480883f2fb209efcf84ae24da8335
         type commit
-        tag test_tag
-        tagger Kostis Anagnostopoulos <ankostis@gmail.com> 1485272439 +0100
+        tag tests/signed_by_CBBB52FF
+        tagger Kostis Anagnostopoulos <ankostis@gmail.com> 1485442847 +0100
 
-        - Is bytes (utf-8 encodable);
-        - all lines end with LF, and any trailing whitespace truncated;
-        - any line can start with dashes;
-        - any empty lines at the bottom are truncated,
-        - apart from the last LF, which IS part of the msg.
+        Test-tag for crypto TCs, signed by:
+          CO2MPAS Test <sampling@co2mpas.jrc.ec.europa.eu>  1024R/B124C999CBBB52FF 2017-01-26 [expires: 2017-07-25]
         """).encode('utf-8'),
     tw.dedent("""\
         -----BEGIN PGP SIGNATURE-----
         Version: GnuPG v2
 
-        iJwEAAEIAAYFAliHdXwACgkQ/77EoYwAhAMxDgQAhlqOjb0bHGxLcyYIpFg9kEmp
-        4poL5eA7cdmq3eU1jXTfb5UXJV6BnP+DUsJ4TG+7KoUimgli0djG7ZisRvNYBWGD
-        PNO2X5LqNx7tzgj/fQT5CzWcWMXfjUd337pfoj3K3kDroCNl7oQl/bSIR46z9l/3
-        JS/kbngOONtzIkPbQvU=
-        =bEkN
+        iJwEAAEIAAYFAliKDx8ACgkQsSTJmcu7Uv9HsAP+KmK4+cSXvScwg5UHDq7VVj1B
+        XjtEHZp6VwKndmMCQNIOsyR3F7o5qsleU2NympSVxQyOTL0WlFaJqdNMSLwqV/px
+        oWZdPlYCw6lc1BFjRkYF5YVCb6E7dJG6WbUJTVys5lt3AIIN3l1WuO2JlhmXvubN
+        021zAo8TJIn1aFQEkVw=
+        =nxOG
         -----END PGP SIGNATURE-----
         """).encode('utf-8')
 ]
@@ -315,7 +330,7 @@ class TGpgSpec(unittest.TestCase):
         else:
             self.assertIsNone(csig)
 
-    def test_parse_git_tags(self):
+    def test_parse_git_tag_unknown_pubkey(self):
         import git
 
         repo = git.Repo(myproj)
@@ -328,13 +343,39 @@ class TGpgSpec(unittest.TestCase):
         bytes_sink = io.BytesIO()
         tag.stream_data(bytes_sink)
         tag_bytes = bytes_sink.getvalue()
+
+        msg, sig = crypto.pgp_split_sig(tag_bytes)
+
+        gpg_spec = crypto.GpgSpec(config=self.cfg)
+        ver = gpg_spec.verify_detached(sig, msg)
+        verdict = vars(ver)
+        pp(verdict)
+        self.assertDictContainsSubset(
+            {
+                'valid': False,
+                'status': 'no public key',
+                'key_id': 'FFBEC4A18C008403',
+                'key_status': None,
+                'timestamp': '1485272444',
+            },
+            verdict)
+
+    def test_parse_git_tag_ok(self):
+        import git
+
+        repo = git.Repo(myproj)
+
+        tagref = repo.tag('refs/tags/tests/signed_by_CBBB52FF')
+        tag = tagref.tag
+        self.assertEqual(tag.hexsha, '1e28f8ffc717f407ff38d93d4cbad4e7a280d063')
+        self.assertEqual(tagref.commit.hexsha, '3334bcde283480883f2fb209efcf84ae24da8335')
+
+        bytes_sink = io.BytesIO()
+        tag.stream_data(bytes_sink)
+        tag_bytes = bytes_sink.getvalue()
         self.assertEqual(tag_bytes, _signed_tag)
 
-        res = crypto.pgp_split_sig(tag_bytes)
-        self.assertEqual(len(res), 2)
-        msg, sig = res  # encode(sys.getdefaultencoding())
-        print(msg,)
-        print(_splitted_signed_tag[0])
+        msg, sig = crypto.pgp_split_sig(tag_bytes)
         self.assertEqual(msg, _splitted_signed_tag[0])
         self.assertEqual(sig, _splitted_signed_tag[1])
 
@@ -488,13 +529,13 @@ class TCipherTrait(unittest.TestCase):
 ##                return True
 ##
 #
-#    _repeatitive_regex = re.compile(r'(?P<l>.)(?P=l){2,}')
+#    _repeatitive_regex3 = re.compile(r'(?P<l>.)(?P=l){2,}')
+#    _repeatitive_regex4 = re.compile(r'(?P<l>.)(?P=l){3,}')
 #
 #    def _is_vanity_keyid(self, keyid):
 #        """Search repeatitive letters"""
-#        regex = self._repeatitive_regex
-#        m1 = regex.search(keyid[:8])
-#        m2 = regex.search(keyid[8:])
+#        m1 = self._repeatitive_regex3.search(keyid[:8])
+#        m2 = self._repeatitive_regex4.search(keyid[8:])
 #        return m1 and m2
 #
 #    def gpg_gen_interesting_keys(self, gpg, nkeys=1, runs=0, **key_data):
