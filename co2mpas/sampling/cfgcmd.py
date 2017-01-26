@@ -201,7 +201,7 @@ class ConfigCmd(baseapp.Cmd):
             source = self.source.lower()
             if source == 'files':
                 func = self._yield_file_configs
-            elif source == 'default':
+            elif source == 'defaults':
                 func = lambda cfg: self._yield_configs_and_defaults(cfg, merged=False)
             elif source == 'merged':
                 func = lambda cfg: self._yield_configs_and_defaults(cfg, merged=True)
