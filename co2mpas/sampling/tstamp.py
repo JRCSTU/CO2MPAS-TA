@@ -296,7 +296,7 @@ class TstampCmd(baseapp.Cmd):
         Send emails to be timestamped.
 
         SYNTAX
-            co2dice tstamp send [ <dice-report-file> ...]
+            co2dice tstamp send [ <file-1> ...]
 
         - Do not use this command directly (unless experimenting) - preffer the `co2dice project tstamp` command.
         - If no files are given, it reads from STDIN.
@@ -335,8 +335,10 @@ class TstampCmd(baseapp.Cmd):
         Derives the *decision* OK/SAMPLE flag from time-stamped email.
 
         SYNTAX
-            cat <mail> | co2dice tstamp parse
+            co2dice tstamp send [ <tstamp-response-file-1> ...]
+
         """
+        examples = trt.Unicode("""cat <mail> | co2dice tstamp parse""")
 
         def __init__(self, **kwds):
             kwds.setdefault('conf_classes', [TstampReceiver])
