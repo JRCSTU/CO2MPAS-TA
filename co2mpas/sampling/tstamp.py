@@ -158,14 +158,28 @@ class TstampSender(TstampSpec):
         return smtplib.SMTP_SSL if self.ssl else smtplib.SMTP
 
     def send_timestamped_email(self, msg):
+        from pprint import pformat
+
+        ver = self.verify_git_signed(msg.encode('utf-8'))
+        verdict = pformat(vars(ver))
+        if not ver:
+            if self.force:
+                self.log.warning("Content to timestamp failed signature verification!  %s",
+                                 verdict)
+            else:
+                raise CmdException("Content to timestamp failed signature verification!\n  %s"
+                                   % verdict)
+        else:
+            self.log.info("Content to timestamp signed OK: %s" % verdict)
+
         msg = self._append_x_recipients(msg)
+        mail = self._prepare_mail(msg)
 
         self.log.info("Timestamping %d-char email from '%s' to %s-->%s",
                       len(msg),
                       self.from_address,
                       self.timestamping_addresses,
                       self.x_recipients)
-        mail = self._prepare_mail(msg)
 
         with self.make_server() as srv:
             srv.login(self.user_account, self.decipher('user_pswd'))

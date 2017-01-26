@@ -296,8 +296,12 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
         ~~~~~~~~~~~~~~~~~~~~~~~~~
         `project backup`
             Whether to overwrite existing archives or to create intermediate folders.
+        `project ...`
+            Proceed project's lifecycle-stages even though conditions are not fulfilled.
         `config init`
             Overwrite config-file, even if it already exists.
+        `tstamp send`
+            Send content to timestamp even if its signature fails to verify.
         """).tag(config=True)
 
     def __init__(self, **kwargs):
