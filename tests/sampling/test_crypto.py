@@ -305,6 +305,36 @@ class TGpgSpec(unittest.TestCase):
             name_email='test@test.com')
         cfg.GpgSpec.master_key = fingerprint
 
+#    def test_verify_clearsigned(self):
+#         return verified.valid
+#             signature_id = IWLTrxduQKe1P7qGAUauyyNSpJ4
+#             trust_text = TRUST_ULTIMATE
+#             valid = True
+#             key_status = None
+#             expire_timestamp = 0
+#             key_id = D720C846A2891883
+#             trust_level = 4
+#             stderr = [GNUPG:] NEWSIG
+#                 gpg: Signature made 01/22/17 02:37:10 W. Europe Standard Time using RSA key ID A2891883
+#                 [GNUPG:] SIG_ID IWLTrxduQKe1P7qGAUauyyNSpJ4 2017-01-22 1485049030
+#                 gpg: checking the trustdb
+#                 gpg: 3 marginal(s) needed, 1 complete(s) needed, PGP trust model
+#                 gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+#                 [GNUPG:] GOODSIG D720C846A2891883 test user <test@test.com>
+#                 gpg: Good signature from "test user <test@test.com>" [ultimate]
+#                 [GNUPG:] VALIDSIG C0DE766CF516CB3CE2DDE616D720C846A2891883 2017-01-22 1
+#                                485049030 0 4 0 1 8 01 C0DE766CF516CB3CE2DDE616D720C846A2891883
+#                 [GNUPG:] TRUST_ULTIMATE
+#             timestamp = 1485049030
+#             data = b''
+#             gpg = <gnupg.GPG object at 0x0000028DB4B1BBA8>
+#             username = test user <test@test.com>
+#             sig_timestamp = 1485049030
+#             fingerprint = C0DE766CF516CB3CE2DDE616D720C846A2891883
+#             status = signature valid
+#             pubkey_fingerprint = C0DE766CF516CB3CE2DDE616D720C846A2891883
+#             creation_date = 2017-01-22
+
     @classmethod
     def tearDownClass(cls):
         gpg_spec = crypto.GpgSpec(config=cls.cfg)
@@ -397,7 +427,7 @@ class TGpgSpec(unittest.TestCase):
         signed = gpg_spec.clearsign_text(msg)
         self.assertIsInstance(signed, str)
 
-        verified = gpg_spec.GPG.verify(signed)
+        verified = gpg_spec.verify_clearsigned(signed)
         print('\n'.join('%s = %s' % (k, v) for k, v in vars(verified).items()))
         self.assertTrue(verified.valid)
 
@@ -408,7 +438,7 @@ class TGpgSpec(unittest.TestCase):
         self.assertIsInstance(signed2, str)
         self.assertNotEqual(signed, signed2)
 
-        verified2 = gpg_spec.GPG.verify(signed2)
+        verified2 = gpg_spec.verify_clearsigned(signed2)
         print('\n'.join('%s = %s' % (k, v) for k, v in vars(verified2).items()))
 
         self.assertEqual(verified.fingerprint, verified2.fingerprint)

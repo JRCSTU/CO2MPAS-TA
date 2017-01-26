@@ -213,7 +213,7 @@ class TstampReceiver(TstampSpec):
         from pprint import pformat
         import textwrap as tw
 
-        ts_ver = self.GPG.verify(mail_text)
+        ts_ver = self.verify_clearsigned(mail_text)
         ts_verdict = vars(ts_ver)
         if not ts_ver:
             self.log.error("Cannot verify timestamp-response's signature due to: %s", pformat(ts_verdict))

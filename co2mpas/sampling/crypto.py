@@ -438,41 +438,19 @@ class GpgSpec(baseapp.Spec):
 
         return str(signed)
 
-#     ## NO, very simple, do it directly in client code.
-#     def verify_clearsigned(self, text: Text) -> bool:
-#         """Verifies a clear-signed textual-message."""
-#        verified = self.GPG.verify(text)
-#
-#         return verified.valid
-#             signature_id = IWLTrxduQKe1P7qGAUauyyNSpJ4
-#             trust_text = TRUST_ULTIMATE
-#             valid = True
-#             key_status = None
-#             expire_timestamp = 0
-#             key_id = D720C846A2891883
-#             trust_level = 4
-#             stderr = [GNUPG:] NEWSIG
-#                 gpg: Signature made 01/22/17 02:37:10 W. Europe Standard Time using RSA key ID A2891883
-#                 [GNUPG:] SIG_ID IWLTrxduQKe1P7qGAUauyyNSpJ4 2017-01-22 1485049030
-#                 gpg: checking the trustdb
-#                 gpg: 3 marginal(s) needed, 1 complete(s) needed, PGP trust model
-#                 gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
-#                 [GNUPG:] GOODSIG D720C846A2891883 test user <test@test.com>
-#                 gpg: Good signature from "test user <test@test.com>" [ultimate]
-#                 [GNUPG:] VALIDSIG C0DE766CF516CB3CE2DDE616D720C846A2891883 2017-01-22 1
-#                                485049030 0 4 0 1 8 01 C0DE766CF516CB3CE2DDE616D720C846A2891883
-#                 [GNUPG:] TRUST_ULTIMATE
-#             timestamp = 1485049030
-#             data = b''
-#             gpg = <gnupg.GPG object at 0x0000028DB4B1BBA8>
-#             username = test user <test@test.com>
-#             sig_timestamp = 1485049030
-#             fingerprint = C0DE766CF516CB3CE2DDE616D720C846A2891883
-#             status = signature valid
-#             pubkey_fingerprint = C0DE766CF516CB3CE2DDE616D720C846A2891883
-#             creation_date = 2017-01-22
+    def _proc_verfication(self, ver, keep_stderr: bool=None):
+        """Convert *gnupg* lib's results into dict, hidding `stderr` if OK."""
+        keep_stderr = keep_stderr is None and not bool(ver)
+        if not keep_stderr:
+            ver.stderr = ''
 
-    def verify_detached(self, sig: bytes, data: bytes):
+        return ver
+
+    def verify_clearsigned(self, text: Text, keep_stderr: bool=None) -> bool:
+        """Verifies a clear-signed textual-message."""
+        return self._proc_verfication(self.GPG.verify(text), keep_stderr)
+
+    def verify_detached(self, sig: bytes, data: bytes, keep_stderr=None):
         """Verify `sig` on the `data`."""
         import gnupg
         import tempfile
@@ -491,13 +469,15 @@ class GpgSpec(baseapp.Spec):
             data_stream = io.BytesIO(data)
             GPG._handle_io(args, data_stream, result, binary=True)
 
-        return result
+        return self._proc_verfication(result, keep_stderr)
 
-    def verify_git_signed(self, git_bytes: bytes):
+    def verify_git_signed(self, git_bytes: bytes, keep_stderr: bool=None):
         msg, sig = pgp_split_sig(git_bytes)
         msg = _git_detachsig_canonical_regexb.sub(b'\n', msg)
         msg = _git_detachsig_strip_top_empty_lines_regexb.sub(b'', msg)
-        return self.verify_detached(sig, msg)
+        ver = self.verify_detached(sig, msg)
+
+        return self._proc_verfication(ver, keep_stderr)
 
 
 class VaultSpec(trtc.SingletonConfigurable, GpgSpec):
