@@ -484,7 +484,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
     """
 
     repo_path = trt.Unicode(
-        'repo',
+        osp.join(baseapp.default_config_dir(), 'repo'),
         help="""
         The path to the Git repository to store TA files (signed and exchanged).
         If relative, it joined against default config-dir: '{confdir}'

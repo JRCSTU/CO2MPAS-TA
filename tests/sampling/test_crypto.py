@@ -106,14 +106,21 @@ class TGpgSpecBinary(unittest.TestCase):
 
     def test_GPG_EXECUTABLE(self):
         from unittest.mock import patch
+        import importlib
 
         with patch.dict('os.environ', {'GNUPGEXE': '/bad_path'}):  # @UndefinedVariable
+            ## No-dynamic trait-defaults are loaded on import time...
+            importlib.reload(crypto)
+
             with self.assertRaisesRegex(OSError, 'Unable to run gpg - it may not be available.'):
                 crypto.GpgSpec().GPG
 
             cfg = trtc.get_config()
             cfg.GpgSpec.gnupgexe = 'gpg'
             crypto.GpgSpec(config=cfg).GPG
+
+        ## Restore default.
+        importlib.reload(crypto)
 #
 
 _clearsigned_msgs = [

@@ -182,13 +182,13 @@ class GpgSpec(baseapp.Spec):
     """
 
     gnupgexe = trt.Unicode(
-        None, allow_none=True,
-        help="The path to GnuPG executable; if None, first `gpg` in PATH used, "
-        "unless `GNUPGEXE`(%s) env-variable is set." % os.environ.get('GNUPGEXE')
+        os.environ.get('GNUPGEXE', 'gpg'), allow_none=True,
+        help="The path to GnuPG executable; read from `GNUPGEXE`(%s) env-variable or 'gpg'."
+        % os.environ.get('GNUPGEXE')
     ).tag(config=True)
 
     gnupghome = trt.Unicode(
-        None, allow_none=True,
+        os.environ.get('GNUPGHOME'), allow_none=True,
         help="""
         The full pathname to the folder containing the public and private PGP-keyrings.
 
@@ -285,7 +285,7 @@ class GpgSpec(baseapp.Spec):
         """Used for printing configurations."""
         import shutil
 
-        gpg_exepath = self.gnupgexe or os.environ.get('GNUPGEXE', 'gpg')
+        gpg_exepath = self.gnupgexe
         gpg_exepath = shutil.which(gpg_exepath) or gpg_exepath
         return gpg_exepath
 
@@ -348,7 +348,7 @@ class GpgSpec(baseapp.Spec):
         import gnupg
         GPG = self._GPG
         if not GPG:
-            gnupgexe = self.gnupgexe or os.environ.get('GNUPGEXE', 'gpg')
+            gnupgexe = self.gnupgexe
             GPG = self._GPG = gnupg.GPG(
                 gpgbinary=gnupgexe,
                 gnupghome=self.gnupghome,

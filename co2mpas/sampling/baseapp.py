@@ -493,7 +493,7 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
     ).tag(config=True)
 
     persist_path = trt.Unicode(
-        None, allow_none=True,
+        os.environ.get(PERSIST_VAR_NAME), allow_none=True,
         help="""
         Absolute/relative path to read/write persistent parameters on runtime, if `{confvar}` envvar is not defined.
 
@@ -607,7 +607,6 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
     def _resolved_persist_file(self):
         """Returns the 1st value in config, env, or default-value (might contain ``.json``)."""
         persist_path = (self.persist_path or
-                        os.environ.get(PERSIST_VAR_NAME) or
                         default_persist_fpath())
         persist_path = pndlu.convpath(persist_path)
         return persist_path
