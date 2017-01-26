@@ -206,33 +206,46 @@ class TstampReceiver(TstampSpec):
 
     def parse_tsamp_response(self, mail_text: Text) -> int:
         from pprint import pformat
+        import textwrap as tw
+
         ts_ver = self.GPG.verify(mail_text)
+        ts_verdict = vars(ts_ver)
         if not ts_ver:
-            self.log.error("Cannot verify timestamp-response's signature due to: %s", pformat(vars(ts_ver)))
+            self.log.error("Cannot verify timestamp-response's signature due to: %s", pformat(ts_verdict))
             raise ValueError("Cannot verify timestamp-reponse signature due to: %s" % ts_ver.status)
+        if not ts_ver.valid:
+
+            self.log.warning(
+                tw.dedent("""\
+                Timestamp's signature is valid, but not *trusted*!
+                  You may sign Timestamp-service's key(81959DB570B61F81) with a *fully* trusted secret-key,
+                  or assign *full* trust on JRC's key(TODO:JRC-keyid-here) that already has done so.
+                    %s
+                """), pformat(ts_verdict))
 
         csig = crypto.pgp_split_clearsigned(mail_text)
         stamper_id, tag = self._capture_stamper_msg_and_id(csig.msg, csig.sigheads)
         if not stamper_id:
             self.log.error("Timestamp-response had no *stamper-id*: %s\n%s",
-                           pformat(csig), pformat(vars(ts_ver)))
+                           pformat(csig), pformat(ts_verdict))
             raise ValueError("Timestamp-response had no *stamper-id*: %s" % csig.sig)
 
         # Verify inner tag.
         if tag:
             tag_ver = self.verify_git_signed(tag.encode('utf-8'))
+            tag_verdict = vars(tag_ver)
 
         num = self._pgp_sig2int(ts_ver.signature_id)
         dice100 = num % 100
         decision = 'OK' if dice100 < 90 else 'SAMPLE'
 
-        #self.log.info("Timestamp sig did not verify: %s", pformat(vars(ts_ver)))
+        #self.log.info("Timestamp sig did not verify: %s", pformat(tag_verdict))
         return {
-            'tstamp': pformat(vars(ts_ver)),
+            'tstamp': pformat(ts_verdict),
             'tstamp_sig': csig.sig,
             'tstamp_sig_date': ts_ver.creation_date,
             'stamper_id': stamper_id,
-            'tag': pformat(vars(tag_ver)),
+            'tag': pformat(tag_verdict),
             'tag_keyid': tag_ver.key_id,
             'tag_sig_date': ts_ver.creation_date,
             'dice': num,
