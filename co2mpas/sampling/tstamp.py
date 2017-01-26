@@ -32,9 +32,14 @@ from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  
 class TstampSpec(dice.DiceSpec, crypto.GpgSpec):
     """Common parameters and methods for both SMTP(sending emails) & IMAP(receiving emails)."""
 
+    user_account = trt.Unicode(
+        None, allow_none=False,
+        help="""The username for the account on the SMTP/IMAP server!"""
+    ).tag(config=True)
+
     user_pswd = crypto.Cipher(
         help="""
-        The SMTP/IMAP server's password matching `user_name` param.
+        The SMTP/IMAP server's password matching `user_account` param.
 
         For *GMail* with 2-factor authentication, see:
             https://support.google.com/accounts/answer/185833
@@ -88,18 +93,18 @@ class TstampSpec(dice.DiceSpec, crypto.GpgSpec):
         srv_cls = self.choose_server_class()
 
         self.log.info("Login %s: %s@%s(%s)...", srv_cls.__name__,
-                      self.user_name, host, srv_kwds or '')
+                      self.user_account, host, srv_kwds or '')
         return srv_cls(host, **srv_kwds)
 
     def check_login(self):
         ok = False
         with self.make_server() as srv:
             try:
-                srv.login(self.user_name, self.decipher('user_pswd'))
+                srv.login(self.user_account, self.decipher('user_pswd'))
                 ok = True
             finally:
                 self.log.info("Login %s: %s@%s ok? %s", type(srv).__name__,
-                              self.user_name, srv.sock, ok)
+                              self.user_account, srv.sock, ok)
 
 
 class TstampSender(TstampSpec):
@@ -163,7 +168,7 @@ class TstampSender(TstampSpec):
         mail = self._prepare_mail(msg)
 
         with self.make_server() as srv:
-            srv.login(self.user_name, self.decipher('user_pswd'))
+            srv.login(self.user_account, self.decipher('user_pswd'))
 
             srv.send_message(mail)
 
@@ -259,7 +264,7 @@ class TstampReceiver(TstampSpec):
     # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
     def receive_timestamped_email(self):
         with self.make_server() as srv:
-            repl = srv.login(self.user_name, self.decipher('user_pswd'))
+            repl = srv.login(self.user_account, self.decipher('user_pswd'))
             """GMAIL-2FAuth: imaplib.error: b'[ALERT] Application-specific password required:
             https://support.google.com/accounts/answer/185833 (Failure)'"""
             self.log.debug("Sent IMAP user/pswd, server replied: %s", repl)

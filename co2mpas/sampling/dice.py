@@ -84,7 +84,7 @@ class DiceSpec(baseapp.Spec):
 
     user_name = trt.Unicode(
         None, allow_none=False,
-        help="""The name/surname (NOTE: for SMTP/IMAP usually that's your email-address!)"""
+        help="""The Name & Surname of the default user invoking the app.  Must not be empty!"""
     ).tag(config=True)
 
     user_email = trt.Unicode(
