@@ -316,7 +316,7 @@ class TstampCmd(baseapp.Cmd):
         Send emails to be timestamped.
 
         SYNTAX
-            co2dice tstamp send [ <file-1> ...]
+            co2dice tstamp send [OPTIONS] [<file-1> ...]
 
         - Do not use this command directly (unless experimenting) - preffer the `co2dice project tstamp` command.
         - If no files are given, it reads from STDIN.
@@ -370,7 +370,7 @@ class TstampCmd(baseapp.Cmd):
         Derives the *decision* OK/SAMPLE flag from time-stamped email.
 
         SYNTAX
-            co2dice tstamp send [ <tstamp-response-file-1> ...]
+            co2dice tstamp send [OPTIONS] [<tstamp-response-file-1> ...]
 
         """
         examples = trt.Unicode("""cat <mail> | co2dice tstamp parse""")

@@ -68,8 +68,8 @@ class ReportCmd(baseapp.Cmd):
     If multiple files given from a kind (inp/out), later ones overwrite any previous.
 
     SYNTAX
-        co2dice report ( inp=<co2mpas-file-1> | out=<co2mpas-file-1> ) ...
-        co2dice report --project
+        co2dice report [OPTIONS] ( inp=<co2mpas-file-1> | out=<co2mpas-file-1> ) ...
+        co2dice report --project [OPTIONS]
     """
 
     examples = trt.Unicode("""

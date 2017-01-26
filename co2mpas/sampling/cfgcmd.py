@@ -64,7 +64,7 @@ class ConfigCmd(baseapp.Cmd):
         - It OVERWRITES any pre-existing configuration file(s)!
 
         SYNTAX
-            co2dice config init [<config-path-1>] ...
+            co2dice config init [OPTIONS] [<config-path-1>] ...
         """
 
         ## Class-docstring CANNOT contain string-interpolations!
@@ -125,8 +125,8 @@ class ConfigCmd(baseapp.Cmd):
         Print configurations (defaults | files | merged) before any validations.
 
         SYNTAX
-            co2dice config show [--source=(merged | default)] [<class-1> ...]
-            co2dice config show --source file
+            co2dice config show [OPTIONS] [--source=(merged | default)] [<class-1> ...]
+            co2dice config show [OPTIONS] --source file
 
         - Use --verbose to view config-params on all intermediate classes.
         - Similarly, you may also add `--Cmd.print_config=True` global option
