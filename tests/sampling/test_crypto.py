@@ -102,7 +102,7 @@ def _temp_master_key(vault, master_key):
         vault.master_key = oldkey
 
 
-class TGnuPGSpecBinary(unittest.TestCase):
+class TGpgSpecBinary(unittest.TestCase):
     ## Separate class for no classSetUp/ClassTearDown methods.
 
     def test_GPG_EXECUTABLE(self):
@@ -110,11 +110,11 @@ class TGnuPGSpecBinary(unittest.TestCase):
 
         with patch.dict('os.environ', {'GNUPGEXE': '/bad_path'}):  # @UndefinedVariable
             with self.assertRaisesRegex(OSError, 'Unable to run gpg - it may not be available.'):
-                crypto.GnuPGSpec().GPG
+                crypto.GpgSpec().GPG
 
             cfg = trtc.get_config()
-            cfg.GnuPGSpec.gnupgexe = 'gpg'
-            crypto.GnuPGSpec(config=cfg).GPG
+            cfg.GpgSpec.gnupgexe = 'gpg'
+            crypto.GpgSpec(config=cfg).GPG
 #
 
 _clearsigned_msgs = [
@@ -266,26 +266,26 @@ _splitted_signed_tag = [
 
 
 @ddt.ddt
-class TGnuPGSpec(unittest.TestCase):
+class TGpgSpec(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
         cls.cfg = cfg = trtc.get_config()
-        cfg.GnuPGSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
-        cfg.GnuPGSpec.keys_to_import = test_pgp_key
-        cfg.GnuPGSpec.trust_to_import = test_pgp_trust
-        gpg_spec = crypto.GnuPGSpec(config=cfg)
+        cfg.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        cfg.GpgSpec.keys_to_import = test_pgp_key
+        cfg.GpgSpec.trust_to_import = test_pgp_trust
+        gpg_spec = crypto.GpgSpec(config=cfg)
 
         fingerprint = gpg_gen_key(
             gpg_spec.GPG,
             key_length=1024,
             name_real='test user',
             name_email='test@test.com')
-        cfg.GnuPGSpec.master_key = fingerprint
+        cfg.GpgSpec.master_key = fingerprint
 
     @classmethod
     def tearDownClass(cls):
-        gpg_spec = crypto.GnuPGSpec(config=cls.cfg)
+        gpg_spec = crypto.GpgSpec(config=cls.cfg)
         assert gpg_spec.gnupghome
         gpg_del_key(gpg_spec.GPG, gpg_spec.master_key)
         shutil.rmtree(gpg_spec.gnupghome)
@@ -338,14 +338,14 @@ class TGnuPGSpec(unittest.TestCase):
         self.assertEqual(msg, _splitted_signed_tag[0])
         self.assertEqual(sig, _splitted_signed_tag[1])
 
-        gpg_spec = crypto.GnuPGSpec(config=self.cfg)
+        gpg_spec = crypto.GpgSpec(config=self.cfg)
         ver = gpg_spec.verify_detached(sig, msg)
         pp(vars(ver))
         self.assertTrue(ver)
 
     def test_clearsign_verify(self):
         msg = 'Hi there'
-        gpg_spec = crypto.GnuPGSpec(config=self.cfg)
+        gpg_spec = crypto.GpgSpec(config=self.cfg)
         signed = gpg_spec.clearsign_text(msg)
         self.assertIsInstance(signed, str)
 

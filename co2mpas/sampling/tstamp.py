@@ -29,7 +29,7 @@ from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  
 ###################
 
 
-class TstampSpec(dice.DiceSpec, crypto.GnuPGSpec):
+class TstampSpec(dice.DiceSpec, crypto.GpgSpec):
     """Common parameters and methods for both SMTP(sending emails) & IMAP(receiving emails)."""
 
     user_pswd = crypto.Cipher(

@@ -170,14 +170,14 @@ def pgp_split_sig(git_content: bytes) -> (bytes, bytes):
         return git_content[:split_pos], git_content[split_pos:]
 
 
-class GnuPGSpec(baseapp.Spec):
+class GpgSpec(baseapp.Spec):
     """
     Configurable parameters for instantiating a GnuPG instance
 
     Class-parameters override values the following environment variables (if exist):
-    - :attr:`GnuPGSpec.gnupgexe`   --> `GNUPGEXE`
-    - :attr:`GnuPGSpec.gnupghome`  --> `GNUPGHOME`
-    - :attr:`GnuPGSpec.master_key` --> `GPGKEY`
+    - :attr:`GpgSpec.gnupgexe`   --> `GNUPGEXE`
+    - :attr:`GpgSpec.gnupghome`  --> `GNUPGHOME`
+    - :attr:`GpgSpec.master_key` --> `GPGKEY`
 
     """
 
@@ -498,7 +498,7 @@ class GnuPGSpec(baseapp.Spec):
         return self.verify_detached(sig, msg)
 
 
-class VaultSpec(trtc.SingletonConfigurable, GnuPGSpec):
+class VaultSpec(trtc.SingletonConfigurable, GpgSpec):
     """A store of 3rdp passwords and othe secret objects in textual format."""
 
 

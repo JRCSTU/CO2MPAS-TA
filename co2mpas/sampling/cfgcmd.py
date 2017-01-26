@@ -113,7 +113,7 @@ class ConfigCmd(baseapp.Cmd):
             yield "  +--repopath: %s" % repo.repopath_resolved
 
             yield "GnuPG:"
-            gpg = crypto.GnuPGSpec(config=self.config)
+            gpg = crypto.GpgSpec(config=self.config)
             yield "  +--gnupgexe: %s" % gpg.gnupgexe_resolved
             yield "  +--gnupghome: %s" % gpg.gnupghome_resolved
 

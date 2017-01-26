@@ -282,11 +282,11 @@ class TRX(unittest.TestCase):
         cls.cfg = cfg = trtc.get_config()
         cls.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
 
-        cfg.GnuPGSpec.gnupghome = cls.gnupghome
-        cfg.GnuPGSpec.keys_to_import = test_pgp_key
-        cfg.GnuPGSpec.trust_to_import = test_pgp_trust
-        cfg.GnuPGSpec.master_key = '8C008403'  # Dice's TestKey
-        crypto.GnuPGSpec(config=cfg)
+        cfg.GpgSpec.gnupghome = cls.gnupghome
+        cfg.GpgSpec.keys_to_import = test_pgp_key
+        cfg.GpgSpec.trust_to_import = test_pgp_trust
+        cfg.GpgSpec.master_key = '8C008403'  # Dice's TestKey
+        crypto.GpgSpec(config=cfg)
 
     @classmethod
     def tearDownClass(cls):
