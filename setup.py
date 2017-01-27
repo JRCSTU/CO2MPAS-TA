@@ -185,17 +185,17 @@ setup(
         'openpyxl>=2.4.0',
         'Pillow',           ## for tkui
         'toolz',
-        'schedula>=0.1.1'
+        'schedula>=0.1.1',
+        'traitlets>=5.0.0dev',
+        'python-gnupg',
     ],
     dependency_links=[
         'https://github.com/ankostis/traitlets/tarball/dev#egg=traitlets-5.0.0ank',
     ],
     extras_require={
         'dice': [
-            'python-gnupg',
             'gitpython>=2.1.0', ## Win+Cygwin support
             'transitions',
-            'traitlets>=5.0.0dev',
         ],
     },
     packages=find_packages(exclude=[
