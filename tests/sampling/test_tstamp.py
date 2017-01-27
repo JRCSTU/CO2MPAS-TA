@@ -360,6 +360,12 @@ class TRX(unittest.TestCase):
         cfg.GpgSpec.trust_to_import = test_pgp_trust
         cfg.GpgSpec.master_key = '8C008403'  # Dice's TestKey
         crypto.GpgSpec(config=cfg)
+        
+        ## Clean memories from past tests
+        #
+        crypto.StamperAuthSpec.clear_instance()
+        crypto.GitAuthSpec.clear_instance()
+        crypto.VaultSpec.clear_instance()
 
     @classmethod
     def tearDownClass(cls):

@@ -298,6 +298,12 @@ class TGpgSpec(unittest.TestCase):
         cfg.GpgSpec.trust_to_import = test_pgp_trust
         gpg_spec = crypto.GpgSpec(config=cfg)
 
+        ## Clean memories from past tests
+        #
+        crypto.StamperAuthSpec.clear_instance()
+        crypto.GitAuthSpec.clear_instance()
+        crypto.VaultSpec.clear_instance()
+
         fingerprint = gpg_gen_key(
             gpg_spec.GPG,
             key_length=1024,
@@ -462,6 +468,10 @@ class TVaultSpec(unittest.TestCase):
     def setUpClass(cls):
         cls.cfg = cfg = trtc.get_config()
         cfg.VaultSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+
+        ## Clean memories from past tests
+        #
+        crypto.VaultSpec.clear_instance()
         vault = crypto.VaultSpec.instance(config=cfg)
 
         fingerprint = gpg_gen_key(
