@@ -65,6 +65,7 @@ from textwrap import dedent, indent
 from tkinter import StringVar, ttk, filedialog
 from typing import Any, Union, Mapping, Text, Dict, Callable  # @UnusedImport
 import weakref
+import pandalone.utils as pndlu
 
 from toolz import dicttoolz as dtz
 import yaml
@@ -2281,9 +2282,20 @@ class Co2guiCmd(baseapp.Cmd):
     name = trt.Unicode(APPNAME)
     version = trt.Unicode(__version__)
     #examples = """TODO: Write cmd-line examples."""
+
+    modelconf = trt.Unicode(
+        help="""TODO: File-path of model-configuration `.yaml` file (with extension)."""
+    ).tag(config=True)
+
     subcommands = {
         'config': ('co2mpas.sampling.cfgcmd.ConfigCmd',
                    "Commands to manage configuration-options loaded from filesystem.")}
+
+    def __init__(self, **kwds):
+        kwds.setdefault('cmd_aliases', {
+            'modelconf': ('Co2guiCmd.modelconf',
+                          pndlu.first_line(Co2guiCmd.modelconf.help))})
+        super().__init__(**kwds)
 
     def run(self, *args):
         app = TkUI()
