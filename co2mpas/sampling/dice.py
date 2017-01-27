@@ -16,7 +16,6 @@ import logging
 import os
 import re
 import textwrap
-import types
 from typing import Sequence, Text, List, Tuple  # @UnusedImport
 
 import os.path as osp
