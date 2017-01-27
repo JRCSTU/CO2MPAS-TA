@@ -2281,6 +2281,9 @@ class Co2guiCmd(baseapp.Cmd):
     name = trt.Unicode(APPNAME)
     version = trt.Unicode(__version__)
     #examples = """TODO: Write cmd-line examples."""
+    subcommands = {
+        'config': ('co2mpas.sampling.cfgcmd.ConfigCmd',
+                   "Commands to manage configuration-options loaded from filesystem.")}
 
     def run(self, *args):
         app = TkUI()
