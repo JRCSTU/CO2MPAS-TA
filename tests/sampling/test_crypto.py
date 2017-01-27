@@ -512,8 +512,11 @@ class TVaultSpec(unittest.TestCase):
             name_email='test2@test.com')
         try:
             with _temp_master_key(vault, None):
-                with self.assertRaisesRegex(ValueError, 'Cannot guess master-key! Found 2 keys'):
+                with self.assertRaisesRegex(
+                        ValueError,
+                        'Cannot guess master-key! Found 2 keys') as exmsg:
                     vault.encryptobj('enc_test', b'')
+                self.assertIn(fingerprint[-8:], str(exmsg.exception))
         finally:
             gpg_del_key(vault.GPG, fingerprint)
 
@@ -522,7 +525,9 @@ class TVaultSpec(unittest.TestCase):
         gpg_del_key(vault.GPG, vault.master_key)
         try:
             with _temp_master_key(vault, None):
-                with self.assertRaisesRegex(ValueError, 'Cannot guess master-key! Found 0 keys'):
+                with self.assertRaisesRegex(
+                        ValueError,
+                        'Cannot guess master-key! Found 0 keys'):
                     vault.encryptobj('enc_test', b'')
         finally:
             vault.master_key = gpg_gen_key(
@@ -542,7 +547,9 @@ class TVaultSpec(unittest.TestCase):
         try:
             with _temp_master_key(vault, fingerprint):
                 chiphered = vault.encryptobj('enc_test', b'foo')
-                with self.assertRaisesRegex(ValueError, r"PswdId\('enc_test'\): decryption failed"):
+                with self.assertRaisesRegex(
+                        ValueError,
+                        r"PswdId\('enc_test'\): decryption failed"):
                     vault.decryptobj('enc_test', chiphered)
         finally:
             vault.GPG.delete_keys(fingerprint, secret=0)

@@ -272,9 +272,13 @@ class GpgSpec(baseapp.Spec):
             seckeys = GPG.list_keys(secret=True)
             nseckeys = len(seckeys)
             if nseckeys != 1:
-                raise ValueError("Cannot guess master-key! Found %d keys in secret keyring."
-                                 "\n  Please set the `VaultSpec.master_key` config-param or `GNUPGKEY` env-var." %
-                                 nseckeys)
+                seckeys = ['\n    %s: %s' % (k['keyid'], k['uids'][0])
+                           for k
+                           in seckeys]
+                raise ValueError(
+                    "Cannot guess master-key! Found %d keys in secret keyring: %s"
+                    "\n  Please set the `GpgSpec.master_key` config-param or `GNUPGKEY` env-var."
+                    % (nseckeys, ', '.join(seckeys)))
 
             master_key = seckeys[0]['fingerprint']
 
