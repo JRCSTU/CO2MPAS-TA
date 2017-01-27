@@ -243,6 +243,8 @@ class TPConfFiles(unittest.TestCase):
                 name_email='test@test.com')
             vault.master_key = fingerprint
 
+            ## When read as *static* config file,
+            #  should scream!
             cmd = MyCmd()
             cmd.config_paths = [persist_path]
 

@@ -866,14 +866,16 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
         ## Input records: since `persist_config` might be None,
         #  conditional create them
         #
-        configs = zip((c for c in (static_config, persist_config) if c),
-                      (False, True),
-                      ('static', 'persist'))
+        configs = list(zip(
+            (c for c in (static_config, persist_config) if c),
+            (False, True),
+            ('static', 'persist'))
+        )
         ## Vault lazily created if needed,
         #  configed with user-input...
         #
         vault = None  # lazily created
-        vault_config = static_config.copy()
+        vault_config = static_config.copy()  ## TODO: move where vaulut createdXXX
         if persist_config:
             vault_config.merge(persist_config)
         vault_config.merge(self.cli_config)
