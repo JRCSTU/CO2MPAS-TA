@@ -236,12 +236,12 @@ class TPConfFiles(unittest.TestCase):
             #
             vault = crypto.VaultSpec.instance()
             vault.gnupghome = tdir
-            fingerprint = cryptotc.gpg_gen_key(
+            key = cryptotc.gpg_gen_key(
                 vault.GPG,
                 key_length=1024,
                 name_real='test user',
                 name_email='test@test.com')
-            vault.master_key = fingerprint
+            vault.master_key = key.fingerprint
 
             ## When read as *static* config file,
             #  should scream!
@@ -390,12 +390,12 @@ class TCipherTraits(TBase):
         cfg.VaultSpec.gnupghome = tdir
         vault = crypto.VaultSpec.instance(config=cfg)
 
-        fingerprint = cryptotc.gpg_gen_key(
+        key = cryptotc.gpg_gen_key(
             vault.GPG,
             key_length=1024,
             name_real='test user',
             name_email='test@test.com')
-        vault.master_key = fingerprint
+        vault.master_key = key.fingerprint
 
     @classmethod
     def tearDownClass(cls):

@@ -78,7 +78,7 @@ def gpg_gen_key(GPG, key_length, name_real, name_email):
                           name_email=name_email))
     assert key.fingerprint
 
-    return key.fingerprint
+    return key
 
 
 def gpg_del_key(GPG, fingerprint):
@@ -304,12 +304,12 @@ class TGpgSpec(unittest.TestCase):
         crypto.GitAuthSpec.clear_instance()
         crypto.VaultSpec.clear_instance()
 
-        fingerprint = gpg_gen_key(
+        key = gpg_gen_key(
             gpg_spec.GPG,
             key_length=1024,
             name_real='test user',
             name_email='test@test.com')
-        cfg.GpgSpec.master_key = fingerprint
+        cfg.GpgSpec.master_key = key.fingerprint
 
 #    def test_verify_clearsigned(self):
 #         return verified.valid
@@ -474,12 +474,12 @@ class TVaultSpec(unittest.TestCase):
         crypto.VaultSpec.clear_instance()
         vault = crypto.VaultSpec.instance(config=cfg)
 
-        fingerprint = gpg_gen_key(
+        key = gpg_gen_key(
             vault.GPG,
             key_length=1024,
             name_real='test user',
             name_email='test@test.com')
-        vault.master_key = fingerprint
+        vault.master_key = key.fingerprint
 
     @classmethod
     def tearDownClass(cls):
@@ -505,7 +505,7 @@ class TVaultSpec(unittest.TestCase):
 
     def test_2_many_master_keys(self):
         vault = crypto.VaultSpec.instance()
-        fingerprint = gpg_gen_key(
+        key = gpg_gen_key(
             vault.GPG,
             key_length=1024,
             name_real='test user2',
@@ -516,9 +516,9 @@ class TVaultSpec(unittest.TestCase):
                         ValueError,
                         'Cannot guess master-key! Found 2 keys') as exmsg:
                     vault.encryptobj('enc_test', b'')
-                self.assertIn(fingerprint[-8:], str(exmsg.exception))
+                self.assertIn(key.fingerprint[-8:], str(exmsg.exception))
         finally:
-            gpg_del_key(vault.GPG, fingerprint)
+            gpg_del_key(vault.GPG, key.fingerprint)
 
     def test_3_no_master_key(self):
         vault = crypto.VaultSpec.instance()
@@ -534,25 +534,25 @@ class TVaultSpec(unittest.TestCase):
                 vault.GPG,
                 key_length=1024,
                 name_real='test user3',
-                name_email='test2@test.com')
+                name_email='test2@test.com').fingerprint
 
     def test_5_no_sec_key(self):
         vault = crypto.VaultSpec.instance()
-        fingerprint = gpg_gen_key(
+        key = gpg_gen_key(
             vault.GPG,
             key_length=1024,
             name_real='test user2',
             name_email='test2@test.com')
-        vault.GPG.delete_keys(fingerprint, secret=1)
+        vault.GPG.delete_keys(key.fingerprint, secret=1)
         try:
-            with _temp_master_key(vault, fingerprint):
+            with _temp_master_key(vault, key.fingerprint):
                 chiphered = vault.encryptobj('enc_test', b'foo')
                 with self.assertRaisesRegex(
                         ValueError,
                         r"PswdId\('enc_test'\): decryption failed"):
                     vault.decryptobj('enc_test', chiphered)
         finally:
-            vault.GPG.delete_keys(fingerprint, secret=0)
+            vault.GPG.delete_keys(key.fingerprint, secret=0)
 
 
 class TCipherTrait(unittest.TestCase):
