@@ -158,18 +158,3 @@ class ReportCmd(baseapp.Cmd):
             pfiles = self._build_io_files_from_args(args)
 
         yield from self.report.yield_from_iofiles(pfiles)
-
-
-if __name__ == '__main__':
-    from traitlets.config import get_config
-    # Invoked from IDEs, so enable debug-logging.
-    c = get_config()
-    c.Application.log_level = 0
-    #c.Spec.log_level='ERROR'
-
-    argv = None
-    ## DEBUG AID ARGS, remember to delete them once developed.
-    #argv = ''.split()
-    #argv = '--debug'.split()
-
-    ReportCmd(config=c).run('foo.xlsx')

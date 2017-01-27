@@ -17,7 +17,6 @@ from typing import (
     List, Sequence, Iterable, Text, Tuple, Dict, Callable)  # @UnusedImport
 
 import traitlets as trt
-import traitlets.config as trtc
 
 from . import CmdException, baseapp, dice, crypto, project
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
@@ -116,12 +115,12 @@ class TstampSender(TstampSpec):
     ).tag(config=True)
 
     timestamping_addresses = trt.List(
-        type=trtc.Unicode(), allow_none=False,
+        type=trt.Unicode(), allow_none=False,
         help="""The plain email-address(s) of the timestamp service must be here. Ask JRC to provide that. """
     ).tag(config=True)
 
     x_recipients = trt.List(
-        type=trtc.Unicode(), allow_none=False,
+        type=trt.Unicode(), allow_none=False,
         help="""The plain email-address of the receivers of the timestamped response. Ask JRC to provide that."""
     ).tag(config=True)
 
@@ -446,4 +445,9 @@ class TstampCmd(baseapp.Cmd):
         super().__init__(**kwds)
 
 
-all_subcmds = (TstampCmd.LoginCmd, TstampCmd.SendCmd, TstampCmd.RecvCmd, TstampCmd.ParseCmd)
+all_subcmds = (
+    TstampCmd.LoginCmd,
+    TstampCmd.SendCmd,
+    TstampCmd.RecvCmd,
+    TstampCmd.ParseCmd
+)

@@ -1171,19 +1171,3 @@ all_subcmds = (ProjectCmd.ListCmd, ProjectCmd.CurrentCmd, ProjectCmd.OpenCmd, Pr
                ProjectCmd.AddFileCmd, ProjectCmd.TagReportCmd,
                ProjectCmd.TstampCmd,
                ProjectCmd.ExamineCmd, ProjectCmd.BackupCmd)
-
-if __name__ == '__main__':
-    from traitlets.config import get_config
-    # Invoked from IDEs, so enable debug-logging.
-    c = get_config()
-    c.Application.log_level = 0
-    #c.Spec.log_level='ERROR'
-
-    argv = None
-    ## DEBUG AID ARGS, remember to delete them once developed.
-    #argv = ''.split()
-    #argv = '--debug'.split()
-
-    baseapp.run_cmd(baseapp.chain_cmds(
-        [dice.MainCmd, ProjectCmd, ProjectCmd.ListCmd],
-        config=c))  # argv=['project_foo']))
