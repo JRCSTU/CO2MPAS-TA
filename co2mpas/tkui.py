@@ -2282,7 +2282,7 @@ class Co2guiCmd(baseapp.Cmd):
     version = trt.Unicode(__version__)
     #examples = """TODO: Write cmd-line examples."""
 
-    def run(self):
+    def run(self, *args):
         app = TkUI()
         app.mainloop()
 
