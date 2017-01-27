@@ -576,6 +576,9 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         return self.__repo
 
     def _write_repo_configs(self):
+        from . import crypto
+
+        git_auth = crypto.get_git_auth(self.config)
         gconfigs = [
             ('core.filemode', False),
             ('core.ignorecase', False),
@@ -587,10 +590,11 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
                 r"--format=format:'%C(bold blue)%h%C(reset) "
                 r"- %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- "
                 r"%an%C(reset)%C(bold yellow)%d%C(reset)' --all"),
+            ('user.signingkey', git_auth.master_key_resolved()),
         ]
         if self.sign_commits:
-            # See also: https://help.github.com/articles/telling-git-about-your-gpg-key/
             gconfigs.append('commit.gpgsign', True)
+            # see https://help.github.com/articles/telling-git-about-your-gpg-key/
 
         with self.repo.config_writer() as cw:
             for key, val in gconfigs:
