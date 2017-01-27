@@ -480,13 +480,34 @@ class GpgSpec(baseapp.Spec):
         return self._proc_verfication(ver, keep_stderr)
 
 
+########################################
+## Singletons for handling GPG-keys,
+## separated so that they can be configured independently.
+##
 class VaultSpec(trtc.SingletonConfigurable, GpgSpec):
-    """A store of 3rdp passwords and othe secret objects in textual format."""
+    """A store of 3rdp passwords and othe secret objects in PGP-encrypted armore format."""
 
 
-def get_vault(config) -> VaultSpec:
-    """Use this to get hold of the *vault* singletton."""
+def get_vault(config: trtc.Config) -> VaultSpec:
     return VaultSpec.instance(config=config)
+
+
+class GitAuthSpec(trtc.SingletonConfigurable, GpgSpec):
+    """The private key of the TA/TS importing filesnto git-repos is stored here."""
+
+
+def get_git_auth(config: trtc.Config) -> GitAuthSpec:
+    return GitAuthSpec.instance(config=config)
+
+
+class StamperAuthSpec(trtc.SingletonConfigurable, GpgSpec):
+    """Used to verify stamper's timestamp service."""
+
+
+def get_stamper_auth(config: trtc.Config) -> StamperAuthSpec:
+    return StamperAuthSpec.instance(config=config)
+##
+########################################
 
 
 class Cipher(trt.TraitType):

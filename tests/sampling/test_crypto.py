@@ -460,7 +460,7 @@ class TVaultSpec(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cfg = trtc.get_config()
+        cls.cfg = cfg = trtc.get_config()
         cfg.VaultSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         vault = crypto.VaultSpec.instance(config=cfg)
 
@@ -473,10 +473,7 @@ class TVaultSpec(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        vault = crypto.VaultSpec.instance()
-        assert vault.gnupghome
-        gpg_del_key(vault.GPG, vault.master_key)
-        shutil.rmtree(vault.gnupghome)
+        shutil.rmtree(cls.cfg.VaultSpec.gnupghome)
 
     @ddt.idata(itt.product(('user', '&^a09|*(K}'), _objs))
     def test_1_dencrypt(self, case):

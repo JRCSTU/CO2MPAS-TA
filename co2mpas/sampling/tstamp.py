@@ -7,11 +7,8 @@
 """A *report* contains the co2mpas-run values to time-stamp and disseminate to TA authorities & oversight bodies."""
 from collections import (
     defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
-from collections import namedtuple
-import imaplib
 import io
 import re
-import smtplib
 import sys
 from typing import (
     List, Sequence, Iterable, Text, Tuple, Dict, Callable)  # @UnusedImport
@@ -28,7 +25,7 @@ from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  
 ###################
 
 
-class TstampSpec(dice.DiceSpec, crypto.GpgSpec):
+class TstampSpec(dice.DiceSpec):
     """Common parameters and methods for both SMTP(sending emails) & IMAP(receiving emails)."""
 
     user_account = trt.Unicode(
@@ -154,12 +151,15 @@ class TstampSender(TstampSpec):
         return mail
 
     def choose_server_class(self):
+        import smtplib
+
         return smtplib.SMTP_SSL if self.ssl else smtplib.SMTP
 
     def send_timestamped_email(self, msg, dry_run=False):
         from pprint import pformat
 
-        ver = self.verify_git_signed(msg.encode('utf-8'))
+        git_auth = crypto.get_git_auth(self.config)
+        ver = git_auth.verify_git_signed(msg.encode('utf-8'))
         verdict = pformat(vars(ver))
         if not ver:
             if self.force:
@@ -194,8 +194,6 @@ _stamper_banner_regex = re.compile(r"^#{56}\r?\n(?:^#[^\n]*\n)+^#{56}\r?\n\r?\n\
                                    re.MULTILINE | re.DOTALL)
 
 
-#DiceResponse = namedtuple('DiceResponse',
-#                          '')
 class TstampReceiver(TstampSpec):
     """IMAP & timestamp parameters and methods for receiving & parsing dice-report emails."""
 
@@ -227,7 +225,8 @@ class TstampReceiver(TstampSpec):
         from pprint import pformat
         import textwrap as tw
 
-        ts_ver = self.verify_clearsigned(mail_text)
+        stamper_auth = crypto.get_stamper_auth(self.config)
+        ts_ver = stamper_auth.verify_clearsigned(mail_text)
         ts_verdict = vars(ts_ver)
         if not ts_ver:
             self.log.error("Cannot verify timestamp-response's signature due to: %s", pformat(ts_verdict))
@@ -250,7 +249,8 @@ class TstampReceiver(TstampSpec):
 
         # Verify inner tag.
         if tag:
-            tag_ver = self.verify_git_signed(tag.encode('utf-8'))
+            git_auth = crypto.get_git_auth(self.config)
+            tag_ver = git_auth.verify_git_signed(tag.encode('utf-8'))
             tag_verdict = vars(tag_ver)
 
         num = self._pgp_sig2int(ts_ver.signature_id)
@@ -273,6 +273,8 @@ class TstampReceiver(TstampSpec):
         }
 
     def choose_server_class(self):
+        import imaplib
+
         return imaplib.IMAP4_SSL if self.ssl else imaplib.IMAP4
 
     # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.

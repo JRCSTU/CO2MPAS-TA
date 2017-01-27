@@ -354,9 +354,8 @@ class TRX(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.cfg = cfg = trtc.get_config()
-        cls.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
 
-        cfg.GpgSpec.gnupghome = cls.gnupghome
+        cfg.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         cfg.GpgSpec.keys_to_import = test_pgp_key
         cfg.GpgSpec.trust_to_import = test_pgp_trust
         cfg.GpgSpec.master_key = '8C008403'  # Dice's TestKey
@@ -364,7 +363,7 @@ class TRX(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        shutil.rmtree(cls.gnupghome)
+        shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
 
     @ddt.data(*_tstamp_responses)
     def test_timestamp_verify(self, case):
