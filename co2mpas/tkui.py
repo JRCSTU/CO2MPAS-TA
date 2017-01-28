@@ -1982,16 +1982,46 @@ class DicePanel(ttk.Frame):
         return frame
 
 
-class TkUI(object):
+class Co2guiCmd(baseapp.Cmd):
     """
-    :ivar _job_thread:
-        semaphore armed when the "red" button pressed
+    Run CO2MPAS GUI to simulate and (optionally) dice the results.
 
+    TIP:
+      If you bump into blocking errors, please use the `co2dice project backup` command and
+      send the generated archive-file back to "CO2MPAS-Team <co2mpas@jrc.ec.europa.eu>",
+      for examination.
+
+    NOTE:
+      Do not run concurrently multiple instances!
     """
 
+    name = trt.Unicode(APPNAME)
+    version = trt.Unicode(__version__)
+    #examples = """TODO: Write cmd-line examples."""
+
+    modelconf = trt.Unicode(
+        help="""TODO: File-path of model-configuration `.yaml` file (with extension)."""
+    ).tag(config=True)
+
+    subcommands = {
+        'config': ('co2mpas.sampling.cfgcmd.ConfigCmd',
+                   "Commands to manage configuration-options loaded from filesystem.")}
+
+    def __init__(self, **kwds):
+        import pandalone.utils as pndlu
+        kwds.setdefault('cmd_aliases', {
+            'modelconf': ('Co2guiCmd.modelconf',
+                          pndlu.first_line(Co2guiCmd.modelconf.help))})
+        super().__init__(**kwds)
+
+    #: semaphore armed when the "red" button pressed
     _job_thread = None
 
-    def __init__(self, root=None):
+    def run(self, *args):
+        self.build_GUI_app()
+        self.mainloop()
+
+    def build_GUI_app(self, root=None):
         if not root:
             root = tk.Tk()
         self.root = root
@@ -2268,43 +2298,6 @@ class TkUI(object):
                 self.root.destroy()
             except tk.TclError:
                 pass
-
-
-class Co2guiCmd(baseapp.Cmd):
-    """
-    Run CO2MPAS GUI to simulate and (optionally) dice the results.
-
-    TIP:
-      If you bump into blocking errors, please use the `co2dice project backup` command and
-      send the generated archive-file back to "CO2MPAS-Team <co2mpas@jrc.ec.europa.eu>",
-      for examination.
-
-    NOTE:
-      Do not run concurrently multiple instances!
-    """
-
-    name = trt.Unicode(APPNAME)
-    version = trt.Unicode(__version__)
-    #examples = """TODO: Write cmd-line examples."""
-
-    modelconf = trt.Unicode(
-        help="""TODO: File-path of model-configuration `.yaml` file (with extension)."""
-    ).tag(config=True)
-
-    subcommands = {
-        'config': ('co2mpas.sampling.cfgcmd.ConfigCmd',
-                   "Commands to manage configuration-options loaded from filesystem.")}
-
-    def __init__(self, **kwds):
-        import pandalone.utils as pndlu
-        kwds.setdefault('cmd_aliases', {
-            'modelconf': ('Co2guiCmd.modelconf',
-                          pndlu.first_line(Co2guiCmd.modelconf.help))})
-        super().__init__(**kwds)
-
-    def run(self, *args):
-        app = TkUI()
-        app.mainloop()
 
 
 def main(argv=None, log_level=None, **app_init_kwds):
