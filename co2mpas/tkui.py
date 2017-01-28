@@ -50,10 +50,8 @@ Layout::
 #    - https://material.io/icons/#
 
 from co2mpas import (__main__ as cmain, __version__,
-                     batch as cbatch,
                      __updated__, __copyright__, __license__, __uri__)  # @UnusedImport
 from co2mpas.sampling import baseapp
-from co2mpas.utils import stds_redirected, parse_key_value_pair
 from collections import Counter, OrderedDict, namedtuple, ChainMap
 import datetime
 import io
@@ -61,19 +59,18 @@ import logging
 import os
 import re
 import sys
-from textwrap import dedent, indent
 from tkinter import StringVar, ttk, filedialog
 from typing import Any, Union, Mapping, Text, Dict, Callable  # @UnusedImport
 import weakref
-import pandalone.utils as pndlu
 
 from toolz import dicttoolz as dtz
-import yaml
 
 import functools as fnt
 import os.path as osp
+import textwrap as tw
 import tkinter as tk
 import traitlets as trt
+
 
 APPNAME = 'co2mpas'
 
@@ -81,7 +78,7 @@ log = logging.getLogger(APPNAME)
 
 user_guidelines_url = 'https://co2mpas.io/usage.html'
 issues_url = 'https://github.com/JRCSTU/CO2MPAS-TA/issues'
-MOTDs = dedent("""\
+MOTDs = tw.dedent("""\
     Select Input files/folders and run them.  Read tooltips for help.
     Double-click on file-paths to open them (as explained in it's tooltip).
     [Ctrl-A]: select all files in a list;  [Delete]: delete selected all files in list.
@@ -209,6 +206,7 @@ def define_tooltips():
             - Double-click to open it.
 
     """
+    import yaml
 
     return yaml.load(all_tooltips)
 
@@ -236,7 +234,7 @@ def show_about(root, about_txt=about_txt, verbose=False):
     textarea.pack(fill=tk.BOTH, expand=1)
 
     if verbose:
-        extra = 'Verbose versions: \n%s' % indent(cmain.build_version_string(verbose=True), '    ')
+        extra = 'Verbose versions: \n%s' % tw.indent(cmain.build_version_string(verbose=True), '    ')
     else:
         extra = ''
     fields = dict(
@@ -244,7 +242,7 @@ def show_about(root, about_txt=about_txt, verbose=False):
         extra=extra,
         pyversion=sys.version,
     )
-    txt = dedent(about_txt).format_map(ChainMap(fields, locals(), globals()))
+    txt = tw.dedent(about_txt).format_map(ChainMap(fields, locals(), globals()))
 
     log.info(txt)
     add_makdownd_text(textarea, txt)
@@ -355,6 +353,8 @@ def run_python_job(job_name, function, cmd_args, cmd_kwds, stdout=None, stderr=N
 
     Suitable to be run within a thread.
     """
+    from .utils import stds_redirected
+
     ## Numpy error-config is on per-thread basis:
     #    https://docs.scipy.org/doc/numpy/reference/ufuncs.html#error-handling
     #  So replicate :func:`cmain.init_logging()` logic also here.
@@ -516,7 +516,7 @@ def add_tooltip(widget, key, allow_misses=False, no_lookup=False):
                 raise AssertionError('Tooltip %r not in %s!' % (key, list(tooltips)))
             return
 
-    tooltip_text = dedent(tooltip_text.strip())
+    tooltip_text = tw.dedent(tooltip_text.strip())
     ToolTip(widget, tooltip_text)
 
 _img_in_txt_regex = re.compile(
@@ -1451,6 +1451,7 @@ class SimulatePanel(ttk.Frame):
 
     def reconstruct_cmd_args_from_gui(self):
         from pandalone import utils as putils
+        from .utils import parse_key_value_pair
 
         cmd_kwds = OrderedDict()
 
@@ -1481,6 +1482,7 @@ class SimulatePanel(ttk.Frame):
 
     def _do_run_job(self, is_ta):
         from threading import Thread
+        from . import batch as cbatch
 
         app = self.app
         job_name = "CO2MPAS-TA" if is_ta else "CO2MPAS"
@@ -1547,9 +1549,9 @@ class SimulatePanel(ttk.Frame):
                 self.out_i += len(new_out)
                 self.err_i += len(new_err)
                 if new_out:
-                    new_out = '\n  stdout: %s' % indent(new_out, '  ')
+                    new_out = '\n  stdout: %s' % tw.indent(new_out, '  ')
                 if new_err:
-                    new_err = '\n  stderr: %s' % indent(new_err, '  ')
+                    new_err = '\n  stderr: %s' % tw.indent(new_err, '  ')
 
                 return new_out, new_err
 
@@ -1618,7 +1620,7 @@ class SyncronizePanel(ttk.Frame):
         self.app = app
         widgets = {}  # To register widgets embeded in makdown-text.
 
-        help_msg = dedent("""
+        help_msg = tw.dedent("""
         1) EITHER choose a Theoretical Velocity-profile, \
 click the [img:icons/download-olive-32.png] button to create an empty "Sync Excel file",
                and populate its `dyno` and `obd` sheets with your raw data:
@@ -1755,7 +1757,7 @@ class TemplatesPanel(ttk.Frame):
         self.app = app
         widgets = {}  # To register widgets embeded in makdown-text.
 
-        help_msg = dedent("""
+        help_msg = tw.dedent("""
         - Opens a Select-folder dialog for storing DEMO INPUT files:
         [wdg:demo-files]
 
@@ -1834,7 +1836,7 @@ class DicePanel(ttk.Frame):
         self.app = app
         widgets = {}  # To register widgets embeded in makdown-text.
 
-        help_msg = dedent("""
+        help_msg = tw.dedent("""
         Select a Project and ensure the I/O files are imported, a unique Hash to be derived.
         [wdg:projects]
         Clicking the "Dice Now!" button initiates the sampling procedure!
@@ -2062,25 +2064,27 @@ class TkUI(object):
         self._add_window_icon(root)
 
     def start_job(self, thread, result_listener):
+        from . import batch as cbatch, plan
+        from schedula import Dispatcher
+
         self._job_thread = thread
 
-        from schedula import Dispatcher
         Dispatcher.stopper.clear()
         cbatch.SITES_STOPPER.clear()
 
         #: Cludge for GUI to receive Plan's output filenames.
-        from co2mpas import plan
         plan.plan_listener = result_listener
 
         thread.start()
 
     def signal_job_to_stop(self):
+        from . import batch as cbatch, plan
         from schedula import Dispatcher
+
         Dispatcher.stopper.set()
         cbatch.SITES_STOPPER.set()
 
         #: Cludge for GUI to receive Plan's output filenames.
-        from co2mpas import plan
         plan.plan_listener = None
 
     def is_job_alive(self):
@@ -2292,6 +2296,7 @@ class Co2guiCmd(baseapp.Cmd):
                    "Commands to manage configuration-options loaded from filesystem.")}
 
     def __init__(self, **kwds):
+        import pandalone.utils as pndlu
         kwds.setdefault('cmd_aliases', {
             'modelconf': ('Co2guiCmd.modelconf',
                           pndlu.first_line(Co2guiCmd.modelconf.help))})
