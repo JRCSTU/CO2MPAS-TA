@@ -162,6 +162,7 @@ def define_tooltips():
                  =: STRING
             - Example:
                 flag.engineering_mode?=on  flag.plot_workflow?=yes  inputs.final_drive_ratio*=4.35
+                modelconf:={"io_constants_dfl":{"MAX_INITIAL_TEMP":25}}
 
         engineering_mode: |-
             the model uses all the available input data (not only the declaration inputs),
@@ -1999,20 +2000,9 @@ class Co2guiCmd(baseapp.Cmd):
     version = trt.Unicode(__version__)
     #examples = """TODO: Write cmd-line examples."""
 
-    modelconf = trt.Unicode(
-        help="""TODO: File-path of model-configuration `.yaml` file (with extension)."""
-    ).tag(config=True)
-
     subcommands = {
         'config': ('co2mpas.sampling.cfgcmd.ConfigCmd',
                    "Commands to manage configuration-options loaded from filesystem.")}
-
-    def __init__(self, **kwds):
-        import pandalone.utils as pndlu
-        kwds.setdefault('cmd_aliases', {
-            'modelconf': ('Co2guiCmd.modelconf',
-                          pndlu.first_line(Co2guiCmd.modelconf.help))})
-        super().__init__(**kwds)
 
     #: semaphore armed when the "red" button pressed
     _job_thread = None
