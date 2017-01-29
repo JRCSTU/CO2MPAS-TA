@@ -188,11 +188,11 @@ setup(
         'Pillow',           ## for tkui
         'toolz',
         'schedula>=0.1.1',
-        'traitlets>=5.0.0ank',
+        'traitlets>=5.0.0dev',
         'python-gnupg',
     ],
     dependency_links=[
-        'https://github.com/ankostis/traitlets/tarball/dev#egg=traitlets-5.0.0ank',
+        'https://github.com/ankostis/traitlets/tarball/dev#egg=traitlets-5.0.0dev',
     ],
     extras_require={
         'dice': [
