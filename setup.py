@@ -186,7 +186,7 @@ setup(
         'Pillow',           ## for tkui
         'toolz',
         'schedula>=0.1.1',
-        'traitlets>=5.0.0dev',
+        'traitlets>=5.0.0ank',
         'python-gnupg',
     ],
     dependency_links=[
