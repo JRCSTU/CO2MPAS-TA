@@ -75,12 +75,14 @@ def yield_rst_only_markup(lines):
         # Sphinx-only Directives.
         #
         (r'\.\. doctest', r'code-block'),
+        (r'\.\. module', r'code-block'),
         (r'\.\. plot::', r'.. '),
         (r'\.\. seealso', r'info'),
         (r'\.\. glossary', r'rubric'),
         (r'\.\. figure::', r'.. '),
         (r'\.\. image::', r'.. '),
 
+        (r'\.\. dispatcher', r'code-block'),
 
         # Other
         #
