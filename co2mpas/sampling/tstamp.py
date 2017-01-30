@@ -230,7 +230,9 @@ class TstampReceiver(TstampSpec):
         ts_verdict = vars(ts_ver)
         if not ts_ver:
             self.log.error("Cannot verify timestamp-response's signature due to: %s", pformat(ts_verdict))
-            raise ValueError("Cannot verify timestamp-reponse signature due to: %s" % ts_ver.status)
+            if not self.force or not ts_ver.signature_id:  # Need sig-id for decision.
+                raise ValueError(
+                    "Cannot verify timestamp-reponse signature due to: %s" % ts_ver.status)
         if not ts_ver.valid:
             self.log.warning(
                 tw.dedent("""\
@@ -245,13 +247,18 @@ class TstampReceiver(TstampSpec):
         if not stamper_id:
             self.log.error("Timestamp-response had no *stamper-id*: %s\n%s",
                            pformat(csig), pformat(ts_verdict))
-            raise ValueError("Timestamp-response had no *stamper-id*: %s" % csig.sig)
+            if not self.force:
+                raise ValueError("Timestamp-response had no *stamper-id*: %s" % csig.sig)
 
-        # Verify inner tag.
+        ## Verify inner tag.
+        #
         if tag:
             git_auth = crypto.get_git_auth(self.config)
             tag_ver = git_auth.verify_git_signed(tag.encode('utf-8'))
             tag_verdict = vars(tag_ver)
+            if not tag_ver:
+                self.log.warning(
+                    "Cannot verify dice-report's signature due to: %s", pformat(tag_verdict))
 
         num = self._pgp_sig2int(ts_ver.signature_id)
         dice100 = num % 100
