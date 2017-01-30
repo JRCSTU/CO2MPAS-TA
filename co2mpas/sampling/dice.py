@@ -92,7 +92,7 @@ class DiceSpec(baseapp.Spec):
     ).tag(config=True)
 
     @trt.validate('user_name', 'user_email')
-    def _valid_user(self, proposal):
+    def _is_not_empty(self, proposal):
         value = proposal['value']
         if not value:
             raise trt.TraitError('%s.%s must not be empty!'
@@ -177,8 +177,8 @@ def main(argv=None, log_level=None, **app_init_kwds):
 
     try:
         ##Co2dice.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!
-        app = Co2dice.instance(**app_init_kwds)
-        baseapp.run_cmd(app, argv)
+        app = baseapp.chain_cmds([Co2dice], argv, **app_init_kwds)
+        baseapp.run_cmd(app)
     except (CmdException, trt.TraitError) as ex:
         ## Suppress stack-trace for "expected" errors.
         log.debug('App exited due to: %s', ex, exc_info=1)
@@ -231,4 +231,5 @@ if __name__ == '__main__':
     #c = trtc.get_config()
     #c.Application.log_level=0
     #c.Spec.log_level='ERROR'
-    #baseapp.run_cmd(chain_cmds([Co2dice, ProjectCmd, ProjectCmd.InitCmd], argv=['project_foo']))
+    # baseapp.run_cmd(chain_cmds([Co2dice, ProjectCmd, ProjectCmd.InitCmd],
+    #                            argv=['project_foo']))

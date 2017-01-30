@@ -8,16 +8,17 @@
 """
 A *traitlets*[#]_ framework for building hierarchical :class:`Cmd` line tools delegating to backend- :class:`Spec`.
 
+
+## Examples:
+
 To run a base command, use this code::
 
-    app = Co2dice.instance(**app_init_kwds)
-    app.initialize(argv or None) ## Uses `sys.argv` if `argv` is `None`.
-    return app.start()
+    return MainCmd.launch_instance(argv, **app_init_kwds) ## `sys.argv` used if `argv` is `None`!
 
-To run nested commands, use :func:`baseapp.chain_cmds()` like that::
+To run nested commands and print its output, use :func:`baseapp.chain_cmds()` like that::
 
-    app = chain_cmds(Co2dice, Project, Project.List)
-    return app.start()
+    app = chain_cmds([MainCmd, Project, Project.List], argv)  # `argv` without sub-cmds
+    baseapp.run_cmd(app)
 
 ## Configuration and Initialization guidelines for *Spec* and *Cmd* classes
 
@@ -31,8 +32,9 @@ To run nested commands, use :func:`baseapp.chain_cmds()` like that::
 2. Constructors must allow for properties to be overwritten on construction; any class-defaults
    must function as defaults for any constructor ``**kwds``.
 
-3. Some utility code depends on trait-defaults (i.e. construction of help-messages), so for certain properties
-   (e.g. description), it is preferable to set them as traits-with-defaults on class-attributes.
+3. Some utility code depends on trait-defaults (i.e. construction of help-messages),
+   so for certain properties (e.g. description), it is preferable to set them
+   as traits-with-defaults on class-attributes.
 
 4. Listen `Good Bait <https://www.youtube.com/watch?v=CE4bl5rk5OQ>`_ after 1:43.
 
@@ -1048,6 +1050,14 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
                                % (', '.join(self.subcommands.keys()), cmd_line))
         assert False, "Override run() method in cmd subclasses."
 
+    @classmethod
+    def launch_instance(cls, argv=None, **kwargs):
+        """Prefer :func:`run_cmd()` to process generators returned by :meth:`start()` instead of this method."""
+        ## Overriden just to return `start()`.
+        app = cls.instance(**kwargs)
+        app.initialize(argv)
+        return app.start()
+
 
 ## Disable logging-format configs, because their observer
 #    works on on loger's handlers, which might be null.
@@ -1071,13 +1081,21 @@ def chain_cmds(app_classes: Sequence[type(trtc.Application)],
     """
     Instantiate(optionally) a list of ``[cmd, subcmd, ...]`` and link each one as child of its predecessor.
 
-    :param argv:
-        cmdline args for the the 1st cmd.
-        Make sure they do not specify some cub-cmds.
-        Replaced with `sys.argv` if undefined.
+    - Normally `argv` contain any sub-commands, and it is enough to invoke
+      ``initialize(argv)`` on the root cmd.  This function helps when you want
+      to shortcut the arg-parsing with explict cmd-chaining in code.
+    - This is half a replacement for :meth:`Application.launch_instance()`.
+
+    :param app_classes:
+        A list f cmd-classes: ``[root, sub1, sub2, app]``
         Note: you have to "know" the correct nesting-order of the commands ;-)
+    :param argv:
+        cmdline args passed to the root (1st) cmd only.
+        Make sure they do not contain any sub-cmds.
+        NOT replaced with :data:`sys.argv` if undefined.
     :return:
-        the 1st cmd, to invoke :meth:`start()` on it
+        The 1st cmd, to invoke :meth:`start()` on it or pass it in :func:`run_cmd()`
+        to print its output.
     """
     if not app_classes:
         raise ValueError("No cmds to chained passed in!")
@@ -1098,23 +1116,22 @@ def chain_cmds(app_classes: Sequence[type(trtc.Application)],
     return root
 
 
-def run_cmd(cmd: Cmd, argv: Sequence[Text]=None):
+def run_cmd(cmd: Cmd):
     """
     Executes a (possibly nested) command, and print its (possibly lazy) results to `stdout`.
 
-    Remember to have logging setup properly before invoking this.
+    - This the 2nd half of the replacement for :meth:`Application.launch_instance()`.
+    - Remember to have logging setup properly before invoking this.
 
     :param cmd:
-        Use :func:`make_app()`, or :func:`chain_cmds()` if you want to prepare
-        a nested cmd instead.
-    :param argv:
-        If `None`, use :data:`sys.argv`; use ``[]`` to explicitely use no-args.
+        Use :func:`chain_cmds()` to prepare a nested chain in code, or
+        instanciate a root cmd and invoke :meth:`Application.initialize()` with
+        sub-cmd args included.
     :return:
-        May yield, so check if a type:`GeneratorType`.
+        Does not return anything!  Just prints stuff.
     """
     import types
 
-    cmd.initialize(argv)
     res = cmd.start()
     if res is not None:
         if isinstance(res, types.GeneratorType):
