@@ -759,55 +759,11 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
     ).tag(config=True)
 
     cmd_aliases = trt.Dict(
-        default_value={
-            'config-paths': ('Cmd.config_paths',
-                             pndlu.first_line(config_paths.help)),
-            'persist-path': ('Cmd.persist_path',
-                             pndlu.first_line(persist_path.help)),
-        },
+        {},
         help="Any *flags* found in this prop up the cmd-chain are merged into :attr:`aliases`. """)
 
     cmd_flags = trt.Dict(
-        default_value={
-            ('d', 'debug'): (
-                {
-                    'Application': {'log_level': 0},
-                    'Spec': {'log_level': 0},
-                    'Cmd': {
-                        'raise_config_file_errors': True,
-                        'config_show': True,
-                    },
-                },
-                "Log more logging, fail on configuration errors, "
-                "and print configuration on each cmd startup."
-            ),
-            ('v', 'verbose'): (
-                {
-                    'Spec': {'verbose': True},
-                    'Cmd': {'verbose': True},
-                },
-                pndlu.first_line(Spec.verbose.help)
-            ),
-            ('f', 'force'): (
-                {
-                    'Spec': {'force': True},
-                    'Cmd': {'force': True},
-                },
-                pndlu.first_line(Spec.force.help)
-            ),
-            'config-show': (
-                {
-                    'Cmd': {'config_show': True},
-                },
-                pndlu.first_line(config_show.help),
-            ),
-            'encrypt': (
-                {
-                    'Cmd': {'encrypt': True},
-                },
-                pndlu.first_line(encrypt.help)
-            )
-        },
+        {},
         help="Any *flags* found in this prop up the cmd-chain are merged into :attr:`flags`. """)
 
     def my_cmd_chain(self):
@@ -861,12 +817,64 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
 
     def __init__(self, **kwds):
         cls = type(self)
-        ## Traits defaults are always applied...??
-        #
-        kwds.setdefault('name', class2cmd_name(cls))
+        dkwds = {
+            ## Traits defaults are always applied...??
+            #
+            'name': class2cmd_name(cls),
+
+            ## Set some nice defaults for root-CMDs.
+            #
+            'cmd_aliases': {
+                'config-paths': ('Cmd.config_paths',
+                                 pndlu.first_line(Cmd.config_paths.help)),
+                'persist-path': ('Cmd.persist_path',
+                                 pndlu.first_line(Cmd.persist_path.help)),
+            },
+            'cmd_flags': {
+                ('d', 'debug'): (
+                    {
+                        'Application': {'log_level': 0},
+                        'Spec': {'log_level': 0},
+                        'Cmd': {
+                            'raise_config_file_errors': True,
+                            'config_show': True,
+                        },
+                    },
+                    "Log more logging, fail on configuration errors, "
+                    "and print configuration on each cmd startup."
+                ),
+                ('v', 'verbose'): (
+                    {
+                        'Spec': {'verbose': True},
+                        'Cmd': {'verbose': True},
+                    },
+                    pndlu.first_line(Spec.verbose.help)
+                ),
+                ('f', 'force'): (
+                    {
+                        'Spec': {'force': True},
+                        'Cmd': {'force': True},
+                    },
+                    pndlu.first_line(Spec.force.help)
+                ),
+                'config-show': (
+                    {
+                        'Cmd': {'config_show': True},
+                    },
+                    pndlu.first_line(Cmd.config_show.help),
+                ),
+                'encrypt': (
+                    {
+                        'Cmd': {'encrypt': True},
+                    },
+                    pndlu.first_line(Cmd.encrypt.help)
+                )
+            },
+        }
         if cls.__doc__ and not isinstance(cls.description, str):
-            kwds.setdefault('description', cls.__doc__)
-        super().__init__(**kwds)
+            dkwds['description'] = cls.__doc__
+        dkwds.update(kwds)
+        super().__init__(**dkwds)
 
     def all_app_configurables(self):
         """
