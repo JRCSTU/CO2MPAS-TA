@@ -387,10 +387,10 @@ class TGpgSpec(unittest.TestCase):
         tag.stream_data(bytes_sink)
         tag_bytes = bytes_sink.getvalue()
 
-        msg, sig = crypto.pgp_split_sig(tag_bytes)
+        tag_csig = crypto.pgp_split_sig(tag_bytes)
 
         gpg_spec = crypto.GpgSpec(config=self.cfg)
-        ver = gpg_spec.verify_detached(sig, msg)
+        ver = gpg_spec.verify_detached(tag_csig.sig, tag_csig.msg)
         verdict = vars(ver)
         pp(verdict)
         self.assertDictContainsSubset(
@@ -418,12 +418,12 @@ class TGpgSpec(unittest.TestCase):
         tag_bytes = bytes_sink.getvalue()
         self.assertEqual(tag_bytes, _signed_tag)
 
-        msg, sig = crypto.pgp_split_sig(tag_bytes)
-        self.assertEqual(msg, _splitted_signed_tag[0])
-        self.assertEqual(sig, _splitted_signed_tag[1])
+        csig = crypto.pgp_split_sig(tag_bytes)
+        self.assertEqual(csig.msg, _splitted_signed_tag[0])
+        self.assertEqual(csig.sig, _splitted_signed_tag[1])
 
         gpg_spec = crypto.GpgSpec(config=self.cfg)
-        ver = gpg_spec.verify_detached(sig, msg)
+        ver = gpg_spec.verify_detached(csig.sig, csig.msg)
         pp(vars(ver))
         self.assertTrue(ver)
 

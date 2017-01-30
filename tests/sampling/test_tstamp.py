@@ -360,7 +360,7 @@ class TRX(unittest.TestCase):
         cfg.GpgSpec.trust_to_import = test_pgp_trust
         cfg.GpgSpec.master_key = '8C008403'  # Dice's TestKey
         crypto.GpgSpec(config=cfg)
-        
+
         ## Clean memories from past tests
         #
         crypto.StamperAuthSpec.clear_instance()
@@ -371,8 +371,20 @@ class TRX(unittest.TestCase):
     def tearDownClass(cls):
         shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
 
+    def test_send_timestamp(self):
+        snd = tstamp.TstampSender(config=self.cfg)
+        ex_msg = r"Content to timestamp failed signature verification!\s+None"
+        with self.assertRaisesRegex(tstamp.CmdException, ex_msg):
+            snd.send_timestamped_email("", dry_run=True)
+
+    def test_parse_timestamp_bad(self):
+        rcv = tstamp.TstampReceiver(config=self.cfg)
+        ex_msg = r"Cannot verify timestamp-reponse signature due to: incorrect passphrase"
+        with self.assertRaisesRegex(tstamp.CmdException, ex_msg):
+            rcv.parse_tsamp_response("")
+
     @ddt.data(*_tstamp_responses)
-    def test_timestamp_verify(self, case):
+    def test_parse_timestamps(self, case):
         (stamper_id, dice, dice100, dice_decision,
          ts_verdict, tag_verdict, tstamp_response) = case
         rcv = tstamp.TstampReceiver(config=self.cfg)

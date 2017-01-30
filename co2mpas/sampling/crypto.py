@@ -167,7 +167,10 @@ def pgp_split_sig(git_content: bytes) -> (bytes, bytes):
     if m:
         split_pos = m.start()
 
-        return git_content[:split_pos], git_content[split_pos:]
+        return CSigParts(armor=git_content,
+                         msg=git_content[:split_pos],
+                         sig=git_content[split_pos:],
+                         sigheads=None)
 
 
 class GpgSpec(baseapp.Spec):
@@ -476,12 +479,13 @@ class GpgSpec(baseapp.Spec):
         return self._proc_verfication(result, keep_stderr)
 
     def verify_git_signed(self, git_bytes: bytes, keep_stderr: bool=None):
-        msg, sig = pgp_split_sig(git_bytes)
-        msg = _git_detachsig_canonical_regexb.sub(b'\n', msg)
-        msg = _git_detachsig_strip_top_empty_lines_regexb.sub(b'', msg)
-        ver = self.verify_detached(sig, msg)
+        csig = pgp_split_sig(git_bytes)
+        if csig:
+            msg = _git_detachsig_canonical_regexb.sub(b'\n', csig.msg)
+            msg = _git_detachsig_strip_top_empty_lines_regexb.sub(b'', msg)
+            ver = self.verify_detached(csig.sig, msg)
 
-        return self._proc_verfication(ver, keep_stderr)
+            return self._proc_verfication(ver, keep_stderr)
 
 
 ########################################

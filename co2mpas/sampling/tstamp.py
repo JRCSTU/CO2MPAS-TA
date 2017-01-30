@@ -43,13 +43,12 @@ class TstampSpec(dice.DiceSpec):
     ).tag(config=True)
 
     host = trt.Unicode(
-        allow_none=False,
+        None, allow_none=False,
         help="""The SMTP/IMAP server, e.g. 'smtp.gmail.com'."""
     ).tag(config=True)
 
     port = trt.Int(
-        None,
-        allow_none=True,
+        None, allow_none=True,
         help="""
             The SMTP/IMAP server's port, usually 587/465 for SSL, 25 otherwise.
             If undefined, does its best.
@@ -70,7 +69,7 @@ class TstampSpec(dice.DiceSpec):
     ).tag(config=True)
 
     @trt.validate('host')
-    def _valid_host(self, proposal):
+    def _is_not_empty(self, proposal):
         value = proposal['value']
         if not value:
             raise trt.TraitError('%s.%s must not be empty!'
@@ -122,7 +121,7 @@ class TstampSender(TstampSpec):
     ).tag(config=True)
 
     subject = trt.Unicode(
-        '[dice test]', allow_none=False,
+        None, allow_none=False,
         help="""The subject-line to use for email sent to timestamp service. """
     ).tag(config=True)
 
@@ -160,7 +159,7 @@ class TstampSender(TstampSpec):
 
         git_auth = crypto.get_git_auth(self.config)
         ver = git_auth.verify_git_signed(msg.encode('utf-8'))
-        verdict = pformat(vars(ver))
+        verdict = None if ver is None else pformat(vars(ver))
         if not ver:
             if self.force:
                 self.log.warning("Content to timestamp failed signature verification!  %s",
@@ -222,16 +221,18 @@ class TstampReceiver(TstampSpec):
         return num
 
     def parse_tsamp_response(self, mail_text: Text) -> int:
+        ## TODO: Use dispatcher to parse tstamp-response.
         from pprint import pformat
         import textwrap as tw
 
+        force = self.force
         stamper_auth = crypto.get_stamper_auth(self.config)
         ts_ver = stamper_auth.verify_clearsigned(mail_text)
         ts_verdict = vars(ts_ver)
         if not ts_ver:
             self.log.error("Cannot verify timestamp-response's signature due to: %s", pformat(ts_verdict))
-            if not self.force or not ts_ver.signature_id:  # Need sig-id for decision.
-                raise ValueError(
+            if not force or not ts_ver.signature_id:  # Need sig-id for decision.
+                raise CmdException(
                     "Cannot verify timestamp-reponse signature due to: %s" % ts_ver.status)
         if not ts_ver.valid:
             self.log.warning(
@@ -243,19 +244,28 @@ class TstampReceiver(TstampSpec):
                 """), pformat(ts_verdict))
 
         csig = crypto.pgp_split_clearsigned(mail_text)
-        stamper_id, tag = self._capture_stamper_msg_and_id(csig.msg, csig.sigheads)
-        if not stamper_id:
-            self.log.error("Timestamp-response had no *stamper-id*: %s\n%s",
-                           pformat(csig), pformat(ts_verdict))
-            if not self.force:
-                raise ValueError("Timestamp-response had no *stamper-id*: %s" % csig.sig)
+        if not csig:
+            self.log.error("Cannot parse timestamp-response:"
+                           "\n  mail-txt: %s\n\n  ts-verdict: %s",
+                           mail_text, pformat(ts_verdict))
+            if not force:
+                raise CmdException(
+                    "Cannot parse timestamp-response!")
+            stamper_id = tag = None
+        else:
+            stamper_id, tag = self._capture_stamper_msg_and_id(csig.msg, csig.sigheads)
+            if not stamper_id:
+                self.log.error("Timestamp-response had no *stamper-id*: %s\n%s",
+                               pformat(csig), pformat(ts_verdict))
+                if not force:
+                    raise CmdException("Timestamp-response had no *stamper-id*: %s" % csig.sig)
 
         ## Verify inner tag.
         #
         if tag:
             git_auth = crypto.get_git_auth(self.config)
             tag_ver = git_auth.verify_git_signed(tag.encode('utf-8'))
-            tag_verdict = vars(tag_ver)
+            tag_verdict = {} if tag_ver is None else vars(tag_ver)
             if not tag_ver:
                 self.log.warning(
                     "Cannot verify dice-report's signature due to: %s", pformat(tag_verdict))
