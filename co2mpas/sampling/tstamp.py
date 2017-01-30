@@ -63,8 +63,8 @@ class TstampSpec(dice.DiceSpec):
         help="""
             Any extra key-value pairs passed to the SMTP/IMAP mail-client libraries.
             For instance, :class:`smtlib.SMTP_SSL` and :class:`smtlib.IMAP4_SSL`
-            support `keyfile` and `timeout`, while SMTP/SSL support additionally
-            `local_hostname` and `source_address`.
+            support `keyfile`, `certfile`,  `ssl_context` and `timeout`,
+            while SMTP/SSL support additionally `local_hostname` and `source_address`.
         """
     ).tag(config=True)
 
@@ -104,11 +104,6 @@ class TstampSpec(dice.DiceSpec):
 
 class TstampSender(TstampSpec):
     """SMTP & timestamp parameters and methods for sending dice emails."""
-
-    login = trt.CaselessStrEnum(
-        'login simple'.split(), default_value=None, allow_none=True,
-        help="""Which SMTP mechanism to use to authenticate: [ login | simple | <None> ]. """
-    ).tag(config=True)
 
     timestamping_addresses = trt.List(
         type=trt.Unicode(), allow_none=False,
