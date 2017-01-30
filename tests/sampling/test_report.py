@@ -17,7 +17,7 @@ from traitlets.config import get_config
 
 from co2mpas.__main__ import init_logging
 from co2mpas.sampling import CmdException, report, project
-from tests.sampling import test_inp_fpath, test_out_fpath
+from tests.sampling import test_inp_fpath, test_out_fpath, test_vfid
 import os.path as osp
 import pandas as pd
 
@@ -50,6 +50,19 @@ class TApp(unittest.TestCase):
 
 class TReportArgs(unittest.TestCase):
 
+    def check_report_tuple(self, tpl, vfid, fpath, iokind, dice_report=None):
+        self.assertEqual(len(tpl), 4)
+        self.assertEqual(tpl[0], vfid)
+        self.assertEqual(tpl[1], iokind)
+        self.assertTrue(tpl[2].endswith(osp.basename(fpath)))
+        dr = tpl[3]
+        if dice_report is None:
+            self.assertIsNone(dr)
+        elif dice_report is True:
+            self.assertIsInstance(dr, str)
+        else:
+            self.assertEqual(dr, dice_report)
+
     def test_extract_input(self):
         c = get_config()
         c.ReportCmd.raise_config_file_errors = True
@@ -57,9 +70,8 @@ class TReportArgs(unittest.TestCase):
         res = cmd.run('inp=%s' % test_inp_fpath)
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
-        self.assertEqual(len(res), 0)
-        for i in res:
-            self.assertIsInstance(i, pd.Series)
+        self.assertEqual(len(res), 1)
+        self.check_report_tuple(res[0], test_vfid, test_inp_fpath, 'inp')
 
     def test_extract_output(self):
         c = get_config()
@@ -69,8 +81,7 @@ class TReportArgs(unittest.TestCase):
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
         self.assertEqual(len(res), 1)
-        for i in res:
-            self.assertIsInstance(i, pd.DataFrame)
+        self.check_report_tuple(res[0], test_vfid, test_out_fpath, 'out', True)
 
     def test_extract_both(self):
         c = get_config()
@@ -79,9 +90,9 @@ class TReportArgs(unittest.TestCase):
         res = cmd.run('inp=%s' % test_inp_fpath, 'out=%s' % test_out_fpath)
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
-        self.assertEqual(len(res), 1)
-        for i in res:
-            self.assertIsInstance(i, pd.DataFrame)
+        self.assertEqual(len(res), 2)
+        self.check_report_tuple(res[0], test_vfid, test_inp_fpath, 'inp')
+        self.check_report_tuple(res[1], test_vfid, test_out_fpath, 'out', True)
 
     def test_bad_prefix(self):
         c = get_config()

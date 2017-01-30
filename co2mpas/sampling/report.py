@@ -26,30 +26,93 @@ from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  
 class Report(baseapp.Spec):
     """Mines reported-parameters from co2mpas excel-files and serves them as a pandas dataframes."""
 
-    dice_report_xlref = trt.Unicode('#dice_report!:"df"',
-                                    help="The *xlref* expression to read the dice-report from output-file."
-                                    ).tag(config=True)
+    input_head_xlref = trt.Unicode(
+        '#Inputs!B1:D5:{"func": "df", "kwds": {"index_col": 0}}',
+        help="The *xlref* extracting 5-10 lines from ``Inputs`` sheets of the input-file as a dataframe."
+    ).tag(config=True)
+    input_vfid_coords = trt.Tuple(
+        trt.Unicode(), trt.Unicode(),
+        default_value=('flag.vehicle_family_id', 'Value'),
+        help="the (row, col) names of the ``vehicle_family_id`` value in the extracted dataframe."
+    ).tag(config=True)
 
-    input_params = trt.Instance(pd.Series, allow_none=True)
-    output_tables = trt.List(trt.Instance(pd.DataFrame), allow_none=True)
+    dice_report_xlref = trt.Unicode(
+        '#dice_report!:{"func": "df", "kwds": {"index_col": 0}}',
+        help="The *xlref* extracting the dice-report from the output-file as a dataframe."
+    ).tag(config=True)
+    output_vfid_coords = trt.Tuple(
+        trt.Unicode(), trt.Unicode(),
+        default_value=('vehicle_family_id', 'vehicle-H'),
+        help="the (row, col) names of the ``vehicle_family_id`` value in the extracted dataframe."
+    ).tag(config=True)
 
-    def clear_params(self, fpath):
-        self.input_params = self.output_tables = None
-
-    def extract_dice_report(self, fpath):
+    def extract_vfid_from_input(self, fpath):
         from pandalone import xleash
-        dice_report_xlref = '#dice_report!:{"func": "df", "kwds": {"index_col": 0}}'
-        tab = xleash.lasso(dice_report_xlref, url_file=fpath)
-        assert isinstance(tab, pd.DataFrame), (
-            "The dice_report xlref(%s) for %r must resolve to a DataFrame, not type(%r): %s" %
-            (dice_report_xlref, dice_report_xlref, type(tab), tab))
-        self.output_tables.append(tab.to_json())
+        df = xleash.lasso(self.input_head_xlref, url_file=fpath)
+        assert isinstance(df, pd.DataFrame), (
+            "The *inputs* xlref(%s) must resolve to a DataFrame, not type(%r): %s" %
+            (self.input_head_xlref, type(df), df))
 
-        return self.output_tables
+        return df.at[self.input_vfid_coords]
+
+    def extract_dice_report_from_output(self, fpath):
+        from pandalone import xleash
+        df = xleash.lasso(self.dice_report_xlref, url_file=fpath)
+        assert isinstance(df, pd.DataFrame), (
+            "The *dice_report* xlref(%s) must resolve to a DataFrame, not type(%r): %s" %
+            (self.dice_report_xlref, type(df), df))
+
+        vfid = df.at[self.output_vfid_coords]
+
+        return vfid, df.to_csv()
 
     def yield_from_iofiles(self, iofiles: PFiles):
+        """
+        Parses input/output files and yields their *unique* vehicle-family-id and any dice-reports.
+
+        :return:
+            A generator that begins by yielding the following 4-tuple
+            for each input/output file::
+
+                (<vehicle-family-id>, 'inp' | 'out', <abs-fpath>, <report>)
+
+            - For *output* files, the ``<report>`` is a CSV string;
+            - For *input* files, the ``<report>`` is None.
+
+            If the *vehicle_family_id* of a subsequent file does not match the extracted
+            from previous files, it screams (unless --force).
+
+        :raise: CmdException if *vehicle_family_id* do not match among files, and not --force
+
+        """
+        vfid = None
+
+        def check_vfid_missmatch(fpath, file_vfid):
+            nonlocal vfid
+
+            if vfid is None:
+                vfid = file_vfid
+            elif vfid != file_vfid:
+                msg = ("Mismatch `vehicle_family_id` between file('%s'): '%s' and the rest's `%s`!"
+                       % (fpath, file_vfid, vfid))
+                if self.force:
+                    self.log.warning(msg)
+                else:
+                    raise CmdException(msg)
+
+        for fpath in iofiles.inp:
+            fpath = pndlu.convpath(fpath)
+            file_vfid = self.extract_vfid_from_input(fpath)
+            check_vfid_missmatch(fpath, file_vfid)
+
+            yield (file_vfid, 'inp', fpath, None)
+
         for fpath in iofiles.out:
-            yield from self.extract_dice_report(pndlu.convpath(fpath))
+            fpath = pndlu.convpath(fpath)
+            file_vfid, dice_report = self.extract_dice_report_from_output(fpath)
+            check_vfid_missmatch(fpath, file_vfid)
+
+            yield (file_vfid, 'out', fpath, dice_report)
 
 
 ###################
@@ -69,7 +132,7 @@ class ReportCmd(baseapp.Cmd):
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] ( inp=<co2mpas-file-1> | out=<co2mpas-file-1> ) ...
-        %(cmd_chain)s --project [OPTIONS]
+        %(cmd_chain)s [OPTIONS] --project
     """
 
     examples = trt.Unicode("""
@@ -147,10 +210,10 @@ class ReportCmd(baseapp.Cmd):
                     "Cmd '%s --project' takes no arguments, received %d: %r!"
                     % (self.name, len(args), args))
 
-            self.log.info('Extracting Dice-report from current-project...')
+            self.log.info('Extracting report from current-project...')
             pfiles = self._build_io_files_from_project(args)
         else:
-            self.log.info('Extracting Dice-report from files %s...', args)
+            self.log.info('Extracting report from files %s...', args)
             if nargs < 1:
                 raise CmdException(
                     "Cmd %r takes at least one filepath as argument, received %d: %r!"

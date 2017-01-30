@@ -26,7 +26,6 @@ log = logging.getLogger(__name__)
 mydir = osp.dirname(__file__)
 
 
-
 @ddt.ddt
 class TApp(unittest.TestCase):
 
