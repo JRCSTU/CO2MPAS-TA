@@ -17,7 +17,7 @@ from traitlets.config import get_config
 
 from co2mpas.__main__ import init_logging
 from co2mpas.sampling import baseapp, dice, project, PFiles
-from tests.sampling import _inp_fpath, _out_fpath
+from tests.sampling import test_inp_fpath, test_out_fpath
 import itertools as itt
 import os.path as osp
 import pandas as pd
@@ -289,7 +289,7 @@ class TStraightStory(unittest.TestCase):
         p = pdb.current_project()
 
         cmd = project.ProjectCmd.AddFileCmd(config=self._config)
-        res = cmd.run('inp=%s' % _inp_fpath, 'out=%s' % _out_fpath)
+        res = cmd.run('inp=%s' % test_inp_fpath, 'out=%s' % test_out_fpath)
         self.assertTrue(res)
 
         p2 = pdb.current_project()
@@ -382,7 +382,7 @@ class TInitCmd(unittest.TestCase):
         p = pdb.current_project()
         self.assertEqual(len(list(pdb.repo.head.commit.tree.traverse())), 1, list(pdb.repo.head.commit.tree.traverse()))
 
-        p.do_addfiles(pfiles=PFiles(inp=[_inp_fpath], out=[_out_fpath]))
+        p.do_addfiles(pfiles=PFiles(inp=[test_inp_fpath], out=[test_out_fpath]))
         self.assertEqual(len(list(pdb.repo.head.commit.tree.traverse())), 5, list(pdb.repo.head.commit.tree.traverse()))
 
     def test_init_does_in_new_project(self):

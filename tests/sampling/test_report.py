@@ -17,7 +17,7 @@ from traitlets.config import get_config
 
 from co2mpas.__main__ import init_logging
 from co2mpas.sampling import CmdException, report, project
-from tests.sampling import _inp_fpath, _out_fpath
+from tests.sampling import test_inp_fpath, test_out_fpath
 import os.path as osp
 import pandas as pd
 
@@ -54,7 +54,7 @@ class TReportArgs(unittest.TestCase):
         c = get_config()
         c.ReportCmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c)
-        res = cmd.run('inp=%s' % _inp_fpath)
+        res = cmd.run('inp=%s' % test_inp_fpath)
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
         self.assertEqual(len(res), 0)
@@ -65,7 +65,7 @@ class TReportArgs(unittest.TestCase):
         c = get_config()
         c.ReportCmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c)
-        res = cmd.run('out=%s' % _out_fpath)
+        res = cmd.run('out=%s' % test_out_fpath)
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
         self.assertEqual(len(res), 1)
@@ -76,7 +76,7 @@ class TReportArgs(unittest.TestCase):
         c = get_config()
         c.ReportCmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c)
-        res = cmd.run('inp=%s' % _inp_fpath, 'out=%s' % _out_fpath)
+        res = cmd.run('inp=%s' % test_inp_fpath, 'out=%s' % test_out_fpath)
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
         self.assertEqual(len(res), 1)
@@ -144,7 +144,7 @@ class TReportProject(unittest.TestCase):
             c.ProjectsDB.repo_path = td
             project.ProjectCmd.InitCmd(config=c).run('proj1')
 
-            project.ProjectCmd.AddFileCmd(config=c).run('inp=%s' % _inp_fpath)
+            project.ProjectCmd.AddFileCmd(config=c).run('inp=%s' % test_inp_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
@@ -153,7 +153,7 @@ class TReportProject(unittest.TestCase):
             for i in res:
                 self.assertIsInstance(i, pd.Series)
 
-            project.ProjectCmd.AddFileCmd(config=c).run('out=%s' % _out_fpath)
+            project.ProjectCmd.AddFileCmd(config=c).run('out=%s' % test_out_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
@@ -168,7 +168,7 @@ class TReportProject(unittest.TestCase):
             c.ProjectsDB.repo_path = td
             project.ProjectCmd.InitCmd(config=c).run('proj1')
 
-            project.ProjectCmd.AddFileCmd(config=c).run('out=%s' % _out_fpath)
+            project.ProjectCmd.AddFileCmd(config=c).run('out=%s' % test_out_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
@@ -177,7 +177,7 @@ class TReportProject(unittest.TestCase):
             for i in res:
                 self.assertIsInstance(i, pd.DataFrame)
 
-            project.ProjectCmd.AddFileCmd(config=c).run('inp=%s' % _inp_fpath)
+            project.ProjectCmd.AddFileCmd(config=c).run('inp=%s' % test_inp_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
@@ -195,7 +195,7 @@ class TReportProject(unittest.TestCase):
             project.ProjectCmd.InitCmd(config=c).run('proj1')
 
             cmd = project.ProjectCmd.AddFileCmd(config=c)
-            cmd.run('out=%s' % _out_fpath, 'inp=%s' % _inp_fpath)
+            cmd.run('out=%s' % test_out_fpath, 'inp=%s' % test_inp_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
