@@ -38,7 +38,7 @@ class Report(baseapp.Spec):
 
     def extract_dice_report(self, fpath):
         from pandalone import xleash
-        dice_report_xlref = '#dice_report!:"df"'
+        dice_report_xlref = '#dice_report!:{"func": "df", "kwds": {"index_col": 0}}'
         tab = xleash.lasso(dice_report_xlref, url_file=fpath)
         assert isinstance(tab, pd.DataFrame), (
             "The dice_report xlref(%s) for %r must resolve to a DataFrame, not type(%r): %s" %
