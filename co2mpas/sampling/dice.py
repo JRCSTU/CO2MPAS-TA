@@ -176,9 +176,7 @@ def main(argv=None, log_level=None, **app_init_kwds):
     log = logging.getLogger(__name__)
 
     try:
-        ##Co2dice.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!
-        app = baseapp.chain_cmds([Co2dice], argv, **app_init_kwds)
-        baseapp.run_cmd(app)
+        baseapp.consume_cmd(Co2dice.launch_instance(argv, **app_init_kwds))
     except (CmdException, trt.TraitError) as ex:
         ## Suppress stack-trace for "expected" errors.
         log.debug('App exited due to: %s', ex, exc_info=1)
@@ -231,5 +229,5 @@ if __name__ == '__main__':
     #c = trtc.get_config()
     #c.Application.log_level=0
     #c.Spec.log_level='ERROR'
-    # baseapp.run_cmd(chain_cmds([Co2dice, ProjectCmd, ProjectCmd.InitCmd],
+    # baseapp.consume_cmd(chain_cmds([Co2dice, ProjectCmd, ProjectCmd.InitCmd],
     #                            argv=['project_foo']))

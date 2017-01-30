@@ -17,8 +17,9 @@ To run a base command, use this code::
 
 To run nested commands and print its output, use :func:`baseapp.chain_cmds()` like that::
 
-    app = chain_cmds([MainCmd, Project, Project.List], argv)  # `argv` without sub-cmds
-    baseapp.run_cmd(app)
+    baseapp.consume_cmd(chain_cmds([MainCmd, Sub1Cmd, Sub2Cmd], argv))  # `argv` without sub-cmds
+
+Of course you can mix'n match.
 
 ## Configuration and Initialization guidelines for *Spec* and *Cmd* classes
 
@@ -995,7 +996,7 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
     @trtc.catch_config_error
     def initialize(self, argv=None):
         """
-        Invoked after __init__() by Cmd.launch_instance() to read & validate configs.
+        Invoked after __init__() by `launch_instance()` to apply configs and build subapps.
 
         It parses cl-args before file-configs, to detect sub-commands
         and update any :attr:`config_paths`, then it reads all file-configs, and
@@ -1052,7 +1053,7 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
 
     @classmethod
     def launch_instance(cls, argv=None, **kwargs):
-        """Prefer :func:`run_cmd()` to process generators returned by :meth:`start()` instead of this method."""
+        """Apply :func:`consume_cmd()` on return values to process generators of :meth:`start()`."""
         ## Overriden just to return `start()`.
         app = cls.instance(**kwargs)
         app.initialize(argv)
@@ -1079,12 +1080,13 @@ def chain_cmds(app_classes: Sequence[type(trtc.Application)],
                argv: Sequence[Text]=None,
                **root_kwds):
     """
-    Instantiate(optionally) a list of ``[cmd, subcmd, ...]`` and link each one as child of its predecessor.
+    Instantiate(optionally) and run a list of ``[cmd, subcmd, ...]``, linking each one as child of its predecessor.
 
     - Normally `argv` contain any sub-commands, and it is enough to invoke
-      ``initialize(argv)`` on the root cmd.  This function helps when you want
-      to shortcut the arg-parsing with explict cmd-chaining in code.
-    - This is half a replacement for :meth:`Application.launch_instance()`.
+      ``initialize(argv)`` on the root cmd.  This function shortcuts
+      arg-parsing for subcmds with explict cmd-chaining in code.
+
+    - This is a replacement for :meth:`Cmd.launch_instance()`.
 
     :param app_classes:
         A list f cmd-classes: ``[root, sub1, sub2, app]``
@@ -1094,8 +1096,9 @@ def chain_cmds(app_classes: Sequence[type(trtc.Application)],
         Make sure they do not contain any sub-cmds.
         NOT replaced with :data:`sys.argv` if undefined.
     :return:
-        The 1st cmd, to invoke :meth:`start()` on it or pass it in :func:`run_cmd()`
-        to print its output.
+        Whatever :meth:`Cmd.start()` of the root returns
+        (normally the result of the last sub-app).
+        Apply the :func:`consume_cmd()` on it.
     """
     if not app_classes:
         raise ValueError("No cmds to chained passed in!")
@@ -1113,31 +1116,29 @@ def chain_cmds(app_classes: Sequence[type(trtc.Application)],
         app.initialize(argv or [])
 
     app_classes[0]._instance = app
-    return root
+
+    return root.start()
 
 
-def run_cmd(cmd: Cmd):
+def consume_cmd(result):
     """
-    Executes a (possibly nested) command, and print its (possibly lazy) results to `stdout`.
+    Print a (possibly lazy) results to `stdout`.
 
     - This the 2nd half of the replacement for :meth:`Application.launch_instance()`.
     - Remember to have logging setup properly before invoking this.
 
     :param cmd:
-        Use :func:`chain_cmds()` to prepare a nested chain in code, or
-        instanciate a root cmd and invoke :meth:`Application.initialize()` with
-        sub-cmd args included.
+        Whatever is retuened by a :meth:`Cmd.start()`/`Cmd.run()` methods.
     :return:
         Does not return anything!  Just prints stuff.
     """
     import types
 
-    res = cmd.start()
-    if res is not None:
-        if isinstance(res, types.GeneratorType):
-            for i in res:
+    if result is not None:
+        if isinstance(result, types.GeneratorType):
+            for i in result:
                 print(i)
-        elif isinstance(res, (tuple, list)):
-            print(os.linesep.join(res))
+        elif isinstance(result, (tuple, list)):
+            print(os.linesep.join(result))
         else:
-            print(res)
+            print(result)

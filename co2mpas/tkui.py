@@ -2296,8 +2296,7 @@ def main(argv=None, log_level=None, **app_init_kwds):
 
     try:
         ##Co2dice.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!
-        app = Co2guiCmd.instance(**app_init_kwds)
-        baseapp.run_cmd(app, argv)
+        baseapp.consume_cmd(Co2guiCmd.launch_instance(argv, **app_init_kwds))
     except (baseapp.CmdException, trt.TraitError) as ex:
         ## Suppress stack-trace for "expected" errors.
         log.debug('App exited due to: %s', ex, exc_info=1)
