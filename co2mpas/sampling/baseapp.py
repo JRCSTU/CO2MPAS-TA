@@ -894,7 +894,7 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
         """
         Check plaintext :class:`crypto.Cipher` config-values and encrypt them if *persistent*, scream if *static*.
 
-        COMPLICATE: to speed-up app start-app, run in 2 "passes" (the 2nd pass is optional):
+        TODO: UNTESTABLE :-( to speed-up app start-app, run in 2 "passes" (the 2nd pass is optional):
 
         - Pass-1 checks configs only for current Cmd's :attr:`classes`, and
           if any iregularities are detected, then laucnh
@@ -908,16 +908,18 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
         ## Input records: since `persist_config` might be None,
         #  conditional create them
         #
-        configs = list(zip(
-            (c for c in (static_config, persist_config) if c),
-            (False, True),
-            ('static', 'persist'))
+        configs = list(
+            c for c in zip(
+                (static_config, persist_config),
+                (False, True),
+                ('static', 'persist'))
+            if c[0]
         )
         ## Vault lazily created if needed,
         #  configed with user-input...
         #
         vault = None  # lazily created
-        vault_config = static_config.copy()  ## TODO: move where vaulut createdXXX
+        vault_config = static_config.copy()  # TODO: move where vaulut createdXXX
         if persist_config:
             vault_config.merge(persist_config)
         vault_config.merge(self.cli_config)
@@ -927,7 +929,7 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
         screams = []            # Collect non-encrypted *static* traits.
 
         def scan_config(config_classes, break_on_irregularities):
-            nonlocal vault, ntraits_encrypted
+            nonlocal vault, vault_config, ntraits_encrypted
 
             for config, encrypt_plain, config_source in configs:
                 for clsname, traits in config.items():

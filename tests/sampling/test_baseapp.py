@@ -480,4 +480,3 @@ class TCipherTraits(TBase):
         j = self.check_persistent_config_file(pfile)
         c.store_pconfig(pfile)
         self.check_persistent_config_file(pfile, 'MyCmd', 'ctrait', cipher2)
-
