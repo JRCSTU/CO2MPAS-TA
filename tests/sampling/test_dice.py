@@ -31,23 +31,23 @@ mydir = osp.dirname(__file__)
 class TApp(unittest.TestCase):
 
     @ddt.data(
-        dice.MainCmd.document_config_options,
-        dice.MainCmd.print_alias_help,
-        dice.MainCmd.print_flag_help,
-        dice.MainCmd.print_options,
-        dice.MainCmd.print_subcommands,
-        dice.MainCmd.print_examples,
-        dice.MainCmd.print_help,
+        dice.Co2dice.document_config_options,
+        dice.Co2dice.print_alias_help,
+        dice.Co2dice.print_flag_help,
+        dice.Co2dice.print_options,
+        dice.Co2dice.print_subcommands,
+        dice.Co2dice.print_examples,
+        dice.Co2dice.print_help,
     )
     def test_app(self, meth):
         c = get_config()
-        c.MainCmd.raise_config_file_errors = True
-        cmd = dice.MainCmd(config=c)
+        c.Co2dice.raise_config_file_errors = True
+        cmd = dice.Co2dice(config=c)
         meth(cmd)
 
     def test_config_init(self):
         c = get_config()
-        c.MainCmd.raise_config_file_errors = True
+        c.Co2dice.raise_config_file_errors = True
         cmd = baseapp.chain_cmds([cfgcmd.ConfigCmd.InitCmd], config=c)
         with tempfile.TemporaryDirectory() as td:
             conf_fpath = osp.join(td, 'cc.py')
@@ -59,14 +59,14 @@ class TApp(unittest.TestCase):
 
     def test_config_paths(self):
         c = get_config()
-        c.MainCmd.raise_config_file_errors = True
+        c.Co2dice.raise_config_file_errors = True
         cmd = baseapp.chain_cmds([cfgcmd.ConfigCmd.PathsCmd], config=c)
         res = list(cmd.run())
         self.assertGreaterEqual(len(res), 2, res)
 
     def test_config_show(self):
         c = get_config()
-        c.MainCmd.raise_config_file_errors = True
+        c.Co2dice.raise_config_file_errors = True
         cmd = baseapp.chain_cmds([cfgcmd.ConfigCmd.ShowCmd], config=c)
         res = list(cmd.run())
         ## Count Cmd-lines not starting with '  +--trait'.
@@ -76,7 +76,7 @@ class TApp(unittest.TestCase):
     def test_config_show_verbose(self):
         c = get_config()
         c.ShowCmd.verbose = 1
-        c.MainCmd.raise_config_file_errors = True
+        c.Co2dice.raise_config_file_errors = True
         cmd = baseapp.chain_cmds([cfgcmd.ConfigCmd.ShowCmd], config=c)
         res = list(cmd.run())
         ## Count Cmd-lines not starting with '  +--trait'.

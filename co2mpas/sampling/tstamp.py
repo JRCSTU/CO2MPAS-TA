@@ -324,16 +324,17 @@ class TstampCmd(baseapp.Cmd):
         Send emails to be timestamped.
 
         SYNTAX
-            co2dice tstamp send [OPTIONS] [<file-1> ...]
+            %(cmd_chain)s [OPTIONS] [<file-1> ...]
 
-        - Do not use this command directly (unless experimenting) - preffer the `co2dice project tstamp` command.
+        - Do not use this command directly (unless experimenting) - prefer the `project tstamp` sub-command.
         - If no files are given, it reads from STDIN.
         - Many options related to sending & receiving the email are expected to be stored in the config-file.
         """
 
         examples = trt.Unicode("""
             To send a dice-report for a prepared project you have to know the `vehicle_family_id`:
-                git  cat-file  tag  tstamps/RL-12-BM3-2017-0001/1 | co2dice tstamp send
+
+                git  cat-file  tag  tstamps/RL-12-BM3-2017-0001/1 | %(cmd_chain)s
             """)
 
         dry_run = trt.Bool(
@@ -378,10 +379,10 @@ class TstampCmd(baseapp.Cmd):
         Derives the *decision* OK/SAMPLE flag from time-stamped email.
 
         SYNTAX
-            co2dice tstamp send [OPTIONS] [<tstamp-response-file-1> ...]
+            %(cmd_chain)s [OPTIONS] [<tstamp-response-file-1> ...]
 
         """
-        examples = trt.Unicode("""cat <mail> | co2dice tstamp parse""")
+        examples = trt.Unicode("""cat <mail> | %(cmd_chain)s""")
 
         def __init__(self, **kwds):
             kwds.setdefault('conf_classes', [TstampReceiver])
@@ -418,13 +419,13 @@ class TstampCmd(baseapp.Cmd):
 
         To wait for the response after you have sent the dice-report, use this bash commands:
 
-            co2dice tstamp recv
+            %(cmd_chain)s
             if [ $? -eq 0 ]; then
                 echo "NO-SAMPLE"
             elif [ $? -eq 1 ]; then
                 echo "SAMPLE!"
             else
-                    echo "ERROR CODE: $?"
+                echo "ERROR CODE: $?"
         """
         def run(self, *args):
             raise CmdException("Not implemented yet!")

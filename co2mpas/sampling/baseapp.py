@@ -10,13 +10,13 @@ A *traitlets*[#]_ framework for building hierarchical :class:`Cmd` line tools de
 
 To run a base command, use this code::
 
-    app = MainCmd.instance(**app_init_kwds)
+    app = Co2dice.instance(**app_init_kwds)
     app.initialize(argv or None) ## Uses `sys.argv` if `argv` is `None`.
     return app.start()
 
 To run nested commands, use :func:`baseapp.chain_cmds()` like that::
 
-    app = chain_cmds(MainCmd, Project, Project.List)
+    app = chain_cmds(Co2dice, Project, Project.List)
     return app.start()
 
 ## Configuration and Initialization guidelines for *Spec* and *Cmd* classes
@@ -286,13 +286,13 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
         Make various sub-commands increase their verbosity (not to be confused with --debug):
         Can be a boolean or 0, 1(==True), 2, ....
 
-        Commands using this flag:
+        SubCommands using this flag:
         ~~~~~~~~~~~~~~~~~~~~~~~~~
-        `co2dice project list`
+        `project list`
             List project with the "long" format.
-        `co2dice project infos`
+        `project infos`
             Whether to include also info about the repo-configuration (when 2).
-        `co2dice config show`
+        `config show`
             Print parameters for all intermediate classes.
           """).tag(config=True)
 
@@ -302,7 +302,7 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
         help="""
         Force various sub-commands to perform their duties without complaints.
 
-        Commands using this flag:
+        SubCommands using this flag:
         ~~~~~~~~~~~~~~~~~~~~~~~~~
         `project backup`
             Whether to overwrite existing archives or to create intermediate folders.
@@ -710,6 +710,30 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
                 lines.append(indent(dedent(hlp.strip())))
         lines.append('')
         print(os.linesep.join(lines))
+
+    def _my_text_interpolations(self):
+        cmd_chain = reversed(self.my_cmd_chain())
+        return {'app_cmd': APPNAME,
+                'cmd_chain': ' '.join(c.name for c in cmd_chain)}
+
+    def print_description(self):
+        ## Overridden for interpolating app-name.
+        txt = self.description or self.__doc__
+        txt %= self._my_text_interpolations()
+        for p in trtc.wrap_paragraphs(txt):
+            print(p)
+            print()
+
+    def print_examples(self):
+        ## Overridden for interpolating app-name.
+        txt = self.examples
+        if txt:
+            txt = txt.strip() % self._my_text_interpolations()
+            print("Examples")
+            print("--------")
+            print()
+            print(trtc.indent(trtc.dedent(txt)))
+            print()
 
     ## Needed because some sub-cmd name clash and
     #  *argparse* screams about conflicts.

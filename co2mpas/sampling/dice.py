@@ -104,9 +104,9 @@ class DiceSpec(baseapp.Spec):
 ##    Commands   ##
 ###################
 
-class MainCmd(Cmd):
+class Co2dice(Cmd):
     """
-    co2dice: prepare/sign/send/receive/validate & archive Type Approval sampling emails for *co2mpas*.
+    Prepare/sign/send/receive/validate & archive Type Approval sampling emails for *co2mpas*.
 
     This is the root command for co2mpas "dice"; use subcommands or preferably GUI to accomplish sampling.
 
@@ -142,7 +142,7 @@ def all_cmds():
     return (
         (
             baseapp.Cmd,
-            MainCmd,
+            Co2dice,
             project.ProjectCmd,
             report.ReportCmd,
             tstamp.TstampCmd,
@@ -170,14 +170,14 @@ def all_app_configurables() -> Tuple:
 def main(argv=None, log_level=None, **app_init_kwds):
     """
     :param argv:
-        If `None`, use :data:`sys.argv`; use ``[]`` to explicitely use no-args.
+        If `None`, use :data:`sys.argv`; use ``[]`` to explicitly use no-args.
     """
     init_logging(level=log_level)
     log = logging.getLogger(__name__)
 
     try:
-        ##MainCmd.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!
-        app = MainCmd.instance(**app_init_kwds)
+        ##Co2dice.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!
+        app = Co2dice.instance(**app_init_kwds)
         baseapp.run_cmd(app, argv)
     except (CmdException, trt.TraitError) as ex:
         ## Suppress stack-trace for "expected" errors.
@@ -231,4 +231,4 @@ if __name__ == '__main__':
     #c = trtc.get_config()
     #c.Application.log_level=0
     #c.Spec.log_level='ERROR'
-    #baseapp.run_cmd(chain_cmds([MainCmd, ProjectCmd, ProjectCmd.InitCmd], argv=['project_foo']))
+    #baseapp.run_cmd(chain_cmds([Co2dice, ProjectCmd, ProjectCmd.InitCmd], argv=['project_foo']))

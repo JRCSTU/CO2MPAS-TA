@@ -1996,7 +1996,7 @@ class Co2guiCmd(baseapp.Cmd):
       Do not run concurrently multiple instances!
     """
 
-    name = trt.Unicode(APPNAME)
+    name = trt.Unicode('co2gui')
     version = trt.Unicode(__version__)
     #examples = """TODO: Write cmd-line examples."""
 
@@ -2295,7 +2295,7 @@ def main(argv=None, log_level=None, **app_init_kwds):
     log = logging.getLogger(__name__)
 
     try:
-        ##MainCmd.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!
+        ##Co2dice.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!
         app = Co2guiCmd.instance(**app_init_kwds)
         baseapp.run_cmd(app, argv)
     except (baseapp.CmdException, trt.TraitError) as ex:

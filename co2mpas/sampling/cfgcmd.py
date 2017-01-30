@@ -64,7 +64,7 @@ class ConfigCmd(baseapp.Cmd):
         - It OVERWRITES any pre-existing configuration file(s)!
 
         SYNTAX
-            co2dice config init [OPTIONS] [<config-path-1>] ...
+            %(cmd_chain)s [OPTIONS] [<config-path-1>] ...
         """
 
         ## Class-docstring CANNOT contain string-interpolations!
@@ -74,10 +74,10 @@ class ConfigCmd(baseapp.Cmd):
 
         examples = trt.Unicode("""
             Generate a config-file at your home folder:
-                co2dice config init ~/my_conf
+                %(cmd_chain)s ~/my_conf
 
-            To re-use this custom config-file alone, use:
-                co2dice --config-paths=~/my_conf  ...
+            To re-use the generated custom config-file alone, use the option
+                --config-paths=~/my_conf  ...
             """)
 
         def run(self, *args):
@@ -92,7 +92,7 @@ class ConfigCmd(baseapp.Cmd):
         """
         List resolved various paths and actual config-files loaded (descending order).
 
-        This is more accurate that `co2dice config show` cmd.
+        This is more accurate that `%(app_cmd)s config show` cmd.
         """
         def run(self, *args):
             if len(args) > 0:
@@ -125,8 +125,8 @@ class ConfigCmd(baseapp.Cmd):
         Print configurations (defaults | files | merged) before any validations.
 
         SYNTAX
-            co2dice config show [OPTIONS] [--source=(merged | default)] [<class-1> ...]
-            co2dice config show [OPTIONS] --source file
+            %(cmd_chain)s [OPTIONS] [--source=(merged | default)] [<class-1> ...]
+            %(cmd_chain)s [OPTIONS] --source file
 
         - Use --verbose to view config-params on all intermediate classes.
         - Similarly, you may also add `--show-config` global option

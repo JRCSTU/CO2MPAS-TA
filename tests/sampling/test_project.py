@@ -34,20 +34,20 @@ mydir = osp.dirname(__file__)
 class TApp(unittest.TestCase):
 
     @ddt.data(*list(itt.product((
-        dice.MainCmd.document_config_options,
-        dice.MainCmd.print_alias_help,
-        dice.MainCmd.print_flag_help,
-        dice.MainCmd.print_options,
-        dice.MainCmd.print_subcommands,
-        dice.MainCmd.print_examples,
-        dice.MainCmd.print_help,
+        dice.Co2dice.document_config_options,
+        dice.Co2dice.print_alias_help,
+        dice.Co2dice.print_flag_help,
+        dice.Co2dice.print_options,
+        dice.Co2dice.print_subcommands,
+        dice.Co2dice.print_examples,
+        dice.Co2dice.print_help,
     ),
         project.all_subcmds))
     )
     def test_app(self, case):
         meth, cmd_cls = case
         c = get_config()
-        c.MainCmd.raise_config_file_errors = True
+        c.Co2dice.raise_config_file_errors = True
         cmd = cmd_cls(config=c)
         meth(cmd)
 

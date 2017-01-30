@@ -956,7 +956,7 @@ class ProjectCmd(_PrjCmd):
     examples = trt.Unicode("""
         To get the list with the status of all existing projects, try:
 
-            co2dice project list
+            %(cmd_chain)s list
         """)
 
     class ListCmd(_PrjCmd):
@@ -967,7 +967,7 @@ class ProjectCmd(_PrjCmd):
           to view even more details for a specific project.
 
         SYNTAX
-            co2dice project list [OPTIONS] [<project-1>] ...
+            %(cmd_chain)s [OPTIONS] [<project-1>] ...
         """
         def run(self, *args):
             self.log.info('Listing %s projects...', args or 'all')
@@ -986,7 +986,7 @@ class ProjectCmd(_PrjCmd):
         Make an existing project as *current*.
 
         SYNTAX
-            co2dice project open [OPTIONS] <project>
+            %(cmd_chain)s [OPTIONS] <project>
         """
         def run(self, *args):
             self.log.info('Opening project %r...', args)
@@ -1000,7 +1000,7 @@ class ProjectCmd(_PrjCmd):
         Create a new project.
 
         SYNTAX
-            co2dice project init [OPTIONS] <project>
+            %(cmd_chain)s [OPTIONS] <project>
         """
         def run(self, *args):
             if len(args) != 1:
@@ -1016,17 +1016,17 @@ class ProjectCmd(_PrjCmd):
         - If an input/output is already present in the current project, use --force.
 
         SYNTAX
-            co2dice project add-report [OPTIONS] ( inp=<co2mpas-file-1> | out=<co2mpas-file-1> ) ...
+            %(cmd_chain)s [OPTIONS] ( inp=<co2mpas-file-1> | out=<co2mpas-file-1> ) ...
         """
 
         examples = trt.Unicode("""
             To import an INPUT co2mpas file, try:
 
-                co2dice project add-report  inp=co2mpas_input.xlsx
+                %(cmd_chain)s inp=co2mpas_input.xlsx
 
             To import both INPUT and OUTPUT files, and overwrite any already imported try:
 
-                co2dice project add-report --force inp=co2mpas_input.xlsx out=co2mpas_results.xlsx
+                %(cmd_chain)s --force inp=co2mpas_input.xlsx out=co2mpas_results.xlsx
             """)
 
         __report = None
@@ -1056,7 +1056,7 @@ class ProjectCmd(_PrjCmd):
         the sampling decision.
 
         SYNTAX
-            co2dice project tag
+            %(cmd_chain)s [OPTIONS]
         """
 
         #examples = trt.Unicode(""" """)
@@ -1075,7 +1075,7 @@ class ProjectCmd(_PrjCmd):
         Sends the prepared tag tag to be timestamped
 
         SYNTAX
-            co2dice project tstamp [OPTIONS]
+            %(cmd_chain)s [OPTIONS]
         """
 
         #examples = trt.Unicode(""" """)
@@ -1109,7 +1109,7 @@ class ProjectCmd(_PrjCmd):
         - Use --verbose to view more infos, including about the repository as a whole.
 
         SYNTAX
-            co2dice project examine [OPTIONS] [<project>]
+            %(cmd_chain)s [OPTIONS] [<project>]
         """
         as_json = trt.Bool(
             False,
@@ -1128,7 +1128,7 @@ class ProjectCmd(_PrjCmd):
         Backup projects repository into the archive filepath specified, or current-directory, if none specified.
 
         SYNTAX
-            co2dice project backup [OPTIONS] [<archive-path>]
+            %(cmd_chain)s [OPTIONS] [<archive-path>]
         """
         def run(self, *args):
             self.log.info('Archiving repo into %r...', args)

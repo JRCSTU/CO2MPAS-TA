@@ -68,22 +68,22 @@ class ReportCmd(baseapp.Cmd):
     If multiple files given from a kind (inp/out), later ones overwrite any previous.
 
     SYNTAX
-        co2dice report [OPTIONS] ( inp=<co2mpas-file-1> | out=<co2mpas-file-1> ) ...
-        co2dice report --project [OPTIONS]
+        %(cmd_chain)s [OPTIONS] ( inp=<co2mpas-file-1> | out=<co2mpas-file-1> ) ...
+        %(cmd_chain)s --project [OPTIONS]
     """
 
     examples = trt.Unicode("""
         To extract the report-parameters from an INPUT co2mpas file, try:
 
-            co2dice report  inp=co2mpas_input.xlsx
+            %(cmd_chain)s inp=co2mpas_input.xlsx
 
         To extract the report from both INPUT and OUTPUT files, try:
 
-            co2dice report  inp=co2mpas_input.xlsx out=co2mpas_results.xlsx
+            %(cmd_chain)s inp=co2mpas_input.xlsx out=co2mpas_results.xlsx
 
         To view the report of the *current-project*, try:
 
-            co2dice report  --project
+            %(cmd_chain)s --project
         """)
 
     project = trt.Bool(
