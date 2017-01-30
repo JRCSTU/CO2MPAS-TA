@@ -50,12 +50,12 @@ class TApp(unittest.TestCase):
 
 class TReportArgs(unittest.TestCase):
 
-    def check_report_tuple(self, tpl, vfid, fpath, iokind, dice_report=None):
-        self.assertEqual(len(tpl), 4)
-        self.assertEqual(tpl[0], vfid)
-        self.assertEqual(tpl[1], iokind)
-        self.assertTrue(tpl[2].endswith(osp.basename(fpath)))
-        dr = tpl[3]
+    def check_report_tuple(self, k, vfid, fpath, iokind, dice_report=None):
+        self.assertEqual(len(k), 4)
+        self.assertEqual(k[0], vfid)
+        self.assertTrue(k[1].endswith(osp.basename(fpath)))
+        self.assertEqual(k[2], iokind)
+        dr = k[3]
         if dice_report is None:
             self.assertIsNone(dr)
         elif dice_report is True:

@@ -105,14 +105,14 @@ class Report(baseapp.Spec):
             file_vfid = self.extract_vfid_from_input(fpath)
             check_vfid_missmatch(fpath, file_vfid)
 
-            yield (file_vfid, 'inp', fpath, None)
+            yield (file_vfid, fpath, 'inp', None)
 
         for fpath in iofiles.out:
             fpath = pndlu.convpath(fpath)
             file_vfid, dice_report = self.extract_dice_report_from_output(fpath)
             check_vfid_missmatch(fpath, file_vfid)
 
-            yield (file_vfid, 'out', fpath, dice_report)
+            yield (file_vfid, fpath, 'out', dice_report)
 
 
 ###################
@@ -155,6 +155,13 @@ class ReportCmd(baseapp.Cmd):
         Whether to extract report from files present already in the *current-project*.
         """).tag(config=True)
 
+    vfid_only = trt.Bool(
+        False,
+        help="""
+        Whether to print the `vehicle_family_id` of each file
+        (implies --force to accept even mismatching ids).
+        """).tag(config=True)
+
     __report = None
 
     @property
@@ -177,6 +184,9 @@ class ReportCmd(baseapp.Cmd):
                     'project': ({
                         'ReportCmd': {'project': True},
                     }, pndlu.first_line(ReportCmd.project.help)),
+                    'vfid-only': ({
+                        'ReportCmd': {'vfid_only': True},
+                    }, pndlu.first_line(ReportCmd.vfid_only.help)),
                 }
             }
             dkwds.update(kwds)
@@ -220,4 +230,15 @@ class ReportCmd(baseapp.Cmd):
                     % (self.name, len(args), args))
             pfiles = self._build_io_files_from_args(args)
 
-        yield from self.report.yield_from_iofiles(pfiles)
+        if self.vfid_only:
+            self.report.force = True
+            vfids = {fpath: vfid
+                     for (vfid, fpath, _, _)
+                     in self.report.yield_from_iofiles(pfiles)}
+            unique_vfids = set(vfids.values())
+            if len(unique_vfids) == 1:
+                yield next(iter(unique_vfids))
+            else:
+                yield from vfids.items()
+        else:
+            yield from self.report.yield_from_iofiles(pfiles)
