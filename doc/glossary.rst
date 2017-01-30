@@ -35,8 +35,12 @@ Vehicle general characteristics
           - ``'RM'``: Road load matrix family as defined in paragraph 5.8.
           - ``'PR'``: Periodically regenerating systems (Ki) family as defined in paragraph 5.9.
 
-        - ``TA`` is the distinguishing number of the authority responsible for the family approval
-          as defined in section 1 of point 1 of Annex VII of Directive (EC) 2007/46.
+        - ``TA`` is the distinguishing number of the EC Member State authority responsible for the family approval
+          as defined in [section 1 of point 1 of Annex VII of Directive (EC) 2007/46](http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32007L0046&from=EN).
+          1 for Germany; 2 for France; 3 for Italy; 4 for the Netherlands; 5 for Sweden; 6 for Belgium; 7 for Hungary;
+          8 for the Czech Republic; 9 for Spain; 11 for the United Kingdom; 12 for Austria; 13 for Luxembourg; 17 for Finland;
+          18 for Denmark; 19 for Romania; 20 for Poland; 21 for Portugal; 23 for Greece; 24 for Ireland; 26 for Slovenia;
+          27 for Slovakia; 29 for Estonia; 32 for Latvia; 34 for Bulgaria; 36 for Lithuania; 49 for Cyprus; 50 for Malta.
         - ``WMI`` (world manufacturer identifier) is a code that identifies the manufacturer
           in a unique manner and is defined in ISO 3780:2009.
           For a single manufacturers several WMI codes may be used.
