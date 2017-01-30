@@ -12,7 +12,7 @@
 :home:          http://co2mpas.io/
 :repository:    https://github.com/JRCSTU/CO2MPAS-TA
 :pypi-repo:     https://pypi.org/project/co2mpas/
-:docs:          http://docs.co2mpas.io/
+:docs:          http://docs.co2mpas.io/ (build-date: |today|)
 :wiki:          https://github.com/JRCSTU/CO2MPAS-TA/wiki/
 :download:      http://github.com/JRCSTU/CO2MPAS-TA/releases/
 :keywords:      CO2, fuel-consumption, WLTP, NEDC, vehicle, automotive,
