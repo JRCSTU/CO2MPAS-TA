@@ -439,9 +439,8 @@ class TstampCmd(baseapp.Cmd):
         """Attempts to login into SMTP server. """
 
         def __init__(self, **kwds):
-            with self.hold_trait_notifications():
-                kwds.setdefault('conf_classes', [TstampSender, TstampReceiver])
-                super().__init__(**kwds)
+            kwds.setdefault('conf_classes', [TstampSender, TstampReceiver])
+            super().__init__(**kwds)
 
         def run(self, *args):
             nargs = len(args)

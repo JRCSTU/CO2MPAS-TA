@@ -177,20 +177,19 @@ class ReportCmd(baseapp.Cmd):
         return p
 
     def __init__(self, **kwds):
-        with self.hold_trait_notifications():
-            dkwds = {
-                'conf_classes': [project.ProjectsDB, Report],
-                'cmd_flags': {
-                    'project': ({
-                        'ReportCmd': {'project': True},
-                    }, pndlu.first_line(ReportCmd.project.help)),
-                    'vfid-only': ({
-                        'ReportCmd': {'vfid_only': True},
-                    }, pndlu.first_line(ReportCmd.vfid_only.help)),
-                }
+        dkwds = {
+            'conf_classes': [project.ProjectsDB, Report],
+            'cmd_flags': {
+                'project': ({
+                    'ReportCmd': {'project': True},
+                }, pndlu.first_line(ReportCmd.project.help)),
+                'vfid-only': ({
+                    'ReportCmd': {'vfid_only': True},
+                }, pndlu.first_line(ReportCmd.vfid_only.help)),
             }
-            dkwds.update(kwds)
-            super().__init__(**dkwds)
+        }
+        dkwds.update(kwds)
+        super().__init__(**dkwds)
 
     def _build_io_files_from_project(self, args) -> PFiles:
         project = self.projects_db.current_project()

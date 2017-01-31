@@ -1151,25 +1151,24 @@ class ProjectCmd(_PrjCmd):
                     "\n  Use --force to create it." % ex)
 
     def __init__(self, **kwds):
-        with self.hold_trait_notifications():
-            dkwds = {
-                'conf_classes': [ProjectsDB, Project],
-                'subcommands': baseapp.build_sub_cmds(*all_subcmds),
-                'cmd_flags': {
-                    'reset-git-settings': (
-                        {
+        dkwds = {
+            'conf_classes': [ProjectsDB, Project],
+            'subcommands': baseapp.build_sub_cmds(*all_subcmds),
+            'cmd_flags': {
+                'reset-git-settings': (
+                    {
 
-                            'ProjectsDB': {'reset_settings': True},
-                        }, pndlu.first_line(ProjectsDB.reset_settings.help)
-                    ), 'as-json': (
-                        {
-                            'ExamineCmd': {'as_json': True},
-                        }, pndlu.first_line(ProjectCmd.ExamineCmd.as_json.help)
-                    ),
-                }
+                        'ProjectsDB': {'reset_settings': True},
+                    }, pndlu.first_line(ProjectsDB.reset_settings.help)
+                ), 'as-json': (
+                    {
+                        'ExamineCmd': {'as_json': True},
+                    }, pndlu.first_line(ProjectCmd.ExamineCmd.as_json.help)
+                ),
             }
-            dkwds.update(kwds)
-            super().__init__(**dkwds)
+        }
+        dkwds.update(kwds)
+        super().__init__(**dkwds)
 
 all_subcmds = (ProjectCmd.ListCmd, ProjectCmd.CurrentCmd, ProjectCmd.OpenCmd, ProjectCmd.InitCmd,
                ProjectCmd.AddFileCmd, ProjectCmd.TagReportCmd,
