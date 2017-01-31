@@ -249,14 +249,14 @@ class HasCiphersMixin:
         return value
 
 
-#class SingletonMixin:
-#    """Like :class:`trtc.SingletonConfigurable` but with unrestricted instances by hierarchy. """
-#    @classmethod
-#    def instance(cls, *args, **kwargs):
-#        if cls._instance is None:
-#            cls._instance = cls(*args, **kwargs)
-#
-#        return cls._instance
+class TolerableSingletonMixin:
+    """Like :class:`trtc.SingletonConfigurable` but with unrestricted instances by hierarchy. """
+    @classmethod
+    def instance(cls, *args, **kwargs):
+        if cls._instance is None or type(cls._instance) != cls:
+            cls._instance = cls(*args, **kwargs)
+
+        return cls._instance
 
 
 ###################
@@ -457,7 +457,7 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
         return list(new_paths)
 
 
-class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
+class Cmd(TolerableSingletonMixin, trtc.Application, PeristentMixin, HasCiphersMixin):
     """Common machinery for all (sub-)commands. """
     ## INFO: Do not use it directly; inherit it.
     # See module documentation for developer's guidelines.
