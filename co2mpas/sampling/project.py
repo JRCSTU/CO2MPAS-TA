@@ -150,6 +150,10 @@ class Project(transitions.Machine, dice.DiceSpec):
         from . import tstamp
         return tstamp.TstampSender(config=self.config)
 
+    def _tstamp_receiver_spec(self):
+        from . import tstamp
+        return tstamp.TstampReceiver(config=self.config)
+
     def _is_force(self, event):
         return event.kwargs.get('force', self.force)
 
@@ -442,20 +446,24 @@ class Project(transitions.Machine, dice.DiceSpec):
         tstamp_sender.send_timestamped_email(dice_mail)
         event.kwargs['action'] = 'Email sent.'  # TODO: Improve actions
 
-    def _cond_is_dice_yes(self, event):
+    def _cond_is_dice_yes(self, event) -> bool:
         """
         Triggered by `do_mailrecv(mail=<raw-mail>)` on CONDITION before `dice_yes` state.
 
         :param mail:
             Parses timestamped-email to decide if next-state is `dice_yes` or `dice_no`.
         """
-        self.log.info('TODO: Receiving email: %s...', event.kwargs)
-        mail = _evarg(event, 'mail')
-        ## TODO: Parse response email!
-        import random
-        is_dice = random.random() > 0.5
+        from pprint import pformat
 
-        event.kwargs['action'] = is_dice and 'Run NEDC now!' or 'Spared...'
+        self.log.info('Receiving email: %s...', event.kwargs)
+        mail_text = _evarg(event, 'mail')
+
+        recv = self._tstamp_receiver_spec()
+        res = recv.parse_tsamp_response(mail_text)
+
+        event.kwargs['action'] = pformat(res)
+
+        return res['dice_decision']
 
 
 class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
