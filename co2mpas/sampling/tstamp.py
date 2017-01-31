@@ -11,7 +11,7 @@ import io
 import re
 import sys
 from typing import (
-    List, Sequence, Iterable, Text, Tuple, Dict, Callable)  # @UnusedImport
+    List, Sequence, Iterable, Text, Tuple, Dict, Callable, Union)  # @UnusedImport
 
 import traitlets as trt
 
@@ -149,11 +149,13 @@ class TstampSender(TstampSpec):
 
         return smtplib.SMTP_SSL if self.ssl else smtplib.SMTP
 
-    def send_timestamped_email(self, msg, dry_run=False):
+    def send_timestamped_email(self, msg: Union[str, bytes], dry_run=False):
         from pprint import pformat
 
+        if not isinstance(msg, bytes):
+            msg = msg.encode('utf-8')
         git_auth = crypto.get_git_auth(self.config)
-        ver = git_auth.verify_git_signed(msg.encode('utf-8'))
+        ver = git_auth.verify_git_signed(msg)
         verdict = None if ver is None else pformat(vars(ver))
         if not ver:
             if self.force:
