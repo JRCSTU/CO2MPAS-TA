@@ -143,18 +143,12 @@ class Project(transitions.Machine, dice.DiceSpec):
         return s
 
     def _report_spec(self):
-        spec = getattr(self, '__report', None)
-        if not spec:
-            from . import report
-            spec = self.__report = report.Report(config=self.config)
-        return spec
+        from . import report
+        return report.Report(config=self.config)
 
     def _tstamp_sender_spec(self):
-        spec = getattr(self, '__tstamp_sender', None)
-        if not spec:
-            from . import tstamp
-            spec = self.__tstamp_sender = tstamp.TstampSender(config=self.config)
-        return spec
+        from . import tstamp
+        return tstamp.TstampSender(config=self.config)
 
     def _is_force(self, event):
         return event.kwargs.get('force', self.force)
@@ -1029,8 +1023,6 @@ class ProjectCmd(_PrjCmd):
                 %(cmd_chain)s --force inp=co2mpas_input.xlsx out=co2mpas_results.xlsx
             """)
 
-        __report = None
-
         def run(self, *args):
             self.log.info('Importing report files %s...', args)
             if len(args) < 1:
@@ -1061,8 +1053,6 @@ class ProjectCmd(_PrjCmd):
 
         #examples = trt.Unicode(""" """)
 
-        __report = None
-
         def run(self, *args):
             self.log.info('Tagging project %r...', args)
             if len(args) > 0:
@@ -1079,8 +1069,6 @@ class ProjectCmd(_PrjCmd):
         """
 
         #examples = trt.Unicode(""" """)
-
-        __report = None
 
         def run(self, *args):
             if len(args) > 0:
