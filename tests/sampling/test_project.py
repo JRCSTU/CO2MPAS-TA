@@ -6,21 +6,24 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
+from co2mpas.__main__ import init_logging
+from co2mpas.sampling import baseapp, crypto, dice, project, PFiles
 import logging
 import os
+import shutil
 import tempfile
 from tests._tutils import chdir
+from tests.sampling import (test_inp_fpath, test_out_fpath,
+                            test_pgp_fingerprint, test_pgp_key, test_pgp_trust)
+from traitlets.config import get_config
 import unittest
 
 import ddt
-from traitlets.config import get_config
 
-from co2mpas.__main__ import init_logging
-from co2mpas.sampling import baseapp, dice, project, PFiles
-from tests.sampling import test_inp_fpath, test_out_fpath
 import itertools as itt
 import os.path as osp
 import pandas as pd
+import traitlets.config as trtc
 
 
 init_logging(level=logging.DEBUG)
@@ -61,13 +64,31 @@ class TProjectsDBStory(unittest.TestCase):
         cls._project_repo = tempfile.TemporaryDirectory()
         log.debug('Temp-repo: %s', cls._project_repo)
 
+        cls.cfg = cfg = trtc.get_config()
+
+        cfg.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        cfg.GpgSpec.keys_to_import = test_pgp_key
+        cfg.GpgSpec.trust_to_import = test_pgp_trust
+        cfg.GpgSpec.master_key = test_pgp_fingerprint
+        cfg.DiceSpec.user_name = "Test Vase"
+        cfg.DiceSpec.user_email = "test@vase.com"
+
+        crypto.GpgSpec(config=cfg)
+
+        ## Clean memories from past tests
+        #
+        crypto.StamperAuthSpec.clear_instance()
+        crypto.GitAuthSpec.clear_instance()
+        crypto.VaultSpec.clear_instance()
+
     @classmethod
     def tearDownClass(cls):
         cls._project_repo.cleanup()
+        shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
 
     @property
     def _config(self):
-        c = get_config()
+        c = self.cfg.copy()
         c.ProjectsDB.repo_path = self._project_repo.name
         c.Spec.verbose = c.ProjectsDB.verbose = 0
         return c
@@ -253,14 +274,32 @@ class TStraightStory(unittest.TestCase):
         cls._project_repo = tempfile.TemporaryDirectory()
         log.debug('Temp-repo: %s', cls._project_repo)
 
+        cls.cfg = cfg = trtc.get_config()
+
+        cfg.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        cfg.GpgSpec.keys_to_import = test_pgp_key
+        cfg.GpgSpec.trust_to_import = test_pgp_trust
+        cfg.GpgSpec.master_key = test_pgp_fingerprint
+        cfg.DiceSpec.user_name = "Test Vase"
+        cfg.DiceSpec.user_email = "test@vase.com"
+
+        crypto.GpgSpec(config=cfg)
+
+        ## Clean memories from past tests
+        #
+        crypto.StamperAuthSpec.clear_instance()
+        crypto.GitAuthSpec.clear_instance()
+        crypto.VaultSpec.clear_instance()
+
     @classmethod
     def tearDownClass(cls):
         project.ProjectsDB.clear_instance()
         cls._project_repo.cleanup()
+        shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
 
     @property
     def _config(self):
-        c = get_config()
+        c = self.cfg.copy()
         c.ProjectsDB.repo_path = self._project_repo.name
         c.Spec.verbose = c.ProjectsDB.verbose = 0
         return c
@@ -392,6 +431,29 @@ class TInitCmd(unittest.TestCase):
 
 class TBackupCmd(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls.cfg = cfg = trtc.get_config()
+
+        cfg.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        cfg.GpgSpec.keys_to_import = test_pgp_key
+        cfg.GpgSpec.trust_to_import = test_pgp_trust
+        cfg.GpgSpec.master_key = test_pgp_fingerprint
+        cfg.DiceSpec.user_name = "Test Vase"
+        cfg.DiceSpec.user_email = "test@vase.com"
+
+        crypto.GpgSpec(config=cfg)
+
+        ## Clean memories from past tests
+        #
+        crypto.StamperAuthSpec.clear_instance()
+        crypto.GitAuthSpec.clear_instance()
+        crypto.VaultSpec.clear_instance()
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
+
     def setUp(self):
         self._project_repo = tempfile.TemporaryDirectory()
         log.debug('Temp-repo: %s', self._project_repo)
@@ -401,7 +463,7 @@ class TBackupCmd(unittest.TestCase):
 
     @property
     def _config(self):
-        c = get_config()
+        c = self.cfg.copy()
         c.ProjectsDB.repo_path = self._project_repo.name
         c.Spec.verbose = c.ProjectsDB.verbose = 0
         return c

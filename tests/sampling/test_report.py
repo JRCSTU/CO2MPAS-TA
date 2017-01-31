@@ -6,20 +6,23 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
+from co2mpas.__main__ import init_logging
+from co2mpas.sampling import CmdException, report, project, crypto
 import logging
 import re
+import shutil
 import tempfile
 import types
 import unittest
 
 import ddt
-from traitlets.config import get_config
 
-from co2mpas.__main__ import init_logging
-from co2mpas.sampling import CmdException, report, project
-from tests.sampling import test_inp_fpath, test_out_fpath, test_vfid
 import os.path as osp
 import pandas as pd
+import traitlets.config as trtc
+
+from . import (test_inp_fpath, test_out_fpath, test_vfid,
+               test_pgp_fingerprint, test_pgp_key, test_pgp_trust)
 
 
 init_logging(level=logging.DEBUG)
@@ -42,7 +45,7 @@ class TApp(unittest.TestCase):
         report.ReportCmd.print_help,
     )
     def test_app(self, meth):
-        c = get_config()
+        c = trtc.get_config()
         c.ReportCmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c)
         meth(cmd)
@@ -64,7 +67,7 @@ class TReportArgs(unittest.TestCase):
             self.assertEqual(dr, dice_report)
 
     def test_extract_input(self):
-        c = get_config()
+        c = trtc.get_config()
         c.ReportCmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c)
         res = cmd.run('inp=%s' % test_inp_fpath)
@@ -74,7 +77,7 @@ class TReportArgs(unittest.TestCase):
         self.check_report_tuple(res[0], test_vfid, test_inp_fpath, 'inp')
 
     def test_extract_output(self):
-        c = get_config()
+        c = trtc.get_config()
         c.ReportCmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c)
         res = cmd.run('out=%s' % test_out_fpath)
@@ -84,7 +87,7 @@ class TReportArgs(unittest.TestCase):
         self.check_report_tuple(res[0], test_vfid, test_out_fpath, 'out', True)
 
     def test_extract_both(self):
-        c = get_config()
+        c = trtc.get_config()
         c.ReportCmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c)
         res = cmd.run('inp=%s' % test_inp_fpath, 'out=%s' % test_out_fpath)
@@ -95,7 +98,7 @@ class TReportArgs(unittest.TestCase):
         self.check_report_tuple(res[1], test_vfid, test_out_fpath, 'out', True)
 
     def test_bad_prefix(self):
-        c = get_config()
+        c = trtc.get_config()
         c.ReportCmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c)
 
@@ -117,17 +120,38 @@ class TReportArgs(unittest.TestCase):
 
 
 class TReportProject(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.cfg = cfg = trtc.get_config()
+
+        cfg.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        cfg.GpgSpec.keys_to_import = test_pgp_key
+        cfg.GpgSpec.trust_to_import = test_pgp_trust
+        cfg.GpgSpec.master_key = test_pgp_fingerprint
+        cfg.ReportCmd.raise_config_file_errors = True
+        cfg.ReportCmd.project = True
+        cfg.DiceSpec.user_name = "Test Vase"
+        cfg.DiceSpec.user_email = "test@vase.com"
+
+        crypto.GpgSpec(config=cfg)
+
+        ## Clean memories from past tests
+        #
+        crypto.StamperAuthSpec.clear_instance()
+        crypto.GitAuthSpec.clear_instance()
+        crypto.VaultSpec.clear_instance()
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
+
     def test_fails_with_args(self):
-        c = get_config()
-        c.ReportCmd.raise_config_file_errors = True
-        c.ReportCmd.project = True
+        c = self.cfg
         with self.assertRaisesRegex(CmdException, "--project' takes no arguments, received"):
             list(report.ReportCmd(config=c).run('EXTRA_ARG'))
 
     def test_fails_when_no_project(self):
-        c = get_config()
-        c.ReportCmd.raise_config_file_errors = True
-        c.ReportCmd.project = True
+        c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
             cmd = report.ReportCmd(config=c)
@@ -135,9 +159,7 @@ class TReportProject(unittest.TestCase):
                 list(cmd.run())
 
     def test_fails_when_empty(self):
-        c = get_config()
-        c.ReportCmd.raise_config_file_errors = True
-        c.ReportCmd.project = True
+        c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
             project.ProjectCmd.InitCmd(config=c).run('proj1')
@@ -148,9 +170,7 @@ class TReportProject(unittest.TestCase):
                 list(cmd.run())
 
     def test_input_output(self):
-        c = get_config()
-        c.ReportCmd.raise_config_file_errors = True
-        c.ReportCmd.project = True
+        c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
             project.ProjectCmd.InitCmd(config=c).run('proj1')
@@ -172,9 +192,7 @@ class TReportProject(unittest.TestCase):
             self.assertEqual(len(res), 1)
 
     def test_output_input(self):
-        c = get_config()
-        c.ReportCmd.raise_config_file_errors = True
-        c.ReportCmd.project = True
+        c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
             project.ProjectCmd.InitCmd(config=c).run('proj1')
@@ -198,9 +216,7 @@ class TReportProject(unittest.TestCase):
                 self.assertIsInstance(i, pd.DataFrame)
 
     def test_both(self):
-        c = get_config()
-        c.ReportCmd.raise_config_file_errors = True
-        c.ReportCmd.project = True
+        c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
             project.ProjectCmd.InitCmd(config=c).run('proj1')
