@@ -1011,7 +1011,7 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
         Invoked after __init__() by `make_cmd()` to apply configs and build subapps.
 
         :param argv:
-            If undefined, they are replaced with :data:`sys.argv`!
+            If undefined, they are replaced with ``sys.argv[1:]``!
 
         It parses cl-args before file-configs, to detect sub-commands
         and update any :attr:`config_paths`, then it reads all file-configs, and
@@ -1073,8 +1073,7 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
         Instanciate, initialize and return application.
 
         :param argv:
-            Contrary to :meth:`initialize()`,  if undefined, they are NOT replaced
-            with :data:`sys.argv`.
+            Like :meth:`initialize()`, if undefined, replaced with ``sys.argv[1:]``.
 
         - Tip: Apply :func:`consume_cmd()` on return values to process generators of :meth:`run()`.
         - This functions is the 1st half of :meth:`launch_instance()` which
@@ -1082,7 +1081,7 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
         """
         ## Overriden just to return `start()`.
         cmd = cls.instance(**kwargs)
-        cmd.initialize(argv or [])
+        cmd.initialize(argv)
 
         return cmd
 
@@ -1115,7 +1114,7 @@ def chain_cmds(app_classes: Sequence[type(trtc.Application)],
     :param argv:
         cmdline args passed to the root (1st) cmd only.
         Make sure they do not contain any sub-cmds.
-        NOT replaced with :data:`sys.argv` if undefined.
+        Like :meth:`initialize()`, if undefined, replaced with ``sys.argv[1:]``.
     :return:
         The root(1st) cmd to invoke :meth:`Aplication.start()`
         and possibly apply the :func:`consume_cmd()` on its results.
@@ -1138,7 +1137,7 @@ def chain_cmds(app_classes: Sequence[type(trtc.Application)],
             root = app = app_cl(**root_kwds)
         else:
             app.subapp = app = app_cl(parent=app)
-        app.initialize(argv or [])
+        app.initialize(argv)
 
     app_classes[0]._instance = app
 
