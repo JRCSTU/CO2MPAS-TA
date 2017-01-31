@@ -60,14 +60,16 @@ class TApp(unittest.TestCase):
     def test_config_paths(self):
         c = get_config()
         c.Co2dice.raise_config_file_errors = True
-        res = baseapp.chain_cmds([cfgcmd.ConfigCmd.PathsCmd], config=c)
+        cmd = baseapp.chain_cmds([cfgcmd.ConfigCmd.PathsCmd], config=c)
+        res = cmd.start()
         res = list(res)
         self.assertGreaterEqual(len(res), 2, res)
 
     def test_config_show(self):
         c = get_config()
         c.Co2dice.raise_config_file_errors = True
-        res = baseapp.chain_cmds([cfgcmd.ConfigCmd.ShowCmd], config=c)
+        cmd = baseapp.chain_cmds([cfgcmd.ConfigCmd.ShowCmd], config=c)
+        res = cmd.start()
         res = list(res)
         ## Count Cmd-lines not starting with '  +--trait'.
         ncmdlines = sum(1 for r in res if r[0] != ' ')

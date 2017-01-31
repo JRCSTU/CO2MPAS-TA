@@ -13,11 +13,13 @@ A *traitlets*[#]_ framework for building hierarchical :class:`Cmd` line tools de
 
 To run a base command, use this code::
 
-    return MainCmd.launch_instance(argv, **app_init_kwds) ## `sys.argv` used if `argv` is `None`!
+    cd = MainCmd.make_cmd(argv, **app_init_kwds)  ## `sys.argv` used if `argv` is `None`!
+    cmd.start()
 
 To run nested commands and print its output, use :func:`baseapp.chain_cmds()` like that::
 
-    baseapp.consume_cmd(chain_cmds([MainCmd, Sub1Cmd, Sub2Cmd], argv))  # `argv` without sub-cmds
+    cmd = chain_cmds([MainCmd, Sub1Cmd, Sub2Cmd], argv)  ## `argv` without sub-cmds
+    baseapp.consume_cmd(cmd.start())
 
 Of course you can mix'n match.
 
@@ -1006,7 +1008,10 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
     @trtc.catch_config_error
     def initialize(self, argv=None):
         """
-        Invoked after __init__() by `launch_instance()` to apply configs and build subapps.
+        Invoked after __init__() by `make_cmd()` to apply configs and build subapps.
+
+        :param argv:
+            If undefined, they are replaced with :data:`sys.argv`!
 
         It parses cl-args before file-configs, to detect sub-commands
         and update any :attr:`config_paths`, then it reads all file-configs, and
@@ -1049,9 +1054,10 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
     def run(self, *args):
         """Leaf sub-commands must inherit this instead of :meth:`start()` without invoking :func:`super()`.
 
-        By default, screams about using sub-cmds, or about doing nothing!
+        :param args:
+            Invoked by :meth:`start()` with :attr:`extra_args`.
 
-        :param args: Invoked by :meth:`start()` with :attr:`extra_args`.
+        By default, screams about using sub-cmds, or about doing nothing!
         """
         if self.subcommands:
             cmd_line = ' '.join(cl.name
@@ -1062,12 +1068,23 @@ class Cmd(trtc.Application, PeristentMixin, HasCiphersMixin):
         assert False, "Override run() method in cmd subclasses."
 
     @classmethod
-    def launch_instance(cls, argv=None, **kwargs):
-        """Apply :func:`consume_cmd()` on return values to process generators of :meth:`start()`."""
+    def make_cmd(cls, argv=None, **kwargs):
+        """
+        Instanciate, initialize and return application.
+
+        :param argv:
+            Contrary to :meth:`initialize()`,  if undefined, they are NOT replaced
+            with :data:`sys.argv`.
+
+        - Tip: Apply :func:`consume_cmd()` on return values to process generators of :meth:`run()`.
+        - This functions is the 1st half of :meth:`launch_instance()` which
+          invokes and discards :meth:`start()` results.
+        """
         ## Overriden just to return `start()`.
-        app = cls.instance(**kwargs)
-        app.initialize(argv)
-        return app.start()
+        cmd = cls.instance(**kwargs)
+        cmd.initialize(argv or [])
+
+        return cmd
 
 
 ## Disable logging-format configs, because their observer
@@ -1092,12 +1109,6 @@ def chain_cmds(app_classes: Sequence[type(trtc.Application)],
     """
     Instantiate(optionally) and run a list of ``[cmd, subcmd, ...]``, linking each one as child of its predecessor.
 
-    - Normally `argv` contain any sub-commands, and it is enough to invoke
-      ``initialize(argv)`` on the root cmd.  This function shortcuts
-      arg-parsing for subcmds with explict cmd-chaining in code.
-
-    - This is a replacement for :meth:`Cmd.launch_instance()`.
-
     :param app_classes:
         A list f cmd-classes: ``[root, sub1, sub2, app]``
         Note: you have to "know" the correct nesting-order of the commands ;-)
@@ -1106,9 +1117,13 @@ def chain_cmds(app_classes: Sequence[type(trtc.Application)],
         Make sure they do not contain any sub-cmds.
         NOT replaced with :data:`sys.argv` if undefined.
     :return:
-        Whatever :meth:`Cmd.start()` of the root returns
-        (normally the result of the last sub-app).
-        Apply the :func:`consume_cmd()` on it.
+        The root(1st) cmd to invoke :meth:`Aplication.start()`
+        and possibly apply the :func:`consume_cmd()` on its results.
+
+    - Normally `argv` contain any sub-commands, and it is enough to invoke
+      ``initialize(argv)`` on the root cmd.  This function shortcuts
+      arg-parsing for subcmds with explict cmd-chaining in code.
+    - This functions is the 1st half of :meth:`Cmd.launch_instance()`.
     """
     if not app_classes:
         raise ValueError("No cmds to chained passed in!")
@@ -1127,20 +1142,20 @@ def chain_cmds(app_classes: Sequence[type(trtc.Application)],
 
     app_classes[0]._instance = app
 
-    return root.start()
+    return root
 
 
 def consume_cmd(result):
     """
     Print a (possibly lazy) results to `stdout`.
 
-    - This the 2nd half of the replacement for :meth:`Application.launch_instance()`.
-    - Remember to have logging setup properly before invoking this.
-
     :param cmd:
         Whatever is retuened by a :meth:`Cmd.start()`/`Cmd.run()` methods.
     :return:
         Does not return anything!  Just prints stuff.
+
+    - Remember to have logging setup properly before invoking this.
+    - This the 2nd half of the replacement for :meth:`Application.launch_instance()`.
     """
     import types
 
