@@ -47,7 +47,8 @@ class TApp(unittest.TestCase):
     def test_config_init(self):
         c = get_config()
         c.Co2dice.raise_config_file_errors = True
-        cmd = baseapp.chain_cmds([cfgcmd.ConfigCmd.InitCmd], config=c)
+        cmd = cfgcmd.ConfigCmd.InitCmd(config=c)
+        cmd.initialize([])
         with tempfile.TemporaryDirectory() as td:
             conf_fpath = osp.join(td, 'cc.py')
             cmd.run(conf_fpath)
@@ -59,15 +60,15 @@ class TApp(unittest.TestCase):
     def test_config_paths(self):
         c = get_config()
         c.Co2dice.raise_config_file_errors = True
-        cmd = baseapp.chain_cmds([cfgcmd.ConfigCmd.PathsCmd], config=c)
-        res = list(cmd.run())
+        res = baseapp.chain_cmds([cfgcmd.ConfigCmd.PathsCmd], config=c)
+        res = list(res)
         self.assertGreaterEqual(len(res), 2, res)
 
     def test_config_show(self):
         c = get_config()
         c.Co2dice.raise_config_file_errors = True
-        cmd = baseapp.chain_cmds([cfgcmd.ConfigCmd.ShowCmd], config=c)
-        res = list(cmd.run())
+        res = baseapp.chain_cmds([cfgcmd.ConfigCmd.ShowCmd], config=c)
+        res = list(res)
         ## Count Cmd-lines not starting with '  +--trait'.
         ncmdlines = sum(1 for r in res if r[0] != ' ')
         self.assertGreaterEqual(ncmdlines, 10, res)  # I counted at least 10...
@@ -76,7 +77,8 @@ class TApp(unittest.TestCase):
         c = get_config()
         c.ShowCmd.verbose = 1
         c.Co2dice.raise_config_file_errors = True
-        cmd = baseapp.chain_cmds([cfgcmd.ConfigCmd.ShowCmd], config=c)
+        cmd = cfgcmd.ConfigCmd.ShowCmd(config=c)
+        res = cmd.initialize([])
         res = list(cmd.run())
         ## Count Cmd-lines not starting with '  +--trait'.
         ncmdlines = sum(1 for r in res if r[0] != ' ')
