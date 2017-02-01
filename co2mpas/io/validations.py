@@ -52,7 +52,7 @@ def hard_validation(data, usage, stage, cycle, *args):
     if usage in ('input', 'target'):
         checks = (
             _check_sign_currents,
-            _check_initial_temperature,
+            #_check_initial_temperature,
             _check_acr,
             _check_ki_factor,
             _check_prediction_gears_not_mt,
