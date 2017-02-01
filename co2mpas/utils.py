@@ -13,26 +13,18 @@ numerical operations.
 """
 
 
-import collections
+from collections import OrderedDict
 from contextlib import contextmanager
 import inspect
 import io
-import json
 import math
 import re
 import statistics
 import sys
-
-from sklearn.linear_model import RANSACRegressor
 import yaml
 
-import schedula.utils as dsp_utl
 import networkx as nx
 import numpy as np
-import pandalone.utils as putils
-import scipy.interpolate as sci_itp
-import scipy.misc as sci_misc
-import sklearn.metrics as sk_met
 
 
 try:
@@ -326,8 +318,10 @@ def bin_split(x, bin_std=(0.01, 0.1), n_min=None, bins_min=None):
     bin_stats = sorted(bin_stats)
 
     def _bin_merge(x, edges, bin_stats):
-        bins = collections.OrderedDict(enumerate(zip(dsp_utl.pairwise(edges),
-                                                     bin_stats)))
+        import schedula.utils as dsp_utl
+
+        bins = OrderedDict(enumerate(zip(dsp_utl.pairwise(edges),
+                                         bin_stats)))
         new_edges = [edges[0]]
         new_bin_stats = []
 
@@ -372,6 +366,8 @@ def interpolate_cloud(x, y):
         A function that interpolate a cloud of points.
     :rtype: scipy.interpolate.InterpolatedUnivariateSpline
     """
+    import schedula.utils as dsp_utl
+    import scipy.interpolate as sci_itp
 
     p = np.asarray(x)
     v = np.asarray(y)
@@ -441,6 +437,8 @@ def clear_fluctuations(times, gears, dt_window):
 
 
 def _err(v, y1, y2, r, l):
+    import sklearn.metrics as sk_met
+
     return sk_met.mean_absolute_error(_ys(y1, v) + _ys(y2, l - v), r)
 
 
@@ -464,6 +462,9 @@ def derivative(x, y, dx=1, order=3, k=1):
     :param k:
     :return:
     """
+    import scipy.misc as sci_misc
+    import scipy.interpolate as sci_itp
+
     func = sci_itp.InterpolatedUnivariateSpline(x, y, k=k)
 
     return sci_misc.derivative(func, x, dx=dx, order=order)
@@ -479,31 +480,6 @@ def stds_redirected(stdout=None, stderr=None):
     yield captured_out, captured_err
 
     sys.stdout, sys.stderr = orig_out, orig_err
-    
-    
-class _SafeRANSACRegressor(RANSACRegressor):
-    def fit(self, X, y, **kwargs):
-        try:
-            return super(_SafeRANSACRegressor, self).fit(X, y, **kwargs)
-        except ValueError as ex:
-            if self.residual_threshold is None:
-                rt = np.median(np.abs(y - np.median(y)))
-                self.residual_threshold = rt + np.finfo(np.float32).eps * 10
-                res = super(_SafeRANSACRegressor, self).fit(X, y, **kwargs)
-                self.residual_threshold = None
-                return res
-            else:
-                raise ex
-
-
-_value_parsers = {
-    '+': int,
-    '*': float,
-    '?': putils.str2bool,
-    ':': json.loads,
-    '@': eval,
-    #'@': ast.literal_eval ## best-effort security: http://stackoverflow.com/questions/3513292/python-make-eval-safe
-}
 
 
 _key_value_regex = re.compile(r'^\s*([/_A-Za-z][\w/\.]*)\s*([+*?:@]?)=\s*(.*?)\s*$')
@@ -511,7 +487,17 @@ _key_value_regex = re.compile(r'^\s*([/_A-Za-z][\w/\.]*)\s*([+*?:@]?)=\s*(.*?)\s
 
 def parse_key_value_pair(arg):
     """Argument-type for syntax like: KEY [+*?:]= VALUE."""
+    import pandalone.utils as putils
+    import json
 
+    _value_parsers = {
+        '+': int,
+        '*': float,
+        '?': putils.str2bool,
+        ':': json.loads,
+        '@': eval,
+        #'@': ast.literal_eval ## best-effort security: http://stackoverflow.com/questions/3513292/python-make-eval-safe
+    }
     m = _key_value_regex.match(arg)
     if m:
         (key, type_sym, value) = m.groups()
@@ -528,6 +514,8 @@ def parse_key_value_pair(arg):
 
 
 def fromiter(gen, dtype, keys=None, count=-1):
+    import schedula.utils as dsp_utl
+
     a = np.fromiter(gen, dtype=dtype, count=count)
     _keys = a.dtype.names
     if _keys:

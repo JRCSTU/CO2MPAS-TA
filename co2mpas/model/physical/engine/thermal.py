@@ -9,13 +9,16 @@
 It contains functions that model the engine coolant temperature.
 """
 
-import numpy as np
-import sklearn.pipeline as sk_pip
-import sklearn.feature_selection as sk_fsel
-import sklearn.ensemble as sk_ens
-import co2mpas.utils as co2_utl
-import schedula as dsp
 import itertools
+
+from sklearn.linear_model import RANSACRegressor
+
+import co2mpas.utils as co2_utl
+import numpy as np
+import schedula as dsp
+import sklearn.ensemble as sk_ens
+import sklearn.feature_selection as sk_fsel
+import sklearn.pipeline as sk_pip
 
 
 def calculate_engine_temperature_derivatives(
@@ -110,6 +113,21 @@ class NoDelta(object):
         return np.zeros(X.shape[0])
 
 
+class _SafeRANSACRegressor(RANSACRegressor):
+    def fit(self, X, y, **kwargs):
+        try:
+            return super(_SafeRANSACRegressor, self).fit(X, y, **kwargs)
+        except ValueError as ex:
+            if self.residual_threshold is None:
+                rt = np.median(np.abs(y - np.median(y)))
+                self.residual_threshold = rt + np.finfo(np.float32).eps * 10
+                res = super(_SafeRANSACRegressor, self).fit(X, y, **kwargs)
+                self.residual_threshold = None
+                return res
+            else:
+                raise ex
+
+
 # noinspection PyMethodMayBeStatic,PyMethodMayBeStatic
 class ThermalModel(object):
     def __init__(self, thermostat=100.0):
@@ -151,7 +169,6 @@ class ThermalModel(object):
             The calibrated engine temperature regression model.
         :rtype: ThermalModel
         """
-
         spl = _build_samples(temperature_derivatives, temperatures, *args)
         self.thermostat = self._identify_thermostat(spl, idle_engine_speed)
 
@@ -163,7 +180,8 @@ class ThermalModel(object):
             'loss': 'huber',
             'alpha': 0.99
         }
-        model = co2_utl._SafeRANSACRegressor(
+
+        model = _SafeRANSACRegressor(
             base_estimator=self.base_model(**opt),
             random_state=0,
             min_samples=0.85,
@@ -182,7 +200,7 @@ class ThermalModel(object):
 
         self.min_temp = spl[:, 0].min()
         spl = spl[:co2_utl.argmax(self.thermostat <= spl[:, 0])]
-        
+
         if not spl.any():
             self.min_temp = -float('inf')
             return self
