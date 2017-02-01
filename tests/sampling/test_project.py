@@ -54,6 +54,51 @@ class TApp(unittest.TestCase):
         cmd = cmd_cls(config=c)
         meth(cmd)
 
+@ddt.ddt
+class Tproject(unittest.TestCase):
+
+    @ddt.data(
+        (1, 'a', int),
+        (1, 'a', int, True),
+        (1, 'a', int, True, True),
+        (1, 'a', int, False, True),
+
+        (1, 'a', (str, int)),
+        (1, 'a', (int, str)),
+        (1, 'a', (int, str), True),
+        (1, 'a', (int, str), True, True),
+        (1, 'a', (int, str), False, True),
+
+        ('s', 'b', str),
+        ('s', 'b', str, True),
+        ('s', 'b', str, True, True),
+        ('s', 'b', str, False, True),
+
+        ('s', 'b', (str, int)),
+        ('s', 'b', (int, str)),
+        ('s', 'b', (int, str), True),
+        ('s', 'b', (int, str), True, True),
+        ('s', 'b', (int, str), False, True),
+
+        (None, 'c', int, True, False),
+        (None, 'c', str, True, False),
+        (None, 'c', (int, str), True, False),
+        (None, 'c', (str, int), True, True),
+
+        (None, 'd', int, True, True),
+        (None, 'd', str, False, True),
+        (None, 'd', (int, str), True, True),
+        (None, 'd', (str, int), False, True),
+    )
+    def test_evarg(self, case):
+        class E:
+            def __init__(self, *args, **kwds):
+                self.kwargs = dict(*args, **kwds)
+
+        e = E(a=1, b='s', c=None)
+        exp, *args = case
+        self.assertEqual(project._evarg(e, *args), exp)
+
 
 @ddt.ddt
 class TProjectsDBStory(unittest.TestCase):

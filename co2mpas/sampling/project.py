@@ -91,12 +91,22 @@ def _tname2ref_name(tname: Text) -> Text:
 
 
 #transitions.logger.level = 50 ## FSM logs annoyingly high.
-def _evarg(event, dname, dtype=None):
-    data = event.kwargs.get(dname)
-    assert data, ("Missing event-data(%r) from event: %s" %
-                  (dname, vars(event)))
+def _evarg(event, dname, dtype=None, none_ok=False, missing_ok=False):
+    """
+    :param dtype:
+        A single or tuple of types, passed to `isinstance()`.
+    """
+    kwargs = event.kwargs
+
+    _ = object()
+    data = kwargs.get(dname, _)
+    if data is _:
+        assert missing_ok, (
+            "Missing event-data(%r) from event: %s" % (dname, vars(event)))
+        return
+
     if dtype:
-        assert isinstance(data, dtype), (
+        assert none_ok and data is None or isinstance(data, dtype), (
             "Expected TYPE of event-data(%r) is %r, but was %r!"
             "\n  data: %s\n  event: %s" %
             (dname, dtype, type(data), data, vars(event)))
