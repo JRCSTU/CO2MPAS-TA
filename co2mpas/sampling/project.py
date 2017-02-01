@@ -595,6 +595,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         from . import crypto
 
         git_auth = crypto.get_git_auth(self.config)
+
         gconfigs = [
             ('core.filemode', False),
             ('core.ignorecase', False),
@@ -606,6 +607,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
                 r"--format=format:'%C(bold blue)%h%C(reset) "
                 r"- %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- "
                 r"%an%C(reset)%C(bold yellow)%d%C(reset)' --all"),
+            ('gpg.program', git_auth.gnupgexe_resolved),
             ('user.signingkey', git_auth.master_key_resolved),
         ]
         if self.sign_commits:
@@ -615,7 +617,14 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         with self.repo.config_writer() as cw:
             for key, val in gconfigs:
                 sec, prop = key.split('.')
-                cw.set_value(sec, prop, val)
+                ok = False
+                try:
+                    cw.set_value(sec, prop, val)
+                    ok = True
+                finally:
+                    if not ok:
+                        self.log.error("Failed to write git-seeting '%s'=%s!",
+                                       key, val)
 
     def read_git_settings(self, prefix: Text=None, config_level: Text=None):  # -> List(Text):
         """
