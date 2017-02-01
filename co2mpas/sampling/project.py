@@ -44,7 +44,7 @@ def split_version(v):
 
 PROJECT_STATUSES = '<invalid> empty full signed dice_sent sampled'.split()
 
-_CommitMsg = namedtuple('_CommitMsg', 'project state action msg_version')
+_CommitMsg = namedtuple('_CommitMsg', 'msg_version project state action')
 
 _PROJECTS_PREFIX = 'projects/'
 _HEADS_PREFIX = 'refs/heads/'
@@ -258,9 +258,13 @@ class Project(transitions.Machine, dice.DiceSpec):
         raise ex
 
     def _make_commit_msg(self, action):
-        action = '\n'.join(textwrap.wrap(action, width=50))
-        cmsg = _CommitMsg(self.pname, self.state, action, __dice_report_version__)
-        return json.dumps(cmsg._asdict(), indent=2)
+        cmsg = _CommitMsg(__dice_report_version__, self.pname, self.state, action)
+        msg = json.dumps(cmsg._asdict(), indent=1)
+        msg = '\n'.join(textwrap.wrap(msg, width=78,            # email width (RFC5322)
+                                      break_long_words=False,   # True breaks json.
+                                      drop_whitespace=False))   # Keep indentation.
+
+        return msg
 
     @classmethod
     def parse_commit_msg(self, cmsg_js, scream=False):
