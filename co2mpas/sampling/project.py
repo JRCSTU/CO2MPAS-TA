@@ -606,7 +606,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
                 r"--format=format:'%C(bold blue)%h%C(reset) "
                 r"- %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- "
                 r"%an%C(reset)%C(bold yellow)%d%C(reset)' --all"),
-            ('user.signingkey', git_auth.master_key_resolved()),
+            ('user.signingkey', git_auth.master_key_resolved),
         ]
         if self.sign_commits:
             gconfigs.append('commit.gpgsign', True)

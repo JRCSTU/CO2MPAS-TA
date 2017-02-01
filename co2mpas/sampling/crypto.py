@@ -268,6 +268,7 @@ class GpgSpec(baseapp.Spec):
     def _remove_cached_GPG(self, change):
         self._GPG = None
 
+    @property
     def master_key_resolved(self) -> Text:
         master_key = self.master_key
         if not master_key:
@@ -393,7 +394,7 @@ class GpgSpec(baseapp.Spec):
         except Exception as ex:
                 raise ValueError("PswdId('%s'): encryption failed due to: %s" % (pswdid, ex))
 
-        cipher = self.GPG.encrypt(plainbytes, self.master_key_resolved(), armor=True)
+        cipher = self.GPG.encrypt(plainbytes, self.master_key_resolved, armor=True)
         if not cipher.ok:
             self.log.debug("PswdId('%s'): encryption stderr: %s", pswdid, cipher.status, cipher.stderr)
             raise ValueError("PswdId('%s'): %s!" % (pswdid, cipher.status))
@@ -435,7 +436,7 @@ class GpgSpec(baseapp.Spec):
     def clearsign_text(self, text: Text) -> Text:
         """Clear-signs a textual-message with :attr:`master_key`."""
         try:
-            signed = self.GPG.sign(text, keyid=self.master_key_resolved())
+            signed = self.GPG.sign(text, keyid=self.master_key_resolved)
         except Exception as ex:
             raise ValueError("Signing failed due to: %s" % ex)
 
