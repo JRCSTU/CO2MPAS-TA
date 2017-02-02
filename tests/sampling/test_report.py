@@ -63,7 +63,7 @@ class TReportBase(unittest.TestCase):
         if dice_report is True:
             self.assertEqual(k['content_type'], 'dice_report', k)
             dr = k['content']
-            self.assertIsInstance(dr, list, k)
+            self.assertIsInstance(dr, dict, k)
         elif dice_report is not None:
             self.assertEqual(k['content_type'], 'dice_report', k)
             dr = k['content']
@@ -74,20 +74,6 @@ class TReportBase(unittest.TestCase):
 
 @ddt.ddt
 class TReportArgs(TReportBase):
-
-    @ddt.data(
-        (pd.DataFrame([[1]], columns=['A'], index=['a']),
-            [['index', 'A'], ['a', 1]]),
-        (pd.DataFrame([[1, 2]], columns=list('AB'), index=['a']),
-            [['index', 'A', 'B'], ['a', 1, 2]]),
-        (pd.DataFrame([[1, 2], [3, 4]], columns=list('AB'), index=list('ab')),
-            [['index', 'A', 'B'], ['a', 1, 2], ['b', 3, 4]]),
-    )
-    def test_report_tuple_2_dict__report(self, case):
-        df, exp = case
-        vfid, fpath, iokind, rdf = '1', '2', '3', df
-        d = report.report_tuple_2_dict(vfid, fpath, iokind, rdf)
-        self.assertEqual(d['content'], exp)
 
     def test_extract_input(self):
         c = trtc.get_config()

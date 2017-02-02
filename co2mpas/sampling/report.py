@@ -136,18 +136,8 @@ def report_tuple_2_dict(vfid, fpath, iokind, rdf) -> dict:
     else:
         d['vehicle_family_id'] = vfid
         if rdf is not None:
-            import numpy as np
-
-            ## Convert df into list-of-lists
-            #  (indices included).
-            #
-            rdf = rdf.reset_index(level=0)
-            cols = np.asarray(rdf.columns)
-            cols = cols.reshape((1, len(cols)))
-            rdf = np.vstack((cols, rdf.values))
-
             d['content_type'] = 'dice_report'
-            d['content'] = rdf.tolist()
+            d['content'] = rdf.T.to_dict('list')
 
     return d
 
