@@ -8,7 +8,7 @@
 ######################################################################
 
 :release:       1.5.0.dev4
-:date:          2017-02-02 03:34:10
+:date:          2017-02-02 14:54:03
 :home:          http://co2mpas.io/
 :repository:    https://github.com/JRCSTU/CO2MPAS-TA
 :pypi-repo:     https://pypi.org/project/co2mpas/
@@ -1362,7 +1362,7 @@ Install |co2mpas| package
 
        > co2mpas -vV
        co2mpas_version: 1.5.0.dev4
-       co2mpas_rel_date: 2017-02-02 03:34:10
+       co2mpas_rel_date: 2017-02-02 14:54:03
        co2mpas_path: d:\co2mpas_ALLINONE-64bit-v1.4.1\Apps\WinPython\python-3.4.3\lib\site-packages\co2mpas
        python_path: D:\co2mpas_ALLINONE-64bit-v1.4.1\WinPython\python-3.4.3
        python_version: 3.4.3 (v3.4.3:9b73f1c3e601, Feb 24 2015, 22:44:40) [MSC v.1600 XXX]

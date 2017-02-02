@@ -38,7 +38,68 @@ from .._version import __dice_report_version__
 ###################
 PROJECT_STATUSES = '<invalid> empty full signed dice_sent sampled'.split()
 
-_CommitMsg = namedtuple('_CommitMsg', 'msg_version project state action data')
+
+class _CommitMsg(namedtuple('_CommitMsg', 'mver action proj state data')):
+    """
+    A commit-message is a list like ``[headline, dataline, ...]``.
+
+    For this version(:data:`__dice_report_version__`) the format is:
+
+    - The `headline` is a dictionary with this ordered fields:
+      - mver
+      - action
+      - proj
+      - state
+    - Only one `dataline` expected: report
+    """
+
+    @classmethod
+    def _check_commit_msg_version(cls, msg_ver_txt):
+        prog_ver = __dice_report_version__.split('.')
+        msg_ver = msg_ver_txt.split('.')
+        if (len(msg_ver) != 3 or
+                msg_ver[0] != prog_ver[0] or
+                msg_ver[1] > prog_ver[1]):
+            raise CmdException(
+                "Incompatible message version '%s'!"
+                "\n  expected '%s.%s-.x'." %
+                (msg_ver_txt, prog_ver[0], prog_ver[1]))
+
+    def dump_commit_msg(self):
+        cdic = self._asdict()
+        del cdic['data']
+        clist = [cdic]
+        if self.data:
+            clist.extend(self.data)
+        msg = yaml.dump(clist,
+                        indent=2,
+                        width=78)            # email width (RFC5322)
+
+        return msg
+
+    @classmethod
+    def parse_commit_msg(cls, cmsg_txt):
+        """
+        :return: a :class:`_CommitMsg` instance, or fails if cannot parse.
+        """
+        try:
+            l = yaml.load(io.StringIO(cmsg_txt))
+            if not isinstance(l, list) or not l:
+                raise CmdException(
+                    "Invalid commit/tag message, not a non-empty list: %s" % l)
+
+            headline = l[0]
+            cmsg = _CommitMsg(data=l[1:], **headline)
+            cmsg._check_commit_msg_version(str(cmsg.mver))
+
+            return cmsg
+        except CmdException as ex:
+            raise
+        except Exception as ex:
+            raise CmdException(
+                "Failed parsing commit message due to: %s \nmsg:\n%s" %
+                (ex, tw.indent(cmsg_txt, "  ")))
+
 
 _PROJECTS_PREFIX = 'projects/'
 _HEADS_PREFIX = 'refs/heads/'
@@ -279,21 +340,10 @@ class Project(transitions.Machine, dice.DiceSpec):
         self.error = (self.state, ex)
         raise ex
 
-    def _make_commit_msg(self, action, report=None):
-        cmsg = _CommitMsg(__dice_report_version__, self.pname, self.state, action, report)
-        msg = yaml.dump(cmsg._asdict(),
-                        indent=2,
-                        width=78)            # email width (RFC5322)
-
-        return msg
-
-    @classmethod
-    def parse_commit_msg(self, cmsg_js, scream=False):
-        """
-        :return: a :class:`_CommitMsg` instance, or fails if cannot parse.
-        """
-        dic = yaml.load(io.StringIO(cmsg_js))
-        return _CommitMsg(**dic)
+    def _make_commit_msg(self, action, data=None):
+        assert data is None or isinstance(data, list), "Data not a list: %s" % data
+        cmsg = _CommitMsg(__dice_report_version__, action, self.pname, self.state, data)
+        return cmsg.dump_commit_msg()
 
     def _cb_check_my_index(self, event):
         """ Executed on ENTER for all states, to compare my `pname` with checked-out ref. """
@@ -316,7 +366,7 @@ class Project(transitions.Machine, dice.DiceSpec):
             is_tagging = state == 'tagged'
             action = _evarg(event, 'action', (str, dict))
             report = _evarg(event, 'report', (list, dict), True, True)
-            cmsg_js = self._make_commit_msg(action, report)
+            cmsg_txt = self._make_commit_msg(action, report)
 
             ## GpgSpec `git_auth` only lazily creates GPG
             #  which imports keys/trust.
@@ -324,12 +374,12 @@ class Project(transitions.Machine, dice.DiceSpec):
 
             with repo.git.custom_environment(GNUPGHOME=git_auth.gnupghome_resolved):
                 index = repo.index
-                index.commit(cmsg_js)
+                index.commit(cmsg_txt)
 
                 if is_tagging:
                     self.log.debug('Tagging: %s', event.kwargs)
                     tref = _tname2ref_name(self.pname)
-                    repo.create_tag(tref, message=cmsg_js, sign=True)
+                    repo.create_tag(tref, message=cmsg_txt, sign=True)
 
     def _make_readme(self):
         return tw.dedent("""
@@ -737,7 +787,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             DFun('cmsg', lambda cmt: '<invalid: %s>' % cmt.message, weight=10),
 
             DFun(['msg.%s' % f for f in _CommitMsg._fields],
-                 lambda cmsg: Project.parse_commit_msg(cmsg)),
+                 lambda cmsg: _CommitMsg.parse_commit_msg(cmsg)),
 
             DFun('tree', lambda tre: tre.hexsha),
             DFun('files_count', lambda tre: itz.count(tre.list_traverse())),
@@ -847,7 +897,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
                 if _is_project_ref(headref):
                     pname = _ref2pname(headref)
                     p = self._conceive_new_project(pname)
-                    cmsg = p.parse_commit_msg(headref.commit.message)
+                    cmsg = _CommitMsg.parse_commit_msg(headref.commit.message)
                     p.set_state(cmsg.state)
 
                     self._current_project = p

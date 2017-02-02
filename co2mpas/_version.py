@@ -17,8 +17,8 @@ __file_version__ = "2.2.5"
 #: Compatible Input file's version.
 __input_file_version__ = "2"
 
-__dice_report_version__ = '0.0.3'
+__dice_report_version__ = '1.0.0'
 
 # Please UPDATE TIMESTAMP WHEN BUMPING VERSIONS AND BEFORE RELEASE.
 #: Release date.
-__updated__ = "2017-02-02 03:34:10"
+__updated__ = "2017-02-02 14:54:03"
