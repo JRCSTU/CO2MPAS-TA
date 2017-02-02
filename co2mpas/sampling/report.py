@@ -12,6 +12,7 @@ from collections import (
 from typing import (
     List, Sequence, Iterable, Text, Tuple, Dict, Callable)  # @UnusedImport
 
+import os.path as osp
 import pandalone.utils as pndlu
 import pandas as pd
 import traitlets as trt
@@ -62,11 +63,12 @@ class Report(baseapp.Spec):
             "The *dice_report* xlref(%s) must resolve to a DataFrame, not type(%r): %s" %
             (self.dice_report_xlref, type(df), df))
 
+        df = df.where((pd.notnull(df)), None)
         vfid = df.at[self.output_vfid_coords]
 
-        return vfid, df.to_csv()
+        return vfid, df
 
-    def yield_from_iofiles(self, iofiles: PFiles):
+    def yield_report_tuples_from_iofiles(self, iofiles: PFiles):
         """
         Parses input/output files and yields their *unique* vehicle-family-id and any dice-reports.
 
@@ -114,6 +116,41 @@ class Report(baseapp.Spec):
 
             yield (file_vfid, fpath, 'out', dice_report)
 
+        for fpath in iofiles.other:
+            fpath = pndlu.convpath(fpath)
+            yield (None, fpath, 'other', None)
+
+    def get_dice_report(self, iofiles: PFiles):
+        return OrderedDict((file_tuple[1], report_tuple_2_dict(*file_tuple))
+                           for file_tuple
+                           in self.yield_report_tuples_from_iofiles(iofiles))
+
+
+def report_tuple_2_dict(vfid, fpath, iokind, rdf) -> dict:
+    d = OrderedDict([
+        ('file', osp.basename(fpath)),
+        ('iokind', iokind)])
+
+    if vfid is None:
+        assert iokind == 'other' and rdf is None, (vfid, fpath, iokind, rdf)
+    else:
+        d['vehicle_family_id'] = vfid
+        if rdf is not None:
+            import numpy as np
+
+            ## Convert df into list-of-lists
+            #  (indices included).
+            #
+            rdf = rdf.reset_index(level=0)
+            cols = np.asarray(rdf.columns)
+            cols = cols.reshape((1, len(cols)))
+            rdf = np.vstack((cols, rdf.values))
+
+            d['content_type'] = 'dice_report'
+            d['content'] = rdf.tolist()
+
+    return d
+
 
 ###################
 ##    Commands   ##
@@ -155,12 +192,12 @@ class ReportCmd(baseapp.Cmd):
         Whether to extract report from files present already in the *current-project*.
         """).tag(config=True)
 
-    vfid_only = trt.Bool(
-        False,
-        help="""
-        Whether to print the `vehicle_family_id` of each file
-        (implies --force to accept even mismatching ids).
-        """).tag(config=True)
+    as_json = trt.Bool(
+        help="""Prints report identical to when tagging a project; when false, printed while extracted."""
+    ).tag(config=True)
+    vfids_only = trt.Bool(
+        help=""""Prints either `fpath: vehicle_family_id` lines, or a lone vfid, if single path given."""
+    ).tag(config=True)
 
     __report = None
 
@@ -183,9 +220,12 @@ class ReportCmd(baseapp.Cmd):
                 'project': ({
                     'ReportCmd': {'project': True},
                 }, pndlu.first_line(ReportCmd.project.help)),
-                'vfid-only': ({
-                    'ReportCmd': {'vfid_only': True},
-                }, pndlu.first_line(ReportCmd.vfid_only.help)),
+                'vfids': ({
+                    'ReportCmd': {'vfids_only': True},
+                }, pndlu.first_line(ReportCmd.vfids_only.help)),
+                'json': ({
+                    'ReportCmd': {'as_json': True},
+                }, pndlu.first_line(ReportCmd.as_json.help)),
             }
         }
         dkwds.update(kwds)
@@ -212,32 +252,62 @@ class ReportCmd(baseapp.Cmd):
         return pfiles
 
     def run(self, *args):
+        from boltons.setutils import IndexedSet as iset
+
         nargs = len(args)
+        as_json = self.as_json
+        as_json_txt = as_json and 'json' or 'text'
+        infos = self.vfids_only and '`vehicle_family_id`' or 'report infos'
         if self.project:
             if nargs > 0:
                 raise CmdException(
                     "Cmd '%s --project' takes no arguments, received %d: %r!"
                     % (self.name, len(args), args))
 
-            self.log.info('Extracting report from current-project...')
+            self.log.info("Extracting %s from current-project as '%s'...",
+                          infos, as_json_txt)
             pfiles = self._build_io_files_from_project(args)
         else:
-            self.log.info('Extracting report from files %s...', args)
+            self.log.info("Extracting %s as '%s' from files:\n  %s",
+                          infos, as_json_txt, '\n  '.join(args))
             if nargs < 1:
                 raise CmdException(
                     "Cmd %r takes at least one filepath as argument, received %d: %r!"
                     % (self.name, len(args), args))
+            args = iset(args)
             pfiles = self._build_io_files_from_args(args)
 
-        if self.vfid_only:
-            self.report.force = True
-            vfids = {fpath: vfid
-                     for (vfid, fpath, _, _)
-                     in self.report.yield_from_iofiles(pfiles)}
-            unique_vfids = set(vfids.values())
-            if len(unique_vfids) == 1:
-                yield next(iter(unique_vfids))
+        import json
+        from .. import utils
+
+        report = self.report
+        if self.vfids_only:
+            ## Return a lone VFid only if single argument, and not JSON.
+            #
+            if not as_json and len(args) == 1:
+                rtuple = list(report.yield_report_tuples_from_iofiles(pfiles))
+                yield rtuple and rtuple[0]
             else:
-                yield from vfids.items()
+                report.force = True  # Irrelevant to check for mismatching VFids.
+                rows = []
+                for vfid, fpath, _, _ in report.yield_report_tuples_from_iofiles(pfiles):
+                    if as_json:
+                        rows.append((fpath, vfid))
+                    else:
+                        yield '%s: %s' % (fpath, vfid)
+
+                if as_json:
+                    yield json.dumps(dict(rows), indent=2, sort_keys=True)
+
         else:
-            yield from self.report.yield_from_iofiles(pfiles)
+            rows = []
+            for rtuple in report.yield_report_tuples_from_iofiles(pfiles):
+                drep = report_tuple_2_dict(*rtuple)
+                fpath = rtuple[1]
+                if as_json:
+                    rows.append((fpath, drep))
+                else:
+                    yield utils.yaml_dump({fpath: drep}, indent=2, width=50)
+
+            if as_json:
+                yield json.dumps(dict(rows), indent=2, sort_keys=True)

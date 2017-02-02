@@ -9,7 +9,9 @@
 from co2mpas.__main__ import init_logging
 from co2mpas.sampling import CmdException, report, project, crypto
 import logging
+import numpy as np
 import re
+import yaml
 import shutil
 import tempfile
 import types
@@ -51,20 +53,41 @@ class TApp(unittest.TestCase):
         meth(cmd)
 
 
-class TReportArgs(unittest.TestCase):
-
+class TReportBase(unittest.TestCase):
     def check_report_tuple(self, k, vfid, fpath, iokind, dice_report=None):
-        self.assertEqual(len(k), 4)
-        self.assertEqual(k[0], vfid)
-        self.assertTrue(k[1].endswith(osp.basename(fpath)))
-        self.assertEqual(k[2], iokind)
-        dr = k[3]
-        if dice_report is None:
-            self.assertIsNone(dr)
-        elif dice_report is True:
-            self.assertIsInstance(dr, str)
+        self.assertEqual(len(k), 5 if dice_report else 3, k)
+        self.assertEqual(k['vehicle_family_id'], vfid, k)
+        self.assertTrue(k['file'].endswith(osp.basename(fpath)), k)
+        self.assertEqual(k['iokind'], iokind, k)
+        dr = k.get('content')
+        if dice_report is True:
+            self.assertEqual(k['content_type'], 'dice_report', k)
+            dr = k['content']
+            self.assertIsInstance(dr, list, k)
+        elif dice_report is not None:
+            self.assertEqual(k['content_type'], 'dice_report', k)
+            dr = k['content']
+            self.assertEqual(dr, dice_report, k)
         else:
-            self.assertEqual(dr, dice_report)
+            self.assertIsNone(dr, k)
+
+
+@ddt.ddt
+class TReportArgs(TReportBase):
+
+    @ddt.data(
+        (pd.DataFrame([[1]], columns=['A'], index=['a']),
+            [['index', 'A'], ['a', 1]]),
+        (pd.DataFrame([[1, 2]], columns=list('AB'), index=['a']),
+            [['index', 'A', 'B'], ['a', 1, 2]]),
+        (pd.DataFrame([[1, 2], [3, 4]], columns=list('AB'), index=list('ab')),
+            [['index', 'A', 'B'], ['a', 1, 2], ['b', 3, 4]]),
+    )
+    def test_report_tuple_2_dict__report(self, case):
+        df, exp = case
+        vfid, fpath, iokind, rdf = '1', '2', '3', df
+        d = report.report_tuple_2_dict(vfid, fpath, iokind, rdf)
+        self.assertEqual(d['content'], exp)
 
     def test_extract_input(self):
         c = trtc.get_config()
@@ -74,7 +97,10 @@ class TReportArgs(unittest.TestCase):
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
         self.assertEqual(len(res), 1)
-        self.check_report_tuple(res[0], test_vfid, test_inp_fpath, 'inp')
+        rpt = yaml.load('\n'.join(res))
+        f, rec = next(iter(rpt.items()))
+        self.assertTrue(f.endswith("tests\sampling\input.xlsx"), rpt)
+        self.check_report_tuple(rec, test_vfid, test_inp_fpath, 'inp')
 
     def test_extract_output(self):
         c = trtc.get_config()
@@ -84,7 +110,10 @@ class TReportArgs(unittest.TestCase):
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
         self.assertEqual(len(res), 1)
-        self.check_report_tuple(res[0], test_vfid, test_out_fpath, 'out', True)
+        rpt = yaml.load('\n'.join(res))
+        f, rec = next(iter(rpt.items()))
+        self.assertTrue(f.endswith("tests\sampling\output.xlsx"), rpt)
+        self.check_report_tuple(rec, test_vfid, test_out_fpath, 'out', True)
 
     def test_extract_both(self):
         c = trtc.get_config()
@@ -94,8 +123,14 @@ class TReportArgs(unittest.TestCase):
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
         self.assertEqual(len(res), 2)
-        self.check_report_tuple(res[0], test_vfid, test_inp_fpath, 'inp')
-        self.check_report_tuple(res[1], test_vfid, test_out_fpath, 'out', True)
+        rpt = yaml.load('\n'.join(res))
+        for f, rec in rpt.items():
+            if f.endswith('input.xlsx'):
+                path, iokind, rpt = "tests\sampling\input.xlsx", 'inp', None
+            elif f.endswith('output.xlsx'):
+                path, iokind, rpt = "tests\sampling\output.xlsx", 'out', True
+            self.assertTrue(f.endswith(path), rpt)
+            self.check_report_tuple(rec, test_vfid, path, iokind, rpt)
 
     def test_bad_prefix(self):
         c = trtc.get_config()
@@ -119,7 +154,7 @@ class TReportArgs(unittest.TestCase):
         self.assertIn("arg[4]: %s" % arg2, str(cm.exception))
 
 
-class TReportProject(unittest.TestCase):
+class TReportProject(TReportBase):
     @classmethod
     def setUpClass(cls):
         cls.cfg = cfg = trtc.get_config()
@@ -137,7 +172,6 @@ class TReportProject(unittest.TestCase):
 
         ## Clean memories from past tests
         #
-        crypto.StamperAuthSpec.clear_instance()
         crypto.GitAuthSpec.clear_instance()
         crypto.VaultSpec.clear_instance()
 
@@ -180,16 +214,26 @@ class TReportProject(unittest.TestCase):
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
             res = list(res)
-            self.assertEqual(len(res), 0)
-            for i in res:
-                self.assertIsInstance(i, pd.Series)
+            self.assertEqual(len(res), 1)
+            rpt = yaml.load('\n'.join(res))
+            f, rec = next(iter(rpt.items()))
+            self.assertTrue(f.endswith("tests\sampling\input.xlsx"), rpt)
+            self.check_report_tuple(rec, test_vfid, test_inp_fpath, 'inp')
 
             project.ProjectCmd.AddFileCmd(config=c).run('out=%s' % test_out_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
             res = list(res)
-            self.assertEqual(len(res), 1)
+            self.assertEqual(len(res), 2)
+            rpt = yaml.load('\n'.join(res))
+            for f, rec in rpt.items():
+                if f.endswith('input.xlsx'):
+                    path, iokind, rpt = "tests\sampling\input.xlsx", 'inp', None
+                elif f.endswith('output.xlsx'):
+                    path, iokind, rpt = "tests\sampling\output.xlsx", 'out', True
+                self.assertTrue(f.endswith(path), rpt)
+                self.check_report_tuple(rec, test_vfid, path, iokind, rpt)
 
     def test_output_input(self):
         c = self.cfg
@@ -203,17 +247,25 @@ class TReportProject(unittest.TestCase):
             self.assertIsInstance(res, types.GeneratorType)
             res = list(res)
             self.assertEqual(len(res), 1)
-            for i in res:
-                self.assertIsInstance(i, pd.DataFrame)
+            rpt = yaml.load('\n'.join(res))
+            f, rec = next(iter(rpt.items()))
+            self.assertTrue(f.endswith("tests\sampling\output.xlsx"), rpt)
+            self.check_report_tuple(rec, test_vfid, test_out_fpath, 'out', True)
 
             project.ProjectCmd.AddFileCmd(config=c).run('inp=%s' % test_inp_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
             res = list(res)
-            self.assertEqual(len(res), 1)
-            for i in res:
-                self.assertIsInstance(i, pd.DataFrame)
+            self.assertEqual(len(res), 2)
+            rpt = yaml.load('\n'.join(res))
+            for f, rec in rpt.items():
+                if f.endswith('input.xlsx'):
+                    path, iokind, rpt = "tests\sampling\input.xlsx", 'inp', None
+                elif f.endswith('output.xlsx'):
+                    path, iokind, rpt = "tests\sampling\output.xlsx", 'out', True
+                self.assertTrue(f.endswith(path), rpt)
+                self.check_report_tuple(rec, test_vfid, path, iokind, rpt)
 
     def test_both(self):
         c = self.cfg
@@ -227,6 +279,12 @@ class TReportProject(unittest.TestCase):
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
             res = list(res)
-            self.assertEqual(len(res), 1)
-            for i in res:
-                self.assertIsInstance(i, pd.DataFrame)
+            self.assertEqual(len(res), 2)
+            rpt = yaml.load('\n'.join(res))
+            for f, rec in rpt.items():
+                if f.endswith('input.xlsx'):
+                    path, iokind, rpt = "tests\sampling\input.xlsx", 'inp', None
+                elif f.endswith('output.xlsx'):
+                    path, iokind, rpt = "tests\sampling\output.xlsx", 'out', True
+                self.assertTrue(f.endswith(path), rpt)
+                self.check_report_tuple(rec, test_vfid, path, iokind, rpt)
