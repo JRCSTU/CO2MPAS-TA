@@ -21,6 +21,7 @@ import git  # From: pip install gitpython
 from toolz import itertoolz as itz, dicttoolz as dtz
 import transitions
 from transitions.core import MachineError
+import yaml
 
 import functools as fnt
 import os.path as osp
@@ -33,18 +34,12 @@ from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  
 from .._version import __dice_report_version__
 
 
-## TODO: Convert Multi-Projects per Repo-->OneRepo per project.
-
-def split_version(v):
-    return v.split('.')
-
 ###################
 ##     Specs     ##
 ###################
-
 PROJECT_STATUSES = '<invalid> empty full signed dice_sent sampled'.split()
 
-_CommitMsg = namedtuple('_CommitMsg', 'msg_version project state action')
+_CommitMsg = namedtuple('_CommitMsg', 'msg_version project state action data')
 
 _PROJECTS_PREFIX = 'projects/'
 _HEADS_PREFIX = 'refs/heads/'
@@ -115,6 +110,18 @@ def _evarg(event, dname, dtype=None, none_ok=False, missing_ok=False):
 
 class Project(transitions.Machine, dice.DiceSpec):
     """The Finite State Machine for the currently checked-out project."""
+
+    git_desc_width = trt.Int(
+        78, allow_none=False,
+        help="""
+        The width of the textual descriptions when committing and tagging Git objects.
+
+        The email sent for timestamping is generated from tag-descriptions.
+
+        According to RFC5322, 78 is the maximum width for textual emails;
+        mails with width > 78 may be sent as HTML-encoded and/or mime-multipart.
+        """
+    ).tag(config=True)
 
     @classmethod
     @fnt.lru_cache()
@@ -267,12 +274,11 @@ class Project(transitions.Machine, dice.DiceSpec):
         self.error = (self.state, ex)
         raise ex
 
-    def _make_commit_msg(self, action):
-        cmsg = _CommitMsg(__dice_report_version__, self.pname, self.state, action)
-        msg = json.dumps(cmsg._asdict(), indent=1)
-        msg = '\n'.join(textwrap.wrap(msg, width=78,            # email width (RFC5322)
-                                      break_long_words=False,   # True breaks json.
-                                      drop_whitespace=False))   # Keep indentation.
+    def _make_commit_msg(self, action, report=None):
+        cmsg = _CommitMsg(__dice_report_version__, self.pname, self.state, action, report)
+        msg = yaml.dump(cmsg._asdict(),
+                        indent=2,
+                        width=78)            # email width (RFC5322)
 
         return msg
 
@@ -284,22 +290,6 @@ class Project(transitions.Machine, dice.DiceSpec):
         return json.loads(cmsg_js,
                           object_hook=lambda seq: _CommitMsg(**seq))
 
-    def _make_tag_msg(self, report):
-        """
-        :param report:
-            a list of extracted params
-        """
-        ## TODO: Report can be more beautiful...YAML!??
-        report_str = '\n\n'.join(str(r) for r in report)
-
-        msg = textwrap.dedent("""
-        Report for CO2MPAS-project: %r
-        ======================================================================
-        %s
-        """) % (self.pname, report_str)
-
-        return msg
-
     def _cb_check_my_index(self, event):
         """ Executed on ENTER for all states, to compare my `pname` with checked-out ref. """
         active_branch = self.projects_db.repo.active_branch
@@ -309,22 +299,32 @@ class Project(transitions.Machine, dice.DiceSpec):
             self.do_invalidate(error=ex)
 
     def _cb_commit_or_tag(self, event):
-        """ Executed on EXIT for all states, and commits/tags into repo. """
+        """Executed on EXIT for all states, and commits/tags into repo. """
+        from . import crypto
+
         state = self.state
         if state.islower():  # exclude transient/special cases (BIRTH/DEATH)
-            repo = self.projects_db.repo
-            self.log.debug('Committing %s...', event.kwargs)
-            action = _evarg(event, 'action')
-            index = repo.index
-            cmsg_js = self._make_commit_msg(action)
-            index.commit(cmsg_js)
+            self.log.debug('Committing: %s', event.kwargs)
 
-            if state == 'tagged':
-                self.log.debug('Tagging %s...', event.kwargs)
-                report = _evarg(event, 'report')
-                msg = self._make_tag_msg(report)
-                tref = _tname2ref_name(self.pname)
-                repo.create_tag(tref, message=msg)  # TODO: GPG!!
+            git_auth = crypto.get_git_auth(self.config)
+            repo = self.projects_db.repo
+            is_tagging = state == 'tagged'
+            action = _evarg(event, 'action', (str, dict))
+            report = _evarg(event, 'report', (list, dict), True, True)
+            cmsg_js = self._make_commit_msg(action, report)
+
+            ## GpgSpec `git_auth` only lazily creates GPG
+            #  which imports keys/trust.
+            git_auth.GPG
+
+            with repo.git.custom_environment(GNUPGHOME=git_auth.gnupghome_resolved):
+                index = repo.index
+                index.commit(cmsg_js)
+
+                if is_tagging:
+                    self.log.debug('Tagging: %s', event.kwargs)
+                    tref = _tname2ref_name(self.pname)
+                    repo.create_tag(tref, message=cmsg_js, sign=True)
 
     def _make_readme(self):
         return textwrap.dedent("""
@@ -369,7 +369,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         #
         try:
             rep = self._report_spec()
-            list(rep.yield_from_iofiles(pfiles))
+            list(rep.yield_report_tuples_from_iofiles(pfiles))
         except Exception as ex:
             msg = "Failed extracting report from %s, due to: %s"
             if force:
@@ -436,14 +436,14 @@ class Project(transitions.Machine, dice.DiceSpec):
         Uses the :class:`Report` to build the tag-msg.
         """
         self.log.info('Generating and Dice report: %s...', event.kwargs)
-        rep = self._report_spec()
+        repspec = self._report_spec()
         pfiles = self.list_pfiles('inp', 'out', _as_index_paths=True)
 
-        report = list(rep.yield_from_iofiles(pfiles))
 
         ## Commit/tag callback expects `report` on event.
-        event.kwargs['action'] = 'Tagging (%s) files.' % len(pfiles)  # TODO: Improve actions'
-        event.kwargs['report'] = report
+        event.kwargs['action'] = 'Dice-reporting %s files.' % len(pfiles)  # TODO: Improve actions'
+        report = repspec.get_dice_report(pfiles).values()
+        event.kwargs['report'] = list(report)
 
     def _cb_send_email(self, event):
         """
@@ -454,11 +454,15 @@ class Project(transitions.Machine, dice.DiceSpec):
         self.log.info('Sending email...')
         tstamp_sender = self._tstamp_sender_spec()
         repo = self.projects_db.repo
+        ## TODO: Handle multiple DICE-tags!
         tref = _tname2ref_name(self.pname)
         tagref = repo.tags[tref]
         dice_mail = tagref.tag.data_stream.read()
-        tstamp_sender.send_timestamped_email(dice_mail)
-        event.kwargs['action'] = 'Email sent.'  # TODO: Improve actions
+        pretend = event.kwargs.get('pretend', False)
+        if not pretend:
+            tstamp_sender.send_timestamped_email(dice_mail)
+        # TODO: Improve actions
+        event.kwargs['action'] = 'Email %s.' % ('FAKED.' if pretend else 'sent')
 
     def _cond_is_dice_yes(self, event) -> bool:
         """
@@ -474,10 +478,13 @@ class Project(transitions.Machine, dice.DiceSpec):
 
         recv = self._tstamp_receiver_spec()
         res = recv.parse_tsamp_response(mail_text)
+        decision = res.get('dice_decision')
 
-        event.kwargs['action'] = pformat(res)
+        # TODO: Improve actions
+        event.kwargs['action'] = "Received tstamped dice: %s." % decision
+        event.kwargs['report'] = res
 
-        return res['dice_decision']
+        return decision
 
 
 class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
@@ -1120,7 +1127,7 @@ class ProjectCmd(_PrjCmd):
 
             pfiles = proj.list_pfiles('out', _as_index_paths=True)
             rep = report.Report(config=self.config)
-            rep_msg = str(list(rep.yield_from_iofiles(pfiles)))
+            rep_msg = str(list(rep.yield_report_tuples_from_iofiles(pfiles)))
 
             self.log.info('Sending Timestamp ...')
             sender = tstamp.TstampSender(config=self.config)
@@ -1184,7 +1191,7 @@ class ProjectCmd(_PrjCmd):
 
                         'ProjectsDB': {'reset_settings': True},
                     }, pndlu.first_line(ProjectsDB.reset_settings.help)
-                ), 'as-json': (
+                ), 'json': (
                     {
                         'ExamineCmd': {'as_json': True},
                     }, pndlu.first_line(ProjectCmd.ExamineCmd.as_json.help)

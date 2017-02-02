@@ -8,6 +8,7 @@
 
 from co2mpas.__main__ import init_logging
 from co2mpas.sampling import baseapp, crypto, dice, project, PFiles
+
 import logging
 import os
 import shutil
@@ -146,7 +147,7 @@ class TProjectsDBStory(unittest.TestCase):
         self.assertEqual(len(res), 14, res)
 
         res = proj.proj_examine(pname=pname, verbose=2)
-        self.assertEqual(len(res), 32, res)
+        self.assertEqual(len(res), 33, res)
 
     def test_1a_empty_list(self):
         cmd = project.ProjectCmd.ListCmd(config=self._config)
@@ -358,7 +359,7 @@ class TStraightStory(unittest.TestCase):
         self.assertEqual(len(res), 14, res)
 
         res = proj.proj_examine(pname=pname, verbose=2)
-        self.assertEqual(len(res), 32, res)
+        self.assertEqual(len(res), 33, res)
 
     def test_1_add_project(self):
         cmd = project.ProjectCmd.InitCmd(config=self._config)
@@ -405,25 +406,37 @@ class TStraightStory(unittest.TestCase):
         self.assertIs(p, p2)
 
     def test_5_send_email(self):
+        c = self._config.copy()
+
+        persist_path = os.environ.get('TEST_TSTAMP_CONFIG_FPATH')
+        if persist_path:
+            c.Cmd.persist_path = persist_path
         pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
         p = pdb.current_project()
 
-        res = p.do_sendmail()
+        pretend = not bool(persist_path)
+        res = p.do_sendmail(pretend=pretend)
         self.assertTrue(res)
         self.assertEqual(p.state, 'mailed')
 
         p2 = pdb.current_project()
         self.assertIs(p, p2)
 
+        if pretend:
+            raise unittest.SkipTest("No smtp-server credentials & tstamp config file "
+                                    "found in 'TEST_TSTAMP_CONFIG_FPATH' env-var.")
+
     def test_6_receive_email(self):
+        from . import test_tstamp
+
         pdb = project.ProjectsDB.instance(config=self._config)
         pdb.update_config(self._config)
         p = pdb.current_project()
 
-        res = p.do_mailrecv(mail='Hi there')
-        self.assertIsInstance(res, bool)
-        self.assertIn(p.state, ('dice_yes', 'dice_no'))
+        res = p.do_mailrecv(mail=test_tstamp.tstamp_responses[-1][-1])
+        self.assertTrue(res)
+        self.assertEqual(p.state, 'dice_no')
 
         p2 = pdb.current_project()
         self.assertIs(p, p2)
