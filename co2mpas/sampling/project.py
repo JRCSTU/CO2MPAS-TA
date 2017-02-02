@@ -202,40 +202,42 @@ class Project(transitions.Machine, dice.DiceSpec):
             'UNBORN', 'INVALID', 'empty', 'wltp_out', 'wltp_inp', 'wltp_iof', 'tagged',
             'mailed', 'dice_yes', 'dice_no', 'nedc',
         ]
-        trans = [
-            # Trigger        Source-state   Dest-state      Conditions
-            ['do_invalidate', '*', 'INVALID', None, None, '_cb_invalidated'],
+        trans = yaml.load(
+            # Trigger        Source-state   Dest-state      Conditions?
+            """
+            - [do_invalidate, '*', INVALID, None, None, _cb_invalidated]
 
-            ['do_createme', 'UNBORN', 'empty'],
+            - [do_createme, UNBORN, empty]
 
-            ['do_addfiles', 'empty', 'wltp_iof', '_is_inp_out_files'],
-            ['do_addfiles', 'empty', 'wltp_inp', '_is_inp_files'],
-            ['do_addfiles', 'empty', 'wltp_out', '_is_out_files'],
+            - [do_addfiles, empty, wltp_iof, _is_inp_out_files]
+            - [do_addfiles, empty, wltp_inp, _is_inp_files]
+            - [do_addfiles, empty, wltp_out, _is_out_files]
 
-            ['do_addfiles', ['wltp_inp',
-                             'wltp_out',
-                             'wltp_iof',
-                             'tagged'], 'wltp_iof', ['_is_inp_out_files', '_is_force']],
+            - [do_addfiles, [wltp_inp,
+                             wltp_out,
+                             wltp_iof,
+                             tagged], wltp_iof, [_is_inp_out_files, _is_force]]
 
-            ['do_addfiles', 'wltp_inp', 'wltp_inp', ['_is_inp_files', '_is_force']],
-            ['do_addfiles', 'wltp_inp', 'wltp_iof', '_is_out_files'],
+            - [do_addfiles, wltp_inp, wltp_inp, [_is_inp_files, _is_force]]
+            - [do_addfiles, wltp_inp, wltp_iof, _is_out_files]
 
-            ['do_addfiles', 'wltp_out', 'wltp_out', ['_is_out_files', '_is_force']],
-            ['do_addfiles', 'wltp_out', 'wltp_iof', '_is_inp_files'],
+            - [do_addfiles, wltp_out, wltp_out, [_is_out_files, _is_force]]
+            - [do_addfiles, wltp_out, wltp_iof, _is_inp_files]
 
-            ['do_tagreport', 'wltp_iof', 'tagged'],
+            - [do_tagreport, wltp_iof, tagged]
 
             ## TODO: MERGE `tagged` state with `wltp_iof`??
-            ['do_sendmail', 'tagged', 'mailed'],
+            - [do_sendmail, tagged, mailed]
 
             ## TODO: RENAME do_mailrecv-->do_parsemail??
-            ['do_mailrecv', 'mailed', 'dice_yes', '_cond_is_dice_yes'],
-            ['do_mailrecv', 'mailed', 'dice_no'],
+            - [do_mailrecv, mailed, dice_yes, _cond_is_dice_yes]
+            - [do_mailrecv, mailed, dice_no]
 
-            ['do_addfiles', ['dice_yes',
-                             'dice_no'], 'nedc', '_is_other_files'],
-            ['do_addfiles', 'nedc', 'nedc', ['_is_other_files', '_is_force']],
-        ]
+            - [do_addfiles, [dice_yes,
+                             dice_no], nedc, _is_other_files]
+            - [do_addfiles, nedc, nedc, [_is_other_files, _is_force]]
+            """)
+
         super().__init__(states=states,
                          initial=states[0],
                          transitions=trans,
