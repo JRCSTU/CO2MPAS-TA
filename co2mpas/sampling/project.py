@@ -976,46 +976,25 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         :retun:
             yield any matched projects, or all if `pnames` were empty.
         """
-        import pandas as pd
         if verbose is None:
             verbose = self.verbose
+        verbose_level = int(verbose) - 1  # V0 is no infos.
 
-        res = {}
+        fields = self._out_fields_by_verbose_level(verbose_level)
+
+        ap = self.repo.active_branch
+        ap = ap and ap.path
         for ref in self._yield_project_refs(*pnames):
             pname = _ref2pname(ref)
-            infos = []
-            if verbose:
-                infos = OrderedDict(self._infos_fields(
-                    pname=pname,
-                    fields='msg.state revs_count files_count last_cdate author msg.action'.split(),
-                    inv_value='<invalid>'))
-            res[pname] = infos
+            isactive = _pname2ref_path(pname) == ap
 
-        if not res:
-            res = None
-        else:
-            ap = self.repo.active_branch
-            ap = ap and ap.path
             if verbose:
-                res = pd.DataFrame.from_dict(res, orient='index')
-                res = res.sort_index()
-                res.index = [('* %s' if _pname2ref_path(r) == ap else '  %s') % r
-                             for r in res.index]
-                res.reset_index(level=0, inplace=True)
-                renner = lambda c: c[len('msg.'):] if c.startswith('msg.') else c
-                res = res.rename_axis(renner, axis='columns')
-                res = res.rename_axis({
-                    'index': 'project',
-                    'revs_count': '#revs',
-                    'files_count': '#files'
-                }, axis='columns')
-                if as_text:
-                    res = res.to_string(index=False)
+                infos = self._infos_fields(pname, fields, inv_value='<invalid>')
+                infos = OrderedDict(infos)
+                infos['active'] = isactive
+                yield yaml.dump({pname: infos}, default_flow_style=False)
             else:
-                res = [('* %s' if _pname2ref_path(r) == ap else '  %s') % r
-                       for r in sorted(res)]
-
-        return res
+                yield ('* %s' if isactive else '  %s') % pname
 
 
 ###################
