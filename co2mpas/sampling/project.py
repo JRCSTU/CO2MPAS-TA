@@ -820,7 +820,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         infos = self._infos_fields(pname, fields)
 
         if as_text:
-            infos = yaml.dump(OrderedDict(infos), indent=2)
+            infos = yaml.dump(OrderedDict(infos), indent=2, default_flow_style=False)
 
         return infos
 
@@ -986,8 +986,15 @@ class ProjectCmd(_PrjCmd):
 
     examples = trt.Unicode("""
         To get the list with the status of all existing projects, try:
-
             %(cmd_chain)s list
+
+        A typical workflow is this:
+            %(cmd_chain)s init RL-12-BM3-2016-0000
+            %(cmd_chain)s add-file inp=input.xlsx out=output.xlsx other=co2mpas.log
+            %(cmd_chain)s report
+            %(cmd_chain)s tstamp
+            cat <mail-text> | %(cmd_chain)s dice
+
         """)
 
     class ListCmd(_PrjCmd):
@@ -1075,9 +1082,8 @@ class ProjectCmd(_PrjCmd):
 
             return self.projects_db.current_project().do_addfiles(pfiles=pfiles)
 
-    class TagReportCmd(_PrjCmd):
+    class ReportCmd(_PrjCmd):
         """
-        TODO: rename to `???`` if `tagged` state merged?.
         Extract Dice report as a tag, preparing it to be sent for timestamping.
 
         Eventually the *Dice Report* parameters will be time-stamped and disseminated to
@@ -1187,6 +1193,6 @@ class ProjectCmd(_PrjCmd):
         super().__init__(**dkwds)
 
 all_subcmds = (ProjectCmd.ListCmd, ProjectCmd.CurrentCmd, ProjectCmd.OpenCmd, ProjectCmd.InitCmd,
-               ProjectCmd.AddFileCmd, ProjectCmd.TagReportCmd,
+               ProjectCmd.AddFileCmd, ProjectCmd.ReportCmd,
                ProjectCmd.TstampCmd,
                ProjectCmd.ExamineCmd, ProjectCmd.BackupCmd)
