@@ -497,7 +497,7 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
         return list(new_paths)
 
 
-class Cmd(TolerableSingletonMixin, trtc.Application, PeristentMixin, HasCiphersMixin):
+class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
     """Common machinery for all (sub-)commands. """
     ## INFO: Do not use it directly; inherit it.
     # See module documentation for developer's guidelines.
@@ -506,16 +506,6 @@ class Cmd(TolerableSingletonMixin, trtc.Application, PeristentMixin, HasCiphersM
     def _name(self):
         name = class2cmd_name(type(self))
         return name
-
-    verbose = trt.Union(
-        (trt.Integer(0), trt.Bool(False)),
-        ## INFO: Add verbose flag explanations here.
-        help=Spec.verbose.help).tag(config=True)
-
-    force = trt.Bool(
-        False,
-        help=Spec.force.help
-    ).tag(config=True)
 
     config_paths = trt.List(
         trt.Unicode(),
@@ -893,14 +883,12 @@ class Cmd(TolerableSingletonMixin, trtc.Application, PeristentMixin, HasCiphersM
                 ('v', 'verbose'): (
                     {
                         'Spec': {'verbose': True},
-                        'Cmd': {'verbose': True},
                     },
                     pndlu.first_line(Spec.verbose.help)
                 ),
                 ('f', 'force'): (
                     {
                         'Spec': {'force': True},
-                        'Cmd': {'force': True},
                     },
                     pndlu.first_line(Spec.force.help)
                 ),
