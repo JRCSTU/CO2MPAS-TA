@@ -192,11 +192,8 @@ class ReportCmd(baseapp.Cmd):
         Whether to extract report from files present already in the *current-project*.
         """).tag(config=True)
 
-    as_json = trt.Bool(
-        help="""Prints report identical to when tagging a project; when false, printed while extracted."""
-    ).tag(config=True)
     vfids_only = trt.Bool(
-        help=""""Prints either `fpath: vehicle_family_id` lines, or a lone vfid, if single path given."""
+        help=""""Prints `- fpath: vehicle_family_id` YAML lines."""
     ).tag(config=True)
 
     __report = None
@@ -223,9 +220,6 @@ class ReportCmd(baseapp.Cmd):
                 'vfids': ({
                     'ReportCmd': {'vfids_only': True},
                 }, pndlu.first_line(ReportCmd.vfids_only.help)),
-                'json': ({
-                    'ReportCmd': {'as_json': True},
-                }, pndlu.first_line(ReportCmd.as_json.help)),
             }
         }
         dkwds.update(kwds)
@@ -255,8 +249,6 @@ class ReportCmd(baseapp.Cmd):
         from boltons.setutils import IndexedSet as iset
 
         nargs = len(args)
-        as_json = self.as_json
-        as_json_txt = as_json and 'json' or 'text'
         infos = self.vfids_only and '`vehicle_family_id`' or 'report infos'
         if self.project:
             if nargs > 0:
@@ -264,12 +256,11 @@ class ReportCmd(baseapp.Cmd):
                     "Cmd '%s --project' takes no arguments, received %d: %r!"
                     % (self.name, len(args), args))
 
-            self.log.info("Extracting %s from current-project as '%s'...",
-                          infos, as_json_txt)
+            self.log.info("Extracting %s from current-project...", infos)
             pfiles = self._build_io_files_from_project(args)
         else:
-            self.log.info("Extracting %s as '%s' from files:\n  %s",
-                          infos, as_json_txt, '\n  '.join(args))
+            self.log.info("Extracting %s from files:\n  %s",
+                          infos, '\n  '.join(args))
             if nargs < 1:
                 raise CmdException(
                     "Cmd %r takes at least one filepath as argument, received %d: %r!"
@@ -277,37 +268,16 @@ class ReportCmd(baseapp.Cmd):
             args = iset(args)
             pfiles = self._build_io_files_from_args(args)
 
-        import json
-        from .. import utils
+        import yaml
 
         report = self.report
         if self.vfids_only:
-            ## Return a lone VFid only if single argument, and not JSON.
-            #
-            if not as_json and len(args) == 1:
-                rtuple = list(report.yield_report_tuples_from_iofiles(pfiles))
-                yield rtuple and rtuple[0]
-            else:
-                report.force = True  # Irrelevant to check for mismatching VFids.
-                rows = []
-                for vfid, fpath, _, _ in report.yield_report_tuples_from_iofiles(pfiles):
-                    if as_json:
-                        rows.append((fpath, vfid))
-                    else:
-                        yield '%s: %s' % (fpath, vfid)
-
-                if as_json:
-                    yield json.dumps(dict(rows), indent=2, sort_keys=True)
+            report.force = True  # Irrelevant to check for mismatching VFids.
+            for vfid, fpath, _, _ in report.yield_report_tuples_from_iofiles(pfiles):
+                yield '- %s: %s' % (fpath, vfid)
 
         else:
-            rows = []
             for rtuple in report.yield_report_tuples_from_iofiles(pfiles):
                 drep = report_tuple_2_dict(*rtuple)
                 fpath = rtuple[1]
-                if as_json:
-                    rows.append((fpath, drep))
-                else:
-                    yield utils.yaml_dump({fpath: drep}, indent=2, width=50)
-
-            if as_json:
-                yield json.dumps(dict(rows), indent=2, sort_keys=True)
+                yield yaml.dump({fpath: drep}, indent=2)
