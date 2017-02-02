@@ -990,7 +990,7 @@ class ProjectCmd(_PrjCmd):
 
         A typical workflow is this:
             %(cmd_chain)s init RL-12-BM3-2016-0000
-            %(cmd_chain)s add-file inp=input.xlsx out=output.xlsx other=co2mpas.log
+            %(cmd_chain)s append inp=input.xlsx out=output.xlsx other=co2mpas.log
             %(cmd_chain)s report
             %(cmd_chain)s tstamp
             cat <mail-text> | %(cmd_chain)s dice
@@ -1046,7 +1046,7 @@ class ProjectCmd(_PrjCmd):
                                    % (self.name, args))
             return self.projects_db.proj_add(args[0])
 
-    class AddFileCmd(_PrjCmd):
+    class AppendCmd(_PrjCmd):
         """
         Import the specified input/output co2mpas files into the *current project*.
 
@@ -1193,6 +1193,6 @@ class ProjectCmd(_PrjCmd):
         super().__init__(**dkwds)
 
 all_subcmds = (ProjectCmd.ListCmd, ProjectCmd.CurrentCmd, ProjectCmd.OpenCmd, ProjectCmd.InitCmd,
-               ProjectCmd.AddFileCmd, ProjectCmd.ReportCmd,
+               ProjectCmd.AppendCmd, ProjectCmd.ReportCmd,
                ProjectCmd.TstampCmd,
                ProjectCmd.ExamineCmd, ProjectCmd.BackupCmd)

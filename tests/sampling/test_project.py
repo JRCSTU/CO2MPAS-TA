@@ -374,7 +374,7 @@ class TStraightStory(unittest.TestCase):
         pdb.update_config(self._config)
         p = pdb.current_project()
 
-        cmd = project.ProjectCmd.AddFileCmd(config=self._config)
+        cmd = project.ProjectCmd.AppendCmd(config=self._config)
         res = cmd.run('inp=%s' % test_inp_fpath, 'out=%s' % test_out_fpath)
         self.assertTrue(res)
 

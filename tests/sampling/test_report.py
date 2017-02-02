@@ -195,7 +195,7 @@ class TReportProject(TReportBase):
             c.ProjectsDB.repo_path = td
             project.ProjectCmd.InitCmd(config=c).run('proj1')
 
-            project.ProjectCmd.AddFileCmd(config=c).run('inp=%s' % test_inp_fpath)
+            project.ProjectCmd.AppendCmd(config=c).run('inp=%s' % test_inp_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
@@ -206,7 +206,7 @@ class TReportProject(TReportBase):
             self.assertTrue(f.endswith("tests\sampling\input.xlsx"), rpt)
             self.check_report_tuple(rec, test_vfid, test_inp_fpath, 'inp')
 
-            project.ProjectCmd.AddFileCmd(config=c).run('out=%s' % test_out_fpath)
+            project.ProjectCmd.AppendCmd(config=c).run('out=%s' % test_out_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
@@ -227,7 +227,7 @@ class TReportProject(TReportBase):
             c.ProjectsDB.repo_path = td
             project.ProjectCmd.InitCmd(config=c).run('proj1')
 
-            project.ProjectCmd.AddFileCmd(config=c).run('out=%s' % test_out_fpath)
+            project.ProjectCmd.AppendCmd(config=c).run('out=%s' % test_out_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
@@ -238,7 +238,7 @@ class TReportProject(TReportBase):
             self.assertTrue(f.endswith("tests\sampling\output.xlsx"), rpt)
             self.check_report_tuple(rec, test_vfid, test_out_fpath, 'out', True)
 
-            project.ProjectCmd.AddFileCmd(config=c).run('inp=%s' % test_inp_fpath)
+            project.ProjectCmd.AppendCmd(config=c).run('inp=%s' % test_inp_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
@@ -259,7 +259,7 @@ class TReportProject(TReportBase):
             c.ProjectsDB.repo_path = td
             project.ProjectCmd.InitCmd(config=c).run('proj1')
 
-            cmd = project.ProjectCmd.AddFileCmd(config=c)
+            cmd = project.ProjectCmd.AppendCmd(config=c)
             cmd.run('out=%s' % test_out_fpath, 'inp=%s' % test_inp_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
