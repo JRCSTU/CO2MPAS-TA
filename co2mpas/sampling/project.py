@@ -287,8 +287,8 @@ class Project(transitions.Machine, dice.DiceSpec):
         """
         :return: a :class:`_CommitMsg` instance, or fails if cannot parse.
         """
-        return json.loads(cmsg_js,
-                          object_hook=lambda seq: _CommitMsg(**seq))
+        dic = yaml.load(io.StringIO(cmsg_js))
+        return _CommitMsg(**dic)
 
     def _cb_check_my_index(self, event):
         """ Executed on ENTER for all states, to compare my `pname` with checked-out ref. """
