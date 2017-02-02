@@ -171,7 +171,11 @@ class Project(transitions.Machine, dice.DiceSpec):
         return tstamp.TstampReceiver(config=self.config)
 
     def _is_force(self, event):
-        return event.kwargs.get('force', self.force)
+        accepted = event.kwargs.get('force', self.force)
+        if not accepted:
+            self.log.info('Transition %s-->%s denied!\n  Use force if you must.',
+                          event.transition.source, event.transition.dest)
+        return accepted
 
     def _is_inp_files(self, event):
         pfiles = _evarg(event, 'pfiles', PFiles)
