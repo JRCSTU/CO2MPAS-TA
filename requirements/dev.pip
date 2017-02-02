@@ -3,6 +3,7 @@
 #
 #       pip install -r dev.pip
 
+--process-dependency-links
 -r exe.pip
 
 ## Pure python libs from Setup + Build + Dev + Test requirements.
