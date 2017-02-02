@@ -84,10 +84,10 @@ def gpg_gen_key(GPG, key_length, name_real, name_email):
 def gpg_del_key(GPG, fingerprint):
     log.debug('Deleting secret+pub: %s', fingerprint)
     d = GPG.delete_keys(fingerprint, secret=1)
-    assert (d.status, d.stderr) == ('ok', ''), (
+    assert d.status == 'ok', (
         "Failed DELETING pgp-secret: %s" % d.stderr)
     d = GPG.delete_keys(fingerprint)
-    assert (d.status, d.stderr) == ('ok', ''), (
+    assert d.status == 'ok', (
         "Failed DELETING pgp-public: %s" % d.stderr)
 
 
@@ -564,10 +564,10 @@ class TCipherTrait(unittest.TestCase):
 #    def gpg_del_gened_key(self, gpg, fingerprint):
 #        log.debug('Deleting secret+pub: %s', fingerprint)
 #        d = gpg.delete_keys(fingerprint, secret=1)
-#        assert (d.status, d.stderr) == ('ok', ''), (
+#        assert d.status == 'ok', (
 #            "Failed DELETING pgp-secret: %s" % d.stderr)
 #        d = gpg.delete_keys(fingerprint)
-#        assert (d.status, d.stderr) == ('ok', ''), (
+#        assert d.status == 'ok', (
 #            "Failed DELETING pgp-secret: %s" % d.stderr)
 #
 ##    def _has_repeatitive_prefix(self, word, limit, char=None):
