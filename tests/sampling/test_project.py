@@ -109,16 +109,16 @@ class TProjectsDBStory(unittest.TestCase):
         cls._project_repo = tempfile.TemporaryDirectory()
         log.debug('Temp-repo: %s', cls._project_repo)
 
-        cls.cfg = cfg = trtc.get_config()
+        cls.cfg = c = trtc.get_config()
 
-        cfg.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
-        cfg.GpgSpec.keys_to_import = test_pgp_key
-        cfg.GpgSpec.trust_to_import = test_pgp_trust
-        cfg.GpgSpec.master_key = test_pgp_fingerprint
-        cfg.DiceSpec.user_name = "Test Vase"
-        cfg.DiceSpec.user_email = "test@vase.com"
+        c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        c.GpgSpec.keys_to_import = test_pgp_key
+        c.GpgSpec.trust_to_import = test_pgp_trust
+        c.GpgSpec.master_key = test_pgp_fingerprint
+        c.DiceSpec.user_name = "Test Vase"
+        c.DiceSpec.user_email = "test@vase.com"
 
-        crypto.GpgSpec(config=cfg)
+        crypto.GpgSpec(config=c)
 
         ## Clean memories from past tests
         #
@@ -319,16 +319,17 @@ class TStraightStory(unittest.TestCase):
         cls._project_repo = tempfile.TemporaryDirectory()
         log.debug('Temp-repo: %s', cls._project_repo)
 
-        cls.cfg = cfg = trtc.get_config()
+        cls.cfg = c = trtc.get_config()
 
-        cfg.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
-        cfg.GpgSpec.keys_to_import = test_pgp_key
-        cfg.GpgSpec.trust_to_import = test_pgp_trust
-        cfg.GpgSpec.master_key = test_pgp_fingerprint
-        cfg.DiceSpec.user_name = "Test Vase"
-        cfg.DiceSpec.user_email = "test@vase.com"
+        c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        c.GpgSpec.keys_to_import = test_pgp_key
+        c.GpgSpec.trust_to_import = test_pgp_trust
+        c.GpgSpec.master_key = test_pgp_fingerprint
+        c.DiceSpec.user_name = "Test Vase"
+        c.DiceSpec.user_email = "test@vase.com"
+        c.DiceSpec.user_email = "test@vase.com"
 
-        crypto.GpgSpec(config=cfg)
+        crypto.GpgSpec(config=c)
 
         ## Clean memories from past tests
         #
@@ -478,16 +479,16 @@ class TBackupCmd(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.cfg = cfg = trtc.get_config()
+        cls.cfg = c = trtc.get_config()
 
-        cfg.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
-        cfg.GpgSpec.keys_to_import = test_pgp_key
-        cfg.GpgSpec.trust_to_import = test_pgp_trust
-        cfg.GpgSpec.master_key = test_pgp_fingerprint
-        cfg.DiceSpec.user_name = "Test Vase"
-        cfg.DiceSpec.user_email = "test@vase.com"
+        c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        c.GpgSpec.keys_to_import = test_pgp_key
+        c.GpgSpec.trust_to_import = test_pgp_trust
+        c.GpgSpec.master_key = test_pgp_fingerprint
+        c.DiceSpec.user_name = "Test Vase"
+        c.DiceSpec.user_email = "test@vase.com"
 
-        crypto.GpgSpec(config=cfg)
+        crypto.GpgSpec(config=c)
 
         ## Clean memories from past tests
         #

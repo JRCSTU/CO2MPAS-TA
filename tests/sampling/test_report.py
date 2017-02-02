@@ -143,18 +143,18 @@ class TReportArgs(TReportBase):
 class TReportProject(TReportBase):
     @classmethod
     def setUpClass(cls):
-        cls.cfg = cfg = trtc.get_config()
+        cls.cfg = c = trtc.get_config()
 
-        cfg.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
-        cfg.GpgSpec.keys_to_import = test_pgp_key
-        cfg.GpgSpec.trust_to_import = test_pgp_trust
-        cfg.GpgSpec.master_key = test_pgp_fingerprint
-        cfg.ReportCmd.raise_config_file_errors = True
-        cfg.ReportCmd.project = True
-        cfg.DiceSpec.user_name = "Test Vase"
-        cfg.DiceSpec.user_email = "test@vase.com"
+        c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        c.GpgSpec.keys_to_import = test_pgp_key
+        c.GpgSpec.trust_to_import = test_pgp_trust
+        c.GpgSpec.master_key = test_pgp_fingerprint
+        c.ReportCmd.raise_config_file_errors = True
+        c.ReportCmd.project = True
+        c.DiceSpec.user_name = "Test Vase"
+        c.DiceSpec.user_email = "test@vase.com"
 
-        crypto.GpgSpec(config=cfg)
+        crypto.GpgSpec(config=c)
 
         ## Clean memories from past tests
         #

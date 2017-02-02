@@ -240,13 +240,13 @@ class TRX(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.cfg = cfg = trtc.get_config()
+        cls.cfg = c = trtc.get_config()
 
-        cfg.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
-        cfg.GpgSpec.keys_to_import = test_pgp_key
-        cfg.GpgSpec.trust_to_import = test_pgp_trust
-        cfg.GpgSpec.master_key = test_pgp_fingerprint
-        crypto.GpgSpec(config=cfg)
+        c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        c.GpgSpec.keys_to_import = test_pgp_key
+        c.GpgSpec.trust_to_import = test_pgp_trust
+        c.GpgSpec.master_key = test_pgp_fingerprint
+        crypto.GpgSpec(config=c)
 
         ## Clean memories from past tests
         #
