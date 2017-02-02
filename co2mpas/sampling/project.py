@@ -10,7 +10,6 @@ from collections import (defaultdict, OrderedDict, namedtuple)  # @UnusedImport
 import copy
 from datetime import datetime
 import io
-import json
 import os
 import re
 import textwrap
@@ -804,7 +803,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
 
         return infos
 
-    def proj_examine(self, pname: Text=None, verbose=None, as_text=False, as_json=False):
+    def proj_examine(self, pname: Text=None, verbose=None, as_text=False):
         """
         Does not validate project, not fails, just reports situation.
 
@@ -821,12 +820,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         infos = self._infos_fields(pname, fields)
 
         if as_text:
-            if as_json:
-                infos = json.dumps(dict(infos), indent=2, default=str)
-            else:
-                #import pandas as pd
-                #infos = pd.Series(OrderedDict(infos))
-                infos = pndlu.format_pairs(infos)
+            infos = yaml.dump(OrderedDict(infos), indent=2)
 
         return infos
 
@@ -1142,17 +1136,12 @@ class ProjectCmd(_PrjCmd):
         SYNTAX
             %(cmd_chain)s [OPTIONS] [<project>]
         """
-        as_json = trt.Bool(
-            False,
-            help="Whether to return infos as JSON, instead of python-code."
-        ).tag(config=True)
-
         def run(self, *args):
             if len(args) > 1:
                 raise CmdException('Cmd %r takes one optional argument, received %d: %r!'
                                    % (self.name, len(args), args))
             pname = args and args[0] or None
-            return self.projects_db.proj_examine(pname, as_text=True, as_json=self.as_json)
+            return self.projects_db.proj_examine(pname, as_text=True)
 
     class BackupCmd(_PrjCmd):
         """
@@ -1191,11 +1180,7 @@ class ProjectCmd(_PrjCmd):
 
                         'ProjectsDB': {'reset_settings': True},
                     }, pndlu.first_line(ProjectsDB.reset_settings.help)
-                ), 'json': (
-                    {
-                        'ExamineCmd': {'as_json': True},
-                    }, pndlu.first_line(ProjectCmd.ExamineCmd.as_json.help)
-                ),
+                )
             }
         }
         dkwds.update(kwds)

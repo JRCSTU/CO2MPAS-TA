@@ -196,7 +196,7 @@ if __name__ == '__main__':
     #argv = 'project infos --help-all'.split()
     #argv = 'project infos'.split()
     #argv = 'project --help-all'.split()
-    #argv = 'project examine --json --verbose --debug'.split()
+    #argv = 'project examine --verbose --debug'.split()
     #argv = 'project examine --Project.verbose=2 --debug'.split()
     #argv = 'project list  --Project.reset_settings=True'.split()
     #argv = '--Project.reset_settings=True'.split()
