@@ -335,10 +335,8 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
 
         SubCommands using this flag:
         ~~~~~~~~~~~~~~~~~~~~~~~~~
-        `project list`
-            List project with the "long" format.
-        `project infos`
-            Whether to include also info about the repo-configuration (when 2).
+        `project list/examine`
+            List project with the "long" format, include infos about the repo (when 2).
         `config show`
             Print parameters for all intermediate classes.
           """).tag(config=True)
@@ -869,10 +867,15 @@ class Cmd(TolerableSingletonMixin, trtc.Application, PeristentMixin, HasCiphersM
             ## Set some nice defaults for root-CMDs.
             #
             'cmd_aliases': {
-                'config-paths': ('Cmd.config_paths',
-                                 pndlu.first_line(Cmd.config_paths.help)),
-                'persist-path': ('Cmd.persist_path',
-                                 pndlu.first_line(Cmd.persist_path.help)),
+                'config-paths': (
+                    'Cmd.config_paths',
+                    pndlu.first_line(Cmd.config_paths.help)),
+                'persist-path': (
+                    'Cmd.persist_path',
+                    pndlu.first_line(Cmd.persist_path.help)),
+                'vlevel': (
+                    'Spec.verbose',
+                    pndlu.first_line(Spec.verbose.help)),
             },
             'cmd_flags': {
                 ('d', 'debug'): (
