@@ -2,7 +2,6 @@
 
 ## C-backends (under Anaconda use `conda` to install them)
 #
---process-dependency-links
 
 pandas
 numpy
@@ -30,6 +29,7 @@ boltons
 pykalman
 wltp
 openpyxl>=2.4.0
+git+https://github.com/vinci1it2000/pycel.git
 schedula>=0.1.1
 
 ## Dice
