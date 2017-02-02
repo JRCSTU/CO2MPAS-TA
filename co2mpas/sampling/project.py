@@ -967,20 +967,28 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             if _is_project_ref(ref) and not pnames or ref.path in pnames:
                 yield ref
 
-    def proj_list(self, *pnames: Text, verbose=None, as_text=False):
+    def proj_list(self, *pnames: Text, verbose=None,
+                  as_text=False, fields=None):
         """
         :param pnames:
             some project name, or none for all
         :param verbose:
-            return infos in a table with 3-4 coulmns per each project
+            return infos based on :meth:`_out_fields_by_verbose_level()`
+        :param fields:
+            If defined, takes precendance over `verbose`.
+        :param as_text:
+            If true, return YAML, otherwise, strings or dicts if verbose
         :retun:
             yield any matched projects, or all if `pnames` were empty.
         """
         if verbose is None:
             verbose = self.verbose
-        verbose_level = int(verbose) - 1  # V0 is no infos.
 
-        fields = self._out_fields_by_verbose_level(verbose_level)
+        if fields:
+            verbose = True  # Othrwise it would ignore fields.
+        else:
+            verbose_level = int(verbose) - 1  # V0 prints no infos.
+            fields = self._out_fields_by_verbose_level(verbose_level)
 
         ap = self.repo.active_branch
         ap = ap and ap.path
@@ -992,10 +1000,16 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
                 infos = self._infos_fields(pname, fields, inv_value='<invalid>')
                 infos = OrderedDict(infos)
                 infos['active'] = isactive
-                yield yaml.dump({pname: infos}, default_flow_style=False)
+                to_yield = {pname: infos}
+                if as_text:
+                    to_yield = yaml.dump(to_yield, default_flow_style=False)
             else:
-                yield ('* %s' if isactive else '  %s') % pname
+                if as_text:
+                    to_yield = ('* %s' if isactive else '  %s') % pname
+                else:
+                    to_yield = pname
 
+            yield to_yield
 
 ###################
 ##    Commands   ##
@@ -1042,7 +1056,7 @@ class ProjectCmd(_PrjCmd):
         """
         def run(self, *args):
             self.log.info('Listing %s projects...', args or 'all')
-            return self.projects_db.proj_list(*args)
+            return self.projects_db.proj_list(*args, as_text=True)
 
     class CurrentCmd(_PrjCmd):
         """Prints the currently open project."""
