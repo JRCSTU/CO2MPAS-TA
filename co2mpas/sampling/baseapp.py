@@ -61,7 +61,8 @@ import traitlets as trt
 import traitlets.config as trtc
 
 from . import CmdException
-from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
+from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
+                utils)
 from ..__main__ import init_logging
 
 ################################################
@@ -74,6 +75,10 @@ try:
     _mydir = osp.dirname(__file__)
 except:
     _mydir = '.'
+
+## Dice better have ordered reports
+#  so put it here to be invoked only once.
+utils.setup_yaml_ordered()
 
 
 def default_config_fname():

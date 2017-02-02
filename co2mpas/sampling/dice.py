@@ -32,19 +32,6 @@ try:
 except:
     _mydir = '.'
 
-_default_cfg = textwrap.dedent("""
-        ---
-        dice:
-            timestamping_address: post@stamper.itconsult.co.uk
-            default_recipients: [co2mpas@jrc.ec.europa.eu,EC-CO2-LDV-IMPLEMENTATION@ec.europa.eu]
-            #other_recipients:
-            #sender:
-        gpg:
-            trusted_user_ids: [CO2MPAS JRC-master <co2mpas@jrc.ec.europa.eu>]
-        """)
-
-_opts_to_remove_before_cfg_write = ['default_recipients', 'timestamping_address']
-
 
 def get_home_dir():
     """Get the real path of the home directory"""
@@ -199,7 +186,7 @@ if __name__ == '__main__':
     argv = '--help-all'.split()
     #argv = 'config init'.split()
     #argv = 'config init --help-all'.split()
-    #argv = 'config paths'.split()
+    argv = 'config paths'.split()
     #argv = '--debug --log-level=0 --Mail.port=6 --Mail.user="ggg" abc def'.split()
     #argv = 'project --help-all'.split()
     #argv = '--debug'.split()
@@ -209,7 +196,7 @@ if __name__ == '__main__':
     #argv = 'project infos --help-all'.split()
     #argv = 'project infos'.split()
     #argv = 'project --help-all'.split()
-    #argv = 'project examine --as-json --verbose --debug'.split()
+    #argv = 'project examine --json --verbose --debug'.split()
     #argv = 'project examine --Project.verbose=2 --debug'.split()
     #argv = 'project list  --Project.reset_settings=True'.split()
     #argv = '--Project.reset_settings=True'.split()
@@ -220,7 +207,7 @@ if __name__ == '__main__':
     #argv = 'config paths'.split()
 
     #argv = 'tstamp send'.split()
-    argv = 'tstamp login'.split()
+    #argv = 'tstamp login'.split()
     # Invoked from IDEs, so enable debug-logging.
     main(argv, log_level=logging.DEBUG)
     #main()
