@@ -14,7 +14,7 @@ test_inp_fpath = osp.join(mydir, 'input.xlsx')
 test_out_fpath = osp.join(mydir, 'output.xlsx')
 test_vfid = 'RL-99-BM3-2017-0001'
 
-test_pgp_fingerprint = '8C008403'
+test_pgp_fingerprint = 'B124C999CBBB52FF'
 test_pgp_key = [
 """ #@IgnorePep8
 ## Key for running TCs::

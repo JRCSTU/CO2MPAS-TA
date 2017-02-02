@@ -165,7 +165,7 @@ class TstampSender(TstampSpec):
                 raise CmdException("Content to timestamp failed signature verification!\n  %s"
                                    % verdict)
         else:
-            self.log.info("Content to timestamp signed OK: %s" % verdict)
+            self.log.info("Content to timestamp gets verified OK: %s" % verdict)
 
         msg = self._append_x_recipients(msg)
         mail = self._prepare_mail(msg)

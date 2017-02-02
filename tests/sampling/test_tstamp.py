@@ -29,7 +29,7 @@ log = logging.getLogger(__name__)
 mydir = osp.dirname(__file__)
 
 
-_tstamp_responses = [(941136, '346C4B1FDF5343D6F4B0BF10D660FEDC25B66', 74, 'OK',
+tstamp_responses = [(941136, '346C4B1FDF5343D6F4B0BF10D660FEDC25B66', 74, 'OK',
                       {'trust_text': 'TRUST_FULLY'}, {'trust_text': None},
 """ #@IgnorePep8
  by mail-zone.jrc.it
@@ -270,7 +270,7 @@ class TRX(unittest.TestCase):
         with self.assertRaisesRegex(tstamp.CmdException, ex_msg):
             rcv.parse_tsamp_response("")
 
-    @ddt.data(*_tstamp_responses)
+    @ddt.data(*tstamp_responses)
     def test_parse_timestamps(self, case):
         (stamper_id, dice, dice100, dice_decision,
          ts_verdict, tag_verdict, tstamp_response) = case
