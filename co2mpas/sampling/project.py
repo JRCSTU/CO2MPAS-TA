@@ -12,7 +12,7 @@ from datetime import datetime
 import io
 import os
 import re
-import textwrap
+import textwrap as tw
 from typing import (
     Any, Union, List, Dict, Sequence, Iterable, Optional, Text, Tuple, Callable)  # @UnusedImport
 
@@ -326,7 +326,7 @@ class Project(transitions.Machine, dice.DiceSpec):
                     repo.create_tag(tref, message=cmsg_js, sign=True)
 
     def _make_readme(self):
-        return textwrap.dedent("""
+        return tw.dedent("""
         This is the CO2MPAS-project %r (see https://co2mpas.io/ for more).
 
         - created: %s
@@ -852,7 +852,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
                                  ex, exc_info=1)
 
         if not self._current_project:
-                raise CmdException(textwrap.dedent("""
+                raise CmdException(tw.dedent("""
                         No current-project exists yet!"
                         Try opening an existing project, with:
                             co2mpas project open <project-name>
