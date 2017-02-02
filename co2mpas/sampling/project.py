@@ -355,7 +355,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         index.add([state_fpath])
 
         ## Commit/tag callback expects `action` on event.
-        event.kwargs['action'] = 'Project created.'  # TODO: Improve actions
+        event.kwargs['action'] = 'created project'
 
     def _cb_stage_pfiles(self, event):
         """
@@ -399,7 +399,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         files_count = ', '.join('%s: %s' % (k, len(f))
                                 for k, f in pfiles._asdict().items())
         ## Commit/tag callback expects `action` on event.
-        event.kwargs['action'] = 'Imported (%s) files.' % files_count  # TODO: Improve actions
+        event.kwargs['action'] = 'imported %s files' % files_count
 
     def list_pfiles(self, *io_kinds, _as_index_paths=False) -> PFiles or None:
         """
@@ -446,7 +446,7 @@ class Project(transitions.Machine, dice.DiceSpec):
 
 
         ## Commit/tag callback expects `report` on event.
-        event.kwargs['action'] = 'Dice-reporting %s files.' % len(pfiles)  # TODO: Improve actions'
+        event.kwargs['action'] = 'dice-reported %s files' % len(pfiles)
         report = repspec.get_dice_report(pfiles).values()
         event.kwargs['report'] = list(report)
 
@@ -466,8 +466,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         pretend = event.kwargs.get('pretend', False)
         if not pretend:
             tstamp_sender.send_timestamped_email(dice_mail)
-        # TODO: Improve actions
-        event.kwargs['action'] = 'Email %s.' % ('FAKED.' if pretend else 'sent')
+        event.kwargs['action'] = '%s timestamp-email' % ('FAKED' if pretend else 'sent')
 
     def _cond_is_dice_yes(self, event) -> bool:
         """
@@ -485,8 +484,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         res = recv.parse_tsamp_response(mail_text)
         decision = res.get('dice_decision')
 
-        # TODO: Improve actions
-        event.kwargs['action'] = "Received tstamped dice: %s." % decision
+        event.kwargs['action'] = "diced as %s" % decision
         event.kwargs['report'] = res
 
         return decision
