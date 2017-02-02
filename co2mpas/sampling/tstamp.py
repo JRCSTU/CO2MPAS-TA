@@ -364,16 +364,17 @@ class TstampCmd(baseapp.Cmd):
             super().__init__(**kwds)
 
         def run(self, *args):
-            self.log.info('Timestamping %r...', args)
+            from boltons.setutils import IndexedSet as iset
 
-            files = self.extra_args
+            files = iset(args)
             if not files:
                 files = '-'
+            self.log.info("Timestamping '%s'...", files)
 
             sender = TstampSender(config=self.config)
             for file in files:
                 if file == '-':
-                    self.log.info("TimeReading STDIN; paste message verbatim!")
+                    self.log.info("Reading STDIN; paste message verbatim!")
                     mail_text = sys.stdin.read()
                 else:
                     with io.open(file, 'rt') as fin:
@@ -396,9 +397,13 @@ class TstampCmd(baseapp.Cmd):
             super().__init__(**kwds)
 
         def run(self, *args):
+            from boltons.setutils import IndexedSet as iset
             from pprint import pformat
 
-            self.log.info('Timestamping %r...', args)
+            files = iset(args)
+            if not files:
+                files = '-'
+            self.log.info("Parsing '%s'...", files)
 
             files = self.extra_args
             if not files:
@@ -407,7 +412,7 @@ class TstampCmd(baseapp.Cmd):
             rcver = TstampReceiver(config=self.config)
             for file in files:
                 if file == '-':
-                    self.log.info("TimeReading STDIN; paste message verbatim!")
+                    self.log.info("Reading STDIN; paste message verbatim!")
                     mail_text = sys.stdin.read()
                 else:
                     with io.open(file, 'rt') as fin:
