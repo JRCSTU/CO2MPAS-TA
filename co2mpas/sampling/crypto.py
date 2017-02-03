@@ -13,7 +13,7 @@ The code using these passwords must never store them as is, but use and immediat
 """
 
 from co2mpas.sampling import baseapp
-from collections import namedtuple
+from collections import OrderedDict
 import io
 import os
 import re
@@ -33,15 +33,15 @@ def is_pgp_encrypted(obj) -> bool:
 
 _pgp_clearsig_regex = re.compile(
     r"""
-    (?P<armor>
+    (?P<whole>
         ^-{5}BEGIN\ PGP\ SIGNED\ MESSAGE-{5}\r?\n
         (?:^Hash:\ [^\r\n]+\r?\n)*                   ## 'Hash:'-header(s)
         ^\r?\n                                       ## blank-line
         (?P<msg>^.*?)
         \r?\n                                        ## NOT part of plaintext!
-        (?:
+        (?P<sigarmor>
             ^-{5}BEGIN\ PGP\ SIGNATURE-{5}\r?\n
-            (?P<sigheads>.*?)
+            .*?
             ^\r?\n                                   ## blank-line
             (?P<sig>[^-]+)
             ^-{5}END\ PGP\ SIGNATURE-{5}(?:\r?\n)?
@@ -64,9 +64,6 @@ _git_detachsig_strip_top_empty_lines_regexb = re.compile(
 
 _git_detachsig_canonical_regexb = re.compile(
     br'\s*$|[ \t\r]*\n')
-
-
-CSigParts = namedtuple('CSigParts', 'armor msg sig sigheads')
 
 
 def pgp_split_clearsigned(text: str) -> Dict:
@@ -116,7 +113,7 @@ def pgp_split_clearsigned(text: str) -> Dict:
         msg = _pgp_clearsig_eol_canonical_regex.sub('\r\n', msg)
         groups['msg'] = msg
 
-        return CSigParts(**groups)
+        return groups
 
 
 def pgp_split_sig(git_content: bytes) -> (bytes, bytes):
@@ -167,10 +164,11 @@ def pgp_split_sig(git_content: bytes) -> (bytes, bytes):
     if m:
         split_pos = m.start()
 
-        return CSigParts(armor=git_content,
-                         msg=git_content[:split_pos],
-                         sig=git_content[split_pos:],
-                         sigheads=None)
+        return OrderedDict([
+            ('whole', git_content),
+            ('msg', git_content[:split_pos]),
+            ('sigarmor', git_content[split_pos:]),
+        ])
 
 
 class GpgSpec(baseapp.Spec):
@@ -459,7 +457,7 @@ class GpgSpec(baseapp.Spec):
         return self._proc_verfication(self.GPG.verify(text), keep_stderr)
 
     def verify_detached(self, sig: bytes, data: bytes, keep_stderr=None):
-        """Verify `sig` on the `data`."""
+        """Verify binary `sig` on the `data`."""
         import gnupg
         import tempfile
 
@@ -480,13 +478,21 @@ class GpgSpec(baseapp.Spec):
         return self._proc_verfication(result, keep_stderr)
 
     def verify_git_signed(self, git_bytes: bytes, keep_stderr: bool=None):
+        """
+        Splits and verify the normalized top-part against the bottom armored-sig.
+
+        :return:
+            The object returned by *gnupg*, with the splitted parts in `parts` attribute.
+        """
         csig = pgp_split_sig(git_bytes)
         if csig:
-            msg = _git_detachsig_canonical_regexb.sub(b'\n', csig.msg)
+            msg = _git_detachsig_canonical_regexb.sub(b'\n', csig['msg'])
             msg = _git_detachsig_strip_top_empty_lines_regexb.sub(b'', msg)
-            ver = self.verify_detached(csig.sig, msg)
+            ver = self.verify_detached(csig['sigarmor'], msg)
 
-            return self._proc_verfication(ver, keep_stderr)
+            ver.parts = csig
+
+            return ver
 
 
 ########################################

@@ -9,7 +9,7 @@
 from co2mpas.__main__ import init_logging
 from co2mpas.sampling import tstamp, crypto
 import logging
-from pprint import pprint as pp
+from pprint import pformat as pf
 import shutil
 import tempfile
 import unittest
@@ -29,8 +29,18 @@ log = logging.getLogger(__name__)
 mydir = osp.dirname(__file__)
 
 
-tstamp_responses = [(941136, '346C4B1FDF5343D6F4B0BF10D660FEDC25B66', 74, 'OK',
-                      {'trust_text': 'TRUST_FULLY'}, {'trust_text': None},
+tstamp_responses = [(
+    "Invalid commit/tag message, not a non-empty list",
+    941136, {
+        'hexnum': '346C4B1FDF5343D6F4B0BF10D660FEDC25B66',
+        'percent': 74,
+        'decision': 'OK',
+        'vehicle_family_id': None
+    }, {
+        'trust_text': 'TRUST_FULLY',
+    }, {
+        'trust_text': None,
+    },
 """ #@IgnorePep8
  by mail-zone.jrc.it
  (Sun Java(tm) System Messaging Server 7.3-11.01 64bit (built Sep  1 2009))
@@ -110,8 +120,18 @@ SjzL9Fp7gP5OsJZ1uRMtP9MzMTjvjMS1IKmNwPvVsvSe+77S3+urMgklH7ciypsT
 
 extra stuff
 
-"""), (941144, 'A6C6E3771EA412EE56B4E61A10CDE90776D53419', 41, 'OK',
-       {'trust_text': 'TRUST_FULLY'}, {'trust_text': None},
+"""), (
+    "Invalid commit/tag message, not a non-empty list",
+    941144, {
+        'hexnum': 'A6C6E3771EA412EE56B4E61A10CDE90776D53419',
+        'percent': 41,
+        'decision': 'OK',
+        'vehicle_family_id': None
+    }, {
+        'trust_text': 'TRUST_FULLY',
+    }, {
+        'trust_text': None,
+    },
 """ #@IgnorePep8
 -----BEGIN PGP SIGNED MESSAGE-----
 
@@ -172,8 +192,18 @@ K1nTqtFTPxDfDEnBZgzDNT6jD4rsPyDhNIydJsESc9ypVPB7ExwVKQT4wfSH+FLE
 aVryU+Z1cn1UO+59VsUeoaUcJqr7wNmwR5Zzyzp7Obm7ZlEvE5Gqfg==
 =y4Fb
 -----END PGP SIGNATURE-----
-"""), (941518, 'A100EBD962AEA3349AFC6396D48015131BCA866F', 19, 'OK',
-       {'trust_text': 'TRUST_FULLY'}, {'trust_text': 'TRUST_ULTIMATE'},
+"""), (
+    "Failed parsing commit message due to: ScannerError",
+    941518, {
+        'hexnum': 'A100EBD962AEA3349AFC6396D48015131BCA866F',
+        'percent': 19,
+        'decision': 'OK',
+        'vehicle_family_id': None
+    }, {
+        'trust_text': 'TRUST_FULLY',
+    }, {
+        'trust_text': 'TRUST_ULTIMATE',
+    },
 """ #@IgnorePep8
 -----BEGIN PGP SIGNED MESSAGE-----
 
@@ -258,6 +288,19 @@ class TRX(unittest.TestCase):
     def tearDownClass(cls):
         shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
 
+    def check_timestamp_fails(self, rcv, mail_text, msg_regex):
+        with self.assertRaisesRegex(tstamp.CmdException, msg_regex):
+            rcv.parse_tsamp_response(mail_text)
+
+    def check_timestamp(self, rcv, stamper_id, dice, ts_verdict, tag_verdict, tstamp_response):
+        resp = rcv.parse_tsamp_response(tstamp_response)
+        print(pf(resp))
+        self.assertEqual(resp['tstamp']['stamper_id'], stamper_id, pf(resp))
+        self.assertDictContainsSubset(dice, resp['dice'], pf(resp))
+        ts_verdict.update({'key_id':'81959DB570B61F81', 'pubkey_fingerprint':'4B12BCD5788511063B543190E09DF306'})
+        self.assertDictContainsSubset(ts_verdict, resp['tstamp'], pf(resp))
+        self.assertDictContainsSubset(tag_verdict, resp['report'], pf(resp))
+
     def test_send_timestamp(self):
         snd = tstamp.TstampSender(config=self.cfg)
         ex_msg = r"Content to timestamp failed signature verification!\s+None"
@@ -272,20 +315,9 @@ class TRX(unittest.TestCase):
 
     @ddt.data(*tstamp_responses)
     def test_parse_timestamps(self, case):
-        (stamper_id, dice, dice100, dice_decision,
-         ts_verdict, tag_verdict, tstamp_response) = case
+        fail_regex, *verdicts = case
         rcv = tstamp.TstampReceiver(config=self.cfg)
-        resp = rcv.parse_tsamp_response(tstamp_response)
-        pp(resp)
-        self.assertEqual(resp['tstamp']['stamper_id'], stamper_id)
-        self.assertDictContainsSubset({
-            'dice_hex': dice,
-            'dice_%100': dice100,
-            'dice_decision': dice_decision,
-        }, resp)
-        ts_verdict.update({
-            'key_id': '81959DB570B61F81',
-            'pubkey_fingerprint': '4B12BCD5788511063B543190E09DF306',
-        })
-        self.assertDictContainsSubset(ts_verdict, resp['tstamp']['sig'])
-        self.assertDictContainsSubset(tag_verdict, resp['tag']['sig'])
+        if fail_regex:
+            self.check_timestamp_fails(rcv, verdicts[-1], fail_regex)
+            rcv.force = True
+        self.check_timestamp(rcv, *verdicts)

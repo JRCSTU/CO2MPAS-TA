@@ -525,14 +525,14 @@ class Project(transitions.Machine, dice.DiceSpec):
         :param mail:
             Parses timestamped-email to decide if next-state is `dice_yes` or `dice_no`.
         """
-        from pprint import pformat
-
         self.log.info('Receiving email: %s...', event.kwargs)
-        mail_text = _evarg(event, 'mail')
+        mail_text = _evarg(event, 'mail', (str, bytes))
 
         recv = self._tstamp_receiver_spec()
         res = recv.parse_tsamp_response(mail_text)
-        decision = res.get('dice_decision')
+        dice = res['dice']
+        decision = dice['decision']
+        project = dice['vehicle_family_id']
 
         event.kwargs['action'] = "diced as %s" % decision
         event.kwargs['report'] = res

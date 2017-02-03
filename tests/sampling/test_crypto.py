@@ -345,7 +345,6 @@ class TGpgSpec(unittest.TestCase):
     def tearDownClass(cls):
         gpg_spec = crypto.GpgSpec(config=cls.cfg)
         assert gpg_spec.gnupghome
-        gpg_del_key(gpg_spec.GPG, gpg_spec.master_key)
         shutil.rmtree(gpg_spec.gnupghome)
 
     @ddt.data(*_clearsigned_msgs)
@@ -354,10 +353,10 @@ class TGpgSpec(unittest.TestCase):
 
         csig = crypto.pgp_split_clearsigned(clearsigned)
         if isinstance(exp_msg, str):
-            self.assertIsInstance(csig, tuple)
+            self.assertIsInstance(csig, dict)
             self.assertEqual(len(csig), 4)
-            self.assertEqual(csig.msg, exp_msg)
-            self.assertIsNotNone(csig.sig)
+            self.assertEqual(csig['msg'], exp_msg)
+            self.assertIsNotNone(csig['sigarmor'])
         else:
             self.assertIsNone(csig)
 
@@ -366,10 +365,10 @@ class TGpgSpec(unittest.TestCase):
         clearsigned = re.sub('$\n^', '\r\n', clearsigned, re.MULTILINE)
         csig = crypto.pgp_split_clearsigned(clearsigned)
         if isinstance(exp_msg, str):
-            self.assertIsInstance(csig, tuple)
+            self.assertIsInstance(csig, dict)
             self.assertEqual(len(csig), 4)
-            self.assertEqual(csig.msg, re.sub('$\n^', '\r\n', exp_msg), re.MULTILINE)
-            self.assertIsNotNone(csig.sig)
+            self.assertEqual(csig['msg'], re.sub('$\n^', '\r\n', exp_msg), re.MULTILINE)
+            self.assertIsNotNone(csig['sigarmor'])
         else:
             self.assertIsNone(csig)
 
@@ -390,7 +389,7 @@ class TGpgSpec(unittest.TestCase):
         tag_csig = crypto.pgp_split_sig(tag_bytes)
 
         gpg_spec = crypto.GpgSpec(config=self.cfg)
-        ver = gpg_spec.verify_detached(tag_csig.sig, tag_csig.msg)
+        ver = gpg_spec.verify_detached(tag_csig['sigarmor'], tag_csig['msg'])
         verdict = vars(ver)
         pp(verdict)
         self.assertDictContainsSubset(
@@ -419,11 +418,11 @@ class TGpgSpec(unittest.TestCase):
         self.assertEqual(tag_bytes, _signed_tag)
 
         csig = crypto.pgp_split_sig(tag_bytes)
-        self.assertEqual(csig.msg, _splitted_signed_tag[0])
-        self.assertEqual(csig.sig, _splitted_signed_tag[1])
+        self.assertEqual(csig['msg'], _splitted_signed_tag[0])
+        self.assertEqual(csig['sigarmor'], _splitted_signed_tag[1])
 
         gpg_spec = crypto.GpgSpec(config=self.cfg)
-        ver = gpg_spec.verify_detached(csig.sig, csig.msg)
+        ver = gpg_spec.verify_detached(csig['sigarmor'], csig['msg'])
         pp(vars(ver))
         self.assertTrue(ver)
 
@@ -453,9 +452,9 @@ class TGpgSpec(unittest.TestCase):
         ## Check parsing.
         #
         csig = crypto.pgp_split_clearsigned(signed2)
-        self.assertIsInstance(csig, tuple)
-        self.assertEqual(csig.msg, msg)
-        self.assertIsNotNone(csig.sig)
+        self.assertIsInstance(csig, dict)
+        self.assertEqual(csig['msg'], msg)
+        self.assertIsNotNone(csig['sigarmor'])
 
 
 _ciphertexts = set()

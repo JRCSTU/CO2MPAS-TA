@@ -15,7 +15,7 @@ from typing import (
 
 import traitlets as trt
 
-from . import CmdException, baseapp, dice, crypto, project
+from . import CmdException, baseapp, dice, crypto
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 
 
@@ -193,6 +193,12 @@ _stamper_banner_regex = re.compile(r"^#{56}\r?\n(?:^#[^\n]*\n)+^#{56}\r?\n\r?\n\
 class TstampReceiver(TstampSpec):
     """IMAP & timestamp parameters and methods for receiving & parsing dice-report emails."""
 
+    vfid_extraction_regex = trt.CRegExp(
+        r"vehicle_family_id[^\n]((?:IP|RL|RM|PR)-\d{2}-\w{2,3}-\d{4}-\d{4})",  # See also co2mpas.io.schema!
+        allow_none=False,
+        help=""""An approximate way to get the project if timestamp parsing has failed. """
+    ).tag(config=True)
+
     def _capture_stamper_msg_and_id(self, ts_msg: Text, ts_heads: Text) -> int:
         stamper_id = msg = None
         m = _stamper_id_regex.search(ts_heads)
@@ -217,13 +223,65 @@ class TstampReceiver(TstampSpec):
 
         return num
 
-    def parse_tsamp_response(self, mail_text: Text) -> int:
-        ## TODO: Use dispatcher to parse tstamp-response.
+    def scan_for_project_name(self, mail_text: Text) -> int:
+        """
+        Search in the text for any coarsly identifiable project-name (`vehicle_family_id`).
+
+        Use this if :meth:`parse_tsamp_response()` has failed to provide the answer.
+        """
+        project = None
+        all_vfids = self.vfid_extraction_regex.findall(mail_text)
+        if all_vfids:
+            project = all_vfids[0]
+            if not all(i == project for i in all_vfids):
+                project = None
+
+        return project
+
+    def parse_tsamped_tag(self, tag_text: Text) -> int:
+        """
+        :param msg_text:
+            The tag as extracted from tstamp response email by :meth:`crypto.pgp_split_clearsigned`.
+        """
         from pprint import pformat
+
+        vfid = None
+        git_auth = crypto.get_git_auth(self.config)
+        tag_ver = git_auth.verify_git_signed(tag_text.encode('utf-8'))
+        tag_verdict = {} if tag_ver is None else vars(tag_ver)
+        if not tag_ver:
+            ## Do not fail, it might be from an unknown sender.
+            #
+            self.log.warning(
+                "Cannot verify dice-report's signature due to: %s", pformat(tag_verdict))
+
+        ## Parse dice-report
+        #
+        from . import project
+
+        tag_csig = tag_verdict['parts']
+        tag = tag_csig['msg']
+        try:
+            project._CommitMsg.parse_commit_msg(tag.decode('utf-8'))
+        except Exception as ex:
+            if not self.force:
+                raise
+            else:
+                self.log.error("Cannot parse dice-report due to: %s", ex)
+
+        if not vfid:
+            vfid = self.scan_for_project_name(tag_text)
+
+        return tag_verdict, vfid
+
+    def parse_tsamp_response(self, mail_text: Text) -> int:
+        ## TODO: Could use dispatcher to parse tstamp-response, if failback routes were working...
         import textwrap as tw
+        from pprint import pformat
 
         force = self.force
         stamper_auth = crypto.get_stamper_auth(self.config)
+
         ts_ver = stamper_auth.verify_clearsigned(mail_text)
         ts_verdict = vars(ts_ver)
         if not ts_ver:
@@ -240,51 +298,43 @@ class TstampReceiver(TstampSpec):
                     %s
                 """), pformat(ts_verdict))
 
-        csig = crypto.pgp_split_clearsigned(mail_text)
-        if not csig:
+        ts_parts = crypto.pgp_split_clearsigned(mail_text)
+        ts_verdict['parts'] = ts_parts
+        if not ts_parts:
             self.log.error("Cannot parse timestamp-response:"
                            "\n  mail-txt: %s\n\n  ts-verdict: %s",
                            mail_text, pformat(ts_verdict))
             if not force:
                 raise CmdException(
                     "Cannot parse timestamp-response!")
-            stamper_id = tag = None
+            stamper_id = tag_verdict, vfid = None
         else:
-            stamper_id, tag = self._capture_stamper_msg_and_id(csig.msg, csig.sigheads)
+            stamper_id, tag = self._capture_stamper_msg_and_id(ts_parts['msg'], ts_parts['sigarmor'])
             if not stamper_id:
                 self.log.error("Timestamp-response had no *stamper-id*: %s\n%s",
-                               pformat(csig), pformat(ts_verdict))
+                               pformat(ts_parts), pformat(ts_verdict))
                 if not force:
-                    raise CmdException("Timestamp-response had no *stamper-id*: %s" % csig.sig)
+                    raise CmdException("Timestamp-response had no *stamper-id*: %s" % ts_parts['sigarmor'])
 
-        ## Verify inner tag.
-        #
-        if tag:
-            git_auth = crypto.get_git_auth(self.config)
-            tag_ver = git_auth.verify_git_signed(tag.encode('utf-8'))
-            tag_verdict = {} if tag_ver is None else vars(tag_ver)
-            if not tag_ver:
-                self.log.warning(
-                    "Cannot verify dice-report's signature due to: %s", pformat(tag_verdict))
+            tag_verdict, vfid = self.parse_tsamped_tag(tag)
+
+        ts_verdict['stamper_id'] = stamper_id
 
         num = self._pgp_sig2int(ts_ver.signature_id)
         dice100 = num % 100
         decision = 'OK' if dice100 < 90 else 'SAMPLE'
 
         #self.log.info("Timestamp sig did not verify: %s", pformat(tag_verdict))
-        return {
-            'tstamp': {
-                'sig': ts_verdict,
-                'sig_armor': csig.sig,
-                'stamper_id': stamper_id,
-            },
-            'tag': {
-                'sig': tag_verdict,
-            },
-            'dice_hex': '%X' % num,
-            'dice_%100': dice100,
-            'dice_decision': decision,
-        }
+        return OrderedDict([
+            ('tstamp', ts_verdict),
+            ('report', tag_verdict),
+            ('dice', {
+                'vehicle_family_id': vfid,
+                'hexnum': '%X' % num,
+                'percent': dice100,
+                'decision': decision,
+            }),
+        ])
 
     def choose_server_class(self):
         import imaplib
@@ -312,6 +362,8 @@ class TstampReceiver(TstampSpec):
 class _Subcmd(baseapp.Cmd):
     @property
     def projects_db(self):
+        from . import project
+
         p = project.ProjectsDB.instance(config=self.config)
         p.config = self.config
         return p
