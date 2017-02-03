@@ -36,5 +36,5 @@ schedula>=0.1.1
 python-gnupg
 gitpython >= 2.1.0 ## Win+Cygwin support
 transitions
-git+https://github.com/ankostis/traitlets@dev#egg=traitlets-5.0.0.dev0
-
+git+https://github.com/ankostis/traitlets@dev#egg=traitlets-5.0.0
+git+https://github.com/vinci1it2000/pycel@master#egg=pycel-0.0.1
