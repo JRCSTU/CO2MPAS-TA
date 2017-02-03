@@ -292,6 +292,7 @@ class Project(transitions.Machine, dice.DiceSpec):
             - [do_addfiles, wltp_out, wltp_iof, _is_inp_files]
 
             - [do_tagreport, wltp_iof, tagged]
+            - [do_tagreport, tagged, tagged, _is_force]
 
             ## TODO: MERGE `tagged` state with `wltp_iof`??
             - [do_sendmail, tagged, mailed]
@@ -355,6 +356,21 @@ class Project(transitions.Machine, dice.DiceSpec):
                               % (self.pname, active_branch))
             self.do_invalidate(error=ex)
 
+    max_dices_per_project = trt.Int(
+        3,  # TODO: Relace limit tags attemps to 3 on testing phase
+        help="""Number of dice-attempts allowed to be forced for a project."""
+    ).tag(config=True)
+
+    def _next_dice_tag_untaken(self, repo, pname):
+        tref = _tname2ref_name(pname)
+        for i in range(self.max_dices_per_project):
+            dice_tag = '%s/%d' % (tref, i)
+            if dice_tag not in repo.tags:
+                return dice_tag
+
+        raise CmdException("Too many dices for this project '%s'!"
+                           "\n  Maybe start all over with a new project?" % pname)
+
     def _cb_commit_or_tag(self, event):
         """Executed on EXIT for all states, and commits/tags into repo. """
         from . import crypto
@@ -382,7 +398,7 @@ class Project(transitions.Machine, dice.DiceSpec):
                     try:
                         ok = False
                         self.log.debug('Tagging: %s', event.kwargs)
-                        tref = _tname2ref_name(self.pname)
+                        tref = self._next_dice_tag_untaken(repo, self.pname)
                         repo.create_tag(tref, message=cmsg_txt, sign=True)
                         ok = True
                     finally:
