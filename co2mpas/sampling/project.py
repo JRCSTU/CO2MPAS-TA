@@ -97,7 +97,7 @@ class _CommitMsg(namedtuple('_CommitMsg', 'mver action proj state data')):
             raise
         except Exception as ex:
             raise CmdException(
-                "Failed parsing commit message due to: %s \nmsg:\n%s" %
+                "Failed parsing commit message due to: %r \nmsg:\n%s" %
                 (ex, tw.indent(cmsg_txt, "  ")))
 
 
@@ -494,7 +494,6 @@ class Project(transitions.Machine, dice.DiceSpec):
         repspec = self._report_spec()
         pfiles = self.list_pfiles('inp', 'out', _as_index_paths=True)
 
-
         ## Commit/tag callback expects `report` on event.
         event.kwargs['action'] = 'dice-reported %s files' % len(pfiles)
         report = repspec.get_dice_report(pfiles).values()
@@ -790,7 +789,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
                  lambda cmsg: _CommitMsg.parse_commit_msg(cmsg)),
 
             DFun('tree', lambda tre: tre.hexsha),
-            DFun('files_count', lambda tre: itz.count(tre.list_traverse())),
+            DFun('blobs_count', lambda tre: itz.count(tre.list_traverse())),
         ]
         dsp = Dispatcher()
         DFun.add_dfuns(dfuns, dsp)
@@ -808,7 +807,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
                 'msg.state',
                 'msg.action',
                 'revs_count',
-                'files_count',
+                'blobs_count',
                 'last_cdate',
                 'author',
             ],
@@ -1011,6 +1010,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
 
             yield to_yield
 
+
 ###################
 ##    Commands   ##
 ###################
@@ -1035,6 +1035,9 @@ class ProjectCmd(_PrjCmd):
         To get the list with the status of all existing projects, try:
             %(cmd_chain)s list
 
+        To see the current project, use one of those:
+            %(cmd_chain)s current
+
         A typical workflow is this:
             %(cmd_chain)s init RL-12-BM3-2016-0000
             %(cmd_chain)s append inp=input.xlsx out=output.xlsx other=co2mpas.log
@@ -1042,6 +1045,8 @@ class ProjectCmd(_PrjCmd):
             %(cmd_chain)s tstamp
             cat <mail-text> | %(cmd_chain)s dice
 
+        You may enquiry the status of the project at any time :
+            %(cmd_chain)s examine -v
         """)
 
     class ListCmd(_PrjCmd):
