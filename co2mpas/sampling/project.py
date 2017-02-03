@@ -397,7 +397,8 @@ class Project(transitions.Machine, dice.DiceSpec):
                         ok = False
                         self.log.debug('Tagging: %s', event.kwargs)
                         tref = self._next_dice_tag_untaken(repo, self.pname)
-                        repo.create_tag(tref, message=cmsg_txt, sign=True)
+                        repo.create_tag(tref, message=cmsg_txt,
+                                        sign=True, local_user=git_auth.master_key)
                         ok = True
                     finally:
                         if not ok:
