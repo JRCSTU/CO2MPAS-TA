@@ -138,14 +138,11 @@ def _pname2ref_name(pname: Text) -> Text:
 def _get_ref(refs, refname: Text, default: git.Reference=None) -> git.Reference:
     return refname and refname in refs and refs[refname] or default
 
-_TAGS_PREFIX = 'refs/tags/'
 _DICES_PREFIX = 'dices/'
 
 
 def _tname2ref_name(tname: Text) -> Text:
-    if tname.startswith(_TAGS_PREFIX):
-        tname = tname[len(_TAGS_PREFIX):]
-    elif not tname.startswith(_DICES_PREFIX):
+    if not tname.startswith(_DICES_PREFIX):
         tname = '%s%s' % (_DICES_PREFIX, tname)
     return tname
 
