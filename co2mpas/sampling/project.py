@@ -70,15 +70,13 @@ class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
                 "\n  expected '%s.%s-.x'." %
                 (msg_ver_txt, prog_ver[0], prog_ver[1]))
 
-    def dump_commit_msg(self):
+    def dump_commit_msg(self, indent=2, **kwds):
         cdic = self._asdict()
         del cdic['data']
         clist = [cdic]
         if self.data:
             clist.extend(self.data)
-        msg = yaml.dump(clist,
-                        indent=2,
-                        width=78)            # email width (RFC5322)
+        msg = yaml.dump(clist, indent=indent, **kwds)
 
         return msg
 
@@ -346,7 +344,7 @@ class Project(transitions.Machine, dice.DiceSpec):
     def _make_commit_msg(self, action, data=None):
         assert data is None or isinstance(data, list), "Data not a list: %s" % data
         cmsg = _CommitMsg(__dice_report_version__, action, self.pname, self.state, data)
-        return cmsg.dump_commit_msg()
+        return cmsg.dump_commit_msg(width=self.git_desc_width)
 
     def _cb_check_my_index(self, event):
         """ Executed on ENTER for all states, to compare my `pname` with checked-out ref. """
