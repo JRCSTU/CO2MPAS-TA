@@ -188,12 +188,12 @@ setup(
         'Pillow',           ## for tkui
         'toolz',
         'schedula>=0.1.1',
-        'traitlets>=5.0.0.dev',
+        'traitlets>=5.0.0.dev0',
         'python-gnupg',
     ],
     dependency_links=[
         'https://github.com/vinci1it2000/pycel/tarball/master#egg=pycel-0.0.1'
-        'https://github.com/ankostis/traitlets/tarball/dev#egg=traitlets-5.0.0.dev',
+        'https://github.com/ankostis/traitlets/tarball/dev#egg=traitlets-5.0.0.dev0',
     ],
     extras_require={
         'dice': [
