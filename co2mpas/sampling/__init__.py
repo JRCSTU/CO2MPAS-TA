@@ -105,6 +105,9 @@ class PFiles(namedtuple('PFiles', all_io_kinds)):
         if files:
             return PFiles(**files)
 
+    def nfiles(self):
+        return sum(len(f) for f in self._asdict().values())
+
 
 #: Allow creation of PFiles with partial arguments.
 PFiles.__new__.__defaults__ = ([], ) * len(all_io_kinds)

@@ -39,7 +39,7 @@ from .._version import __dice_report_version__
 PROJECT_STATUSES = '<invalid> empty full signed dice_sent sampled'.split()
 
 
-class _CommitMsg(namedtuple('_CommitMsg', 'mver action proj state data')):
+class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
     """
     A commit-message is a list like ``[headline, dataline, ...]``.
 
@@ -51,6 +51,11 @@ class _CommitMsg(namedtuple('_CommitMsg', 'mver action proj state data')):
       - proj
       - state
     - Only one `dataline` expected: report
+    - The first 4 fields are smallest possible to fit headline in 78 chars:
+      - v: mesage-version
+      - a: action
+      - p: project
+      - s: status
     """
 
     @classmethod
@@ -90,7 +95,7 @@ class _CommitMsg(namedtuple('_CommitMsg', 'mver action proj state data')):
 
             headline = l[0]
             cmsg = _CommitMsg(data=l[1:], **headline)
-            cmsg._check_commit_msg_version(str(cmsg.mver))
+            cmsg._check_commit_msg_version(str(cmsg.v))
 
             return cmsg
         except CmdException as ex:
@@ -405,7 +410,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         index.add([state_fpath])
 
         ## Commit/tag callback expects `action` on event.
-        event.kwargs['action'] = 'created project'
+        event.kwargs['action'] = 'new project'
 
     def _cb_stage_pfiles(self, event):
         """
@@ -446,10 +451,8 @@ class Project(transitions.Machine, dice.DiceSpec):
                 shutil.copy(ext_fpath, index_fpath)
                 index.add([index_fpath])
 
-        files_count = ', '.join('%s: %s' % (k, len(f))
-                                for k, f in pfiles._asdict().items())
         ## Commit/tag callback expects `action` on event.
-        event.kwargs['action'] = 'imported %s files' % files_count
+        event.kwargs['action'] = 'imp %s files' % pfiles.nfiles()
 
     def list_pfiles(self, *io_kinds, _as_index_paths=False) -> PFiles or None:
         """
@@ -495,7 +498,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         pfiles = self.list_pfiles('inp', 'out', _as_index_paths=True)
 
         ## Commit/tag callback expects `report` on event.
-        event.kwargs['action'] = 'dice-reported %s files' % len(pfiles)
+        event.kwargs['action'] = 'drep %s files' % pfiles.nfiles()
         report = repspec.get_dice_report(pfiles).values()
         event.kwargs['report'] = list(report)
 
@@ -515,7 +518,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         pretend = event.kwargs.get('pretend', False)
         if not pretend:
             tstamp_sender.send_timestamped_email(dice_mail)
-        event.kwargs['action'] = '%s timestamp-email' % ('FAKED' if pretend else 'sent')
+        event.kwargs['action'] = '%s stamp-email' % ('FAKED' if pretend else 'sent')
 
     def _cond_is_dice_yes(self, event) -> bool:
         """
@@ -897,7 +900,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
                     pname = _ref2pname(headref)
                     p = self._conceive_new_project(pname)
                     cmsg = _CommitMsg.parse_commit_msg(headref.commit.message)
-                    p.set_state(cmsg.state)
+                    p.set_state(cmsg.s)
 
                     self._current_project = p
             except Exception as ex:
