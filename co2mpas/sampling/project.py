@@ -652,8 +652,8 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             gnupgexe = cygpath(gnupgexe)
 
         gconfigs = [
-            ('core.filemode', False),
-            ('core.ignorecase', False),
+            ('core.filemode', 'false'),
+            ('core.ignorecase', 'false'),
             ('user.email', self.user_email),
             ('user.name', self.user_name),
             ('gc.auto', 0),                 # To salvage user-mistakes.
