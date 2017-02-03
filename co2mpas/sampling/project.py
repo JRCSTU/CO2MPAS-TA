@@ -577,18 +577,6 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         when the regular owner running the app has changed.
         """).tag(config=True)
 
-    sign_commits = trt.Bool(
-        False,
-        help="""Whether to PGP-sign all commits."""
-    ).tag(config=True)
-
-    @trt.observe('sign_commits')
-    def _rewrite_git_configs(self, change):
-        if self.__repo:
-            self.log.info("Resetting settings to enable signed-commits of repo(%s)...",
-                          self.__repo.git_dir)
-            self._write_repo_configs()
-
     ## Useless, see https://github.com/ipython/traitlets/issues/287
     # @trt.validate('repo_path')
     # def _normalize_path(self, proposal):
@@ -677,9 +665,6 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             ('gpg.program', gnupgexe),
             ('user.signingkey', git_auth.master_key_resolved),
         ]
-        if self.sign_commits:
-            gconfigs.append('commit.gpgsign', True)
-            # see https://help.github.com/articles/telling-git-about-your-gpg-key/
 
         with repo.config_writer() as cw:
             for key, val in gconfigs:
