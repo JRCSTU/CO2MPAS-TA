@@ -379,9 +379,16 @@ class Project(transitions.Machine, dice.DiceSpec):
                 index.commit(cmsg_txt)
 
                 if is_tagging:
-                    self.log.debug('Tagging: %s', event.kwargs)
-                    tref = _tname2ref_name(self.pname)
-                    repo.create_tag(tref, message=cmsg_txt, sign=True)
+                    try:
+                        ok = False
+                        self.log.debug('Tagging: %s', event.kwargs)
+                        tref = _tname2ref_name(self.pname)
+                        repo.create_tag(tref, message=cmsg_txt, sign=True)
+                        ok = True
+                    finally:
+                        if not ok:
+                            ## Revert to previous project status.
+                            repo.active_branch.commit = 'HEAD~'
 
     def _make_readme(self):
         return tw.dedent("""
