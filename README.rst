@@ -1418,8 +1418,11 @@ Alternative installation methods
 You may get multiple versions of |co2mpas|, from various places, but all
 require the use of ``pip`` command from a *console* to install:
 
-..  Warning::
+..  Tip::
     In all cases below, remember to uninstall |co2mpas| if it's already installed.
+
+    Remember also to store the installation logs with the ``-v --log`` options,
+    particularly if you install a specific version from GitHub
 
 - **Latest STABLE:**
   use the default ``pip`` described command above.
@@ -1438,13 +1441,13 @@ require the use of ``pip`` command from a *console* to install:
 
   .. code-block:: console
 
-      pip install git+https://github.com/JRCSTU/co2mpas.git@dev --process-dependency-links
+      pip install -v log pip.log git+https://github.com/JRCSTU/co2mpas.git@dev --process-dependency-links
 
 - **Specific commit** from the GitHub-sources:
 
   .. code-block:: console
 
-      pip install git+https://github.com/JRCSTU/co2mpas.git@2927346f4c513a --process-dependency-links
+      pip install -v log pip.log git+https://github.com/JRCSTU/co2mpas.git@2927346f4c513a --process-dependency-links
 
 - **Speed-up download**:
   append  the ``--use-mirrors`` option in the ``pip`` command.
@@ -1558,8 +1561,14 @@ where in each one you can install a different versions of |co2mpas|.
 6. Install the |co2mpas| version you want inside the activated venv.
    See the :ref:`install-co2mpas-package` section, above.
 
-   Don't forget to check that what you get when running |co2mpas| is what you
-   installed.
+   .. Tip::
+      Always store the installation logs, particularly if you install a specific version
+      from GitHub::
+
+          pip install -v log pip.log ...  ## co2mpas specifiers follows here...
+
+      Don't forget afterwards to check that what you get when running |co2mpas| is what you
+      installed.
 
 7. To "deactivate" the active venv, type:
 
