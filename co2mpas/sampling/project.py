@@ -39,6 +39,10 @@ from .._version import __dice_report_version__
 PROJECT_STATUSES = '<invalid> empty full signed dice_sent sampled'.split()
 
 
+_git_messaged_obj = re.compile(r'^(:?object|tag) ')
+_after_first_empty_line_regex = re.compile(r'\n\r?\n')
+
+
 class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
     """
     A commit-message is a list like ``[headline, dataline, ...]``.
@@ -65,9 +69,8 @@ class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
         if (len(msg_ver) != 3 or
                 msg_ver[0] != prog_ver[0] or
                 msg_ver[1] > prog_ver[1]):
-            raise CmdException(
-                "Incompatible message version '%s'!"
-                "\n  expected '%s.%s-.x'." %
+            raise ValueError(
+                "incompatible message version '%s', expected '%s.%s-.x'" %
                 (msg_ver_txt, prog_ver[0], prog_ver[1]))
 
     def dump_commit_msg(self, indent=2, **kwds):
@@ -81,26 +84,29 @@ class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
         return msg
 
     @classmethod
-    def parse_commit_msg(cls, cmsg_txt):
+    def parse_commit_msg(cls, cmsg_txt: Text):
         """
         :return: a :class:`_CommitMsg` instance, or fails if cannot parse.
         """
         try:
-            l = yaml.load(io.StringIO(cmsg_txt))
+            ## Are we parsing `git cat-object tag foo`?
+            #
+            if _git_messaged_obj.match(cmsg_txt):
+                m = _after_first_empty_line_regex.search(cmsg_txt)
+                cmsg_txt = cmsg_txt[m.end():]
+
+            l = yaml.load(cmsg_txt)
             if not isinstance(l, list) or not l:
-                raise CmdException(
-                    "Invalid commit/tag message, not a non-empty list: %s" % l)
+                raise ValueError("expected a non-empty list")
 
             headline = l[0]
             cmsg = _CommitMsg(data=l[1:], **headline)
             cmsg._check_commit_msg_version(str(cmsg.v))
 
             return cmsg
-        except CmdException as ex:
-            raise
         except Exception as ex:
             raise CmdException(
-                "Failed parsing commit message due to: %r \nmsg:\n%s" %
+                "Failed parsing commit message due to: %r\nmsg:\n%s" %
                 (ex, tw.indent(cmsg_txt, "  ")))
 
 

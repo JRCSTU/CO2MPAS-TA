@@ -30,7 +30,7 @@ mydir = osp.dirname(__file__)
 
 
 tstamp_responses = [(
-    "Invalid commit/tag message, not a non-empty list",
+    "Failed parsing commit message due to: TypeError",
     941136, {
         'hexnum': '346C4B1FDF5343D6F4B0BF10D660FEDC25B66',
         'percent': 74,
@@ -121,7 +121,7 @@ SjzL9Fp7gP5OsJZ1uRMtP9MzMTjvjMS1IKmNwPvVsvSe+77S3+urMgklH7ciypsT
 extra stuff
 
 """), (
-    "Invalid commit/tag message, not a non-empty list",
+        "Failed parsing commit message due to: TypeError",
     941144, {
         'hexnum': 'A6C6E3771EA412EE56B4E61A10CDE90776D53419',
         'percent': 41,
@@ -193,7 +193,7 @@ aVryU+Z1cn1UO+59VsUeoaUcJqr7wNmwR5Zzyzp7Obm7ZlEvE5Gqfg==
 =y4Fb
 -----END PGP SIGNATURE-----
 """), (
-    "Failed parsing commit message due to: ScannerError",
+    r"Failed parsing commit message due to: ValueError\('expected a non-empty",
     941518, {
         'hexnum': 'A100EBD962AEA3349AFC6396D48015131BCA866F',
         'percent': 19,
@@ -262,7 +262,7 @@ oCxi53i/Agi1pCvJ/WCC9HJ7papOA9+Gd2R7x3F2XVRSP1+/9g7wRA==
 =OVvz
 -----END PGP SIGNATURE-----
 """), (
-    "Failed parsing commit message due to: ScannerError",
+    None,
     942920, {
         'hexnum': 'C87BB5C47CDF17D98978A4F7756713428A7F333',
         'percent': 19,
@@ -271,8 +271,9 @@ oCxi53i/Agi1pCvJ/WCC9HJ7papOA9+Gd2R7x3F2XVRSP1+/9g7wRA==
         'trust_text': 'TRUST_FULLY',
     }, {
         'trust_text': 'TRUST_ULTIMATE',
-        'project': 'RL-99-BM3-2017-0001',
-        'project_source': 'grep',
+        'project': 'FT-12-ABC-2016-0001',
+        'project_source': 'report',
+        'vehicle_family_id': 'RL-99-BM3-2017-0001',
     },
 """ #@IgnorePep8
 -----BEGIN PGP SIGNED MESSAGE-----
@@ -355,7 +356,7 @@ SHI4X+XpZSHFeBFVucZySOwr57AhDYCZpgFI0uXV+k+C94wRBBA1yA==
 =GgO8
 -----END PGP SIGNATURE-----
 """), (
-    "Failed parsing commit message due to: ScannerError",
+    None,
     942919, {
         'hexnum': '8171C03C97F199C6011AF7ED2825A7712DEA0135',
         'percent': 93,
@@ -364,8 +365,9 @@ SHI4X+XpZSHFeBFVucZySOwr57AhDYCZpgFI0uXV+k+C94wRBBA1yA==
         'trust_text': 'TRUST_FULLY',
     }, {
         'trust_text': 'TRUST_ULTIMATE',
-        'project': 'RL-99-BM3-2017-0001',
-        'project_source': 'grep',
+        'project': 'FT-12-ABC-2016-0001',
+        'project_source': 'report',
+        'vehicle_family_id': 'RL-99-BM3-2017-0001',
     },
 """ #@IgnorePep8
 -----BEGIN PGP SIGNED MESSAGE-----
@@ -448,7 +450,7 @@ JywXRfQktpKlMZeyYQPF+cGsXL+TJO2xQzCTLjR9fWoK3HuoO26/eQ==
 =uUII
 -----END PGP SIGNATURE-----
 """), (
-    "Failed parsing commit message due to: ScannerError",
+    None,
     942924, {
         'hexnum': 'B006192C9D64D265F59A58C29A7C95E71BC80324',
         'percent': 84,
@@ -457,8 +459,9 @@ JywXRfQktpKlMZeyYQPF+cGsXL+TJO2xQzCTLjR9fWoK3HuoO26/eQ==
         'trust_text': 'TRUST_FULLY',
     }, {
         'trust_text': 'TRUST_ULTIMATE',
-        'project': 'RL-99-BM3-2017-0001',
-        'project_source': 'grep',
+        'project': 'FT-12-ABC-2016-0001',
+        'project_source': 'report',
+        'vehicle_family_id': 'RL-99-BM3-2017-0001',
     },
 """ #@IgnorePep8
 -----BEGIN PGP SIGNED MESSAGE-----
@@ -578,7 +581,9 @@ class TRX(unittest.TestCase):
         self.assertDictContainsSubset(dice, resp['dice'], pf(resp))
         ts_verdict.update({'key_id':'81959DB570B61F81', 'pubkey_fingerprint':'4B12BCD5788511063B543190E09DF306'})
         self.assertDictContainsSubset(ts_verdict, resp['tstamp'], pf(resp))
-        self.assertDictContainsSubset(tag_verdict, resp['report'], pf(resp))
+        tv = tag_verdict.copy()
+        tv.pop('vehicle_family_id', None)  # Exist for test_scan_vfid_regex(), below.
+        self.assertDictContainsSubset(tv, resp['report'], pf(resp))
 
     def test_send_timestamp(self):
         snd = tstamp.TstampSender(config=self.cfg)
@@ -590,8 +595,8 @@ class TRX(unittest.TestCase):
     def test_scan_vfid_regex(self, case):
         rcv = tstamp.TstampReceiver(config=self.cfg)
         vfid = rcv.scan_for_project_name(case[-1])
-        exp_vfid = case[4]['project']
-        self.assertEqual(vfid, exp_vfid)
+        exp_vfid = (case[4]['project'], case[4].get('vehicle_family_id'))
+        self.assertIn(vfid, exp_vfid)
 
     def test_parse_timestamp_bad(self):
         rcv = tstamp.TstampReceiver(config=self.cfg)

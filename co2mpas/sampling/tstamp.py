@@ -244,7 +244,6 @@ class TstampReceiver(TstampSpec):
         """
         from pprint import pformat
 
-        vfid = None
         git_auth = crypto.get_git_auth(self.config)
         tag_ver = git_auth.verify_git_signed(tag_text.encode('utf-8'))
         tag_verdict = OrderedDict({} if tag_ver is None else sorted(vars(tag_ver).items()))
@@ -262,6 +261,7 @@ class TstampReceiver(TstampSpec):
         tag = tag_csig['msg']
         try:
             cmsg = project._CommitMsg.parse_commit_msg(tag.decode('utf-8'))
+            tag_verdict['commit_msg'] = cmsg._asdict()
             tag_verdict['project'] = cmsg.p
             tag_verdict['project_source'] = 'report'
         except Exception as ex:
@@ -270,11 +270,9 @@ class TstampReceiver(TstampSpec):
             else:
                 self.log.error("Cannot parse dice-report due to: %s", ex)
 
-        if not vfid:
+        if 'project' not in tag_verdict:
             tag_verdict['project'] = self.scan_for_project_name(tag_text)
             tag_verdict['project_source'] = 'grep'
-        else:
-            tag_verdict['project'] = None
 
         return tag_verdict
 
