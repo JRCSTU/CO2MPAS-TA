@@ -247,7 +247,7 @@ class TstampReceiver(TstampSpec):
         vfid = None
         git_auth = crypto.get_git_auth(self.config)
         tag_ver = git_auth.verify_git_signed(tag_text.encode('utf-8'))
-        tag_verdict = {} if tag_ver is None else vars(tag_ver)
+        tag_verdict = OrderedDict({} if tag_ver is None else sorted(vars(tag_ver).items()))
         if not tag_ver:
             ## Do not fail, it might be from an unknown sender.
             #
@@ -262,7 +262,8 @@ class TstampReceiver(TstampSpec):
         tag = tag_csig['msg']
         try:
             cmsg = project._CommitMsg.parse_commit_msg(tag.decode('utf-8'))
-            vfid = cmsg.p
+            tag_verdict['project'] = cmsg.p
+            tag_verdict['project_source'] = 'report'
         except Exception as ex:
             if not self.force:
                 raise
@@ -270,9 +271,12 @@ class TstampReceiver(TstampSpec):
                 self.log.error("Cannot parse dice-report due to: %s", ex)
 
         if not vfid:
-            vfid = self.scan_for_project_name(tag_text)
+            tag_verdict['project'] = self.scan_for_project_name(tag_text)
+            tag_verdict['project_source'] = 'grep'
+        else:
+            tag_verdict['project'] = None
 
-        return tag_verdict, vfid
+        return tag_verdict
 
     def parse_tstamp_response(self, mail_text: Text) -> int:
         ## TODO: Could use dispatcher to parse tstamp-response, if failback routes were working...
@@ -316,7 +320,7 @@ class TstampReceiver(TstampSpec):
                 if not force:
                     raise CmdException("Timestamp-response had no *stamper-id*: %s" % ts_parts['sigarmor'])
 
-            tag_verdict, vfid = self.parse_tstamped_tag(tag)
+            tag_verdict = self.parse_tstamped_tag(tag)
 
         ts_verdict['stamper_id'] = stamper_id
 
@@ -329,7 +333,6 @@ class TstampReceiver(TstampSpec):
             ('tstamp', ts_verdict),
             ('report', tag_verdict),
             ('dice', {
-                'vehicle_family_id': vfid,
                 'hexnum': '%X' % num,
                 'percent': dice100,
                 'decision': decision,

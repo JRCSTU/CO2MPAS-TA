@@ -35,11 +35,11 @@ tstamp_responses = [(
         'hexnum': '346C4B1FDF5343D6F4B0BF10D660FEDC25B66',
         'percent': 74,
         'decision': 'OK',
-        'vehicle_family_id': None,
     }, {
         'trust_text': 'TRUST_FULLY',
     }, {
         'trust_text': None,
+        'project': None,
     },
 """ #@IgnorePep8
  by mail-zone.jrc.it
@@ -126,11 +126,11 @@ extra stuff
         'hexnum': 'A6C6E3771EA412EE56B4E61A10CDE90776D53419',
         'percent': 41,
         'decision': 'OK',
-        'vehicle_family_id': None,
     }, {
         'trust_text': 'TRUST_FULLY',
     }, {
         'trust_text': None,
+        'project': None,
     },
 """ #@IgnorePep8
 -----BEGIN PGP SIGNED MESSAGE-----
@@ -198,11 +198,11 @@ aVryU+Z1cn1UO+59VsUeoaUcJqr7wNmwR5Zzyzp7Obm7ZlEvE5Gqfg==
         'hexnum': 'A100EBD962AEA3349AFC6396D48015131BCA866F',
         'percent': 19,
         'decision': 'OK',
-        'vehicle_family_id': None,
     }, {
         'trust_text': 'TRUST_FULLY',
     }, {
         'trust_text': 'TRUST_ULTIMATE',
+        'project': None,
     },
 """ #@IgnorePep8
 -----BEGIN PGP SIGNED MESSAGE-----
@@ -267,11 +267,12 @@ oCxi53i/Agi1pCvJ/WCC9HJ7papOA9+Gd2R7x3F2XVRSP1+/9g7wRA==
         'hexnum': 'C87BB5C47CDF17D98978A4F7756713428A7F333',
         'percent': 19,
         'decision': 'OK',
-        'vehicle_family_id': 'RL-99-BM3-2017-0001',
     }, {
         'trust_text': 'TRUST_FULLY',
     }, {
         'trust_text': 'TRUST_ULTIMATE',
+        'project': 'RL-99-BM3-2017-0001',
+        'project_source': 'grep',
     },
 """ #@IgnorePep8
 -----BEGIN PGP SIGNED MESSAGE-----
@@ -359,11 +360,12 @@ SHI4X+XpZSHFeBFVucZySOwr57AhDYCZpgFI0uXV+k+C94wRBBA1yA==
         'hexnum': '8171C03C97F199C6011AF7ED2825A7712DEA0135',
         'percent': 93,
         'decision': 'SAMPLE',
-        'vehicle_family_id': 'RL-99-BM3-2017-0001',
     }, {
         'trust_text': 'TRUST_FULLY',
     }, {
         'trust_text': 'TRUST_ULTIMATE',
+        'project': 'RL-99-BM3-2017-0001',
+        'project_source': 'grep',
     },
 """ #@IgnorePep8
 -----BEGIN PGP SIGNED MESSAGE-----
@@ -451,11 +453,12 @@ JywXRfQktpKlMZeyYQPF+cGsXL+TJO2xQzCTLjR9fWoK3HuoO26/eQ==
         'hexnum': 'B006192C9D64D265F59A58C29A7C95E71BC80324',
         'percent': 84,
         'decision': 'OK',
-        'vehicle_family_id': 'RL-99-BM3-2017-0001',
     }, {
         'trust_text': 'TRUST_FULLY',
     }, {
         'trust_text': 'TRUST_ULTIMATE',
+        'project': 'RL-99-BM3-2017-0001',
+        'project_source': 'grep',
     },
 """ #@IgnorePep8
 -----BEGIN PGP SIGNED MESSAGE-----
@@ -587,7 +590,7 @@ class TRX(unittest.TestCase):
     def test_scan_vfid_regex(self, case):
         rcv = tstamp.TstampReceiver(config=self.cfg)
         vfid = rcv.scan_for_project_name(case[-1])
-        exp_vfid = case[2]['vehicle_family_id']
+        exp_vfid = case[4]['project']
         self.assertEqual(vfid, exp_vfid)
 
     def test_parse_timestamp_bad(self):
