@@ -293,14 +293,18 @@ class Project(transitions.Machine, dice.DiceSpec):
             - [do_addfiles, wltp_out, wltp_out, [_is_out_files, _is_force]]
             - [do_addfiles, wltp_out, wltp_iof, _is_inp_files]
 
-            - [do_tagreport, wltp_iof, tagged]
-            - [do_tagreport, tagged, tagged]
+            - [do_prepmail, wltp_iof, tagged]
+            - [do_prepmail, tagged, tagged]
 
             - [do_sendmail, tagged, mailed]
 
-            ## TODO: RENAME do_mailrecv-->do_parsemail??
-            - [do_mailrecv, mailed, dice_yes, _cond_is_dice_yes]
-            - [do_mailrecv, mailed, dice_no]
+            ## TODO: implement do_recvmail()
+            - [do_recvmail, mailed, tstamped, _cond_is_mail_arrived]
+
+            - [do_parsemail, [mailed,
+                              tstamped], dice_yes, _cond_is_dice_yes]
+            - [do_parsemail, [mailed,
+                              tstamped], dice_no]
 
             - [do_addfiles, [dice_yes,
                              dice_no], nedc, _is_other_files]
@@ -541,7 +545,7 @@ class Project(transitions.Machine, dice.DiceSpec):
 
     def _cb_pepare_email(self, event):
         """
-        Triggered by `do_tagreport()` on ENTER of `tagged` state.
+        Triggered by `do_prepmail()` on ENTER of `tagged` state.
 
         If already on `tagged`, just sets the :data:`result` and exits,
         unless --force, in which case it generates another tag.
@@ -581,9 +585,13 @@ class Project(transitions.Machine, dice.DiceSpec):
             tstamp_sender.send_timestamped_email(dice_mail)
         event.kwargs['action'] = '%s stamp-email' % ('FAKED' if pretend else 'sent')
 
+    def _cond_is_mail_arrived(self, event) -> bool:
+        self.log.error('Fetching emails from IMAP not impleneted yet')
+        return False
+
     def _cond_is_dice_yes(self, event) -> bool:
         """
-        Triggered by `do_mailrecv(mail=<raw-mail>)` on CONDITION before `dice_yes` state.
+        Triggered by `do_parsemail(mail=<raw-mail>)` on CONDITION before `dice_yes` state.
 
         :param mail:
             Parses timestamped-email to decide if next-state is `dice_yes` or `dice_no`.
@@ -1219,7 +1227,7 @@ class ProjectCmd(_PrjCmd):
                                    % (self.name, len(args), args))
 
             proj = self.current_project
-            ok = proj.do_tagreport()
+            ok = proj.do_prepmail()
 
             return ok and proj.result or ok
 
