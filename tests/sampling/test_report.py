@@ -118,27 +118,6 @@ class TReportArgs(TReportBase):
             self.assertTrue(f.endswith(path), rpt)
             self.check_report_tuple(rec, test_vfid, path, iokind, rpt)
 
-    def test_bad_prefix(self):
-        c = trtc.get_config()
-        c.ReportCmd.raise_config_file_errors = True
-        cmd = report.ReportCmd(config=c)
-
-        arg = 'BAD_ARG'
-        with self.assertRaisesRegexp(CmdException, re.escape("arg[1]: %s" % arg)):
-            list(cmd.run(arg))
-
-        arg = 'inp:BAD_ARG'
-        with self.assertRaisesRegexp(CmdException, re.escape("arg[1]: %s" % arg)):
-            list(cmd.run(arg))
-
-        arg1 = 'inp:FOO'
-        arg2 = 'out.BAR'
-        with self.assertRaises(CmdException) as cm:
-            list(cmd.run('inp=A', arg1, 'out=B', arg2))
-        #print(cm.exception)
-        self.assertIn("arg[2]: %s" % arg1, str(cm.exception))
-        self.assertIn("arg[4]: %s" % arg2, str(cm.exception))
-
 
 class TReportProject(TReportBase):
     @classmethod

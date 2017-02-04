@@ -226,12 +226,6 @@ class ReportCmd(baseapp.Cmd):
     def _build_io_files_from_args(self, args) -> PFiles:
         """Just to report any stray files>"""
         pfiles = PFiles.parse_io_args(*args)
-        if pfiles.other:
-            bad_args = ('  arg[%d]: %s' % (1 + args.index(a), a)
-                        for a in pfiles.other)
-            raise CmdException(
-                "Cmd %r filepaths must either start with 'inp=' or 'out=' prefix!\n%s" %
-                (self.name, '\n'.join(bad_args)))
 
         return pfiles
 

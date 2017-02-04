@@ -244,30 +244,48 @@ class Project(transitions.Machine, dice.DiceSpec):
     def _is_force(self, event):
         accepted = event.kwargs.get('force', self.force)
         if not accepted:
-            self.log.info('Transition %s-->%s denied!\n  Use force if you must.',
-                          event.transition.source, event.transition.dest)
+            self.log.warning('Transition %s-->%s denied!\n  Use force if you must.',
+                             event.transition.source, event.transition.dest)
         return accepted
 
     def _is_inp_files(self, event):
         pfiles = _evarg(event, 'pfiles', PFiles)
-        return bool(pfiles and pfiles.inp and
-                    not (pfiles.out or pfiles.other))
+        accepted = bool(pfiles and pfiles.inp and
+                        not (pfiles.out))
+
+        return accepted
 
     def _is_out_files(self, event):
         pfiles = _evarg(event, 'pfiles', PFiles)
-        return bool(pfiles and pfiles.out and
-                    not (pfiles.inp or pfiles.other))
+        accepted = bool(pfiles and pfiles.out and
+                        not (pfiles.inp))
+
+        return accepted
 
     def _is_inp_out_files(self, event):
         pfiles = _evarg(event, 'pfiles', PFiles)
-        return bool(pfiles and pfiles.inp and
-                    pfiles.out and
-                    not pfiles.other)
+        accepted = bool(pfiles)
+
+        return accepted
+
+    def _is_ioo_files(self, event):
+        pfiles = _evarg(event, 'pfiles', PFiles)
+        accepted = bool(pfiles and pfiles.inp and pfiles.out)
+
+        if not accepted:
+            self.log.warning('Both inp & out files already stored!\n  Use force if you must store more.')
+
+        return accepted
 
     def _is_other_files(self, event):
         pfiles = _evarg(event, 'pfiles', PFiles)
-        return bool(pfiles and pfiles.other and
-                    not (pfiles.inp or pfiles.out))
+        accepted = bool(pfiles and pfiles.other and
+                        not (pfiles.inp or pfiles.out))
+
+        if not accepted:
+            self.log.debug('Transition %s-->%s denied, had `out` files',
+                           event.transition.source, event.transition.dest)
+        return accepted
 
     def __init__(self, pname, projects_db, **kwds):
         """DO NOT INVOKE THIS; use performant :meth:`Project.new_instance()` instead."""
@@ -290,14 +308,15 @@ class Project(transitions.Machine, dice.DiceSpec):
 
             - [do_addfiles, [wltp_inp,
                              wltp_out,
-                             wltp_iof,
-                             tagged], wltp_iof, [_is_inp_out_files, _is_force]]
+                             tagged], wltp_iof, [__is_inp_out_files, _is_force]]
 
             - [do_addfiles, wltp_inp, wltp_inp, [_is_inp_files, _is_force]]
             - [do_addfiles, wltp_inp, wltp_iof, _is_out_files]
 
             - [do_addfiles, wltp_out, wltp_out, [_is_out_files, _is_force]]
             - [do_addfiles, wltp_out, wltp_iof, _is_inp_files]
+
+            - [do_addfiles, wltp_iof, wltp_iof, [_is_ioo_files, _is_force]]
 
             - [do_prepmail, wltp_iof, tagged]
             - [do_prepmail, tagged, tagged]
@@ -490,6 +509,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         ## Check extraction of report works ok.
         #
         try:
+            ## TODO: Check Project<->VfIF mismatch!!
             rep = self._report_spec()
             list(rep.yield_report_tuples_from_iofiles(pfiles))
         except Exception as ex:
@@ -1197,12 +1217,6 @@ class ProjectCmd(_PrjCmd):
                 raise CmdException('Cmd %r takes at least one argument, received %d: %r!'
                                    % (self.name, len(args), args))
             pfiles = PFiles.parse_io_args(*args)
-            if pfiles.other:
-                raise CmdException(
-                    "Cmd %r filepaths must either start with 'inp=' or 'out=' prefix!\n%s" %
-                    (self.name, '\n'.join('  arg[%d]: %s' % (i, f)
-                                          for i, f in
-                                          enumerate(pfiles.other))))
 
             proj = self.current_project
             ok = proj.do_addfiles(pfiles=pfiles)
