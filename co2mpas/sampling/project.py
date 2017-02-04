@@ -266,7 +266,7 @@ class Project(transitions.Machine, dice.DiceSpec):
     def __init__(self, pname, projects_db, **kwds):
         """DO NOT INVOKE THIS; use performant :meth:`Project.new_instance()` instead."""
         self.pname = pname
-        self.projects_db = projects_db
+        self.projects_db = projects_db  # TODO: Store only repo
         states = [
             'UNBORN', 'INVALID', 'empty', 'wltp_out', 'wltp_inp', 'wltp_iof', 'tagged',
             'mailed', 'dice_yes', 'dice_no', 'nedc',
@@ -294,9 +294,8 @@ class Project(transitions.Machine, dice.DiceSpec):
             - [do_addfiles, wltp_out, wltp_iof, _is_inp_files]
 
             - [do_tagreport, wltp_iof, tagged]
-            - [do_tagreport, tagged, tagged, _is_force]
+            - [do_tagreport, tagged, tagged]
 
-            ## TODO: MERGE `tagged` state with `wltp_iof`??
             - [do_sendmail, tagged, mailed]
 
             ## TODO: RENAME do_mailrecv-->do_parsemail??
@@ -318,7 +317,7 @@ class Project(transitions.Machine, dice.DiceSpec):
                          name=pname,
                          **kwds)
         self.on_enter_empty('_cb_stage_new_project_content')
-        self.on_enter_tagged('_cb_generate_report')
+        self.on_enter_tagged('_cb_pepare_email')
         self.on_enter_wltp_inp('_cb_stage_pfiles')
         self.on_enter_wltp_out('_cb_stage_pfiles')
         self.on_enter_wltp_iof('_cb_stage_pfiles')
@@ -364,59 +363,80 @@ class Project(transitions.Machine, dice.DiceSpec):
             self.do_invalidate(error=ex)
 
     max_dices_per_project = trt.Int(
-        3,  # TODO: Relace limit tags attemps to 3 on testing phase
+        3,
         help="""Number of dice-attempts allowed to be forced for a project."""
     ).tag(config=True)
 
-    def _next_dice_tag_untaken(self, repo, pname):
-        tref = _tname2ref_name(pname)
+    def _find_dice_tag(self, fetch_next=False) -> Union[Text, git.TagReference]:
+        """Return None if no tag exists yet."""
+        repo = self.projects_db.repo
+        tref = _tname2ref_name(self.pname)
+        tags = repo.tags
         for i in range(self.max_dices_per_project):
-            dice_tag = '%s/%d' % (tref, i)
-            if dice_tag not in repo.tags:
-                return dice_tag
+            tagname = '%s/%d' % (tref, i)
+            if tagname not in tags:
+                if fetch_next:
+                    return tagname
+                else:
+                    if i == 0:
+                        return None
+                    else:
+                        tagname = '%s/%d' % (tref, i - 1)
+
+                        return tags[tagname]
 
         raise CmdException("Too many dices for this project '%s'!"
-                           "\n  Maybe start all over with a new project?" % pname)
+                           "\n  Maybe delete project and start all over?" % self.pname)
+
+    def read_dice_tag(self, tag: Union[Text, git.TagReference]):
+        if isinstance(tag, str):
+            tag = self.projects_db.repo.tags[tag]
+        return tag.tag.data_stream.read().decode('utf-8')
 
     def _cb_commit_or_tag(self, event):
         """Executed on EXIT for all states, and commits/tags into repo. """
         from . import crypto
 
         state = self.state
-        if state.islower():  # exclude transient/special cases (BIRTH/DEATH)
-            self.log.debug('Committing: %s', event.kwargs)
+        ## No action wne, reporting on already tagged project.
+        action = _evarg(event, 'action', (str, dict), missing_ok=True)
+        ## Exclude transient/special cases (BIRTH/DEATH).
+        if state.isupper() or not action:
+            return
 
-            git_auth = crypto.get_git_auth(self.config)
-            ## GpgSpec `git_auth` only lazily creates GPG
-            #  which imports keys/trust.
-            git_auth.GPG
-            repo = self.projects_db.repo
-            is_tagging = state == 'tagged'
-            action = _evarg(event, 'action', (str, dict))
-            report = _evarg(event, 'report', (list, dict), True, True)
-            cmsg_txt = self._make_commit_msg(action, report)
+        self.log.debug('Committing: %s', event.kwargs)
+
+        git_auth = crypto.get_git_auth(self.config)
+        ## GpgSpec `git_auth` only lazily creates GPG
+        #  which imports keys/trust.
+        git_auth.GPG
+        repo = self.projects_db.repo
+        is_tagging = state == 'tagged'
+        report = _evarg(event, 'report', (list, dict), none_ok=True)
+        cmsg_txt = self._make_commit_msg(action, report)
+
+        with repo.git.custom_environment(GNUPGHOME=git_auth.gnupghome_resolved):
+            index = repo.index
+            index.commit(cmsg_txt)
 
             self.result = cmsg_txt
 
-            with repo.git.custom_environment(GNUPGHOME=git_auth.gnupghome_resolved):
-                index = repo.index
-                index.commit(cmsg_txt)
+            if is_tagging:
+                ok = False
+                try:
+                    self.log.debug('Tagging: %s', event.kwargs)
+                    tagname = self._find_dice_tag(fetch_next=True)
+                    assert isinstance(tagname, str), tagname
 
-                if is_tagging:
-                    ok = False
-                    try:
+                    tagref = repo.create_tag(tagname, message=cmsg_txt,
+                                             sign=True, local_user=git_auth.master_key)
+                    self.result = self.read_dice_tag(tagref)
 
-                        self.log.debug('Tagging: %s', event.kwargs)
-                        tref = self._next_dice_tag_untaken(repo, self.pname)
-                        tag = repo.create_tag(tref, message=cmsg_txt,
-                                              sign=True, local_user=git_auth.master_key)
-                        self.result = tag.tag.data_stream.read().decode('utf-8')
-
-                        ok = True
-                    finally:
-                        if not ok:
-                            ## Revert to previous project status.
-                            repo.active_branch.commit = 'HEAD~'
+                    ok = True
+                finally:
+                    if not ok:
+                        ## Revert to previous project status.
+                        repo.active_branch.commit = 'HEAD~'
 
     def _make_readme(self):
         return tw.dedent("""
@@ -519,20 +539,30 @@ class Project(transitions.Machine, dice.DiceSpec):
         if any(iofpaths.values()):
             return PFiles(**iofpaths)
 
-    def _cb_generate_report(self, event):
+    def _cb_pepare_email(self, event):
         """
         Triggered by `do_tagreport()` on ENTER of `tagged` state.
 
+        If already on `tagged`, just sets the :data:`result` and exits,
+        unless --force, in which case it generates another tag.
+
         Uses the :class:`Report` to build the tag-msg.
         """
-        self.log.info('Generating and Dice report: %s...', event.kwargs)
-        repspec = self._report_spec()
-        pfiles = self.list_pfiles('inp', 'out', _as_index_paths=True)
+        gen_report = self.force or self.state != 'tagged'
+        if gen_report:
+            self.log.info('Preparing %s dice-email: %s...',
+                          'ANEW' if self.force else '', event.kwargs)
+            repspec = self._report_spec()
+            pfiles = self.list_pfiles('inp', 'out', _as_index_paths=True)
 
-        ## Commit/tag callback expects `report` on event.
-        event.kwargs['action'] = 'drep %s files' % pfiles.nfiles()
-        report = repspec.get_dice_report(pfiles).values()
-        event.kwargs['report'] = list(report)
+            ## Commit/tag callback expects `report` on event.
+            event.kwargs['action'] = 'drep %s files' % pfiles.nfiles()
+            report = repspec.get_dice_report(pfiles).values()
+            event.kwargs['report'] = list(report)
+        else:
+            tagref = self._find_dice_tag()
+            assert tagref
+            self.result = self.read_dice_tag(tagref)
 
     def _cb_send_email(self, event):
         """
@@ -542,11 +572,10 @@ class Project(transitions.Machine, dice.DiceSpec):
         """
         self.log.info('Sending email...')
         tstamp_sender = self._tstamp_sender_spec()
-        repo = self.projects_db.repo
-        ## TODO: Handle multiple DICE-tags!
-        tref = _tname2ref_name(self.pname)
-        tagref = repo.tags[tref]
-        dice_mail = tagref.tag.data_stream.read()
+        tagref = self._find_dice_tag()
+        assert tagref
+        dice_mail = self.read_dice_tag(tagref)
+        assert dice_mail
         pretend = event.kwargs.get('pretend', False)
         if not pretend:
             tstamp_sender.send_timestamped_email(dice_mail)
@@ -1170,12 +1199,15 @@ class ProjectCmd(_PrjCmd):
         """
         Extract Dice report as a tag, preparing it to be sent for timestamping.
 
+        - Use --force to generate a new report.
+
+        SYNTAX
+            %(cmd_chain)s [OPTIONS]
+
         Eventually the *Dice Report* parameters will be time-stamped and disseminated to
         TA authorities & oversight bodies with an email, to receive back
         the sampling decision.
 
-        SYNTAX
-            %(cmd_chain)s [OPTIONS]
         """
 
         #examples = trt.Unicode(""" """)
@@ -1187,7 +1219,7 @@ class ProjectCmd(_PrjCmd):
                                    % (self.name, len(args), args))
 
             proj = self.current_project
-            ok = self.current_project.do_tagreport()
+            ok = proj.do_tagreport()
 
             return ok and proj.result or ok
 
