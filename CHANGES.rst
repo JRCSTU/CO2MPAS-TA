@@ -4,26 +4,103 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
+v1.5.x, file-ver: 2.2.5, 6-November 2016: "Stamp" release
+===========================================================
+![co2mpas_banner](https://cloud.githubusercontent.com/assets/501585/20363048/09b0c724-ac3e-11e6-81b4-bc49d12e6aa1.png)
+
+## This _CO<sub>2</sub>MPAS_ release contains few model changes; software updates;
+and the [random sampler (**_DICE_**) application](https://co2mpas.io/glossary.html#term-dice-report):
+
+### Model changes:
+
+- [#281](https://github.com/JRCSTU/co2mpas/issues/281) [#329](https://github.com/JRCSTU/co2mpas/issues/329) Improved prediction of the `electric model` of CO<sub>2</sub>MPAS, by setting a `balance SOC threshold` when the alternator is always on.
+
+- [#325](https://github.com/JRCSTU/co2mpas/issues/325) An additional check has been set for the input file to prevent CO<sub>2</sub>MPAS run when the input file states `has_torque_converter = True` and `gear_box_type = manual'.
+
+- [#330](https://github.com/JRCSTU/co2mpas/issues/330): The `clutch model` has been updated to be fed with the `Torque converter model`.
+
+- [#330](https://github.com/JRCSTU/co2mpas/issues/330): The `clutch model` prediction has been enhanced during gearshifts by remove `clutch phases` when `(gears == 0……) | (velocities <= stop_velocity)`.
+
+- [#342](https://github.com/JRCSTU/co2mpas/issues/342): Enable an option to use more than one `final_drive_ratios` for vehicles equipped with dual/variable clutch.
+
+-    the **Declaration mode:** template & demo files include now the ´family-id´ as a set of concatenated codes that are required to run the model in _Type Approval mode, _command (TA)_;
+
+-    Enhanced **desktop GUI** to launch _CO<sub>2</sub>MPAS_ to perform the random sampling for TA in addition to launch simulations (engineering and type approval modes), synchtonize time series, generate templates and demo-files
+
+### Validations of the model
+
+- results validated against real vehicles, are described in the [this release's validation report](http://jrcstu.github.io/co2mpas/v1.5.x/validation_real_cases.html); together with the classic validation report for computer simulated [manual transmission vehicles](http://jrcstu.github.io/co2mpas/v1.5.x/validation_manual_cases.html) and [automatic transmission vehicles](http://jrcstu.github.io/co2mpas/v1.5.x/validation_automatic_cases.html).
+
+### Software updates
+- _enhancements of the output and dice reports have been made_; very few _backward-compatible changes in the Input files_;
+- the _CO<sub>2</sub>MPAS_ glossary has been completely revised and it has migrated to the main [webpage](https://co2mpas.io/glossary.html) following _ReStructured_ Text format;
+- Enhanced plotting of the _plot_workflow_ for faster navigation on _CO<sub>2</sub>MPAS_ model
+
+A detailed account of the work performed on this release can be found in [CHANGES-1.5.X.](https://co2mpas.io/changes.html)
+
+### Presenting _The DICE_
+Application that reads the _CO<sub>2</sub>MPAS_  output dice report, securely sends it to a time-stamp server, and decodes the random (1/10 cases) answer as _Need to undergo a pyshical test_ or _Accept CO2MPAS results_.
+
+## All-In-One
+
+!!! _Mind that All-In-One is the official procedure for running *CO<sub>2</sub>MPAS_ for Type Approval (TA).*
+
+The [installations instructions](http://co2mpas.io/install.html#all-in-one-installation-under-windows)
+have *few changes* in comparison to the previous releases:
+
+- download and extract the 64bit archive from this link:
+  https://github.com/JRCSTU/CO2MPAS-TA/releases/download/v1.5.x/co2mpas_ALLINONE-64bit-v1.5.x.7z
+
+### Alternative installation 1: Upgrade with Internet
+
+For those with _unhindered internet access_, and with _sufficient execution permissions for the `pip` python tool_, upgrading CO<sub>2</sub>MPAS is possible with the [usual commands](http://co2mpas.io/install.html#co2mpas-installation):
+
+```
+pip uninstall co2mpas
+pip install co2mpas
+```
+
+### Alternative installation 2: Upgrade WITHOUT  Internet
+
+For those behind firewalls or no internet connectivity, follow these steps:
+1. Use an existing _Python-3.5_ environment; that might be an older _ALLINONE_,
+   WinPython, Anaconda or Linux's standard python environment.
+2. With with a "regular" browser and when connected to the Internet,
+   pre-download locally and unzip the archive:
+   https://github.com/JRCSTU/CO2MPAS-TA/releases/download/v1.4.1/co2mpas_DEPENDENCIES-v1.4.1_Rally.7z
+   This archive contains _CO<sub>2</sub>MPAS_ along with all its dependent packages.
+3. Install _CO<sub>2</sub>MPAS_, referencing the above folder.
+   Assuming that you unzipped the packages in the folder `path/to/co2mpas_packages`,
+   use a console-command like this:
+
+   ```
+    pip install co2mpas  --no-index  -f path/to/co2mpas_packages
+   ```
+
+Kindest Regards,
+&nbsp;&nbsp;&nbsp;&nbsp;_CO<sub>2</sub>MPAS-Team_
+
+
 
 v1.4.1, file-ver: 2.2.5, 17-November 2016: "Rally" release
 ===========================================================
 .. image:: https://cloud.githubusercontent.com/assets/501585/20363048/09b0c724-ac3e-11e6-81b4-bc49d12e6aa1.png
    :align: left
    :width: 480
-   
+
 This |co2mpas| release contains both key model and software updates; additional capabilities have been added for the user, namely:
 
 - the **Declaration mode:** template & demo files now contain just the minimum inputs required to run under *Type Approval (TA)* command;
 - a **desktop GUI** to launch |co2mpas| and perform selected tasks (i.e. *simulate*, *datasync* time-series for a specific cycle, *generate templates*);
 - several **model changes**:
 
-  - improved handling of real-measurement data-series - results validated against 
-    real vehicles, are described in the `this release's validation report 
+  - improved handling of real-measurement data-series - results validated against
+    real vehicles, are described in the `this release's validation report
     <http://jrcstu.github.io/co2mpas/v1.4.x/validation_real_cases.html>`_;
 
   - support of a series of **technologies**, some marked as "untested" due to the lack of
-    sufficient experimental data for their validation: 
-    
+    sufficient experimental data for their validation:
+
     +----------------------------------------+-----------+-----------+
     |                                        | petrol    | diesel    |
     +========================================+===========+===========+
@@ -39,16 +116,16 @@ This |co2mpas| release contains both key model and software updates; additional 
     +----------------------------------------+-----------+-----------+
     |          *Gearbox Thermal Management:* | untested  | untested  |
     +----------------------------------------+-----------+-----------+
-    
+
 - *enhancements and diagrams for the result files*, very few, *backward-compatible changes in the Input files*;
-- the project's sources are now *"practically" open* in *GitHub*, so 
+- the project's sources are now *"practically" open* in *GitHub*, so
   many of *the serving URLs have changed:*
 
-  - sources are now served from *github*: https://github.com/JRCSTU/CO2MPAS-TA 
-  - a **Wiki** hosting `*simple guidelines* <https://github.com/JRCSTU/CO2MPAS-TA/wiki/CO2MPAS-user-guidelines>`_ 
+  - sources are now served from *github*: https://github.com/JRCSTU/CO2MPAS-TA
+  - a **Wiki** hosting `*simple guidelines* <https://github.com/JRCSTU/CO2MPAS-TA/wiki/CO2MPAS-user-guidelines>`_
     on how to download, install, and run the |co2mpas| software;
-  - the `*Issues-tracker* <https://github.com/JRCSTU/CO2MPAS-TA/issues>`_ for collecting feedback, 
-  - installation files distributed from `*Github-Releases page* <https://github.com/JRCSTU/CO2MPAS-TA/releases>`_ 
+  - the `*Issues-tracker* <https://github.com/JRCSTU/CO2MPAS-TA/issues>`_ for collecting feedback,
+  - installation files distributed from `*Github-Releases page* <https://github.com/JRCSTU/CO2MPAS-TA/releases>`_
     (the https://files.co2mpas.io/ url has been deprecated).
 
 The study of this release's results are contained in these 3 reports:
@@ -58,10 +135,10 @@ and `real <http://jrcstu.github.io/co2mpas/v1.4.x/validation_real_cases.html>`_
 cars, respectively.
 
 .. Note:
-   Actually *v1.4.1* is NOT published in *PyPi* due to corrupted ``.whl`` archive. 
+   Actually *v1.4.1* is NOT published in *PyPi* due to corrupted ``.whl`` archive.
    *v1.4.2* has been published in its place, and *v1.4.3* in the site.
-   
-   
+
+
 Model-changes
 -------------
 - :gh:`250`, :gh:`276`:
@@ -202,9 +279,9 @@ Build Chores(build, site, etc)
 - :gh:`189`: Open public GitHub repo; clone old releases.
 - Use `ReadTheDocs <https://co2mpas-ta.readthedocs.io/>`_ for automated building of project-site,
   SSL-proxied by https://co2mpas.io.
-- Depracated 
+- Depracated
 - Allow to run only under *Python-3.5*, set trove-classifiers accordingly.
-- Dependencies: +toolz, +Pillow, +openpyxl, +python-gnupg, +gitpython +keyring, +transitions, 
+- Dependencies: +toolz, +Pillow, +openpyxl, +python-gnupg, +gitpython +keyring, +transitions,
   -easygui, -cachetool, -cycler.
   - Changes of URLs, opensourcing repository.
 
@@ -1098,5 +1175,5 @@ Bugs reported from v0 with their status up to date:
 #. A 5 second start-stop anticipation should not occur in the case of A/T
    vehicles: **fixed**.
 
-   
+
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
