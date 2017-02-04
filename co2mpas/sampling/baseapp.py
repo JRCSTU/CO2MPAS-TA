@@ -343,6 +343,7 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
             Print parameters for all intermediate classes.
           """).tag(config=True)
 
+    ## TODO: Retrofitt to force-flags (with code for each specific permission).
     force = trt.Bool(
         False,
         ## INFO: Add force flag explanations here.
@@ -973,7 +974,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                     cls = config_classes.get(clsname)
                     if not cls:
                         if not break_on_irregularities:  # Only scream when full check.
-                            self.log.warn(
+                            self.log.warning(
                                 "Unknown class `%s` in *%s* file-configs while ecrypting values.",
                                 clsname, config_source)
                         continue

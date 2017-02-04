@@ -46,6 +46,7 @@ fRAw0pl/l+eGW3adMctTOxaX3lI/nz+g2QTEURgDHxLGaghDEGuy1VyjFFt0WXef
 """ #@IgnorePep8
 ## Timestamp-service's keys, as imported from:
 #  from: http://www.itconsult.co.uk/stamper/stampinf.htm
+#  and with just the "Timestamp Service" key signed by the test-key, above.
 #
 #    pub   1024R/02B02F070712FEBD 1994-09-25
 #    uid               [ unknown] Matthew Richardson <matthew@itconsult.co.uk>
@@ -66,7 +67,7 @@ fRAw0pl/l+eGW3adMctTOxaX3lI/nz+g2QTEURgDHxLGaghDEGuy1VyjFFt0WXef
 #    sig          81959DB570B61F81 2014-05-25  Timestamp Service <stamper@itconsult.co.uk>
 #    sig          B124C999CBBB52FF 2017-01-26  CO2MPAS Test <sampling@co2mpas.jrc.ec.europa.eu>
 #
-#  Note that only the "timestamp-key" is signed by test-key, above.
+#  NOTE: to import it, need --allow-weak-digest-algos
 #
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 Version: GnuPG v2

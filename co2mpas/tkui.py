@@ -46,7 +46,7 @@ Layout::
 #  - http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/index.html
 
 ## Icons from:
-#    - http://www.iconsdb.com/red-icons/red-play-icons.html
+#    - http://www.iconsdb.com/
 #    - https://material.io/icons/#
 
 from co2mpas import (__main__ as cmain, __version__,

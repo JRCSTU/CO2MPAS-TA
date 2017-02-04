@@ -313,12 +313,12 @@ def wltp_gears(
     wltp_exp.applyDriveabilityRules(vel, accelerations, gears, res[1], res[-1])
 
     gears[gears < 0] = 0
-    log.warn('The WLTP gear-shift profile generation is for engineering '
-             'purposes and the results are by no means valid according to the '
-             'legislation.\nActually they are calculated based on a pre '
-             'phase-1a version of the GTR spec.\n '
-             'Please provide the gear-shifting profile '
-             'within `prediction.WLTP` sheet.')
+    log.warning('The WLTP gear-shift profile generation is for engineering '
+                'purposes and the results are by no means valid according to the '
+                'legislation.\nActually they are calculated based on a pre '
+                'phase-1a version of the GTR spec.\n '
+                'Please provide the gear-shifting profile '
+                'within `prediction.WLTP` sheet.')
     return gears
 
 

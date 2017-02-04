@@ -118,7 +118,7 @@ def make_simulation_plan(plan, timestamp, variation, flag, model=None):
             base = get_results(model, o_cache, base_fpath, timestamp, run, var,
                                o_folder, modelconf)
         except KeyError:
-            log.warn('Base model "%s" of variation "%s" cannot be parsed!',
+            log.warning('Base model "%s" of variation "%s" cannot be parsed!',
                      base_fpath, i)
             continue
 
