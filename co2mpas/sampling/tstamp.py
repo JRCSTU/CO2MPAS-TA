@@ -226,7 +226,7 @@ class TstampReceiver(TstampSpec):
         """
         Search in the text for any coarsly identifiable project-name (`vehicle_family_id`).
 
-        Use this if :meth:`parse_tsamp_response()` has failed to provide the answer.
+        Use this if :meth:`parse_tstamp_response()` has failed to provide the answer.
         """
         project = None
         all_vfids = self.vfid_extraction_regex.findall(mail_text)
@@ -237,7 +237,7 @@ class TstampReceiver(TstampSpec):
 
         return project
 
-    def parse_tsamped_tag(self, tag_text: Text) -> int:
+    def parse_tstamped_tag(self, tag_text: Text) -> int:
         """
         :param msg_text:
             The tag as extracted from tstamp response email by :meth:`crypto.pgp_split_clearsigned`.
@@ -274,7 +274,7 @@ class TstampReceiver(TstampSpec):
 
         return tag_verdict, vfid
 
-    def parse_tsamp_response(self, mail_text: Text) -> int:
+    def parse_tstamp_response(self, mail_text: Text) -> int:
         ## TODO: Could use dispatcher to parse tstamp-response, if failback routes were working...
         import textwrap as tw
         from pprint import pformat
@@ -316,7 +316,7 @@ class TstampReceiver(TstampSpec):
                 if not force:
                     raise CmdException("Timestamp-response had no *stamper-id*: %s" % ts_parts['sigarmor'])
 
-            tag_verdict, vfid = self.parse_tsamped_tag(tag)
+            tag_verdict, vfid = self.parse_tstamped_tag(tag)
 
         ts_verdict['stamper_id'] = stamper_id
 
@@ -479,7 +479,7 @@ class TstampCmd(baseapp.Cmd):
                     with io.open(file, 'rt') as fin:
                         mail_text = fin.read()
 
-                resp = rcver.parse_tsamp_response(mail_text)
+                resp = rcver.parse_tstamp_response(mail_text)
 
                 yield pformat(resp)
 

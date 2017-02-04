@@ -1935,7 +1935,7 @@ class DicePanel(ttk.Frame):
             if tstamp_response.strip():
                 c = tstamp.TstampReceiver()
                 try:
-                    sig, num, mod100, decision = c.parse_tsamp_response(tstamp_response)
+                    sig, num, mod100, decision = c.parse_tstamp_response(tstamp_response)
                 except Exception as ex:
                     log.debug("Failed parsing tstamp response due to: %s", ex, exc_info=1)
                     sig, num, mod100, decision = ('INVALID TSTAMP RESPONSE: %s' % ex, '', '', '')

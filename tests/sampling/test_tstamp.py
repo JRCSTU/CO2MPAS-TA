@@ -566,10 +566,10 @@ class TRX(unittest.TestCase):
 
     def check_timestamp_fails(self, rcv, mail_text, msg_regex):
         with self.assertRaisesRegex(tstamp.CmdException, msg_regex):
-            rcv.parse_tsamp_response(mail_text)
+            rcv.parse_tstamp_response(mail_text)
 
     def check_timestamp(self, rcv, stamper_id, dice, ts_verdict, tag_verdict, tstamp_response):
-        resp = rcv.parse_tsamp_response(tstamp_response)
+        resp = rcv.parse_tstamp_response(tstamp_response)
         print(pf(resp))
         self.assertEqual(resp['tstamp']['stamper_id'], stamper_id, pf(resp))
         self.assertDictContainsSubset(dice, resp['dice'], pf(resp))
@@ -594,7 +594,7 @@ class TRX(unittest.TestCase):
         rcv = tstamp.TstampReceiver(config=self.cfg)
         ex_msg = r"Cannot verify timestamp-reponse signature due to: incorrect passphrase"
         with self.assertRaisesRegex(tstamp.CmdException, ex_msg):
-            rcv.parse_tsamp_response("")
+            rcv.parse_tstamp_response("")
 
     @ddt.data(*tstamp_responses)
     def test_parse_timestamps(self, case):

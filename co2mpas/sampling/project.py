@@ -600,7 +600,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         mail_text = _evarg(event, 'mail', (str, bytes))
 
         recv = self._tstamp_receiver_spec()
-        res = recv.parse_tsamp_response(mail_text)
+        res = recv.parse_tstamp_response(mail_text)
         dice = res['dice']
         decision = dice['decision']
         project = dice['vehicle_family_id']
