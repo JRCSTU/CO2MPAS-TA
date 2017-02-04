@@ -67,7 +67,7 @@ from ..__main__ import init_logging
 
 ################################################
 ## INFO: Modify the following variables on a different application.
-APPNAME = 'co2dice'
+APPNAME = 'co2dice'  # TODO: Cannot use baseapp with different app-names.
 CONFIG_VAR_NAME = '%s_CONFIG_PATH' % APPNAME.upper()
 PERSIST_VAR_NAME = '%s_PERSIST_PATH' % APPNAME.upper()
 
@@ -337,6 +337,8 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
         ~~~~~~~~~~~~~~~~~~~~~~~~~
         `project list/examine`
             List project with the "long" format, include infos about the repo (when 2).
+        `project init/open/append/stamp`
+            Print committed-msg instead of try/false/proj-name.
         `config show`
             Print parameters for all intermediate classes.
           """).tag(config=True)

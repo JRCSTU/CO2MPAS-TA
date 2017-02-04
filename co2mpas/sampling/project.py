@@ -208,8 +208,12 @@ class Project(transitions.Machine, dice.DiceSpec):
 
         return clone
 
+    #: The commit/tag of the recent transition
+    #: as stored by :meth:`_cb_commit_or_tag()`.
+    result = None
+
+    #: Any problems when state 'INVALID'.
     error = None
-    """Store any problems when state 'INVALID'. """
 
     def __str__(self, *args, **kwargs):
         #TODO: Obey verbosity on project-str.
@@ -308,7 +312,7 @@ class Project(transitions.Machine, dice.DiceSpec):
                          initial=states[0],
                          transitions=trans,
                          send_event=True,
-                         before_state_change='_cb_check_my_index',
+                         before_state_change=['_cb_check_my_index', '_cb_clear_result'],
                          after_state_change='_cb_commit_or_tag',
                          auto_transitions=False,
                          name=pname,
@@ -341,13 +345,18 @@ class Project(transitions.Machine, dice.DiceSpec):
         self.error = (self.state, ex)
         raise ex
 
-    def _make_commit_msg(self, action, data=None):
+    def _make_commit_msg(self, action, data=None) -> Text:
         assert data is None or isinstance(data, list), "Data not a list: %s" % data
         cmsg = _CommitMsg(__dice_report_version__, action, self.pname, self.state, data)
+
         return cmsg.dump_commit_msg(width=self.git_desc_width)
 
+    def _cb_clear_result(self, event):
+        """ Executed BEFORE exiting any state, and clears any results from previous transitions. """
+        self.result = None
+
     def _cb_check_my_index(self, event):
-        """ Executed on ENTER for all states, to compare my `pname` with checked-out ref. """
+        """ Executed BEFORE exiting any state, to compare my `pname` with checked-out ref. """
         active_branch = self.projects_db.repo.active_branch
         if self.pname != _ref2pname(active_branch):
             ex = MachineError("Expected current project to be %r, but was %r!"
@@ -378,27 +387,31 @@ class Project(transitions.Machine, dice.DiceSpec):
             self.log.debug('Committing: %s', event.kwargs)
 
             git_auth = crypto.get_git_auth(self.config)
+            ## GpgSpec `git_auth` only lazily creates GPG
+            #  which imports keys/trust.
+            git_auth.GPG
             repo = self.projects_db.repo
             is_tagging = state == 'tagged'
             action = _evarg(event, 'action', (str, dict))
             report = _evarg(event, 'report', (list, dict), True, True)
             cmsg_txt = self._make_commit_msg(action, report)
 
-            ## GpgSpec `git_auth` only lazily creates GPG
-            #  which imports keys/trust.
-            git_auth.GPG
+            self.result = cmsg_txt
 
             with repo.git.custom_environment(GNUPGHOME=git_auth.gnupghome_resolved):
                 index = repo.index
                 index.commit(cmsg_txt)
 
                 if is_tagging:
+                    ok = False
                     try:
-                        ok = False
+
                         self.log.debug('Tagging: %s', event.kwargs)
                         tref = self._next_dice_tag_untaken(repo, self.pname)
-                        repo.create_tag(tref, message=cmsg_txt,
-                                        sign=True, local_user=git_auth.master_key)
+                        tag = repo.create_tag(tref, message=cmsg_txt,
+                                              sign=True, local_user=git_auth.master_key)
+                        self.result = tag.tag.data_stream.read().decode('utf-8')
+
                         ok = True
                     finally:
                         if not ok:
@@ -1096,7 +1109,9 @@ class ProjectCmd(_PrjCmd):
                 raise CmdException("Cmd %r takes a SINGLE project-name as argument, received: %r!"
                                    % (self.name, args))
 
-            return self.projects_db.proj_open(args[0])
+            proj = self.projects_db.proj_open(args[0])
+
+            return proj.result if self.verbose else proj
 
     class InitCmd(_PrjCmd):
         """
@@ -1146,7 +1161,10 @@ class ProjectCmd(_PrjCmd):
                                           for i, f in
                                           enumerate(pfiles.other))))
 
-            return self.current_project.do_addfiles(pfiles=pfiles)
+            proj = self.current_project
+            ok = proj.do_addfiles(pfiles=pfiles)
+
+            return proj.result if self.verbose else ok
 
     class ReportCmd(_PrjCmd):
         """
@@ -1167,7 +1185,11 @@ class ProjectCmd(_PrjCmd):
             if len(args) > 0:
                 raise CmdException('Cmd %r takes no arguments, received %d: %r!'
                                    % (self.name, len(args), args))
-            return self.current_project.do_tagreport()
+
+            proj = self.current_project
+            ok = self.current_project.do_tagreport()
+
+            return ok and proj.result or ok
 
     class TstampCmd(_PrjCmd):
         """
@@ -1183,7 +1205,11 @@ class ProjectCmd(_PrjCmd):
             if len(args) > 0:
                 raise CmdException('Cmd %r takes no arguments, received %d: %r!'
                                    % (self.name, len(args), args))
-            return self.current_project.do_sendmail()
+
+            proj = self.current_project
+            ok = proj.do_sendmail()
+
+            return proj.result if self.verbose else ok
 
     class ExamineCmd(_PrjCmd):
         """
