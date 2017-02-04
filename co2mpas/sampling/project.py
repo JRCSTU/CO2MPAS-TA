@@ -1176,21 +1176,7 @@ class ProjectCmd(_PrjCmd):
             if len(args) > 0:
                 raise CmdException('Cmd %r takes no arguments, received %d: %r!'
                                    % (self.name, len(args), args))
-            from . import tstamp
-            from . import report
-
-            proj = self.projects_db.current_project()
-            if proj.state == 'wltp_iof':
-                self.log.info('Generating Dice report ...')
-                proj.do_tagreport()
-
-            pfiles = proj.list_pfiles('out', _as_index_paths=True)
-            rep = report.Report(config=self.config)
-            rep_msg = str(list(rep.yield_report_tuples_from_iofiles(pfiles)))
-
-            self.log.info('Sending Timestamp ...')
-            sender = tstamp.TstampSender(config=self.config)
-            sender.send_timestamped_email(rep_msg)
+            return self.projects_db.current_project().do_sendmail()
 
     class ExamineCmd(_PrjCmd):
         """
