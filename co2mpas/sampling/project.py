@@ -1029,6 +1029,10 @@ class _PrjCmd(baseapp.Cmd):
         p.config = self.config
         return p
 
+    @property
+    def current_project(self):
+        return self.projects_db.current_project()
+
 
 class ProjectCmd(_PrjCmd):
     """
@@ -1076,7 +1080,8 @@ class ProjectCmd(_PrjCmd):
             if len(args) != 0:
                 raise CmdException('Cmd %r takes no arguments, received %d: %r!'
                                    % (self.name, len(args), args))
-            return self.projects_db.current_project()
+
+            return self.current_project
 
     class OpenCmd(_PrjCmd):
         """
@@ -1090,6 +1095,7 @@ class ProjectCmd(_PrjCmd):
             if len(args) != 1:
                 raise CmdException("Cmd %r takes a SINGLE project-name as argument, received: %r!"
                                    % (self.name, args))
+
             return self.projects_db.proj_open(args[0])
 
     class InitCmd(_PrjCmd):
@@ -1103,6 +1109,7 @@ class ProjectCmd(_PrjCmd):
             if len(args) != 1:
                 raise CmdException('Cmd %r takes a SINGLE project-name as argument, received %r!'
                                    % (self.name, args))
+
             return self.projects_db.proj_add(args[0])
 
     class AppendCmd(_PrjCmd):
@@ -1139,7 +1146,7 @@ class ProjectCmd(_PrjCmd):
                                           for i, f in
                                           enumerate(pfiles.other))))
 
-            return self.projects_db.current_project().do_addfiles(pfiles=pfiles)
+            return self.current_project.do_addfiles(pfiles=pfiles)
 
     class ReportCmd(_PrjCmd):
         """
@@ -1160,7 +1167,7 @@ class ProjectCmd(_PrjCmd):
             if len(args) > 0:
                 raise CmdException('Cmd %r takes no arguments, received %d: %r!'
                                    % (self.name, len(args), args))
-            return self.projects_db.current_project().do_tagreport()
+            return self.current_project.do_tagreport()
 
     class TstampCmd(_PrjCmd):
         """
@@ -1176,7 +1183,7 @@ class ProjectCmd(_PrjCmd):
             if len(args) > 0:
                 raise CmdException('Cmd %r takes no arguments, received %d: %r!'
                                    % (self.name, len(args), args))
-            return self.projects_db.current_project().do_sendmail()
+            return self.current_project.do_sendmail()
 
     class ExamineCmd(_PrjCmd):
         """
