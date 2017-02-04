@@ -152,10 +152,9 @@ class TstampSender(TstampSpec):
     def send_timestamped_email(self, msg: Union[str, bytes], dry_run=False):
         from pprint import pformat
 
-        if not isinstance(msg, bytes):
-            msg = msg.encode('utf-8')
+        msg_bytes = msg if isinstance(msg, bytes) else msg.encode('utf-8')
         git_auth = crypto.get_git_auth(self.config)
-        ver = git_auth.verify_git_signed(msg)
+        ver = git_auth.verify_git_signed(msg_bytes)
         verdict = None if ver is None else pformat(vars(ver))
         if not ver:
             if self.force:
@@ -194,7 +193,7 @@ class TstampReceiver(TstampSpec):
     """IMAP & timestamp parameters and methods for receiving & parsing dice-report emails."""
 
     vfid_extraction_regex = trt.CRegExp(
-        r"vehicle_family_id[^\n]((?:IP|RL|RM|PR)-\d{2}-\w{2,3}-\d{4}-\d{4})",  # See also co2mpas.io.schema!
+        r"vehicle_family_id[^\n]+((?:IP|RL|RM|PR)-\d{2}-\w{2,3}-\d{4}-\d{4})",  # See also co2mpas.io.schema!
         allow_none=False,
         help=""""An approximate way to get the project if timestamp parsing has failed. """
     ).tag(config=True)
@@ -262,7 +261,8 @@ class TstampReceiver(TstampSpec):
         tag_csig = tag_verdict['parts']
         tag = tag_csig['msg']
         try:
-            project._CommitMsg.parse_commit_msg(tag.decode('utf-8'))
+            cmsg = project._CommitMsg.parse_commit_msg(tag.decode('utf-8'))
+            vfid = cmsg.p
         except Exception as ex:
             if not self.force:
                 raise
