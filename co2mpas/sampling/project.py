@@ -1003,7 +1003,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         prefname = _pname2ref_name(pname)
         if prefname not in self.repo.heads:
             raise CmdException('Project %r not found!' % pname)
-        self.repo.heads[_pname2ref_name(pname)].checkout()
+        self.repo.heads[_pname2ref_name(pname)].checkout(force=self.force)
 
         self._current_project = None
         return self.current_project()
