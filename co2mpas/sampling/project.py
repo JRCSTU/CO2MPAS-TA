@@ -202,7 +202,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         return cls('<zygote>', None)
 
     @classmethod
-    def new_instance(cls, pname, projects_db, config) -> 'Project':
+    def new_instance(cls, pname, repo, config) -> 'Project':
         """
         Avoid repeated FSM constructions by forking :meth:`Project._project_zygote()`.
 
@@ -215,7 +215,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         clone = copy.deepcopy(p)
         clone.pname = pname
         clone.id = pname + ": "
-        clone.projects_db = projects_db
+        clone.repo = repo
         clone.update_config(config)
 
         return clone
@@ -284,10 +284,10 @@ class Project(transitions.Machine, dice.DiceSpec):
                            event.transition.source, event.transition.dest)
         return accepted
 
-    def __init__(self, pname, projects_db, **kwds):
+    def __init__(self, pname, repo, **kwds):
         """DO NOT INVOKE THIS; use performant :meth:`Project.new_instance()` instead."""
         self.pname = pname
-        self.projects_db = projects_db  # TODO: Store only repo
+        self.rpo = repo
         states = [
             'UNBORN', 'INVALID', 'empty', 'wltp_out', 'wltp_inp', 'wltp_iof', 'tagged',
             'mailed', 'dice_yes', 'dice_no', 'nedc',
@@ -381,7 +381,7 @@ class Project(transitions.Machine, dice.DiceSpec):
 
     def _cb_check_my_index(self, event):
         """ Executed BEFORE exiting any state, to compare my `pname` with checked-out ref. """
-        active_branch = self.projects_db.repo.active_branch
+        active_branch = self.repo.active_branch
         if self.pname != _ref2pname(active_branch):
             ex = MachineError("Expected current project to be %r, but was %r!"
                               % (self.pname, active_branch))
@@ -394,7 +394,7 @@ class Project(transitions.Machine, dice.DiceSpec):
 
     def _find_dice_tag(self, fetch_next=False) -> Union[Text, 'git.TagReference']:
         """Return None if no tag exists yet."""
-        repo = self.projects_db.repo
+        repo = self.repo
         tref = _tname2ref_name(self.pname)
         tags = repo.tags
         for i in range(self.max_dices_per_project):
@@ -415,7 +415,7 @@ class Project(transitions.Machine, dice.DiceSpec):
 
     def read_dice_tag(self, tag: Union[Text, 'git.TagReference']):
         if isinstance(tag, str):
-            tag = self.projects_db.repo.tags[tag]
+            tag = self.repo.tags[tag]
         return tag.tag.data_stream.read().decode('utf-8')
 
     def _cb_commit_or_tag(self, event):
@@ -435,7 +435,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         ## GpgSpec `git_auth` only lazily creates GPG
         #  which imports keys/trust.
         git_auth.GPG
-        repo = self.projects_db.repo
+        repo = self.repo
         is_tagging = state == 'tagged'
         report = _evarg(event, 'report', (list, dict), missing_ok=True)
         cmsg_txt = self._make_commit_msg(action, report)
@@ -474,7 +474,7 @@ class Project(transitions.Machine, dice.DiceSpec):
 
     def _cb_stage_new_project_content(self, event):
         """Triggered by `do_createme()` on ENTER 'empty' state."""
-        repo = self.projects_db.repo
+        repo = self.repo
         index = repo.index
 
         ## Cleanup any files from old project.
@@ -522,7 +522,7 @@ class Project(transitions.Machine, dice.DiceSpec):
                              pfiles.nfiles())
             return
 
-        repo = self.projects_db.repo
+        repo = self.repo
         index = repo.index
         for io_kind, fpaths in pfiles._asdict().items():
             for ext_fpath in fpaths:
@@ -558,7 +558,7 @@ class Project(transitions.Machine, dice.DiceSpec):
             for any WLTP files, or none if none exists.
         """
         io_kinds = PFiles._io_kinds_list(*io_kinds)
-        repo = self.projects_db.repo
+        repo = self.repo
 
         def collect_kind_files(io_kind):
             wd_fpath = osp.join(repo.working_tree_dir, io_kind)
@@ -980,7 +980,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
 
     def _conceive_new_project(self, pname):  # -> Project:
         """Returns a "UNBORN" :class:`Project`; its state must be triggered immediately."""
-        return Project.new_instance(pname, self, self.config)
+        return Project.new_instance(pname, self.repo, self.config)
 
     _current_project = None
 
