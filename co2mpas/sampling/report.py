@@ -68,35 +68,38 @@ class Report(baseapp.Spec):
 
         return vfid, df
 
-    def yield_report_tuples_from_iofiles(self, iofiles: PFiles):
+    def yield_report_tuples_from_iofiles(self, iofiles: PFiles, expected_vfid=None):
         """
         Parses input/output files and yields their *unique* vehicle-family-id and any dice-reports.
 
+        :param expected_vfid:
+            raise
         :return:
-            A generator that begins by yielding the following 4-tuple
+            A generator that begins by yielding the following 3-tuple
             for each input/output file::
 
-                (<vehicle-family-id>, 'inp' | 'out', <abs-fpath>, <report>)
+                ('inp' | 'out', <abs-fpath>, <report-df>)
 
-            - For *output* files, the ``<report>`` is a CSV string;
-            - For *input* files, the ``<report>`` is None.
+            - `<report>` is series/data-frame, because that's extracted from excel.
+            - For *input* files, the ``<report>`` has this index: ``['vehicle_family_id': <expectec_vfid>}``;
+            - For *output* files, the ``<report>`` is a pandas data-frame.
+            - For *other* files, the ``<report>`` is None.
 
-            If the *vehicle_family_id* of a subsequent file does not match the extracted
-            from previous files, it screams (unless --force).
-
-        :raise: CmdException if *vehicle_family_id* do not match among files, and not --force
+        :raise:
+            CmdException if *vehicle_family_id* not matching among each other,
+            and `expected_vfid` when provided, unless --force.
 
         """
-        vfid = None
+        expected_vfid = None
 
         def check_vfid_missmatch(fpath, file_vfid):
-            nonlocal vfid
+            nonlocal expected_vfid
 
-            if vfid is None:
-                vfid = file_vfid
-            elif vfid != file_vfid:
+            if expected_vfid is None:
+                expected_vfid = file_vfid
+            elif expected_vfid != file_vfid:
                 msg = ("Mismatch `vehicle_family_id` between file('%s'): '%s' and the rest's `%s`!"
-                       % (fpath, file_vfid, vfid))
+                       % (fpath, file_vfid, expected_vfid))
                 if self.force:
                     self.log.warning(msg)
                 else:
@@ -107,37 +110,44 @@ class Report(baseapp.Spec):
             file_vfid = self.extract_vfid_from_input(fpath)
             check_vfid_missmatch(fpath, file_vfid)
 
-            yield (file_vfid, fpath, 'inp', None)
+            yield (fpath, 'inp', OrderedDict([
+                ('report_type', 'input_report'),
+                ('vehicle_family_id', file_vfid),
+            ]))
 
         for fpath in iofiles.out:
             fpath = pndlu.convpath(fpath)
             file_vfid, dice_report = self.extract_dice_report_from_output(fpath)
             check_vfid_missmatch(fpath, file_vfid)
 
-            yield (file_vfid, fpath, 'out', dice_report)
+            yield (fpath, 'out', dice_report)
 
         for fpath in iofiles.other:
             fpath = pndlu.convpath(fpath)
-            yield (None, fpath, 'other', None)
+            yield (fpath, 'other', None)
 
-    def get_dice_report(self, iofiles: PFiles):
-        return OrderedDict((file_tuple[1], report_tuple_2_dict(*file_tuple))
-                           for file_tuple
-                           in self.yield_report_tuples_from_iofiles(iofiles))
+    def get_dice_report(self, iofiles: PFiles, expected_vfid=None):
+        tuples = self.yield_report_tuples_from_iofiles(iofiles, expected_vfid)
+        report = OrderedDict((file_tuple[0], report_tuple_2_dict(*file_tuple))
+                             for file_tuple
+                             in tuples)
+        return report
 
 
-def report_tuple_2_dict(vfid, fpath, iokind, rdf) -> dict:
+def report_tuple_2_dict(fpath, iokind, report) -> dict:
+    """Converts tuples produced by :meth:`yield_report_tuples_from_iofiles()` into stuff YAML-able. """
     d = OrderedDict([
         ('file', osp.basename(fpath)),
         ('iokind', iokind)])
 
-    if vfid is None:
-        assert iokind == 'other' and rdf is None, (vfid, fpath, iokind, rdf)
-    else:
-        d['vehicle_family_id'] = vfid
-        if rdf is not None:
-            d['content_type'] = 'dice_report'
-            d['content'] = rdf.T.to_dict('list')
+    if isinstance(report, pd.DataFrame):
+        report = OrderedDict((k, list(v)) for k, v in report.T.items())
+    elif isinstance(report, pd.Series):
+        report = OrderedDict(report.items())
+    elif report is not None:
+        assert isinstance(report, dict)
+
+    d['report'] = report
 
     return d
 
@@ -149,7 +159,7 @@ def report_tuple_2_dict(vfid, fpath, iokind, rdf) -> dict:
 
 class ReportCmd(baseapp.Cmd):
     """
-    Extract the report parameters from the co2mpas input/output files, or from *current-project*.
+    Extract dice-report from the given co2mpas input/output/other files, or from those in *current-project*.
 
     The *report parameters* will be time-stamped and disseminated to
     TA authorities & oversight bodies with an email, to receive back
@@ -263,5 +273,5 @@ class ReportCmd(baseapp.Cmd):
         else:
             for rtuple in report.yield_report_tuples_from_iofiles(pfiles):
                 drep = report_tuple_2_dict(*rtuple)
-                fpath = rtuple[1]
+                fpath = rtuple[0]
                 yield yaml.dump({fpath: drep}, indent=2)

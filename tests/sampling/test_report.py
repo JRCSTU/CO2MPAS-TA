@@ -55,19 +55,16 @@ class TApp(unittest.TestCase):
 
 class TReportBase(unittest.TestCase):
     def check_report_tuple(self, k, vfid, fpath, iokind, dice_report=None):
-        self.assertEqual(len(k), 5 if dice_report else 3, k)
-        self.assertEqual(k['vehicle_family_id'], vfid, k)
+        self.assertEqual(len(k), 3, k)
         self.assertTrue(k['file'].endswith(osp.basename(fpath)), k)
         self.assertEqual(k['iokind'], iokind, k)
-        dr = k.get('content')
+        dr = k.get('report')
         if dice_report is True:
-            self.assertEqual(k['content_type'], 'dice_report', k)
-            dr = k['content']
             self.assertIsInstance(dr, dict, k)
-        elif dice_report is not None:
-            self.assertEqual(k['content_type'], 'dice_report', k)
-            dr = k['content']
-            self.assertEqual(dr, dice_report, k)
+            self.assertEqual(dr['report_type'][0], 'dice_report', k)
+            self.assertEqual(dr['vehicle_family_id'][0], vfid, k)
+        elif dice_report is False:
+            self.assertIn('report_type', dr)
         else:
             self.assertIsNone(dr, k)
 
@@ -86,7 +83,7 @@ class TReportArgs(TReportBase):
         rpt = yaml.load('\n'.join(res))
         f, rec = next(iter(rpt.items()))
         self.assertTrue(f.endswith("tests\sampling\input.xlsx"), rpt)
-        self.check_report_tuple(rec, test_vfid, test_inp_fpath, 'inp')
+        self.check_report_tuple(rec, test_vfid, test_inp_fpath, 'inp', False)
 
     def test_extract_output(self):
         c = trtc.get_config()
@@ -112,11 +109,11 @@ class TReportArgs(TReportBase):
         rpt = yaml.load('\n'.join(res))
         for f, rec in rpt.items():
             if f.endswith('input.xlsx'):
-                path, iokind, rpt = "tests\sampling\input.xlsx", 'inp', None
+                path, iokind, exp_rpt = "tests\sampling\input.xlsx", 'inp', False
             elif f.endswith('output.xlsx'):
-                path, iokind, rpt = "tests\sampling\output.xlsx", 'out', True
+                path, iokind, exp_rpt = "tests\sampling\output.xlsx", 'out', True
             self.assertTrue(f.endswith(path), rpt)
-            self.check_report_tuple(rec, test_vfid, path, iokind, rpt)
+            self.check_report_tuple(rec, test_vfid, path, iokind, exp_rpt)
 
 
 class TReportProject(TReportBase):
