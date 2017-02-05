@@ -177,6 +177,10 @@ def _evarg(event, dname, dtype=None, none_ok=False, missing_ok=False):
 class Project(transitions.Machine, dice.DiceSpec):
     """The Finite State Machine for the currently checked-out project."""
 
+    dry_run = trt.Bool(
+        help="Process actions but do not actually commit/tag results in the project."
+    ).tag(config=True)
+
     git_desc_width = trt.Int(
         78, allow_none=False,
         help="""
@@ -520,6 +524,11 @@ class Project(transitions.Machine, dice.DiceSpec):
             else:
                 raise CmdException(msg % (pfiles, ex))
 
+        if self.dry_run:
+            self.warning('DRY-RUN: Not actually committed %d files.',
+                         pfiles.nfiles())
+            return
+
         repo = self.projects_db.repo
         index = repo.index
         for io_kind, fpaths in pfiles._asdict().items():
@@ -584,6 +593,13 @@ class Project(transitions.Machine, dice.DiceSpec):
                           'ANEW' if self.force else '', event.kwargs)
             repspec = self._report_spec()
             pfiles = self.list_pfiles('inp', 'out', _as_index_paths=True)
+            report = list(repspec.get_dice_report(pfiles).values())
+
+            if self.dry_run:
+                self.warning('DRY-RUN: Not actually committed report.')
+                self.result = report
+
+                return
 
             ## Commit/tag callback expects `report` on event.
             event.kwargs['action'] = 'drep %s files' % pfiles.nfiles()
@@ -1211,6 +1227,17 @@ class ProjectCmd(_PrjCmd):
                 %(cmd_chain)s --force inp=co2mpas_input.xlsx out=co2mpas_results.xlsx
             """)
 
+        def __init__(self, **kwds):
+            kwds.setdefault('cmd_flags', {
+                ('n', 'dry-run'): (
+                    {
+                        'Project': {'dry_run': True},
+                    },
+                    "Parse files but do not actually store them in the project."
+                )
+            })
+            super().__init__(**kwds)
+
         def run(self, *args):
             self.log.info('Importing report files %s...', args)
             if len(args) < 1:
@@ -1240,6 +1267,17 @@ class ProjectCmd(_PrjCmd):
 
         #examples = trt.Unicode(""" """)
 
+        def __init__(self, **kwds):
+            kwds.setdefault('cmd_flags', {
+                ('n', 'dry-run'): (
+                    {
+                        'Project': {'dry_run': True},
+                    },
+                    "Verify dice-report do not actually store it in the project."
+                )
+            })
+            super().__init__(**kwds)
+
         def run(self, *args):
             self.log.info('Tagging project %r...', args)
             if len(args) > 0:
@@ -1260,6 +1298,17 @@ class ProjectCmd(_PrjCmd):
         """
 
         #examples = trt.Unicode(""" """)
+
+        def __init__(self, **kwds):
+            kwds.setdefault('cmd_flags', {
+                ('n', 'dry-run'): (
+                    {
+                        'Project': {'dry_run': True},
+                    },
+                    "Verify dice-report but not actually send tstamp email."
+                )
+            })
+            super().__init__(**kwds)
 
         def run(self, *args):
             if len(args) > 0:
