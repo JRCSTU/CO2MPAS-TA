@@ -734,14 +734,11 @@ def define_data_schema(read=True):
     return Schema(schema)
 
 
-_re_vehicle_family_id = regex.compile(
-    r'^(?:IP|RL|RM|PR)-\d{2}-\w{2,3}-\d{4}-\d{4}$'
-)
-
-
 def _vehicle_family_id(error=None, **kwargs):
+    from ..sampling.project import vehicle_family_id_regex
+
     def m(s):
-        return _re_vehicle_family_id.match(s)
+        return vehicle_family_id_regex.match(s)
     error = (error or "Invalid format!"
              "\n  Expected('FT-ta-WMI-yyyy-nnnn'), where ta, yyy, nnn are numbers.")
     return And(_string(**kwargs), m, error=error)

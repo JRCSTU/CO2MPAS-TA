@@ -35,6 +35,9 @@ from .._version import __dice_report_version__
 ###################
 ##     Specs     ##
 ###################
+vehicle_family_id_regex = re.compile(r'^(?:IP|RL|RM|PR)-\d{2}-\w{2,3}-\d{4}-\d{4}$')
+git_project_regex = re.compile('^\w[\w-]+$')
+
 PROJECT_STATUSES = '<invalid> empty full signed dice_sent sampled'.split()
 
 
@@ -1018,6 +1021,11 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
 
         return self._current_project
 
+    def validate_project_name(self, pname: Text) -> Project:
+        return pname and (self.force and
+                          git_project_regex.match(pname) or
+                          vehicle_family_id_regex.match(pname))
+
     def proj_add(self, pname: Text) -> Project:
         """
         Creates a new project and sets it as the current one.
@@ -1028,8 +1036,10 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             the current :class:`Project` or fail
         """
         self.log.info('Creating project %r...', pname)
-        if not pname or not re.match('^\w[\w-]+$', pname):
-            raise CmdException('Invalid name %r for a project!' % pname)
+        if not self.validate_project_name(pname):
+            raise CmdException(
+                "Invalid name %r for a project!\n  Expected('FT-ta-WMI-yyyy-nnnn'), "
+                "where ta, yyy, nnn are numbers." % pname)
 
         prefname = _pname2ref_name(pname)
         if prefname in self.repo.heads:
