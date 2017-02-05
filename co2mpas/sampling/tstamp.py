@@ -422,7 +422,6 @@ class TstampCmd(baseapp.Cmd):
                     pndlu.first_line(TstampCmd.SendCmd.dry_run.help)
                 )
             })
-
             super().__init__(**kwds)
 
         def run(self, *args):

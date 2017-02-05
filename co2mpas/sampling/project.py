@@ -422,7 +422,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         return tag.tag.data_stream.read().decode('utf-8')
 
     def _cb_commit_or_tag(self, event):
-        """Executed on EXIT for all states, and commits/tags into repo. """
+        """Executed AFTER al state changes, and commits/tags into repo. """
         from . import crypto
 
         state = self.state
@@ -463,7 +463,9 @@ class Project(transitions.Machine, dice.DiceSpec):
                     ok = True
                 finally:
                     if not ok:
-                        ## Revert to previous project status.
+                        self.log.warning(
+                            "New status('%s') failed, REVERTING to prev-status('%s').",
+                            state, event.transition.source)
                         repo.active_branch.commit = 'HEAD~'
 
     def _make_readme(self):

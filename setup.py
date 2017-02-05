@@ -190,17 +190,13 @@ setup(
         'schedula>=0.1.1',
         'traitlets>=5.0.0',
         'python-gnupg',
+        'gitpython>=2.1.0', ## Win+Cygwin support
+        'transitions',
     ],
     dependency_links=[
         'https://github.com/vinci1it2000/pycel/tarball/master#egg=pycel-0.0.1'
         'https://github.com/ankostis/traitlets/tarball/dev#egg=traitlets-5.0.0',
     ],
-    extras_require={
-        'dice': [
-            'gitpython>=2.1.0', ## Win+Cygwin support
-            'transitions',
-        ],
-    },
     packages=find_packages(exclude=[
         'tests', 'tests.*',
         'doc', 'doc.*',
@@ -208,13 +204,14 @@ setup(
     ]),
     package_data={
         'co2mpas': [
-        'demos/*.xlsx',
-        'ipynbs/*.ipynb',
-        'icons/*.png',
-        'co2mpas_template.xlsx',
-        'datasync_template.xlsx',
-        'co2mpas_output_template.xlsx',
-    ]},
+            'demos/*.xlsx',
+            'ipynbs/*.ipynb',
+            'icons/*.png',
+            'co2mpas_template.xlsx',
+            'datasync_template.xlsx',
+            'co2mpas_output_template.xlsx',
+        ]
+    },
     include_package_data=True,
     zip_safe=True,
     test_suite='nose.collector',
