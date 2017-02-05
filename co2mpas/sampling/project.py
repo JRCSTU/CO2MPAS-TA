@@ -270,16 +270,7 @@ class Project(transitions.Machine, dice.DiceSpec):
 
     def _is_inp_out_files(self, event):
         pfiles = _evarg(event, 'pfiles', PFiles)
-        accepted = bool(pfiles)
-
-        return accepted
-
-    def _is_ioo_files(self, event):
-        pfiles = _evarg(event, 'pfiles', PFiles)
         accepted = bool(pfiles and pfiles.inp and pfiles.out)
-
-        if not accepted:
-            self.log.warning('Both inp & out files already stored!\n  Use force if you must store more.')
 
         return accepted
 
@@ -302,39 +293,43 @@ class Project(transitions.Machine, dice.DiceSpec):
             'mailed', 'dice_yes', 'dice_no', 'nedc',
         ]
         trans = yaml.load(
-            # Trigger        Source-state   Dest-state      Conditions?
+            # Trigger        Source     Dest-state    Conditions? unless before after prepare
             """
-            - [do_invalidate, '*', INVALID, None, None, _cb_invalidated]
+            - [do_invalidate, '*',      INVALID,      None, None,        _cb_invalidated]
 
-            - [do_createme, UNBORN, empty]
+            - [do_createme,  UNBORN,    empty]
 
-            - [do_addfiles, empty, wltp_iof, _is_inp_out_files]
-            - [do_addfiles, empty, wltp_inp, _is_inp_files]
-            - [do_addfiles, empty, wltp_out, _is_out_files]
+            - [do_addfiles, empty,      wltp_iof,     _is_inp_out_files]
+            - [do_addfiles, empty,      wltp_inp,     _is_inp_files    ]
+            - [do_addfiles, empty,      wltp_out,     _is_out_files    ]
 
             - [do_addfiles, [wltp_inp,
                              wltp_out,
-                             tagged], wltp_iof, [__is_inp_out_files, _is_force]]
+                             tagged],   wltp_iof,     [_is_inp_out_files,
+                                                       _is_force]      ]
 
-            - [do_addfiles, wltp_inp, wltp_inp, [_is_inp_files, _is_force]]
-            - [do_addfiles, wltp_inp, wltp_iof, _is_out_files]
+            - [do_addfiles, wltp_inp,   wltp_inp,     [_is_inp_files,
+                                                       _is_force]      ]
+            - [do_addfiles, wltp_inp,   wltp_iof,     _is_out_files]
 
-            - [do_addfiles, wltp_out, wltp_out, [_is_out_files, _is_force]]
-            - [do_addfiles, wltp_out, wltp_iof, _is_inp_files]
+            - [do_addfiles, wltp_out,   wltp_out,     [_is_out_files,
+                                                       _is_force]      ]
+            - [do_addfiles, wltp_out,   wltp_iof,     _is_inp_files]
 
-            - [do_addfiles, wltp_iof, wltp_iof, [_is_ioo_files, _is_force]]
+            - [do_addfiles, wltp_iof,   wltp_iof,     [_is_force]      ]
 
-            - [do_prepmail, wltp_iof, tagged]
-            - [do_prepmail, tagged, tagged]
+            - [do_prepmail, wltp_iof,   tagged]
+            - [do_prepmail, tagged,     tagged]
 
-            - [do_sendmail, tagged, mailed]
+            - [do_sendmail, tagged,     mailed]
 
-            - [do_parsemail, mailed, dice_yes, _cond_is_dice_yes]
-            - [do_parsemail, mailed, dice_no]
+            - [do_parsemail, mailed,    dice_yes,     _cond_is_dice_yes]
+            - [do_parsemail, mailed,    dice_no]
 
             - [do_addfiles, [dice_yes,
-                             dice_no], nedc, _is_other_files]
-            - [do_addfiles, nedc, nedc, [_is_other_files, _is_force]]
+                             dice_no],  nedc,         _is_other_files  ]
+            - [do_addfiles, nedc,       nedc,         [_is_other_files,
+                                                       _is_force]      ]
             """)
 
         super().__init__(states=states,
