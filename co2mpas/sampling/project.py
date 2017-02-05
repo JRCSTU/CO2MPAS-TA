@@ -441,7 +441,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         git_auth.GPG
         repo = self.projects_db.repo
         is_tagging = state == 'tagged'
-        report = _evarg(event, 'report', (list, dict), none_ok=True)
+        report = _evarg(event, 'report', (list, dict), missing_ok=True)
         cmsg_txt = self._make_commit_msg(action, report)
 
         with repo.git.custom_environment(GNUPGHOME=git_auth.gnupghome_resolved):
