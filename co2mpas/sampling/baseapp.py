@@ -1098,12 +1098,21 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
 
         By default, screams about using sub-cmds, or about doing nothing!
         """
+        import ipython_genutils.text as tw
+
         if self.subcommands:
             cmd_line = ' '.join(cl.name
                                 for cl in reversed(self.my_cmd_chain()))
-            raise CmdException("Specify one of the sub-commands: "
-                               "\n    %s\nor type: \n    %s --help"
-                               % (', '.join(self.subcommands.keys()), cmd_line))
+            examples = str.strip(tw.dedent(self.examples.strip()))
+            msg = tw.dedent(
+                """Specify one of the sub-commands:
+                    %s
+                or type:
+                    %s --help
+                """) % (', '.join(self.subcommands.keys()), cmd_line)
+            if examples:
+                msg = "%s\nExamples\n--------\n%s\n" % (msg, examples)
+            raise CmdException(msg)
         assert False, "Override run() method in cmd subclasses."
 
     @classmethod
