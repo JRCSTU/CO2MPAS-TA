@@ -201,7 +201,8 @@ if __name__ == '__main__':
     #argv = 'project list  --Project.reset_settings=True'.split()
     #argv = '--Project.reset_settings=True'.split()
     #argv = 'project list  --reset-git-settings'.split()
-    #argv = 'project init one'.split()
+    #argv = 'project init P1 --force'.split()
+    #argv = ' project append  out=tests/sampling/output.xlsx -n'.split()
 
     #argv = 'project current'.split()
     #argv = 'config paths'.split()

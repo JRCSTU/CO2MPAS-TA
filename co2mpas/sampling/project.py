@@ -507,13 +507,11 @@ class Project(transitions.Machine, dice.DiceSpec):
 
         self.log.info('Importing files: %s...', event.kwargs)
         pfiles = _evarg(event, 'pfiles', PFiles)
-        force = event.kwargs.get('force', self.force)
 
         ## Check extraction of report works ok,
         #  and that VFids match.
         #
         try:
-            ## TODO: Check Project<->VfIF mismatch!!
             rep = self._report_spec()
             rep.get_dice_report(pfiles, expected_vfid=self.pname)
         except Exception as ex:
@@ -525,8 +523,8 @@ class Project(transitions.Machine, dice.DiceSpec):
                 raise CmdException(msg % (pfiles, ex))
 
         if self.dry_run:
-            self.warning('DRY-RUN: Not actually committed %d files.',
-                         pfiles.nfiles())
+            self.log.warning('DRY-RUN: Not actually committed %d files.',
+                             pfiles.nfiles())
             return
 
         repo = self.projects_db.repo
@@ -596,7 +594,7 @@ class Project(transitions.Machine, dice.DiceSpec):
             report = list(repspec.get_dice_report(pfiles).values())
 
             if self.dry_run:
-                self.warning('DRY-RUN: Not actually committed report.')
+                self.log.warning('DRY-RUN: Not actually committed report.')
                 self.result = report
 
                 return
@@ -626,7 +624,7 @@ class Project(transitions.Machine, dice.DiceSpec):
 
         tstamp_sender.send_timestamped_email(dice_mail, dry_run=dry_run)
         if dry_run:
-            self.warning("DRY-RUN: You have to send the email your self!"
+            self.log.warning("DRY-RUN: You have to send the email your self!"
                          "\n  Use the `project report` subcmd to get it.")
         else:
             event.kwargs['action'] = '%s stamp-email' % ('FAKED' if dry_run else 'sent')
@@ -647,7 +645,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         decision = dice['decision']
 
         if self.dry_run:
-            self.warning('DRY-RUN: Not actually committed decision.')
+            self.log.warning('DRY-RUN: Not actually committed decision.')
             self.result = decision
 
             return
