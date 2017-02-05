@@ -590,8 +590,9 @@ class Project(transitions.Machine, dice.DiceSpec):
             report = list(repspec.get_dice_report(pfiles).values())
 
             if self.dry_run:
-                self.log.warning('DRY-RUN: Not actually committed report.')
-                self.result = report
+                self.log.warning("DRY-RUN: Not actually committed the report, "
+                                 "and it is not yet signed!")
+                self.result = yaml.dump(report, indent=2)
 
                 return
 
@@ -1259,9 +1260,10 @@ class ProjectCmd(_PrjCmd):
 
     class ReportCmd(_PrjCmd):
         """
-        Extract Dice report as a tag, preparing it to be sent for timestamping.
+        Prepares or re-prints the signed dice-report that can be sent for timestamping.
 
         - Use --force to generate a new report.
+        - Use --dry-run to see its rough contents without signing and storing it.
 
         SYNTAX
             %(cmd_chain)s [OPTIONS]
