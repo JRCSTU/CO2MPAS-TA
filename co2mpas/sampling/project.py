@@ -620,16 +620,15 @@ class Project(transitions.Machine, dice.DiceSpec):
         signed_dice_report = self.read_dice_tag(tagref)
         assert signed_dice_report
 
-        dice_mail_body = tstamp_sender.send_timestamped_email(
+        dice_mail_mime = tstamp_sender.send_timestamped_email(
             signed_dice_report, self.pname, dry_run=dry_run)
 
         if dry_run:
-            self.log.warning(tw.dedent("""\
-                DRY-RUN: Now you must send the email your self!
-                  'Subject': %s
-                  'Recipients': %s
-                """))
-            self.result = dice_mail_body
+            self.log.warning(
+                "DRY-RUN: Now you must send the email your self!"
+                "\n  'Copy from the 1st line starting with 'X-Stamper-To:', and "
+                "\n  remember to set 'Subject' and 'To' as shown.")
+            self.result = str(dice_mail_mime)
         else:
             event.kwargs['action'] = '%s stamp-email' % ('FAKED' if dry_run else 'sent')
 

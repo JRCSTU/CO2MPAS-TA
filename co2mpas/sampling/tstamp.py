@@ -181,7 +181,7 @@ class TstampSender(TstampSpec):
             if not dry_run:
                 srv.send_message(mail)
 
-        return msg
+        return mail
 
 
 _stamper_id_regex = re.compile(r"Comment: Stamper Reference Id: (\d+)")
@@ -380,12 +380,12 @@ class TstampCmd(baseapp.Cmd):
     """
 
     examples = trt.Unicode(
-    """
-    Pick an existing dice-report tag to send for timestamping:
-        git cat-object tag dices/RL-12-BM3-2016-000/1 | %(cmd_chain)s send
+        """
+        Pick an existing dice-report tag to send for timestamping:
+            git cat-object tag dices/RL-12-BM3-2016-000/1 | %(cmd_chain)s send
 
-    Await for the response, and paste its content to this command:
-        %(cmd_chain)s parse
+        Await for the response, and paste its content to this command:
+            %(cmd_chain)s parse
     """)
 
     class SendCmd(_Subcmd):
@@ -398,6 +398,7 @@ class TstampCmd(baseapp.Cmd):
         - Do not use this command directly (unless experimenting) - prefer the `project tstamp` sub-command.
         - If '-' is given or no files at all, it reads from STDIN.
         - Many options related to sending & receiving the email are expected to be stored in the config-file.
+        - Use --verbose to print the timestamped email.
         """
 
         examples = trt.Unicode("""
@@ -441,7 +442,9 @@ class TstampCmd(baseapp.Cmd):
                     with io.open(file, 'rt') as fin:
                         mail_text = fin.read()
 
-                sender.send_timestamped_email(mail_text, dry_run=self.dry_run)
+                mail = sender.send_timestamped_email(mail_text, dry_run=self.dry_run)
+                if self.verbose or self.dry_run:
+                    return str(mail)
 
     class ParseCmd(_Subcmd):
         """
