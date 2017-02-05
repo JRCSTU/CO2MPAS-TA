@@ -12,6 +12,7 @@ from datetime import datetime
 import io
 import os
 import re
+import sys
 import textwrap as tw
 from typing import (
     Any, Union, List, Dict, Sequence, Iterable, Optional, Text, Tuple, Callable)  # @UnusedImport
@@ -37,9 +38,6 @@ from .._version import __dice_report_version__
 ###################
 vehicle_family_id_regex = re.compile(r'^(?:IP|RL|RM|PR)-\d{2}-\w{2,3}-\d{4}-\d{4}$')
 git_project_regex = re.compile('^\w[\w-]+$')
-
-PROJECT_STATUSES = '<invalid> empty full signed dice_sent sampled'.split()
-
 
 _git_messaged_obj = re.compile(r'^(:?object|tag) ')
 _after_first_empty_line_regex = re.compile(r'\n\r?\n')
@@ -290,7 +288,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         self.rpo = repo
         states = [
             'UNBORN', 'INVALID', 'empty', 'wltp_out', 'wltp_inp', 'wltp_iof', 'tagged',
-            'mailed', 'dice_yes', 'dice_no', 'nedc',
+            'mailed', 'diced', 'nedc',
         ]
         trans = yaml.load(
             # Trigger        Source     Dest-state    Conditions? unless before after prepare
@@ -324,12 +322,13 @@ class Project(transitions.Machine, dice.DiceSpec):
 
             - [do_sendmail,  tagged,     mailed]
 
-            - [do_parsemail, mailed,    dice_yes,      _cond_is_dice_yes]
-            - [do_parsemail, mailed,    dice_no]
+            - [do_storedice, mailed,    diced,         _cond_is_diced]
 
-            - [do_addfiles, [dice_yes,
-                             dice_no],  nedc,          _is_other_files  ]
-            - [do_addfiles, nedc,       nedc,          [_is_other_files,
+            # - [do_noting,  diced,    diced_ok]
+            # - [do_sample,  diced,    diced_ok]
+
+            - [do_addfiles,  diced,      nedc,         _is_other_files  ]
+            - [do_addfiles,  nedc,       nedc,         [_is_other_files,
                                                        _is_force]      ]
             """)
 
@@ -632,31 +631,35 @@ class Project(transitions.Machine, dice.DiceSpec):
         else:
             event.kwargs['action'] = '%s stamp-email' % ('FAKED' if dry_run else 'sent')
 
-    def _cond_is_dice_yes(self, event) -> bool:
+    def _cond_is_diced(self, event) -> bool:
         """
-        Triggered by `do_parsemail(mail=<raw-mail>)` on CONDITION before `dice_yes` state.
+        Triggered by `do_storedice(verdict=<dict>)` as CONDITION before `diced` state.
 
-        :param mail:
-            Parses timestamped-email to decide if next-state is `dice_yes` or `dice_no`.
+        :param verdict:
+            The result of verifying timestamped-response.
+
+        .. Note:
+            It needs an already verified tstamp-response because to select which project
+            it belongs to, it needs to parse the dice-report contained within the response.
         """
-        self.log.info('Receiving email: %s...', event.kwargs)
-        mail_text = _evarg(event, 'mail', (str, bytes))
+        res = _evarg(event, 'verdict', dict)
 
-        recv = self._tstamp_receiver_spec()
-        res = recv.parse_tstamp_response(mail_text)
         dice = res['dice']
         decision = dice['decision']
+        resp_txt = yaml.dump(decision, indent=2, wdith=None, default_flow_style=False)
 
         if self.dry_run:
-            self.log.warning('DRY-RUN: Not actually committed decision.')
-            self.result = decision
+            self.log.warning('DRY-RUN: Not actually registering decision.')
 
-            return
+            self.result = resp_txt
+
+            return False
 
         event.kwargs['action'] = "diced as %s" % decision
+        ## TODO: **On commit, set arbitrary files to store (where? name?)**.
         event.kwargs['report'] = res
 
-        return decision
+        return True
 
 
 class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
@@ -1080,6 +1083,16 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             if _is_project_ref(ref) and not pnames or ref.path in pnames:
                 yield ref
 
+    def proj_parse_stamped(self, mail_text: Text):
+        from . import tstamp
+
+        recv = tstamp.TstampReceiver(config=self.config)
+        verdict = recv.parse_tstamp_response(mail_text)
+        pname = verdict['report']['project']
+        proj = self.proj_open(pname)
+        proj.do_storedice(verdict)
+        return proj.result
+
     def proj_list(self, *pnames: Text, verbose=None,
                   as_text=False, fields=None):
         """
@@ -1341,6 +1354,55 @@ class ProjectCmd(_PrjCmd):
 
             return proj.result if self.verbose or proj.dry_run else ok
 
+    class TparseCmd(_PrjCmd):
+        """
+        Derives *decision* OK/SAMPLE flag from tstamped-response, and store it (or compare with existing).
+
+        SYNTAX
+            %(cmd_chain)s [OPTIONS] [<tstamped-file-1> ...]
+
+        - If '-' is given or no file at all, it reads from STDIN.
+        - If --force is given to overcome any verification/parsing errors,
+          then --project might be needed, to set the project the response belongs to .
+        """
+
+        #examples = trt.Unicode(""" """)
+
+        project = trt.Unicode(
+            help="Which project to store/compare the tstamp-response given"
+        ).tag(config=True)
+
+        def __init__(self, **kwds):
+            from . import tstamp
+            kwds.setdefault('conf_classes', [tstamp.TstampReceiver])
+            kwds.setdefault('cmd_flags', {
+                ('n', 'dry-run'): (
+                    {
+                        'Project': {'dry_run': True},
+                    },
+                    "Pase the tstamped response without storing it in the project."
+                )
+            })
+            super().__init__(**kwds)
+
+        def run(self, *args):
+            if len(args) > 1:
+                raise CmdException('Cmd %r takes one optional filepath, received %d: %r!'
+                                   % (self.name, len(args), args))
+
+            file = '-' if not args else args[0]
+
+            if file == '-':
+                self.log.info("Reading STDIN; paste message verbatim!")
+                mail_text = sys.stdin.read()
+            else:
+                with io.open(file, 'rt') as fin:
+                    mail_text = fin.read()
+
+            res = self.projects_db.proj_parse_stamped(mail_text)
+
+            return res if self.verbose else ok
+
     class ExamineCmd(_PrjCmd):
         """
         Print various information about the specified project, or the current-project, if none specified.
@@ -1367,7 +1429,7 @@ class ProjectCmd(_PrjCmd):
         def run(self, *args):
             self.log.info('Archiving repo into %r...', args)
             if len(args) > 1:
-                raise CmdException('Cmd %r takes one optional argument, received %d: %r!'
+                raise CmdException('Cmd %r takes one optional filepath, received %d: %r!'
                                    % (self.name, len(args), args))
             archive_fpath = args and args[0] or None
             kwds = {}
