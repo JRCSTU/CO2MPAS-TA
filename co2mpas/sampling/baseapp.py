@@ -851,6 +851,8 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         init_logging(level=log_level)
 
     def __init__(self, **kwds):
+        from . import crypto
+
         cls = type(self)
         dkwds = {
             ## Traits defaults are always applied...??
@@ -870,6 +872,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                     'Spec.verbose',
                     pndlu.first_line(Spec.verbose.help)),
             },
+            'conf_classes': [crypto.VaultSpec],
             'cmd_flags': {
                 ('d', 'debug'): (
                     {

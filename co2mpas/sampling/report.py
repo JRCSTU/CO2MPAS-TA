@@ -212,7 +212,7 @@ class ReportCmd(baseapp.Cmd):
 
     def __init__(self, **kwds):
         dkwds = {
-            'conf_classes': [project.ProjectsDB, Report],
+            'conf_classes': [project.ProjectsDB, project.Project, Report],
             'cmd_flags': {
                 'project': ({
                     'ReportCmd': {'project': True},

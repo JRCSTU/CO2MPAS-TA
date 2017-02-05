@@ -310,7 +310,7 @@ class TstampReceiver(TstampSpec):
             if not force:
                 raise CmdException(
                     "Cannot parse timestamp-response!")
-            stamper_id = tag_verdict, vfid = None
+            stamper_id = tag_verdict = None
         else:
             stamper_id, tag = self._capture_stamper_msg_and_id(ts_parts['msg'], ts_parts['sigarmor'])
             if not stamper_id:
@@ -362,13 +362,7 @@ class TstampReceiver(TstampSpec):
 
 
 class _Subcmd(baseapp.Cmd):
-    @property
-    def projects_db(self):
-        from . import project
-
-        p = project.ProjectsDB.instance(config=self.config)
-        p.config = self.config
-        return p
+    pass
 
 
 class TstampCmd(baseapp.Cmd):
@@ -415,7 +409,7 @@ class TstampCmd(baseapp.Cmd):
         def __init__(self, **kwds):
             from pandalone import utils as pndlu
 
-            kwds.setdefault('conf_classes', [TstampSender])
+            kwds.setdefault('conf_classes', [TstampSender, crypto.GitAuthSpec])
             kwds.setdefault('cmd_flags', {
                 ('n', 'dry-run'): (
                     {
@@ -449,7 +443,7 @@ class TstampCmd(baseapp.Cmd):
 
     class ParseCmd(_Subcmd):
         """
-        Derives the *decision* OK/SAMPLE flag from time-stamped email.
+        Verifies and derives the *decision* OK/SAMPLE flag from tstamped-response email.
 
         SYNTAX
             %(cmd_chain)s [OPTIONS] [<tstamped-file-1> ...]
@@ -459,7 +453,8 @@ class TstampCmd(baseapp.Cmd):
         examples = trt.Unicode("""cat <mail> | %(cmd_chain)s""")
 
         def __init__(self, **kwds):
-            kwds.setdefault('conf_classes', [TstampReceiver])
+            kwds.setdefault('conf_classes', [TstampReceiver,
+                                             crypto.GitAuthSpec, crypto.StamperAuthSpec])
             super().__init__(**kwds)
 
         def run(self, *args):
