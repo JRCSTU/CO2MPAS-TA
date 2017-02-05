@@ -829,7 +829,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         return settings
 
     def repo_backup(self, folder: Text='.', repo_name: Text='co2mpas_repo',
-                    erase_repo_afterwards=False, force: bool=None) -> Text:
+                    erase_afterwards=False, force: bool=None) -> Text:
         """
         :param folder:
             The path to the folder to store the repo-archive in.
@@ -855,7 +855,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         with tarfile.open(archive_fpath, "w:xz") as tarfile:
             tarfile.add(self.repo.working_dir, repo_name_no_ext)
 
-        if erase_repo_afterwards:
+        if erase_afterwards:
             from git.util import rmtree
 
             self.log.info("Erasing Repo '%s'..."
@@ -1460,6 +1460,10 @@ class ProjectCmd(_PrjCmd):
 
         - If '-' is given or no project at all, it reads from *current*.
         """
+        erase_afterwards = trt.Bool(
+            help="Will erase all archived projects from repo."
+        ).tag(config=True)
+
         def run(self, *args):
             ## TODO: Mve ziproject code to Spec.
             from boltons.setutils import IndexedSet as iset
@@ -1493,6 +1497,30 @@ class ProjectCmd(_PrjCmd):
                         base_name=zip_name, format='zip',
                         base_dir=base_dir,
                         root_dir=root_dir)
+
+                    if self.erase_afterwards:
+                        for p in pnames:
+                            if p == '-':
+                                p = self.current_project.name
+
+                            tref = _tname2ref_name(p)
+                            for t in list(repo.tags):
+                                if t.name.startswith(tref):
+                                    yield "del tag: %s" % t.name
+                                    repo.delete_tag(t, force=self.force)
+
+                            pbr = repo.heads[_pname2ref_name(p)]
+                            yield "del branch: %s" % pbr.name
+
+                            ## Cannot del checked-out branch!
+                            #
+                            if pbr == repo.active_branch:
+                                if 'tmp' not in repo.heads:
+                                    repo.create_head('tmp')
+                                repo.heads.tmp.checkout(force=True)
+
+                            repo.delete_head(pbr, force=self.force)
+
                 finally:
                     rmtree(exdir)
 
@@ -1539,7 +1567,7 @@ class ProjectCmd(_PrjCmd):
         SYNTAX
             %(cmd_chain)s [OPTIONS] [<archive-path>]
         """
-        erase_repo_afterwards = trt.Bool(
+        erase_afterwards = trt.Bool(
             help="Will erase the whole repository and ALL PROJECTS contained fter backing them up."
         ).tag(config=True)
 
@@ -1558,7 +1586,7 @@ class ProjectCmd(_PrjCmd):
                     kwds['repo_name'] = fname
             try:
                 return self.projects_db.repo_backup(
-                    erase_repo_afterwards=self.erase_repo_afterwards,
+                    erase_afterwards=self.erase_afterwards,
                     **kwds)
             except FileNotFoundError as ex:
                 raise baseapp.CmdException(
