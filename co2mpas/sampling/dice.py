@@ -159,14 +159,21 @@ def main(argv=None, log_level=None, **app_init_kwds):
     :param argv:
         If `None`, use :data:`sys.argv`; use ``[]`` to explicitly use no-args.
     """
+    import transitions
+
     init_logging(level=log_level)
     log = logging.getLogger(__name__)
 
     try:
         cmd = Co2dice.make_cmd(argv, **app_init_kwds)
         baseapp.consume_cmd(cmd.start())
-    except (CmdException, trt.TraitError) as ex:
+    except (CmdException, trt.TraitError, transitions.MachineError) as ex:
         ## Suppress stack-trace for "expected" errors.
+        #
+        #  Note: For *transitions*, better pip-install from:
+        #    https://github.com/ankostis/transitions@master
+        #  to facilitate debugging from log/ex messages, unless
+        #  tyarkoni/transitions#179 & tyarkoni/transitions#180 merged.
         log.debug('App exited due to: %s', ex, exc_info=1)
         exit(ex.args[0])
     except Exception as ex:
@@ -202,7 +209,9 @@ if __name__ == '__main__':
     #argv = '--Project.reset_settings=True'.split()
     #argv = 'project list  --reset-git-settings'.split()
     #argv = 'project init P1 --force'.split()
-    #argv = ' project append  out=tests/sampling/output.xlsx -n'.split()
+    #argv = ' project append  out=tests/sampling/output.xlsx'.split()
+    #argv = ' project append  inp=tests/sampling/input.xlsx'.split()
+    argv = ' project report -n'.split()
 
     #argv = 'project current'.split()
     #argv = 'config paths'.split()
