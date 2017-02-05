@@ -873,7 +873,8 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             DFun('head', lambda repo: repo.head),
             DFun('heads_count', lambda repo: len(repo.heads)),
             DFun('projects_count', lambda repo: itz.count(self._yield_project_refs())),
-            DFun('tags_count', lambda repo: len(repo.tags)),
+            DFun('dices', lambda repo: list(t for t in repo.tags if t.name.startswith(_DICES_PREFIX))),
+            DFun('dices_count', lambda dices: len(dices)),
             DFun('git.settings', lambda repo: self.read_git_settings()),
 
             DFun('git.version', lambda repo: '.'.join(str(v) for v in repo.git.version_info)),
@@ -917,11 +918,13 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
                 'msg.state',
                 'msg.action',
                 'revs_count',
+                'dices_count',
                 'blobs_count',
                 'last_cdate',
                 'author',
             ],
             1: [
+                'dices',
                 'infos',
                 'cmsg',
                 'head',
