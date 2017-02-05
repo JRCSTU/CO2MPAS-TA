@@ -620,7 +620,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         dice_mail = self.read_dice_tag(tagref)
         assert dice_mail
 
-        tstamp_sender.send_timestamped_email(dice_mail, dry_run=dry_run)
+        tstamp_sender.send_timestamped_email(dice_mail, self.pname, dry_run=dry_run)
         if dry_run:
             self.log.warning("DRY-RUN: You have to send the email your self!"
                              "\n  Use the `project report` subcmd to get it.")
@@ -1302,10 +1302,13 @@ class ProjectCmd(_PrjCmd):
 
     class TstampCmd(_PrjCmd):
         """
-        Sends the prepared tag to be timestamped
+        Sends the prepared tag to be timestamped, or prints it for sending manually (--dry-run).
 
         SYNTAX
             %(cmd_chain)s [OPTIONS]
+
+        - Use --dry-run to print the email as it would be sent; you may copy-paste this
+          to your email-client and send it, formatted as 'plain-text' (not 'HTML').
         """
 
         #examples = trt.Unicode(""" """)

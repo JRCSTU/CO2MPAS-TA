@@ -134,11 +134,11 @@ class TstampSender(TstampSpec):
 
         return msg
 
-    def _prepare_mail(self, msg):
+    def _prepare_mail(self, msg, subject_suffix):
         from email.mime.text import MIMEText
 
         mail = MIMEText(msg, 'plain')
-        mail['Subject'] = self.subject
+        mail['Subject'] = '%s %s' % (self.subject, subject_suffix)
         mail['From'] = self.from_address or self.user_email
         mail['To'] = ', '.join(self.timestamping_addresses)
 
@@ -149,7 +149,7 @@ class TstampSender(TstampSpec):
 
         return smtplib.SMTP_SSL if self.ssl else smtplib.SMTP
 
-    def send_timestamped_email(self, msg: Union[str, bytes], dry_run=False):
+    def send_timestamped_email(self, msg: Union[str, bytes], subject_suffix='', dry_run=False):
         from pprint import pformat
 
         msg_bytes = msg if isinstance(msg, bytes) else msg.encode('utf-8')
@@ -164,10 +164,10 @@ class TstampSender(TstampSpec):
                 raise CmdException("Content to timestamp failed signature verification!\n  %s"
                                    % verdict)
         else:
-            self.log.info("Content to timestamp gets verified OK: %s" % verdict)
+            self.log.debug("Content to timestamp gets verified OK: %s" % verdict)
 
         msg = self._append_x_recipients(msg)
-        mail = self._prepare_mail(msg)
+        mail = self._prepare_mail(msg, subject_suffix)
 
         with self.make_server() as srv:
             srv.login(self.user_account, self.decipher('user_pswd'))
@@ -181,7 +181,7 @@ class TstampSender(TstampSpec):
             if not dry_run:
                 srv.send_message(mail)
 
-        return mail
+        return msg
 
 
 _stamper_id_regex = re.compile(r"Comment: Stamper Reference Id: (\d+)")
