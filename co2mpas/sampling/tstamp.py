@@ -141,6 +141,7 @@ class TstampSender(TstampSpec):
         mail['Subject'] = '%s %s' % (self.subject, subject_suffix)
         mail['From'] = self.from_address or self.user_email
         mail['To'] = ', '.join(self.timestamping_addresses)
+        mail['CC'] = ', '.join(self.x_recipients)
 
         return mail
 
