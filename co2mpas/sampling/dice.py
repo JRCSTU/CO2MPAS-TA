@@ -198,6 +198,7 @@ if __name__ == '__main__':
     argv = 'config paths'.split()
     #argv = '--debug --log-level=0 --Mail.port=6 --Mail.user="ggg" abc def'.split()
     #argv = 'project --help-all'.split()
+    argv = 'project list'.split()
     #argv = '--debug'.split()
     #argv = 'project list --help-all'.split()
     #argv = 'project --Project.reset_settings=True'.split()
@@ -213,7 +214,8 @@ if __name__ == '__main__':
     #argv = 'project init P1 --force'.split()
     #argv = ' project append  out=tests/sampling/output.xlsx'.split()
     #argv = ' project append  inp=tests/sampling/input.xlsx'.split()
-    argv = ' project report -n'.split()
+    #argv = ' project report -n'.split()
+    #argv = ' project zip FT-12-ABC-2016-0001 P1'.split()
 
     #argv = 'project current'.split()
     #argv = 'config paths'.split()

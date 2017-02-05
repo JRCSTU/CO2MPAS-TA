@@ -1234,8 +1234,9 @@ class ProjectCmd(_PrjCmd):
         def run(self, *args):
             self.log.info('Opening project %r...', args)
             if len(args) != 1:
-                raise CmdException("Cmd %r takes a SINGLE project-name as argument, received: %r!"
-                                   % (self.name, args))
+                raise CmdException(
+                    "Cmd %r takes exactly one argument as the project-name, received %r!"
+                    % (self.name, args))
 
             proj = self.projects_db.proj_open(args[0])
 
@@ -1250,8 +1251,9 @@ class ProjectCmd(_PrjCmd):
         """
         def run(self, *args):
             if len(args) != 1:
-                raise CmdException('Cmd %r takes a SINGLE project-name as argument, received %r!'
-                                   % (self.name, args))
+                raise CmdException(
+                    "Cmd %r takes exactly one argument as the project-name, received %r!"
+                    % (self.name, args))
 
             return self.projects_db.proj_add(args[0])
 
