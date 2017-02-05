@@ -617,13 +617,19 @@ class Project(transitions.Machine, dice.DiceSpec):
 
         tagref = self._find_dice_tag()
         assert tagref
-        dice_mail = self.read_dice_tag(tagref)
-        assert dice_mail
+        signed_dice_report = self.read_dice_tag(tagref)
+        assert signed_dice_report
 
-        tstamp_sender.send_timestamped_email(dice_mail, self.pname, dry_run=dry_run)
+        dice_mail_body = tstamp_sender.send_timestamped_email(
+            signed_dice_report, self.pname, dry_run=dry_run)
+
         if dry_run:
-            self.log.warning("DRY-RUN: You have to send the email your self!"
-                             "\n  Use the `project report` subcmd to get it.")
+            self.log.warning(tw.dedent("""\
+                DRY-RUN: Now you must send the email your self!
+                  'Subject': %s
+                  'Recipients': %s
+                """))
+            self.result = dice_mail_body
         else:
             event.kwargs['action'] = '%s stamp-email' % ('FAKED' if dry_run else 'sent')
 
@@ -1307,8 +1313,10 @@ class ProjectCmd(_PrjCmd):
         SYNTAX
             %(cmd_chain)s [OPTIONS]
 
-        - Use --dry-run to print the email as it would be sent; you may copy-paste this
-          to your email-client and send it, formatted as 'plain-text' (not 'HTML').
+        - Use --dry-run if you want to send the email yourself.
+          Remember to use the appropriate 'Subject'.
+        - The --dry-run option prints the email as it would have been sent; you may
+          copy-paste this lient and send it, formatted as 'plain-text' (not 'HTML').
         """
 
         #examples = trt.Unicode(""" """)
@@ -1332,7 +1340,7 @@ class ProjectCmd(_PrjCmd):
             proj = self.current_project
             ok = proj.do_sendmail()
 
-            return proj.result if self.verbose else ok
+            return proj.result if self.verbose or proj.dry_run else ok
 
     class ExamineCmd(_PrjCmd):
         """
