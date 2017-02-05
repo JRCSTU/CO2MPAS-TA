@@ -1091,6 +1091,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         pname = verdict['report']['project']
         proj = self.proj_open(pname)
         proj.do_storedice(verdict)
+
         return proj.result
 
     def proj_list(self, *pnames: Text, verbose=None,
@@ -1143,6 +1144,11 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
 ###################
 
 class _PrjCmd(baseapp.Cmd):
+
+    def __init__(self, **kwds):
+        kwds.setdefault('conf_classes', [ProjectsDB, Project])
+        super().__init__(**kwds)
+
     @property
     def projects_db(self):
         p = ProjectsDB.instance(config=self.config)
@@ -1297,6 +1303,10 @@ class ProjectCmd(_PrjCmd):
         #examples = trt.Unicode(""" """)
 
         def __init__(self, **kwds):
+            from . import crypto
+            from . import report
+
+            kwds.setdefault('conf_classes', [report.Report, crypto.GitAuthSpec])
             kwds.setdefault('cmd_flags', {
                 ('n', 'dry-run'): (
                     {
@@ -1334,6 +1344,10 @@ class ProjectCmd(_PrjCmd):
         #examples = trt.Unicode(""" """)
 
         def __init__(self, **kwds):
+            from . import crypto
+            from . import tstamp
+
+            kwds.setdefault('conf_classes', [tstamp.TstampSender, crypto.GitAuthSpec])
             kwds.setdefault('cmd_flags', {
                 ('n', 'dry-run'): (
                     {
@@ -1374,7 +1388,10 @@ class ProjectCmd(_PrjCmd):
 
         def __init__(self, **kwds):
             from . import tstamp
-            kwds.setdefault('conf_classes', [tstamp.TstampReceiver])
+            from . import crypto
+
+            kwds.setdefault('conf_classes', [
+                tstamp.TstampReceiver, crypto.GitAuthSpec, crypto.StamperAuthSpec])
             kwds.setdefault('cmd_flags', {
                 ('n', 'dry-run'): (
                     {
