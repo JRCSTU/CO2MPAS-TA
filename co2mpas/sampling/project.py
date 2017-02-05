@@ -16,7 +16,6 @@ import textwrap as tw
 from typing import (
     Any, Union, List, Dict, Sequence, Iterable, Optional, Text, Tuple, Callable)  # @UnusedImport
 
-import git  # From: pip install gitpython
 from toolz import itertoolz as itz, dicttoolz as dtz
 import transitions
 from transitions.core import MachineError
@@ -115,11 +114,11 @@ _HEADS_PREFIX = 'refs/heads/'
 _PROJECTS_FULL_PREFIX = _HEADS_PREFIX + _PROJECTS_PREFIX
 
 
-def _is_project_ref(ref: git.Reference) -> bool:
+def _is_project_ref(ref: 'git.Reference') -> bool:
     return ref.name.startswith(_PROJECTS_PREFIX)
 
 
-def _ref2pname(ref: git.Reference) -> Text:
+def _ref2pname(ref: 'git.Reference') -> Text:
     return ref.path[len(_PROJECTS_FULL_PREFIX):]
 
 
@@ -139,7 +138,7 @@ def _pname2ref_name(pname: Text) -> Text:
     return pname
 
 
-def _get_ref(refs, refname: Text, default: git.Reference=None) -> git.Reference:
+def _get_ref(refs, refname: Text, default: 'git.Reference'=None) -> 'git.Reference':
     return refname and refname in refs and refs[refname] or default
 
 _DICES_PREFIX = 'dices/'
@@ -395,7 +394,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         help="""Number of dice-attempts allowed to be forced for a project."""
     ).tag(config=True)
 
-    def _find_dice_tag(self, fetch_next=False) -> Union[Text, git.TagReference]:
+    def _find_dice_tag(self, fetch_next=False) -> Union[Text, 'git.TagReference']:
         """Return None if no tag exists yet."""
         repo = self.projects_db.repo
         tref = _tname2ref_name(self.pname)
@@ -416,7 +415,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         raise CmdException("Too many dices for this project '%s'!"
                            "\n  Maybe delete project and start all over?" % self.pname)
 
-    def read_dice_tag(self, tag: Union[Text, git.TagReference]):
+    def read_dice_tag(self, tag: Union[Text, 'git.TagReference']):
         if isinstance(tag, str):
             tag = self.projects_db.repo.tags[tag]
         return tag.tag.data_stream.read().decode('utf-8')
@@ -718,6 +717,8 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         return repo_path
 
     def _setup_repo(self):
+        import git  # From: pip install gitpython
+
         repo_path = self.repopath_resolved
         pndlu.ensure_dir_exists(repo_path)
         try:
