@@ -510,15 +510,16 @@ class Project(transitions.Machine, dice.DiceSpec):
         pfiles = _evarg(event, 'pfiles', PFiles)
         force = event.kwargs.get('force', self.force)
 
-        ## Check extraction of report works ok.
+        ## Check extraction of report works ok,
+        #  and that VFids match.
         #
         try:
             ## TODO: Check Project<->VfIF mismatch!!
             rep = self._report_spec()
-            list(rep.yield_report_tuples_from_iofiles(pfiles))
+            rep.get_dice_report(pfiles, expected_vfid=self.pname)
         except Exception as ex:
             msg = "Failed extracting report from %s, due to: %s"
-            if force:
+            if self.force:
                 msg += "  BUT FORCED to import them!"
                 self.log.warning(msg, pfiles, ex, exc_info=1)
             else:
