@@ -299,36 +299,36 @@ class Project(transitions.Machine, dice.DiceSpec):
 
             - [do_createme,  UNBORN,    empty]
 
-            - [do_addfiles, empty,      wltp_iof,     _is_inp_out_files]
-            - [do_addfiles, empty,      wltp_inp,     _is_inp_files    ]
-            - [do_addfiles, empty,      wltp_out,     _is_out_files    ]
+            - [do_addfiles,  empty,      wltp_iof,     _is_inp_out_files]
+            - [do_addfiles,  empty,      wltp_inp,     _is_inp_files    ]
+            - [do_addfiles,  empty,      wltp_out,     _is_out_files    ]
 
-            - [do_addfiles, [wltp_inp,
-                             wltp_out,
-                             tagged],   wltp_iof,     [_is_inp_out_files,
-                                                       _is_force]      ]
+            - [do_addfiles,  [wltp_inp,
+                              wltp_out,
+                              tagged],   wltp_iof,     [_is_inp_out_files,
+                                                        _is_force]      ]
 
-            - [do_addfiles, wltp_inp,   wltp_inp,     [_is_inp_files,
-                                                       _is_force]      ]
-            - [do_addfiles, wltp_inp,   wltp_iof,     _is_out_files]
+            - [do_addfiles,  wltp_inp,   wltp_inp,     [_is_inp_files,
+                                                        _is_force]      ]
+            - [do_addfiles,  wltp_inp,   wltp_iof,     _is_out_files]
 
-            - [do_addfiles, wltp_out,   wltp_out,     [_is_out_files,
-                                                       _is_force]      ]
-            - [do_addfiles, wltp_out,   wltp_iof,     _is_inp_files]
+            - [do_addfiles,  wltp_out,   wltp_out,     [_is_out_files,
+                                                        _is_force]      ]
+            - [do_addfiles,  wltp_out,   wltp_iof,     _is_inp_files]
 
-            - [do_addfiles, wltp_iof,   wltp_iof,     [_is_force]      ]
+            - [do_addfiles,  wltp_iof,   wltp_iof,     [_is_force]      ]
 
-            - [do_prepmail, wltp_iof,   tagged]
-            - [do_prepmail, tagged,     tagged]
+            - [do_prepmail,  wltp_iof,   tagged]
+            - [do_prepmail,  tagged,     tagged]
 
-            - [do_sendmail, tagged,     mailed]
+            - [do_sendmail,  tagged,     mailed]
 
-            - [do_parsemail, mailed,    dice_yes,     _cond_is_dice_yes]
+            - [do_parsemail, mailed,    dice_yes,      _cond_is_dice_yes]
             - [do_parsemail, mailed,    dice_no]
 
             - [do_addfiles, [dice_yes,
-                             dice_no],  nedc,         _is_other_files  ]
-            - [do_addfiles, nedc,       nedc,         [_is_other_files,
+                             dice_no],  nedc,          _is_other_files  ]
+            - [do_addfiles, nedc,       nedc,          [_is_other_files,
                                                        _is_force]      ]
             """)
 
@@ -592,6 +592,7 @@ class Project(transitions.Machine, dice.DiceSpec):
             if self.dry_run:
                 self.log.warning("DRY-RUN: Not actually committed the report, "
                                  "and it is not yet signed!")
+                # TODO: Add X_recipients!!
                 self.result = yaml.dump(report, indent=2)
 
                 return
@@ -621,7 +622,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         tstamp_sender.send_timestamped_email(dice_mail, dry_run=dry_run)
         if dry_run:
             self.log.warning("DRY-RUN: You have to send the email your self!"
-                         "\n  Use the `project report` subcmd to get it.")
+                             "\n  Use the `project report` subcmd to get it.")
         else:
             event.kwargs['action'] = '%s stamp-email' % ('FAKED' if dry_run else 'sent')
 
@@ -1300,7 +1301,7 @@ class ProjectCmd(_PrjCmd):
 
     class TstampCmd(_PrjCmd):
         """
-        Sends the prepared tag tag to be timestamped
+        Sends the prepared tag to be timestamped
 
         SYNTAX
             %(cmd_chain)s [OPTIONS]
