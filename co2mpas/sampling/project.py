@@ -316,10 +316,11 @@ class Project(transitions.Machine, dice.DiceSpec):
                                                         _is_force]      ]
             - [do_addfiles,  wltp_out,   wltp_iof,     _is_inp_files]
 
-            - [do_addfiles,  wltp_iof,   wltp_iof,     [_is_force]      ]
+            - [do_addfiles,  wltp_iof,   wltp_iof,     _is_force        ]
 
             - [do_prepmail,  wltp_iof,   tagged]
             - [do_prepmail,  tagged,     tagged]
+            - [do_prepmail,  mailed,     tagged,       _is_force        ]
 
             - [do_sendmail,  tagged,     mailed]
 
