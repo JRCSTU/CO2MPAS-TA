@@ -580,7 +580,8 @@ class Project(transitions.Machine, dice.DiceSpec):
 
         Uses the :class:`Report` to build the tag-msg.
         """
-        gen_report = self.force or self.state != 'tagged'
+        tagref = self._find_dice_tag()
+        gen_report = not tagref or self.force
         if gen_report:
             self.log.info('Preparing %s dice-email: %s...',
                           'ANEW' if self.force else '', event.kwargs)
@@ -598,7 +599,6 @@ class Project(transitions.Machine, dice.DiceSpec):
             event.kwargs['action'] = 'drep %s files' % pfiles.nfiles()
             event.kwargs['report'] = report
         else:
-            tagref = self._find_dice_tag()
             assert tagref
             self.result = self.read_dice_tag(tagref)
 
