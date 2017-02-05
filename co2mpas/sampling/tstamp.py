@@ -436,10 +436,8 @@ class TstampCmd(baseapp.Cmd):
         def run(self, *args):
             from boltons.setutils import IndexedSet as iset
 
-            files = iset(args)
-            if not files:
-                files = '-'
-            self.log.info("Timestamping '%s'...", files)
+            files = iset(args) or ['-']
+            self.log.info("Timestamping '%s'...", tuple(files))
 
             sender = TstampSender(config=self.config)
             for file in files:
@@ -474,14 +472,8 @@ class TstampCmd(baseapp.Cmd):
             from boltons.setutils import IndexedSet as iset
             from pprint import pformat
 
-            files = iset(args)
-            if not files:
-                files = '-'
-            self.log.info("Parsing '%s'...", files)
-
-            files = self.extra_args
-            if not files:
-                files = '-'
+            files = iset(args) or ['-']
+            self.log.info("Parsing '%s'...", tuple(files))
 
             rcver = TstampReceiver(config=self.config)
             for file in files:
