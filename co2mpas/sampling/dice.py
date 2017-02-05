@@ -12,6 +12,7 @@ from co2mpas.__main__ import init_logging
 from co2mpas.sampling import baseapp, CmdException
 from co2mpas.sampling.baseapp import (APPNAME, Cmd,
                                       chain_cmds)  # @UnusedImport
+from collections import OrderedDict
 import logging
 import os
 import re
@@ -110,15 +111,16 @@ class Co2dice(Cmd):
     version = __version__
     #examples = """TODO: Write cmd-line examples."""
 
-    subcommands = {
-        'project': ('co2mpas.sampling.project.ProjectCmd',
-                    "Commands to administer the storage repo of TA *projects*."),
-        'report': ('co2mpas.sampling.report.ReportCmd',
-                   "Extract the report parameters from the co2mpas input/output files, or from *current-project*."),
-        'tstamp': ('co2mpas.sampling.tstamp.TstampCmd',
-                   "Commands to manage the communications with the Timestamp server."),
-        'config': ('co2mpas.sampling.cfgcmd.ConfigCmd',
-                   "Commands to manage configuration-options loaded from filesystem.")}
+    subcommands = OrderedDict([
+        ('project', ('co2mpas.sampling.project.ProjectCmd',
+                     "Commands to administer the storage repo of TA *projects*.")),
+        ('report', ('co2mpas.sampling.report.ReportCmd',
+                    "Extract the report parameters from the co2mpas input/output files, or from *current-project*.")),
+        ('tstamp', ('co2mpas.sampling.tstamp.TstampCmd',
+                    "Commands to manage the communications with the Timestamp server.")),
+        ('config', ('co2mpas.sampling.cfgcmd.ConfigCmd',
+                    "Commands to manage configuration-options loaded from filesystem.")),
+    ])
 
 
 ####################################
