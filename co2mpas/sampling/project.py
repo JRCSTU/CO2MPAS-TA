@@ -648,6 +648,12 @@ class Project(transitions.Machine, dice.DiceSpec):
         decision = dice['decision']
         project = dice['vehicle_family_id']
 
+        if self.dry_run:
+            self.warning('DRY-RUN: Not actually committed decision.')
+            self.result = decision
+
+            return
+
         event.kwargs['action'] = "diced as %s" % decision
         event.kwargs['report'] = res
 
