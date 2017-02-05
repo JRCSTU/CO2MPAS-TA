@@ -327,13 +327,8 @@ class Project(transitions.Machine, dice.DiceSpec):
 
             - [do_sendmail, tagged, mailed]
 
-            ## TODO: implement do_recvmail()
-            - [do_recvmail, mailed, tstamped, _cond_is_mail_arrived]
-
-            - [do_parsemail, [mailed,
-                              tstamped], dice_yes, _cond_is_dice_yes]
-            - [do_parsemail, [mailed,
-                              tstamped], dice_no]
+            - [do_parsemail, mailed, dice_yes, _cond_is_dice_yes]
+            - [do_parsemail, mailed, dice_no]
 
             - [do_addfiles, [dice_yes,
                              dice_no], nedc, _is_other_files]
@@ -604,8 +599,7 @@ class Project(transitions.Machine, dice.DiceSpec):
 
             ## Commit/tag callback expects `report` on event.
             event.kwargs['action'] = 'drep %s files' % pfiles.nfiles()
-            report = repspec.get_dice_report(pfiles).values()
-            event.kwargs['report'] = list(report)
+            event.kwargs['report'] = report
         else:
             tagref = self._find_dice_tag()
             assert tagref
@@ -618,19 +612,20 @@ class Project(transitions.Machine, dice.DiceSpec):
         Parses last tag and uses class:`SMTP` to send its message as email.
         """
         self.log.info('Sending email...')
+        dry_run = self.dry_run
         tstamp_sender = self._tstamp_sender_spec()
+
         tagref = self._find_dice_tag()
         assert tagref
         dice_mail = self.read_dice_tag(tagref)
         assert dice_mail
-        pretend = event.kwargs.get('pretend', False)
-        if not pretend:
-            tstamp_sender.send_timestamped_email(dice_mail)
-        event.kwargs['action'] = '%s stamp-email' % ('FAKED' if pretend else 'sent')
 
-    def _cond_is_mail_arrived(self, event) -> bool:
-        self.log.error('Fetching emails from IMAP not impleneted yet')
-        return False
+        tstamp_sender.send_timestamped_email(dice_mail, dry_run=dry_run)
+        if dry_run:
+            self.warning("DRY-RUN: You have to send the email your self!"
+                         "\n  Use the `project report` subcmd to get it.")
+        else:
+            event.kwargs['action'] = '%s stamp-email' % ('FAKED' if dry_run else 'sent')
 
     def _cond_is_dice_yes(self, event) -> bool:
         """
@@ -646,7 +641,6 @@ class Project(transitions.Machine, dice.DiceSpec):
         res = recv.parse_tstamp_response(mail_text)
         dice = res['dice']
         decision = dice['decision']
-        project = dice['vehicle_family_id']
 
         if self.dry_run:
             self.warning('DRY-RUN: Not actually committed decision.')
