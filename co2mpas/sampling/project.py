@@ -1451,6 +1451,87 @@ class ProjectCmd(_PrjCmd):
             pname = args and args[0] or None
             return self.projects_db.proj_examine(pname, as_text=True)
 
+    class ZipCmd(_PrjCmd):
+        """
+        Archives specific projects, or *current*, if none specified.
+
+        SYNTAX
+            %(cmd_chain)s [OPTIONS] [<project-1>] ...
+
+        - If '-' is given or no project at all, it reads from *current*.
+        """
+        def run(self, *args):
+            ## TODO: Mve ziproject code to Spec.
+            from boltons.setutils import IndexedSet as iset
+            import tempfile
+            import shutil
+            import git
+            from git.util import rmtree
+
+            pnames = iset(args) or ['-']
+            self.log.info('Zipping %s...', tuple(pnames))
+
+            repo = self.projects_db.repo
+            now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
+            zip_name = '%s-%s' % (now, "CO2MPAS_projects")
+            with tempfile.TemporaryDirectory(prefix='co2mpas_unzip-') as tdir:
+                exdir = osp.join(tdir, 'repo')
+                exrepo = git.Repo.init(exdir)
+                try:
+                    rem = exrepo.create_remote('origin', osp.join(repo.working_dir, '.git'))
+
+                    ## TODO: Handle '-'
+                    for p in pnames:
+                        if p == '-':
+                            p = self.current_project.name
+                        fetch_info = rem.fetch(_pname2ref_name(p))
+                        yield from ('packing: %s' % fi.remote_ref_path
+                                    for fi in fetch_info)
+
+                    root_dir, base_dir = osp.split(repo.working_dir)
+                    yield 'Archive: %s' % shutil.make_archive(
+                        base_name=zip_name, format='zip',
+                        base_dir=base_dir,
+                        root_dir=root_dir)
+                finally:
+                    rmtree(exdir)
+
+    class UnzipCmd(_PrjCmd):
+        """
+        Import the specified zipped project-archives into repo; reads SDIN if non specified.
+
+        SYNTAX
+            %(cmd_chain)s [OPTIONS] [<zip-file-1> ...]
+
+        - If '-' is given or no file at all, it reads from STDIN.
+        """
+        def run(self, *args):
+            ## TODO: Mve ziproject code to Spec.
+            from boltons.setutils import IndexedSet as iset
+            import tempfile
+            import zipfile
+
+            files = iset(args) or ['-']
+            self.log.info('Unzipping %s...', tuple(files))
+
+            repo = self.projects_db.repo
+            with tempfile.TemporaryDirectory(prefix='co2mpas_unzip-') as tdir:
+                for f in files:
+                    bname, _ = osp.splitext(osp.basename(f))
+                    exdir = osp.join(tdir, bname)
+
+                    ## TODO: Handle '-'
+                    with zipfile.ZipFile(f,"r") as zip_ref:
+                        zip_ref.extractall(exdir)
+
+                    try:
+                        rem = repo.create_remote(bname, osp.join(exdir, 'repo'))
+                        fetch_info = rem.fetch()
+                        yield from ('unpacking: %s' % fi.name
+                                    for fi in fetch_info)
+                    finally:
+                        repo.delete_remote(bname)
+
     class BackupCmd(_PrjCmd):
         """
         Backup projects repository into the archive filepath specified, or current-directory, if none specified.
@@ -1502,4 +1583,5 @@ class ProjectCmd(_PrjCmd):
 all_subcmds = (ProjectCmd.ListCmd, ProjectCmd.CurrentCmd, ProjectCmd.OpenCmd, ProjectCmd.InitCmd,
                ProjectCmd.AppendCmd, ProjectCmd.ReportCmd,
                ProjectCmd.TstampCmd,
+               ProjectCmd.ZipCmd, ProjectCmd.UnzipCmd,
                ProjectCmd.ExamineCmd, ProjectCmd.BackupCmd)
