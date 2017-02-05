@@ -145,10 +145,31 @@ def _get_ref(refs, refname: Text, default: 'git.Reference'=None) -> 'git.Referen
 _DICES_PREFIX = 'dices/'
 
 
+def _is_dice_tag(ref: 'git.Reference') -> bool:
+    return ref.name.startswith(_DICES_PREFIX)
+
+
 def _tname2ref_name(tname: Text) -> Text:
     if not tname.startswith(_DICES_PREFIX):
         tname = '%s%s' % (_DICES_PREFIX, tname)
     return tname
+
+
+def _yield_project_refs(repo, *pnames: Text):
+    if pnames:
+        pnames = [_pname2ref_path(p) for p in pnames]
+    for ref in repo.heads:
+        if _is_project_ref(ref) and not pnames or ref.path in pnames:
+            yield ref
+
+
+def _yield_dices_tags(repo, *pnames: Text):
+    if pnames:
+        pnames = [_tname2ref_name(p) for p in pnames]
+    for ref in repo.tags:
+        if (_is_dice_tag(ref) and not pnames or
+                any(ref.name.startswith(p) for p in pnames)):
+            yield ref
 
 
 #transitions.logger.level = 50 ## FSM logs annoyingly high.
@@ -875,18 +896,18 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         from schedula.utils.dsp import DFun
 
         dfuns = [
-            DFun('repo', lambda _infos: self.repo),
-            DFun('git_cmds', lambda _infos: pndlu.where('git')),
+            DFun('repo', lambda _rinfos: self.repo),
+            DFun('git_cmds', lambda _rinfos: pndlu.where('git')),
             DFun('dirty', lambda repo: repo.is_dirty()),
             DFun('untracked', lambda repo: repo.untracked_files),
             DFun('wd_files', lambda repo: os.listdir(repo.working_dir)),
-            DFun('branch', lambda repo, _inp_prj:
-                 _inp_prj and _get_ref(repo.heads, _pname2ref_path(_inp_prj)) or repo.active_branch),
-            DFun('head', lambda repo: repo.head),
             DFun('heads_count', lambda repo: len(repo.heads)),
-            DFun('projects_count', lambda repo: itz.count(self._yield_project_refs())),
-            DFun('dices', lambda repo: list(t for t in repo.tags if t.name.startswith(_DICES_PREFIX))),
-            DFun('dices_count', lambda dices: len(dices)),
+            DFun('_projects', lambda repo: list(_yield_project_refs(repo))),
+            DFun('projects', lambda _projects: [p.name for p in _projects]),
+            DFun('projects_count', lambda projects: len(projects)),
+            DFun('_all_dices', lambda repo: list(_yield_dices_tags(repo))),
+            DFun('all_dices', lambda _all_dices: [t.name for t in _all_dices]),
+            DFun('all_dices_count', lambda all_dices: len(all_dices)),
             DFun('git.settings', lambda repo: self.read_git_settings()),
 
             DFun('git.version', lambda repo: '.'.join(str(v) for v in repo.git.version_info)),
@@ -895,75 +916,114 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             DFun('head_valid', lambda head: head.is_valid()),
             DFun('head_detached', lambda head: head.is_detached),
 
+            DFun('branch', lambda repo, _pname:
+                 _pname and _get_ref(repo.heads, _pname2ref_path(_pname)) or repo.active_branch),
             DFun('cmt', lambda branch: branch.commit),
             DFun('head', lambda branch: branch.path),
             DFun('branch_valid', lambda branch: branch.is_valid()),
             DFun('branch_detached', lambda branch: branch.is_detached),
 
-            DFun('tre', lambda cmt: cmt.tree),
+            DFun('_tre', lambda cmt: cmt.tree),
             DFun('author', lambda cmt: '%s <%s>' % (cmt.author.name, cmt.author.email)),
             DFun('last_cdate', lambda cmt: str(cmt.authored_datetime)),
             DFun('commit', lambda cmt: cmt.hexsha),
-            DFun('revs_count', lambda cmt: itz.count(cmt.iter_parents())),
+            DFun('_dices', lambda repo, _pname: list(_yield_dices_tags(repo, _pname))),
+            DFun('dices', lambda _dices: [t.name for t in _dices]),
+            DFun('dices_count', lambda _dices: len(_dices)),
+            DFun('_revs', lambda cmt: list(cmt.iter_parents())),
+            DFun('revs', lambda _revs: [c.hexsha for c in _revs]),
+            DFun('revs_count', lambda _revs: len(_revs)),
             DFun('cmsg', lambda cmt: cmt.message),
             DFun('cmsg', lambda cmt: '<invalid: %s>' % cmt.message, weight=10),
 
             DFun(['msg.%s' % f for f in _CommitMsg._fields],
                  lambda cmsg: _CommitMsg.parse_commit_msg(cmsg)),
 
-            DFun('tree', lambda tre: tre.hexsha),
-            DFun('blobs_count', lambda tre: itz.count(tre.list_traverse())),
+            DFun('tree', lambda _tre: _tre.hexsha),
+            DFun('_objects', lambda _tre: list(_tre.list_traverse())),
+            DFun('objects_count', lambda _objects: len(_objects)),
+            DFun('objects', lambda _objects: ['%s: %s' % (b.type, b.path)
+                                              for b in _objects]),
+            DFun('files', lambda _objects: [b.path for b in _objects if b.type == 'blob']),
+            DFun('files_count', lambda files: len(files)),
         ]
         dsp = Dispatcher()
         DFun.add_dfuns(dfuns, dsp)
         return dsp
 
     @fnt.lru_cache()
-    def _out_fields_by_verbose_level(self, level):
+    def _info_fields(self, level, want_project=None, want_repo=False):
         """
         :param level:
             If ''> max-level'' then max-level assumed, negatives fetch no fields.
         """
-        verbose_levels = {
-            0: [
-                'msg.project',
-                'msg.state',
-                'msg.action',
-                'revs_count',
-                'dices_count',
-                'blobs_count',
-                'last_cdate',
-                'author',
-            ],
-            1: [
-                'dices',
-                'infos',
-                'cmsg',
-                'head',
-                'dirty',
-                'commit',
-                'tree',
-                'repo',
-            ],
-            2: None,  # null signifies "all fields".
-        }
-        max_level = max(verbose_levels.keys())
-        if level > max_level:
-            level = max_level
-        fields = []
-        for l in range(level + 1):
-            fs = verbose_levels[l]
-            if not fs:
-                return None
-            fields.extend(fs)
-        return fields
+        P = 'project'
+        R = 'repo'
 
-    def _infos_fields(self, pname: Text=None, fields: Sequence[Text]=None, inv_value=None) -> List[Tuple[Text, Any]]:
+        verbose_levels = [
+            [
+                ('projects_count', R),
+                ('all_dices_count', R),
+                ('wd_files', R),
+
+                ('msg.s', P),
+                ('msg.a', P),
+                ('dices_count', P),
+                ('revs_count', P),
+                ('files_count', P),
+                ('last_cdate', P),
+                ('author', P),
+            ],
+            [
+                ('heads_count', R),
+                ('projects', R),
+                ('all_dices', R),
+                ('infos', R),
+                ('cmsg', R),
+                ('head', R),
+                ('dirty', R),
+                ('untracked', R),
+
+                ('commit', P),
+                ('dices', P),
+                ('revs', P),
+                ('tree', P),
+                ('files', P),
+                ('objects_count', P),
+                ('branch_valid', P),
+                ('cmsg', P),
+            ]
+        ]
+
+        if level >= len(verbose_levels):
+            return None  # meaning all
+
+        wanted_ftypes = set()
+        if want_project:
+            wanted_ftypes.add(P)
+        if want_repo:
+            wanted_ftypes.add(R)
+
+        ## Fetch all kinds if unspecified
+        #
+        if not wanted_ftypes:
+            wanted_ftypes = set([P, R])
+
+        return list(field for field, ftype
+                    in itz.concat(verbose_levels[:level + 1])
+                    if ftype in wanted_ftypes)
+
+    def _scan_infos(self, pname: Text=None,
+                    fields: Sequence[Text]=None,
+                    inv_value=None) -> List[Tuple[Text, Any]]:
         """Runs repo examination code returning all requested fields (even failed ones)."""
         from schedula import utils
 
         dsp = self._infos_dsp()
-        inputs = {'_infos': 'ok', '_inp_prj': pname}
+        inputs = {'_rinfos': 'boo    '}
+        if pname:
+            inputs['_pname'] = pname
+
         infos = dsp.dispatch(inputs=inputs,
                              outputs=fields)
         fallbacks = {d: inv_value for d in dsp.data_nodes.keys()}
@@ -994,8 +1054,8 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             verbose = self.verbose
         verbose_level = int(verbose)
 
-        fields = self._out_fields_by_verbose_level(verbose_level)
-        infos = self._infos_fields(pname, fields)
+        fields = self._info_fields(verbose_level, want_project=True, want_repo=True)
+        infos = self._scan_infos(pname, fields)
 
         if as_text:
             infos = yaml.dump(OrderedDict(infos), indent=2, default_flow_style=False)
@@ -1091,13 +1151,6 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         self._current_project = None
         return self.current_project()
 
-    def _yield_project_refs(self, *pnames: Text):
-        if pnames:
-            pnames = [_pname2ref_path(p) for p in pnames]
-        for ref in self.repo.heads:
-            if _is_project_ref(ref) and not pnames or ref.path in pnames:
-                yield ref
-
     def proj_parse_stamped(self, mail_text: Text):
         from . import tstamp
 
@@ -1115,7 +1168,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         :param pnames:
             some project name, or none for all
         :param verbose:
-            return infos based on :meth:`_out_fields_by_verbose_level()`
+            return infos based on :meth:`_info_fields()`
         :param fields:
             If defined, takes precendance over `verbose`.
         :param as_text:
@@ -1123,6 +1176,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         :retun:
             yield any matched projects, or all if `pnames` were empty.
         """
+        repo = self.repo
         if verbose is None:
             verbose = self.verbose
 
@@ -1130,16 +1184,16 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             verbose = True  # Othrwise it would ignore fields.
         else:
             verbose_level = int(verbose) - 1  # V0 prints no infos.
-            fields = self._out_fields_by_verbose_level(verbose_level)
+            fields = self._info_fields(verbose_level, want_project=True)
 
-        ap = self.repo.active_branch
+        ap = repo.active_branch
         ap = ap and ap.path
-        for ref in self._yield_project_refs(*pnames):
+        for ref in _yield_project_refs(repo, *pnames):
             pname = _ref2pname(ref)
             isactive = _pname2ref_path(pname) == ap
 
             if verbose:
-                infos = self._infos_fields(pname, fields, inv_value='<invalid>')
+                infos = self._scan_infos(pname, fields, inv_value='<invalid>')
                 infos = OrderedDict(infos)
                 infos['active'] = isactive
                 to_yield = {pname: infos}
