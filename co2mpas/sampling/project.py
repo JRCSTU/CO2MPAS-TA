@@ -829,7 +829,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         return settings
 
     def repo_backup(self, folder: Text='.', repo_name: Text='co2mpas_repo',
-                    force: bool=None) -> Text:
+                    erase_repo_afterwards=False, force: bool=None) -> Text:
         """
         :param folder:
             The path to the folder to store the repo-archive in.
@@ -854,6 +854,18 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         self.log.debug('Archiving repo into %r...', archive_fpath)
         with tarfile.open(archive_fpath, "w:xz") as tarfile:
             tarfile.add(self.repo.working_dir, repo_name_no_ext)
+
+        if erase_repo_afterwards:
+            from git.util import rmtree
+
+            self.log.info("Erasing Repo '%s'..."
+                          "\n  Tip: if it fails, restart and retry :-)",
+                          self.repo_path)
+            try:
+                rmtree(self.repo_path)
+            except Exception as ex:
+                self.log.error("Failed erasing Repo '%s'due to: %s",
+                               self.repo_path, ex, exc_info=1)
 
         return archive_fpath
 
@@ -1446,6 +1458,10 @@ class ProjectCmd(_PrjCmd):
         SYNTAX
             %(cmd_chain)s [OPTIONS] [<archive-path>]
         """
+        erase_repo_afterwards = trt.Bool(
+            help="Will erase the whole repository and ALL PROJECTS contained fter backing them up."
+        ).tag(config=True)
+
         def run(self, *args):
             self.log.info('Archiving repo into %r...', args)
             if len(args) > 1:
@@ -1460,7 +1476,9 @@ class ProjectCmd(_PrjCmd):
                 if fname:
                     kwds['repo_name'] = fname
             try:
-                return self.projects_db.repo_backup(**kwds)
+                return self.projects_db.repo_backup(
+                    erase_repo_afterwards=self.erase_repo_afterwards,
+                    **kwds)
             except FileNotFoundError as ex:
                 raise baseapp.CmdException(
                     "Folder '%s' to store archive does not exist!"
@@ -1473,7 +1491,6 @@ class ProjectCmd(_PrjCmd):
             'cmd_flags': {
                 'reset-git-settings': (
                     {
-
                         'ProjectsDB': {'reset_settings': True},
                     }, pndlu.first_line(ProjectsDB.reset_settings.help)
                 )
