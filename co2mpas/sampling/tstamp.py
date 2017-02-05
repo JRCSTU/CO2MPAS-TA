@@ -393,10 +393,10 @@ class TstampCmd(baseapp.Cmd):
         Send emails to be timestamped.
 
         SYNTAX
-            %(cmd_chain)s [OPTIONS] [<file-1> ...]
+            %(cmd_chain)s [OPTIONS] [<report-file-1> ...]
 
         - Do not use this command directly (unless experimenting) - prefer the `project tstamp` sub-command.
-        - If no files are given, it reads from STDIN.
+        - If '-' is given or no files at all, it reads from STDIN.
         - Many options related to sending & receiving the email are expected to be stored in the config-file.
         """
 
@@ -448,8 +448,9 @@ class TstampCmd(baseapp.Cmd):
         Derives the *decision* OK/SAMPLE flag from time-stamped email.
 
         SYNTAX
-            %(cmd_chain)s [OPTIONS] [<tstamp-response-file-1> ...]
+            %(cmd_chain)s [OPTIONS] [<tstamped-file-1> ...]
 
+        - If '-' is given or no files at all, it reads from STDIN.
         """
         examples = trt.Unicode("""cat <mail> | %(cmd_chain)s""")
 
