@@ -954,6 +954,8 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
                 repo, _pname, max_dices_per_project=50)),  # FIXME: Create common Spec!!
             DFun('last_dice', lambda _last_dice: _last_dice and '%s: %s' % (
                 _last_dice.name, _last_dice.commit.hexsha)),
+            DFun('last_dice_msg', lambda _last_dice:
+                 _last_dice and _last_dice.tag.message),
             DFun('last_commit', lambda _cmt: _cmt.hexsha),
             DFun('tree', lambda _tree: _tree.hexsha),
             DFun('_dices', lambda repo, _pname: list(_yield_dices_tags(repo, _pname))),
@@ -998,7 +1000,6 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
                 ('msg.s', P),
                 ('msg.a', P),
                 ('last_dice', P),
-                ('last_dice_commit', P),
                 ('last_commit', P),
                 ('dices_count', P),
                 ('revs_count', P),
@@ -1023,6 +1024,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
                 ('files', P),
                 ('objects_count', P),
                 ('revs', P),
+                ('last_dice_msg', P),
                 ('cmsg', P),
                 #('msg.data', P),
             ]
