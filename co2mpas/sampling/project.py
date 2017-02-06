@@ -831,8 +831,8 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             gnupgexe = cygpath(gnupgexe)
 
         gconfigs = [
-            ('core.filemode', 'false'),
-            ('core.ignorecase', 'false'),
+            ('core.filemode', False),
+            ('core.ignorecase', False),
             ('user.email', self.user_email),
             ('user.name', self.user_name),
             ('gc.auto', 0),                 # To salvage user-mistakes.
@@ -846,14 +846,21 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         ]
 
         unexpected_kvalues = OrderedDict()
-        with repo.config_writer() as cw:
+        with repo.config_writer('repository') as cw:
             for key, val in gconfigs:
                 sec, prop = key.split('.')
 
-                ## Check for setting-differrences.
+                ## Check if differrent.
                 #
                 try:
                     old_val = cw.get_value(sec, prop)
+
+                    ## Git strips them, so comparison would fail
+                    #  if it had trailing spaces (hard to catch)
+                    #
+                    if isinstance(val, str):
+                        val = val.strip()
+
                     if old_val != val:
                         unexpected_kvalues[key] = (old_val, val)
                 except:
@@ -862,8 +869,14 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                 if check_only:
                     continue
 
+                ## Write setting.
+                #
                 ok = False
                 try:
+                    ## gitpython-developers/GitPython#578
+                    if isinstance(val, bool):
+                        val = str(val).lower()
+
                     cw.set_value(sec, prop, val)
                     ok = True
                 finally:
@@ -872,10 +885,13 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                                   key, val)
 
             if unexpected_kvalues:
-                log.warning("Missmatched values in GIT configs: %s\n%s"
-                            "\n  TIP: If they have changed by mistake, use `--reset-git-settings`.\n",
+                log.warning("Missmatched values found in GIT configs: %s\n%s%s\n",
                             osp.join(repo.git_dir, 'config'),
-                            tw.indent(yaml.dump(unexpected_kvalues), '    '))
+                            tw.indent(yaml.dump(unexpected_kvalues), '    '),
+                            "\n  TIP: If they have changed by mistake, use `--reset-git-settings`."
+                            if check_only else
+                            '\n  Differences have been corrected.'
+                            )
 
     def read_git_settings(self, prefix: Text=None, config_level: Text=None):  # -> List(Text):
         """
@@ -1755,7 +1771,6 @@ class ProjectCmd(_PrjCmd):
                         remname, _ = osp.splitext(osp.basename(f))
                     exdir = osp.join(tdir, remname)
 
-                    ## TODO: Handle '-'
                     with zipfile.ZipFile(f, "r") as zip_ref:
                         zip_ref.extractall(exdir)
 
