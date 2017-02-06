@@ -620,7 +620,6 @@ class Project(transitions.Machine, dice.DiceSpec):
             if self.dry_run:
                 self.log.warning("DRY-RUN: Not actually committed the report, "
                                  "and it is not yet signed!")
-                # TODO: Add X_recipients!!
                 self.result = yaml.dump(report, indent=2)
 
                 return
@@ -1391,41 +1390,58 @@ class ProjectCmd(_PrjCmd):
         """
         Import the specified input/output co2mpas files into the *current project*.
 
-        - One file from each kind (inp/out) may be given.
-        - If an input/output is already present in the current project, use --force.
-
         SYNTAX
-            %(cmd_chain)s [OPTIONS] ( inp=<co2mpas-file-1> | out=<co2mpas-file-1> ) ...
+            %(cmd_chain)s [OPTIONS] ( --inp <co2mpas-file> |
+                                      --out <co2mpas-file> |
+                                      <any-file> ) ...
+
+        - To report and tstamp a project, one file (at least) from *inp* & *out* must be given.
+        - If an input/output are already present in the current project, use --force.
+        - Note that any file argument not given with `--inp`, `--out`, will end-up as "other".
         """
 
         examples = trt.Unicode("""
             To import an INPUT co2mpas file, try:
 
-                %(cmd_chain)s inp=co2mpas_input.xlsx
+                %(cmd_chain)s --inp co2mpas_input.xlsx
 
             To import both INPUT and OUTPUT files, and overwrite any already imported try:
 
-                %(cmd_chain)s --force inp=co2mpas_input.xlsx out=co2mpas_results.xlsx
+                %(cmd_chain)s --force --inp co2mpas_input.xlsx --out co2mpas_results.xlsx
             """)
 
+        inp = trt.List(
+            trt.Unicode(),
+            help="Specify co2mpas INPUT files; use this option one or more times."
+        ).tag(config=True)
+        out = trt.List(
+            trt.Unicode(),
+            help="Specify co2mpas OUTPUT files; use this option one or more times."
+        ).tag(config=True)
+
         def __init__(self, **kwds):
+            kwds.setdefault('cmd_aliases', {
+                ('i', 'inp'): ('AppendCmd.inp', pndlu.first_line(type(self).inp.help)),
+                ('o', 'out'): ('AppendCmd.out', pndlu.first_line(type(self).out.help)),
+            })
             kwds.setdefault('cmd_flags', {
                 ('n', 'dry-run'): (
                     {
                         'Project': {'dry_run': True},
                     },
                     "Parse files but do not actually store them in the project."
-                )
+                ),
             })
             super().__init__(**kwds)
 
         def run(self, *args):
             ## TODO: Support heuristic inp/out classification
-            self.log.info('Importing report files %s...', args)
-            if len(args) < 1:
-                raise CmdException('Cmd %r takes at least one argument, received %d: %r!'
-                                   % (self.name, len(args), args))
-            pfiles = PFiles.parse_io_args(*args)
+            pfiles = PFiles(inp=self.inp, out=self.out, other=args)
+            self.log.info("Importing report files...\n  %s", pfiles)
+            if not pfiles.nfiles():
+                raise CmdException(
+                    "Cmd %r must be given at least one file argument, received %d: %r!"
+                    % (self.name, pfiles.nfiles(), pfiles))
 
             proj = self.current_project
             ok = proj.do_addfiles(pfiles=pfiles)
@@ -1442,9 +1458,10 @@ class ProjectCmd(_PrjCmd):
         SYNTAX
             %(cmd_chain)s [OPTIONS]
 
-        Eventually the *Dice Report* parameters will be time-stamped and disseminated to
-        TA authorities & oversight bodies with an email, to receive back
-        the sampling decision.
+        - Eventually the *Dice Report* parameters will be time-stamped and disseminated to
+          TA authorities & oversight bodies with an email, to receive back
+          the sampling decision.
+        - To get report ready for sending it MANUALLY, use tstamp` sub-command.
 
         """
 

@@ -161,30 +161,39 @@ class ReportCmd(baseapp.Cmd):
     """
     Extract dice-report from the given co2mpas input/output/other files, or from those in *current-project*.
 
-    The *report parameters* will be time-stamped and disseminated to
-    TA authorities & oversight bodies with an email, to receive back
-    the sampling decision.
-
-    If multiple files given from a kind (inp/out), later ones overwrite any previous.
-
     SYNTAX
-        %(cmd_chain)s [OPTIONS] ( inp=<co2mpas-file-1> | out=<co2mpas-file-1> ) ...
+        %(cmd_chain)s [OPTIONS] ( --inp <co2mpas-file> | --out <co2mpas-file> | <other-file> ) ...
         %(cmd_chain)s [OPTIONS] --project
+
+    - The *report parameters* will be time-stamped and disseminated to
+      TA authorities & oversight bodies with an email, to receive back
+      the sampling decision.
+    - If multiple files given from a kind (inp/out), later ones overwrite any previous.
+    - Note that any file argument not given with `--inp`, `--out`, will end-up as "other".
     """
 
     examples = trt.Unicode("""
         To extract the report-parameters from an INPUT co2mpas file, try:
 
-            %(cmd_chain)s inp=co2mpas_input.xlsx
+            %(cmd_chain)s --inp co2mpas_input.xlsx
 
         To extract the report from both INPUT and OUTPUT files, try:
 
-            %(cmd_chain)s inp=co2mpas_input.xlsx out=co2mpas_results.xlsx
+            %(cmd_chain)s --inp co2mpas_input.xlsx --out co2mpas_results.xlsx
 
         To view the report of the *current-project*, try:
 
             %(cmd_chain)s --project
         """)
+
+    inp = trt.List(
+        trt.Unicode(),
+        help="Specify co2mpas INPUT files; use this option one or more times."
+    ).tag(config=True)
+    out = trt.List(
+        trt.Unicode(),
+        help="Specify co2mpas OUTPUT files; use this option one or more times."
+    ).tag(config=True)
 
     project = trt.Bool(
         False,
@@ -213,6 +222,10 @@ class ReportCmd(baseapp.Cmd):
     def __init__(self, **kwds):
         dkwds = {
             'conf_classes': [project.ProjectsDB, project.Project, Report],
+            'cmd_aliases': {
+                ('i', 'inp'): ('AppendCmd.inp', pndlu.first_line(type(self).inp.help)),
+                ('o', 'out'): ('AppendCmd.out', pndlu.first_line(type(self).out.help)),
+            },
             'cmd_flags': {
                 'project': ({
                     'ReportCmd': {'project': True},
@@ -233,15 +246,9 @@ class ReportCmd(baseapp.Cmd):
                 "Current %s contains no input/output files!" % project)
         return pfiles
 
-    def _build_io_files_from_args(self, args) -> PFiles:
-        """Just to report any stray files>"""
-        pfiles = PFiles.parse_io_args(*args)
-
         return pfiles
 
     def run(self, *args):
-        from boltons.setutils import IndexedSet as iset
-
         nargs = len(args)
         infos = self.vfids_only and '`vehicle_family_id`' or 'report infos'
         if self.project:
@@ -253,14 +260,13 @@ class ReportCmd(baseapp.Cmd):
             self.log.info("Extracting %s from current-project...", infos)
             pfiles = self._build_io_files_from_project(args)
         else:
-            self.log.info("Extracting %s from files:\n  %s",
-                          infos, '\n  '.join(args))
-            if nargs < 1:
+            ## TODO: Support heuristic inp/out classification
+            pfiles = PFiles(inp=self.inp, out=self.out, other=args)
+            self.log.info("Extracting %s from files...\n  %s", infos, pfiles)
+            if not pfiles.nfiles():
                 raise CmdException(
-                    "Cmd %r takes at least one filepath as argument, received %d: %r!"
-                    % (self.name, len(args), args))
-            args = iset(args)
-            pfiles = self._build_io_files_from_args(args)
+                    "Cmd %r must be given at least one file argument, received %d: %r!"
+                    % (self.name, pfiles.nfiles(), pfiles))
 
         import yaml
 

@@ -77,34 +77,6 @@ class PFiles(namedtuple('PFiles', all_io_kinds)):
                 "Invalid io-kind(s): ", set(io_kinds) - set(all_io_kinds))
         return tuple(set(io_kinds))
 
-    @staticmethod
-    def parse_io_args(*args: Text) -> 'PFiles' or None:
-        """
-        Separates args into those starting with 'inp=', 'out=', or none.
-
-        For example, given the 3 args::
-
-            'inp=abc', 'out:gg' 'out=bar'
-
-        It will return::
-
-            PFiles(inp=['abc'], out=['bar'], other={2: 'out:gg'})
-
-        """
-        files = defaultdict(list)
-        for arg in args:
-            m = _file_arg_regex.match(arg)
-            if m:
-                kind = m.group(1).lower()
-                fpath = m.group(2)
-            else:
-                kind = 'other'
-                fpath = arg
-            files[kind].append(fpath)
-
-        if files:
-            return PFiles(**files)
-
     def nfiles(self):
         return sum(len(f) for f in self._asdict().values())
 
