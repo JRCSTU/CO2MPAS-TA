@@ -125,7 +125,7 @@ El4C5af/8COxQcDn608=
 """,
 ]
 
-test_pgp_trust = tw.dedent("""\
-    ## CO2MPAS test-key
-    5464E04EE547D1FEDCAC4342B124C999CBBB52FF:6:
-    """)
+test_pgp_trust = """\
+## CO2MPAS test-key
+5464E04EE547D1FEDCAC4342B124C999CBBB52FF:6:
+"""

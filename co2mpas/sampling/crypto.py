@@ -184,7 +184,7 @@ class GpgSpec(baseapp.Spec):
 
     gnupgexe = trt.Unicode(
         os.environ.get('GNUPGEXE', 'gpg'), allow_none=True,
-        help="The path to GnuPG executable; read from `GNUPGEXE`(%s) env-variable or 'gpg'."
+        help="The path to GnuPG-v2 executable; read from `GNUPGEXE`(%s) env-variable or 'gpg'."
         % os.environ.get('GNUPGEXE')
     ).tag(config=True)
 
@@ -288,12 +288,19 @@ class GpgSpec(baseapp.Spec):
 
     @property
     def gnupgexe_resolved(self):
-        """Used for printing configurations."""
+        """Used for printing configurations only."""
         import shutil
 
-        gpg_exepath = self.gnupgexe
-        gpg_exepath = shutil.which(gpg_exepath) or gpg_exepath
-        return gpg_exepath
+        gnupgexe = self.gnupgexe
+        gnupgexe = shutil.which(gnupgexe) or gnupgexe
+
+        if not re.search(r'gpg2(:?.exe)?$', gnupgexe, re.I) or osp.isdir(gnupgexe):
+            self.log.warning(
+                "The path `%s.gnupgexe = '%s'` may point to a FOLDER(!) or GPG-v1.x, "
+                "\n  instead of pointing to a `gpg2` executable!",
+                type(self).__name__, gnupgexe)
+
+        return gnupgexe
 
     @property
     def gnupghome_resolved(self):
@@ -354,6 +361,7 @@ class GpgSpec(baseapp.Spec):
         import gnupg
         GPG = self._GPG
         if not GPG:
+            self.gnupgexe_resolved  # Just to wearn user...
             gnupgexe = self.gnupgexe
             GPG = self._GPG = gnupg.GPG(
                 gpgbinary=gnupgexe,
