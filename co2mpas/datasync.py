@@ -600,7 +600,9 @@ def _get_theoretical(profile):
     profile['wltp_class'] = profile['wltp_class'].lower()
     profile['gear_box_type'] = profile['gear_box_type'].lower()
     from co2mpas.model.physical.cycle import cycle
-    res = cycle().dispatch(inputs=profile, outputs=['times', 'velocities'])
+    res = cycle().dispatch(
+        inputs=profile, outputs=['times', 'velocities'], shrink=True
+    )
     data = dsp_utl.selector(['times', 'velocities'], res, output_type='list')
     return pd.DataFrame(data).T
 
