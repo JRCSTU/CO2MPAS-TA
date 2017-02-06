@@ -783,12 +783,14 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             if self.reset_settings:
                 self.log.info("Resetting to default settings of repo(%s)...",
                               self.__repo.git_dir)
-                self._write_repo_configs()
+            check_only = not self.reset_settings
         except git.InvalidGitRepositoryError as ex:
             self.log.info("...failed opening repo '%s',\n  initializing a new repo %r instead...",
                           ex, repo_path)
             self.__repo = git.Repo.init(repo_path)
-            self._write_repo_configs()
+            check_only = False
+
+        self._write_repo_configs(check_only=check_only)
 
     @trt.observe('repo_path')
     def _cleanup_old_repo(self, change):
@@ -812,9 +814,10 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             self._setup_repo()
         return self.__repo
 
-    def _write_repo_configs(self):
+    def _write_repo_configs(self, check_only=False):
         from . import crypto
 
+        log = self.log
         repo = self.repo
         git_auth = crypto.get_git_auth(self.config)
         gnupgexe = git_auth.gnupgexe_resolved
@@ -837,17 +840,37 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             ('user.signingkey', git_auth.master_key_resolved),
         ]
 
+        unexpected_kvalues = OrderedDict()
         with repo.config_writer() as cw:
             for key, val in gconfigs:
                 sec, prop = key.split('.')
+
+                ## Check for setting-differrences.
+                #
+                try:
+                    old_val = cw.get_value(sec, prop)
+                    if old_val != val:
+                        unexpected_kvalues[key] = (old_val, val)
+                except:
+                    unexpected_kvalues[key] = ('<missing>', val)
+
+                if check_only:
+                    continue
+
                 ok = False
                 try:
                     cw.set_value(sec, prop, val)
                     ok = True
                 finally:
                     if not ok:
-                        self.log.error("Failed to write git-seeting '%s'=%s!",
-                                       key, val)
+                        log.error("Failed to write git-setting '%s': %s!",
+                                  key, val)
+
+            if unexpected_kvalues:
+                log.warning("Missmatched values in GIT configs: %s\n%s"
+                            "  TIP: If they have changed by mistake, use `--reset-settings`.\n",
+                            osp.join(repo.git_dir, 'config'),
+                            tw.indent(yaml.dump(unexpected_kvalues), '    '))
 
     def read_git_settings(self, prefix: Text=None, config_level: Text=None):  # -> List(Text):
         """
@@ -1650,7 +1673,7 @@ class ProjectCmd(_PrjCmd):
                     ## TODO: Handle '-'
                     for p in pnames:
                         if p == '-':
-                            p = self.current_project.name
+                            p = self.current_project.pname
                         fetch_info = rem.fetch(_pname2ref_name(p))
                         yield from ('packing: %s' % fi.remote_ref_path
                                     for fi in fetch_info)
@@ -1664,7 +1687,7 @@ class ProjectCmd(_PrjCmd):
                     if self.erase_afterwards:
                         for p in pnames:
                             if p == '-':
-                                p = self.current_project.name
+                                p = self.current_project.pname
 
                             tref = _tname2ref_name(p)
                             for t in list(repo.tags):
