@@ -1652,7 +1652,8 @@ class ProjectCmd(_PrjCmd):
         SYNTAX
             %(cmd_chain)s [OPTIONS] [<project-1>] ...
 
-        - If '-' is given or no project at all, it reads from *current*.
+        - If '.' is given or no project at all, it reads from *current*.
+        - The archive created is named `CO2MPAS_projects-<timestamp>`.
         """
         erase_afterwards = trt.Bool(
             help="Will erase all archived projects from repo."
@@ -1677,11 +1678,17 @@ class ProjectCmd(_PrjCmd):
                 try:
                     rem = exrepo.create_remote('origin', osp.join(repo.working_dir, '.git'))
 
-                    ## TODO: Handle '-'
                     for p in pnames:
-                        if p == '-':
-                            p = self.current_project.pname
-                        fetch_info = rem.fetch(_pname2ref_name(p))
+                        if p == '.':
+                            pp = self.current_project.pname
+                        else:
+                            pp = _pname2ref_name(p)
+
+                        if pp not in repo.heads:
+                            self.log.info("Ignoring branch(%s), not a co2mpas project.", p)
+                            continue
+
+                        fetch_info = rem.fetch(pp)
                         yield from ('packing: %s' % fi.remote_ref_path
                                     for fi in fetch_info)
 
@@ -1693,7 +1700,7 @@ class ProjectCmd(_PrjCmd):
 
                     if self.erase_afterwards:
                         for p in pnames:
-                            if p == '-':
+                            if p == '.':
                                 p = self.current_project.pname
 
                             tref = _tname2ref_name(p)
@@ -1737,20 +1744,24 @@ class ProjectCmd(_PrjCmd):
             repo = self.projects_db.repo
             with tempfile.TemporaryDirectory(prefix='co2mpas_unzip-') as tdir:
                 for f in files:
-                    bname, _ = osp.splitext(osp.basename(f))
-                    exdir = osp.join(tdir, bname)
+                    if f == '-':
+                        f = sys.stdin
+                        remname = 'stdin'
+                    else:
+                        remname, _ = osp.splitext(osp.basename(f))
+                    exdir = osp.join(tdir, remname)
 
                     ## TODO: Handle '-'
                     with zipfile.ZipFile(f, "r") as zip_ref:
                         zip_ref.extractall(exdir)
 
                     try:
-                        rem = repo.create_remote(bname, osp.join(exdir, 'repo'))
+                        rem = repo.create_remote(remname, osp.join(exdir, 'repo'))
                         fetch_info = rem.fetch()
                         yield from ('unpacking: %s' % fi.name
                                     for fi in fetch_info)
                     finally:
-                        repo.delete_remote(bname)
+                        repo.delete_remote(remname)
 
     class BackupCmd(_PrjCmd):
         """
