@@ -65,6 +65,7 @@ class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
 
     @classmethod
     def _check_commit_msg_version(cls, msg_ver_txt):
+        ## TODO: Parse msg-version from raw text first.
         prog_ver = __dice_report_version__.split('.')
         msg_ver = msg_ver_txt.split('.')
         if (len(msg_ver) != 3 or
@@ -195,7 +196,7 @@ def _find_dice_tag(repo, pname, max_dices_per_project,
                        "\n  Maybe delete project and start all over?" % pname)
 
 
-def read_dice_tag(repo, tag: Union[Text, 'git.TagReference']):
+def _read_dice_tag(repo, tag: Union[Text, 'git.TagReference']):
     if isinstance(tag, str):
         tag = repo.tags[tag]
     return tag.tag.data_stream.read().decode('utf-8')
@@ -477,7 +478,7 @@ class Project(transitions.Machine, dice.DiceSpec):
 
                     tagref = repo.create_tag(tagname, message=cmsg_txt,
                                              sign=True, local_user=git_auth.master_key)
-                    self.result = read_dice_tag(repo, tagref)
+                    self.result = _read_dice_tag(repo, tagref)
 
                     ok = True
                 finally:
@@ -626,7 +627,7 @@ class Project(transitions.Machine, dice.DiceSpec):
             event.kwargs['report'] = report
         else:
             assert tagref
-            self.result = read_dice_tag(repo, tagref)
+            self.result = _read_dice_tag(repo, tagref)
 
     def _cb_send_email(self, event):
         """
@@ -642,7 +643,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         tagref = _find_dice_tag(repo, self.pname,
                                 self.max_dices_per_project)
         assert tagref
-        signed_dice_report = read_dice_tag(repo, tagref)
+        signed_dice_report = _read_dice_tag(repo, tagref)
         assert signed_dice_report
 
         dice_mail_mime = tstamp_sender.send_timestamped_email(
