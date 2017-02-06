@@ -17,7 +17,7 @@ from typing import (
     Any, Union, List, Dict, Sequence, Iterable, Optional, Text, Tuple, Callable)  # @UnusedImport
 
 from boltons.setutils import IndexedSet as iset
-from toolz import itertoolz as itz, dicttoolz as dtz
+from toolz import itertoolz as itz
 import transitions
 from transitions.core import MachineError
 import yaml
@@ -1684,7 +1684,7 @@ class ProjectCmd(_PrjCmd):
                     exdir = osp.join(tdir, bname)
 
                     ## TODO: Handle '-'
-                    with zipfile.ZipFile(f,"r") as zip_ref:
+                    with zipfile.ZipFile(f, "r") as zip_ref:
                         zip_ref.extractall(exdir)
 
                     try:
