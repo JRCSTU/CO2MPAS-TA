@@ -738,7 +738,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         """.format(confdir=baseapp.default_config_dir())
     ).tag(config=True)
 
-    reset_settings = trt.Bool(
+    reset_git_settings = trt.Bool(
         False,
         help="""
         When enabled, re-writes default git's config-settings on app start up.
@@ -780,10 +780,10 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         try:
             self.log.debug('Opening repo %r...', repo_path)
             self.__repo = git.Repo(repo_path)
-            if self.reset_settings:
+            if self.reset_git_settings:
                 self.log.info("Resetting to default settings of repo(%s)...",
                               self.__repo.git_dir)
-            check_only = not self.reset_settings
+            check_only = not self.reset_git_settings
         except git.InvalidGitRepositoryError as ex:
             self.log.info("...failed opening repo '%s',\n  initializing a new repo %r instead...",
                           ex, repo_path)
@@ -868,7 +868,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
 
             if unexpected_kvalues:
                 log.warning("Missmatched values in GIT configs: %s\n%s"
-                            "  TIP: If they have changed by mistake, use `--reset-settings`.\n",
+                            "\n  TIP: If they have changed by mistake, use `--reset-git-settings`.\n",
                             osp.join(repo.git_dir, 'config'),
                             tw.indent(yaml.dump(unexpected_kvalues), '    '))
 
@@ -1313,6 +1313,13 @@ class _PrjCmd(baseapp.Cmd):
 
     def __init__(self, **kwds):
         kwds.setdefault('conf_classes', [ProjectsDB, Project])
+        kwds.setdefault('cmd_flags', {
+            'reset-git-settings': (
+                {
+                    'ProjectsDB': {'reset_git_settings': True},
+                }, pndlu.first_line(ProjectsDB.reset_git_settings.help)
+            )
+        })
         super().__init__(**kwds)
 
     @property
@@ -1782,13 +1789,6 @@ class ProjectCmd(_PrjCmd):
         dkwds = {
             'conf_classes': [ProjectsDB, Project],
             'subcommands': baseapp.build_sub_cmds(*all_subcmds),
-            'cmd_flags': {
-                'reset-git-settings': (
-                    {
-                        'ProjectsDB': {'reset_settings': True},
-                    }, pndlu.first_line(ProjectsDB.reset_settings.help)
-                )
-            }
         }
         dkwds.update(kwds)
         super().__init__(**dkwds)
