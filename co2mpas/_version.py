@@ -12,7 +12,7 @@
 __version__ = version = "1.5.0.dev6"  # Also update README.rst, doc/allinone.rst, CHANGES.rst,
 
 #: Input/Output file's version.
-__file_version__ = "2.2.5"
+__file_version__ = "2.2.6"
 
 #: Compatible Input file's version.
 __input_file_version__ = "2"
