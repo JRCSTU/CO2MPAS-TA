@@ -227,7 +227,7 @@ class Functions(co2_utl.Constants):
         n_perturbations = 100
 
         #: Enable third step co2_params calibration in perturbation loop? [-]
-        enable_third_step = False
+        enable_third_step = True
 
         #: Use error function against co2_emissions in perturbation loop? [-]
         third_step_against_emissions = True
