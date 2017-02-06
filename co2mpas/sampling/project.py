@@ -336,7 +336,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         self.pname = pname
         self.rpo = repo
         states = [
-            'UNBORN', 'INVALID', 'empty', 'wltp_out', 'wltp_inp', 'wltp_iof', 'tagged',
+            'BORN', 'INVALID', 'empty', 'wltp_out', 'wltp_inp', 'wltp_iof', 'tagged',
             'mailed', 'diced', 'nedc',
         ]
         trans = yaml.load(
@@ -344,7 +344,7 @@ class Project(transitions.Machine, dice.DiceSpec):
             """
             - [do_invalidate, '*',      INVALID,      None, None,        _cb_invalidated]
 
-            - [do_createme,  UNBORN,    empty]
+            - [do_createme,  BORN,    empty]
 
             - [do_addfiles,  empty,      wltp_iof,     _is_inp_out_files]
             - [do_addfiles,  empty,      wltp_inp,     _is_inp_files    ]
@@ -1079,7 +1079,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         return infos
 
     def _conceive_new_project(self, pname):  # -> Project:
-        """Returns a "UNBORN" :class:`Project`; its state must be triggered immediately."""
+        """Returns a "BORN" :class:`Project`; its state must be triggered immediately."""
         return Project.new_instance(pname, self.repo, self.config)
 
     _current_project = None
