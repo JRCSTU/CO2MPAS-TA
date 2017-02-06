@@ -383,12 +383,12 @@ class GpgSpec(baseapp.Spec):
             Discard `pswd` immediately after encryption,
             to reduce opportunity window of greping it from memory.
         """
+        import pickle
+
         assert not is_pgp_encrypted(plainobj), "PswdId('%s'): already encrypted!" % pswdid
 
-        import dill
-
         try:
-            plainbytes = dill.dumps(plainobj)  # type: bytes
+            plainbytes = pickle.dumps(plainobj)  # type: bytes
         except Exception as ex:
                 raise ValueError("PswdId('%s'): encryption failed due to: %s" % (pswdid, ex))
 
@@ -414,6 +414,8 @@ class GpgSpec(baseapp.Spec):
             Discard returned pswd immediately after usage,
             to reduce opportunity window of greping it from memory.
         """
+        import pickle
+
         if not is_pgp_encrypted:
             raise ValueError("PswdId('%s'): cannot encrypt!  Not in pgp-armor format!" % pswdid)
 
@@ -426,8 +428,7 @@ class GpgSpec(baseapp.Spec):
             self.log.debug("PswdId('%s'): decryption stderr: %s", pswdid, plain.stderr)
             raise ValueError("PswdId('%s'): %s!" % (pswdid, plain.status))
 
-        import dill
-        plainobj = dill.loads(plain.data)
+        plainobj = pickle.loads(plain.data)
 
         return plainobj
 
@@ -526,7 +527,7 @@ def get_stamper_auth(config: trtc.Config) -> StamperAuthSpec:
 
 
 class Cipher(trt.TraitType):
-    """A trait that auto-dencrypts its value using PGP (can be anything that is Dill-ed)."""
+    """A trait that auto-dencrypts its value using PGP (can be anything that is pickled-ed)."""
     ## See also :class:`baseapp.HasCiphersMixin`
 
     info_text = 'any value (will be PGP-encrypted)'
