@@ -13,10 +13,10 @@ import io
 import os
 import re
 import sys
-import textwrap as tw
 from typing import (
     Any, Union, List, Dict, Sequence, Iterable, Optional, Text, Tuple, Callable)  # @UnusedImport
 
+from boltons.setutils import IndexedSet as iset
 from toolz import itertoolz as itz, dicttoolz as dtz
 import transitions
 from transitions.core import MachineError
@@ -25,6 +25,7 @@ import yaml
 import functools as fnt
 import os.path as osp
 import pandalone.utils as pndlu
+import textwrap as tw
 import traitlets as trt
 import traitlets.config as trtc
 
@@ -1228,6 +1229,8 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
 
         ap = repo.active_branch
         ap = ap and ap.path
+        pnames = iset(self.current_project().pname if p == '.' else p
+                      for p in pnames)
         for ref in _yield_project_refs(repo, *pnames):
             pname = _ref2pname(ref)
             isactive = _pname2ref_path(pname) == ap
@@ -1301,6 +1304,7 @@ class ProjectCmd(_PrjCmd):
 
         - Use --verbose to view more infos about the projects, or use the `examine` cmd
           to view even more details for a specific project.
+        - Use '.' to denote current project.
 
         SYNTAX
             %(cmd_chain)s [OPTIONS] [<project-1>] ...
@@ -1384,6 +1388,7 @@ class ProjectCmd(_PrjCmd):
             super().__init__(**kwds)
 
         def run(self, *args):
+            ## TODO: Support heuristic inp/out classification
             self.log.info('Importing report files %s...', args)
             if len(args) < 1:
                 raise CmdException('Cmd %r takes at least one argument, received %d: %r!'
@@ -1571,7 +1576,6 @@ class ProjectCmd(_PrjCmd):
 
         def run(self, *args):
             ## TODO: Mve ziproject code to Spec.
-            from boltons.setutils import IndexedSet as iset
             import tempfile
             import shutil
             import git
@@ -1640,7 +1644,6 @@ class ProjectCmd(_PrjCmd):
         """
         def run(self, *args):
             ## TODO: Mve ziproject code to Spec.
-            from boltons.setutils import IndexedSet as iset
             import tempfile
             import zipfile
 
