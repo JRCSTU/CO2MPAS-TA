@@ -106,22 +106,22 @@ class TstampSender(TstampSpec):
     """SMTP & timestamp parameters and methods for sending dice emails."""
 
     timestamping_addresses = trt.List(
-        type=trt.Unicode(), allow_none=False,
+        trt.Unicode(), allow_none=False,
         help="""The plain email-address(s) of the timestamp service must be here. Ask JRC to provide that. """
     ).tag(config=True)
 
     cc_addresses = trt.List(
-        type=trt.Unicode(), allow_none=True,
+        trt.Unicode(), allow_none=True,
         help="Any carbon-copy (CC) recipients. "
     ).tag(config=True)
 
     bcc_addresses = trt.List(
-        type=trt.Unicode(), allow_none=True,
+        trt.Unicode(), allow_none=True,
         help="Any blind-carbon-copy (BCC) recipients. "
     ).tag(config=True)
 
     x_recipients = trt.List(
-        type=trt.Unicode(), allow_none=False,
+        trt.Unicode(), allow_none=False,
         help="""The plain email-address of the receivers of the timestamped response. Ask JRC to provide that."""
     ).tag(config=True)
 
