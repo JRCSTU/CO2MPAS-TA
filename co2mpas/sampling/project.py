@@ -920,69 +920,72 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         from schedula import Dispatcher
         from schedula.utils.dsp import DFun
 
+        ## see _info_fields()
+        P = 'project'
+
         dfuns = [
-            DFun('repo', lambda _rinfos: self.repo),
+            DFun('_repo', lambda _rinfos: self.repo),
             DFun('git_cmds', lambda _rinfos: pndlu.where('git')),
-            DFun('is_dirty', lambda repo: repo.is_dirty()),
-            DFun('is_bare', lambda repo: repo.bare),
-            #DFun('is_empty', lambda repo: repo.is_empty), pygit2!
-            DFun('untracked', lambda repo: repo.untracked_files),
-            DFun('wd_files', lambda repo: os.listdir(repo.working_dir)),
-            DFun('_heads', lambda repo: repo.heads),
+            DFun('is_dirty', lambda _repo: _repo.is_dirty()),
+            DFun('is_bare', lambda _repo: _repo.bare),
+            #DFun('is_empty', lambda _repo: _repo.is_empty), pygit2!
+            DFun('untracked', lambda _repo: _repo.untracked_files),
+            DFun('wd_files', lambda _repo: os.listdir(_repo.working_dir)),
+            DFun('_heads', lambda _repo: _repo.heads),
             DFun('heads', lambda _heads: [r.name for r in _heads]),
             DFun('heads_count', lambda _heads: len(_heads)),
-            DFun('_projects', lambda repo: list(_yield_project_refs(repo))),
+            DFun('_projects', lambda _repo: list(_yield_project_refs(_repo))),
             DFun('projects', lambda _projects: [p.name for p in _projects]),
             DFun('projects_count', lambda projects: len(projects)),
-            DFun('_all_dices', lambda repo: list(_yield_dices_tags(repo))),
+            DFun('_all_dices', lambda _repo: list(_yield_dices_tags(_repo))),
             DFun('all_dices', lambda _all_dices: [t.name for t in _all_dices]),
             DFun('all_dices_count', lambda all_dices: len(all_dices)),
-            DFun('git.settings', lambda repo: self.read_git_settings()),
+            DFun('git.settings', lambda _repo: self.read_git_settings()),
 
-            DFun('git.version', lambda repo: '.'.join(str(v) for v in repo.git.version_info)),
+            DFun('git.version', lambda _repo: '.'.join(str(v) for v in _repo.git.version_info)),
 
-
-            DFun('_head', lambda repo: repo.head),
-            #DFun('head_unborn', lambda repo: repo.head_is_unborn()), pygit2
+            DFun('_head', lambda _repo: _repo.head),
+            #DFun('head_unborn', lambda _repo: _repo.head_is_unborn()), pygit2
             DFun('head_valid', lambda _head: _head.is_valid()),
             DFun('head_detached', lambda _head: _head.is_detached),
             DFun('head', lambda _head: _head.path),
             DFun('_head_ref', lambda _head: _head.ref),
             DFun('head_ref', lambda _head_ref: _head_ref.path),
 
-            DFun('_pref', lambda repo, _pname:
-                 _get_ref(repo.heads, _pname2ref_name(_pname))),
-            DFun('_cmt', lambda _pref: _pref.commit),
-            DFun('_tree', lambda _cmt: _cmt.tree),
-            DFun('author', lambda _cmt: '%s <%s>' % (_cmt.author.name, _cmt.author.email)),
-            DFun('last_cdate', lambda _cmt: str(_cmt.authored_datetime)),
-            DFun('_last_dice', lambda repo, _pname: _find_dice_tag(
-                repo, _pname, max_dices_per_project=50)),  # FIXME: Create common Spec!!
+            ## Project-infos
+            #
+            DFun('_pref', lambda _repo, _pname:
+                 _get_ref(_repo.heads, _pname2ref_name(_pname)), inf=P),
+            DFun('_cmt', lambda _pref: _pref.commit, inf=P),
+            DFun('_tree', lambda _cmt: _cmt.tree, inf=P),
+            DFun('author', lambda _cmt: '%s <%s>' % (_cmt.author.name, _cmt.author.email), inf=P),
+            DFun('last_cdate', lambda _cmt: str(_cmt.authored_datetime), inf=P),
+            DFun('_last_dice', lambda _repo, _pname: _find_dice_tag(
+                _repo, _pname, max_dices_per_project=50), inf=P),  # FIXME: Create common Spec!!
             DFun('last_dice', lambda _last_dice: _last_dice and '%s: %s' % (
-                _last_dice.name, _last_dice.commit.hexsha)),
-            DFun('last_dice_msg', lambda _last_dice:
-                 _last_dice and _last_dice.tag.message),
-            DFun('last_commit', lambda _cmt: _cmt.hexsha),
-            DFun('tree', lambda _tree: _tree.hexsha),
-            DFun('_dices', lambda repo, _pname: list(_yield_dices_tags(repo, _pname))),
+                _last_dice.name, _last_dice.commit.hexsha), inf=P),
+            DFun('last_dice_msg', lambda _last_dice: _last_dice and _last_dice.tag.message, inf=P),
+            DFun('last_commit', lambda _cmt: _cmt.hexsha, inf=P),
+            DFun('tree', lambda _tree: _tree.hexsha, inf=P),
+            DFun('_dices', lambda _repo, _pname: list(_yield_dices_tags(_repo, _pname)), inf=P),
             DFun('dices', lambda _dices: ['%s: %s' % (t.name, t.commit.hexsha)
-                                          for t in _dices]),
-            DFun('dices_count', lambda _dices: len(_dices)),
-            DFun('_revs', lambda _cmt: list(_cmt.iter_parents())),
-            DFun('revs', lambda _revs: [c.hexsha for c in _revs]),
-            DFun('revs_count', lambda _revs: len(_revs)),
-            DFun('cmsg', lambda _cmt: _cmt.message),
-            DFun('cmsg', lambda _cmt: '<invalid: %s>' % _cmt.message, weight=10),
+                                          for t in _dices], inf=P),
+            DFun('dices_count', lambda _dices: len(_dices), inf=P),
+            DFun('_revs', lambda _cmt: list(_cmt.iter_parents()), inf=P),
+            DFun('revs', lambda _revs: [c.hexsha for c in _revs], inf=P),
+            DFun('revs_count', lambda _revs: len(_revs), inf=P),
+            DFun('cmsg', lambda _cmt: _cmt.message, inf=P),
+            DFun('cmsg', lambda _cmt: '<invalid: %s>' % _cmt.message, weight=10, inf=P),
 
             DFun(['msg.%s' % f for f in _CommitMsg._fields],
-                 lambda cmsg: _CommitMsg.parse_commit_msg(cmsg)),
+                 lambda cmsg: _CommitMsg.parse_commit_msg(cmsg), inf=P),
 
-            DFun('_objects', lambda _tree: list(_tree.list_traverse())),
-            DFun('objects_count', lambda _objects: len(_objects)),
+            DFun('_objects', lambda _tree: list(_tree.list_traverse()), inf=P),
+            DFun('objects_count', lambda _objects: len(_objects), inf=P),
             DFun('objects', lambda _objects: ['%s: %s' % (b.type, b.path)
-                                              for b in _objects]),
-            DFun('files', lambda _objects: [b.path for b in _objects if b.type == 'blob']),
-            DFun('files_count', lambda files: len(files)),
+                                              for b in _objects], inf=P),
+            DFun('files', lambda _objects: [b.path for b in _objects if b.type == 'blob'], inf=P),
+            DFun('files_count', lambda files: len(files), inf=P),
         ]
         dsp = Dispatcher()
         DFun.add_dfuns(dfuns, dsp)
@@ -994,52 +997,67 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         :param level:
             If ''> max-level'' then max-level assumed, negatives fetch no fields.
         """
+        dsp = self._infos_dsp()
+
+        ## see _infos_dsp() :-)
         P = 'project'
         R = 'repo'
 
         verbose_levels = [
             [
-                ('heads_count', R),
-                ('projects_count', R),
-                ('all_dices_count', R),
-                #('is_empty', R),
-                ('wd_files', R),
+                'heads_count',
+                'projects_count',
+                'all_dices_count',
+                #'is_empty',
+                'wd_files',
 
-                ('msg.s', P),
-                ('msg.a', P),
-                ('last_dice', P),
-                ('last_commit', P),
-                ('dices_count', P),
-                ('revs_count', P),
-                ('files_count', P),
-                ('last_cdate', P),
-                ('author', P),
+                'msg.s',
+                'msg.a',
+                'last_dice',
+                'last_commit',
+                'dices_count',
+                'revs_count',
+                'files_count',
+                'last_cdate',
+                'author',
             ],
             [
-                ('head_valid', R),
-                ('head_detached', R),
-                #('head_unborn', R),
-                ('heads_count', R),
-                ('head', R),
-                ('head_ref', R),
-                ('is_dirty', R),
-                ('is_bare', R),
-                ('heads', R),
-                ('projects', R),
-                ('all_dices', R),
-                ('untracked', R),
+                'head_valid',
+                'head_detached',
+                #'head_unborn',
+                'heads_count',
+                'head',
+                'head_ref',
+                'is_dirty',
+                'is_bare',
+                'heads',
+                'projects',
+                'all_dices',
+                'untracked',
 
-                ('branch_valid', P),
-                ('dices', P),
-                ('tree', P),
-                ('files', P),
-                ('objects_count', P),
-                ('revs', P),
-                ('last_dice_msg', P),
-                ('cmsg', P),
-                #('msg.data', P),
-            ]
+                'dices',
+                'tree',
+                'files',
+                'objects_count',
+                'revs',
+                'last_dice_msg',
+                'cmsg',
+                #('msg.data',
+            ],
+            [f for f in dsp.data_nodes if not f.startswith('_')]
         ]
+
+        ## Extract `inf` attributes from functions
+        #  and pair them with info-fields, above
+        #
+        ftype_map = {}  # outfield -> ( P | R )
+        for f in dsp.function_nodes.values():
+            outputs = f['outputs']
+            inf = f.get('inf', R)  # "project" funcs are unmarked
+            for outfield in outputs:
+                assert outfield not in ftype_map or ftype_map[outfield] == inf, (
+                    outfield, inf, ftype_map)
+                ftype_map[outfield] = inf
 
         if level >= len(verbose_levels):
             return None  # meaning all
@@ -1055,16 +1073,15 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         if not wanted_ftypes:
             wanted_ftypes = set([P, R])
 
-        return list(field for field, ftype
-                    in itz.concat(verbose_levels[:level + 1])
-                    if ftype in wanted_ftypes)
+        sel_fields = itz.concat(verbose_levels[:level + 1])
+        return list(field for field
+                    in sel_fields
+                    if ftype_map[field] in wanted_ftypes)
 
     def _scan_infos(self, *, pname: Text=None,
                     fields: Sequence[Text]=None,
                     inv_value=None) -> List[Tuple[Text, Any]]:
         """Runs repo examination code returning all requested fields (even failed ones)."""
-        from schedula import utils
-
         dsp = self._infos_dsp()
         inputs = {'_rinfos': 'boo    '}
         if pname:
@@ -1076,8 +1093,11 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         fallbacks.update(infos)
         infos = fallbacks
 
-        infos = dict(utils.stack_nested_keys(infos))
-        infos = dtz.keymap(lambda k: '.'.join(k), infos)
+        ## FIXME: stack-nested-jeys did what??
+        #from schedula import utils
+        #infos = dict(utils.stack_nested_keys(infos))
+        #infos = dtz.keymap(lambda k: '.'.join(k), infos)
+
         if fields:
             infos = [(f, infos.get(f, inv_value))
                      for f in fields]
