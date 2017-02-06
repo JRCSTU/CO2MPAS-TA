@@ -458,15 +458,18 @@ class Project(transitions.Machine, dice.DiceSpec):
         #  which imports keys/trust.
         git_auth.GPG
         repo = self.repo
-        is_tagging = state == 'tagged'
         report = _evarg(event, 'report', (list, dict), missing_ok=True)
+        is_tagging = state == 'tagged' and report
         cmsg_txt = self._make_commit_msg(action, report)
 
         with repo.git.custom_environment(GNUPGHOME=git_auth.gnupghome_resolved):
             index = repo.index
             index.commit(cmsg_txt)
 
-            self.result = cmsg_txt
+            ## Update result if nobody else has done it first
+            #  (see `_cb_send_email()`)
+            if not self.result:
+                self.result = cmsg_txt
 
             if is_tagging:
                 ok = False
@@ -1469,9 +1472,15 @@ class ProjectCmd(_PrjCmd):
                                    % (self.name, len(args), args))
 
             proj = self.current_project
-            ok = proj.do_prepmail()
+            repo = proj.repo
+            max_dices_per_project = 12 # FIXME: Create common Spec!!
+            diceref = _find_dice_tag(repo, proj.pname, max_dices_per_project)
+            if diceref and not self.force:
+                return _read_dice_tag(repo, diceref)
+            else:
+                ok = proj.do_prepmail()
 
-            return ok and proj.result or ok
+                return ok and proj.result or ok
 
     class TstampCmd(_PrjCmd):
         """
