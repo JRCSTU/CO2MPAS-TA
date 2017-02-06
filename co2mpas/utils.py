@@ -13,7 +13,7 @@ numerical operations.
 """
 
 
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
 import inspect
 import io
@@ -563,5 +563,6 @@ def setup_yaml_ordered():
 
     From http://stackoverflow.com/a/8661021 """
     yaml.add_representer(OrderedDict, _ordered_dict_representer)
+    yaml.add_representer(defaultdict, _ordered_dict_representer)
     yaml.add_representer(tuple, yaml.SafeDumper.represent_list)
     yaml.add_constructor(_MAPTAG, _construct_ordered_dict)
