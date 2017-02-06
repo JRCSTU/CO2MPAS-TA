@@ -1291,13 +1291,13 @@ class _PrjCmd(baseapp.Cmd):
         super().__init__(**kwds)
 
     @property
-    def projects_db(self):
+    def projects_db(self) -> ProjectsDB:
         p = ProjectsDB.instance(config=self.config)
         p.config = self.config
         return p
 
     @property
-    def current_project(self):
+    def current_project(self) -> Project:
         return self.projects_db.current_project()
 
 
