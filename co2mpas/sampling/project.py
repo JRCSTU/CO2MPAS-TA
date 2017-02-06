@@ -445,6 +445,13 @@ class Project(transitions.Machine, ProjectSpec):
                               % (self.pname, active_branch))
             self.do_invalidate(error=ex)
 
+    def _prep_env_vars(self, gnupghome):
+        env = {'GNUPGHOME': gnupghome}
+        if self.verbose:
+            env['GIT_TRACE'] = '2'
+
+        return env
+
     def _cb_commit_or_tag(self, event):
         """Executed AFTER al state changes, and commits/tags into repo. """
         from . import crypto
@@ -459,24 +466,30 @@ class Project(transitions.Machine, ProjectSpec):
         self.log.debug('Committing: %s', event.kwargs)
 
         git_auth = crypto.get_git_auth(self.config)
-        ## GpgSpec `git_auth` only lazily creates GPG
+        ## WARN: Without next cmd, GpgSpec `git_auth` only lazily creates GPG
         #  which imports keys/trust.
         git_auth.GPG
+
         repo = self.repo
         report = _evarg(event, 'report', (list, dict), missing_ok=True)
         is_tagging = state == 'tagged' and report
         cmsg_txt = self._make_commit_msg(action, report)
 
-        with repo.git.custom_environment(GNUPGHOME=git_auth.gnupghome_resolved):
-            index = repo.index
-            index.commit(cmsg_txt)
+        index = repo.index
+        index.commit(cmsg_txt)
 
-            ## Update result if nobody else has done it first
-            #  (see `_cb_send_email()`)
-            if not self.result:
-                self.result = cmsg_txt
+        ## Update result if nobody else has done it first
+        #  (see `_cb_send_email()`)
+        if not self.result:
+            self.result = cmsg_txt
 
-            if is_tagging:
+        if is_tagging:
+            ## Note: No meaning to enable env-vars earlier,
+            #  *GitPython* commis without invoking `git` cmd.
+            #
+            env_vars = self._prep_env_vars(git_auth.gnupghome_resolved)
+            with repo.git.custom_environment(**env_vars):
+
                 ok = False
                 try:
                     self.log.debug('Tagging: %s', event.kwargs)
