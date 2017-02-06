@@ -34,9 +34,6 @@ from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  
 from .._version import __dice_report_version__
 
 
-###################
-##     Specs     ##
-###################
 vehicle_family_id_regex = re.compile(r'^(?:IP|RL|RM|PR)-\d{2}-\w{2,3}-\d{4}-\d{4}$')
 git_project_regex = re.compile('^\w[\w-]+$')
 
@@ -225,7 +222,20 @@ def _evarg(event, dname, dtype=None, none_ok=False, missing_ok=False):
     return data
 
 
-class Project(transitions.Machine, dice.DiceSpec):
+###################
+##     Specs     ##
+###################
+
+class ProjectSpec(dice.DiceSpec):
+    """Common configurations for both ProjectsDB & ProjectFSM."""
+
+    max_dices_per_project = trt.Int(
+        3,
+        help="""Number of dice-attempts allowed to be forced for a project."""
+    ).tag(config=True)
+
+
+class Project(transitions.Machine, ProjectSpec):
     """The Finite State Machine for the currently checked-out project."""
 
     dry_run = trt.Bool(
@@ -434,11 +444,6 @@ class Project(transitions.Machine, dice.DiceSpec):
             ex = MachineError("Expected current project to be %r, but was %r!"
                               % (self.pname, active_branch))
             self.do_invalidate(error=ex)
-
-    max_dices_per_project = trt.Int(
-        3,
-        help="""Number of dice-attempts allowed to be forced for a project."""
-    ).tag(config=True)
 
     def _cb_commit_or_tag(self, event):
         """Executed AFTER al state changes, and commits/tags into repo. """
@@ -711,7 +716,7 @@ class Project(transitions.Machine, dice.DiceSpec):
         return True
 
 
-class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
+class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
     """A git-based repository storing the TA projects (containing signed-files and sampling-responses).
 
     It handles checkouts but delegates index modifications to `Project` spec.
@@ -987,7 +992,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             DFun('author', lambda _cmt: '%s <%s>' % (_cmt.author.name, _cmt.author.email), inf=P),
             DFun('last_cdate', lambda _cmt: str(_cmt.authored_datetime), inf=P),
             DFun('_last_dice', lambda _repo, _pname: _find_dice_tag(
-                _repo, _pname, max_dices_per_project=50), inf=P),  # FIXME: Create common Spec!!
+                _repo, _pname, self.max_dices_per_project), inf=P),
             DFun('last_dice', lambda _last_dice: _last_dice and '%s: %s' % (
                 _last_dice.name, _last_dice.commit.hexsha), inf=P),
             DFun('last_dice_msg', lambda _last_dice: _last_dice and _last_dice.tag.message, inf=P),
@@ -1520,8 +1525,7 @@ class ProjectCmd(_PrjCmd):
 
             proj = self.current_project
             repo = proj.repo
-            max_dices_per_project = 12 # FIXME: Create common Spec!!
-            diceref = _find_dice_tag(repo, proj.pname, max_dices_per_project)
+            diceref = _find_dice_tag(repo, proj.pname, proj.max_dices_per_project)
             if diceref and not self.force:
                 return _read_dice_tag(repo, diceref)
             else:
