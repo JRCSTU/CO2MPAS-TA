@@ -206,6 +206,8 @@ def define_tooltips():
             The folder where the demo CO2MPAS Input files have been stored.
             - Double-click to open it.
 
+        force_btn: |-
+            Force various actions to proceed even if validations fail.
     """
     import yaml
 
@@ -1832,6 +1834,8 @@ class TemplatesPanel(ttk.Frame):
 
 class DicePanel(ttk.Frame):
 
+    force = False
+
     def __init__(self, parent, app, **kw):
         super().__init__(parent, **kw)
         self.app = app
@@ -1853,7 +1857,20 @@ class DicePanel(ttk.Frame):
                            foreground='orange',
                            cursor='arrow',
                            wrap=tk.NONE)
-        textarea.pack(fill=tk.BOTH, expand=1)
+        textarea.place(relx=0, rely=0, relwidth=1, relheight=1)
+
+        def toggle_force():
+            force = self.force
+            force_btn.state((
+                bang(force) + 'pressed',
+            ))
+            self.force = not force
+
+        force_btn = btn = ttk.Checkbutton(textarea,
+                                          style='Force.TButton', command=toggle_force)
+        btn.place(relx=1, rely=0, width=52, height=52, anchor='ne')
+        add_icon(btn, 'icons/shield-orange-32.png')
+        add_tooltip(btn, 'force_btn')
 
         var = tk.StringVar()
         entry = ttk.Entry(textarea, textvariable=var, width=60)
