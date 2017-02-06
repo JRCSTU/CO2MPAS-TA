@@ -373,9 +373,6 @@ class Project(transitions.Machine, dice.DiceSpec):
 
             - [do_storedice, mailed,    diced,         _cond_is_diced]
 
-            # - [do_noting,  diced,    diced_ok]
-            # - [do_sample,  diced,    diced_ok]
-
             - [do_addfiles,  diced,      nedc,         _is_other_files  ]
             - [do_addfiles,  nedc,       nedc,         [_is_other_files,
                                                        _is_force]      ]
@@ -670,22 +667,42 @@ class Project(transitions.Machine, dice.DiceSpec):
             It needs an already verified tstamp-response because to select which project
             it belongs to, it needs to parse the dice-report contained within the response.
         """
-        res = _evarg(event, 'verdict', dict)
+        from . import tstamp
 
-        dice = res['dice']
+        verdict = _evarg(event, 'verdict', dict, missing_ok=True)
+        tstamp_txt = _evarg(event, 'tstamp_txt', str, missing_ok=True)
+        assert (verdict is None) ^ (tstamp_txt is None), (verdict, tstamp_txt)
+
+        if verdict is None:
+            recv = tstamp.TstampReceiver(config=self.config)
+            verdict = recv.parse_tstamp_response(tstamp_txt)
+
+            pname = verdict.get('report', {}).get('project')
+            if pname != self.pname:
+                raise CmdException(
+                    "Current project('%s') is different from tstamp('%s')!" %
+                    self.pname, pname)
+
+        dice = verdict['dice']
         decision = dice['decision']
-        resp_txt = yaml.dump(decision, indent=2, wdith=None, default_flow_style=False)
+        verdict_txt = yaml.dump(verdict, indent=2)
 
         if self.dry_run:
             self.log.warning('DRY-RUN: Not actually registering decision.')
 
-            self.result = resp_txt
+            self.result = verdict_txt
 
             return False
 
         event.kwargs['action'] = "diced as %s" % decision
+
         ## TODO: **On commit, set arbitrary files to store (where? name?)**.
-        event.kwargs['report'] = res
+        repo = self.repo
+        index = repo.index
+        tstamp_fpath = osp.join(repo.working_tree_dir, 'tstamp.txt')
+        with io.open(tstamp_fpath, 'wt') as fp:
+            fp.write(self._make_readme())
+        index.add([tstamp_fpath])
 
         return True
 
@@ -1167,14 +1184,19 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         self._current_project = None
         return self.current_project()
 
-    def proj_parse_stamped(self, mail_text: Text):
+    def proj_parse_stamped_and_assign_project(self, mail_text: Text):
         from . import tstamp
 
         recv = tstamp.TstampReceiver(config=self.config)
         verdict = recv.parse_tstamp_response(mail_text)
-        pname = verdict['report']['project']
+        pname = verdict.get('report', {}).get('project')
+        if not pname:
+            raise CmdException(
+                'Cannot identify which project tstamped-response belongs to!\n%s',
+                yaml.dump(verdict, indent=2))
+
         proj = self.proj_open(pname)
-        proj.do_storedice(verdict)
+        proj.do_storedice(verdict=verdict)
 
         return proj.result
 
@@ -1469,8 +1491,8 @@ class ProjectCmd(_PrjCmd):
 
         #examples = trt.Unicode(""" """)
 
-        project = trt.Unicode(
-            help="Which project to store/compare the tstamp-response given"
+        auto_store = trt.Unicode(
+            help="When true, store stamp-response to project referenced, otherwise, to *current*."
         ).tag(config=True)
 
         def __init__(self, **kwds):
@@ -1485,7 +1507,13 @@ class ProjectCmd(_PrjCmd):
                         'Project': {'dry_run': True},
                     },
                     "Pase the tstamped response without storing it in the project."
-                )
+                ),
+                ('n', 'auto-store'): (
+                    {
+                        'TparseCmd': {'auto_store': True},
+                    },
+                    pndlu.first_line(type(self).auto_store.help)
+                ),
             })
             super().__init__(**kwds)
 
@@ -1503,9 +1531,12 @@ class ProjectCmd(_PrjCmd):
                 with io.open(file, 'rt') as fin:
                     mail_text = fin.read()
 
-            res = self.projects_db.proj_parse_stamped(mail_text)
+            if self.auto_store:
+                res = self.projects_db.proj_parse_stamped_and_assign_project(mail_text)
+            else:
+                res = self.current_project.do_storedice(tstamp_txt=mail_text)
 
-            return res if self.verbose else ok
+            return res if self.verbose else True  # TODO: Never fails??
 
     class ExamineCmd(_PrjCmd):
         """
@@ -1682,6 +1713,6 @@ class ProjectCmd(_PrjCmd):
 
 all_subcmds = (ProjectCmd.ListCmd, ProjectCmd.CurrentCmd, ProjectCmd.OpenCmd, ProjectCmd.InitCmd,
                ProjectCmd.AppendCmd, ProjectCmd.ReportCmd,
-               ProjectCmd.TstampCmd,
+               ProjectCmd.TstampCmd, ProjectCmd.TparseCmd,
                ProjectCmd.ZipCmd, ProjectCmd.UnzipCmd,
                ProjectCmd.ExamineCmd, ProjectCmd.BackupCmd)
