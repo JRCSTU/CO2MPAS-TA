@@ -923,10 +923,14 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
         dfuns = [
             DFun('repo', lambda _rinfos: self.repo),
             DFun('git_cmds', lambda _rinfos: pndlu.where('git')),
-            DFun('dirty', lambda repo: repo.is_dirty()),
+            DFun('is_dirty', lambda repo: repo.is_dirty()),
+            DFun('is_bare', lambda repo: repo.bare),
+            #DFun('is_empty', lambda repo: repo.is_empty), pygit2!
             DFun('untracked', lambda repo: repo.untracked_files),
             DFun('wd_files', lambda repo: os.listdir(repo.working_dir)),
-            DFun('heads_count', lambda repo: len(repo.heads)),
+            DFun('_heads', lambda repo: repo.heads),
+            DFun('heads', lambda _heads: [r.name for r in _heads]),
+            DFun('heads_count', lambda _heads: len(_heads)),
             DFun('_projects', lambda repo: list(_yield_project_refs(repo))),
             DFun('projects', lambda _projects: [p.name for p in _projects]),
             DFun('projects_count', lambda projects: len(projects)),
@@ -937,17 +941,18 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
 
             DFun('git.version', lambda repo: '.'.join(str(v) for v in repo.git.version_info)),
 
-            DFun('head_ref', lambda head: head.reference),
-            DFun('head_valid', lambda head: head.is_valid()),
-            DFun('head_detached', lambda head: head.is_detached),
 
-            DFun('branch', lambda repo, _pname:
+            DFun('_head', lambda repo: repo.head),
+            #DFun('head_unborn', lambda repo: repo.head_is_unborn()), pygit2
+            DFun('head_valid', lambda _head: _head.is_valid()),
+            DFun('head_detached', lambda _head: _head.is_detached),
+            DFun('head', lambda _head: _head.path),
+            DFun('_head_ref', lambda _head: _head.ref),
+            DFun('head_ref', lambda _head_ref: _head_ref.path),
+
+            DFun('_pref', lambda repo, _pname:
                  _get_ref(repo.heads, _pname2ref_name(_pname))),
-            DFun('_cmt', lambda branch: branch.commit),
-            DFun('head', lambda branch: branch.path),
-            DFun('branch_valid', lambda branch: branch.is_valid()),
-            DFun('branch_detached', lambda branch: branch.is_detached),
-
+            DFun('_cmt', lambda _pref: _pref.commit),
             DFun('_tree', lambda _cmt: _cmt.tree),
             DFun('author', lambda _cmt: '%s <%s>' % (_cmt.author.name, _cmt.author.email)),
             DFun('last_cdate', lambda _cmt: str(_cmt.authored_datetime)),
@@ -994,8 +999,10 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
 
         verbose_levels = [
             [
+                ('heads_count', R),
                 ('projects_count', R),
                 ('all_dices_count', R),
+                #('is_empty', R),
                 ('wd_files', R),
 
                 ('msg.s', P),
@@ -1009,14 +1016,17 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
                 ('author', P),
             ],
             [
+                ('head_valid', R),
                 ('head_detached', R),
+                #('head_unborn', R),
                 ('heads_count', R),
+                ('head', R),
+                ('head_ref', R),
+                ('is_dirty', R),
+                ('is_bare', R),
+                ('heads', R),
                 ('projects', R),
                 ('all_dices', R),
-                ('infos', R),
-                ('cmsg', R),
-                ('head', R),
-                ('dirty', R),
                 ('untracked', R),
 
                 ('branch_valid', P),
@@ -1049,7 +1059,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
                     in itz.concat(verbose_levels[:level + 1])
                     if ftype in wanted_ftypes)
 
-    def _scan_infos(self, pname: Text=None,
+    def _scan_infos(self, *, pname: Text=None,
                     fields: Sequence[Text]=None,
                     inv_value=None) -> List[Tuple[Text, Any]]:
         """Runs repo examination code returning all requested fields (even failed ones)."""
@@ -1077,12 +1087,10 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
 
         return infos
 
-    def proj_examine(self, pname: Text=None, verbose=None, as_text=False):
+    def proj_examine(self, verbose=None, as_text=False):
         """
-        Does not validate project, not fails, just reports situation.
+        Examine infos bout the projects-db.
 
-        :param pname:
-            Use current branch if unspecified; otherwise, DOES NOT checkout pname.
         :retun: text message with infos.
         """
 
@@ -1090,8 +1098,8 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             verbose = self.verbose
         verbose_level = int(verbose)
 
-        fields = self._info_fields(verbose_level, want_project=True, want_repo=True)
-        infos = self._scan_infos(pname, fields)
+        fields = self._info_fields(verbose_level, want_repo=True)
+        infos = self._scan_infos(fields=fields)
 
         if as_text:
             infos = yaml.dump(OrderedDict(infos), indent=2, default_flow_style=False)
@@ -1236,7 +1244,7 @@ class ProjectsDB(trtc.SingletonConfigurable, dice.DiceSpec):
             isactive = _pname2ref_path(pname) == ap
 
             if verbose:
-                infos = self._scan_infos(pname, fields, inv_value='<invalid>')
+                infos = self._scan_infos(pname=pname, fields=fields, inv_value='<invalid>')
                 infos = OrderedDict(infos)
                 infos['active'] = isactive
                 to_yield = {pname: infos}
@@ -1302,7 +1310,7 @@ class ProjectCmd(_PrjCmd):
         """
         List specified projects, or all, if none specified.
 
-        - Use --verbose to view more infos about the projects, or use the `examine` cmd
+        - Use `--verbose` or `--vlevel 2` to view more infos about the projects, or use the `examine` cmd
           to view even more details for a specific project.
         - Use '.' to denote current project.
 
@@ -1547,19 +1555,18 @@ class ProjectCmd(_PrjCmd):
 
     class ExamineCmd(_PrjCmd):
         """
-        Print various information about the specified project, or the current-project, if none specified.
+        Print various information about the projects-repo.
 
-        - Use --verbose to view more infos, including about the repository as a whole.
+        - Use `--verbose` or `--vlevel 2` to view more infos.
 
         SYNTAX
-            %(cmd_chain)s [OPTIONS] [<project>]
+            %(cmd_chain)s [OPTIONS]
         """
         def run(self, *args):
-            if len(args) > 1:
-                raise CmdException('Cmd %r takes one optional argument, received %d: %r!'
+            if len(args) > 0:
+                raise CmdException('Cmd %r takes no arguments, received %d: %r!'
                                    % (self.name, len(args), args))
-            pname = args and args[0] or None
-            return self.projects_db.proj_examine(pname, as_text=True)
+            return self.projects_db.proj_examine(as_text=True)
 
     class ZipCmd(_PrjCmd):
         """
