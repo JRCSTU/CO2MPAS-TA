@@ -162,9 +162,13 @@ def main(argv=None, log_level=None, **app_init_kwds):
         If `None`, use :data:`sys.argv`; use ``[]`` to explicitly use no-args.
     """
     import transitions
+    import warnings
 
     init_logging(level=log_level)
     log = logging.getLogger(__name__)
+    warnings.filterwarnings(
+        action="ignore", module="dill", message="^unclosed file"
+    )
 
     try:
         cmd = Co2dice.make_cmd(argv, **app_init_kwds)

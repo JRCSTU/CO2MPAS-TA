@@ -157,13 +157,13 @@ proj_name = 'co2mpas'
 
 log = logging.getLogger('co2mpas_main')
 logging.getLogger('pandalone.xleash.io').setLevel(logging.WARNING)
-warnings.filterwarnings(
-    action="ignore", module="scipy", message="^internal gelsd"
-)
 
-warnings.filterwarnings(
-    action="ignore", module="openpyxl", message="^Unknown extension"
-)
+warnings.filterwarnings(action="ignore", module="scipy",
+                        message="^internal gelsd")
+warnings.filterwarnings(action="ignore", module="openpyxl",
+                        message="^Unknown extension")
+warnings.filterwarnings(action="ignore", module="dill",
+                        message="^unclosed file")
 
 
 def _set_numpy_logging():
