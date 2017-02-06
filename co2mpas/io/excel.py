@@ -427,12 +427,13 @@ def write_to_excel(data, output_file_name, template_file_name):
         _df2excel(writer, 'xlref', xlref, 0, (), index=True, header=False)
 
     if calculate_sheets:
-        d, seeds = dsp_utl.extract_dsp_from_excel(
-            writer.path, writer.book, calculate_sheets
-        )[:-1]
-        s = d.dispatch()
-        for k, (v, f) in seeds.items():
-            v.value = s.get(k, None)
+        import formulas
+        xl_model = formulas.ExcelModel()
+        context = xl_model.add_book(
+            writer.book, {'excel': osp.basename(output_file_name)}
+        )[1]
+        xl_model.pushes(*calculate_sheets, context=context).finish().calculate()
+        xl_model.write(xl_model.books)
 
     writer.save()
     log.info('Written into xl-file(%s)...', output_file_name)
