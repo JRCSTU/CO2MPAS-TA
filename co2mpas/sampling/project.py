@@ -354,7 +354,7 @@ class Project(transitions.Machine, ProjectSpec):
         trans = yaml.load(
             # Trigger        Source     Dest-state    Conditions? unless before after prepare
             """
-            - [do_invalidate, '*',      INVALID,      None, None,        _cb_invalidated]
+            - {trigger: do_invalidate, source: '*', dest: INVALID, before: _cb_invalidated}
 
             - [do_createme,  BORN,    empty]
 
@@ -1343,7 +1343,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                     to_yield = yaml.dump(to_yield, default_flow_style=False)
             else:
                 if as_text:
-                    to_yield = ('* %s' if isactive else '  %s') % pname
+                    to_yield = ('. %s' if isactive else '  %s') % pname
                 else:
                     to_yield = pname
 
