@@ -704,10 +704,10 @@ class Project(transitions.Machine, ProjectSpec):
             verdict = recv.parse_tstamp_response(tstamp_txt)
 
             pname = verdict.get('report', {}).get('project')
-            if pname != self.pname:
+            if pname != self.pname and not self.force:
                 raise CmdException(
                     "Current project('%s') is different from tstamp('%s')!" %
-                    self.pname, pname)
+                    (self.pname, pname))
 
         dice = verdict['dice']
         decision = dice['decision']
