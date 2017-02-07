@@ -24,6 +24,24 @@ from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  
 ###################
 ##     Specs     ##
 ###################
+def _report_tuple_2_dict(fpath, iokind, report) -> dict:
+    """Converts tuples produced by :meth:`_yield_report_tuples_from_iofiles()` into stuff YAML-able. """
+    d = OrderedDict([
+        ('file', osp.basename(fpath)),
+        ('iokind', iokind)])
+
+    if isinstance(report, pd.DataFrame):
+        report = OrderedDict((k, list(v)) for k, v in report.T.items())
+    elif isinstance(report, pd.Series):
+        report = OrderedDict(report.items())
+    elif report is not None:
+        assert isinstance(report, dict)
+
+    d['report'] = report
+
+    return d
+
+
 class Report(baseapp.Spec):
     """Mines reported-parameters from co2mpas excel-files and serves them as a pandas dataframes."""
 
@@ -47,7 +65,7 @@ class Report(baseapp.Spec):
         help="the (row, col) names of the ``vehicle_family_id`` value in the extracted dataframe."
     ).tag(config=True)
 
-    def extract_vfid_from_input(self, fpath):
+    def _extract_vfid_from_input(self, fpath):
         from pandalone import xleash
         df = xleash.lasso(self.input_head_xlref, url_file=fpath)
         assert isinstance(df, pd.DataFrame), (
@@ -56,7 +74,7 @@ class Report(baseapp.Spec):
 
         return df.at[self.input_vfid_coords]
 
-    def extract_dice_report_from_output(self, fpath):
+    def _extract_dice_report_from_output(self, fpath):
         from pandalone import xleash
         df = xleash.lasso(self.dice_report_xlref, url_file=fpath)
         assert isinstance(df, pd.DataFrame), (
@@ -68,7 +86,7 @@ class Report(baseapp.Spec):
 
         return vfid, df
 
-    def yield_report_tuples_from_iofiles(self, iofiles: PFiles, expected_vfid=None):
+    def _yield_report_tuples_from_iofiles(self, iofiles: PFiles, expected_vfid=None):
         """
         Parses input/output files and yields their *unique* vehicle-family-id and any dice-reports.
 
@@ -107,7 +125,7 @@ class Report(baseapp.Spec):
 
         for fpath in iofiles.inp:
             fpath = pndlu.convpath(fpath)
-            file_vfid = self.extract_vfid_from_input(fpath)
+            file_vfid = self._extract_vfid_from_input(fpath)
             check_vfid_missmatch(fpath, file_vfid)
 
             yield (fpath, 'inp', OrderedDict([
@@ -117,7 +135,7 @@ class Report(baseapp.Spec):
 
         for fpath in iofiles.out:
             fpath = pndlu.convpath(fpath)
-            file_vfid, dice_report = self.extract_dice_report_from_output(fpath)
+            file_vfid, dice_report = self._extract_dice_report_from_output(fpath)
             check_vfid_missmatch(fpath, file_vfid)
 
             yield (fpath, 'out', dice_report)
@@ -127,29 +145,11 @@ class Report(baseapp.Spec):
             yield (fpath, 'other', None)
 
     def get_dice_report(self, iofiles: PFiles, expected_vfid=None):
-        tuples = self.yield_report_tuples_from_iofiles(iofiles, expected_vfid)
-        report = OrderedDict((file_tuple[0], report_tuple_2_dict(*file_tuple))
+        tuples = self._yield_report_tuples_from_iofiles(iofiles, expected_vfid)
+        report = OrderedDict((file_tuple[0], _report_tuple_2_dict(*file_tuple))
                              for file_tuple
                              in tuples)
         return report
-
-
-def report_tuple_2_dict(fpath, iokind, report) -> dict:
-    """Converts tuples produced by :meth:`yield_report_tuples_from_iofiles()` into stuff YAML-able. """
-    d = OrderedDict([
-        ('file', osp.basename(fpath)),
-        ('iokind', iokind)])
-
-    if isinstance(report, pd.DataFrame):
-        report = OrderedDict((k, list(v)) for k, v in report.T.items())
-    elif isinstance(report, pd.Series):
-        report = OrderedDict(report.items())
-    elif report is not None:
-        assert isinstance(report, dict)
-
-    d['report'] = report
-
-    return d
 
 
 ###################
@@ -208,7 +208,7 @@ class ReportCmd(baseapp.Cmd):
     __report = None
 
     @property
-    def report(self):
+    def repspec(self):
         if not self.__report:
             self.__report = Report(config=self.config)
         return self.__report
@@ -269,10 +269,10 @@ class ReportCmd(baseapp.Cmd):
 
         import yaml
 
-        report = self.report
+        repspec = self.repspec
         if self.vfids_only:
-            report.force = True  # Irrelevant to check for mismatching VFids.
-            for fpath, data in report.get_dice_report(pfiles).items():
+            repspec.force = True  # Irrelevant to check for mismatching VFids.
+            for fpath, data in repspec.get_dice_report(pfiles).items():
                 if not self.verbose:
                     fpath = osp.basename(fpath)
 
@@ -280,10 +280,15 @@ class ReportCmd(baseapp.Cmd):
                 yield '- %s: %s' % (fpath, rep and rep.get('vehicle_family_id'))
 
         else:
-            for rtuple in report.yield_report_tuples_from_iofiles(pfiles):
-                drep = report_tuple_2_dict(*rtuple)
+            for rtuple in repspec._yield_report_tuples_from_iofiles(pfiles):
+                drep = _report_tuple_2_dict(*rtuple)
                 fpath = rtuple[0]
                 if not self.verbose:
                     fpath = osp.basename(fpath)
 
                 yield yaml.dump({fpath: drep}, indent=2)
+
+## test CMDS:
+#    co2dice report -i ../../../compas.vinz/co2mpas/demos/co2mpas_demo-7.xlsx -o 20170207_192057-* && \
+#    co2dice report  --vfids --project && co2dice report   --project && \
+#    co2dice report   --project -v &&  co2dice report   --project --vfids -v
