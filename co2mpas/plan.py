@@ -25,7 +25,8 @@ def get_results(model, overwrite_cache, fpath, timestamp, run=True,
                 json_var='{}', output_folder=None, modelconf=None):
 
     if run:
-        ext = ('base', '_v%sv_' % dsp_utl.drw._encode_file_name(json_var))
+        from schedula.utils.drw import _encode_file_name
+        ext = ('base', '_v%sv_' % _encode_file_name(json_var))
         cache_fpath = co2_io.get_cache_fpath(fpath, ext=ext + ('dill',))
         if co2_io.check_cache_fpath_exists(overwrite_cache, fpath, cache_fpath):
             return co2_io.dill.load_from_dill(cache_fpath)
