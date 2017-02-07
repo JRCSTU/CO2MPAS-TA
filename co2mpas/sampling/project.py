@@ -377,9 +377,9 @@ class Project(transitions.Machine, ProjectSpec):
 
             - [do_addfiles,  wltp_iof,   wltp_iof,     _is_force        ]
 
-            - [do_prepmail,  wltp_iof,   tagged]
-            - [do_prepmail,  tagged,     tagged]
-            - [do_prepmail,  mailed,     tagged,       _is_force        ]
+            - [do_report,  wltp_iof,   tagged]
+            - [do_report,  tagged,     tagged]
+            - [do_report,  mailed,     tagged,       _is_force        ]
 
             - [do_sendmail,  tagged,     mailed                         ]
 
@@ -628,7 +628,7 @@ class Project(transitions.Machine, ProjectSpec):
 
     def _cb_pepare_email(self, event):
         """
-        Triggered by `do_prepmail()` on ENTER of `tagged` state.
+        Triggered by `do_report()` on ENTER of `tagged` state.
 
         If already on `tagged`, just sets the :data:`result` and exits,
         unless --force, in which case it generates another tag.
@@ -640,7 +640,7 @@ class Project(transitions.Machine, ProjectSpec):
                                 self.max_dices_per_project)
         gen_report = not tagref or self.force
         if gen_report:
-            self.log.info('Preparing %s dice-email: %s...',
+            self.log.info('Preparing %s report: %s...',
                           'ANEW' if self.force else '', event.kwargs)
             repspec = self._report_spec()
             pfiles = self.list_pfiles('inp', 'out', _as_index_paths=True)
@@ -1610,7 +1610,7 @@ class ProjectCmd(_PrjCmd):
             if diceref and not self.force:
                 return _read_dice_tag(repo, diceref)
             else:
-                ok = proj.do_prepmail()
+                ok = proj.do_report()
 
                 return ok and proj.result or ok
 
