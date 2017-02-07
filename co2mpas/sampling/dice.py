@@ -200,8 +200,8 @@ if __name__ == '__main__':
     #argv = 'config init'.split()
     argv = 'config paths'.split()
     #argv = '--debug --log-level=0 --Mail.port=6 --Mail.user="ggg" abc def'.split()
+    argv = 'project --help'.split()
     #argv = 'project ls--vlevel=3'.split()
-    argv = 'project ls--vlevel=1'.split()
     #argv = '--debug'.split()
     #argv = 'project ls. --reset-git-settings'.split()
     #argv = 'project status -v'.split()
@@ -215,7 +215,7 @@ if __name__ == '__main__':
     #argv = 'project append  out=tests/sampling/output.xlsx'.split()
     #argv = 'project append  inp=tests/sampling/input.xlsx'.split()
     #argv = 'project report -n'.split()
-    argv = 'project report --vfids --project'.split()
+    #argv = 'project report --vfids --project'.split()
     #argv = 'project zip FT-12-ABC-2016-0001 P1'.split()
 
     #argv = 'project ls.'.split()

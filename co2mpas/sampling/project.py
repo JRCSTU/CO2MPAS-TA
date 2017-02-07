@@ -1094,6 +1094,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         P = 'project'
         R = 'repo'
 
+        ## TODO: Make vlevels them configurable.
         verbose_levels = [
             [
                 'head',
@@ -1110,7 +1111,6 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                 'index_count',
                 'index_entries',
 
-                'is_current',
                 'msg.s',
                 'msg.a',
                 'last_dice',
@@ -1123,6 +1123,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                 'files_count',
                 'last_cdate',
                 'author',
+                'is_current',
             ],
             [
                 'git_cmds',
@@ -1622,6 +1623,7 @@ class ProjectCmd(_PrjCmd):
         SYNTAX
             %(cmd_chain)s [OPTIONS]
 
+        - THIS COMMAND IS IIREVOCABLE!
         - Use --dry-run if you want to send the email yourself.
           Remember to use the appropriate 'Subject'.
         - The --dry-run option prints the email as it would have been sent; you may
@@ -1725,6 +1727,8 @@ class ProjectCmd(_PrjCmd):
 
         - If '.' is given or no project at all, it reads from *current*.
         - The archive created is named `CO2MPAS_projects-<timestamp>`.
+        - If the `--ZipCmd.erase_afterwards` flag  is given on the *current-project*,
+          you must then select another one, with `project open` command.
         """
         erase_afterwards = trt.Bool(
             help="Will erase all archived projects from repo."

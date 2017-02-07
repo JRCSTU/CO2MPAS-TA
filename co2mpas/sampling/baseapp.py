@@ -1115,6 +1115,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                 """) % (', '.join(self.subcommands.keys()), cmd_line)
             if examples:
                 msg = "%s\nExamples\n--------\n%s\n" % (msg, examples)
+                msg = msg.strip() % self._my_text_interpolations()
             raise CmdException(msg)
         assert False, "Override run() method in cmd subclasses."
 
