@@ -217,7 +217,7 @@ if __name__ == '__main__':
     #argv = ' project report -n'.split()
     #argv = ' project zip FT-12-ABC-2016-0001 P1'.split()
 
-    #argv = 'project current'.split()
+    #argv = 'project list .'.split()
     #argv = 'project init PROJ1 -f'.split()
     #argv = 'config paths'.split()
 

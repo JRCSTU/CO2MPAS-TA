@@ -580,7 +580,7 @@ class Project(transitions.Machine, ProjectSpec):
                 index.add([index_fpath])
 
         ## Commit/tag callback expects `action` on event.
-        event.kwargs['action'] = 'imp %s files' % pfiles.nfiles()
+        event.kwargs['action'] = 'add %s files' % pfiles.nfiles()
 
     def list_pfiles(self, *io_kinds, _as_index_paths=False) -> PFiles or None:
         """
@@ -1020,10 +1020,11 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
             ## Project-infos
             #
-            DFun('_pref', lambda _repo, _pname:
+            DFun('_projref', lambda _repo, _pname:
                  _get_ref(_repo.heads, _pname2ref_name(_pname)), inf=P),
-            DFun('_cmt', lambda _pref: _pref.commit, inf=P),
+            DFun('_cmt', lambda _projref: _projref.commit, inf=P),
             DFun('_tree', lambda _cmt: _cmt.tree, inf=P),
+            DFun('is_current', lambda _repo, _projref: _projref == _repo.active_branch, inf=P),
             DFun('author', lambda _cmt: '%s <%s>' % (_cmt.author.name, _cmt.author.email), inf=P),
             DFun('last_cdate', lambda _cmt: str(_cmt.authored_datetime), inf=P),
             DFun('_last_dice', lambda _repo, _pname: _find_dice_tag(
@@ -1071,9 +1072,10 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
         verbose_levels = [
             [
-                'heads_count',
                 'head',
+                'head_valid',
                 'head_ref',
+                'heads_count',
                 'projects_count',
                 'projects',
                 'all_dices_count',
@@ -1084,11 +1086,14 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                 'index_count',
                 'index_entries',
 
+                'is_current',
                 'msg.s',
                 'msg.a',
                 'last_dice',
                 'last_commit',
                 'last_tree',
+                'files',
+                'dices',
                 'dices_count',
                 'revs_count',
                 'files_count',
@@ -1101,13 +1106,10 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                 'exec_path',
                 'is_dirty',
                 'is_bare',
-                'head_valid',
                 'head_detached',
                 #'head_unborn',
                 'heads',
 
-                'dices',
-                'files',
                 'objects_count',
                 'revs',
                 'last_dice_msg',
@@ -1321,10 +1323,13 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             verbose = self.verbose
 
         if fields:
-            verbose = True  # Othrwise it would ignore fields.
+            verbose = True  # Othrewise, hand-crafted infos ignore fields.
         else:
-            verbose_level = int(verbose) - 1  # V0 prints no infos.
-            fields = self._info_fields(verbose_level, want_project=True)
+            verbose_level = int(verbose) - 1  # V0 print hand-crafted infos.
+            if verbose:
+                fields = self._info_fields(verbose_level, want_project=True)
+            else:
+                fields = ['is_current', 'msg.s']
 
         ap = repo.active_branch
         ap = ap and ap.path
@@ -1332,18 +1337,20 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                       for p in pnames)
         for ref in _yield_project_refs(repo, *pnames):
             pname = _ref2pname(ref)
-            isactive = _pname2ref_path(pname) == ap
+            if not as_text and not verbose:
+                yield pname
 
+            infos = self._scan_infos(pname=pname, fields=fields, inv_value='<invalid>')
             if verbose:
-                infos = self._scan_infos(pname=pname, fields=fields, inv_value='<invalid>')
                 infos = OrderedDict(infos)
-                infos['active'] = isactive
                 to_yield = {pname: infos}
                 if as_text:
                     to_yield = yaml.dump(to_yield, default_flow_style=False)
             else:
                 if as_text:
-                    to_yield = ('. %s' if isactive else '  %s') % pname
+                    i = dict(infos)
+                    to_yield = '%s %s: %s' % (i['is_current'] and '*' or ' ',
+                                              pname, i['msg.s'])
                 else:
                     to_yield = pname
 
@@ -1390,8 +1397,8 @@ class ProjectCmd(_PrjCmd):
         To get the list with the status of all existing projects, try:
             %(cmd_chain)s list
 
-        To see the current project, use one of those:
-            %(cmd_chain)s current
+        To see the current project, use:
+            %(cmd_chain)s list .
 
         A typical workflow is this:
             %(cmd_chain)s init RL-12-BM3-2016-0000
@@ -1418,15 +1425,6 @@ class ProjectCmd(_PrjCmd):
         def run(self, *args):
             self.log.info('Listing %s projects...', args or 'all')
             return self.projects_db.proj_list(*args, as_text=True)
-
-    class CurrentCmd(_PrjCmd):
-        """Prints the currently open project."""
-        def run(self, *args):
-            if len(args) != 0:
-                raise CmdException('Cmd %r takes no arguments, received %d: %r!'
-                                   % (self.name, len(args), args))
-
-            return self.current_project
 
     class OpenCmd(_PrjCmd):
         """
@@ -1847,7 +1845,7 @@ class ProjectCmd(_PrjCmd):
         dkwds.update(kwds)
         super().__init__(**dkwds)
 
-all_subcmds = (ProjectCmd.ListCmd, ProjectCmd.CurrentCmd, ProjectCmd.OpenCmd, ProjectCmd.InitCmd,
+all_subcmds = (ProjectCmd.ListCmd, ProjectCmd.OpenCmd, ProjectCmd.InitCmd,
                ProjectCmd.AppendCmd, ProjectCmd.ReportCmd,
                ProjectCmd.TstampCmd, ProjectCmd.TparseCmd,
                ProjectCmd.ZipCmd, ProjectCmd.UnzipCmd,
