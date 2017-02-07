@@ -667,9 +667,9 @@ class Project(transitions.Machine, ProjectSpec):
 
         Parses last tag and uses class:`SMTP` to send its message as email.
         """
-        self.log.info('Sending email...')
         repo = self.repo
         dry_run = self.dry_run
+        self.log.info('%s email for tstamping...', 'Printing' if dry_run else 'Sending')
         tstamp_sender = self._tstamp_sender_spec()
 
         tagref = _find_dice_tag(repo, self.pname,
@@ -1881,7 +1881,7 @@ class ProjectCmd(_PrjCmd):
         dkwds.update(kwds)
         super().__init__(**dkwds)
 
-all_subcmds = (ProjectCmd.LsCmd, ProjectCmd.OpenCmd, ProjectCmd.InitCmd,
+all_subcmds = (ProjectCmd.LsCmd, ProjectCmd.InitCmd, ProjectCmd.OpenCmd,
                ProjectCmd.AppendCmd, ProjectCmd.ReportCmd,
                ProjectCmd.TstampCmd, ProjectCmd.TparseCmd,
                ProjectCmd.StatusCmd,
