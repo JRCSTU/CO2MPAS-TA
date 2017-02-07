@@ -76,6 +76,8 @@ APPNAME = 'co2mpas'
 
 log = logging.getLogger(APPNAME)
 
+show_dice = False
+
 user_guidelines_url = 'https://co2mpas.io/usage.html'
 issues_url = 'https://github.com/JRCSTU/CO2MPAS-TA/issues'
 MOTDs = tw.dedent("""\
@@ -1214,13 +1216,14 @@ class SimulatePanel(ttk.Frame):
         add_tooltip(tree, 'out_files_tree')
 
         ## TODO: selectively add dice GUI.
-        self._open_dice_btn = btn = ttk.Button(
-            frame,
-            text="Import to Dice...", style='DICE.TButton',
-            command=fnt.partial(self.app.prepare_dice_for_files, self.outputs_tree.get_children()))
-        add_icon(btn, 'icons/to_dice-orange-32.png ')
-        btn.pack(side=tk.LEFT, fill=tk.BOTH,)
-        add_tooltip(btn, 'open_dice_btn')
+        if show_dice:
+            self._open_dice_btn = btn = ttk.Button(
+                frame,
+                text="Import to Dice...", style='DICE.TButton',
+                command=fnt.partial(self.app.prepare_dice_for_files, self.outputs_tree.get_children()))
+            add_icon(btn, 'icons/to_dice-orange-32.png ')
+            btn.pack(side=tk.LEFT, fill=tk.BOTH,)
+            add_tooltip(btn, 'open_dice_btn')
 
         return frame
 
@@ -1441,7 +1444,9 @@ class SimulatePanel(ttk.Frame):
         self._run_ta_btn.state((bang(is_run_ta_enabled) + tk.DISABLED,))
 
         ## Update Open-DICE-button.
-        self._open_dice_btn.state((bang(self.outputs_tree.get_children()) + tk.DISABLED,))
+        #
+        if show_dice:
+            self._open_dice_btn.state((bang(self.outputs_tree.get_children()) + tk.DISABLED,))
 
         ## Update cursor for run-buttons.
         for b in (self._run_batch_btn, self._run_ta_btn):
@@ -2077,11 +2082,12 @@ class Co2guiCmd(baseapp.Cmd):
         nb.excel_icon = img
 
         ## TODO: selectively add dice GUI.
-        self.dice_tab = tab = DicePanel(nb, app=self)
-        img = read_image('icons/dice-orange-16.png')
-        nb.add(tab, text='Dice', sticky='nswe',
-               image=img, compound='top')
-        nb.dice_icon = img
+        if show_dice:
+            self.dice_tab = tab = DicePanel(nb, app=self)
+            img = read_image('icons/dice-orange-16.png')
+            nb.add(tab, text='Dice', sticky='nswe',
+                   image=img, compound='top')
+            nb.dice_icon = img
 
         frame = LogPanel(slider, self, height=-260, log_level_cb=cmain.init_logging)
         slider.add(frame, weight=3)
