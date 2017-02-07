@@ -217,28 +217,10 @@ Uninstall and re-install it from the |co2mpas| CONSOLE::
 
 Upgrade |co2mpas| in a corporate environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1. Launch the ALLINONE console into your home-folder (it opens there by default).
-
-2. With with a "regular" browser and when connected to the Internet,
-   pre-download locally and unzip the respective ``co2mpas_DEPENDENCIES-vX.X.XXX.7z`` file
-   from the latest ALLINONE release in: http://github.com/JRCSTU/CO2MPAS-TA/releases/.
-   This archive contains |co2mpas| along with all its dependent packages.
-
-3. Install |co2mpas|, referencing the above folder.
-   Assuming that you unzipped the packages in the folder ``path/to/co2mpas_packages``,
-   use a console-command like this:
-
-   .. code-block:: console
-
-      pip install co2mpas  --no-index  -f path/to/co2mpas_packages
-
-
 .. Note::
-    If you extracted the dependencies somewhere else, you don't have to move them
-    inside the `CO2MPAS folder`;  you may specify its path in the command-line, like this::
-
-        pip install co2mpas  --no-index  -f D:\Users\John\Downloads\dependencies
-
+    This option has been retracted - please either download ALLINONE or
+    just the *wheel* from https://pypi.org/project/co2mpas/ and install it,
+    asuming that no other dependencies have changed.
 
 File Contents
 -------------

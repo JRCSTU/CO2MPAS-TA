@@ -94,6 +94,8 @@ Software and Build chores(build, site, etc)
   for TA in addition to launch simulations (engineering and type approval
   modes), synchronize time series, generate templates and demo-files.
 
+- UPGRADES from CORPORATE ENVIRONMENTS is not supported any more.
+
 - Dependencies: +schedula, +formulas, -keyring
 
 
