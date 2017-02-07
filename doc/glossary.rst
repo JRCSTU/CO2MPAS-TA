@@ -418,7 +418,7 @@ Reports & exchanged files
         to supervision bodies through a timestamp server.
 
     dice email
-        The actual email sent to be timestamped (roughly derived from Input + output files):
+        The actual email sent to be timestamped (roughly derived from Input + output files)::
 
         := dice Report + HASH #1
 
@@ -441,7 +441,7 @@ Reports & exchanged files
     .. image:: _static/dice_co2mpas_dev.PNG
 
     dice decision
-        A new file stored in the TAA files as received from timestamps server:
+        A new file stored in the TAA files as received from timestamps server::
 
         := dice stamp + decision flag
 
