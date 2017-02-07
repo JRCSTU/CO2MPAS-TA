@@ -586,10 +586,12 @@ class TRX(unittest.TestCase):
         self.assertDictContainsSubset(tv, resp['report'], pf(resp))
 
     def test_send_timestamp(self):
-        snd = tstamp.TstampSender(config=self.cfg)
+        c = self.cdf.copy()
+        c.dry_run = True
+        snd = tstamp.TstampSender(config=c)
         ex_msg = r"Content to timestamp failed signature verification!\s+None"
         with self.assertRaisesRegex(tstamp.CmdException, ex_msg):
-            snd.send_timestamped_email("", dry_run=True)
+            snd.send_timestamped_email("")
 
     @ddt.data(*tstamp_responses)
     def test_scan_vfid_regex(self, case):

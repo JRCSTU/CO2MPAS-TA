@@ -238,10 +238,6 @@ class ProjectSpec(dice.DiceSpec):
 class Project(transitions.Machine, ProjectSpec):
     """The Finite State Machine for the currently checked-out project."""
 
-    dry_run = trt.Bool(
-        help="Process actions but do not actually commit/tag results in the project."
-    ).tag(config=True)
-
     git_desc_width = trt.Int(
         78, allow_none=False,
         help="""
@@ -313,6 +309,9 @@ class Project(transitions.Machine, ProjectSpec):
                              event.transition.source, event.transition.dest)
         return accepted
 
+    def _is_dry_run(self, event):
+        return self._is_dry_run
+
     def _is_inp_files(self, event):
         pfiles = _evarg(event, 'pfiles', PFiles)
         accepted = bool(pfiles and pfiles.inp and
@@ -378,9 +377,9 @@ class Project(transitions.Machine, ProjectSpec):
 
             - [do_addfiles,  wltp_iof,   wltp_iof,     _is_force        ]
 
-            - [do_report,  wltp_iof,   tagged]
-            - [do_report,  tagged,     tagged]
-            - [do_report,  mailed,     tagged,       _is_force        ]
+            - [do_report,  wltp_iof,     tagged]
+            - [do_report,  tagged,       tagged]
+            - [do_report,  mailed,       tagged,       _is_force        ]
 
             - [do_sendmail,  tagged,     mailed                         ]
 
@@ -486,7 +485,8 @@ class Project(transitions.Machine, ProjectSpec):
         is_tagging = state == 'tagged' and report
         cmsg_txt = self._make_commit_msg(action, report)
 
-        self.log.info('Committing %s: %s', self, action)
+        dry_run = self.dry_run
+        self.log.info('%Committing %s: %s', 'DRY-RUN:' if dry_run else '', self, action)
         index = repo.index
         index.commit(cmsg_txt)
 
@@ -678,8 +678,7 @@ class Project(transitions.Machine, ProjectSpec):
         signed_dice_report = _read_dice_tag(repo, tagref)
         assert signed_dice_report
 
-        dice_mail_mime = tstamp_sender.send_timestamped_email(
-            signed_dice_report, self.pname, dry_run=dry_run)
+        dice_mail_mime = tstamp_sender.send_timestamped_email(signed_dice_report, self.pname)
 
         if dry_run:
             self.log.warning(tw.dedent("""\
@@ -1545,7 +1544,7 @@ class ProjectCmd(_PrjCmd):
             kwds.setdefault('cmd_flags', {
                 ('n', 'dry-run'): (
                     {
-                        'Project': {'dry_run': True},
+                        'Spec': {'dry_run': True},
                     },
                     "Parse files but do not actually store them in the project."
                 ),
@@ -1593,7 +1592,7 @@ class ProjectCmd(_PrjCmd):
             kwds.setdefault('cmd_flags', {
                 ('n', 'dry-run'): (
                     {
-                        'Project': {'dry_run': True},
+                        'Spec': {'dry_run': True},
                     },
                     "Verify dice-report do not actually store it in the project."
                 )
@@ -1640,7 +1639,7 @@ class ProjectCmd(_PrjCmd):
             kwds.setdefault('cmd_flags', {
                 ('n', 'dry-run'): (
                     {
-                        'Project': {'dry_run': True},
+                        'Spec': {'dry_run': True},
                     },
                     "Verify dice-report but not actually send tstamp email."
                 )
@@ -1684,7 +1683,7 @@ class ProjectCmd(_PrjCmd):
             kwds.setdefault('cmd_flags', {
                 ('n', 'dry-run'): (
                     {
-                        'Project': {'dry_run': True},
+                        'Spec': {'dry_run': True},
                     },
                     "Pase the tstamped response without storing it in the project."
                 ),

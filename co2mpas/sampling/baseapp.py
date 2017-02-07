@@ -362,6 +362,10 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
             Send content to timestamp even if its signature fails to verify.
         """).tag(config=True)
 
+    dry_run = trt.Bool(
+        help="Process actions but do not actually commit/tag results in the project."
+    ).tag(config=True)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.observe_ptraits()
@@ -900,6 +904,12 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                         'Spec': {'force': True},
                     },
                     pndlu.first_line(Spec.force.help)
+                ),
+                ('n', 'dry-run'): (
+                    {
+                        'Spec': {'dry_run': True},
+                    },
+                    pndlu.first_line(Spec.dry_run.help)
                 ),
                 'config-show': (
                     {
