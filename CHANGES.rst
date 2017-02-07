@@ -134,7 +134,10 @@ Known Limitations
    the authoritative tstamp-response, should they eventually arrive both.  For this decision,
    the *Hash DB* records are to be relied.
 
-5. Regarding the "|co2mpas| model, all limitations from previous *"Rally"* release still apply.
+5. There are currently 3 cmd-line tools:  ``co2mpas``, ``co2gui``, or ``co2dice``...
+   It is expected that in a next release they will be united under a single ``co2`` cmd.
+
+6. Regarding the "|co2mpas| model, all limitations from previous *"Rally"* release still apply.
 
 - [1] https://desktop.github.com/
 - [3] https://www.atlassian.com/software/sourcetree
