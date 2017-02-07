@@ -1719,6 +1719,7 @@ class ProjectCmd(_PrjCmd):
             self.log.info('Zipping %s...', tuple(pnames))
 
             repo = self.projects_db.repo
+            pname = self.current_project.pname
             now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
             zip_name = '%s-%s' % (now, "CO2MPAS_projects")
             with tempfile.TemporaryDirectory(prefix='co2mpas_unzip-') as tdir:
@@ -1729,10 +1730,9 @@ class ProjectCmd(_PrjCmd):
 
                     for p in pnames:
                         if p == '.':
-                            pp = self.current_project.pname
-                        else:
-                            pp = _pname2ref_name(p)
+                            p = pname
 
+                        pp = _pname2ref_name(p)
                         if pp not in repo.heads:
                             self.log.info("Ignoring branch(%s), not a co2mpas project.", p)
                             continue
@@ -1750,7 +1750,7 @@ class ProjectCmd(_PrjCmd):
                     if self.erase_afterwards:
                         for p in pnames:
                             if p == '.':
-                                p = self.current_project.pname
+                                p = pname
 
                             tref = _tname2ref_name(p)
                             for t in list(repo.tags):
@@ -1763,12 +1763,19 @@ class ProjectCmd(_PrjCmd):
 
                             ## Cannot del checked-out branch!
                             #
-                            if pbr == repo.active_branch:
-                                if 'tmp' not in repo.heads:
-                                    repo.create_head('tmp')
-                                repo.heads.tmp.checkout(force=True)
+                            ok = False
+                            try:
+                                if pbr == repo.active_branch:
+                                    if 'tmp' not in repo.heads:
+                                        repo.create_head('tmp')
+                                    repo.heads.tmp.checkout(force=True)
 
-                            repo.delete_head(pbr, force=self.force)
+                                repo.delete_head(pbr, force=True)
+                                ok = True
+                            finally:
+                                if not ok:
+                                    pbr.checkout(pbr)
+
 
                 finally:
                     rmtree(exdir)
