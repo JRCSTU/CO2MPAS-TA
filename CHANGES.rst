@@ -12,7 +12,7 @@ v1.5.x, file-ver: 2.2.6, 10-February 2017: "Stamp" release
    :width: 480
 
 This |co2mpas| release contains few model changes; software updates;
-and the `random sampler (DICE) application
+and the `random sampler (DICE) command-line application
 <https://co2mpas.io/glossary.html#term-dice-report>`_.
 
 Results validated against real vehicles, are described in the
@@ -25,9 +25,14 @@ and `automatic transmission vehicles
 
 The DICE
 --------
-Application that reads the |co2mpas| output dice report, securely sends it to a
-time-stamp server, and decodes the random (1/10 cases) answer as
-**Need to undergo a physical test** or **Accept results**.
+Tha command-line tool that reads |co2mpas| input and output files,
+packs them together, send their :term:`Hash-ID` in a request to a time-stamp server,
+and decodes the response to a random number of (1/100 cases) answer as either:
+- **SAMPLE **, meaning "do sample, and double-test in NEDC",  or
+- **OK** (meaning *no-sample").
+
+For its usage guidelines, visit the `Wiki <https://github.com/JRCSTU/CO2MPAS-TA/wiki/CO2MPAS-user-guidelines>`.
+
 
 Model-changes
 -------------
@@ -41,43 +46,31 @@ Model-changes
 Electric model
 ~~~~~~~~~~~~~~
 - :git:`#281`, :git:`#329`:
-  Improved prediction of the `electric model` of |co2mpas|, by setting a
+  Improved prediction of the *electric model* of |co2mpas|, by setting a
   `balance SOC threshold` when the alternator is always on.
 
 
 Clutch model
 ~~~~~~~~~~~~
-- :git:`#330`: The `clutch model` has been updated to be fed with the
+- :git:`#330`: The *clutch model* has been updated to be fed with the
   `Torque converter model`.
 
-- :git:`#330`: The `clutch model` prediction has been enhanced during gearshifts
-  by remove `clutch phases` when
-  `(gears == 0……) | (velocities <= stop_velocity)`.
+- :git:`#330`: The *clutch model* prediction has been enhanced during gearshifts
+  by remove `clutch phases` when  ``(gears == 0……) | (velocities <= stop_velocity)``.
 
 
 Final drive
 ~~~~~~~~~~~
-- :git:`#342`: Enable an option to use more than one `final_drive_ratios` for
+- :git:`#342`: Enable an option to use more than one ``final_drive_ratios`` for
   vehicles equipped with dual/variable clutch.
 
 IO
 --
-- :git:`341`: Input template & demo files include now the ´family-id´ as a set
-  of concatenated codes that are required to run the model in Type Approval
+- :git:`341`: Input template & demo files include now the ``vehicle_family_id``
+  as a set of concatenated codes that are required to run the model in Type Approval
   mode.
 - :git:`356`: enhancements of the output and dice reports have been made.
-
-
-Software updates
-----------------
-- Enhanced plotting of the *plot_workflow* for faster navigation on |co2mpas|
-  model.
-
-- The Dispatcher library has been moved to a separate package.
-
-- Enhanced **desktop GUI** to launch |co2mpas| to perform the random sampling
-  for TA in addition to launch simulations (engineering and type approval
-  modes), synchronize time series, generate templates and demo-files.
+- The *demo-files* are starting to move gradually from within |co2mpas| to the site.
 
 GUI
 ~~~
@@ -85,17 +78,65 @@ GUI
   simulation.
 - GUI launches with ``co2gui`` command (not with ``co2mpas gui``).
 
-
-Build Chores(build, site, etc)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- Only on ``CONSOLE`` comand left - use ``[Ctrl+F2]`` to open bash console tab.
+Software and Build chores(build, site, etc)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Only on ``CONSOLE`` command left - use ``[Ctrl+F2]`` to open bash console tab.
 - Launch commands use ``.vbs`` scripts to avoid an empty console window.
-- Reduced the length of the AIO archive::
+- Reduced the length of the AIO archive name::
 
         co2mpas_ALLINONE-64bit-v1.5.0.b0  --> co2mpas_AIO-v1.5.0
 
+- Enhanced plotting of the *plot_workflow* for faster navigation on |co2mpas|
+  model.
+- The Dispatcher library has been moved to a separate package (*schedula*).
+
+- Enhanced **desktop GUI** to launch |co2mpas| to perform the random sampling
+  for TA in addition to launch simulations (engineering and type approval
+  modes), synchronize time series, generate templates and demo-files.
+
 - Dependencies: +schedula, +formulas, -keyring
 
+
+Known Limitations
+-----------------
+
+1. *DICE* is considered to be in an *early alpha stage* of development.
+2. Specifically the "rough" *threat model* for the *DICE* is relying on following
+   premises:
+
+   a) A single cryptographic key will be shared among all TS personnel,
+      not to hinder usability at this early stage.
+   b) There are no measures to ensure the trust of the procedure BEFORE the time-stamping.
+      The TS personnel running *DICE*, and its PC are to be trusted for non-tampering;
+   c) The (owner of the) time-stamp service is assumed not to collude with the OEMs
+      (or if doubts are raised, more elaborate measures can be *gradually* introduced).
+   d) The *DICE* does not strive to be tamper-resistant but rather tamper-evident.
+   e) The denial-of-service is not considered at this stage;  but given a choice between
+      blocking the Type Approval, and compromising IT-security, at the moment we choose
+      the later - according to the above premise, humans interventions are acceptable,
+      as long as they are recorded in the :term:`Hash DB` keeping a detectable
+      non-reputable trace.
+
+3. *DICE* needs an email server that is capable to send *cleat-text* emails through.
+   Having an account-password & hostname of an SMTP server will suffice -
+   most *web-email* clients might spoil the encoding of the message
+   (i.e. *Web Outlook* is known to cause problems, *GMail* work OK if set to ``plain-text``).
+
+3. Not all *DICE* operations have been implemented yet - i particular, you have to use
+   a regular Git client to extract files from it ([1], [2], [3]).  Take care not to modify
+   the a project after it has been diced!
+
+4. There is no *expiration timeout* enforced yet on the tstamp-requests - in the case that
+   *a request is lost, or it takes arbitrary long time to return back*,  the TS may *force* another
+   tstamp-request.  At this early stage, human witnesses will reconcile which should be
+   the authoritative tstamp-response, should they eventually arrive both.  For this decision,
+   the *Hash DB* records are to be relied.
+
+5. Regarding the "|co2mpas| model, all limitations from previous *"Rally"* release still apply.
+
+- [1] https://desktop.github.com/
+- [3] https://www.atlassian.com/software/sourcetree
+- [2] https://www.gitkraken.com/
 
 v1.4.1, file-ver: 2.2.5, 17-November 2016: "Rally" release
 ==========================================================
