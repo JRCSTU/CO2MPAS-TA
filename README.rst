@@ -98,7 +98,7 @@ of this vehicle simulator to facilitate this adaptation.
 
 The European Regulation setting the conditions for using |co2mpas| can be
 found in `the Comitology Register
-<http://ec.europa.eu/transparency/regcomitology/index.cfm?do=search.documentdetail&gYsYfQyLRa3DqHm8YKXObaxj0Is1LmebRoBfg8saKszVqHZGdIwy2rS97ztb5t8b>`_
+<http://ec.europa.eu/transparency/regcomitology/index.cfm?do=search.documentdetail&dos_id=0&ds_id=45835&version=2>`_
 after its adoption by the *Climate Change Committee* which took place on
 June 23, 2016.
 
