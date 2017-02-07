@@ -11,7 +11,6 @@ It contains plotting functions for models and/or output results.
 import importlib
 import logging
 import sys
-import os.path as osp
 import matplotlib.pyplot as plt
 import schedula.utils as dsp_utl
 
