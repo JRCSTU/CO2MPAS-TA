@@ -1715,7 +1715,7 @@ class ProjectCmd(_PrjCmd):
             import git
             from git.util import rmtree
 
-            pnames = iset(args) or ['-']
+            pnames = iset(args) or ['.']
             self.log.info('Zipping %s...', tuple(pnames))
 
             repo = self.projects_db.repo
