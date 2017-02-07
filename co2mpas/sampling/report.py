@@ -272,11 +272,18 @@ class ReportCmd(baseapp.Cmd):
         report = self.report
         if self.vfids_only:
             report.force = True  # Irrelevant to check for mismatching VFids.
-            for vfid, fpath, _, _ in report.yield_report_tuples_from_iofiles(pfiles):
-                yield '- %s: %s' % (fpath, vfid)
+            for fpath, data in report.get_dice_report(pfiles).items():
+                if not self.verbose:
+                    fpath = osp.basename(fpath)
+
+                rep = data['report']
+                yield '- %s: %s' % (fpath, rep and rep.get('vehicle_family_id'))
 
         else:
             for rtuple in report.yield_report_tuples_from_iofiles(pfiles):
                 drep = report_tuple_2_dict(*rtuple)
                 fpath = rtuple[0]
+                if not self.verbose:
+                    fpath = osp.basename(fpath)
+
                 yield yaml.dump({fpath: drep}, indent=2)
