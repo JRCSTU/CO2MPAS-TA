@@ -223,8 +223,8 @@ class ReportCmd(baseapp.Cmd):
         dkwds = {
             'conf_classes': [project.ProjectsDB, project.Project, Report],
             'cmd_aliases': {
-                ('i', 'inp'): ('AppendCmd.inp', pndlu.first_line(type(self).inp.help)),
-                ('o', 'out'): ('AppendCmd.out', pndlu.first_line(type(self).out.help)),
+                ('i', 'inp'): ('ReportCmd.inp', pndlu.first_line(type(self).inp.help)),
+                ('o', 'out'): ('ReportCmd.out', pndlu.first_line(type(self).out.help)),
             },
             'cmd_flags': {
                 'project': ({
@@ -240,11 +240,10 @@ class ReportCmd(baseapp.Cmd):
 
     def _build_io_files_from_project(self, args) -> PFiles:
         project = self.projects_db.current_project()
-        pfiles = project.list_pfiles('out', _as_index_paths=True)
+        pfiles = project.list_pfiles(*PFiles._fields, _as_index_paths=True)  # @UndefinedVariable
         if not pfiles:
             raise CmdException(
                 "Current %s contains no input/output files!" % project)
-        return pfiles
 
         return pfiles
 
