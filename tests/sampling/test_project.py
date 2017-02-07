@@ -140,13 +140,13 @@ class TProjectsDBStory(unittest.TestCase):
         return c
 
     def _check_infos_shapes(self, proj, pname=None):
-        res = proj.proj_examine(pname=pname, verbose=0)
+        res = proj.repo_status(pname=pname, verbose=0)
         self.assertEqual(len(res), 7, res)
 
-        res = proj.proj_examine(pname=pname, verbose=1)
+        res = proj.repo_status(pname=pname, verbose=1)
         self.assertEqual(len(res), 14, res)
 
-        res = proj.proj_examine(pname=pname, verbose=2)
+        res = proj.repo_status(pname=pname, verbose=2)
         self.assertEqual(len(res), 33, res)
 
     def test_1a_empty_list(self):
@@ -167,7 +167,7 @@ class TProjectsDBStory(unittest.TestCase):
         self.assertIsNone(pdb._current_project)
 
     def test_1b_empty_infos(self):
-        cmd = project.ProjectCmd.ExamineCmd(config=self._config)
+        cmd = project.ProjectCmd.StatusCmd(config=self._config)
         res = cmd.run()
         self.assertIsNotNone(res)
         self.assertIsNone(cmd.projects_db._current_project)
@@ -214,7 +214,7 @@ class TProjectsDBStory(unittest.TestCase):
         self.assertIn('* foo', str(res))
 
     def test_2c_default_infos(self):
-        cmd = project.ProjectCmd.ExamineCmd(config=self._config)
+        cmd = project.ProjectCmd.StatusCmd(config=self._config)
         res = cmd.run()
         self.assertRegex(res, 'msg.project += foo')
 
@@ -272,7 +272,7 @@ class TProjectsDBStory(unittest.TestCase):
         self.assertIn('* bar', str(res))
 
     def test_4c_default_infos(self):
-        cmd = project.ProjectCmd.ExamineCmd(config=self._config)
+        cmd = project.ProjectCmd.StatusCmd(config=self._config)
         res = cmd.run()
         self.assertRegex(res, 'msg.project += bar')
 
@@ -281,7 +281,7 @@ class TProjectsDBStory(unittest.TestCase):
         self._check_infos_shapes(pdb)
 
     def test_4d_forced_infos(self):
-        cmd = project.ProjectCmd.ExamineCmd(config=self._config)
+        cmd = project.ProjectCmd.StatusCmd(config=self._config)
         res = cmd.run('foo')
         self.assertRegex(res, 'msg.project += bar')
 
@@ -352,13 +352,13 @@ class TStraightStory(unittest.TestCase):
         return c
 
     def _check_infos_shapes(self, proj, pname=None):
-        res = proj.proj_examine(pname=pname, verbose=0)
+        res = proj.repo_status(pname=pname, verbose=0)
         self.assertEqual(len(res), 7, res)
 
-        res = proj.proj_examine(pname=pname, verbose=1)
+        res = proj.repo_status(pname=pname, verbose=1)
         self.assertEqual(len(res), 14, res)
 
-        res = proj.proj_examine(pname=pname, verbose=2)
+        res = proj.repo_status(pname=pname, verbose=2)
         self.assertEqual(len(res), 33, res)
 
     def test_1_add_project(self):

@@ -1180,7 +1180,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
         return infos
 
-    def proj_examine(self, verbose=None, as_text=False):
+    def repo_status(self, verbose=None, as_text=False):
         """
         Examine infos bout the projects-db.
 
@@ -1394,11 +1394,14 @@ class ProjectCmd(_PrjCmd):
     """
 
     examples = trt.Unicode("""
-        To get the list with the status of all existing projects, try:
+        To list all existing projects, try:
             %(cmd_chain)s list
 
-        To see the current project, use:
-            %(cmd_chain)s list .
+        To open a project (make it the *current*), issue:
+            %(cmd_chain)s open RL-77-AAA-2016-0000
+
+        To see more infos about the current project, use:
+            %(cmd_chain)s list . -v
 
         A typical workflow is this:
             %(cmd_chain)s init RL-12-BM3-2016-0000
@@ -1407,16 +1410,30 @@ class ProjectCmd(_PrjCmd):
             %(cmd_chain)s tstamp
             cat <mail-text> | %(cmd_chain)s dice
 
-        You may enquiry the status of the project at any time :
-            %(cmd_chain)s examine -v
+        You may enquiry the status the projects database:
+            %(cmd_chain)s status --vlevel 2
         """)
+
+    class StatusCmd(_PrjCmd):
+        """
+        Print various information about the projects-repo.
+
+        - Use `--verbose` or `--vlevel (2|3)` to view more infos.
+
+        SYNTAX
+            %(cmd_chain)s [OPTIONS]
+        """
+        def run(self, *args):
+            if len(args) > 0:
+                raise CmdException('Cmd %r takes no arguments, received %d: %r!'
+                                   % (self.name, len(args), args))
+            return self.projects_db.repo_status(as_text=True)
 
     class ListCmd(_PrjCmd):
         """
         List specified projects, or all, if none specified.
 
-        - Use `--verbose` or `--vlevel (2|3|4)` to view more infos about the projects, or use the `examine` cmd
-          to view even more details for a specific project.
+        - Use `--verbose` or `--vlevel (2|3|4)` to view more infos about the projects.
         - Use '.' to denote current project.
 
         SYNTAX
@@ -1672,21 +1689,6 @@ class ProjectCmd(_PrjCmd):
 
             return res if self.verbose else True  # TODO: Never fails??
 
-    class ExamineCmd(_PrjCmd):
-        """
-        Print various information about the projects-repo.
-
-        - Use `--verbose` or `--vlevel (2|3)` to view more infos.
-
-        SYNTAX
-            %(cmd_chain)s [OPTIONS]
-        """
-        def run(self, *args):
-            if len(args) > 0:
-                raise CmdException('Cmd %r takes no arguments, received %d: %r!'
-                                   % (self.name, len(args), args))
-            return self.projects_db.proj_examine(as_text=True)
-
     class ZipCmd(_PrjCmd):
         """
         Archives specific projects, or *current*, if none specified.
@@ -1848,5 +1850,5 @@ class ProjectCmd(_PrjCmd):
 all_subcmds = (ProjectCmd.ListCmd, ProjectCmd.OpenCmd, ProjectCmd.InitCmd,
                ProjectCmd.AppendCmd, ProjectCmd.ReportCmd,
                ProjectCmd.TstampCmd, ProjectCmd.TparseCmd,
-               ProjectCmd.ZipCmd, ProjectCmd.UnzipCmd,
-               ProjectCmd.ExamineCmd, ProjectCmd.BackupCmd)
+               ProjectCmd.StatusCmd,
+               ProjectCmd.ZipCmd, ProjectCmd.UnzipCmd, ProjectCmd.BackupCmd)

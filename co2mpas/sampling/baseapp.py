@@ -335,9 +335,9 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
 
         SubCommands using this flag:
         ~~~~~~~~~~~~~~~~~~~~~~~~~
-        `project list/examine`
+        `project list/status`
             List project with the "long" format, include infos about the repo (when 2).
-        `project init/open/append/stamp`
+        `project init/open/append/tstamp`
             Print committed-msg instead of try/false/proj-name.
         `config show`
             Print parameters for all intermediate classes.
