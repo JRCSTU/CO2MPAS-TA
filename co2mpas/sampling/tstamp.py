@@ -126,8 +126,10 @@ class TstampSender(TstampSpec):
 
     x_recipients = trt.List(
         trt.Unicode(), allow_none=False,
-        help="""The plain email-address of the receivers of the timestamped response. Ask JRC to provide that."""
-    ).tag(config=True)
+        help="""
+        The plain email-address of the receivers of the timestamped response.
+        Ask JRC to provide that. You don't have to provide your account here.
+    """).tag(config=True)
 
     subject = trt.Unicode(
         None, allow_none=False,
@@ -138,7 +140,7 @@ class TstampSender(TstampSpec):
         None,
         allow_none=True,
         help="""Your email-address to use as `From:` for timestamp email, or none to use `user_email`.
-        Specify you correct address, or else you will never receive the sampling flag!
+        Specify you correct address, or else you will never receive the tstamped-response!
         """
     ).tag(config=True)
 

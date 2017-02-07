@@ -343,13 +343,16 @@ class Project(transitions.Machine, ProjectSpec):
                            event.transition.source, event.transition.dest)
         return accepted
 
+    def _is_decision_yes(self, event):
+        return _evarg(event, 'decision', bool)
+
     def __init__(self, pname, repo, **kwds):
         """DO NOT INVOKE THIS; use performant :meth:`Project.new_instance()` instead."""
         self.pname = pname
         self.rpo = repo
         states = [
             'BORN', 'INVALID', 'empty', 'wltp_out', 'wltp_inp', 'wltp_iof', 'tagged',
-            'mailed', 'diced', 'nedc',
+            'mailed', 'nosample', 'sample', 'nedc',
         ]
         trans = yaml.load(
             # Trigger        Source     Dest-state    Conditions? unless before after prepare
@@ -381,13 +384,23 @@ class Project(transitions.Machine, ProjectSpec):
             - [do_prepmail,  tagged,     tagged]
             - [do_prepmail,  mailed,     tagged,       _is_force        ]
 
-            - [do_sendmail,  tagged,     mailed]
+            - [do_sendmail,  tagged,     mailed                         ]
 
-            - [do_storedice, mailed,    diced,         _cond_is_diced]
+            - trigger:    do_storedice,
+              source:     mailed
+              dest:       sample
+              prepare:    _parse_response
+              conditions: [_is_decision_sample, _is_not_dry_run_dicing]
 
-            - [do_addfiles,  diced,      nedc,         _is_other_files  ]
-            - [do_addfiles,  nedc,       nedc,         [_is_other_files,
-                                                       _is_force]      ]
+            - trigger:    do_storedice
+              source:     mailed
+              dest:       nosample
+              prepare:    _parse_response
+              unless:     [_is_decision_sample, _is_dry_run_dicing]
+
+            - [do_addfiles,  [diced,
+                              nosample,
+                              sample],   nedc,         _is_other_files  ]
             """)
 
         super().__init__(states=states,
@@ -676,16 +689,17 @@ class Project(transitions.Machine, ProjectSpec):
                 ==========================================================================
                   - Copy from the 1st line starting with 'X-Stamper-To:', below;
                   - set 'Subject' and 'To' exactly as shown (you may also set Cc & Bcc);
-                  - remember to send the email as 'plain-text' (not 'HTML'!).
+                  - remember to set the email as 'plain-text' (not 'HTML'!) right before
+                    clicking `send`!
                 ==========================================================================
                 """))
             self.result = str(dice_mail_mime)
 
         event.kwargs['action'] = '%s stamp-email' % ('FAKED' if dry_run else 'sent')
 
-    def _cond_is_diced(self, event) -> bool:
+    def _parse_response(self, event) -> bool:
         """
-        Triggered by `do_storedice(verdict=<dict>)` as CONDITION before `diced` state.
+        Triggered by `do_storedice(verdict=<dict>?)` as PREPARE for `sample/nosample` states.
 
         :param verdict:
             The result of verifying timestamped-response.
@@ -710,28 +724,35 @@ class Project(transitions.Machine, ProjectSpec):
                     "Current project('%s') is different from tstamp('%s')!" %
                     (self.pname, pname))
 
-        dice = verdict['dice']
-        decision = dice['decision']
-        verdict_txt = yaml.dump(verdict, indent=2)
-
-        if self.dry_run:
-            self.log.warning('DRY-RUN: Not actually registering decision.')
-
-            self.result = verdict_txt
-
-            return False
-
-        event.kwargs['action'] = "diced as %s" % decision
-
         ## TODO: **On commit, set arbitrary files to store (where? name?)**.
         repo = self.repo
         index = repo.index
         tstamp_fpath = osp.join(repo.working_tree_dir, 'tstamp.txt')
         with io.open(tstamp_fpath, 'wt') as fp:
-            fp.write(self._make_readme())
+            yaml.dump(verdict, stream=fp, indent=2)
         index.add([tstamp_fpath])
 
-        return True
+        event.kwargs['verdict'] = verdict
+
+    def _is_decision_sample(self, event) -> bool:
+        verdict = _evarg(event, 'verdict')
+
+        decision = verdict.get('dice', {}).get('decision', 'SAMPLE')
+        event.kwargs['action'] = "diced as %s" % decision
+
+        return decision == 'SAMPLE'
+
+    def _is_dry_run_dicing(self, event):
+        print(_evarg(event, 'verdict', dict))
+        if self.dry_run:
+            self.log.warning('DRY-RUN: Not actually registering decision.')
+
+            self.result = yaml.dump(_evarg(event, 'verdict', dict), indent=2)
+
+        return not self.dry_run
+
+    def _is_not_dry_run_dicing(self, event):
+        return self._is_dry_run_dicing(event)
 
 
 class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
@@ -739,10 +760,10 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
     It handles checkouts but delegates index modifications to `Project` spec.
 
-    ### Git Command Debugging and Customization:
+        ### Git Command Debugging and Customization:
 
-    - :envvar:`GIT_PYTHON_TRACE`: If set to non-0,
-      all executed git commands will be shown as they happen
+        - :envvar:`GIT_PYTHON_TRACE`: If set to non-0,
+          all executed git commands will be shown as they happen
       If set to full, the executed git command _and_ its entire output on stdout and stderr
       will be shown as they happen
 
