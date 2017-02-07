@@ -87,6 +87,7 @@ def yield_rst_only_markup(lines):
         # Other
         #
         (r'\|version\|', r'x.x.x'),
+        (r'\|today\|', r'x.x.x'),
         (r'\.\. include:: AUTHORS', r'see: AUTHORS'),
     ]
 
