@@ -1285,10 +1285,14 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         :return:
             the current :class:`Project`
         """
+        repo = self.repo
+        if pname == '.':
+            pname = _ref2pname(repo.head.name)
+
         prefname = _pname2ref_name(pname)
-        if prefname not in self.repo.heads:
+        if prefname not in repo.heads:
             raise CmdException('Project %r not found!' % pname)
-        self.repo.heads[_pname2ref_name(pname)].checkout(force=self.force)
+        repo.heads[_pname2ref_name(pname)].checkout(force=self.force)
 
         self._current_project = None
         return self.current_project()
