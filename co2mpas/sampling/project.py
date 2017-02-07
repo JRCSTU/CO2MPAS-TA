@@ -644,7 +644,7 @@ class Project(transitions.Machine, ProjectSpec):
             self.log.info('Preparing %s report: %s...',
                           'ANEW' if self.force else '', event.kwargs)
             repspec = self._report_spec()
-            pfiles = self.list_pfiles('inp', 'out', _as_index_paths=True)
+            pfiles = self.list_pfiles(*PFiles._fields, _as_index_paths=True)  # @UndefinedVariable
             report = list(repspec.get_dice_report(pfiles).values())
 
             if self.dry_run:
