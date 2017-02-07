@@ -180,6 +180,10 @@ class Values(co2_utl.Constants):
 
 #: Container of internal function parameters.
 class Functions(co2_utl.Constants):
+    class select_prediction_data(co2_utl.Constants):
+        #: If True the theoretical WLTP will be predicted, otherwise the driven.
+        theoretical = True
+
     class calibrate_clutch_prediction_model(co2_utl.Constants):
         #: Delta time that identifies the previous engine speed to calibrate
         #: the clutch model [s].

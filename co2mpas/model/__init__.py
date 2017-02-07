@@ -23,7 +23,7 @@ import schedula.utils as dsp_utl
 import schedula as dsp
 
 
-def select_prediction_data(data, *new_data, theoretical=True):
+def select_prediction_data(data, *new_data):
     """
     Selects the data required to predict the CO2 emissions with CO2MPAS model.
 
@@ -34,10 +34,6 @@ def select_prediction_data(data, *new_data, theoretical=True):
     :param new_data:
         New data.
     :type new_data: dict
-
-    :param theoretical:
-        If false
-    :type theoretical: bool
 
     :return:
         Data required to predict the CO2 emissions with CO2MPAS model.
@@ -70,7 +66,8 @@ def select_prediction_data(data, *new_data, theoretical=True):
         'start_stop_activation_time'
     ]
 
-    if not theoretical:
+    from .physical.defaults import dfl
+    if not dfl.functions.select_prediction_data.theoretical:
         ids += ['times', 'velocities', 'gears']
 
     data = dsp_utl.selector(ids, data, allow_miss=True)
