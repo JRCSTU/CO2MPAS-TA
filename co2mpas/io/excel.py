@@ -529,7 +529,7 @@ def _add_named_ranges(df, writer, shname, startrow, startcol, named_ranges, k0):
             define_name(ref % ref_n, ref % ref_r)
     except:  # Use other pkg.
         define_name = writer.book.create_named_range
-        scope = writer.book.get_index(writer.sheets[shname])
+        scope = writer.book.index(writer.sheets[shname])
 
         def _create_named_range(ref_n, ref_r):
             define_name(ref_n, value=ref % ref_r, scope=scope)
