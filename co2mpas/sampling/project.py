@@ -670,10 +670,14 @@ class Project(transitions.Machine, ProjectSpec):
             signed_dice_report, self.pname, dry_run=dry_run)
 
         if dry_run:
-            self.log.warning(
-                "DRY-RUN: Now you must send the email your self!"
-                "\n  'Copy from the 1st line starting with 'X-Stamper-To:', and "
-                "\n  remember to set 'Subject' and 'To' as shown.")
+            self.log.warning(tw.dedent("""\
+                DRY-RUN: Now you must send the email your self!
+                ==========================================================================
+                  - Copy from the 1st line starting with 'X-Stamper-To:', below;
+                  - set 'Subject' and 'To' exactly as shown (you may also set Cc & Bcc);
+                  - remember to send the email as 'plain-text' (not 'HTML'!).
+                ==========================================================================
+                """))
             self.result = str(dice_mail_mime)
         else:
             event.kwargs['action'] = '%s stamp-email' % ('FAKED' if dry_run else 'sent')
