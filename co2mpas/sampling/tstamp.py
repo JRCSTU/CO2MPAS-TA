@@ -79,7 +79,9 @@ class TstampSpec(dice.DiceSpec):
     def choose_server_class(self):
         raise NotImplemented()
 
-    def make_server(self):
+    def make_server(self, dry_run):
+        from unittest.mock import MagicMock
+
         host = self.host
         port = self.port
         srv_kwds = self.mail_kwds.copy()
@@ -89,11 +91,13 @@ class TstampSpec(dice.DiceSpec):
 
         self.log.info("Login %s: %s@%s(%s)...", srv_cls.__name__,
                       self.user_account, host, srv_kwds or '')
-        return srv_cls(host, **srv_kwds)
+        srv = MagicMock() if dry_run else srv_cls(host, **srv_kwds)
 
-    def check_login(self):
+        return srv
+
+    def check_login(self, dry_run):
         ok = False
-        with self.make_server() as srv:
+        with self.make_server(dry_run) as srv:
             try:
                 srv.login(self.user_account, self.decipher('user_pswd'))
                 ok = True
@@ -183,7 +187,7 @@ class TstampSender(TstampSpec):
         msg = self._append_x_recipients(msg)
         mail = self._prepare_mail(msg, subject_suffix)
 
-        with self.make_server() as srv:
+        with self.make_server(dry_run) as srv:
             srv.login(self.user_account, self.decipher('user_pswd'))
 
             from logging import WARNING, INFO
@@ -192,8 +196,7 @@ class TstampSender(TstampSpec):
             self.log.log(level, "%sTimestamping %d-char email from '%s' to %s-->%s",
                          prefix, len(msg), self.from_address,
                          self.timestamping_addresses, self.x_recipients)
-            if not dry_run:
-                srv.send_message(mail)
+            srv.send_message(mail)
 
         return mail
 
@@ -357,8 +360,8 @@ class TstampReceiver(TstampSpec):
         return imaplib.IMAP4_SSL if self.ssl else imaplib.IMAP4
 
     # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
-    def receive_timestamped_email(self):
-        with self.make_server() as srv:
+    def receive_timestamped_email(self, dry_run):
+        with self.make_server(dry_run) as srv:
             repl = srv.login(self.user_account, self.decipher('user_pswd'))
             """GMAIL-2FAuth: imaplib.error: b'[ALERT] Application-specific password required:
             https://support.google.com/accounts/answer/185833 (Failure)'"""
@@ -511,8 +514,22 @@ class TstampCmd(baseapp.Cmd):
     class LoginCmd(_Subcmd):
         """Attempts to login into SMTP server. """
 
+        dry_run = trt.Bool(
+            help="Verify dice-report and login to SMTP-server but do not actually send email to timestamp-service."
+        ).tag(config=True)
+
         def __init__(self, **kwds):
+            from pandalone import utils as pndlu
+
             kwds.setdefault('conf_classes', [TstampSender, TstampReceiver])
+            kwds.setdefault('cmd_flags', {
+                ('n', 'dry-run'): (
+                    {
+                        'SendCmd': {'dry_run': True},
+                    },
+                    pndlu.first_line(TstampCmd.SendCmd.dry_run.help)
+                )
+            })
             super().__init__(**kwds)
 
         def run(self, *args):
@@ -522,7 +539,7 @@ class TstampCmd(baseapp.Cmd):
                                    % (self.name, len(args), args))
 
             sender = TstampSender(config=self.config)
-            sender.check_login()
+            sender.check_login(self.dry_run)
 
             rcver = TstampReceiver(config=self.config)
             rcver.check_login()
