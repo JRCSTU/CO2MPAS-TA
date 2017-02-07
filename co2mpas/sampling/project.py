@@ -1422,12 +1422,12 @@ class ProjectCmd(_PrjCmd):
 
     examples = trt.Unicode("""
         To list all existing projects, try:
-            %(cmd_chain)sls
+            %(cmd_chain)s ls
         To open a project (make it the *current*), issue:
             %(cmd_chain)s open RL-77-AAA-2016-0000
 
         To see more infos about the current project, use:
-            %(cmd_chain)sls. -v
+            %(cmd_chain)s ls. -v
 
         A typical workflow is this:
             %(cmd_chain)s init RL-12-BM3-2016-0000
