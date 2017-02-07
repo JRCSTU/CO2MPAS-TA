@@ -475,6 +475,7 @@ class Project(transitions.Machine, ProjectSpec):
         is_tagging = state == 'tagged' and report
         cmsg_txt = self._make_commit_msg(action, report)
 
+        self.log.info('Committing %s: %s', self, action)
         index = repo.index
         index.commit(cmsg_txt)
 
@@ -492,9 +493,9 @@ class Project(transitions.Machine, ProjectSpec):
 
                 ok = False
                 try:
-                    self.log.debug('Tagging: %s', event.kwargs)
                     tagname = _find_dice_tag(repo, self.pname,
                                              self.max_dices_per_project, fetch_next=True)
+                    self.log.info('Tagging %s: %s', self, tagname)
                     assert isinstance(tagname, str), tagname
 
                     tagref = repo.create_tag(tagname, message=cmsg_txt,
