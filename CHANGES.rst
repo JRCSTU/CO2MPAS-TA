@@ -77,8 +77,20 @@ For those behind firewalls or no internet connectivity, follow these steps:
     pip install co2mpas  --no-index  -f path/to/co2mpas_packages
    ```
 
-Kindest Regards,
-&nbsp;&nbsp;&nbsp;&nbsp;_CO<sub>2</sub>MPAS-Team_
+GUI
+~~~~
+- :git:`359`: Don't keep files that do not exist in the output list after simulation.
+
+Build Chores(build, site, etc)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- GUI launches with``co2gui`` command (not with ``co2mpas gui``).
+- Only on ``CONSOLE`` comand left - use ``[Ctrl+F2]`` to open bash console tab.
+- Launch commands use ``.vbs`` scripts to avoid an empty console window.
+- Reduced the length of the AIO archive::
+
+        co2mpas_ALLINONE-64bit-v1.5.0.b0  --> co2mpas_AIO-v1.5.0
+
+- Dependencies: +schedula, +formulas, -keyring
 
 
 
