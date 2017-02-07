@@ -108,8 +108,6 @@ class Report(baseapp.Spec):
             and `expected_vfid` when provided, unless --force.
 
         """
-        expected_vfid = None
-
         def check_vfid_missmatch(fpath, file_vfid):
             nonlocal expected_vfid
 

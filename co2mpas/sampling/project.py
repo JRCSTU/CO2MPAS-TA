@@ -584,9 +584,9 @@ class Project(transitions.Machine, ProjectSpec):
                 self.log.debug('Importing %s-file: %s', io_kind, ext_fpath)
                 assert ext_fpath, "Import none as %s file!" % io_kind
 
-                ext_fname = osp.split(ext_fpath)[1]
+                ext_fname = osp.basename(ext_fpath)
                 index_fpath = osp.join(repo.working_tree_dir, io_kind, ext_fname)
-                pndlu.ensure_dir_exists(osp.split(index_fpath)[0])
+                pndlu.ensure_dir_exists(osp.dirname(index_fpath))
                 shutil.copy(ext_fpath, index_fpath)
                 index.add([index_fpath])
 
