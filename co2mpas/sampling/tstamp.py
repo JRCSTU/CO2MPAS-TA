@@ -329,15 +329,17 @@ class TstampReceiver(TstampSpec):
             stamper_id = tag_verdict = None
         else:
             stamper_id, tag = self._capture_stamper_msg_and_id(ts_parts['msg'], ts_parts['sigarmor'])
-            if not stamper_id:
-                self.log.error("Timestamp-response had no *stamper-id*: %s\n%s",
+            ts_verdict['stamper_id'] = stamper_id
+            if not tag:
+                self.log.error("Failed parsing response content and/or stamper-id: %s\n%s",
                                pformat(ts_parts), pformat(ts_verdict))
                 if not force:
                     raise CmdException("Timestamp-response had no *stamper-id*: %s" % ts_parts['sigarmor'])
 
-            tag_verdict = self.parse_tstamped_tag(tag)
-
-        ts_verdict['stamper_id'] = stamper_id
+                tag_verdict = {'content_parsing': "failed"}
+                tag_verdict = {'project': None}
+            else:
+                tag_verdict = self.parse_tstamped_tag(tag)
 
         num = self._pgp_sig2int(ts_ver.signature_id)
         dice100 = num % 100
