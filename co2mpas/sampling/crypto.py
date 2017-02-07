@@ -183,7 +183,7 @@ class GpgSpec(baseapp.Spec):
     """
 
     gnupgexe = trt.Unicode(
-        os.environ.get('GNUPGEXE', 'gpg'), allow_none=True,
+        os.environ.get('GNUPGEXE', 'gpg2'), allow_none=True,
         help="The path to GnuPG-v2 executable; read from `GNUPGEXE`(%s) env-variable or 'gpg'."
         % os.environ.get('GNUPGEXE')
     ).tag(config=True)
