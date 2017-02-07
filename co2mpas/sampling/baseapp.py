@@ -1160,7 +1160,7 @@ def chain_cmds(app_classes: Sequence[type(trtc.Application)],
     Instantiate(optionally) and run a list of ``[cmd, subcmd, ...]``, linking each one as child of its predecessor.
 
     :param app_classes:
-        A list f cmd-classes: ``[root, sub1, sub2, app]``
+        A list of cmd-classes: ``[root, sub1, sub2, app]``
         Note: you have to "know" the correct nesting-order of the commands ;-)
     :param argv:
         cmdline args passed to the root (1st) cmd only.

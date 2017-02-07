@@ -150,7 +150,7 @@ class TProjectsDBStory(unittest.TestCase):
         self.assertEqual(len(res), 33, res)
 
     def test_1a_empty_list(self):
-        cmd = project.ProjectCmd.ListCmd(config=self._config)
+        cmd = project.ProjectCmd.LsCmd(config=self._config)
         res = cmd.run()
         self.assertIsNone(res)
         self.assertIsNone(cmd.projects_db._current_project)
@@ -178,7 +178,7 @@ class TProjectsDBStory(unittest.TestCase):
         self.assertIsNone(pdb._current_project)
 
     def test_1c_empty_cwp(self):
-        cmd = project.ProjectCmd.ListCmd(config=self._config)
+        cmd = project.ProjectCmd.LsCmd(config=self._config)
         with self.assertRaisesRegex(baseapp.CmdException, r"No current-project exists yet!"):
             cmd.run()
         self.assertIsNone(cmd.projects_db._current_project)
@@ -191,12 +191,12 @@ class TProjectsDBStory(unittest.TestCase):
         self.assertEqual(res.pname, pname)
         self.assertEqual(res.state, 'empty')
 
-        cmd = project.ProjectCmd.ListCmd(config=self._config)
+        cmd = project.ProjectCmd.LsCmd(config=self._config)
         res = cmd.run()
         self.assertEqual(str(res), '* foo: empty')
 
     def test_2b_list(self):
-        cmd = project.ProjectCmd.ListCmd(config=self._config)
+        cmd = project.ProjectCmd.LsCmd(config=self._config)
         res = cmd.run()
         self.assertEqual(res, ['* foo'])
 
@@ -227,7 +227,7 @@ class TProjectsDBStory(unittest.TestCase):
         with self.assertRaisesRegex(baseapp.CmdException, r"Project 'foo' already exists!"):
             cmd.run('foo')
 
-        cmd = project.ProjectCmd.ListCmd(config=self._config)
+        cmd = project.ProjectCmd.LsCmd(config=self._config)
         res = list(cmd.run('.'))
         self.assertEqual(res, ['* foo'])
 
@@ -237,7 +237,7 @@ class TProjectsDBStory(unittest.TestCase):
         with self.assertRaisesRegex(baseapp.CmdException, "Invalid name '%s' for a project!" % pname):
             cmd.run(pname)
 
-        cmd = project.ProjectCmd.ListCmd(config=self._config)
+        cmd = project.ProjectCmd.LsCmd(config=self._config)
         res = list(cmd.run('.'))
         self.assertEqual(res, ['  foo'])
 
@@ -249,12 +249,12 @@ class TProjectsDBStory(unittest.TestCase):
         self.assertEqual(res.pname, pname)
         self.assertEqual(res.state, 'empty')
 
-        cmd = project.ProjectCmd.ListCmd(config=self._config)
+        cmd = project.ProjectCmd.LsCmd(config=self._config)
         res = cmd.run('.')
         self.assertEqual(str(res), '* %s: empty' % pname)
 
     def test_4b_list_projects(self):
-        cmd = project.ProjectCmd.ListCmd(config=self._config)
+        cmd = project.ProjectCmd.LsCmd(config=self._config)
         res = cmd.run('.')
         self.assertSequenceEqual(res, ['* bar', '  foo'])
 
@@ -297,7 +297,7 @@ class TProjectsDBStory(unittest.TestCase):
         self.assertEqual(res.pname, pname)
         self.assertEqual(res.state, 'empty')
 
-        cmd = project.ProjectCmd.ListCmd(config=self._config)
+        cmd = project.ProjectCmd.LsCmd(config=self._config)
         res = cmd.run('.')
         self.assertEqual(str(res), '* %s: empty' % pname)
 

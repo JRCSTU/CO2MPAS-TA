@@ -1425,13 +1425,12 @@ class ProjectCmd(_PrjCmd):
 
     examples = trt.Unicode("""
         To list all existing projects, try:
-            %(cmd_chain)s list
-
+            %(cmd_chain)sls
         To open a project (make it the *current*), issue:
             %(cmd_chain)s open RL-77-AAA-2016-0000
 
         To see more infos about the current project, use:
-            %(cmd_chain)s list . -v
+            %(cmd_chain)sls. -v
 
         A typical workflow is this:
             %(cmd_chain)s init RL-12-BM3-2016-0000
@@ -1459,7 +1458,7 @@ class ProjectCmd(_PrjCmd):
                                    % (self.name, len(args), args))
             return self.projects_db.repo_status(as_text=True)
 
-    class ListCmd(_PrjCmd):
+    class LsCmd(_PrjCmd):
         """
         List specified projects, or all, if none specified.
 
@@ -1884,7 +1883,7 @@ class ProjectCmd(_PrjCmd):
         dkwds.update(kwds)
         super().__init__(**dkwds)
 
-all_subcmds = (ProjectCmd.ListCmd, ProjectCmd.OpenCmd, ProjectCmd.InitCmd,
+all_subcmds = (ProjectCmd.LsCmd, ProjectCmd.OpenCmd, ProjectCmd.InitCmd,
                ProjectCmd.AppendCmd, ProjectCmd.ReportCmd,
                ProjectCmd.TstampCmd, ProjectCmd.TparseCmd,
                ProjectCmd.StatusCmd,
