@@ -1400,7 +1400,7 @@ class SimulatePanel(ttk.Frame):
                          level=None,
                          static_msg: Union[bool, Text]=None,
                          progr_step=None, progr_max=None,
-                         new_out_file=None):
+                         new_out_file=None, check_outfiles_exist=False):
         """
         Handler of states for all panel's widgets and progressbar/status.
 
@@ -1449,6 +1449,13 @@ class SimulatePanel(ttk.Frame):
 
         if new_out_file:
             self.outputs_tree.insert_path(new_out_file, tags=['ro'])
+
+        if check_outfiles_exist:
+            ## Delete files not actually there.
+            #
+            for outfile in list(self.outputs_tree.get_children()):
+                if not osp.isfile(outfile):
+                    self.outputs_tree.delete(outfile)
 
         self.update()
 
@@ -1586,7 +1593,7 @@ class SimulatePanel(ttk.Frame):
                 finally:
                     mediate_guistate(msg, *args,
                                      static_msg=static_msg, level=level,
-                                     progr_max=0)
+                                     progr_max=0, check_outfiles_exist=True)
 
         updater = ProgressUpdater()
         user_cmd_kwds = cmd_kwds.copy()
