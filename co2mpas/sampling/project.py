@@ -1618,7 +1618,7 @@ class ProjectCmd(_PrjCmd):
 
     class TstampCmd(_PrjCmd):
         """
-        Sends the prepared tag to be timestamped, or prints it for sending manually (--dry-run).
+        IRREVOCABLY send report to the time-stamp service, or print it for sending it manually (--dry-run).
 
         SYNTAX
             %(cmd_chain)s [OPTIONS]
@@ -1838,7 +1838,7 @@ class ProjectCmd(_PrjCmd):
 
                     try:
                         rem = repo.create_remote(remname, osp.join(exdir, 'repo'))
-                        fetch_info = rem.fetch()
+                        fetch_info = rem.fetch(force=self.force)
                         yield from ('unpacking: %s' % fi.name
                                     for fi in fetch_info)
                     finally:
