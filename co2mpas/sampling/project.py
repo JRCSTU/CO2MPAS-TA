@@ -679,8 +679,8 @@ class Project(transitions.Machine, ProjectSpec):
                 ==========================================================================
                 """))
             self.result = str(dice_mail_mime)
-        else:
-            event.kwargs['action'] = '%s stamp-email' % ('FAKED' if dry_run else 'sent')
+
+        event.kwargs['action'] = '%s stamp-email' % ('FAKED' if dry_run else 'sent')
 
     def _cond_is_diced(self, event) -> bool:
         """
