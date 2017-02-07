@@ -39,12 +39,10 @@ Layout::
 #        [gen-file] [sync-temple-entry][sel]
 #        [   help   ] [        run         ]
 #  - Improve extra-options parsing...
-
 ## Help (apart from PY-site):
 #  - http://effbot.org/tkinterbook/tkinter-index.htm
 #  - http://www.tkdocs.com/
 #  - http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/index.html
-
 ## Icons from:
 #    - http://www.iconsdb.com/
 #    - https://material.io/icons/#
@@ -61,6 +59,7 @@ import re
 import sys
 from tkinter import StringVar, ttk, filedialog
 from typing import Any, Union, Mapping, Text, Dict, Callable  # @UnusedImport
+import warnings
 import weakref
 
 from toolz import dicttoolz as dtz
@@ -228,6 +227,14 @@ about_txt = """
 
     {extra}
 """
+
+
+warnings.filterwarnings(action="ignore", module="scipy",
+                        message="^internal gelsd")
+warnings.filterwarnings(action="ignore", module="openpyxl",
+                        message="^Unknown extension")
+warnings.filterwarnings(action="ignore", module="dill",
+                        message="^unclosed file")
 
 
 def show_about(root, about_txt=about_txt, verbose=False):
