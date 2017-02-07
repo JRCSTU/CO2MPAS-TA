@@ -4,6 +4,7 @@
 .. image:: _static/CO2MPAS_banner.svg
    :width: 600 px
    :align: center
+
 .. include:: ../README.rst
     :start-after: .. _start-opening:
     :end-before: .. _end-opening:

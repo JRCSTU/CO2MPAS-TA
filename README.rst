@@ -106,7 +106,7 @@ For recent activity, check the :doc:`changes`.
 
 
 Licensing
-==========
+=========
 The |co2mpas| application, both executable and its sources, is distributed under the EUPL license.
 EUPL is `"eventually" compatible
 <https://joinup.ec.europa.eu/community/eupl/og_page/eupl-compatible-open-source-licences>`_
@@ -202,7 +202,7 @@ you may install the developer version.
 
 
 Upgrade |co2mpas|
-------------------
+-----------------
 Uninstall and re-install it from the |co2mpas| CONSOLE::
 
     pip uninstall co2mpas
@@ -339,7 +339,7 @@ Alternatively, open the CONSOLE and type the following command:
 
 
 |co2mpas| command syntax
--------------------------
+------------------------
 To get the syntax of the |co2mpas| console-command, open a console where
 you have installed |co2mpas| (see :ref:`install` above) and type::
 
@@ -768,7 +768,7 @@ Or you can run |co2mpas| with the ``batch`` sub-command::
   check the *summary file*.
 
 Run Type-Approval (``ta``) command
------------------------------------
+----------------------------------
 The Type Approval command simulates the NEDC fuel consumption and CO2 emission
 of the given vehicle using just the required `declaration inputs
 <https://github.com/JRCSTU/CO2MPAS-TA/wiki/TA_compulsory_inputs>`_ (marked as
@@ -1181,7 +1181,7 @@ are provided.
 
 
 Model selection
-----------------
+---------------
 
 .. Note::
    Since *v1.4.1-Rally*, this part of the model remains disabled,
@@ -1328,7 +1328,7 @@ It is not update-able, and has a semi-regular release-cycle of 3 months.
 .. _install-co2mpas-package:
 
 Install |co2mpas| package
----------------------------
+-------------------------
 1. Install |co2mpas| executable internally into your python-environment with
    the following console-commands (there is no prob if the 1st `uninstall`
    command fails):

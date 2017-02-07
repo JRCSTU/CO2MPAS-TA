@@ -4,86 +4,90 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
-v1.5.x, file-ver: 2.2.5, 6-November 2016: "Stamp" release
-===========================================================
-![co2mpas_banner](https://cloud.githubusercontent.com/assets/501585/20363048/09b0c724-ac3e-11e6-81b4-bc49d12e6aa1.png)
+v1.5.x, file-ver: 2.2.6, 10-February 2017: "Stamp" release
+==========================================================
+.. image:: https://cloud.githubusercontent.com/assets/501585/20363048/
+   09b0c724-ac3e-11e6-81b4-bc49d12e6aa1.png
+   :align: center
+   :width: 480
 
-## This _CO<sub>2</sub>MPAS_ release contains few model changes; software updates;
-and the [random sampler (**_DICE_**) application](https://co2mpas.io/glossary.html#term-dice-report):
+This |co2mpas| release contains few model changes; software updates;
+and the `random sampler (DICE) application
+<https://co2mpas.io/glossary.html#term-dice-report>`_.
 
-### Model changes:
+Results validated against real vehicles, are described in the
+`validation report
+<http://jrcstu.github.io/co2mpas/v1.5.x/validation_real_cases.html>`_ ; together
+with the classic validation report for computer simulated `manual transmission
+vehicles <http://jrcstu.github.io/co2mpas/v1.5.x/validation_manual_cases.html>`_
+and `automatic transmission vehicles
+<http://jrcstu.github.io/co2mpas/v1.5.x/validation_automatic_cases.html>`_.
 
-- [#281](https://github.com/JRCSTU/co2mpas/issues/281) [#329](https://github.com/JRCSTU/co2mpas/issues/329) Improved prediction of the `electric model` of CO<sub>2</sub>MPAS, by setting a `balance SOC threshold` when the alternator is always on.
+The DICE
+--------
+Application that reads the |co2mpas| output dice report, securely sends it to a
+time-stamp server, and decodes the random (1/10 cases) answer as
+**Need to undergo a physical test** or **Accept results**.
 
-- [#325](https://github.com/JRCSTU/co2mpas/issues/325) An additional check has been set for the input file to prevent CO<sub>2</sub>MPAS run when the input file states `has_torque_converter = True` and `gear_box_type = manual'.
+Model-changes
+-------------
+- :git:`325`: An additional check has been set for the input file to
+  prevent |co2mpas| run when the input file states `has_torque_converter = True`
+  and `gear_box_type = manual`.
+- :git:`264`: |co2mpas| glossary has been completely revised and it has migrated
+  to the main `webpage <https://co2mpas.io/glossary.html>`_
+  following *ReStructured Text* format.
 
-- [#330](https://github.com/JRCSTU/co2mpas/issues/330): The `clutch model` has been updated to be fed with the `Torque converter model`.
+Electric model
+~~~~~~~~~~~~~~
+- :git:`#281`, :git:`#329`:
+  Improved prediction of the `electric model` of |co2mpas|, by setting a
+  `balance SOC threshold` when the alternator is always on.
 
-- [#330](https://github.com/JRCSTU/co2mpas/issues/330): The `clutch model` prediction has been enhanced during gearshifts by remove `clutch phases` when `(gears == 0……) | (velocities <= stop_velocity)`.
 
-- [#342](https://github.com/JRCSTU/co2mpas/issues/342): Enable an option to use more than one `final_drive_ratios` for vehicles equipped with dual/variable clutch.
+Clutch model
+~~~~~~~~~~~~
+- :git:`#330`: The `clutch model` has been updated to be fed with the
+  `Torque converter model`.
 
--    the **Declaration mode:** template & demo files include now the ´family-id´ as a set of concatenated codes that are required to run the model in _Type Approval mode, _command (TA)_;
+- :git:`#330`: The `clutch model` prediction has been enhanced during gearshifts
+  by remove `clutch phases` when
+  `(gears == 0……) | (velocities <= stop_velocity)`.
 
--    Enhanced **desktop GUI** to launch _CO<sub>2</sub>MPAS_ to perform the random sampling for TA in addition to launch simulations (engineering and type approval modes), synchtonize time series, generate templates and demo-files
 
-### Validations of the model
+Final drive
+~~~~~~~~~~~
+- :git:`#342`: Enable an option to use more than one `final_drive_ratios` for
+  vehicles equipped with dual/variable clutch.
 
-- results validated against real vehicles, are described in the [this release's validation report](http://jrcstu.github.io/co2mpas/v1.5.x/validation_real_cases.html); together with the classic validation report for computer simulated [manual transmission vehicles](http://jrcstu.github.io/co2mpas/v1.5.x/validation_manual_cases.html) and [automatic transmission vehicles](http://jrcstu.github.io/co2mpas/v1.5.x/validation_automatic_cases.html).
+IO
+--
+- :git:`341`: Input template & demo files include now the ´family-id´ as a set
+  of concatenated codes that are required to run the model in Type Approval
+  mode.
+- :git:`356`: enhancements of the output and dice reports have been made.
 
-### Software updates
-- _enhancements of the output and dice reports have been made_; very few _backward-compatible changes in the Input files_;
-- the _CO<sub>2</sub>MPAS_ glossary has been completely revised and it has migrated to the main [webpage](https://co2mpas.io/glossary.html) following _ReStructured_ Text format;
-- Enhanced plotting of the _plot_workflow_ for faster navigation on _CO<sub>2</sub>MPAS_ model
 
-A detailed account of the work performed on this release can be found in [CHANGES-1.5.X.](https://co2mpas.io/changes.html)
+Software updates
+----------------
+- Enhanced plotting of the *plot_workflow* for faster navigation on |co2mpas|
+  model.
 
-### Presenting _The DICE_
-Application that reads the _CO<sub>2</sub>MPAS_  output dice report, securely sends it to a time-stamp server, and decodes the random (1/10 cases) answer as _Need to undergo a pyshical test_ or _Accept CO2MPAS results_.
+- The Dispatcher library has been moved to a separate package.
 
-## All-In-One
-
-!!! _Mind that All-In-One is the official procedure for running *CO<sub>2</sub>MPAS_ for Type Approval (TA).*
-
-The [installations instructions](http://co2mpas.io/install.html#all-in-one-installation-under-windows)
-have *few changes* in comparison to the previous releases:
-
-- download and extract the 64bit archive from this link:
-  https://github.com/JRCSTU/CO2MPAS-TA/releases/download/v1.5.x/co2mpas_ALLINONE-64bit-v1.5.x.7z
-
-### Alternative installation 1: Upgrade with Internet
-
-For those with _unhindered internet access_, and with _sufficient execution permissions for the `pip` python tool_, upgrading CO<sub>2</sub>MPAS is possible with the [usual commands](http://co2mpas.io/install.html#co2mpas-installation):
-
-```
-pip uninstall co2mpas
-pip install co2mpas
-```
-
-### Alternative installation 2: Upgrade WITHOUT  Internet
-
-For those behind firewalls or no internet connectivity, follow these steps:
-1. Use an existing _Python-3.5_ environment; that might be an older _ALLINONE_,
-   WinPython, Anaconda or Linux's standard python environment.
-2. With with a "regular" browser and when connected to the Internet,
-   pre-download locally and unzip the archive:
-   https://github.com/JRCSTU/CO2MPAS-TA/releases/download/v1.4.1/co2mpas_DEPENDENCIES-v1.4.1_Rally.7z
-   This archive contains _CO<sub>2</sub>MPAS_ along with all its dependent packages.
-3. Install _CO<sub>2</sub>MPAS_, referencing the above folder.
-   Assuming that you unzipped the packages in the folder `path/to/co2mpas_packages`,
-   use a console-command like this:
-
-   ```
-    pip install co2mpas  --no-index  -f path/to/co2mpas_packages
-   ```
+- Enhanced **desktop GUI** to launch |co2mpas| to perform the random sampling
+  for TA in addition to launch simulations (engineering and type approval
+  modes), synchronize time series, generate templates and demo-files.
 
 GUI
-~~~~
-- :git:`359`: Don't keep files that do not exist in the output list after simulation.
+~~~
+- :git:`359`: Don't keep files that do not exist in the output list after
+  simulation.
+- GUI launches with ``co2gui`` command (not with ``co2mpas gui``).
+
 
 Build Chores(build, site, etc)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- GUI launches with``co2gui`` command (not with ``co2mpas gui``).
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Only on ``CONSOLE`` comand left - use ``[Ctrl+F2]`` to open bash console tab.
 - Launch commands use ``.vbs`` scripts to avoid an empty console window.
 - Reduced the length of the AIO archive::
@@ -93,25 +97,30 @@ Build Chores(build, site, etc)
 - Dependencies: +schedula, +formulas, -keyring
 
 
-
 v1.4.1, file-ver: 2.2.5, 17-November 2016: "Rally" release
-===========================================================
-.. image:: https://cloud.githubusercontent.com/assets/501585/20363048/09b0c724-ac3e-11e6-81b4-bc49d12e6aa1.png
-   :align: left
+==========================================================
+.. image:: https://cloud.githubusercontent.com/assets/501585/20363048/
+   09b0c724-ac3e-11e6-81b4-bc49d12e6aa1.png
+   :align: center
    :width: 480
 
-This |co2mpas| release contains both key model and software updates; additional capabilities have been added for the user, namely:
+This |co2mpas| release contains both key model and software updates; additional
+capabilities have been added for the user, namely:
 
-- the **Declaration mode:** template & demo files now contain just the minimum inputs required to run under *Type Approval (TA)* command;
-- a **desktop GUI** to launch |co2mpas| and perform selected tasks (i.e. *simulate*, *datasync* time-series for a specific cycle, *generate templates*);
+- the **Declaration mode:** template & demo files now contain just the minimum
+  inputs required to run under *Type Approval (TA)* command;
+- a **desktop GUI** to launch |co2mpas| and perform selected tasks (i.e.
+  *simulate*, *datasync* time-series for a specific cycle, *generate
+  templates*);
 - several **model changes**:
 
-  - improved handling of real-measurement data-series - results validated against
-    real vehicles, are described in the `this release's validation report
-    <http://jrcstu.github.io/co2mpas/v1.4.x/validation_real_cases.html>`_;
+  - improved handling of real-measurement data-series - results validated
+    against real vehicles, are described in the `this release's validation
+    report <http://jrcstu.github.io/co2mpas/v1.4.x/validation_real_cases.html>`_
+    ;
 
-  - support of a series of **technologies**, some marked as "untested" due to the lack of
-    sufficient experimental data for their validation:
+  - support of a series of **technologies**, some marked as "untested" due to
+    the lack of sufficient experimental data for their validation:
 
     +----------------------------------------+-----------+-----------+
     |                                        | petrol    | diesel    |
@@ -129,26 +138,31 @@ This |co2mpas| release contains both key model and software updates; additional 
     |          *Gearbox Thermal Management:* | untested  | untested  |
     +----------------------------------------+-----------+-----------+
 
-- *enhancements and diagrams for the result files*, very few, *backward-compatible changes in the Input files*;
+- *enhancements and diagrams for the result files*, very few,
+  *backward-compatible changes in the Input files*;
 - the project's sources are now *"practically" open* in *GitHub*, so
   many of *the serving URLs have changed:*
 
   - sources are now served from *github*: https://github.com/JRCSTU/CO2MPAS-TA
-  - a **Wiki** hosting `*simple guidelines* <https://github.com/JRCSTU/CO2MPAS-TA/wiki/CO2MPAS-user-guidelines>`_
+  - a **Wiki** hosting `*simple guidelines*
+    <https://github.com/JRCSTU/CO2MPAS-TA/wiki/CO2MPAS-user-guidelines>`_
     on how to download, install, and run the |co2mpas| software;
-  - the `*Issues-tracker* <https://github.com/JRCSTU/CO2MPAS-TA/issues>`_ for collecting feedback,
-  - installation files distributed from `*Github-Releases page* <https://github.com/JRCSTU/CO2MPAS-TA/releases>`_
-    (the https://files.co2mpas.io/ url has been deprecated).
+  - the `*Issues-tracker* <https://github.com/JRCSTU/CO2MPAS-TA/issues>`_ for
+    collecting feedback,
+  - installation files distributed from `*Github-Releases page*
+    <https://github.com/JRCSTU/CO2MPAS-TA/releases>`_ (the
+    https://files.co2mpas.io/ url has been deprecated).
 
 The study of this release's results are contained in these 3 reports:
 `manual <http://jrcstu.github.io/co2mpas/v1.4.x/validation_manual_cases.html>`_,
-`automatic <http://jrcstu.github.io/co2mpas/v1.4.x/validation_automatic_cases.html>`_,
+`automatic
+<http://jrcstu.github.io/co2mpas/v1.4.x/validation_automatic_cases.html>`_,
 and `real <http://jrcstu.github.io/co2mpas/v1.4.x/validation_real_cases.html>`_
 cars, respectively.
 
-.. Note:
-   Actually *v1.4.1* is NOT published in *PyPi* due to corrupted ``.whl`` archive.
-   *v1.4.2* has been published in its place, and *v1.4.3* in the site.
+.. Note::
+   Actually *v1.4.1* is NOT published in *PyPi* due to corrupted ``.whl``
+   archive. *v1.4.2* has been published in its place, and *v1.4.3* in the site.
 
 
 Model-changes
@@ -167,8 +181,8 @@ Model-changes
   internal flags that can be input from the input file or from the cmd
   (e.g., ``-D flag.xxx``).
 
-  Add special plan id ``run_base``. If it is false, the base model is just parsed
-  but not evaluated.
+  Add special plan id ``run_base``. If it is false, the base model is just
+  parsed but not evaluated.
 
 - :gh:`251`:
   The model-selector can enabled or disabled (default). Moreover, model-selector
@@ -197,8 +211,8 @@ Electrics model
 
   + Identification of charging statuses. This correct the model calibration.
   + Correct min and max charging SOC when a plateau (balance point) is fount.
-  + Correct ``electric_loads`` when :math:`|off load| > |on load|`, choosing that with
-    the minimum mean absolute error.
+  + Correct ``electric_loads`` when :math:`|off load| > |on load|`, choosing
+    that with the minimum mean absolute error.
 
 
 Vehicle model
@@ -231,19 +245,23 @@ Gearbox model
   generated from WLTP pkg.
 - :gh:`288` (:git:`11f5ad5`): Link the ``gear_box_efficiency_constants`` to the
   parameter ``has_torque_converter``.
-- :gh:`299`: Implement the gearbox thermal management (not validated, not enough data).
+- :gh:`299`: Implement the gearbox thermal management (not validated, not enough
+  data).
 
 
 CO2 model
 ~~~~~~~~~
 - :git:`370ca2c`: Fix of a minor bug on the calibration status when cycle is
   purely cold.
-- :gh:`205`, :gh:`207`: Calibrate ``co2_params`` using co2 emission identified in
-  the third step.
+- :gh:`205`, :gh:`207`: Calibrate ``co2_params`` using co2 emission identified
+  in the third step.
 - :gh:`301`: Implement the exhaust gas recirculation and selective catalytic
-  reduction technologies (EGR for petrol and SCR for diesel not validated, not enough data).
-- :gh:`295`: Implement the lean burn technology. (partially validated on synthetic data)
-- :gh:`285`: Implement the cylinder deactivation strategy.(not validated, not enough data)
+  reduction technologies (EGR for petrol and SCR for diesel not validated, not
+  enough data).
+- :gh:`295`: Implement the lean burn technology. (partially validated on
+  synthetic data)
+- :gh:`285`: Implement the cylinder deactivation strategy.(not validated, not
+  enough data)
 - :gh:`287`: Implement the variable valve activation strategy.
 - :gh:`259` (:git:`119fa28`): Implement ki factor correction for vehicle with
   periodically regenerating systems. Now the model predicts the declared CO2
@@ -283,28 +301,29 @@ IO
 
 Naming conventions
 ~~~~~~~~~~~~~~~~~~
-- :gh:`b8ce65f`: : If cycle is not given the defaults are ``nedc-h``, ``nedc-l``,
-  ``wltp-h`` and ``wltp-l``.
+- :gh:`b8ce65f`: : If cycle is not given the defaults are ``nedc-h``,
+  ``nedc-l``, ``wltp-h`` and ``wltp-l``.
 
 Build Chores(build, site, etc)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - :gh:`189`: Open public GitHub repo; clone old releases.
-- Use `ReadTheDocs <https://co2mpas-ta.readthedocs.io/>`_ for automated building of project-site,
-  SSL-proxied by https://co2mpas.io.
+- Use `ReadTheDocs <https://co2mpas-ta.readthedocs.io/>`_ for automated building
+  of project-site, SSL-proxied by https://co2mpas.io.
 - Depracated
 - Allow to run only under *Python-3.5*, set trove-classifiers accordingly.
-- Dependencies: +toolz, +Pillow, +openpyxl, +python-gnupg, +gitpython +keyring, +transitions,
-  -easygui, -cachetool, -cycler.
+- Dependencies: +toolz, +Pillow, +openpyxl, +python-gnupg, +gitpython +keyring,
+  +transitions, -easygui, -cachetool, -cycler.
   - Changes of URLs, opensourcing repository.
 
 Known Limitations
 -----------------
 
-1. **Model sensitivity**: The sensitivity of CO2MPAS to moderately differing input
-   time-series has been tested and found within expected ranges when
+1. **Model sensitivity**: The sensitivity of CO2MPAS to moderately differing
+   input time-series has been tested and found within expected ranges when
    *a single measured WLTP cycle is given as input* on each run - if both
    WLTP H & L cycles are given, even small changes in those paired time-series
-   may force the `model-selector <http://co2mpas.io/explanation.html#model-selection>`_
+   may force the `model-selector
+   <http://co2mpas.io/explanation.html#model-selection>`_
    to choose different combinations of calibrated model, thus arriving in
    significantly different fuel-consumption figures between the runs.
 2. **Theoretical WLTP**: The theoretical WLTP cycles produced MUST NOT
@@ -314,12 +333,11 @@ Known Limitations
    <wltp.io>`_ which it still produces *GTR phase-1a* profiles.
 
 
-
-
 v1.3.1, file-ver: 2.2.1, 18-Jul 2016: "Qube" release
 ====================================================
-.. image:: https://cloud.githubusercontent.com/assets/501585/18394783/f392a136-76bb-11e6-9d6c-fe2ab6bad8e2.png
-   :align: left
+.. image:: https://cloud.githubusercontent.com/assets/501585/18394783/
+   f392a136-76bb-11e6-9d6c-fe2ab6bad8e2.png
+   :align: center
    :width: 480
 
 This release contains both key model and software changes; additional
@@ -339,7 +357,8 @@ data-series.
 
 The study of this release's results are contained in these 3 reports:
 `manual <http://jrcstu.github.io/co2mpas/v1.3.x/validation_manual_cases.html>`__,
-`automatic <http://jrcstu.github.io/co2mpas/v1.3.x/validation_automatic_cases.html>`__,
+`automatic
+<http://jrcstu.github.io/co2mpas/v1.3.x/validation_automatic_cases.html>`__,
 and `real <http://jrcstu.github.io/co2mpas/v1.3.x/validation_real_cases.html>`__
 cars, respectively.
 
@@ -381,16 +400,16 @@ Engine model
 - :git:`0816e64`: Add functions to calculate the ``max_available_engine_powers``
   and the ``missing_powers``. The latest tells if the vehicle has sufficient
   power to drive the cycle.
-- :git:`71baf52`: Add inverse function to calculate engine nominal power ``[kW]``
-  from ``engine_max_torque`` and ``engine_max_speed_at_max_power``.
+- :git:`71baf52`: Add inverse function to calculate engine nominal power
+  ``[kW]`` from ``engine_max_torque`` and ``engine_max_speed_at_max_power``.
 
 
 Vehicle model
 ~~~~~~~~~~~~~
 - :git:`1a700b6`: Add function to treat ``obd_velocities`` and produce the
   ``velocities``. This function uses a Kalman Filter in order to smooth the
-  noise in the OBD velocities ``[km/h]``, and it takes a considerable time to run
-  (~5min is not uncommon, depending on the sampling frequency).
+  noise in the OBD velocities ``[km/h]``, and it takes a considerable time to
+  run (~5min is not uncommon, depending on the sampling frequency).
 - :git:`8ded622`: FIX acceleration when adjacent velocities are zero. This error
   was due to the interpolation function that does not like discontinuities.
 
@@ -496,7 +515,8 @@ Output
 - :gh:`248`: FIX **Delta Calculation** following the regulation.
   ``delta = co2_wltp - co2_nedc``.
 - :git:`26f994c`: Replace ``comparison`` sheet with ``summary`` sheet.
-- :gh:`246`, :git:`368caca`: Remove fuel consumption in l/100km from the outputs.
+- :gh:`246`, :git:`368caca`: Remove fuel consumption in l/100km from the
+  outputs.
 - :gh:`197`: Remove ``--charts`` flag. Now the output excel-file always
   contains charts by default.
 
@@ -513,11 +533,12 @@ ALLINONE
 Known Limitations
 -----------------
 
-1. **Model sensitivity**: The sensitivity of CO2MPAS to moderately differing input
-   time-series has been tested and found within expected ranges when
+1. **Model sensitivity**: The sensitivity of CO2MPAS to moderately differing
+   input time-series has been tested and found within expected ranges when
    *a single measured WLTP cycle is given as input* on each run - if both
    WLTP H & L cycles are given, even small changes in those paired time-series
-   may force the `model-selector <http://co2mpas.io/explanation.html#model-selection>`
+   may force the `model-selector
+   <http://co2mpas.io/explanation.html#model-selection>`_
    to choose different combinations of calibrated model, thus arriving in
    significantly different fuel-consumption figures between the runs.
 2. **Theoretical WLTP**: The theoretical WLTP cycles produced MUST NOT
@@ -529,8 +550,9 @@ Known Limitations
 
 v1.2.5, file-ver: 2.2, 25-May 2016: "Panino/Sandwich" release ("PS")
 ====================================================================
-.. image:: https://cloud.githubusercontent.com/assets/501585/15218135/ca1bd7c0-185e-11e6-9180-3aacf4b37d7b.png
-   :align: left
+.. image:: https://cloud.githubusercontent.com/assets/501585/15218135/
+   a1bd7c0-185e-11e6-9180-3aacf4b37d7b.png
+   :align: center
    :width: 480
 
 3nd POST-Panino release.
@@ -560,18 +582,18 @@ and not accompanied by a ALLINONE archive.
   hot-cycles.
 
 
-
 v1.2.2, file-ver: 2.2, 19-Apr 2016: "Panino" release
 ====================================================
-.. image:: https://cloud.githubusercontent.com/assets/501585/14559450/20a56554-0309-11e6-9c4d-22fc72e3d934.png
-   :align: left
+.. image:: https://cloud.githubusercontent.com/assets/501585/14559450/
+   20a56554-0309-11e6-9c4d-22fc72e3d934.png
+   :align: center
    :width: 480
 
-This release contains both key model and software changes; additional capabilities
-have been added for the user, namely,
+This release contains both key model and software changes; additional
+capabilities have been added for the user, namely,
 
-- the capability to accept a **theoretical WLTP** cycle and predict its difference
-  from the predicted NEDC (:gh:`186`, :gh:`211`),
+- the capability to accept a **theoretical WLTP** cycle and predict its
+  difference from the predicted NEDC (:gh:`186`, :gh:`211`),
 - the synchronization ``datasync`` command tool (:gh:`144`, :gh:`218`), and
 - improve and explain the `naming-conventions
   <http://co2mpas.io/explanation.html#excel-input-data-naming-conventions>`_
@@ -580,13 +602,14 @@ have been added for the user, namely,
 while other changes improve the quality of model runs, namely,
 
 - the introduction of schema to check input values(:gh:`60`, :gh:`80`),
-- several model changes improving the handling of real-measurement data-series, and
+- several model changes improving the handling of real-measurement data-series,
+  and
 - several crucial engineering fixes and enhancements on the model-calculations,
   including fixes based on  LAT's assessment of the "O'Snow" release.
 
 The study of this release's results are contained in `these 3 report files
-<https://jrcstu.github.io/co2mpas/>`_ for *manual*,  *automatic* and *real* cars,
-respectively.
+<https://jrcstu.github.io/co2mpas/>`_ for *manual*,  *automatic* and *real*
+cars, respectively.
 
 
 Model-changes
@@ -597,55 +620,64 @@ Model-changes
 
 Engine model
 ~~~~~~~~~~~~
-- :gh:`110`: Add a function to identify *on_idle* as ``engine_speeds_out > MIN_ENGINE_SPEED``
-  and ``gears = 0``, or ``engine_speeds_out > MIN_ENGINE_SPEED`` and ``velocities <= VEL_EPS``.
-  When engine is idling, power flowing towards the engine is disengaged, and thus
-  engine power is greater than or equal to zero. This correction is applied only for cars
-  not equiped with Torque Converter.
+- :gh:`110`: Add a function to identify *on_idle*
+  as ``engine_speeds_out > MIN_ENGINE_SPEED`` and ``gears = 0``,
+  or ``engine_speeds_out > MIN_ENGINE_SPEED`` and ``velocities <= VEL_EPS``.
+  When engine is idling, power flowing towards the engine is disengaged, and
+  thus engine power is greater than or equal to zero. This correction is applied
+  only for cars not equiped with Torque Converter.
 - :git:`7340700`: Remove limits from the first step ``co2_params`` optimization.
-- :gh:`195`: Enable calibration of ``co2_params`` with vectorial inputs in addition to bag values (in order of priority):
+- :gh:`195`: Enable calibration of ``co2_params`` with vectorial inputs in
+  addition to bag values (in order of priority):
+
     - ``fuel_consumptions``,
     - ``co2_emissions``,
     - ``co2_normalization_references`` (e.g. engine loads)
 
   When either ``fuel_consumptions`` or ``co2_emissions`` are available, a direct
-  calibration of the co2_emissions model is performed. When those are not available,
-  the optimization takes place using the reference normalization signal - if available -
-  to redefine the initial solution and then optimize based on the bag values.
+  calibration of the co2_emissions model is performed. When those are not
+  available, the optimization takes place using the reference normalization
+  signal - if available - to redefine the initial solution and then optimize
+  based on the bag values.
 - :git:`346963a`: Add ``tau_function`` and make thermal exponent (parameter *t*)
   a function of temperature.
 - :git:`9d7dd77`: Remove parameter *trg* from the optimization, keep temperature
   target as defined by the identification phase.
-- :git:`079642e`: Use ``scipy.interpolate.InterpolatedUnivariateSpline.derivative``
-  for the calculation of ``accelerations``.
-- :git:`31f8ccc`: Fix prediction of unreliable rpm taking max gear and idle into account.
-- :gh:`169`: Add derivative function for conditioning the temperature signal (resolves resolution issues).
-- :gh:`153`: Add ``correct_start_stop_with_gears`` function and flag; default value
-  ``True`` for manuals and ``False`` for automatics. The functions *forces* the
-  engine to start when gear goes from zero to one, independent of the status of
-  the clutch.
+- :git:`079642e`: Use
+  ``scipy.interpolate.InterpolatedUnivariateSpline.derivative`` for the
+  calculation of ``accelerations``.
+- :git:`31f8ccc`: Fix prediction of unreliable rpm taking max gear and idle into
+  account.
+- :gh:`169`: Add derivative function for conditioning the temperature signal
+  (resolves resolution issues).
+- :gh:`153`: Add ``correct_start_stop_with_gears`` function and flag; default
+  value ``True`` for manuals and ``False`` for automatics. The functions
+  *forces* the engine to start when gear goes from zero to one, independent of
+  the status of the clutch.
 - :gh:`47`: Exclude first seconds when the engine is off before performing the
   temperature model calibration.
 
 Electrics model
 ~~~~~~~~~~~~~~~
-- :gh:`200`: Fix identification of ``alternator_status_threshold`` and ``charging_statuses``
-  for cars with no break eenergy-recuperation-system(BERS). Engine start windows and
-  positive alternator currents are now excluded from the calibration.
+- :gh:`200`: Fix identification of ``alternator_status_threshold`` and
+  ``charging_statuses`` for cars with no break energy-recuperation-system(BERS).
+  Engine start windows and positive alternator currents are now excluded from
+  the calibration.
 - :gh:`192`: Add ``alternator_current_threshold`` in the identification of the
   ``charging_statuses``.
 - :gh:`149`: Fix identification of the charging status at the beginning of the
   cycle.
-- :gh:`149`, :gh:`157`: Fix identification of minimum and maximum state of charge.
-- :gh:`149`: Add previous state of charge to the alternator current model calibration.
-  Use GradientBoostingRegressor instead of DecisionTreeRegressor, due to over-fitting
-  of the later.
+- :gh:`149`, :gh:`157`: Fix identification of minimum and maximum state of
+  charge.
+- :gh:`149`: Add previous state of charge to the alternator current model
+  calibration. Use GradientBoostingRegressor instead of DecisionTreeRegressor,
+  due to over-fitting of the later.
 
 Clutch /Torque-converter/AT models
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - :gh:`179`: Add lock up mode in the torque converter module.
-- :gh:`161`: Apply ``correct_gear_shifts`` function before clearing the fluctuations
-  on the ``AT_gear`` model.
+- :gh:`161`: Apply ``correct_gear_shifts`` function before clearing the
+  fluctuations on the ``AT_gear`` model.
 
 
 IO
@@ -653,33 +685,39 @@ IO
 - :gh:`215`: improve and explain the `naming-conventions
   <http://co2mpas.io/explanation.html#excel-input-data-naming-conventions>`_
   used in the model and in the input/output excel files;
-  on model parameters internally and on model parameters used on the Input/Output excel files.
+  on model parameters internally and on model parameters used on the
+  Input/Output excel files.
 
 Input
 ~~~~~
-- :gh:`186`, :gh:`211`: Add a ``theoretical_WLTP`` sheet on the inputs. If inputs are provided,
-  calculate the additional theoretical cycles on the prediction and add the results
-  on the outputs.
-- :gh:`60`, :gh:`80`: Add schema to validate shape/type/bounds/etc of input data.
-  As an example, the sign of the electric currents is now validated before running
-  the model. The user can add the flag ``--soft-validation`` to skip this validation.
-- :git:`113b09b`: Fix pinning of ``co2_params``, add capability to fix parameters
-  outside predefined limits.
+- :gh:`186`, :gh:`211`: Add a ``theoretical_WLTP`` sheet on the inputs. If
+  inputs are provided, calculate the additional theoretical cycles on the
+  prediction and add the results on the outputs.
+- :gh:`60`, :gh:`80`: Add schema to validate shape/type/bounds/etc of input
+  data. As an example, the sign of the electric currents is now validated before
+  running the model. The user can add the flag ``--soft-validation`` to skip
+  this validation.
+- :git:`113b09b`: Fix pinning of ``co2_params``, add capability to fix
+  parameters outside predefined limits.
 - :gh:`104`: Add ``eco_mode`` flag. Apply ``correct_gear`` function when
   ``eco_mode = True``.
-- :gh:`143`: Use electrics from the preconditioning cycle to calculate initial state
-  of charge for the WLTP. Default initial state of charge is set equal to 99%.
+- :gh:`143`: Use electrics from the preconditioning cycle to calculate initial
+  state of charge for the WLTP. Default initial state of charge is set equal to
+  99%.
 
 Output
 ~~~~~~
 - :gh:`198`: Add calculation of *willans factors* for each phase.
-- :gh:`164`: Add fuel consumption ``[l/100km]``, total and per subphase, in the output file.
-- :gh:`173`: Fix metrics and error messages on the calibration of the clutch model
-  (specifically related to calibration failures when data are not of adequate quality).
+- :gh:`164`: Add fuel consumption ``[l/100km]``, total and per subphase, in the
+  output file.
+- :gh:`173`: Fix metrics and error messages on the calibration of the clutch
+  model (specifically related to calibration failures when data are not of
+  adequate quality).
 - :gh:`180`: Remove calibration outputs from the charts. Target signals are not
   presented if not provided by the user.
-- :gh:`158`: Add ``apply_f0_correction`` function and report ``correct_f0`` in the
-  summary, when the flag for the preconditioning correction is *True* in the input.
+- :gh:`158`: Add ``apply_f0_correction`` function and report ``correct_f0`` in
+  the summary, when the flag for the preconditioning correction is *True* in the
+  input.
 - :gh:`168`: Add flag/error message when input data are missing and/or vectors
   have not the same length or contain empty cells.
 - :gh:`154`: Add ``calculate_optimal_efficiency`` function. The function returns
@@ -689,7 +727,8 @@ Output
   on the outputs, along with average positive power, average speed when power is
   positive, and average fuel consumption.
 - :gh:`160`: Add process bar to the console when running batch simulations.
-- :gh:`163`: Add sample logconf-file with all loggers; ``pandalone.xleash.io`` logger silenced bye default.
+- :gh:`163`: Add sample logconf-file with all loggers; ``pandalone.xleash.io``
+  logger silenced bye default.
 
 
 Jupyter notebooks
@@ -700,9 +739,10 @@ Cmd-line
 --------
 - :gh:`60`, :gh:`80`: Add flag ``--soft-validation`` to skip schema validation
   of the inputs.
-- :gh:`144`, :gh:`145`, :gh:`148`, :gh:`29`, :gh:`218`: Add ``datasync`` command.
-  that performs resampling and shifting of the provided signals read from excel-tables.
-  Foreseen application is to resync dyno times/velocities with OBD ones as reference.
+- :gh:`144`, :gh:`145`, :gh:`148`, :gh:`29`, :gh:`218`: Add ``datasync``
+  command. It performs re-sampling and shifting of the provided signals read
+  from excel-tables. Foreseen application is to resync dyno times/velocities
+  with OBD ones as reference.
 - :gh:`152`: Add ``--overwrite-cache`` flag.
 - : Add ``sa`` command, allowing to perform Sensitivity Analysis
   runs on fuel parameters.
@@ -713,8 +753,8 @@ Cmd-line
 
 Internals
 ---------
-- :gh:`135`: Merge physical calibration and prediction models in a unique physical
-  model.
+- :gh:`135`: Merge physical calibration and prediction models in a unique
+  physical model.
 - :gh:`134`: Probable fix for generating dispatcher docs under *Cygwin*.
 - :git:`e562551`, :git:`3fcd6ce`: *Dispatcher*: Boost and fix *SubDispatchPipe*,
   fix ``check wait_in`` for sub-dispatcher nodes.
@@ -733,7 +773,8 @@ Known Limitations
   time-series has been tested and found within expected ranges when
   *a single measured WLTP cycle is given as input* on each run - if both
   WLTP H & L cycles are given, even small changes in those paired time-series
-  may force the `model-selector <http://co2mpas.io/explanation.html#model-selection>`
+  may force the `model-selector
+  <http://co2mpas.io/explanation.html#model-selection>`_
   to choose different combinations of calibrated model, thus arriving in
   significantly different fuel-consumption figures between the runs.
 
@@ -757,8 +798,9 @@ v1.1.1.fix1, file-ver: 2.1, 03-March 2016: "O'Udo" 1st release
 
 v1.1.1, file-ver: 2.1, 09-Feb 2016: "O'snow" release
 ====================================================
-.. image:: https://cloud.githubusercontent.com/assets/13638851/12930853/f2a79350-cf7a-11e5-9a0f-5fa6fc9aa1a4.png
-   :align: left
+.. image:: https://cloud.githubusercontent.com/assets/13638851/12930853/
+   f2a79350-cf7a-11e5-9a0f-5fa6fc9aa1a4.png
+   :align: center
    :width: 480
 
 This release contains mostly model changes; some internal restructurings have
@@ -766,8 +808,9 @@ not affected the final user.
 
 Several crucial bugs and enhancements have been been implemented based on
 assessments performed by LAT.  A concise study of this release's results
-and a high-level description of the model changes is contained in this `JRC-LAT presentation
-<http://files.co2mpas.io/CO2MPAS-1.1.1/JRC_LAT_CO2MPAS_Osnow-validation_n_changelog.pptx>`_.
+and a high-level description of the model changes is contained in this `JRC-LAT
+presentation <http://files.co2mpas.io/CO2MPAS-1.1.1/
+JRC_LAT_CO2MPAS_Osnow-validation_n_changelog.pptx>`_.
 
 
 Model-changes
@@ -785,7 +828,8 @@ Engine model
   losses.
 - Optimizer:
 
-  - :git:`84cc3ae8`: Fix ``co2_emission.calibrate_model_params()`` results selection.
+  - :git:`84cc3ae8`: Fix ``co2_emission.calibrate_model_params()`` results
+    selection.
   - :gh:`58`: Change error functions: *mean-abs-error* is used instead of
     *mean-squared-error*.
   - :gh:`56`: Cold/hot parts distinction based on the first occurrence of *trg*;
@@ -797,18 +841,20 @@ Temperature model
 ~~~~~~~~~~~~~~~~~
 - :gh:`118`, :gh:`53`: Possible to run hot start cycles & fixed
   temperature cycles.
-- :gh:`94`: Fix bug in ``co2_emission.calculate_normalized_engine_coolant_temperatures()``,
-  that returned *0* when ``target_Theta > max-Theta`` in NEDC.
-- :gh:`79`: Enhance temperature model: the calibration does not take into account
-  the first 10secs and the points where ``Delta-Theta = 0``.
+- :gh:`94`: Fix bug in
+  ``co2_emission.calculate_normalized_engine_coolant_temperatures()``, that
+  returned *0* when ``target_Theta > max-Theta`` in NEDC.
+- :gh:`79`: Enhance temperature model: the calibration does not take into
+  account the first 10secs and the points where ``Delta-Theta = 0``.
 - :gh:`55`: Add an additional temperature model, ``f(previous_T, S, P, A)``;
   chose the one which gives the best results.
 
 Gearbox model
 ~~~~~~~~~~~~~
-- :gh:`49`: Fix bug in the estimation of the gear box efficiency for negative power,
-  leading to an overestimation of the gear box temperature. (still open)
-- :gh:`45`: ATs: Fix bug in the *GSPV matrix* leading to vertical up-shifting lines.
+- :gh:`49`: Fix bug in the estimation of the gear box efficiency for negative
+  power, leading to an overestimation of the gear box temperature. (still open)
+- :gh:`45`: ATs: Fix bug in the *GSPV matrix* leading to vertical up-shifting
+  lines.
 
 S/S model
 ~~~~~~~~~
@@ -820,15 +866,17 @@ S/S model
 
 Electrics model
 ~~~~~~~~~~~~~~~
-- :gh:`78`, :gh:`46`: Fix bug in ``electrics.calibrate_alternator_current_model()``
-  for real cars, fix fitting error when alternator is always off.
-- :gh:`17`: Add new alternator status model, bypassing the DT when ``battery_SOC_balance``
-  is given, ``has_energy_recuperation`` equals to one, but BERS is not
-  identified in WLTP. ???
+- :gh:`78`, :gh:`46`: Fix bug in
+  ``electrics.calibrate_alternator_current_model()`` for real cars, fix fitting
+  error when alternator is always off.
+- :gh:`17`: Add new alternator status model, bypassing the DT when
+  ``battery_SOC_balance`` is given, ``has_energy_recuperation`` equals to one,
+  but BERS is not identified in WLTP.
 
 Clutch/Torque-converter models
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- :gh:`83`: Add a second clutch model, equals to no-clutch, when clutch model fails.
+- :gh:`83`: Add a second clutch model, equals to no-clutch, when clutch model
+  fails.
 - :gh:`16`: Add torque converter.
 
 Vehicle model
@@ -855,9 +903,10 @@ Inputs:
 - Add `fuel_carbon_content` input values for each cycle.
 - Correct units in `initial_SOC_NEDC`.
 - Replace `Battery SOC [%]` time series with ``target state_of_charges``.
-- :gh:`61`, :gh:`119`: Add dyno type and driveline type (2WD, 4WD) for each cycle.
-  Those are used to specify inertia coefficients and drivetrain efficiency
-  (default efficiency for `final_drive_efficiency` changed to 0.98).(still open)
+- :gh:`61`, :gh:`119`: Add dyno type and driveline type (2WD, 4WD) for each
+  cycle. Those are used to specify inertia coefficients and drivetrain
+  efficiency (default efficiency for `final_drive_efficiency` changed to 0.98).
+  (still open)
 - :gh:`44`: Correct `battery_SOC_balance` and `battery_SOC_window` as
   not *compulsory*.
 - :gh:`25`: Add option of 'freezing' the optimization parameters.
@@ -905,18 +954,18 @@ Cmd-line (running CO2MPAS)
   the *scores* tables in the result xl-file.
 - :gh:`91`: Disallow installation and/or execution under ``python < 3.4``.
 - :gh:`5e91993c`: Add option to skip saving WLTP-prediction.
-- :gh:`130`: Possible to plot workflow int the output folder with ``--plot-workflow``
-  option.
+- :gh:`130`: Possible to plot workflow int the output folder with
+  ``--plot-workflow`` option.
 
 
 Documentation
 -------------
 
-- :gh:`136`: Add section explaining the CO2MPAS selector model (:ref:`explanation`)
-  (to be augmented in the future).
+- :gh:`136`: Add section explaining the CO2MPAS selector model.
 - Comprehensive JRC-LAT presentation for validation and high-level summary
   of model changes  (mentioned above).
-- New section on how to setup autocompletion for *bash* and *clink* on `cmd.exe`.
+- New section on how to setup autocompletion for *bash* and *clink* on
+  `cmd.exe`.
 - Link to the "fatty" (~40Mb) `tutorial input xl-file
   <http://files.co2mpas.io/CO2MPAS-1.1.1/co2mpas_tutorial_1_1_0.xls>`_.
 
@@ -943,11 +992,11 @@ Distributed before Christmas and included assessments from LAT.
 Model changes reported in "O'snow" release, above.
 
 
-
 v1.0.5, 11-Dec 2015: "No more console" release, no model changes
 ================================================================
-.. image:: https://cloud.githubusercontent.com/assets/501585/11741701/42680714-a003-11e5-9ae6-c58a343f1a3f.png
-   :align: left
+.. image:: https://cloud.githubusercontent.com/assets/501585/11741701/
+   2680714-a003-11e5-9ae6-c58a343f1a3f.png
+   :align: center
    :width: 480
 
 - main: Failback to GUI when demo/template/ipynb folder not specified in
@@ -973,14 +1022,17 @@ Model-changes in comparison to v1.0.1:
 
 - Vehicle/Engine/Gearbox/Transmission:
 
-  - :gh:`13`: If no `r_dynamic` given, attempt to identify it from ``G/V/N`` ratios.
-  - :gh:`14`: Added clutch model for correcting RPMs. Power/losses still pending.
-  - :gh:`9`: Start-Stop: new model based on the given `start_stop_activation_time`,
-    failing back to previous model if not provided. It allows engine stops
-    after the 'start_stop_activation_time'.
+  - :gh:`13`: If no `r_dynamic` given, attempt to identify it from ``G/V/N``
+    ratios.
+  - :gh:`14`: Added clutch model for correcting RPMs. Power/losses still
+    pending.
+  - :gh:`9`: Start-Stop: new model based on the given
+    `start_stop_activation_time`, failing back to previous model if not
+    provided. It allows engine stops after the 'start_stop_activation_time'.
   - :gh:`21`: Set default value of `k5` equal to `max_gear` to resolve high rpm
     at EUDC deceleration.
-  - :gh:`18`: FIX bug in `calculate_engine_start_current` function (zero division).
+  - :gh:`18`: FIX bug in `calculate_engine_start_current` function (zero
+    division).
 
 - Alternator:
 
@@ -1020,13 +1072,15 @@ Model-changes in comparison to v1.0.1:
 - Output & Summary files:
 
   - :gh:`23`: Add units and descriptions into output files as a 2nd header-line.
-  - :gh:`36`, :gh:`37`: Add comparison-metrics into the summary (target vs output).
-    New cmd-line option ``--only-summary`` to skip saving vehicle-files.
+  - :gh:`36`, :gh:`37`: Add comparison-metrics into the summary (target vs
+    output). New cmd-line option ``--only-summary`` to skip saving
+    vehicle-files.
 
 - Miscellaneous:
 
   - Fixes for when input is 10 Hz.
-  - :gh:`20`: Possible to plot workflows of nested models (see Ipython-notebook).
+  - :gh:`20`: Possible to plot workflows of nested models
+    (see Ipython-notebook).
   - Cache input-files in pickles, and read with up-to-date check.
   - Speedup workflow dispatcher internals.
 
@@ -1134,8 +1188,8 @@ v0, Aug 2015: 1st unofficial release
 Bugs reported from v0 with their status up to date:
 
 #. 1s before acceleration "press clutch" not applied in WLTP:
-   **not fixed**, lacking clutch module, problem not clear in Cruise time series,
-   under investigation
+   **not fixed**, lacking clutch module, problem not clear in Cruise time
+   series, under investigation
 #. Strange engine speed increase before and after standstill:
    **partly corrected**, lack of clutch, need further feedback on issue
 #. Upshifting seems to be too early, also observed in WLTP, probably
@@ -1170,12 +1224,12 @@ Bugs reported from v0 with their status up to date:
    **partially fixed**, the module is now included in CO2MPAS v1 but due to lack
    in test cases has not been further optimized.
 #. Overestimation of engine-power in comparison to measurements:
-   **indeterminate**, in fact this problem is vehicle specific. In the test-cases
-   provided to the JRC both higher and lower power demands are experienced.
-   Small deviations are expected to have a limited effect on the final calculation.
-   What remains open is the amount of power demand over WLTP transient phases
-   which so far appears to be systematically underestimated in the test cases
-   available to the JRC.
+   **indeterminate**, in fact this problem is vehicle specific. In the
+   test-cases provided to the JRC both higher and lower power demands are
+   experienced. Small deviations are expected to have a limited effect on the
+   final calculation. What remains open is the amount of power demand over WLTP
+   transient phases which so far appears to be systematically underestimated in
+   the test cases available to the JRC.
 #. Overestimation of fuel-consumption during cold start:
    **partially fixed**, cold start over UDC has been improved since V0.
 #. CO2MPAS has a pronounced fuel cut-off resulting in zero fuel consumption

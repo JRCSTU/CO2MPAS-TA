@@ -5,4 +5,5 @@
     - Biagio Ciuffo <biagio.ciuffo@jrc.ec.europa.eu>
     - Victor Valverde <victor.valverde-morales@ec.europa.eu>
     - Jelica Pavlovic <jelica.pavlovic@jrc.ec.europa.eu>
+    - Dimitrios Komnos <dimitrios.komnos@jrc.ec.europa.eu>
     - Kostis Anagnostopoulos <kostis.anagnostopoulos@ext.ec.europa.eu>
