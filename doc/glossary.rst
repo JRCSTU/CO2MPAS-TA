@@ -467,8 +467,8 @@ Generic terms
 
     repeatability
         The capability of |co2mpas| to duplicate the exact simulation results when running repeatedly
-        *on the same* computer.
-        This is guaranteed by using non-stohastic algorthms (or using always the same random-seed).
+        **on the same** computer.
+        This is guaranteed by using non-stochastic algorithms (or using always the same random-seed).
         
     reproducibility
     replicability
