@@ -1755,7 +1755,7 @@ class ProjectCmd(_PrjCmd):
                             for t in list(repo.tags):
                                 if t.name.startswith(tref):
                                     yield "del tag: %s" % t.name
-                                    repo.delete_tag(t, force=self.force)
+                                    repo.delete_tag(t)
 
                             pbr = repo.heads[_pname2ref_name(p)]
                             yield "del branch: %s" % pbr.name
