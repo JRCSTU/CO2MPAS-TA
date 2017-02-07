@@ -362,8 +362,9 @@ class Project(transitions.Machine, ProjectSpec):
             - [do_createme,  BORN,    empty]
 
             - [do_addfiles,  empty,      wltp_iof,     _is_inp_out_files]
-            - [do_addfiles,  empty,      wltp_inp,     [_is_inp_files, _is_force]]
-            - [do_addfiles,  empty,      wltp_out,     [_is_out_files, _is_force]]
+
+            - [do_addfiles,  empty,      wltp_inp,     _is_inp_files]
+            - [do_addfiles,  empty,      wltp_out,     _is_out_files]
 
             - [do_addfiles,  [wltp_inp,
                               wltp_out,
