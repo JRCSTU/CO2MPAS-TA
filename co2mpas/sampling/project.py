@@ -986,6 +986,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         dfuns = [
             DFun('_repo', lambda _rinfos: self.repo),
             DFun('git_cmds', lambda _rinfos: pndlu.where('git')),
+            DFun('exec_path', lambda _repo: getattr(_repo.git, '--exec-path')()),
             DFun('is_dirty', lambda _repo: _repo.is_dirty()),
             DFun('is_bare', lambda _repo: _repo.bare),
             #DFun('is_empty', lambda _repo: _repo.is_empty), pygit2!
@@ -1006,11 +1007,16 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
             DFun('_head', lambda _repo: _repo.head),
             #DFun('head_unborn', lambda _repo: _repo.head_is_unborn()), pygit2
+            DFun('head', lambda _head: _head.path),
             DFun('head_valid', lambda _head: _head.is_valid()),
             DFun('head_detached', lambda _head: _head.is_detached),
-            DFun('head', lambda _head: _head.path),
             DFun('_head_ref', lambda _head: _head.ref),
             DFun('head_ref', lambda _head_ref: _head_ref.path),
+
+            DFun('_index_entries', lambda _repo: list(_repo.index.entries)),
+            DFun('index_count', lambda _index_entries: len(_index_entries)),
+            DFun('index_entries', lambda _index_entries: [e[0] for e in _index_entries]),
+            DFun('_index', lambda _repo: _repo.index),
 
             ## Project-infos
             #
@@ -1026,7 +1032,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                 _last_dice.name, _last_dice.commit.hexsha), inf=P),
             DFun('last_dice_msg', lambda _last_dice: _last_dice and _last_dice.tag.message, inf=P),
             DFun('last_commit', lambda _cmt: _cmt.hexsha, inf=P),
-            DFun('tree', lambda _tree: _tree.hexsha, inf=P),
+            DFun('last_tree', lambda _tree: _tree.hexsha, inf=P),
             DFun('_dices', lambda _repo, _pname: list(_yield_dices_tags(_repo, _pname)), inf=P),
             DFun('dices', lambda _dices: ['%s: %s' % (t.name, t.commit.hexsha)
                                           for t in _dices], inf=P),
@@ -1066,15 +1072,23 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         verbose_levels = [
             [
                 'heads_count',
+                'head',
+                'head_ref',
                 'projects_count',
+                'projects',
                 'all_dices_count',
+                'all_dices',
                 #'is_empty',
                 'wd_files',
+                'untracked',
+                'index_count',
+                'index_entries',
 
                 'msg.s',
                 'msg.a',
                 'last_dice',
                 'last_commit',
+                'last_tree',
                 'dices_count',
                 'revs_count',
                 'files_count',
@@ -1082,21 +1096,17 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                 'author',
             ],
             [
+                'git_cmds',
+                'git.version',
+                'exec_path',
+                'is_dirty',
+                'is_bare',
                 'head_valid',
                 'head_detached',
                 #'head_unborn',
-                'heads_count',
-                'head',
-                'head_ref',
-                'is_dirty',
-                'is_bare',
                 'heads',
-                'projects',
-                'all_dices',
-                'untracked',
 
                 'dices',
-                'tree',
                 'files',
                 'objects_count',
                 'revs',
@@ -1104,7 +1114,8 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                 'cmsg',
                 #('msg.data',
             ],
-            [f for f in dsp.data_nodes if not f.startswith('_')]
+            [f for f in dsp.data_nodes
+             if not f.startswith('_')]
         ]
 
         ## Extract `inf` attributes from functions
@@ -1397,7 +1408,7 @@ class ProjectCmd(_PrjCmd):
         """
         List specified projects, or all, if none specified.
 
-        - Use `--verbose` or `--vlevel 2` to view more infos about the projects, or use the `examine` cmd
+        - Use `--verbose` or `--vlevel (2|3|4)` to view more infos about the projects, or use the `examine` cmd
           to view even more details for a specific project.
         - Use '.' to denote current project.
 
@@ -1667,7 +1678,7 @@ class ProjectCmd(_PrjCmd):
         """
         Print various information about the projects-repo.
 
-        - Use `--verbose` or `--vlevel 2` to view more infos.
+        - Use `--verbose` or `--vlevel (2|3)` to view more infos.
 
         SYNTAX
             %(cmd_chain)s [OPTIONS]

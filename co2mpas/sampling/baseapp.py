@@ -883,8 +883,11 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                             'config_show': True,
                         },
                     },
-                    "Log more logging, fail on configuration errors, "
-                    "and print configuration on each cmd startup."
+                    """
+                    Log more logging, fail on config-errors,
+                    and print config on each cmd startup.
+                    Not to be confused with `--verbose`.
+                    """
                 ),
                 ('v', 'verbose'): (
                     {
