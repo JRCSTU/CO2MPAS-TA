@@ -740,7 +740,6 @@ class Project(transitions.Machine, ProjectSpec):
         return decision == 'SAMPLE'
 
     def _is_dry_run_dicing(self, event):
-        print(_evarg(event, 'verdict', dict))
         if self.dry_run:
             self.log.warning('DRY-RUN: Not actually registering decision.')
 
