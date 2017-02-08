@@ -716,12 +716,23 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         config_file = pndlu.ensure_file_ext(config_file, '.py')
 
         is_overwrite = osp.isfile(config_file)
-        if is_overwrite and not force:
-            raise CmdException("Config-file '%s' already exists!"
-                               "\n  Specify `--force` to overwrite." % config_file)
+        if is_overwrite:
+            if not force:
+                raise CmdException("Config-file '%s' already exists!"
+                                   "\n  Specify `--force` to overwrite." % config_file)
+            else:
+                import shutil
+                from datetime import datetime
 
-        op = 'Over-writting' if is_overwrite else 'Writting'
-        self.log.info("%s config-file '%s'...", op, config_file)
+                now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
+                backup_name = '%s-%s.py' % (osp.splitext(config_file)[0], now)
+                shutil.move(config_file, backup_name)
+
+                op_msg = ", old file renamed --> '%s'" % backup_name
+        else:
+            op_msg = ""
+
+        self.log.info("Writting config-file '%s'%s...", config_file, op_msg)
         pndlu.ensure_dir_exists(os.path.dirname(config_file), 0o700)
         config_text = self.generate_config_file()
         with io.open(config_file, mode='wt') as fp:
