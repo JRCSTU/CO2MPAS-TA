@@ -175,7 +175,6 @@ setup(
         'graphviz',
         'docopt',
         'six',
-        'mpld3',
         'pandalone[xlrd]>=0.2.0', ## For datasync pascha-fixes and openpyxl version.
         'regex',
         'schema',
