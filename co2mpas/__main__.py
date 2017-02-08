@@ -158,13 +158,6 @@ proj_name = 'co2mpas'
 log = logging.getLogger('co2mpas_main')
 logging.getLogger('pandalone.xleash.io').setLevel(logging.WARNING)
 
-warnings.filterwarnings(action="ignore", module="scipy",
-                        message="^internal gelsd")
-warnings.filterwarnings(action="ignore", module="openpyxl",
-                        message="^Unknown extension")
-warnings.filterwarnings(action="ignore", module="dill",
-                        message="^unclosed file")
-
 
 def _set_numpy_logging():
     rlog = logging.getLogger()
@@ -193,6 +186,17 @@ def init_logging(level=None, frmt=None, logconf_file=None):
     _set_numpy_logging()
 
     logging.captureWarnings(True)
+
+    ## Disable warnings on AIO but not when developing.
+    #
+    if os.environ.get('AIODIR') or True:
+        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+        warnings.filterwarnings(action="ignore", module="scipy",
+                                message="^internal gelsd")
+        warnings.filterwarnings(action="ignore", module="openpyxl",
+                                message="^Unknown extension")
+        warnings.filterwarnings(action="ignore", module="dill",
+                                message="^unclosed file")
 
 
 def build_version_string(verbose):

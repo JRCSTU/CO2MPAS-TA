@@ -229,14 +229,6 @@ about_txt = """
 """
 
 
-warnings.filterwarnings(action="ignore", module="scipy",
-                        message="^internal gelsd")
-warnings.filterwarnings(action="ignore", module="openpyxl",
-                        message="^Unknown extension")
-warnings.filterwarnings(action="ignore", module="dill",
-                        message="^unclosed file")
-
-
 def show_about(root, about_txt=about_txt, verbose=False):
     root.title("About %s" % APPNAME)
 
