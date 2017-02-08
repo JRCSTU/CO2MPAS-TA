@@ -187,8 +187,8 @@ setup(
         'openpyxl>=2.4.0',
         'Pillow',           ## for tkui
         'toolz',
-        'schedula>=0.1.5',
-        'formulas',
+        'schedula>=0.1.6',
+        'formulas>=0.0.2',
         'traitlets>=5.0.0',
         'python-gnupg',
         'gitpython>=2.1.0', ## Win+Cygwin support
@@ -197,7 +197,6 @@ setup(
     dependency_links=[
         'https://github.com/ankostis/traitlets/tarball/master#egg=traitlets-5.0.0',
         'https://github.com/ankostis/transition/tarball/master#egg=transition-0.4.4',
-        'https://github.com/vinci1it2000/pycel/tarball/master#egg=pycel-0.0.1'
     ],
     packages=find_packages(exclude=[
         'tests', 'tests.*',
