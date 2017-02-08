@@ -356,7 +356,7 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
             Whether to overwrite existing archives or to create intermediate folders.
         `project ...`
             Proceed project's lifecycle-stages even though conditions are not fulfilled.
-        `config init`
+        `config write
             Overwrite config-file, even if it already exists.
         `tstamp send`
             Send content to timestamp even if its signature fails to verify.
@@ -526,7 +526,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
 
 
         Tip:
-            Use `config init` sub-command to produce a skeleton of the config-file.
+            Use `config write` sub-command to produce a skeleton of the config-file.
 
         Note:
             A value in configuration files are ignored!  Set this from command-line
@@ -556,7 +556,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         Persistent-parameters override "static" ones.
 
         Tip:
-            Use `{appname} config init` sub-command to produce a skeleton of the config-file.
+            Use `{appname} config write` sub-command to produce a skeleton of the config-file.
 
         Note:
             A value in configuration files are ignored!  Set this from command-line

@@ -197,7 +197,7 @@ if __name__ == '__main__':
     #argv = '--debug'.split()
     #argv = '--help'.split()
     argv = '--help-all'.split()
-    #argv = 'config init'.split()
+    #argv = 'config write'.split()
     argv = 'config paths'.split()
     #argv = '--debug --log-level=0 --Mail.port=6 --Mail.user="ggg" abc def'.split()
     argv = 'project --help'.split()

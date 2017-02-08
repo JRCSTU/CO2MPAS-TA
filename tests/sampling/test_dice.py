@@ -47,7 +47,7 @@ class TApp(unittest.TestCase):
     def test_config_init(self):
         c = get_config()
         c.Co2dice.raise_config_file_errors = True
-        cmd = cfgcmd.ConfigCmd.InitCmd(config=c)
+        cmd = cfgcmd.ConfigCmd.WriteCmd(config=c)
         cmd.initialize([])
         with tempfile.TemporaryDirectory() as td:
             conf_fpath = osp.join(td, 'cc.py')

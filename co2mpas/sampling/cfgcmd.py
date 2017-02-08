@@ -21,7 +21,7 @@ class ConfigCmd(baseapp.Cmd):
     Read also the help message for `--config-paths` generic option.
     """
 
-    class InitCmd(baseapp.Cmd):
+    class WriteCmd(baseapp.Cmd):
         """
         Store config defaults into specified path(s); '{confpath}' assumed if none specified.
 
@@ -218,7 +218,7 @@ class ConfigCmd(baseapp.Cmd):
 
 
 config_subcmds = (
-    ConfigCmd.InitCmd,
+    ConfigCmd.WriteCmd,
     ConfigCmd.PathsCmd,
     ConfigCmd.ShowCmd,
 )
