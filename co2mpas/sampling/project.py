@@ -8,7 +8,6 @@
 """A *project* stores all CO2MPAS files for a single vehicle, and tracks its sampling procedure. """
 from collections import (defaultdict, OrderedDict, namedtuple)  # @UnusedImport
 import copy
-from datetime import datetime
 import io
 import os
 import re
@@ -522,6 +521,8 @@ class Project(transitions.Machine, ProjectSpec):
                         repo.active_branch.commit = 'HEAD~'
 
     def _make_readme(self):
+        from datetime import datetime
+
         return tw.dedent("""
         This is the CO2MPAS-project %r (see https://co2mpas.io/ for more).
 
@@ -966,6 +967,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             the path of the repo-archive
         """
         import tarfile
+        from datetime import datetime
 
         if force is None:
             force = self.force
@@ -1735,8 +1737,9 @@ class ProjectCmd(_PrjCmd):
 
         def run(self, *args):
             ## TODO: Mve ziproject code to Spec.
-            import tempfile
+            from datetime import datetime
             import shutil
+            import tempfile
             import git
             from git.util import rmtree
 
@@ -1746,7 +1749,7 @@ class ProjectCmd(_PrjCmd):
             repo = self.projects_db.repo
             pname = self.current_project.pname
             now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
-            zip_name = '%s-%s' % (now, "CO2MPAS_projects")
+            zip_name = '%s-%s' % ("CO2MPAS_projects", now)
             with tempfile.TemporaryDirectory(prefix='co2mpas_unzip-') as tdir:
                 exdir = osp.join(tdir, 'repo')
                 exrepo = git.Repo.init(exdir)
