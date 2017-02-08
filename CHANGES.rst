@@ -124,7 +124,7 @@ Known Limitations
    most *web-email* clients might spoil the encoding of the message
    (i.e. *Web Outlook* is known to cause problems, *GMail* work OK if set to ``plain-text``).
 
-3. Not all *DICE* operations have been implemented yet - i particular, you have to use
+3. Not all *DICE* operations have been implemented yet - in particular, you have to use
    a regular Git client to extract files from it ([1], [2], [3]).  Take care not to modify
    the a project after it has been diced!
 
@@ -142,6 +142,7 @@ Known Limitations
 - [1] https://desktop.github.com/
 - [3] https://www.atlassian.com/software/sourcetree
 - [2] https://www.gitkraken.com/
+
 
 v1.4.1, file-ver: 2.2.5, 17-November 2016: "Rally" release
 ==========================================================
