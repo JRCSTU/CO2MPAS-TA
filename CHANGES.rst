@@ -25,13 +25,14 @@ and `automatic transmission vehicles
 
 The DICE
 --------
-Tha command-line tool that reads |co2mpas| input and output files,
+The new command-line tool ``co2dice`` reads |co2mpas| input and output files,
 packs them together, send their :term:`Hash-ID` in a request to a time-stamp server,
-and decodes the response to a random number of (1/100 cases) answer as either:
+and decodes the response to a random number of (1/100 cases) to arrive to these cases:
 - **SAMPLE **, meaning "do sample, and double-test in NEDC",  or
-- **OK** (meaning *no-sample").
+- **OK**, meaning *no-sample".
 
-For its usage guidelines, visit the `Wiki <https://github.com/JRCSTU/CO2MPAS-TA/wiki/CO2MPAS-user-guidelines>`.
+For its usage guidelines, visit the
+`Wiki <https://github.com/JRCSTU/CO2MPAS-TA/wiki/CO2MPAS-user-guidelines>`.
 
 
 Model-changes
