@@ -187,7 +187,7 @@ setup(
         'openpyxl>=2.4.0',
         'Pillow',           ## for tkui
         'toolz',
-        'schedula>=0.1.6',
+        'schedula>=0.1.7',
         'formulas>=0.0.2',
         'traitlets>=5.0.0',
         'python-gnupg',
