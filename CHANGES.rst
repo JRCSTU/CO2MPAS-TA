@@ -102,8 +102,9 @@ Software and Build chores(build, site, etc)
 Known Limitations
 -----------------
 
-1. *DICE* is considered to be in an *early alpha stage* of development.
-2. Specifically the "rough" *threat model* for the *DICE* is relying on following
+1. *DICE* is considered to be in an *early alpha stage* of development, and not all bugs
+   have been ironed out.
+2. Concerning the *threat model* for the *DICE*, it  is relying "roughly" on following
    premises:
 
    a) A single cryptographic key will be shared among all TS personnel,
