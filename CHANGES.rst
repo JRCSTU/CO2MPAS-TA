@@ -135,7 +135,7 @@ Known Limitations
    the authoritative tstamp-response, should they eventually arrive both.  For this decision,
    the *Hash DB* records are to be relied.
 
-5. There are currently 3 cmd-line tools:  ``co2mpas``, ``co2gui``, or ``co2dice``...
+5. There are currently 4 cmd-line tools:  ``co2mpas``, ``co2gui``, ``co2dice`` & ``datasync``.
    It is expected that in a next release they will be united under a single ``co2`` cmd.
 
 6. Regarding the "|co2mpas| model, all limitations from previous *"Rally"* release still apply.

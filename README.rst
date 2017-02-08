@@ -49,22 +49,23 @@ otherwise follow the detailed instructions under sections :ref:`install` and
 
 .. code-block:: console
 
-    ## Install co2mpas.
+    ## Install co2mpas:
+    $ pip uninstall co2mpas
     $ pip install co2mpas
 
-    ## Create a template excel-file for inputs.
+    ## Create a template excel-file for inputs:
     $ co2mpas template vehicle_1.xlsx
 
     ###################################################
     ## Edit generated `./input/vehicle_1.xlsx` file. ##
     ###################################################
 
-    ## Launch GUI, select the edited template as Input, and click `Run`.
-    $ co2mpas gui
+    ## Launch GUI, select the edited template as Input, and click `Run`:
+    $ co2gui
 
 And the GUI pops up:
 
-.. image:: doc/_static/CO2MPAS_GUI.png
+.. image:: _static/CO2MPAS_GUI.png
    :width: 640
 
 Further command-line alternatives:
@@ -85,6 +86,9 @@ Further command-line alternatives:
 
     ## Run type approval command.
     $ co2mpas ta vehicle_1.xlsx -O output -f
+
+    ## Start using the DICE command-line tool:
+    $ co2dice --help
 
 
 History
