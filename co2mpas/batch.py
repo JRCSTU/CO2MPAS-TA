@@ -61,7 +61,8 @@ def parse_dsp_solution(solution):
 
 def notify_result_listener(result_listener, res, out_fpath=None):
     """Utility func to send to the listener the output-file discovered from the results."""
-    if result_listener:
+    are_in = dsp_utl.are_in_nested_dicts
+    if result_listener and are_in(res, 'solution', 'output_file_name'):
         try:
             if not out_fpath:
                 out_fpath = res['solution']['output_file_name']
