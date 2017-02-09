@@ -40,6 +40,9 @@ _git_messaged_obj = re.compile(r'^(:?object|tag) ')
 _after_first_empty_line_regex = re.compile(r'\n\r?\n')
 
 
+_CommitMsgVer_regex = re.compile(r'(?<!\w)v:[ \t\r\n]+(\d+)\.(\d+)\.(\d+)(?!\d)')
+
+
 class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
     """
     A commit-message is a list like ``[headline, dataline, ...]``.
@@ -60,16 +63,20 @@ class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
     """
 
     @classmethod
-    def _check_commit_msg_version(cls, msg_ver_txt):
+    def _check_commit_msg_version(cls, msg_starting_txt):
         ## TODO: Parse msg-version from raw text first.
         prog_ver = __dice_report_version__.split('.')
-        msg_ver = msg_ver_txt.split('.')
-        if (len(msg_ver) != 3 or
-                msg_ver[0] != prog_ver[0] or
-                msg_ver[1] > prog_ver[1]):
+        m = _CommitMsgVer_regex.search(msg_starting_txt)
+        if not m:
             raise ValueError(
-                "incompatible message version '%s', expected '%s.%s-.x'" %
-                (msg_ver_txt, prog_ver[0], prog_ver[1]))
+                "incompatible message, cannot parse its version'" %
+                (msg_starting_txt, prog_ver[0], prog_ver[1]))
+
+        major, minor, micro = m.group(1, 2, 3)
+        if int(major) != int(prog_ver[0]) or int(minor) > int(prog_ver[1]):
+            raise ValueError(
+                "incompatible message version '%s', expected '%s'" %
+                ('.'.join((major, minor, micro)), __dice_report_version__))
 
     def dump_commit_msg(self, indent=2, **kwds):
         cdic = self._asdict()
@@ -93,13 +100,13 @@ class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
                 m = _after_first_empty_line_regex.search(cmsg_txt)
                 cmsg_txt = cmsg_txt[m.end():]
 
+            _CommitMsg._check_commit_msg_version(cmsg_txt[:30])
             l = yaml.load(cmsg_txt)
             if not isinstance(l, list) or not l:
                 raise ValueError("expected a non-empty list")
 
             headline = l[0]
             cmsg = _CommitMsg(data=l[1:], **headline)
-            cmsg._check_commit_msg_version(str(cmsg.v))
 
             return cmsg
         except Exception as ex:

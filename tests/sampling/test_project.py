@@ -55,6 +55,7 @@ class TApp(unittest.TestCase):
         cmd = cmd_cls(config=c)
         meth(cmd)
 
+
 @ddt.ddt
 class Tproject(unittest.TestCase):
 
@@ -99,6 +100,24 @@ class Tproject(unittest.TestCase):
         e = E(a=1, b='s', c=None)
         exp, *args = case
         self.assertEqual(project._evarg(e, *args), exp)
+
+    @ddt.data(
+        ('v1.1.1', None),
+        ('v1.1.1', None),
+        ('sdffasdfasda v 1.1.1', None),
+        ('v-1.1.1', None),
+        ('v -\n%1.1.1', None),
+        ('v: \n1.1.01', ('1', '1', '01')),
+        (' v: \n1.1.01', ('1', '1', '01')),
+        ('sdffasdfasda v:\n 0.0.000\n', ('0', '0', '000')),
+    )
+    def test_cmt_version_regex(self, case):
+        cmt_msg, exp_ver = case
+        m = project._CommitMsgVer_regex.search(cmt_msg)
+        if not exp_ver:
+            self.assertIsNone(m, (m, cmt_msg, exp_ver))
+        else:
+            self.assertIsNotNone(m, (cmt_msg, exp_ver))
 
 
 @ddt.ddt
