@@ -383,7 +383,7 @@ class Project(transitions.Machine, ProjectSpec):
 
             - [do_sendmail,  tagged,     mailed                         ]
 
-            - trigger:    do_storedice,
+            - trigger:    do_storedice
               source:     mailed
               dest:       sample
               prepare:    _parse_response
