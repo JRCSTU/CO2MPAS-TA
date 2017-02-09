@@ -1689,7 +1689,7 @@ class ProjectCmd(_PrjCmd):
                     },
                     "Pase the tstamped response without storing it in the project."
                 ),
-                ('n', 'auto-store'): (
+                'auto-store': (
                     {
                         'TparseCmd': {'auto_store': True},
                     },
