@@ -1360,8 +1360,6 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             else:
                 fields = ['is_current', 'msg.s']
 
-        ap = repo.active_branch
-        ap = ap and ap.path
         pnames = iset(self.current_project().pname if p == '.' else p
                       for p in pnames)
         for ref in _yield_project_refs(repo, *pnames):
@@ -1749,7 +1747,7 @@ class ProjectCmd(_PrjCmd):
             self.log.info('Zipping %s...', tuple(pnames))
 
             repo = self.projects_db.repo
-            pname = self.current_project.pname
+            pname = repo.active_branch and _ref2pname(repo.active_branch)
             now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
             zip_name = '%s-%s' % ("CO2MPAS_projects", now)
             with tempfile.TemporaryDirectory(prefix='co2mpas_unzip-') as tdir:
