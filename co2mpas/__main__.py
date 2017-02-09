@@ -189,7 +189,7 @@ def init_logging(level=None, frmt=None, logconf_file=None):
 
     ## Disable warnings on AIO but not when developing.
     #
-    if os.environ.get('AIODIR') or True:
+    if os.environ.get('AIODIR'):
         warnings.filterwarnings(action="ignore", category=DeprecationWarning)
         warnings.filterwarnings(action="ignore", module="scipy",
                                 message="^internal gelsd")
