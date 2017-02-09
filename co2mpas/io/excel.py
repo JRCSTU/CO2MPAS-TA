@@ -635,7 +635,7 @@ def _chart2excel(writer, sheet, charts):
         from openpyxl.chart import ScatterChart, Series
         from xlrd import colname as xl_colname
 
-        sn = writer.book.get_sheet_names()
+        sn = writer.book.sheetnames
         named_ranges = {'%s!%s' % (sn[d.localSheetId], d.name): d.value
                         for d in writer.book.defined_names.definedName}
         m, h, w = 3, 7.94, 13.55
