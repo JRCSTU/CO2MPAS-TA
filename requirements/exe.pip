@@ -29,8 +29,8 @@ boltons
 pykalman
 wltp
 openpyxl>=2.4.0
-schedula>=0.1.7
-formulas>=0.0.2
+schedula>=0.1.9
+formulas>=0.0.3
 
 ## Dice
 python-gnupg
