@@ -40,6 +40,10 @@ _git_messaged_obj = re.compile(r'^(:?object|tag) ')
 _after_first_empty_line_regex = re.compile(r'\n\r?\n')
 
 
+def _mydump(obj, indent=2, **kwds):
+    return yaml.dump(obj, indent=indent, **kwds)
+
+
 _CommitMsgVer_regex = re.compile(r'(?<!\w)v:[ \t\r\n]+(\d+)\.(\d+)\.(\d+)(?!\d)')
 
 
@@ -78,13 +82,13 @@ class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
                 "incompatible message version '%s', expected '%s'" %
                 ('.'.join((major, minor, micro)), __dice_report_version__))
 
-    def dump_commit_msg(self, indent=2, **kwds):
+    def dump_commit_msg(self, **kwds):
         cdic = self._asdict()
         del cdic['data']
         clist = [cdic]
         if self.data:
             clist.extend(self.data)
-        msg = yaml.dump(clist, indent=indent, **kwds)
+        msg = _mydump(clist, **kwds)
 
         return msg
 
@@ -200,6 +204,7 @@ def _find_dice_tag(repo, pname, max_dices_per_project,
 
 
 def _read_dice_tag(repo, tag: Union[Text, 'git.TagReference']):
+    ## TODO: Attempt parsing dice-report when reading tag.
     if isinstance(tag, str):
         tag = repo.tags[tag]
     return tag.tag.data_stream.read().decode('utf-8')
@@ -658,7 +663,7 @@ class Project(transitions.Machine, ProjectSpec):
             if self.dry_run:
                 self.log.warning("DRY-RUN: Not actually committed the report, "
                                  "and it is not yet signed!")
-                self.result = yaml.dump(report, indent=2)
+                self.result = _mydump(report)
 
                 return
 
@@ -738,7 +743,7 @@ class Project(transitions.Machine, ProjectSpec):
         index = repo.index
         tstamp_fpath = osp.join(repo.working_tree_dir, 'tstamp.txt')
         with io.open(tstamp_fpath, 'wt') as fp:
-            self.result = res = yaml.dump(verdict, indent=2)
+            self.result = res = _mydump(verdict)
             fp.write(res)
         index.add([tstamp_fpath])
 
@@ -932,7 +937,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             if unexpected_kvalues:
                 log.warning("Missmatched values found in GIT configs: %s\n%s%s\n",
                             osp.join(repo.git_dir, 'config'),
-                            tw.indent(yaml.dump(unexpected_kvalues), '    '),
+                            tw.indent(_mydump(unexpected_kvalues), '    '),
                             "\n  TIP: If you are not sure why git-settings changed, "
                             "         use `--reset-git-settings` along with your next `project` cmd."
                             if check_only else
@@ -1230,7 +1235,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         infos = self._scan_infos(fields=fields)
 
         if as_text:
-            infos = yaml.dump(OrderedDict(infos), indent=2, default_flow_style=False)
+            infos = _mydump(OrderedDict(infos), default_flow_style=False)
 
         return infos
 
@@ -1336,7 +1341,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         if not pname:
             raise CmdException(
                 'Cannot identify which project tstamped-response belongs to!\n%s',
-                yaml.dump(verdict, indent=2))
+                _mydump(verdict))
 
         proj = self.proj_open(pname)
         return proj.do_storedice(verdict=verdict)
@@ -1380,7 +1385,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                 infos = OrderedDict(infos)
                 to_yield = {pname: infos}
                 if as_text:
-                    to_yield = yaml.dump(to_yield, default_flow_style=False)
+                    to_yield = _mydump(to_yield, default_flow_style=False)
             else:
                 if as_text:
                     i = dict(infos)
