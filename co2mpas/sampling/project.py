@@ -926,7 +926,8 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                 log.warning("Missmatched values found in GIT configs: %s\n%s%s\n",
                             osp.join(repo.git_dir, 'config'),
                             tw.indent(yaml.dump(unexpected_kvalues), '    '),
-                            "\n  TIP: If they have changed by mistake, use `--reset-git-settings`."
+                            "\n  TIP: If you are not sure why git-settings changed, "
+                            "         use `--reset-git-settings` along with your next `project` cmd."
                             if check_only else
                             '\n  Differences have been corrected.'
                             )
