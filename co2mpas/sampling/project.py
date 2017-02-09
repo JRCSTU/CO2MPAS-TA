@@ -1672,7 +1672,7 @@ class ProjectCmd(_PrjCmd):
 
         #examples = trt.Unicode(""" """)
 
-        auto_store = trt.Unicode(
+        auto_store = trt.Bool(
             help="When true, store stamp-response to project referenced, otherwise, to *current*."
         ).tag(config=True)
 
