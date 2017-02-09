@@ -1754,7 +1754,7 @@ class ProjectCmd(_PrjCmd):
             zip_name = '%s-%s' % ("CO2MPAS_projects", now)
             with tempfile.TemporaryDirectory(prefix='co2mpas_unzip-') as tdir:
                 exdir = osp.join(tdir, 'repo')
-                exrepo = git.Repo.init(exdir)
+                exrepo = git.Repo.init(exdir, bare=True)
                 try:
                     rem = exrepo.create_remote('origin', osp.join(repo.working_dir, '.git'))
 
@@ -1767,9 +1767,9 @@ class ProjectCmd(_PrjCmd):
                             self.log.info("Ignoring branch(%s), not a co2mpas project.", p)
                             continue
 
-                        fetch_info = rem.fetch(pp)
-                        yield from ('packing: %s' % fi.remote_ref_path
-                                    for fi in fetch_info)
+                        fetch_infos = rem.fetch(pp)
+                        yield from ('packed: %s' % fi.remote_ref_path
+                                    for fi in fetch_infos)
 
                     root_dir, base_dir = osp.split(repo.working_dir)
                     yield 'Archive: %s' % shutil.make_archive(
@@ -1842,10 +1842,10 @@ class ProjectCmd(_PrjCmd):
 
                     try:
                         rem = repo.create_remote(remname, osp.join(exdir, 'repo'))
-                        fetch_info = rem.fetch(force=self.force)
+                        fetch_infos = rem.fetch(force=self.force)
                         ## FIXME: create local branch, and does not fetch!!
-                        yield from ('unpacking: %s' % fi.name
-                                    for fi in fetch_info)
+                        yield from ('unpacked: %s' % fi.name
+                                    for fi in fetch_infos)
                     finally:
                         repo.delete_remote(remname)
 
