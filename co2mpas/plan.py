@@ -137,7 +137,7 @@ def make_simulation_plan(plan, timestamp, variation, flag, model=None):
         inputs['vehicle_name'] = name
         inputs.update(kw)
         res = run_base.dispatch(inputs)
-        batch.notify_result_listener(plan_listener, res)
+        batch.notify_result_listener(plan_listener, {'solution': res})
 
         s = filter_summary(p, o, res.get('summary', {}))
         base_keys = {
