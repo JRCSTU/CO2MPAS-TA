@@ -508,7 +508,10 @@ def add_tooltip(widget, key, allow_misses=False, no_lookup=False):
     :param no_lookup:
         If true, uses the `key` as tooltip text.
     """
-    from idlelib.ToolTip import ToolTip
+    try:
+        from idlelib.ToolTip import ToolTip
+    except Exception:
+        from idlelib.tooltip import ToolTip
 
     if no_lookup:
         tooltip_text = key
