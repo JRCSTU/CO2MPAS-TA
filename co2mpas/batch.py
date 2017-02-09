@@ -217,7 +217,7 @@ def plot_model_workflow(output_file_name=None, vehicle_name='', **kw):
         if output_file_name:
             ofname = osp.splitext(output_file_name)[0]
         log.info("Plotting workflow of %s... into '%s'", vehicle_name, ofname)
-        return {'directory': ofname, 'sites': SITES}
+        return {'directory': ofname, 'sites': SITES, 'index': True}
     except RuntimeError as ex:
         log.warning(ex, exc_info=1)
     return dsp_utl.NONE
