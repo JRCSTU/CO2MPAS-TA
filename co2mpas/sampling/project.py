@@ -393,7 +393,7 @@ class Project(transitions.Machine, ProjectSpec):
               source:     mailed
               dest:       nosample
               prepare:    _parse_response
-              unless:     [_is_decision_sample, _is_dry_run_dicing]
+              conditions:     [_is_not_decision_sample, _is_not_dry_run_dicing]
 
             - [do_addfiles,  [diced,
                               nosample,
@@ -492,7 +492,7 @@ class Project(transitions.Machine, ProjectSpec):
         ## Update result if nobody else has done it first
         #  (see `_cb_send_email()`)
         if not self.result:
-            self.result = cmsg_txt
+            self.result = cmsg_txt  ## TODO: ALWASY DICT!!
 
         if is_tagging:
             ## Note: No meaning to enable env-vars earlier,
@@ -698,7 +698,7 @@ class Project(transitions.Machine, ProjectSpec):
 
     def _parse_response(self, event) -> bool:
         """
-        Triggered by `do_storedice(verdict=<dict>?)` as PREPARE for `sample/nosample` states.
+        Triggered by `do_storedice(verdict=<dict> | tstamp_txt=<str>)` in PREPARE for `sample/nosample` states.
 
         :param verdict:
             The result of verifying timestamped-response.
@@ -711,46 +711,47 @@ class Project(transitions.Machine, ProjectSpec):
 
         verdict = _evarg(event, 'verdict', dict, missing_ok=True)
         tstamp_txt = _evarg(event, 'tstamp_txt', str, missing_ok=True)
-        assert (verdict is None) ^ (tstamp_txt is None), (verdict, tstamp_txt)
+        # TODO: assert for future, when single prep/ trans.
+        ##assert (verdict is None) ^ (tstamp_txt is None), (verdict, tstamp_txt)
 
         if verdict is None:
             recv = tstamp.TstampReceiver(config=self.config)
-            verdict = recv.parse_tstamp_response(tstamp_txt)
+            verdict = recv.parse_tstamp_response(tstamp_txt)  # FIXME: Bad tstamps brake parsing in there!!!
 
-            pname = verdict.get('report', {}).get('project')
-            if pname != self.pname and not self.force:
-                raise CmdException(
-                    "Current project('%s') is different from tstamp('%s')!" %
-                    (self.pname, pname))
+        pname = verdict.get('report', {}).get('project')
+        if pname != self.pname and not self.force:
+            raise CmdException(
+                "Current project('%s') is different from tstamp('%s')!" %
+                (self.pname, pname))
+
+        event.kwargs['verdict'] = verdict
 
         ## TODO: **On commit, set arbitrary files to store (where? name?)**.
         repo = self.repo
         index = repo.index
         tstamp_fpath = osp.join(repo.working_tree_dir, 'tstamp.txt')
         with io.open(tstamp_fpath, 'wt') as fp:
-            yaml.dump(verdict, stream=fp, indent=2)
+            self.result = res = yaml.dump(verdict, indent=2)
+            fp.write(res)
         index.add([tstamp_fpath])
 
-        event.kwargs['verdict'] = verdict
+        event.kwargs['report'] = list(verdict.get('dice', {}).items())
 
     def _is_decision_sample(self, event) -> bool:
-        verdict = _evarg(event, 'verdict')
+        verdict = _evarg(event, 'verdict', dict)
 
         decision = verdict.get('dice', {}).get('decision', 'SAMPLE')
         event.kwargs['action'] = "diced as %s" % decision
 
         return decision == 'SAMPLE'
 
-    def _is_dry_run_dicing(self, event):
-        if self.dry_run:
-            self.log.warning('DRY-RUN: Not actually registering decision.')
-
-            self.result = yaml.dump(_evarg(event, 'verdict', dict), indent=2)
-
-        return self.dry_run
+    def _is_not_decision_sample(self, event) -> bool:
+        return not self._is_decision_sample(event)
 
     def _is_not_dry_run_dicing(self, event):
-        return not self._is_dry_run_dicing(event)
+        if self.dry_run:
+            self.log.warning('DRY-RUN: Not actually registering decision.')
+        return not self.dry_run
 
 
 class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
@@ -1330,9 +1331,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                 yaml.dump(verdict, indent=2))
 
         proj = self.proj_open(pname)
-        proj.do_storedice(verdict=verdict)
-
-        return proj.result
+        return proj.do_storedice(verdict=verdict)
 
     def proj_list(self, *pnames: Text, verbose=None,
                   as_text=False, fields=None):
@@ -1713,12 +1712,14 @@ class ProjectCmd(_PrjCmd):
                 with io.open(file, 'rt') as fin:
                     mail_text = fin.read()
 
+            proj = self.current_project
             if self.auto_store:
                 res = self.projects_db.proj_parse_stamped_and_assign_project(mail_text)
             else:
-                res = self.current_project.do_storedice(tstamp_txt=mail_text)
+                res = proj.do_storedice(tstamp_txt=mail_text)
 
-            return res if self.verbose else True  # TODO: Never fails??
+            ## TODO: Decide what commands retur!?? this one breaks sumetricity
+            return proj.result if self.verbose or proj.dry_run else res
 
     class ZipCmd(_PrjCmd):
         """
