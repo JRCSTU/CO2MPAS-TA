@@ -188,8 +188,8 @@ def _pause_for_sites_shutdown():
                 time.sleep(1)
         except (KeyboardInterrupt, SystemExit):
             pass
-        for site in SITES:
-            site.shutdown()
+        while SITES:
+            SITES.pop().shutdown()
 
 
 # noinspection PyUnusedLocal
