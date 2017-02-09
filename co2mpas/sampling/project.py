@@ -488,7 +488,7 @@ class Project(transitions.Machine, ProjectSpec):
         git_auth.GPG
 
         repo = self.repo
-        report = _evarg(event, 'report', (list, dict), missing_ok=True)
+        report = _evarg(event, 'report', list, missing_ok=True)
         is_tagging = state == 'tagged' and report
         cmsg_txt = self._make_commit_msg(action, report)
 
