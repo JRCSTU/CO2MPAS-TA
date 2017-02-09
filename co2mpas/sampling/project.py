@@ -747,10 +747,10 @@ class Project(transitions.Machine, ProjectSpec):
 
             self.result = yaml.dump(_evarg(event, 'verdict', dict), indent=2)
 
-        return not self.dry_run
+        return self.dry_run
 
     def _is_not_dry_run_dicing(self, event):
-        return self._is_dry_run_dicing(event)
+        return not self._is_dry_run_dicing(event)
 
 
 class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
