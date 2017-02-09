@@ -40,4 +40,4 @@ def load_from_dill(fpath):
 @dsp_utl.open_file(1, mode='wb')
 def save_dill(data, fpath, *args, **kwargs):
     log.debug('Writing dill-file: %s', fpath)
-    dill.dump(data, fpath)
+    dill.dump(data, fpath, recurse=False)
