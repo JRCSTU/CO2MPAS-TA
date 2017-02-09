@@ -1843,10 +1843,17 @@ class ProjectCmd(_PrjCmd):
                     try:
                         rem = repo.create_remote(remname, osp.join(exdir, 'repo'))
                         fetch_infos = rem.fetch(force=self.force)
-                        ## FIXME: create local branch, and does not fetch!!
-                        yield from ('unpacked: %s' % fi.name
-                                    for fi in fetch_infos)
-                    finally:
+
+                        for fi in fetch_infos:
+                            path = fi.remote_ref_path
+                            if fi.flags == fi.NEW_HEAD:
+                                repo.create_head(path, fi.ref)
+                            yield 'unpacked: %s' % path
+
+                    except Exception as ex:
+                        self.log.error("Error while importing from '%s: %s",
+                                       ex, exc_info=1)
+                    else:
                         repo.delete_remote(remname)
 
     class BackupCmd(_PrjCmd):
