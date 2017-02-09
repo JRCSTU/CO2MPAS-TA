@@ -1020,6 +1020,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                             config[clsname][tname] = vault.encryptobj(key, tvalue)
                             ntraits_encrypted += 1
                         else:
+                            ## FIXME: screams abouty autoencrypted!
                             screams.append(key)
 
         try:
