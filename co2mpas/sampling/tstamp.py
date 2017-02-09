@@ -442,6 +442,7 @@ class TstampCmd(baseapp.Cmd):
 
         def run(self, *args):
             from boltons.setutils import IndexedSet as iset
+            from pandalone import utils as pndlu
 
             files = iset(args) or ['-']
             self.log.info("Timestamping '%s'...", tuple(files))
@@ -452,6 +453,7 @@ class TstampCmd(baseapp.Cmd):
                     self.log.info("Reading STDIN; paste message verbatim!")
                     mail_text = sys.stdin.read()
                 else:
+                    self.log.debug("Reading '%s'...", pndlu.convpath(file))
                     with io.open(file, 'rt') as fin:
                         mail_text = fin.read()
 
@@ -478,6 +480,7 @@ class TstampCmd(baseapp.Cmd):
         def run(self, *args):
             from boltons.setutils import IndexedSet as iset
             from pprint import pformat
+            from pandalone import utils as pndlu
 
             files = iset(args) or ['-']
             self.log.info("Parsing '%s'...", tuple(files))
@@ -488,6 +491,7 @@ class TstampCmd(baseapp.Cmd):
                     self.log.info("Reading STDIN; paste message verbatim!")
                     mail_text = sys.stdin.read()
                 else:
+                    self.log.debug("Reading '%s'...", pndlu.convpath(file))
                     with io.open(file, 'rt') as fin:
                         mail_text = fin.read()
 

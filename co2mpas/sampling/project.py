@@ -1709,6 +1709,7 @@ class ProjectCmd(_PrjCmd):
                 self.log.info("Reading STDIN; paste message verbatim!")
                 mail_text = sys.stdin.read()
             else:
+                self.log.debug("Reading '%s'...", pndlu.convpath(file))
                 with io.open(file, 'rt') as fin:
                     mail_text = fin.read()
 
@@ -1841,6 +1842,7 @@ class ProjectCmd(_PrjCmd):
                     try:
                         rem = repo.create_remote(remname, osp.join(exdir, 'repo'))
                         fetch_info = rem.fetch(force=self.force)
+                        ## FIXME: create local branch, and does not fetch!!
                         yield from ('unpacking: %s' % fi.name
                                     for fi in fetch_info)
                     finally:
