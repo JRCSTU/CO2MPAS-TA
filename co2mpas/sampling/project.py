@@ -165,6 +165,7 @@ def _tname2ref_name(tname: Text) -> Text:
 
 
 def _yield_project_refs(repo, *pnames: Text):
+    """Yields given pnames are git-python refs, or all if no pname given."""
     if pnames:
         pnames = [_pname2ref_path(p) for p in pnames]
     for ref in repo.heads:
@@ -1369,6 +1370,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             proj = self.proj_open(pname)
             return proj.do_storedice(verdict=verdict)
         else:
+            ## TODO: build_registry
             print(report)
 
     def proj_list(self, *pnames: Text, verbose=None,
@@ -1719,8 +1721,12 @@ class TparseCmd(ProjectCmd):
         %(cmd_chain)s [OPTIONS] [<tstamped-file-1> ...]
 
     - If '-' is given or no file at all, it reads from STDIN.
-    - If --force is given to overcome any verification/parsing errors,
-      then --project might be needed, to set the project the response belongs to .
+    - If --force, ignores most verification/parsing errors.
+    - The --build-registry is for those handling "foreign" dices (i.e. TAAs),
+      that is, when you don't have the files of the projects in the repo.
+      With this option, tstamp-response get, it extracts the dice-repot and adds it
+      as a "broken" tag referring to projects that might not exist in the repo,
+      assuming they don't clash with pre-existing dice-reponses.
     """
 
     #examples = trt.Unicode(""" """)
@@ -1742,7 +1748,7 @@ class TparseCmd(ProjectCmd):
                 },
                 "Pase the tstamped response without storing it in the project."
             ),
-            'as-registry': (
+            'build-registry': (
                 {
                     'TparseCmd': {'build_registry': True},
                 },
@@ -1800,11 +1806,19 @@ class ExportCmd(ProjectCmd):
         import git
         from git.util import rmtree
 
-        pnames = iset(args) or ['.']
-        self.log.info('Exporting %s...', tuple(pnames))
-
         repo = self.projects_db.repo
-        pname = repo.active_branch and _ref2pname(repo.active_branch)
+        cur_pname = repo.active_branch and _ref2pname(repo.active_branch)
+
+        ## Resolve '.', ALL or specific project-names.
+        #
+        if not args:
+            pnames = [_ref2pname(ref) for ref in _yield_project_refs(repo)]
+        else:
+            pnames = [pn == '.' and cur_pname or pn
+                      for pn in iset(args)]
+        pnames = iset(pnames)
+        self.log.info('Exporting %s --> %s...', args, tuple(pnames))
+
         now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
         zip_name = '%s-%s' % ("CO2MPAS_projects", now)
         with tempfile.TemporaryDirectory(prefix='co2mpas_export-') as tdir:
@@ -1814,9 +1828,6 @@ class ExportCmd(ProjectCmd):
                 rem = exrepo.create_remote('origin', osp.join(repo.working_dir, '.git'))
 
                 for p in pnames:
-                    if p == '.':
-                        p = pname
-
                     pp = _pname2ref_name(p)
                     if pp not in repo.heads:
                         self.log.info("Ignoring branch(%s), not a co2mpas project.", p)
@@ -1826,7 +1837,7 @@ class ExportCmd(ProjectCmd):
                     yield from ('packed: %s' % fi.remote_ref_path
                                 for fi in fetch_infos)
 
-                root_dir, base_dir = osp.split(repo.working_dir)
+                root_dir, base_dir = osp.split(exrepo.working_dir)
                 yield 'Archive: %s' % shutil.make_archive(
                     base_name=zip_name, format='zip',
                     base_dir=base_dir,
@@ -1834,9 +1845,6 @@ class ExportCmd(ProjectCmd):
 
                 if self.erase_afterwards:
                     for p in pnames:
-                        if p == '.':
-                            p = pname
-
                         tref = _tname2ref_name(p)
                         for t in list(repo.tags):
                             if t.name.startswith(tref):
