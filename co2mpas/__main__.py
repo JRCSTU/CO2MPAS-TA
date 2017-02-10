@@ -207,8 +207,6 @@ def init_logging(level=None, frmt=None, logconf_file=None, color=False):
         warnings.filterwarnings(action="ignore", category=DeprecationWarning)
         warnings.filterwarnings(action="ignore", module="scipy",
                                 message="^internal gelsd")
-        warnings.filterwarnings(action="ignore", module="openpyxl",
-                                message="^Unknown extension")
         warnings.filterwarnings(action="ignore", module="dill",
                                 message="^unclosed file")
 
