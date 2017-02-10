@@ -121,6 +121,16 @@ class Report(baseapp.Spec):
                 else:
                     raise CmdException(msg)
 
+        def check_is_ta(fpath, report):
+            ta_flags = report.ix['TA_mode', :]
+            is_ta_mode = all(f is None or f for f in ta_flags)
+            if not is_ta_mode:
+                msg = ("File('%s') is NOT in TA mode!" % fpath)
+                if self.force:
+                    self.log.warning(msg)
+                else:
+                    raise CmdException(msg)
+
         for fpath in iofiles.inp:
             fpath = pndlu.convpath(fpath)
             file_vfid = self._extract_vfid_from_input(fpath)
@@ -134,6 +144,7 @@ class Report(baseapp.Spec):
         for fpath in iofiles.out:
             fpath = pndlu.convpath(fpath)
             file_vfid, dice_report = self._extract_dice_report_from_output(fpath)
+            check_is_ta(fpath, dice_report)
             check_vfid_missmatch(fpath, file_vfid)
 
             yield (fpath, 'out', dice_report)
