@@ -707,7 +707,7 @@ class Project(transitions.Machine, ProjectSpec):
         assert signed_dice_report
 
         dice_mail_mime = tstamp_sender.send_timestamped_email(
-            signed_dice_report, self.pname, dry_run=dry_run)
+            signed_dice_report, tagref.name, dry_run=dry_run)
 
         if dry_run:
             self.log.warning(tw.dedent("""\
