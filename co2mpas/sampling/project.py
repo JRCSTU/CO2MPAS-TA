@@ -449,11 +449,11 @@ class Project(transitions.Machine, ProjectSpec):
         self.error = (self.state, ex)
         raise ex
 
-    def _make_commit_msg(self, action, data=None) -> Text:
+    def _make_commitMsg(self, action, data=None) -> Text:
         assert data is None or isinstance(data, list), "Data not a list: %s" % data
         cmsg = _CommitMsg(__dice_report_version__, action, self.pname, self.state, data)
 
-        return cmsg.dump_commit_msg(width=self.git_desc_width)
+        return cmsg
 
     def _cb_clear_result(self, event):
         """ Executed BEFORE exiting any state, and clears any results from previous transitions. """
@@ -495,16 +495,17 @@ class Project(transitions.Machine, ProjectSpec):
         repo = self.repo
         report = _evarg(event, 'report', list, missing_ok=True)
         is_tagging = state == 'tagged' and report
-        cmsg_txt = self._make_commit_msg(action, report)
+        cmsg = self._make_commitMsg(action, report)
+        cmsg_txt = cmsg.dump_commit_msg(width=self.git_desc_width)
 
         self.log.info('Committing %s: %s', self, action)
         index = repo.index
         index.commit(cmsg_txt)
 
-        ## Update result if nobody else has done it first
-        #  (see `_cb_send_email()`)
+        ## Update result if not any cb previous has done it first
+        #
         if not self.result:
-            self.result = cmsg_txt  ## TODO: ALWASY DICT!!
+            self.result = cmsg._asdict()
 
         if is_tagging:
             ## Note: No meaning to enable env-vars earlier,
@@ -648,6 +649,9 @@ class Project(transitions.Machine, ProjectSpec):
         unless --force, in which case it generates another tag.
 
         Uses the :class:`Report` to build the tag-msg.
+
+        :return:
+            Setting :attr:`result` to string.
         """
         repo = self.repo
         tagref = _find_dice_tag(repo, self.pname,
@@ -664,7 +668,7 @@ class Project(transitions.Machine, ProjectSpec):
             if self.dry_run:
                 self.log.warning("DRY-RUN: Not actually committed the report, "
                                  "and it is not yet signed!")
-                self.result = report
+                self.result = _mydump(report)
 
                 return
 
@@ -681,6 +685,9 @@ class Project(transitions.Machine, ProjectSpec):
         Triggered by `do_sendmail()` on ENTER of `sendmail` state.
 
         Parses last tag and uses class:`SMTP` to send its message as email.
+
+        :return:
+            Setting :attr:`result` to string.
         """
         repo = self.repo
         dry_run = self.dry_run
@@ -716,6 +723,8 @@ class Project(transitions.Machine, ProjectSpec):
 
         :param verdict:
             The result of verifying timestamped-response.
+        :return:
+            Setting :attr:`result` to ODict.
 
         .. Note:
             It needs an already verified tstamp-response because to select which project
@@ -738,14 +747,14 @@ class Project(transitions.Machine, ProjectSpec):
                 "Current project('%s') is different from tstamp('%s')!" %
                 (self.pname, pname))
 
-        event.kwargs['verdict'] = verdict
+        event.kwargs['verdict'] = self.result = verdict
 
         ## TODO: **On commit, set arbitrary files to store (where? name?)**.
         repo = self.repo
         index = repo.index
         tstamp_fpath = osp.join(repo.working_tree_dir, 'tstamp.txt')
         with io.open(tstamp_fpath, 'wt') as fp:
-            self.result = res = _mydump(verdict)
+            res = _mydump(verdict)
             fp.write(res)
         index.add([tstamp_fpath])
 
@@ -1426,6 +1435,12 @@ class _PrjCmd(baseapp.Cmd):
     def current_project(self) -> Project:
         return self.projects_db.current_project()
 
+    def _format_result(self, concise, long, *, is_verbose=None):
+        is_verbose = self.verbose if is_verbose is None else is_verbose
+        result = long if is_verbose else concise
+
+        return isinstance(result, str) and result or _mydump(result)
+
 
 class ProjectCmd(_PrjCmd):
     """
@@ -1577,7 +1592,7 @@ class ProjectCmd(_PrjCmd):
             proj = self.current_project
             ok = proj.do_addfiles(pfiles=pfiles)
 
-            return proj.result if self.verbose else ok
+            return self._format_result(ok, proj.result)
 
     class ReportCmd(_PrjCmd):
         """
@@ -1664,7 +1679,8 @@ class ProjectCmd(_PrjCmd):
             proj = self.current_project
             ok = proj.do_sendmail()
 
-            return proj.result if self.verbose or proj.dry_run else ok
+            return self._format_result(ok, proj.result,
+                                       is_verbose=self.verbose or proj.dry_run)
 
     class TparseCmd(_PrjCmd):
         """
@@ -1723,12 +1739,12 @@ class ProjectCmd(_PrjCmd):
 
             proj = self.current_project
             if self.auto_store:
-                res = self.projects_db.proj_parse_stamped_and_assign_project(mail_text)
+                ok = self.projects_db.proj_parse_stamped_and_assign_project(mail_text)
             else:
-                res = proj.do_storedice(tstamp_txt=mail_text)
+                ok = proj.do_storedice(tstamp_txt=mail_text)
 
-            ## TODO: Decide what commands retur!?? this one breaks sumetricity
-            return proj.result if self.verbose or proj.dry_run else res
+            return self._format_result(proj.result.get('dice', ok),
+                                       proj.result)
 
     class ZipCmd(_PrjCmd):
         """
