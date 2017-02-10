@@ -114,27 +114,26 @@ class Report(baseapp.Spec):
             if expected_vfid is None:
                 expected_vfid = file_vfid
             elif expected_vfid != file_vfid:
-                msg = ("Mismatch `vehicle_family_id` between file('%s'): '%s' and the rest's `%s`!"
-                       % (fpath, file_vfid, expected_vfid))
-                if self.force:
-                    self.log.warning(msg)
-                else:
-                    raise CmdException(msg)
+                return ("mismatch `vehicle_family_id` between this file the rest: "
+                        "'%s' != expected('%s')'" %
+                        (file_vfid, expected_vfid))
 
         def check_is_ta(fpath, report):
             ta_flags = report.ix['TA_mode', :]
             is_ta_mode = all(f is None or f for f in ta_flags)
             if not is_ta_mode:
-                msg = ("File('%s') is NOT in TA mode!" % fpath)
-                if self.force:
-                    self.log.warning(msg)
-                else:
-                    raise CmdException(msg)
+                return ("file is NOT in TA mode")
 
         for fpath in iofiles.inp:
             fpath = pndlu.convpath(fpath)
             file_vfid = self._extract_vfid_from_input(fpath)
-            check_vfid_missmatch(fpath, file_vfid)
+            msg = check_vfid_missmatch(fpath, file_vfid)
+            if msg:
+                msg = "File('%s') %s!" % (fpath, msg)
+                if self.force:
+                    self.log.warning(msg)
+                else:
+                    raise CmdException(msg)
 
             yield (fpath, 'inp', OrderedDict([
                 ('report_type', 'input_report'),
@@ -144,8 +143,16 @@ class Report(baseapp.Spec):
         for fpath in iofiles.out:
             fpath = pndlu.convpath(fpath)
             file_vfid, dice_report = self._extract_dice_report_from_output(fpath)
-            check_is_ta(fpath, dice_report)
-            check_vfid_missmatch(fpath, file_vfid)
+            msg1 = check_is_ta(fpath, dice_report)
+            msg2 = check_vfid_missmatch(fpath, file_vfid)
+            msgs = [m for m in [msg1, msg2] if m]
+            if any(msgs):
+                msg = ';\n  also '.join(msgs)
+                msg = "File('%s') %s!" % (fpath, msg)
+                if self.force:
+                    self.log.warning(msg)
+                else:
+                    raise CmdException(msg)
 
             yield (fpath, 'out', dice_report)
 
