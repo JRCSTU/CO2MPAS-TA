@@ -585,7 +585,7 @@ class Project(transitions.Machine, ProjectSpec):
         try:
             rep = self._report_spec()
             rep.get_dice_report(pfiles, expected_vfid=self.pname)
-        except Exception as ex:
+        except CmdException as ex:
             msg = "Failed extracting report from %s, due to: %s"
             if self.force:
                 msg += "  BUT FORCED to import them!"
