@@ -163,7 +163,7 @@ def main(argv=None, log_level=None, **app_init_kwds):
     """
     import transitions
 
-    init_logging(level=log_level)
+    init_logging(level=log_level, color=True)
     log = logging.getLogger(__name__)
 
     try:
