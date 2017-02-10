@@ -1355,14 +1355,21 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
         recv = tstamp.TstampReceiver(config=self.config)
         verdict = recv.parse_tstamp_response(mail_text)
-        pname = verdict.get('report', {}).get('project')
+        report = verdict.get('report', {})
+        pname = report.get('project')
         if not pname:
             raise CmdException(
                 'Cannot identify which project tstamped-response belongs to!\n%s',
                 _mydump(verdict))
 
-        proj = self.proj_open(pname)
-        return proj.do_storedice(verdict=verdict)
+        repo = self.repo
+        refname = _pname2ref_name(pname)
+        if refname in repo.refs:
+            ## TODO: Check if dice moved!!
+            proj = self.proj_open(pname)
+            return proj.do_storedice(verdict=verdict)
+        else:
+            print(report)
 
     def proj_list(self, *pnames: Text, verbose=None,
                   as_text=False, fields=None):
@@ -1419,37 +1426,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 ##    Commands   ##
 ###################
 
-class _PrjCmd(baseapp.Cmd):
-
-    def __init__(self, **kwds):
-        kwds.setdefault('conf_classes', [ProjectsDB, Project])
-        kwds.setdefault('cmd_flags', {
-            'reset-git-settings': (
-                {
-                    'ProjectsDB': {'reset_git_settings': True},
-                }, pndlu.first_line(ProjectsDB.reset_git_settings.help)
-            )
-        })
-        super().__init__(**kwds)
-
-    @property
-    def projects_db(self) -> ProjectsDB:
-        p = ProjectsDB.instance(config=self.config)
-        p.config = self.config
-        return p
-
-    @property
-    def current_project(self) -> Project:
-        return self.projects_db.current_project()
-
-    def _format_result(self, concise, long, *, is_verbose=None):
-        is_verbose = self.verbose if is_verbose is None else is_verbose
-        result = long if is_verbose else concise
-
-        return isinstance(result, str) and result or _mydump(result)
-
-
-class ProjectCmd(_PrjCmd):
+class ProjectCmd(baseapp.Cmd):
     """
     Commands to administer the storage repo of TA *projects*.
 
@@ -1477,459 +1454,499 @@ class ProjectCmd(_PrjCmd):
             %(cmd_chain)s status --vlevel 2
         """)
 
-    class StatusCmd(_PrjCmd):
-        """
-        Print various information about the projects-repo.
-
-        - Use `--verbose` or `--vlevel (2|3)` to view more infos.
-
-        SYNTAX
-            %(cmd_chain)s [OPTIONS]
-        """
-        def run(self, *args):
-            if len(args) > 0:
-                raise CmdException('Cmd %r takes no arguments, received %d: %r!'
-                                   % (self.name, len(args), args))
-            return self.projects_db.repo_status(as_text=True)
-
-    class LsCmd(_PrjCmd):
-        """
-        List specified projects, or all, if none specified.
-
-        - Use `--verbose` or `--vlevel (2|3|4)` to view more infos about the projects.
-        - Use '.' to denote current project.
-
-        SYNTAX
-            %(cmd_chain)s [OPTIONS] [<project-1>] ...
-        """
-        def run(self, *args):
-            self.log.info('Listing %s projects...', args or 'all')
-            return self.projects_db.proj_list(*args, as_text=True)
-
-    class OpenCmd(_PrjCmd):
-        """
-        Make an existing project as *current*.
-
-        SYNTAX
-            %(cmd_chain)s [OPTIONS] <project>
-        """
-        def run(self, *args):
-            self.log.info('Opening project %r...', args)
-            if len(args) != 1:
-                raise CmdException(
-                    "Cmd %r takes exactly one argument as the project-name, received %r!"
-                    % (self.name, args))
-
-            projDB = self.projects_db
-            proj = projDB.proj_open(args[0])
-
-            return projDB.proj_list(proj.pname, as_text=True) if self.verbose else str(proj)
-
-    class InitCmd(_PrjCmd):
-        """
-        Create a new project.
-
-        SYNTAX
-            %(cmd_chain)s [OPTIONS] <project>
-        """
-        def run(self, *args):
-            if len(args) != 1:
-                raise CmdException(
-                    "Cmd %r takes exactly one argument as the project-name, received %r!"
-                    % (self.name, args))
-
-            return self.projects_db.proj_add(args[0])
-
-    class AppendCmd(_PrjCmd):
-        """
-        Import the specified input/output co2mpas files into the *current project*.
-
-        SYNTAX
-            %(cmd_chain)s [OPTIONS] ( --inp <co2mpas-file> |
-                                      --out <co2mpas-file> |
-                                      <any-file> ) ...
-
-        - To report and tstamp a project, one file (at least) from *inp* & *out* must be given.
-        - If an input/output are already present in the current project, use --force.
-        - Note that any file argument not given with `--inp`, `--out`, will end-up as "other".
-        """
-
-        examples = trt.Unicode("""
-            To import an INPUT co2mpas file, try:
-
-                %(cmd_chain)s --inp co2mpas_input.xlsx
-
-            To import both INPUT and OUTPUT files, and overwrite any already imported try:
-
-                %(cmd_chain)s --force --inp co2mpas_input.xlsx --out co2mpas_results.xlsx
-            """)
-
-        inp = trt.List(
-            trt.Unicode(),
-            help="Specify co2mpas INPUT files; use this option one or more times."
-        ).tag(config=True)
-        out = trt.List(
-            trt.Unicode(),
-            help="Specify co2mpas OUTPUT files; use this option one or more times."
-        ).tag(config=True)
-
-        def __init__(self, **kwds):
-            kwds.setdefault('cmd_aliases', {
-                ('i', 'inp'): ('AppendCmd.inp', pndlu.first_line(type(self).inp.help)),
-                ('o', 'out'): ('AppendCmd.out', pndlu.first_line(type(self).out.help)),
-            })
-            kwds.setdefault('cmd_flags', {
-                ('n', 'dry-run'): (
-                    {
-                        'Project': {'dry_run': True},
-                    },
-                    "Parse files but do not actually store them in the project."
-                ),
-            })
-            super().__init__(**kwds)
-
-        def run(self, *args):
-            ## TODO: Support heuristic inp/out classification
-            pfiles = PFiles(inp=self.inp, out=self.out, other=args)
-            self.log.info("Importing report files...\n  %s", pfiles)
-            if not pfiles.nfiles():
-                raise CmdException(
-                    "Cmd %r must be given at least one file argument, received %d: %r!"
-                    % (self.name, pfiles.nfiles(), pfiles))
-
-            proj = self.current_project
-            ok = proj.do_addfiles(pfiles=pfiles)
-
-            return self._format_result(ok, proj.result)
-
-    class ReportCmd(_PrjCmd):
-        """
-        Prepares or re-prints the signed dice-report that can be sent for timestamping.
-
-        - Use --force to generate a new report.
-        - Use --dry-run to see its rough contents without signing and storing it.
-
-        SYNTAX
-            %(cmd_chain)s [OPTIONS]
-
-        - Eventually the *Dice Report* parameters will be time-stamped and disseminated to
-          TA authorities & oversight bodies with an email, to receive back
-          the sampling decision.
-        - To get report ready for sending it MANUALLY, use tstamp` sub-command.
-
-        """
-
-        #examples = trt.Unicode(""" """)
-
-        def __init__(self, **kwds):
-            from . import crypto
-            from . import report
-
-            kwds.setdefault('conf_classes', [report.Report, crypto.GitAuthSpec])
-            kwds.setdefault('cmd_flags', {
-                ('n', 'dry-run'): (
-                    {
-                        'Project': {'dry_run': True},
-                    },
-                    "Verify dice-report do not actually store it in the project."
-                )
-            })
-            super().__init__(**kwds)
-
-        def run(self, *args):
-            self.log.info('Tagging project %r...', args)
-            if len(args) > 0:
-                raise CmdException('Cmd %r takes no arguments, received %d: %r!'
-                                   % (self.name, len(args), args))
-
-            proj = self.current_project
-            ok = proj.do_report()
-
-            assert isinstance(proj.result, str)
-            return ok and proj.result or ok
-
-    class TstampCmd(_PrjCmd):
-        """
-        IRREVOCABLY send report to the time-stamp service, or print it for sending it manually (--dry-run).
-
-        SYNTAX
-            %(cmd_chain)s [OPTIONS]
-
-        - THIS COMMAND IS IIREVOCABLE!
-        - Use --dry-run if you want to send the email yourself.
-          Remember to use the appropriate 'Subject'.
-        - The --dry-run option prints the email as it would have been sent; you may
-          copy-paste this lient and send it, formatted as 'plain-text' (not 'HTML').
-        """
-
-        #examples = trt.Unicode(""" """)
-
-        def __init__(self, **kwds):
-            from . import crypto
-            from . import tstamp
-
-            kwds.setdefault('conf_classes', [tstamp.TstampSender, crypto.GitAuthSpec])
-            kwds.setdefault('cmd_flags', {
-                ('n', 'dry-run'): (
-                    {
-                        'Project': {'dry_run': True},
-                    },
-                    "Print dice-report and bump `mailed` but do not actually send tstamp-email."
-                )
-            })
-            super().__init__(**kwds)
-
-        def run(self, *args):
-            if len(args) > 0:
-                raise CmdException('Cmd %r takes no arguments, received %d: %r!'
-                                   % (self.name, len(args), args))
-
-            proj = self.current_project
-            ok = proj.do_sendmail()
-
-            return self._format_result(ok, proj.result,
-                                       is_verbose=self.verbose or proj.dry_run)
-
-    class TparseCmd(_PrjCmd):
-        """
-        Derives *decision* OK/SAMPLE flag from tstamped-response, and store it (or compare with existing).
-
-        SYNTAX
-            %(cmd_chain)s [OPTIONS] [<tstamped-file-1> ...]
-
-        - If '-' is given or no file at all, it reads from STDIN.
-        - If --force is given to overcome any verification/parsing errors,
-          then --project might be needed, to set the project the response belongs to .
-        """
-
-        #examples = trt.Unicode(""" """)
-
-        build_registry = trt.Bool(
-            help="When true, store stamp-response to project referenced, instead of *current*."
-        ).tag(config=True)
-
-        def __init__(self, **kwds):
-            from . import tstamp
-            from . import crypto
-
-            kwds.setdefault('conf_classes', [
-                tstamp.TstampReceiver, crypto.GitAuthSpec, crypto.StamperAuthSpec])
-            kwds.setdefault('cmd_flags', {
-                ('n', 'dry-run'): (
-                    {
-                        'Project': {'dry_run': True},
-                    },
-                    "Pase the tstamped response without storing it in the project."
-                ),
-                'registry': (
-                    {
-                        'TparseCmd': {'build_registry': True},
-                    },
-                    pndlu.first_line(type(self).build_registry.help)
-                ),
-            })
-            super().__init__(**kwds)
-
-        def run(self, *args):
-            if len(args) > 1:
-                raise CmdException('Cmd %r takes one optional filepath, received %d: %r!'
-                                   % (self.name, len(args), args))
-
-            file = '-' if not args else args[0]
-
-            if file == '-':
-                self.log.info("Reading STDIN; paste message verbatim!")
-                mail_text = sys.stdin.read()
-            else:
-                self.log.debug("Reading '%s'...", pndlu.convpath(file))
-                with io.open(file, 'rt') as fin:
-                    mail_text = fin.read()
-
-            proj = self.current_project
-            if self.build_registry:
-                ok = self.projects_db.proj_parse_stamped_and_assign_project(mail_text)
-            else:
-                ok = proj.do_storedice(tstamp_txt=mail_text)
-
-            return self._format_result(proj.result.get('dice', ok),
-                                       proj.result)
-
-    class ExportCmd(_PrjCmd):
-        """
-        Archives specific projects, or *current*, if none specified.
-
-        SYNTAX
-            %(cmd_chain)s [OPTIONS] [<project-1>] ...
-
-        - If '.' is given or no project at all, it reads from *current*.
-        - The archive created is named `CO2MPAS_projects-<timestamp>`.
-        - If the `--ExportCmd.erase_afterwards` flag  is given on the *current-project*,
-          you must then select another one, with `project open` command.
-        """
-        erase_afterwards = trt.Bool(
-            help="Will erase all archived projects from repo."
-        ).tag(config=True)
-
-        def run(self, *args):
-            ## TODO: Move Export/Import code to a Spec.
-            from datetime import datetime
-            import shutil
-            import tempfile
-            import git
-            from git.util import rmtree
-
-            pnames = iset(args) or ['.']
-            self.log.info('Exporting %s...', tuple(pnames))
-
-            repo = self.projects_db.repo
-            pname = repo.active_branch and _ref2pname(repo.active_branch)
-            now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
-            zip_name = '%s-%s' % ("CO2MPAS_projects", now)
-            with tempfile.TemporaryDirectory(prefix='co2mpas_export-') as tdir:
-                exdir = osp.join(tdir, 'repo')
-                exrepo = git.Repo.init(exdir, bare=True)
-                try:
-                    rem = exrepo.create_remote('origin', osp.join(repo.working_dir, '.git'))
-
-                    for p in pnames:
-                        if p == '.':
-                            p = pname
-
-                        pp = _pname2ref_name(p)
-                        if pp not in repo.heads:
-                            self.log.info("Ignoring branch(%s), not a co2mpas project.", p)
-                            continue
-
-                        fetch_infos = rem.fetch(pp)
-                        yield from ('packed: %s' % fi.remote_ref_path
-                                    for fi in fetch_infos)
-
-                    root_dir, base_dir = osp.split(repo.working_dir)
-                    yield 'Archive: %s' % shutil.make_archive(
-                        base_name=zip_name, format='zip',
-                        base_dir=base_dir,
-                        root_dir=root_dir)
-
-                    if self.erase_afterwards:
-                        for p in pnames:
-                            if p == '.':
-                                p = pname
-
-                            tref = _tname2ref_name(p)
-                            for t in list(repo.tags):
-                                if t.name.startswith(tref):
-                                    yield "del tag: %s" % t.name
-                                    repo.delete_tag(t)
-
-                            pbr = repo.heads[_pname2ref_name(p)]
-                            yield "del branch: %s" % pbr.name
-
-                            ## Cannot del checked-out branch!
-                            #
-                            ok = False
-                            try:
-                                if pbr == repo.active_branch:
-                                    if 'tmp' not in repo.heads:
-                                        repo.create_head('tmp')
-                                    repo.heads.tmp.checkout(force=True)
-
-                                repo.delete_head(pbr, force=True)
-                                ok = True
-                            finally:
-                                if not ok:
-                                    pbr.checkout(pbr)
-                finally:
-                    rmtree(exdir)
-
-    class ImportCmd(_PrjCmd):
-        """
-        Import the specified zipped project-archives into repo; reads SDIN if non specified.
-
-        SYNTAX
-            %(cmd_chain)s [OPTIONS] [<zip-file-1> ...]
-
-        - If '-' is given or no file at all, it reads from STDIN.
-        """
-        def run(self, *args):
-            ## TODO: Mve ziproject code to Spec.
-            import tempfile
-            import zipfile
-
-            files = iset(args) or ['-']
-            self.log.info('Importing %s...', tuple(files))
-
-            repo = self.projects_db.repo
-            with tempfile.TemporaryDirectory(prefix='co2mpas_import-') as tdir:
-                for f in files:
-                    if f == '-':
-                        f = sys.stdin
-                        remname = 'stdin'
-                    else:
-                        remname, _ = osp.splitext(osp.basename(f))
-                    exdir = osp.join(tdir, remname)
-
-                    with zipfile.ZipFile(f, "r") as zip_ref:
-                        zip_ref.extractall(exdir)
-
-                    try:
-                        rem = repo.create_remote(remname, osp.join(exdir, 'repo'))
-                        fetch_infos = rem.fetch(force=self.force)
-
-                        for fi in fetch_infos:
-                            path = fi.remote_ref_path
-                            if fi.flags == fi.NEW_HEAD:
-                                repo.create_head(path, fi.ref)
-                            yield 'unpacked: %s' % path
-
-                    except Exception as ex:
-                        self.log.error("Error while importing from '%s: %s",
-                                       ex, exc_info=1)
-                    else:
-                        repo.delete_remote(remname)
-
-    class BackupCmd(_PrjCmd):
-        """
-        Backup projects repository into the archive filepath specified, or current-directory, if none specified.
-
-        SYNTAX
-            %(cmd_chain)s [OPTIONS] [<archive-path>]
-        """
-        erase_afterwards = trt.Bool(
-            help="Will erase the whole repository and ALL PROJECTS contained fter backing them up."
-        ).tag(config=True)
-
-        def run(self, *args):
-            self.log.info('Archiving repo into %r...', args)
-            if len(args) > 1:
-                raise CmdException('Cmd %r takes one optional filepath, received %d: %r!'
-                                   % (self.name, len(args), args))
-            archive_fpath = args and args[0] or None
-            kwds = {}
-            if archive_fpath:
-                base, fname = osp.split(archive_fpath)
-                if base:
-                    kwds['folder'] = base
-                if fname:
-                    kwds['repo_name'] = fname
-            try:
-                return self.projects_db.repo_backup(
-                    erase_afterwards=self.erase_afterwards,
-                    **kwds)
-            except FileNotFoundError as ex:
-                raise baseapp.CmdException(
-                    "Folder '%s' to store archive does not exist!"
-                    "\n  Use --force to create it." % ex)
-
     def __init__(self, **kwds):
         dkwds = {
             'conf_classes': [ProjectsDB, Project],
+            'cmd_flags': {
+                'reset-git-settings': (
+                    {
+                        'ProjectsDB': {'reset_git_settings': True},
+                    }, pndlu.first_line(ProjectsDB.reset_git_settings.help)
+                )
+            },
             'subcommands': baseapp.build_sub_cmds(*all_subcmds),
         }
         dkwds.update(kwds)
         super().__init__(**dkwds)
 
-all_subcmds = (ProjectCmd.LsCmd, ProjectCmd.InitCmd, ProjectCmd.OpenCmd,
-               ProjectCmd.AppendCmd, ProjectCmd.ReportCmd,
-               ProjectCmd.TstampCmd, ProjectCmd.TparseCmd,
-               ProjectCmd.StatusCmd,
-               ProjectCmd.ExportCmd, ProjectCmd.ImportCmd, ProjectCmd.BackupCmd)
+    @property
+    def projects_db(self) -> ProjectsDB:
+        p = ProjectsDB.instance(config=self.config)
+        p.config = self.config
+        return p
+
+    @property
+    def current_project(self) -> Project:
+        return self.projects_db.current_project()
+
+    def _format_result(self, concise, long, *, is_verbose=None):
+        is_verbose = self.verbose if is_verbose is None else is_verbose
+        result = long if is_verbose else concise
+
+        return isinstance(result, str) and result or _mydump(result)
+
+    def run(self, *args):
+        """Just to ensure project-repo created."""
+        self.projects_db.repo
+        super().run(*args)
+
+
+class StatusCmd(ProjectCmd):
+    """
+    Print various information about the projects-repo.
+
+    - Use `--verbose` or `--vlevel (2|3)` to view more infos.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS]
+    """
+    def run(self, *args):
+        if len(args) > 0:
+            raise CmdException('Cmd %r takes no arguments, received %d: %r!'
+                               % (self.name, len(args), args))
+        return self.projects_db.repo_status(as_text=True)
+
+
+class LsCmd(ProjectCmd):
+    """
+    List specified projects, or all, if none specified.
+
+    - Use `--verbose` or `--vlevel (2|3|4)` to view more infos about the projects.
+    - Use '.' to denote current project.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] [<project-1>] ...
+    """
+    def run(self, *args):
+        self.log.info('Listing %s projects...', args or 'all')
+        return self.projects_db.proj_list(*args, as_text=True)
+
+
+class OpenCmd(ProjectCmd):
+    """
+    Make an existing project as *current*.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] <project>
+    """
+    def run(self, *args):
+        self.log.info('Opening project %r...', args)
+        if len(args) != 1:
+            raise CmdException(
+                "Cmd %r takes exactly one argument as the project-name, received %r!"
+                % (self.name, args))
+
+        projDB = self.projects_db
+        proj = projDB.proj_open(args[0])
+
+        return projDB.proj_list(proj.pname, as_text=True) if self.verbose else str(proj)
+
+
+class InitCmd(ProjectCmd):
+    """
+    Create a new project.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] <project>
+    """
+    def run(self, *args):
+        if len(args) != 1:
+            raise CmdException(
+                "Cmd %r takes exactly one argument as the project-name, received %r!"
+                % (self.name, args))
+
+        return self.projects_db.proj_add(args[0])
+
+
+class AppendCmd(ProjectCmd):
+    """
+    Import the specified input/output co2mpas files into the *current project*.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] ( --inp <co2mpas-file> |
+                                  --out <co2mpas-file> |
+                                  <any-file> ) ...
+
+    - To report and tstamp a project, one file (at least) from *inp* & *out* must be given.
+    - If an input/output are already present in the current project, use --force.
+    - Note that any file argument not given with `--inp`, `--out`, will end-up as "other".
+    """
+
+    examples = trt.Unicode("""
+        To import an INPUT co2mpas file, try:
+
+            %(cmd_chain)s --inp co2mpas_input.xlsx
+
+        To import both INPUT and OUTPUT files, and overwrite any already imported try:
+
+            %(cmd_chain)s --force --inp co2mpas_input.xlsx --out co2mpas_results.xlsx
+        """)
+
+    inp = trt.List(
+        trt.Unicode(),
+        help="Specify co2mpas INPUT files; use this option one or more times."
+    ).tag(config=True)
+    out = trt.List(
+        trt.Unicode(),
+        help="Specify co2mpas OUTPUT files; use this option one or more times."
+    ).tag(config=True)
+
+    def __init__(self, **kwds):
+        kwds.setdefault('cmd_aliases', {
+            ('i', 'inp'): ('AppendCmd.inp', pndlu.first_line(type(self).inp.help)),
+            ('o', 'out'): ('AppendCmd.out', pndlu.first_line(type(self).out.help)),
+        })
+        kwds.setdefault('cmd_flags', {
+            ('n', 'dry-run'): (
+                {
+                    'Project': {'dry_run': True},
+                },
+                "Parse files but do not actually store them in the project."
+            ),
+        })
+        super().__init__(**kwds)
+
+    def run(self, *args):
+        ## TODO: Support heuristic inp/out classification
+        pfiles = PFiles(inp=self.inp, out=self.out, other=args)
+        self.log.info("Importing report files...\n  %s", pfiles)
+        if not pfiles.nfiles():
+            raise CmdException(
+                "Cmd %r must be given at least one file argument, received %d: %r!"
+                % (self.name, pfiles.nfiles(), pfiles))
+
+        proj = self.current_project
+        ok = proj.do_addfiles(pfiles=pfiles)
+
+        return self._format_result(ok, proj.result)
+
+
+class ReportCmd(ProjectCmd):
+    """
+    Prepares or re-prints the signed dice-report that can be sent for timestamping.
+
+    - Use --force to generate a new report.
+    - Use --dry-run to see its rough contents without signing and storing it.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS]
+
+    - Eventually the *Dice Report* parameters will be time-stamped and disseminated to
+      TA authorities & oversight bodies with an email, to receive back
+      the sampling decision.
+    - To get report ready for sending it MANUALLY, use tstamp` sub-command.
+
+    """
+
+    #examples = trt.Unicode(""" """)
+
+    def __init__(self, **kwds):
+        from . import crypto
+        from . import report
+
+        kwds.setdefault('conf_classes', [report.Report, crypto.GitAuthSpec])
+        kwds.setdefault('cmd_flags', {
+            ('n', 'dry-run'): (
+                {
+                    'Project': {'dry_run': True},
+                },
+                "Verify dice-report do not actually store it in the project."
+            )
+        })
+        super().__init__(**kwds)
+
+    def run(self, *args):
+        self.log.info('Tagging project %r...', args)
+        if len(args) > 0:
+            raise CmdException('Cmd %r takes no arguments, received %d: %r!'
+                               % (self.name, len(args), args))
+
+        proj = self.current_project
+        ok = proj.do_report()
+
+        assert isinstance(proj.result, str)
+        return ok and proj.result or ok
+
+
+class TstampCmd(ProjectCmd):
+    """
+    IRREVOCABLY send report to the time-stamp service, or print it for sending it manually (--dry-run).
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS]
+
+    - THIS COMMAND IS IIREVOCABLE!
+    - Use --dry-run if you want to send the email yourself.
+      Remember to use the appropriate 'Subject'.
+    - The --dry-run option prints the email as it would have been sent; you may
+      copy-paste this lient and send it, formatted as 'plain-text' (not 'HTML').
+    """
+
+    #examples = trt.Unicode(""" """)
+
+    def __init__(self, **kwds):
+        from . import crypto
+        from . import tstamp
+
+        kwds.setdefault('conf_classes', [tstamp.TstampSender, crypto.GitAuthSpec])
+        kwds.setdefault('cmd_flags', {
+            ('n', 'dry-run'): (
+                {
+                    'Project': {'dry_run': True},
+                },
+                "Print dice-report and bump `mailed` but do not actually send tstamp-email."
+            )
+        })
+        super().__init__(**kwds)
+
+    def run(self, *args):
+        if len(args) > 0:
+            raise CmdException('Cmd %r takes no arguments, received %d: %r!'
+                               % (self.name, len(args), args))
+
+        proj = self.current_project
+        ok = proj.do_sendmail()
+
+        return self._format_result(ok, proj.result,
+                                   is_verbose=self.verbose or proj.dry_run)
+
+
+class TparseCmd(ProjectCmd):
+    """
+    Derives *decision* OK/SAMPLE flag from tstamped-response, and store it (or compare with existing).
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] [<tstamped-file-1> ...]
+
+    - If '-' is given or no file at all, it reads from STDIN.
+    - If --force is given to overcome any verification/parsing errors,
+      then --project might be needed, to set the project the response belongs to .
+    """
+
+    #examples = trt.Unicode(""" """)
+
+    build_registry = trt.Bool(
+        help="When true, store stamp-response to project referenced, instead of *current*."
+    ).tag(config=True)
+
+    def __init__(self, **kwds):
+        from . import tstamp
+        from . import crypto
+
+        kwds.setdefault('conf_classes', [
+            tstamp.TstampReceiver, crypto.GitAuthSpec, crypto.StamperAuthSpec])
+        kwds.setdefault('cmd_flags', {
+            ('n', 'dry-run'): (
+                {
+                    'Project': {'dry_run': True},
+                },
+                "Pase the tstamped response without storing it in the project."
+            ),
+            'as-registry': (
+                {
+                    'TparseCmd': {'build_registry': True},
+                },
+                pndlu.first_line(type(self).build_registry.help)
+            ),
+        })
+        super().__init__(**kwds)
+
+    def run(self, *args):
+        if len(args) > 1:
+            raise CmdException('Cmd %r takes one optional filepath, received %d: %r!'
+                               % (self.name, len(args), args))
+
+        file = '-' if not args else args[0]
+
+        if file == '-':
+            self.log.info("Reading STDIN; paste message verbatim!")
+            mail_text = sys.stdin.read()
+        else:
+            self.log.debug("Reading '%s'...", pndlu.convpath(file))
+            with io.open(file, 'rt') as fin:
+                mail_text = fin.read()
+
+        if self.build_registry:
+            ok = self.projects_db.proj_parse_stamped_and_assign_project(mail_text)
+        else:
+            proj = self.current_project
+            ok = proj.do_storedice(tstamp_txt=mail_text)
+
+        return self._format_result(proj.result.get('dice', ok),
+                                   proj.result)
+
+
+class ExportCmd(ProjectCmd):
+    """
+    Archives specific projects, or *current*, if none specified.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] [<project-1>] ...
+
+    - If '.' is given or no project at all, it reads from *current*.
+    - The archive created is named `CO2MPAS_projects-<timestamp>`.
+    - If the `--ExportCmd.erase_afterwards` flag  is given on the *current-project*,
+      you must then select another one, with `project open` command.
+    """
+    erase_afterwards = trt.Bool(
+        help="Will erase all archived projects from repo."
+    ).tag(config=True)
+
+    def run(self, *args):
+        ## TODO: Move Export/Import code to a Spec.
+        from datetime import datetime
+        import shutil
+        import tempfile
+        import git
+        from git.util import rmtree
+
+        pnames = iset(args) or ['.']
+        self.log.info('Exporting %s...', tuple(pnames))
+
+        repo = self.projects_db.repo
+        pname = repo.active_branch and _ref2pname(repo.active_branch)
+        now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
+        zip_name = '%s-%s' % ("CO2MPAS_projects", now)
+        with tempfile.TemporaryDirectory(prefix='co2mpas_export-') as tdir:
+            exdir = osp.join(tdir, 'repo')
+            exrepo = git.Repo.init(exdir, bare=True)
+            try:
+                rem = exrepo.create_remote('origin', osp.join(repo.working_dir, '.git'))
+
+                for p in pnames:
+                    if p == '.':
+                        p = pname
+
+                    pp = _pname2ref_name(p)
+                    if pp not in repo.heads:
+                        self.log.info("Ignoring branch(%s), not a co2mpas project.", p)
+                        continue
+
+                    fetch_infos = rem.fetch(pp)
+                    yield from ('packed: %s' % fi.remote_ref_path
+                                for fi in fetch_infos)
+
+                root_dir, base_dir = osp.split(repo.working_dir)
+                yield 'Archive: %s' % shutil.make_archive(
+                    base_name=zip_name, format='zip',
+                    base_dir=base_dir,
+                    root_dir=root_dir)
+
+                if self.erase_afterwards:
+                    for p in pnames:
+                        if p == '.':
+                            p = pname
+
+                        tref = _tname2ref_name(p)
+                        for t in list(repo.tags):
+                            if t.name.startswith(tref):
+                                yield "del tag: %s" % t.name
+                                repo.delete_tag(t)
+
+                        pbr = repo.heads[_pname2ref_name(p)]
+                        yield "del branch: %s" % pbr.name
+
+                        ## Cannot del checked-out branch!
+                        #
+                        ok = False
+                        try:
+                            if pbr == repo.active_branch:
+                                if 'tmp' not in repo.heads:
+                                    repo.create_head('tmp')
+                                repo.heads.tmp.checkout(force=True)
+
+                            repo.delete_head(pbr, force=True)
+                            ok = True
+                        finally:
+                            if not ok:
+                                pbr.checkout(pbr)
+            finally:
+                rmtree(exdir)
+
+
+class ImportCmd(ProjectCmd):
+    """
+    Import the specified zipped project-archives into repo; reads SDIN if non specified.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] [<zip-file-1> ...]
+
+    - If '-' is given or no file at all, it reads from STDIN.
+    """
+    def run(self, *args):
+        ## TODO: Mve ziproject code to Spec.
+        import tempfile
+        import zipfile
+
+        files = iset(args) or ['-']
+        self.log.info('Importing %s...', tuple(files))
+
+        repo = self.projects_db.repo
+        with tempfile.TemporaryDirectory(prefix='co2mpas_import-') as tdir:
+            for f in files:
+                if f == '-':
+                    f = sys.stdin
+                    remname = 'stdin'
+                else:
+                    remname, _ = osp.splitext(osp.basename(f))
+                exdir = osp.join(tdir, remname)
+
+                with zipfile.ZipFile(f, "r") as zip_ref:
+                    zip_ref.extractall(exdir)
+
+                try:
+                    rem = repo.create_remote(remname, osp.join(exdir, 'repo'))
+                    fetch_infos = rem.fetch(force=self.force)
+
+                    for fi in fetch_infos:
+                        path = fi.remote_ref_path
+                        if fi.flags == fi.NEW_HEAD:
+                            repo.create_head(path, fi.ref)
+                        yield 'unpacked: %s' % path
+
+                except Exception as ex:
+                    self.log.error("Error while importing from '%s: %s",
+                                   ex, exc_info=1)
+                else:
+                    repo.delete_remote(remname)
+
+
+class BackupCmd(ProjectCmd):
+    """
+    Backup projects repository into the archive filepath specified, or current-directory, if none specified.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] [<archive-path>]
+    """
+    erase_afterwards = trt.Bool(
+        help="Will erase the whole repository and ALL PROJECTS contained fter backing them up."
+    ).tag(config=True)
+
+    def run(self, *args):
+        self.log.info('Archiving repo into %r...', args)
+        if len(args) > 1:
+            raise CmdException('Cmd %r takes one optional filepath, received %d: %r!'
+                               % (self.name, len(args), args))
+        archive_fpath = args and args[0] or None
+        kwds = {}
+        if archive_fpath:
+            base, fname = osp.split(archive_fpath)
+            if base:
+                kwds['folder'] = base
+            if fname:
+                kwds['repo_name'] = fname
+        try:
+            return self.projects_db.repo_backup(
+                erase_afterwards=self.erase_afterwards,
+                **kwds)
+        except FileNotFoundError as ex:
+            raise baseapp.CmdException(
+                "Folder '%s' to store archive does not exist!"
+                "\n  Use --force to create it." % ex)
+
+
+all_subcmds = (LsCmd, InitCmd, OpenCmd,
+               AppendCmd, ReportCmd,
+               TstampCmd, TparseCmd,
+               StatusCmd,
+               ExportCmd, ImportCmd, BackupCmd)

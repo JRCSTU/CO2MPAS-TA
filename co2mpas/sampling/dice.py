@@ -229,5 +229,5 @@ if __name__ == '__main__':
     #c = trtc.get_config()
     #c.Application.log_level=0
     #c.Spec.log_level='ERROR'
-    #cmd = chain_cmds([Co2dice, ProjectCmd, ProjectCmd.InitCmd], argv=['project_foo'])
+    #cmd = chain_cmds([Co2dice, ProjectCmd, InitCmd], argv=['project_foo'])
     # baseapp.consume_cmd(cmd.start())
