@@ -325,6 +325,9 @@ class Project(transitions.Machine, ProjectSpec):
                              event.transition.source, event.transition.dest)
         return accepted
 
+    def _is_dry_run(self, event):
+        return self.dry_run
+
     def _is_inp_files(self, event):
         pfiles = _evarg(event, 'pfiles', PFiles)
         accepted = bool(pfiles and pfiles.inp and
@@ -395,6 +398,7 @@ class Project(transitions.Machine, ProjectSpec):
             - [do_report,  mailed,     tagged,       _is_force        ]
 
             - [do_sendmail,  tagged,     mailed                         ]
+            - [do_sendmail,  mailed,     mailed,     _is_dry_run        ]
 
             - trigger:    do_storedice
               source:     mailed
@@ -716,7 +720,9 @@ class Project(transitions.Machine, ProjectSpec):
                 """))
             self.result = str(dice_mail_mime)
 
-        event.kwargs['action'] = '%s stamp-email' % ('FAKED' if dry_run else 'sent')
+        if event.transition.source != 'mailed':
+            ## Don't repeat your self...
+            event.kwargs['action'] = '%s stamp-email' % ('FAKED' if dry_run else 'sent')
 
     def _parse_response(self, event) -> bool:
         """
