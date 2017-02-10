@@ -109,7 +109,14 @@ class Co2dice(Cmd):
 
     name = trt.Unicode(APPNAME)
     version = __version__
-    #examples = """TODO: Write cmd-line examples."""
+    examples = trt.Unicode("""
+        Try the `project` sub-command:
+            %(cmd_chain)s  project
+
+        To check where is your configuration path, use:
+            %(cmd_chain)s  config  show
+
+    """)
 
     subcommands = OrderedDict([
         ('project', ('co2mpas.sampling.project.ProjectCmd',

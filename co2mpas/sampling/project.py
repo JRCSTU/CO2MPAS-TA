@@ -1444,22 +1444,27 @@ class ProjectCmd(baseapp.Cmd):
 
     examples = trt.Unicode("""
         To list all existing projects, try:
-            %(cmd_chain)s ls
-        To open a project (make it the *current*), issue:
-            %(cmd_chain)s open RL-77-AAA-2016-0000
+            %(cmd_chain)s  ls
+
+        To make a new project, type:
+            %(cmd_chain)s  init RL-77-AAA-2016-0000
+
+        or to open an existing one (to become the *current* one):
+            %(cmd_chain)s  open IP-10-AAA-2017-1006
 
         To see more infos about the current project, use:
-            %(cmd_chain)s ls. -v
+            %(cmd_chain)s  ls. -v
 
         A typical workflow is this:
-            %(cmd_chain)s init RL-12-BM3-2016-0000
-            %(cmd_chain)s append inp=input.xlsx out=output.xlsx other=co2mpas.log
-            %(cmd_chain)s report
-            %(cmd_chain)s tstamp
-            cat <mail-text> | %(cmd_chain)s dice
+            %(cmd_chain)s  init RL-12-BM3-2016-0000
+            %(cmd_chain)s  append  --inp input.xlsx  --out output.xlsx   summary.xlsx  co2mpas.log
+            %(cmd_chain)s  report
+            %(cmd_chain)s  tstamp
+            cat <tstamp-response-text> | %(cmd_chain)s  tparse
+            %(cmd_chain)s  export
 
         You may enquiry the status the projects database:
-            %(cmd_chain)s status --vlevel 2
+            %(cmd_chain)s  status --vlevel 2
         """)
 
     def __init__(self, **kwds):
