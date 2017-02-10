@@ -422,7 +422,8 @@ class Project(transitions.Machine, ProjectSpec):
                          initial=states[0],
                          transitions=trans,
                          send_event=True,
-                         before_state_change=['_cb_check_my_index', '_cb_clear_result'],
+                         global_prepare=['_cb_clear_result'],
+                         before_state_change=['_cb_check_my_index'],
                          after_state_change='_cb_commit_or_tag',
                          auto_transitions=False,
                          name=pname,
@@ -462,7 +463,11 @@ class Project(transitions.Machine, ProjectSpec):
         return cmsg
 
     def _cb_clear_result(self, event):
-        """ Executed BEFORE exiting any state, and clears any results from previous transitions. """
+        """
+        Executed on GLOBAL PREPARE, and clears any results from previous transitions.
+
+        TODO: REQUIRES ankostis transitions!!
+        """
         self.result = None
 
     def _cb_check_my_index(self, event):
