@@ -1371,7 +1371,8 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             return proj.do_storedice(verdict=verdict)
         else:
             ## TODO: build_registry
-            print(report)
+            self.log.warning("Registration of arbitrary Dice-reports is not implemented yet!")
+            return verdict
 
     def proj_list(self, *pnames: Text, verbose=None,
                   as_text=False, fields=None):
@@ -1773,26 +1774,30 @@ class TparseCmd(ProjectCmd):
                 mail_text = fin.read()
 
         if self.build_registry:
-            ok = self.projects_db.proj_parse_stamped_and_assign_project(mail_text)
+            report = self.projects_db.proj_parse_stamped_and_assign_project(mail_text)
+            ok = False
         else:
             proj = self.current_project
             ok = proj.do_storedice(tstamp_txt=mail_text)
+            report = proj.result
 
-        return self._format_result(proj.result.get('dice', ok),
-                                   proj.result)
+        short, long = report.get('dice', ok), report
+
+        return self._format_result(short, long)
 
 
 class ExportCmd(ProjectCmd):
     """
-    Archives specific projects, or *current*, if none specified.
+    Archives projects.
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<project-1>] ...
 
-    - If '.' is given or no project at all, it reads from *current*.
     - The archive created is named `CO2MPAS_projects-<timestamp>`.
     - If the `--ExportCmd.erase_afterwards` flag  is given on the *current-project*,
       you must then select another one, with `project open` command.
+      For that, f '.' is given, it deletes the *current*, and if f no args given,
+      it DELETES ALL projects.
     """
     erase_afterwards = trt.Bool(
         help="Will erase all archived projects from repo."
@@ -1824,51 +1829,65 @@ class ExportCmd(ProjectCmd):
         with tempfile.TemporaryDirectory(prefix='co2mpas_export-') as tdir:
             exdir = osp.join(tdir, 'repo')
             exrepo = git.Repo.init(exdir, bare=True)
+            remname = osp.join(repo.working_dir, '.git')
             try:
-                rem = exrepo.create_remote('origin', osp.join(repo.working_dir, '.git'))
+                rem = exrepo.create_remote('origin', remname)
+                try:
+                    ## `rem` pointing to my (.co2dice) repo.
 
-                for p in pnames:
-                    pp = _pname2ref_name(p)
-                    if pp not in repo.heads:
-                        self.log.info("Ignoring branch(%s), not a co2mpas project.", p)
-                        continue
-
-                    fetch_infos = rem.fetch(pp)
-                    yield from ('packed: %s' % fi.remote_ref_path
-                                for fi in fetch_infos)
-
-                root_dir, base_dir = osp.split(exrepo.working_dir)
-                yield 'Archive: %s' % shutil.make_archive(
-                    base_name=zip_name, format='zip',
-                    base_dir=base_dir,
-                    root_dir=root_dir)
-
-                if self.erase_afterwards:
                     for p in pnames:
-                        tref = _tname2ref_name(p)
-                        for t in list(repo.tags):
-                            if t.name.startswith(tref):
-                                yield "del tag: %s" % t.name
-                                repo.delete_tag(t)
+                        pp = _pname2ref_name(p)
+                        if pp not in repo.heads:
+                            self.log.info("Ignoring branch(%s), not a co2mpas project.", p)
+                            continue
 
-                        pbr = repo.heads[_pname2ref_name(p)]
-                        yield "del branch: %s" % pbr.name
+                        ## FIXME: Either ALL TAGS (--tags) or NONE without it!
+                        fetch_infos = rem.fetch(pp, tags=True)
 
-                        ## Cannot del checked-out branch!
+                        ## Create local branches in exrepo
                         #
-                        ok = False
-                        try:
-                            if pbr == repo.active_branch:
-                                if 'tmp' not in repo.heads:
-                                    repo.create_head('tmp')
-                                repo.heads.tmp.checkout(force=True)
+                        for fi in fetch_infos:
+                            path = fi.remote_ref_path
+                            #if fi.flags == fi.NEW_HEAD:  ## FIXME: Why only 0 is bransh!!
+                            if fi.flags == 0:  ## FIXME: Why only 0 is bransh!!
+                                exrepo.create_head(path, fi.ref)
+                            yield 'packed: %s' % path
 
-                            repo.delete_head(pbr, force=True)
-                            ok = True
-                        finally:
-                            if not ok:
-                                pbr.checkout(pbr)
+                    root_dir, base_dir = osp.split(exrepo.working_dir)
+                    yield 'Archive: %s' % shutil.make_archive(
+                        base_name=zip_name, format='zip',
+                        base_dir=base_dir,
+                        root_dir=root_dir)
+
+                    if self.erase_afterwards:
+                        for p in pnames:
+                            tref = _tname2ref_name(p)
+                            for t in list(repo.tags):
+                                if t.name.startswith(tref):
+                                    yield "del tag: %s" % t.name
+                                    repo.delete_tag(t)
+
+                            pbr = repo.heads[_pname2ref_name(p)]
+                            yield "del branch: %s" % pbr.name
+
+                            ## Cannot del checked-out branch!
+                            #
+                            ok = False
+                            try:
+                                if pbr == repo.active_branch:
+                                    if 'tmp' not in repo.heads:
+                                        repo.create_head('tmp')
+                                    repo.heads.tmp.checkout(force=True)
+
+                                repo.delete_head(pbr, force=True)
+                                ok = True
+                            finally:
+                                if not ok:
+                                    pbr.checkout(pbr)
+                finally:
+                    exrepo.delete_remote(rem)
             finally:
+                del exrepo
                 rmtree(exdir)
 
 
