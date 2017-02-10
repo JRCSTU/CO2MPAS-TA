@@ -200,7 +200,7 @@ def _find_dice_tag(repo, pname, max_dices_per_project,
                     return tags[tagname]
 
     raise CmdException("Too many dices(%d) for project '%s'!"
-                       "\n  Maybe delete project and start all over?" % 
+                       "\n  Maybe delete project and start all over?" %
                        (i + 1, pname))
 
 
@@ -1754,7 +1754,7 @@ class ProjectCmd(_PrjCmd):
             return self._format_result(proj.result.get('dice', ok),
                                        proj.result)
 
-    class ZipCmd(_PrjCmd):
+    class ExportCmd(_PrjCmd):
         """
         Archives specific projects, or *current*, if none specified.
 
@@ -1763,7 +1763,7 @@ class ProjectCmd(_PrjCmd):
 
         - If '.' is given or no project at all, it reads from *current*.
         - The archive created is named `CO2MPAS_projects-<timestamp>`.
-        - If the `--ZipCmd.erase_afterwards` flag  is given on the *current-project*,
+        - If the `--ExportCmd.erase_afterwards` flag  is given on the *current-project*,
           you must then select another one, with `project open` command.
         """
         erase_afterwards = trt.Bool(
@@ -1771,7 +1771,7 @@ class ProjectCmd(_PrjCmd):
         ).tag(config=True)
 
         def run(self, *args):
-            ## TODO: Mve ziproject code to Spec.
+            ## TODO: Move Export/Import code to a Spec.
             from datetime import datetime
             import shutil
             import tempfile
@@ -1779,13 +1779,13 @@ class ProjectCmd(_PrjCmd):
             from git.util import rmtree
 
             pnames = iset(args) or ['.']
-            self.log.info('Zipping %s...', tuple(pnames))
+            self.log.info('Exporting %s...', tuple(pnames))
 
             repo = self.projects_db.repo
             pname = repo.active_branch and _ref2pname(repo.active_branch)
             now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
             zip_name = '%s-%s' % ("CO2MPAS_projects", now)
-            with tempfile.TemporaryDirectory(prefix='co2mpas_unzip-') as tdir:
+            with tempfile.TemporaryDirectory(prefix='co2mpas_export-') as tdir:
                 exdir = osp.join(tdir, 'repo')
                 exrepo = git.Repo.init(exdir, bare=True)
                 try:
@@ -1841,7 +1841,7 @@ class ProjectCmd(_PrjCmd):
                 finally:
                     rmtree(exdir)
 
-    class UnzipCmd(_PrjCmd):
+    class ImportCmd(_PrjCmd):
         """
         Import the specified zipped project-archives into repo; reads SDIN if non specified.
 
@@ -1856,10 +1856,10 @@ class ProjectCmd(_PrjCmd):
             import zipfile
 
             files = iset(args) or ['-']
-            self.log.info('Unzipping %s...', tuple(files))
+            self.log.info('Importing %s...', tuple(files))
 
             repo = self.projects_db.repo
-            with tempfile.TemporaryDirectory(prefix='co2mpas_unzip-') as tdir:
+            with tempfile.TemporaryDirectory(prefix='co2mpas_import-') as tdir:
                 for f in files:
                     if f == '-':
                         f = sys.stdin
@@ -1932,4 +1932,4 @@ all_subcmds = (ProjectCmd.LsCmd, ProjectCmd.InitCmd, ProjectCmd.OpenCmd,
                ProjectCmd.AppendCmd, ProjectCmd.ReportCmd,
                ProjectCmd.TstampCmd, ProjectCmd.TparseCmd,
                ProjectCmd.StatusCmd,
-               ProjectCmd.ZipCmd, ProjectCmd.UnzipCmd, ProjectCmd.BackupCmd)
+               ProjectCmd.ExportCmd, ProjectCmd.ImportCmd, ProjectCmd.BackupCmd)

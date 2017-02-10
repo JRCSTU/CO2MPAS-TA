@@ -212,7 +212,7 @@ if __name__ == '__main__':
     #argv = 'project append  inp=tests/sampling/input.xlsx'.split()
     #argv = 'project report -n'.split()
     #argv = 'project report --vfids --project'.split()
-    #argv = 'project zip FT-12-ABC-2016-0001 P1'.split()
+    #argv = 'project export FT-12-ABC-2016-0001 P1'.split()
 
     #argv = 'project ls.'.split()
     #argv = 'project init PROJ1 -f'.split()
