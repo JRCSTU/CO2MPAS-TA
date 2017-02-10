@@ -1704,8 +1704,8 @@ class ProjectCmd(_PrjCmd):
 
         #examples = trt.Unicode(""" """)
 
-        auto_store = trt.Bool(
-            help="When true, store stamp-response to project referenced, otherwise, to *current*."
+        build_registry = trt.Bool(
+            help="When true, store stamp-response to project referenced, instead of *current*."
         ).tag(config=True)
 
         def __init__(self, **kwds):
@@ -1721,11 +1721,11 @@ class ProjectCmd(_PrjCmd):
                     },
                     "Pase the tstamped response without storing it in the project."
                 ),
-                'auto-store': (
+                'registry': (
                     {
-                        'TparseCmd': {'auto_store': True},
+                        'TparseCmd': {'build_registry': True},
                     },
-                    pndlu.first_line(type(self).auto_store.help)
+                    pndlu.first_line(type(self).build_registry.help)
                 ),
             })
             super().__init__(**kwds)
@@ -1746,7 +1746,7 @@ class ProjectCmd(_PrjCmd):
                     mail_text = fin.read()
 
             proj = self.current_project
-            if self.auto_store:
+            if self.build_registry:
                 ok = self.projects_db.proj_parse_stamped_and_assign_project(mail_text)
             else:
                 ok = proj.do_storedice(tstamp_txt=mail_text)
