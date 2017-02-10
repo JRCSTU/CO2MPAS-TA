@@ -652,7 +652,8 @@ class Project(transitions.Machine, ProjectSpec):
         repo = self.repo
         tagref = _find_dice_tag(repo, self.pname,
                                 self.max_dices_per_project)
-        gen_report = not tagref or self.force
+        # FIXME: Use state-condition to capture `wltp_iof`
+        gen_report = event.transition.source == 'wltp_iof' or not tagref or self.force
         if gen_report:
             self.log.info('Preparing %s report: %s...',
                           'ANEW' if self.force else '', event.kwargs)
@@ -663,7 +664,7 @@ class Project(transitions.Machine, ProjectSpec):
             if self.dry_run:
                 self.log.warning("DRY-RUN: Not actually committed the report, "
                                  "and it is not yet signed!")
-                self.result = _mydump(report)
+                self.result = report
 
                 return
 
@@ -672,6 +673,7 @@ class Project(transitions.Machine, ProjectSpec):
             event.kwargs['report'] = report
         else:
             assert tagref
+            self.log.info("Report already generated  as '%s'.", tagref.path)
             self.result = _read_dice_tag(repo, tagref)
 
     def _cb_send_email(self, event):
@@ -1618,14 +1620,10 @@ class ProjectCmd(_PrjCmd):
                                    % (self.name, len(args), args))
 
             proj = self.current_project
-            repo = proj.repo
-            diceref = _find_dice_tag(repo, proj.pname, proj.max_dices_per_project)
-            if diceref and not self.force:
-                return _read_dice_tag(repo, diceref)
-            else:
-                ok = proj.do_report()
+            ok = proj.do_report()
 
-                return ok and proj.result or ok
+            assert isinstance(proj.result, str)
+            return ok and proj.result or ok
 
     class TstampCmd(_PrjCmd):
         """
