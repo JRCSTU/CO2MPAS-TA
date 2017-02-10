@@ -1849,8 +1849,8 @@ class ExportCmd(ProjectCmd):
                         for fi in fetch_infos:
                             path = fi.remote_ref_path
                             #if fi.flags == fi.NEW_HEAD:  ## FIXME: Why only 0 is bransh!!
-                            if fi.flags == 0:  ## FIXME: Why only 0 is bransh!!
-                                exrepo.create_head(path, fi.ref)
+                            #if fi.flags == 0:  ## FIXME: Why only 0 is bransh!!
+                            #    exrepo.create_head(path, fi.ref)
                             yield 'packed: %s' % path
 
                     root_dir, base_dir = osp.split(exrepo.working_dir)
