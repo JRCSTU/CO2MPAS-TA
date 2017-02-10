@@ -199,8 +199,9 @@ def _find_dice_tag(repo, pname, max_dices_per_project,
 
                     return tags[tagname]
 
-    raise CmdException("Too many dices for this project '%s'!"
-                       "\n  Maybe delete project and start all over?" % pname)
+    raise CmdException("Too many dices(%d) for project '%s'!"
+                       "\n  Maybe delete project and start all over?" % 
+                       (i + 1, pname))
 
 
 def _read_dice_tag(repo, tag: Union[Text, 'git.TagReference']):
@@ -1513,9 +1514,10 @@ class ProjectCmd(_PrjCmd):
                     "Cmd %r takes exactly one argument as the project-name, received %r!"
                     % (self.name, args))
 
-            proj = self.projects_db.proj_open(args[0])
+            projDB = self.projects_db
+            proj = projDB.proj_open(args[0])
 
-            return proj.result if self.verbose else proj
+            return projDB.proj_list(proj.pname, as_text=True) if self.verbose else str(proj)
 
     class InitCmd(_PrjCmd):
         """
@@ -1666,7 +1668,7 @@ class ProjectCmd(_PrjCmd):
                     {
                         'Project': {'dry_run': True},
                     },
-                    "Verify dice-report but not actually send tstamp email."
+                    "Print dice-report and bump `mailed` but do not actually send tstamp-email."
                 )
             })
             super().__init__(**kwds)
@@ -1830,8 +1832,6 @@ class ProjectCmd(_PrjCmd):
                             finally:
                                 if not ok:
                                     pbr.checkout(pbr)
-
-
                 finally:
                     rmtree(exdir)
 
