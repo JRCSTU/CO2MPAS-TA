@@ -163,6 +163,7 @@ setup(
     #     'sphinx',
     # ],
     install_requires=[
+        'rainbow_logging_handler',
         'pandas',
         'xlsxwriter',
         'scikit-learn',

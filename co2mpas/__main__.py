@@ -166,7 +166,7 @@ def _set_numpy_logging():
         np.seterr(divide='ignore', invalid='ignore')
 
 
-def init_logging(level=None, frmt=None, logconf_file=None):
+def init_logging(level=None, frmt=None, logconf_file=None, color=False):
     if logconf_file:
         if osp.splitext(logconf_file)[1] in '.yaml' or '.yml':
             with io.open(logconf_file) as fd:
@@ -182,6 +182,20 @@ def init_logging(level=None, frmt=None, logconf_file=None):
         logging.basicConfig(level=level, format=frmt)
         rlog = logging.getLogger()
         rlog.level = level  # because `basicConfig()` does not reconfig root-logger when re-invoked.
+
+        if color:
+            from rainbow_logging_handler import RainbowLoggingHandler
+
+            color_handler = RainbowLoggingHandler(sys.stderr, color_funcName=('black', 'yellow', True))
+            formatter = formatter = logging.Formatter(frmt)
+            color_handler.setFormatter(formatter)
+
+            ## Be conservative and apply color only when
+            #  log-config looks like the "basic".
+            #
+            if rlog.handlers and isinstance(rlog.handlers[0], logging.StreamHandler):
+                rlog.removeHandler(rlog.handlers[0])
+                rlog.addHandler(color_handler)
 
     _set_numpy_logging()
 
@@ -469,7 +483,7 @@ def _main(*args):
         level = logging.DEBUG
     if quiet:
         level = logging.WARNING
-    init_logging(level=level, logconf_file=opts.get('--logconf'))
+    init_logging(level=level, logconf_file=opts.get('--logconf'), color=True)
 
     if opts['--version']:
         v = build_version_string(verbose)

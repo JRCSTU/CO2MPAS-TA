@@ -2,7 +2,7 @@
 
 ## C-backends (under Anaconda use `conda` to install them)
 #
-
+rainbow_logging_handler
 pandas
 numpy
 scipy
