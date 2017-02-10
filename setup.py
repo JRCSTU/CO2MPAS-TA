@@ -189,7 +189,7 @@ setup(
         'Pillow',           ## for tkui
         'toolz',
         'schedula>=0.1.9',
-        'formulas>=0.0.3',
+        'formulas>=0.0.4',
         'traitlets>=5.0.0',
         'python-gnupg',
         'gitpython>=2.1.0', ## Win+Cygwin support
