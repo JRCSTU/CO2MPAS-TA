@@ -177,7 +177,8 @@ def main(argv=None, log_level=None, **app_init_kwds):
         #  to facilitate debugging from log/ex messages, unless
         #  tyarkoni/transitions#179 & tyarkoni/transitions#180 merged.
         log.debug('App exited due to: %s', ex, exc_info=1)
-        exit(ex.args[0])
+        log.error(ex.args[0])
+        exit(-1)
     except Exception as ex:
         ## Shell will see any exception x2, but we have to log it anyways,
         #  in case log has been redirected to a file.
