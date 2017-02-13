@@ -188,7 +188,7 @@ def plot_time_series(
     x_id = dsp_utl.stlp(x_id)
     x, x_id = dsp.get_node(*x_id)
     if x_label is None:
-        x_label = dsp.get_node(*x_id, node_attr='description')[0][0]
+        x_label = dsp.get_node(*x_id, node_attr='description')[0]
 
     if x_label:
         plt.xlabel(x_label)
@@ -209,7 +209,7 @@ def plot_time_series(
                 y, y_id = dsp.get_node(*y_id)
 
                 if des:
-                    label = dsp.get_node(*y_id, node_attr='description')[0][0]
+                    label = dsp.get_node(*y_id, node_attr='description')[0]
 
                 if y_label is None:
                     y_label = label
