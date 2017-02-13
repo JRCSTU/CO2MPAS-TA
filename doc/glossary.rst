@@ -154,7 +154,7 @@ Road loads
 ----------
 .. glossary::
     ``vehicle_mass.WLTP-H``
-        Dyno applied mass [kg].
+        Simulated inertia applied during the WLTP-H test on the dyno [kg].
 
     ``f0.WLTP-H``
         Set the F0 road load coefficient for WLTP-H. This scalar corresponds to the rolling resistance force [N], when the angle slope is 0.
@@ -167,7 +167,7 @@ Road loads
         :math:`[\frac{N}{{kmh}^2}]`.
 
     ``vehicle_mass.WLTP-L``
-        Dyno applied mass [kg].
+        Simulated inertia applied during the WLTP-H test on the dyno [kg].
 
     ``f0.WLTP-L``
         Set the F0 road load coefficient for WLTP-L. This scalar corresponds to the rolling resistance force [N], when the angle slope is 0.
