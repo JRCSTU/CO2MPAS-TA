@@ -388,28 +388,23 @@ def _dtc(error=None, read=True, **kwargs):
 
 
 def _parameters2str(data):
-    from lmfit import Parameters, Parameter
+    from lmfit import Parameters
     if isinstance(data, Parameters):
-        s = []
-        for k, v in data.items():
-            s.append("('%s', %s)" % (k, _parameters2str(v)))
-        return 'Parameters(None, OrderedDict([%s]))' % ', '.join(s)
-    elif isinstance(data, Parameter):
-        d = [
-            ('name', "'%s'" % data.name),
-            ('vary', data.vary),
-            ('max', data.max),
-            ('min', data.min),
-            ('expr', "'%s'" % data._expr if data._expr else 'None'),
-            ('value', data._val)
-        ]
-        return 'Parameter(%s)' % ', '.join('%s=%s' % v for v in d)
+        return data.dumps(sort_keys=True)
 
+
+def _str2parameters(data):
+    if isinstance(data, str):
+        from lmfit import Parameters
+        p = Parameters()
+        p.loads(data)
+        return p
+    return data
 
 def _parameters(error=None, read=True):
     if read:
         from lmfit import Parameters
-        return _type(type=Parameters, error=error)
+        return And(Use(_str2parameters), _type(type=Parameters, error=error))
     else:
         return And(_parameters(), Use(_parameters2str), error=error)
 

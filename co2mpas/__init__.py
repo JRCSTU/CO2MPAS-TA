@@ -19,8 +19,8 @@
     ~plan
     ~utils
     ~report
-
 """
+
 from ._version import (__version__, __updated__, __file_version__, __input_file_version__)
 
 __copyright__ = "Copyright (C) 2014-2016 European Commission (JRC)"
