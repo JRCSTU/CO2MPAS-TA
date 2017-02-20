@@ -119,7 +119,12 @@ class _SafeRANSACRegressor(RANSACRegressor):
             return super(_SafeRANSACRegressor, self).fit(X, y, **kwargs)
         except ValueError as ex:
             if self.residual_threshold is None:
-                rt = np.median(np.abs(y - np.median(y)))
+                aym = np.abs(y - np.median(y))
+                rt = np.median(aym)
+                if np.isclose(rt, 0.0):
+                    b = ~np.isclose(aym, 0.0)
+                    if b.any():
+                        rt = np.median(aym[b])
                 self.residual_threshold = rt + np.finfo(np.float32).eps * 10
                 res = super(_SafeRANSACRegressor, self).fit(X, y, **kwargs)
                 self.residual_threshold = None
