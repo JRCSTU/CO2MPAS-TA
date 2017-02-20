@@ -2116,14 +2116,14 @@ def calculate_willans_factors(
         )
         n_s = calculate_mean_piston_speeds(av_s, engine_stroke)
 
-        f_mep, wfa = fmep_model(p, n_s, n_p, 1, 0)[:2]
+        f_mep, wfa = fmep_model(p, n_s, n_p, 1)[:2]
 
         c = engine_capacity / engine_fuel_lower_heating_value * av_s
         fc = f_mep * c / 1200.0
         ieff = av_p / (fc * engine_fuel_lower_heating_value) * 1000.0
 
         willans_a = 3600000.0 / engine_fuel_lower_heating_value / wfa
-        willans_b = fmep_model(p, n_s, 0, 1, 0)[0] * c * 3.0
+        willans_b = fmep_model(p, n_s, 0, 1)[0] * c * 3.0
 
         sfc = willans_a + willans_b / av_p
 
