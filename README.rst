@@ -7,8 +7,8 @@
 |co2mpas|: Vehicle simulator predicting NEDC |CO2| emissions from WLTP
 ######################################################################
 
-:release:       1.5.5.post0
-:date:          2017-02-10 19:31:55
+:release:       1.5.5.post1
+:date:          2017-02-20 13:00:00
 :home:          http://co2mpas.io/
 :repository:    https://github.com/JRCSTU/CO2MPAS-TA
 :pypi-repo:     https://pypi.org/project/co2mpas/
@@ -16,8 +16,8 @@
 :wiki:          https://github.com/JRCSTU/CO2MPAS-TA/wiki/
 :download:      http://github.com/JRCSTU/CO2MPAS-TA/releases/
 :keywords:      CO2, fuel-consumption, WLTP, NEDC, vehicle, automotive,
-                EU, JRC, IET, STU, correlation, back-translation, policy, monitoring, M1, N1,
-                simulator, engineering, scientific
+                EU, JRC, IET, STU, correlation, back-translation, policy,
+                monitoring, M1, N1, simulator, engineering, scientific
 :developers:    .. include:: AUTHORS.rst
 :copyright:     2015-2016 European Commission (`JRC <https://ec.europa.eu/jrc/>`_)
 :license:       `EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_
@@ -321,7 +321,7 @@ Alternatively, open the CONSOLE and type the following command:
 
     ## Check co2mpas version.
     $ co2mpas -V
-    co2mpas-1.5.5.post0
+    co2mpas-1.5.5.post1
 
 
 |co2mpas| command syntax
@@ -1327,7 +1327,7 @@ Install |co2mpas| package
         Downloading http://pypi.co2mpas.io/packages/co2mpas-...
         ...
         Installing collected packages: co2mpas
-        Successfully installed co2mpas-1.5.5.post0
+        Successfully installed co2mpas-1.5.5.post1
 
    .. Warning::
         **Installation failures:**
@@ -1347,8 +1347,8 @@ Install |co2mpas| package
    .. code-block:: console
 
        > co2mpas -vV
-       co2mpas_version: 1.5.5.post0
-       co2mpas_rel_date: 2017-02-10 19:31:55
+       co2mpas_version: 1.5.5.post1
+       co2mpas_rel_date: 2017-02-20 13:00:00
        co2mpas_path: d:\co2mpas_ALLINONE-64bit-v1.4.1\Apps\WinPython\python-3.4.3\lib\site-packages\co2mpas
        python_path: D:\co2mpas_ALLINONE-64bit-v1.4.1\WinPython\python-3.4.3
        python_version: 3.4.3 (v3.4.3:9b73f1c3e601, Feb 24 2015, 22:44:40) [MSC v.1600 XXX]
