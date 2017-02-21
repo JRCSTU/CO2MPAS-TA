@@ -91,9 +91,9 @@ Vehicle general characteristics
          average fuel consumption of the vehicle during the subsequent 1 minute.
 
     ``final_drive_ratio``
-        Provide the ratio to be multiplied with all `gear_box_ratios`. If the car has more than 1 final drive ratio,       
-        set the final_drive_ratio cell to 1 and provide the appropriate final drive ratio for each gear in the gear_box_ratios
-        tab
+        Provide the ratio to be multiplied with all `gear_box_ratios`. If the car has more than 1 final drive ratio (eg,   
+        vehicles with dual/variable clutch), leave blank the final_drive_ratio cell in the Inputs tab and provide the   
+        appropriate final drive ratio for each gear in the gear_box_ratios tab.
 
     ``tyre_code``
         Tyre code of the tyres used in the WLTP test (e.g., P195/55R16 85H\).
