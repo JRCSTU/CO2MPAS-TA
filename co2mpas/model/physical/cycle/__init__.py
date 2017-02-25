@@ -96,9 +96,10 @@ def select_phases_integration_times(cycle_type):
 
 def _extract_indices(bag_phases):
     pit, bag_phases = [], np.asarray(bag_phases)
+    n = len(bag_phases) - 1
     for bf in np.unique(bag_phases):
-        i = np.where(bf == bag_phases)
-        pit.append((i.min(), i.max() + 1))
+        i = np.where(bf == bag_phases)[0]
+        pit.append((i.min(), min(i.max() + 1, n)))
     return sorted(pit)
 
 
