@@ -4,7 +4,17 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
-v1.5.x, file-ver: 2.2.6, 10-February 2017: "Stamp" release
+v1.5.6.dev1: bug-fixes
+==========================================================
+- fix(dice.crypto, #382): leave gpg-encoding as is for STDIN/OUT streams.
+  to work in foreign locales; fix crash when tstamp-sig did not pass (crash apparent only with ``-fd`` options).
+- fix(dice.proj, #371): `export` cmd produces an archive with local branches without all dice-report tags.
+- fix(main, logconf.yml): crash `logging.config` is a module,not a  module attribute,
+  (apparent only with``--logconf``).
+- fix(io.schema, #379): could not handle user-given bag-phases column.
+
+
+v1.5.5, file-ver: 2.2.6, 10-February 2017: "Stamp" release
 ==========================================================
 .. image:: https://cloud.githubusercontent.com/assets/501585/20363048/
    09b0c724-ac3e-11e6-81b4-bc49d12e6aa1.png
