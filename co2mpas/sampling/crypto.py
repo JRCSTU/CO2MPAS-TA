@@ -433,7 +433,7 @@ class GpgSpec(baseapp.Spec):
             raise ValueError("PswdId('%s'): decryption failed due to: %s" % (pswdid, ex))
 
         if not plain.ok:
-            self.log.debug("PswdId('%s'): decryption stderr: %s", pswdid, plain.stderr)
+            self.log.debug("PswdId('%s'): decryption stderr: %s", pswdid, getattr(plain, 'stderr', ''))
             raise ValueError("PswdId('%s'): %s!" % (pswdid, plain.status))
 
         plainobj = pickle.loads(plain.data)
