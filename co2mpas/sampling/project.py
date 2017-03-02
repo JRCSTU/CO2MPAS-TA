@@ -817,10 +817,10 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         """.format(confdir=baseapp.default_config_dir())
     ).tag(config=True)
 
-    reset_git_settings = trt.Bool(
-        False,
+    preserved_git_settings = trt.List(
+        trt.Unicode(),
         help="""
-        When enabled, re-writes default git's config-settings on app start up.
+        On app start up, re-write git's all config-settings except those mathcing this list of regexes.
         Git settings include user-name and email address, so this option might be usefull
         when the regular owner running the app has changed.
         """).tag(config=True)
@@ -859,17 +859,12 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         try:
             self.log.debug('Opening repo %r...', repo_path)
             self.__repo = git.Repo(repo_path)
-            if self.reset_git_settings:
-                self.log.info("Resetting to default settings of repo(%s)...",
-                              self.__repo.git_dir)
-            check_only = not self.reset_git_settings
         except git.InvalidGitRepositoryError as ex:
             self.log.info("...failed opening repo '%s',\n  initializing a new repo %r instead...",
                           ex, repo_path)
             self.__repo = git.Repo.init(repo_path)
-            check_only = False
 
-        self._write_repo_configs(check_only=check_only)
+        self._write_repo_configs(preserved_git_settings=self.preserved_git_settings)
 
     @trt.observe('repo_path')
     def _cleanup_old_repo(self, change):
@@ -893,7 +888,12 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             self._setup_repo()
         return self.__repo
 
-    def _write_repo_configs(self, check_only=False):
+    def _write_repo_configs(self, preserved_git_settings=()):
+        r"""
+        :type preserved_git_settings:
+            list-of-regex expressions fully matching git-configs,
+            e.g ``user\..+`` matches both ``user.name`` and ``user.email``.
+        """
         from . import crypto
 
         log = self.log
@@ -919,7 +919,9 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             ('user.signingkey', git_auth.master_key_resolved),
         ]
 
+        preserved_git_settings = [re.compile(r) for r in preserved_git_settings]
         unexpected_kvalues = OrderedDict()
+        overwritten_count = 0
         with repo.config_writer('repository') as cw:
             for key, val in gconfigs:
                 sec, prop = key.split('.')
@@ -935,16 +937,26 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                     if isinstance(val, str):
                         val = val.strip()
 
-                    if old_val != val:
-                        unexpected_kvalues[key] = (old_val, val)
-                except:
-                    unexpected_kvalues[key] = ('<missing>', val)
+                    if old_val == val:
+                        continue
 
-                if check_only:
+                    diff_value = [old_val, val]
+                except:
+                    diff_value = ['<missing>', val]
+
+                is_preserved = any(r.match(key) for r in preserved_git_settings)
+
+                ## Update record of preserve/overwrite actions.
+                #
+                diff_value.append('<preserved>' if is_preserved else '<overwritten>')
+                unexpected_kvalues[key] = diff_value
+
+                if is_preserved:
                     continue
 
                 ## Write setting.
                 #
+                overwritten_count += 1
                 ok = False
                 try:
                     ## gitpython-developers/GitPython#578
@@ -959,14 +971,11 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                                   key, val)
 
             if unexpected_kvalues:
-                log.warning("Missmatched values found in GIT configs: %s\n%s%s\n",
+                log.warning("Overwritten %d out of %d missmatched value in git-settings('%s'):"
+                            "\n  %s",
+                            overwritten_count, len(unexpected_kvalues),
                             osp.join(repo.git_dir, 'config'),
-                            tw.indent(_mydump(unexpected_kvalues), '    '),
-                            "\n  TIP: If you are not sure why git-settings changed, "
-                            "         use `--reset-git-settings` along with your next `project` cmd."
-                            if check_only else
-                            '\n  Differences have been corrected.'
-                            )
+                            tw.indent(_mydump(unexpected_kvalues), '    '))
 
     def read_git_settings(self, prefix: Text=None, config_level: Text=None):  # -> List(Text):
         """
@@ -1470,13 +1479,6 @@ class ProjectCmd(baseapp.Cmd):
     def __init__(self, **kwds):
         dkwds = {
             'conf_classes': [ProjectsDB, Project],
-            'cmd_flags': {
-                'reset-git-settings': (
-                    {
-                        'ProjectsDB': {'reset_git_settings': True},
-                    }, pndlu.first_line(ProjectsDB.reset_git_settings.help)
-                )
-            },
             'subcommands': baseapp.build_sub_cmds(*all_subcmds),
         }
         dkwds.update(kwds)
