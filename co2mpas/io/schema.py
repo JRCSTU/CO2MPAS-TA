@@ -431,18 +431,30 @@ def _tyre_dimensions(error=None, **kwargs):
     return And(_dict(format=dict), Use(_format_tyre_dimensions), error=error)
 
 
-def _bag_phases(error=None, read=True, **kwargs):
-    def check_phases_separated(x):
-        """
-        [3, 2, 3, 2, 4, 4, 1, 1] --> INVALID!
-        [3, 3, 2, 2, 4, 4, 1, 1] --> valid
-        ['P3', 'P3', 'P2', 'P2', 'P4', 'P4', 'P1', 'P1'] --> valid
-        [] --> valid
-        """
-        ## See http://stackoverflow.com/questions/19463985/pandas-drop-consecutive-duplicates
-        deduped_count = (x.shift(-1) != x).sum()  # [3,3,2,1,1,3] --> len([3,2,1,3])
-        return deduped_count == len(x.unique())
+def check_phases_separated(x):
+    """
+    >>> bags = [
+        [3, 2, 3, 2, 4, 4, 1, 1], # INVALID!
+        [3, 2, 2, 2, 4, 4, 1, 4], # INVALID!
+        [3, 3, 2, 2, 4, 4, 1, 1], # valid
+        ['P1', 'P3', 'P3', 'P2'], # valid
+        [False, False],           # valid
+        [],                       # valid
+    ]
+    >>> [check_phases_separated(x) for x in bags]
+    [False, False, True, True, True, True]
+    """
+    if not len(x):
+        return True
 
+    x = np.asarray(x)
+    ## See http://stackoverflow.com/questions/19463985/pandas-drop-consecutive-duplicates
+    deduped_count = 1 + (x[1:] != x[:-1]).sum()  # [3,3,3,1,1,3] --> len([3,1,3])
+
+    return deduped_count == np.unique(x).size
+
+
+def _bag_phases(error=None, read=True, **kwargs):
     er = 'Phases must be separated!'
     if read:
         return And(_np_array(read=read), Schema(check_phases_separated, error=er), error=error)
