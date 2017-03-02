@@ -168,12 +168,13 @@ def _set_numpy_logging():
 
 def init_logging(level=None, frmt=None, logconf_file=None, color=False):
     if logconf_file:
+        from logging import config as lcfg
         if osp.splitext(logconf_file)[1] in '.yaml' or '.yml':
             with io.open(logconf_file) as fd:
                 log_dict = yaml.safe_load(fd)
-                logging.config.dictConfig(log_dict)
+                lcfg.dictConfig(log_dict)
         else:
-            logging.config.fileConfig(logconf_file)
+            lcfg.fileConfig(logconf_file)
     else:
         if level is None:
             level = logging.INFO
