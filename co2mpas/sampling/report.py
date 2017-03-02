@@ -118,11 +118,15 @@ class Report(baseapp.Spec):
                         "'%s' != expected('%s')'" %
                         (file_vfid, expected_vfid))
 
+        def is_excel_true_or_null(val):
+            return val is None or val is True or str(val).lower() == 'true'
+
         def check_is_ta(fpath, report):
             ta_flags = report.ix['TA_mode', :]
-            is_ta_mode = all(f is None or f for f in ta_flags)
+            self.log.debug("TA flags for file('%s'): %s" % (fpath, ta_flags))
+            is_ta_mode = all(is_excel_true_or_null(f) for f in ta_flags)
             if not is_ta_mode:
-                return ("file is NOT in TA mode")
+                return "file is NOT in TA mode: %s" % ta_flags
 
         for fpath in iofiles.inp:
             fpath = pndlu.convpath(fpath)
