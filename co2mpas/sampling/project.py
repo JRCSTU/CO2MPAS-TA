@@ -1852,7 +1852,7 @@ class ExportCmd(ProjectCmd):
                             continue
 
                         ## FIXME: Either ALL TAGS (--tags) or NONE without it!
-                        fetch_infos = rem.fetch(pp, tags=True)
+                        fetch_infos = rem.fetch(pp, tag=True)
 
                         ## Create local branches in exrepo
                         #
