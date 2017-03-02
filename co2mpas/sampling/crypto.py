@@ -372,7 +372,6 @@ class GpgSpec(baseapp.Spec):
                 keyring=self.keyring,
                 options=self.gnupgoptions,
                 secret_keyring=self.secret_keyring)
-            GPG.encoding = 'utf-8'
 
             if self.keys_to_import:
                 self._import_keys_and_trust(GPG)
