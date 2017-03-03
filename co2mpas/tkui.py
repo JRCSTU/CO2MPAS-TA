@@ -280,7 +280,7 @@ def define_ttk_styles():
 LOGGING_TAGS = OrderedDict((
     (logging.CRITICAL, {'background': "red", 'foreground': "yellow"}),
     (logging.ERROR, {'foreground': "red"}),
-    (logging.WARNING, {'foreground': "magenta"}),
+    (logging.WARNING, {'foreground': "orange"}),
     (logging.INFO, {'foreground': "blue"}),
     (logging.DEBUG, {'foreground': "grey"}),
     (logging.NOTSET, {}),
@@ -846,6 +846,7 @@ class LogPanel(ttk.Labelframe):
         self._log_text = _log_text = tk.Text(self,
                                              state=tk.DISABLED, wrap=tk.NONE,
                                              font="Courier 8",
+                                             background='#e7fbfe',
                                              **_sunken
                                              )
         _log_text.grid(row=0, column=0, sticky='nswe')

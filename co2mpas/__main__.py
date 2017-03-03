@@ -187,7 +187,13 @@ def init_logging(level=None, frmt=None, logconf_file=None, color=False):
         if color:
             from rainbow_logging_handler import RainbowLoggingHandler
 
-            color_handler = RainbowLoggingHandler(sys.stderr, color_funcName=('black', 'yellow', True))
+            color_handler = RainbowLoggingHandler(sys.stderr,
+                                                  color_message_debug=('grey', None, False),
+                                                  color_message_info=('blue', None, False),
+                                                  color_message_warning=('yellow', None, True),
+                                                  color_message_error=('red', None, True),
+                                                  color_message_critical=('white', 'red', True),
+                                                  )
             formatter = formatter = logging.Formatter(frmt)
             color_handler.setFormatter(formatter)
 
