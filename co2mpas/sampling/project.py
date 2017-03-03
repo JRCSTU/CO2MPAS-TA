@@ -825,6 +825,16 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         when the regular owner running the app has changed.
         """).tag(config=True)
 
+    ## TODO: Delete `reset_git_settings` in next big release after 1.5.5.
+    reset_git_settings = trt.Bool(
+        False,
+        help="Deprecated and non-functional!  Replaced by `--ProjectsDB.preserved_git_settings` list."
+    ).tag(config=True)
+
+    @trt.validate('reset_git_settings')
+    def _warn_deprecated(self, proposal):
+        self.log.warning(type(self).reset_git_settings.help)
+
     ## Useless, see https://github.com/ipython/traitlets/issues/287
     # @trt.validate('repo_path')
     # def _normalize_path(self, proposal):
@@ -1479,6 +1489,13 @@ class ProjectCmd(baseapp.Cmd):
     def __init__(self, **kwds):
         dkwds = {
             'conf_classes': [ProjectsDB, Project],
+            'cmd_flags': {
+                'reset-git-settings': (
+                    {
+                        'ProjectsDB': {'reset_git_settings': True},
+                    }, pndlu.first_line(ProjectsDB.reset_git_settings.help)
+                )
+            },
             'subcommands': baseapp.build_sub_cmds(*all_subcmds),
         }
         dkwds.update(kwds)
