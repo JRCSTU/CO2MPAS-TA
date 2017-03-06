@@ -1001,17 +1001,27 @@ class LogPanel(ttk.Labelframe):
         # Popup menu
         #
         popup = tk.Menu(target, tearoff=0)
-        popup.add_cascade(label="Log threshold", menu=threshold_menu)
+
+        popup.add_command(label="Copy", command=self.copy_selected_log,
+                          underline=1, accelerator="Ctrl+C")
+        popup.add_command(label="Select All", command=self.select_all_log,
+                          underline=1, accelerator="Ctrl+A")
+        popup.add_separator()
+        popup.add_cascade(label="Set log threshold", menu=threshold_menu)
         popup.add_cascade(label="Filter levels", menu=filters_menu)
         popup.add_checkbutton(
             label="Wrap lines", command=self.toggle_text_wrapped)
         popup.add_separator()
-        popup.add_command(label="Save as...", command=self.save_log)
+        popup.add_command(label="Save log as...", command=self.save_log)
         popup.add_separator()
-        popup.add_command(label="Clear logs", command=self.clear_log)
+        popup.add_command(label="Clear log", command=self.clear_log)
 
         def do_popup(event):
+            wtext = event.widget
+            copy_cmd_state = 'active' if wtext.tag_nextrange(tk.SEL, '1.0') else 'disabled'
+            popup.entryconfig("Copy", state=copy_cmd_state)
             popup.post(event.x_root, event.y_root)
+
         target.bind("<Button-3>", do_popup)
 
     def _apply_filters(self):
@@ -1039,10 +1049,22 @@ class LogPanel(ttk.Labelframe):
         self['text'] = 'Log messages (%s)' % ', '.join(
             '%s: %i' % (lname, count) for lname, count in levels_counted if count)
 
+    def select_all_log(self):
+        self._log_text.tag_add(tk.SEL, '1.0', tk.END)
+
+    def copy_selected_log(self):
+        wtext = self._log_text
+        if wtext.tag_nextrange(tk.SEL, '1.0'):
+            txt = wtext.get(tk.SEL_FIRST, tk.SEL_LAST)
+            wtext.clipboard_clear()
+            wtext.clipboard_append(txt)
+            #wtext.tag_remove(tk.SEL, tk.SEL_FIRST, tk.SEL_LAST)  # Clear selection.
+
     def clear_log(self):
-        self._log_text['state'] = tk.NORMAL
-        self._log_text.delete('1.0', tk.END)
-        self._log_text['state'] = tk.DISABLED
+        wtext = self._log_text
+        wtext['state'] = tk.NORMAL
+        wtext.delete('1.0', tk.END)
+        wtext['state'] = tk.DISABLED
         self._log_counters.clear()
         self._update_title()
 
