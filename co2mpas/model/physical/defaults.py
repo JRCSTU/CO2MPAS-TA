@@ -503,40 +503,37 @@ class Functions(co2_utl.Constants):
             'NEDC': 99
         }
 
-    # TODO: add default fuel densities.
     class default_fuel_density(co2_utl.Constants):
         #: Fuel density [g/l].
         FUEL_DENSITY = {
-            'gasoline': 750.0,
-            'diesel': 835.0,
-            # 'LPG': ,
-            # 'NG': ,
-            # 'ethanol': ,
-            # 'biodiesel': ,
+            'gasoline': 745.0,
+            'diesel': 832.0,
+            'LPG': 43200.0 / 46000.0 * 745.0,  # Gasoline equivalent.
+            'NG': 43200.0 / 45100.0 * 745.0,  # Gasoline equivalent.
+            'ethanol': 794.0,
+            'biodiesel': 890.0,
         }
 
-    # TODO: add default fuel lower heating values.
     class default_fuel_lower_heating_value(co2_utl.Constants):
         #: Fuel lower heating value [kJ/kg].
         LHV = {
-            # 'gasoline': ,
-            # 'diesel': ,
-            # 'LPG': ,
-            # 'NG': ,
-            # 'ethanol': ,
-            # 'biodiesel': ,
+            'gasoline': 43200.0,
+            'diesel': 43100.0,
+            'LPG': 46000.0,
+            'NG': 45100.0,
+            'ethanol': 26800.0,
+            'biodiesel': 37900.0,
         }
 
-    # TODO: add default fuel carbon content.
     class default_fuel_carbon_content(co2_utl.Constants):
         #: Fuel carbon content [CO2g/g].
         CARBON_CONTENT = {
-            # 'gasoline': ,
-            # 'diesel': ,
-            # 'LPG': ,
-            # 'NG': ,
-            # 'ethanol': ,
-            # 'biodiesel': ,
+            'gasoline': 3.17,
+            'diesel': 3.16,
+            'LPG': 1.35,
+            'NG': 3.21,
+            'ethanol': 1.91,
+            'biodiesel': 2.81,
         }
 
     class calibrate_cold_start_speed_model_v1(co2_utl.Constants):
