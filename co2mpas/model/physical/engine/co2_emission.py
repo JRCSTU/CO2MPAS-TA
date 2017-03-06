@@ -1509,7 +1509,7 @@ def define_tau_function(after_treatment_temperature_threshold):
     """
     T_mean, T_end = np.array(after_treatment_temperature_threshold) + 273
     s = np.log(T_end / T_mean) / sci_sta.norm.ppf(0.95)
-    f = sci_sta.lognorm(s, 0, T_mean).cdf
+    f = sci_sta.lognorm(max(s, defaults.dfl.EPS), 0, T_mean).cdf
 
     def tau_function(t0, t1, temp):
         return t0 - (t1 - t0) * f(temp + 273)
