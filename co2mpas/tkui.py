@@ -1058,7 +1058,7 @@ class LogPanel(ttk.Labelframe):
             txt = wtext.get(tk.SEL_FIRST, tk.SEL_LAST)
             wtext.clipboard_clear()
             wtext.clipboard_append(txt)
-            #wtext.tag_remove(tk.SEL, tk.SEL_FIRST, tk.SEL_LAST)  # Clear selection.
+            wtext.see(tk.SEL_FIRST)  # Scroll to selection.
 
     def clear_log(self):
         wtext = self._log_text
