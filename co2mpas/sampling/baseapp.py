@@ -945,6 +945,17 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         from . import dice
         return iset(itt.chain(dice.all_app_configurables(), self.classes))
 
+    def _make_vault_from_configs(self, static_config, persist_config):
+        from . import crypto
+
+        vault_config = copy.deepcopy(static_config)
+        if persist_config:
+            vault_config.merge(persist_config)
+        vault_config.merge(self.cli_config)
+        vault = crypto.get_vault(vault_config)
+
+        return vault
+
     def _validate_cipher_traits_against_config_files(self, static_config, persist_config):
         """
         Check plaintext :class:`crypto.Cipher` config-values and encrypt them if *persistent*, scream if *static*.
@@ -970,21 +981,15 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                 ('static', 'persist'))
             if c[0]
         )
-        ## Vault lazily created if needed,
-        #  configed with user-input...
-        #
         vault = None  # lazily created
-        vault_config = copy.deepcopy(static_config)  # TODO: move where vaulut createdXXX
-        if persist_config:
-            vault_config.merge(persist_config)
-        vault_config.merge(self.cli_config)
         ## Outputs
         #
         ntraits_encrypted = 0   # Counts encrypt-operations of *persist* traits.
         screams = []            # Collect non-encrypted *static* traits.
 
         def scan_config(config_classes, break_on_irregularities):
-            nonlocal vault, vault_config, ntraits_encrypted
+            """:return: true meaning full-scan is needed."""
+            nonlocal vault, ntraits_encrypted
 
             for config, encrypt_plain, config_source in configs:
                 for clsname, traits in config.items():
@@ -1014,9 +1019,10 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
 
                         key = '%s.%s' % (clsname, tname)
                         if encrypt_plain:
-                            if not vault:
-                                vault = crypto.get_vault(vault_config)
                             self.log.info("Auto-encrypting cipher-trait(%r)...", key)
+                            if not vault:
+                                vault = self._make_vault_from_configs(static_config, persist_config)
+
                             config[clsname][tname] = vault.encryptobj(key, tvalue)
                             ntraits_encrypted += 1
                         else:
