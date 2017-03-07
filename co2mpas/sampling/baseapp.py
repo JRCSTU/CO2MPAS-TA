@@ -985,8 +985,8 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         vault = None  # lazily created
         ## Outputs
         #
-        ntraits_encrypted = 0   # Counts encrypt-operations of *persist* traits.
-        static_screams = []     # Collect non-encrypted *static* traits.
+        ntraits_encrypted = 0       # Counts encrypt-operations of *persist* traits.
+        static_screams = iset()     # Collect non-encrypted *static* traits.
 
         def scan_config(config_classes, know_all_classes):
             """:return: true meaning full-scan is needed."""
@@ -1026,7 +1026,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                             config[clsname][tname] = vault.encryptobj(key, tvalue)
                             ntraits_encrypted += 1
                         else:
-                            static_screams.append(key)
+                            static_screams.add(key)
 
             return rerun
 
