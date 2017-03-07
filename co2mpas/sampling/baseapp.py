@@ -974,7 +974,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         #  configed with user-input...
         #
         vault = None  # lazily created
-        vault_config = static_config.copy()  # TODO: move where vaulut createdXXX
+        vault_config = copy.deepcopy(static_config)  # TODO: move where vaulut createdXXX
         if persist_config:
             vault_config.merge(persist_config)
         vault_config.merge(self.cli_config)
@@ -1020,7 +1020,6 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                             config[clsname][tname] = vault.encryptobj(key, tvalue)
                             ntraits_encrypted += 1
                         else:
-                            ## FIXME: screams abouty autoencrypted!
                             screams.append(key)
 
         try:
