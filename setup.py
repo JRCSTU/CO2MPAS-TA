@@ -176,7 +176,7 @@ setup(
         'graphviz',
         'docopt',
         'six',
-        'pandalone[xlrd]>=0.2.0', ## For datasync pascha-fixes and openpyxl version.
+        'pandalone[xlrd]>=0.2.0', # For datasync pascha-fixes and openpyxl version.
         'regex',
         'schema',
         'tqdm',
@@ -186,14 +186,15 @@ setup(
         'pykalman',
         'wltp',
         'openpyxl>=2.4.0',
-        'Pillow',           ## for tkui
+        'Pillow',           # for tkui
         'toolz',
         'schedula>=0.1.9',
         'formulas>=0.0.4',
         'traitlets>=5.0.0',
         'python-gnupg',
-        'gitpython>=2.1.0', ## Win+Cygwin support
+        'gitpython>=2.1.0', # Win+Cygwin support
         'transitions',
+        'PySocks',          # for `co2dice tstamp` cmd
     ],
     dependency_links=[
         'https://github.com/ankostis/traitlets/tarball/master#egg=traitlets-5.0.0',

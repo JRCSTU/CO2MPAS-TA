@@ -68,6 +68,34 @@ class TstampSpec(dice.DiceSpec):
         """
     ).tag(config=True)
 
+    socks_host = trt.Unicode(
+        None, allow_none=True,
+        help="""
+        The hostname/ip of the SOCKS-proxy server for send/recv emails.
+        If not set, SOCKS-proxying is disabled.
+        """
+    ).tag(config=True)
+
+    socks_version = baseapp.FuzzyEnum(
+        ['socks4', 'socks5'], 'socks4',
+        help="""The SOCKS-proxy protocol version to use for send/recv emails."""
+    ).tag(config=True)
+
+    socks_port = trt.Int(
+        1080,
+        help="""The port of the SOCKS-proxy server for send/recv emails."""
+    ).tag(config=True)
+
+    socks_user = trt.Unicode(
+        None, allow_none=True,
+        help="""The username of the SOCKS-v5-proxy server for send/recv emails."""
+    ).tag(config=True)
+
+    socks_pswd = crypto.Cipher(
+        None, allow_none=True,
+        help="""The password of the SOCKS-v5-proxy server for send/recv emails."""
+    ).tag(config=True)
+
     @trt.validate('host')
     def _is_not_empty(self, proposal):
         value = proposal['value']
@@ -104,6 +132,21 @@ class TstampSpec(dice.DiceSpec):
             finally:
                 self.log.info("Login %s: %s@%s ok? %s", type(srv).__name__,
                               self.user_account, srv.sock, ok)
+
+    def monkeypatch_socks_module(self, module):
+        """
+        If :attr:`socks_host` is defined, wrap module to use PySocks-proxy(:mod:`socks`).
+        """
+        if self.socks_host:
+            import socks
+
+            socks_ver = socks.SOCKS4 if self.socks_version == 'socks4' else socks.SOCKS5
+            socks.set_default_proxy(socks_ver,
+                                    self.socks_host,
+                                    self.socks_port,
+                                    self.socks_user,
+                                    self.decipher('socks_pswd'))
+            socks.wrapmodule(module)
 
 
 class TstampSender(TstampSpec):
@@ -167,6 +210,7 @@ class TstampSender(TstampSpec):
     def choose_server_class(self):
         import smtplib
 
+        self.monkeypatch_socks_module(smtplib)
         return smtplib.SMTP_SSL if self.ssl else smtplib.SMTP
 
     def send_timestamped_email(self, msg: Union[str, bytes], subject_suffix='', dry_run=False):
@@ -361,6 +405,7 @@ class TstampReceiver(TstampSpec):
     def choose_server_class(self):
         import imaplib
 
+        self.monkeypatch_socks_module(imaplib)
         return imaplib.IMAP4_SSL if self.ssl else imaplib.IMAP4
 
     # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
