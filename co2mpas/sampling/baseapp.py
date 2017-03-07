@@ -963,8 +963,9 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         TODO: UNTESTABLE :-( to speed-up app start-app, run in 2 "passes" (the 2nd pass is optional):
 
         - Pass-1 checks configs only for current Cmd's :attr:`classes`, and
-          if any iregularities are detected, then laucnh
-        - Pass-2 to searches :meth:`all_app_configurables()`.
+          if any iregularities are detected (un-encrypted persistent or static ciphers),
+          then laucnh ...
+        - Pass-2 to search :meth:`all_app_configurables()`.
         """
         from . import crypto
 
@@ -985,19 +986,20 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         ## Outputs
         #
         ntraits_encrypted = 0   # Counts encrypt-operations of *persist* traits.
-        screams = []            # Collect non-encrypted *static* traits.
+        static_screams = []     # Collect non-encrypted *static* traits.
 
-        def scan_config(config_classes, break_on_irregularities):
+        def scan_config(config_classes, know_all_classes):
             """:return: true meaning full-scan is needed."""
             nonlocal vault, ntraits_encrypted
 
+            rerun = False
             for config, encrypt_plain, config_source in configs:
                 for clsname, traits in config.items():
                     cls = config_classes.get(clsname)
                     if not cls:
-                        if not break_on_irregularities:  # Only scream when full check.
+                        if know_all_classes:  # Only scream when full check.
                             self.log.warning(
-                                "Unknown class `%s` in *%s* file-configs while ecrypting values.",
+                                "Unknown class `%s` in *%s* file-configs while encrypting values.",
                                 clsname, config_source)
                         continue
 
@@ -1013,9 +1015,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                             continue
 
                         ## Irregularities have been found!
-
-                        if break_on_irregularities:
-                            raise NextPass()
+                        rerun = True
 
                         key = '%s.%s' % (clsname, tname)
                         if encrypt_plain:
@@ -1026,23 +1026,25 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                             config[clsname][tname] = vault.encryptobj(key, tvalue)
                             ntraits_encrypted += 1
                         else:
-                            screams.append(key)
+                            static_screams.append(key)
+
+            return rerun
 
         try:
             # If --encrypt, go directly to pass-2.
-            pass_2 = self.encrypt
+            passes = (True, ) if self.encrypt else (False, True)
+
             ## Loop for the 2-passes trick.
             #
-            while True:
+            for full_check in passes:
                 scan_classes = (self.all_app_configurables()
-                                if pass_2
+                                if full_check
                                 else self.classes)
-                config_classes = {c.__name__: c for c in scan_classes}
-                try:
-                    scan_config(config_classes, not pass_2)
-                except NextPass:
-                    pass_2 = True
-                else:
+                config_classes = {c.__name__: c
+                                  for c in
+                                  self._classes_with_config_traits(scan_classes)}
+                rerun = scan_config(config_classes, full_check)
+                if not rerun:
                     break
         finally:
             ## Ensure any encrypted traits are saved.
@@ -1053,8 +1055,9 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                               persist_path, ntraits_encrypted)
                 self.store_pconfig(persist_path)
 
-        if screams:
-            msg = "Found %d non-encrypted params in static-configs: %s" % (len(screams), screams)
+        if static_screams:
+            msg = "Found %d non-encrypted params in static-configs: %s" % (
+                len(static_screams), static_screams)
             if self.raise_config_file_errors:
                 raise trt.TraitError(msg)
             else:
