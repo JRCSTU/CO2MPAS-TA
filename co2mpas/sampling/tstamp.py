@@ -595,7 +595,7 @@ class TstampCmd(baseapp.Cmd):
             sender.check_login(self.dry_run)
 
             rcver = TstampReceiver(config=self.config)
-            rcver.check_login()
+            rcver.check_login(self.dry_run)
 
     def __init__(self, **kwds):
         kwds.setdefault('subcommands', baseapp.build_sub_cmds(*all_subcmds))
