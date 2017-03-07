@@ -895,8 +895,8 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                         },
                     },
                     """
-                    Log more logging, fail on config-errors,
-                    and print config on each cmd startup.
+                    Log more (POSSIBLY PASSWORDS!) infos & fail early.
+
                     Not to be confused with `--verbose`.
                     """
                 ),
