@@ -59,7 +59,6 @@ import re
 import sys
 from tkinter import StringVar, ttk, filedialog
 from typing import Any, Union, Mapping, Text, Dict, Callable  # @UnusedImport
-import warnings
 import weakref
 
 from toolz import dicttoolz as dtz
@@ -509,9 +508,9 @@ def add_tooltip(widget, key, allow_misses=False, no_lookup=False):
         If true, uses the `key` as tooltip text.
     """
     try:
-        from idlelib.ToolTip import ToolTip
+        from idlelib.ToolTip import ToolTip  # @UnusedImport
     except Exception:
-        from idlelib.tooltip import ToolTip
+        from idlelib.tooltip import ToolTip  # @UnresolvedImport @Reimport
 
     if no_lookup:
         tooltip_text = key
