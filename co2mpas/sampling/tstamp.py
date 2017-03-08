@@ -73,17 +73,29 @@ class TstampSpec(dice.DiceSpec):
         help="""
         The hostname/ip of the SOCKS-proxy server for send/recv emails.
         If not set, SOCKS-proxying is disabled.
+
+        Tip: prefer a real IP, or else, hostnames may resolve to _unsupported_ IPv6.
         """
     ).tag(config=True)
 
-    socks_version = baseapp.FuzzyEnum(
-        ['socks4', 'socks5'], 'socks4',
-        help="""The SOCKS-proxy protocol version to use for send/recv emails."""
+    socks_skip_resolve = trt.Bool(
+        help="""Whether to skip DNS resolve of `socks_host` value."""
+    ).tag(config=True)
+
+    socks_type = baseapp.FuzzyEnum(
+        ['SOCKS4', 'SOCKS5', 'HTTP', 'disabled'], allow_none=True,
+        help="""
+        The SOCKS-proxy protocol to use for send/recv emails (case-insensitive).
+        If not set, becomes 'SOCKS5' if `socks_user` is defined, 'SOCKS4' otherwise.
+        """
     ).tag(config=True)
 
     socks_port = trt.Int(
-        1080,
-        help="""The port of the SOCKS-proxy server for send/recv emails."""
+        None, allow_none=True,
+        help="""
+        The port of the SOCKS-proxy server for send/recv emails.
+        If not set, defaults to 1080 for SOCKS-v4/5 proxies, 8080 for HTTP-proxy.
+        """
     ).tag(config=True)
 
     socks_user = trt.Unicode(
@@ -137,15 +149,24 @@ class TstampSpec(dice.DiceSpec):
         """
         If :attr:`socks_host` is defined, wrap module to use PySocks-proxy(:mod:`socks`).
         """
-        if self.socks_host:
+        if self.socks_host and self.socks_type != 'disabled':
             import socks
 
-            socks_ver = socks.SOCKS4 if self.socks_version == 'socks4' else socks.SOCKS5
-            socks.set_default_proxy(socks_ver,
+            if self.socks_type is None:
+                socks_type = (socks.SOCKS5
+                              if self.socks_type == 'socks5' or self.socks_user is not None
+                              else socks.SOCKS4)
+            else:
+                socks_type = socks.PROXY_TYPES(socks_type.upper)
+            self.log.debug("Using proxy(%s)-->%s:%s",
+                           socks.PRINTABLE_PROXY_TYPES[socks_type],
+                           self.socks_host, self.socks_port)
+            socks.set_default_proxy(socks_type,
                                     self.socks_host,
                                     self.socks_port,
-                                    self.socks_user,
-                                    self.decipher('socks_pswd'))
+                                    rdns=not self.socks_skip_resolve,
+                                    username=self.socks_user,
+                                    password=self.decipher('socks_pswd'))
             socks.wrapmodule(module)
 
 
