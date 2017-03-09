@@ -248,20 +248,15 @@ class TstampSender(TstampSpec):
     ).tag(config=True)
 
     from_address = trt.Unicode(
-        None,
-        allow_none=True,
+        None, allow_none=True,
         help="""Your email-address to use as `From:` for timestamp email, or none to use `user_email`.
         Specify you correct address, or else you will never receive the tstamped-response!
         """
     ).tag(config=True)
 
-    @trt.validate('subject', 'tstamp_recipients')
-    def _is_not_empty(self, proposal):
-        value = proposal['value']
-        if not value:
-            raise trt.TraitError('%s.%s must not be empty!'
-                                 % (proposal['owner'].name, proposal['trait'].name))
-        return value
+    def __init__(self, *args, **kwds):
+        self._register_validator(self._is_not_empty, ['subject', 'tstamp_recipients'])
+        super().__init__(*args, **kwds)
 
     ## TODO: delete deprecated trait
     @property
