@@ -205,12 +205,17 @@ class TstampSpec(dice.DiceSpec):
 class TstampSender(TstampSpec):
     """SMTP & timestamp parameters and methods for sending dice emails."""
 
+    ## TODO: delete deprecated trait
     timestamping_addresses = trt.List(
         trt.Unicode(),
-        help="""The plain email-address(s) of the timestamp service. Ask JRC to provide that. """
+        help="Deprecated, but still functional.  Prefer `--TstampSender.tstamper_address` instead. "
     ).tag(config=True)
 
-    timestamp_recipients = trt.List(
+    tstamper_address = trt.Unicode(
+        help="""The plain email-address of the timestamp-service. Ask JRC to provide that. """
+    ).tag(config=True)
+
+    tstamp_recipients = trt.List(
         trt.Unicode(),
         help="""
         The plain email-address of the receivers of the timestamped-response.
@@ -233,7 +238,7 @@ class TstampSender(TstampSpec):
         help="Deprecated, but still functional.  Prefer `--TstampSender.tstamp_recipients` list  instead."
     ).tag(config=True)
 
-    @trt.validate('x_recipients')
+    @trt.validate('x_recipients', 'timestamping_addresses')
     def _warn_deprecated(self, proposal):
         self.log.warning(proposal['trait'].help)
         return proposal['value']
@@ -250,13 +255,25 @@ class TstampSender(TstampSpec):
         """
     ).tag(config=True)
 
-    @trt.validate('subject', 'timestamping_addresses', 'tstamp_recipients')
+    @trt.validate('subject', 'tstamp_recipients')
     def _is_not_empty(self, proposal):
         value = proposal['value']
         if not value:
             raise trt.TraitError('%s.%s must not be empty!'
                                  % (proposal['owner'].name, proposal['trait'].name))
         return value
+
+    ## TODO: delete deprecated trait
+    @property
+    def _tstamper_address_resolved(self):
+        adrs = [a
+                for a in self.timestamping_addresses + [self.tstamper_address]
+                if a]
+        if not adrs:
+            myname = type(self).__name__
+            raise trt.TraitError('One of `%s.timestamping_addresses` and ``%s.tstamper_address` must not be empty!'
+                                 % (myname, myname))
+        return adrs
 
     def _append_tstamp_recipients(self, msg):
         x_recs = '\n'.join('X-Stamper-To: %s' % rec
@@ -272,7 +289,7 @@ class TstampSender(TstampSpec):
         mail = MIMEText(msg, 'plain')
         mail['Subject'] = '%s %s' % (self.subject, subject_suffix)
         mail['From'] = self.from_address or self.user_email
-        mail['To'] = ', '.join(self.timestamping_addresses)
+        mail['To'] = ', '.join(self._tstamper_address_resolved)
         if self.cc_addresses:
             mail['Cc'] = ', '.join(self.cc_addresses)
         if self.bcc_addresses:
@@ -324,7 +341,7 @@ class TstampSender(TstampSpec):
             prefix = "DRY-RUN:  No email has been sent!\n  " if dry_run else ''
             self.log.log(level, "%sTimestamping %d-char email from '%s' to %s-->%s",
                          prefix, len(msg), self.from_address,
-                         self.timestamping_addresses,
+                         self._tstamper_address_resolved,
                          self.tstamp_recipients + self.x_recipients)
             srv.send_message(mail)
 
@@ -682,6 +699,7 @@ class TstampCmd(baseapp.Cmd):
                                    % (self.name, len(args), args))
 
             sender = TstampSender(config=self.config)
+            sender._tstamper_address_resolved
             sender.check_login(self.dry_run)
 
             rcver = TstampReceiver(config=self.config)
