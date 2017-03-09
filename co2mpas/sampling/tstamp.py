@@ -29,13 +29,16 @@ class TstampSpec(dice.DiceSpec):
     """Common parameters and methods for both SMTP(sending emails) & IMAP(receiving emails)."""
 
     user_account = trt.Unicode(
-        None, allow_none=False,
-        help="""The username for the account on the SMTP/IMAP server!"""
+        None, allow_none=True,
+        help="""
+        The username for the account on the SMTP/IMAP server!
+        If not set, `user_email` is used.
+        """
     ).tag(config=True)
 
     user_pswd = crypto.Cipher(
         help="""
-        The SMTP/IMAP server's password matching `user_account` param.
+        The SMTP/IMAP server's password matching `user_account`/`user_email` param.
 
         For *GMail* with 2-factor authentication, see:
             https://support.google.com/accounts/answer/185833
@@ -116,6 +119,10 @@ class TstampSpec(dice.DiceSpec):
                                  % (proposal['owner'].name, proposal['trait'].name))
         return value
 
+    @property
+    def user_account_resolved(self):
+        return self.user_account is not None and self.user_account or self.user_email
+
     def choose_server_class(self):
         raise NotImplemented()
 
@@ -130,7 +137,7 @@ class TstampSpec(dice.DiceSpec):
         srv_cls = self.choose_server_class()
 
         self.log.info("Login %s: %s@%s(%s)...", srv_cls.__name__,
-                      self.user_account, host, srv_kwds or '')
+                      self.user_account_resolved, host, srv_kwds or '')
         srv = MagicMock() if dry_run else srv_cls(host, **srv_kwds)
 
         return srv
@@ -139,11 +146,11 @@ class TstampSpec(dice.DiceSpec):
         ok = False
         with self.make_server(dry_run) as srv:
             try:
-                srv.login(self.user_account, self.decipher('user_pswd'))
+                srv.login(self.user_account_resolved, self.decipher('user_pswd'))
                 ok = True
             finally:
                 self.log.info("Login %s: %s@%s ok? %s", type(srv).__name__,
-                              self.user_account, srv.sock, ok)
+                              self.user_account_resolved, srv.sock, ok)
 
     def monkeypatch_socks_module(self, module):
         """
@@ -255,7 +262,7 @@ class TstampSender(TstampSpec):
         mail = self._prepare_mail(msg, subject_suffix)
 
         with self.make_server(dry_run) as srv:
-            srv.login(self.user_account, self.decipher('user_pswd'))
+            srv.login(self.user_account_resolved, self.decipher('user_pswd'))
 
             from logging import WARNING, INFO
             level = WARNING if dry_run else INFO
@@ -432,7 +439,7 @@ class TstampReceiver(TstampSpec):
     # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
     def receive_timestamped_email(self, dry_run):
         with self.make_server(dry_run) as srv:
-            repl = srv.login(self.user_account, self.decipher('user_pswd'))
+            repl = srv.login(self.user_account_resolved, self.decipher('user_pswd'))
             """GMAIL-2FAuth: imaplib.error: b'[ALERT] Application-specific password required:
             https://support.google.com/accounts/answer/185833 (Failure)'"""
             self.log.debug("Sent IMAP user/pswd, server replied: %s", repl)
