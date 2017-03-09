@@ -210,7 +210,7 @@ class TstampSender(TstampSpec):
         help="""The plain email-address(s) of the timestamp service. Ask JRC to provide that. """
     ).tag(config=True)
 
-    timestamping_recipients = trt.List(
+    timestamp_recipients = trt.List(
         trt.Unicode(),
         help="""
         The plain email-address of the receivers of the timestamped-response.
@@ -227,12 +227,16 @@ class TstampSender(TstampSpec):
         help="Any blind-carbon-copy (BCC) recipients. "
     ).tag(config=True)
 
+    ## TODO: delete deprecated trait
     x_recipients = trt.List(
         trt.Unicode(),
-        help="""
-        The plain email-address of the receivers of the timestamped response.
-        Ask JRC to provide that. You don't have to provide your account here.
-    """).tag(config=True)
+        help="Deprecated, but still functional.  Prefer `--TstampSender.tstamp_recipients` list  instead."
+    ).tag(config=True)
+
+    @trt.validate('x_recipients')
+    def _warn_deprecated(self, proposal):
+        self.log.warning(proposal['trait'].help)
+        return proposal['value']
 
     subject = trt.Unicode(
         help="""The subject-line to use for email sent to timestamp service. """
@@ -246,7 +250,7 @@ class TstampSender(TstampSpec):
         """
     ).tag(config=True)
 
-    @trt.validate('subject', 'timestamping_addresses', 'x_recipients')
+    @trt.validate('subject', 'timestamping_addresses', 'tstamp_recipients')
     def _is_not_empty(self, proposal):
         value = proposal['value']
         if not value:
@@ -254,8 +258,10 @@ class TstampSender(TstampSpec):
                                  % (proposal['owner'].name, proposal['trait'].name))
         return value
 
-    def _append_x_recipients(self, msg):
-        x_recs = '\n'.join('X-Stamper-To: %s' % rec for rec in self.x_recipients)
+    def _append_tstamp_recipients(self, msg):
+        x_recs = '\n'.join('X-Stamper-To: %s' % rec
+                           for rec
+                           in self.tstamp_recipients + self.x_recipients)
         msg = "%s\n\n%s" % (x_recs, msg)
 
         return msg
@@ -307,7 +313,7 @@ class TstampSender(TstampSpec):
         else:
             self.log.debug("Content to timestamp gets verified OK: %s" % verdict)
 
-        msg = self._append_x_recipients(msg)
+        msg = self._append_tstamp_recipients(msg)
         mail = self._prepare_mail(msg, subject_suffix)
 
         with self.make_server(dry_run) as srv:
@@ -318,7 +324,8 @@ class TstampSender(TstampSpec):
             prefix = "DRY-RUN:  No email has been sent!\n  " if dry_run else ''
             self.log.log(level, "%sTimestamping %d-char email from '%s' to %s-->%s",
                          prefix, len(msg), self.from_address,
-                         self.timestamping_addresses, self.x_recipients)
+                         self.timestamping_addresses,
+                         self.tstamp_recipients + self.x_recipients)
             srv.send_message(mail)
 
         return mail
