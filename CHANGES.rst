@@ -4,14 +4,27 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
-v1.5.6.dev1: bug-fixes
+v1.5.6.dev3: bug-fixes
 ==========================================================
-- fix(dice.crypto, #382): leave gpg-encoding as is for STDIN/OUT streams.
-  to work in foreign locales; fix crash when tstamp-sig did not pass (crash apparent only with ``-fd`` options).
-- fix(dice.proj, #371): `export` cmd produces an archive with local branches without all dice-report tags.
-- fix(main, logconf.yml): crash `logging.config` is a module,not a  module attribute,
+- Dice:
+  - feat(tstamp, #384): suport SOCKSv4/v5 for tunneling SMTP/IMAP through firewalls.
+  - fix(crypto, #382): GPG-signing failed with non ASCII encodings, so had to leave
+    gpg-encoding as is (`'Latin-1'`) for STDIN/OUT streams to work in foreign locales;
+    fix crash when tstamp-sig did not pass (crash apparent only with ``-fd`` options).
+  - fix(report, #370): was always accepting dice-reports, even if TA-flags were "engineering".
+  - Projects:
+    - fix(#371): `export` cmd produces an archive with local branches without all dice-report tags.
+    - deprecate ``--reset-git-settings``, now resetting by default
+      (inverted functionality possible with ``--preserved list``).
+
+
+- fix(main, logconf.yml): crash `logging.config` is a module, not a  module attribute,
   (apparent only with``--logconf``).
 - fix(io.schema, #379): could not handle user-given bag-phases column.
+- feat(tkui, #357): harmonize GUI-logs colors with AIO-console's, add `Copy` popup-meny item.
+- fix(baseapp): fix various logic flaws & minor bugs when autoencrypting ciphered config traits.
+- chore(dep): temporarily depend on new home-built *traitlets* lib, due to 5c8229a2486;
+  add *PySocks* private dep.
 
 
 v1.5.5, file-ver: 2.2.6, 10-February 2017: "Stamp" release
@@ -41,8 +54,8 @@ and decodes the response to a random number of (1/100 cases) to arrive to these 
 - **SAMPLE **, meaning "do sample, and double-test in NEDC",  or
 - **OK**, meaning *no-sample".
 
-For its usage guidelines, visit the
-`Wiki <https://github.com/JRCSTU/CO2MPAS-TA/wiki/CO2MPAS-user-guidelines>`.
+For its usage tkuidelines, visit the
+`Wiki <https://github.com/JRCSTU/CO2MPAS-TA/wiki/CO2MPAS-user-tkuidelines>`.
 
 
 Model-changes
@@ -87,7 +100,7 @@ GUI
 ~~~
 - :git:`359`: Don't keep files that do not exist in the output list after
   simulation.
-- GUI launches with ``co2gui`` command (not with ``co2mpas gui``).
+- GUI launches with ``co2tkui`` command (not with ``co2mpas gui``).
 
 Software and Build chores(build, site, etc)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
