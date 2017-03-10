@@ -504,6 +504,9 @@ class Functions(co2_utl.Constants):
         }
 
     class default_fuel_density(co2_utl.Constants):
+        #: Enable function?
+        ENABLE = False
+
         #: Fuel density [g/l].
         FUEL_DENSITY = {
             'gasoline': 745.0,
@@ -515,6 +518,9 @@ class Functions(co2_utl.Constants):
         }
 
     class default_fuel_lower_heating_value(co2_utl.Constants):
+        #: Enable function?
+        ENABLE = False
+
         #: Fuel lower heating value [kJ/kg].
         LHV = {
             'gasoline': 43200.0,
@@ -526,6 +532,9 @@ class Functions(co2_utl.Constants):
         }
 
     class default_fuel_carbon_content(co2_utl.Constants):
+        #: Enable function?
+        ENABLE = False
+
         #: Fuel carbon content [CO2g/g].
         CARBON_CONTENT = {
             'gasoline': 3.17,

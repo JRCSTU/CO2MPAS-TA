@@ -1417,6 +1417,7 @@ def engine():
             'active_variable_valves': 'active_variable_valves',
             'active_lean_burns': 'active_lean_burns',
             'ki_factor': 'ki_factor',
+            'fuel_density': 'fuel_density',
             'declared_co2_emission_value': 'declared_co2_emission_value',
             'active_exhausted_gas_recirculations':
                 'active_exhausted_gas_recirculations',

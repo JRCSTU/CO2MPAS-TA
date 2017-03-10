@@ -36,7 +36,8 @@ def default_fuel_density(fuel_type):
         Fuel density [g/l].
     :rtype: float
     """
-
+    if not defaults.dfl.functions.default_fuel_density.ENABLE:
+        return dsp.NONE
     return defaults.dfl.functions.default_fuel_density.FUEL_DENSITY[fuel_type]
 
 
@@ -52,6 +53,8 @@ def default_fuel_carbon_content(fuel_type):
         Fuel carbon content [CO2g/g].
     :rtype: float
     """
+    if not defaults.dfl.functions.default_fuel_carbon_content.ENABLE:
+        return dsp.NONE
     CC = defaults.dfl.functions.default_fuel_carbon_content.CARBON_CONTENT
     return CC[fuel_type]
 
@@ -68,6 +71,8 @@ def default_engine_fuel_lower_heating_value(fuel_type):
         Fuel lower heating value [kJ/kg].
     :rtype: float
     """
+    if not defaults.dfl.functions.default_fuel_lower_heating_value.ENABLE:
+        return dsp.NONE
     LHV = defaults.dfl.functions.default_fuel_lower_heating_value.LHV
     return LHV[fuel_type]
 
@@ -2446,18 +2451,24 @@ def co2_emission():
         outputs=['fmep_model']
     )
 
-    # d.add_function(
-    #    function=default_engine_fuel_lower_heating_value,
-    #    inputs=['fuel_type'],
-    #    outputs=['engine_fuel_lower_heating_value'],
-    # )
+    d.add_function(
+       function=default_fuel_density,
+       inputs=['fuel_type'],
+       outputs=['fuel_density'],
+    )
 
-    # d.add_function(
-    #    function=default_fuel_carbon_content,
-    #    inputs=['fuel_type'],
-    #    outputs=['fuel_carbon_content'],
-    #    weight=3
-    # )
+    d.add_function(
+       function=default_engine_fuel_lower_heating_value,
+       inputs=['fuel_type'],
+       outputs=['engine_fuel_lower_heating_value'],
+    )
+
+    d.add_function(
+       function=default_fuel_carbon_content,
+       inputs=['fuel_type'],
+       outputs=['fuel_carbon_content'],
+       weight=3
+    )
 
     d.add_function(
         function=calculate_fuel_carbon_content_percentage,
