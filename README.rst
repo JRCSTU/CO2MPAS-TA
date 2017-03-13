@@ -24,14 +24,16 @@
 
 |co2mpas| is backward-looking longitudinal-dynamics |CO2| and
 fuel-consumption simulator for light-duty M1 & N1 vehicles (cars and vans), specially crafted to
-*calculate CO2 emissions of a vehicle subject to a NEDC test using the results of a WLTP test*,
-according to the *EU* legislation (see `History`_ section, below).
+*estimate and type-approve CO2 emissions* of vehicles undergoing NEDC testing
+based on the emissions produced during WLTP tests, according to the *EU legislation*
+(see `History`_ section, below).
 
-It is an open-source project developed with Python-3.5+,
-using |winpython|_ & |anaconda|_ under Windows 7, Anaconda under MacOS, and
-standard python environment under Linux.
+It is an open-source project(`EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_)
+developed for Python-3.5+ using |winpython|_ & |anaconda|_ under Windows 7,
+Anaconda under MacOS, and standard python environment under Linux.
 It runs either as a *console command* or as a *desktop GUI application*,
-and it uses Excel-files for its input & output data.
+and it uses Excel-files or pure python structures (dictionary and lists) for its
+input & output data.
 
 
 Quick Start
