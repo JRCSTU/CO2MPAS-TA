@@ -7,16 +7,18 @@ CO2MPAS Changes
 v1.5.6.dev3: bug-fixes
 ==========================================================
 - Dice:
-  - feat(tstamp, #384): suport SOCKSv4/v5 for tunneling SMTP/IMAP through firewalls.
   - fix(crypto, #382): GPG-signing failed with non ASCII encodings, so had to leave
     gpg-encoding as is (`'Latin-1'`) for STDIN/OUT streams to work in foreign locales;
     fix crash when tstamp-sig did not pass (crash apparent only with ``-fd`` options).
   - fix(report, #370): was always accepting dice-reports, even if TA-flags were "engineering".
+  - tstamp:
+    - feat(#384): suport SOCKSv4/v5 for tunneling SMTP/IMAP through firewalls.
+    - feat: add TLS
+
   - Projects:
     - fix(#371): `export` cmd produces an archive with local branches without all dice-report tags.
     - deprecate ``--reset-git-settings``, now resetting by default
       (inverted functionality possible with ``--preserved list``).
-
 
 - fix(main, logconf.yml): crash `logging.config` is a module, not a  module attribute,
   (apparent only with``--logconf``).
