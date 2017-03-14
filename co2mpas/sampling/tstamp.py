@@ -164,7 +164,6 @@ class TstampSpec(dice.DiceSpec):
         self.log.info("Login %s: %s@%s(%s)...", srv_cls.__name__,
                       self.user_account_resolved, host, srv_kwds or '')
         srv = MagicMock() if dry_run else srv_cls(host, **srv_kwds)
-        srv.set_debuglevel(self.verbose)
 
         return srv
 
@@ -172,13 +171,7 @@ class TstampSpec(dice.DiceSpec):
         ok = False
         with self.make_server(dry_run) as srv:
             try:
-                if self.tls:
-                    srv.starttls(keyfile=self.tls_keyfile,
-                                 certfile=self.tls_certfile,
-                                 context=None)
-                    srv.ehlo()
-
-                srv.login(self.user_account_resolved, self.decipher('user_pswd'))
+                self.login(srv, self.user_account_resolved, self.decipher('user_pswd'))
                 ok = True
             finally:
                 self.log.info("Login %s: %s@%s ok? %s", type(srv).__name__,
@@ -287,6 +280,16 @@ class TstampSender(TstampSpec):
         self.monkeypatch_socks_module(smtplib)
         return smtplib.SMTP_SSL if self.ssl else smtplib.SMTP
 
+    def login(self, srv, user, pswd):
+        if self.tls:
+            srv.set_debuglevel(self.verbose)
+            srv.starttls(keyfile=self.tls_keyfile,
+                         certfile=self.tls_certfile,
+                         context=None)
+            srv.ehlo()
+
+        return srv.login(user, pswd)
+
     def send_timestamped_email(self, msg: Union[str, bytes], subject_suffix='', dry_run=False):
         from pprint import pformat
 
@@ -308,10 +311,7 @@ class TstampSender(TstampSpec):
         mail = self._prepare_mail(msg, subject_suffix)
 
         with self.make_server(dry_run) as srv:
-            if self.tls:
-                srv.starttls()
-
-            srv.login(self.user_account_resolved, self.decipher('user_pswd'))
+            self.login(srv, self.user_account_resolved, self.decipher('user_pswd'))
 
             from logging import WARNING, INFO
             level = WARNING if dry_run else INFO
@@ -484,10 +484,17 @@ class TstampReceiver(TstampSpec):
         self.monkeypatch_socks_module(imaplib)
         return imaplib.IMAP4_SSL if self.ssl else imaplib.IMAP4
 
+    def login(self, srv, user, pswd):
+        srv.debug = int(self.verbose)
+        if self.tls:
+            srv.starttls()
+
+        return srv.login(user, pswd)
+
     # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
     def receive_timestamped_email(self, dry_run):
         with self.make_server(dry_run) as srv:
-            repl = srv.login(self.user_account_resolved, self.decipher('user_pswd'))
+            repl = self.login(srv, self.user_account_resolved, self.decipher('user_pswd'))
             """GMAIL-2FAuth: imaplib.error: b'[ALERT] Application-specific password required:
             https://support.google.com/accounts/answer/185833 (Failure)'"""
             self.log.debug("Sent IMAP user/pswd, server replied: %s", repl)
