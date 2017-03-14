@@ -58,14 +58,38 @@ class TstampSpec(dice.DiceSpec):
 
     ssl = trt.Bool(
         True,
-        help="""Whether to talk TLS/SSL to the SMTP/IMAP server; configure `port` separately!"""
+        help="""Whether to talk SSL to the SMTP/IMAP server; configure `port` separately!"""
+    ).tag(config=True)
+
+    tls = trt.Bool(
+        None, allow_none=True,
+        help="""
+        Whether to enabled TLS to the SMTP/IMAP server; usually SSL must be set to False.
+
+        For instance, Outlook servers use this setup.
+        """
+    ).tag(config=True)
+
+    tls_keyfile = trt.Unicode(
+        None, allow_none=True,
+        help="""
+        The keyfile and certfile parameters specify paths to optional files which contain
+        a certificate to be used to identify the local side of the connection.
+
+        see https://docs.python.org/3/library/ssl.html#ssl.wrap_socket
+        """
+    ).tag(config=True)
+
+    tls_certfile = trt.Unicode(
+        None, allow_none=True,
+        help="See help of `tls_keyfile`."
     ).tag(config=True)
 
     mail_kwds = trt.Dict(
         help="""
             Any extra key-value pairs passed to the SMTP/IMAP mail-client libraries.
             For instance, :class:`smtlib.SMTP_SSL` and :class:`smtlib.IMAP4_SSL`
-            support `keyfile`, `certfile`,  `ssl_context` and `timeout`,
+            support `keyfile`, `certfile`,  `ssl_context`(unusable :-/) and `timeout`,
             while SMTP/SSL support additionally `local_hostname` and `source_address`.
         """
     ).tag(config=True)
@@ -140,6 +164,13 @@ class TstampSpec(dice.DiceSpec):
         self.log.info("Login %s: %s@%s(%s)...", srv_cls.__name__,
                       self.user_account_resolved, host, srv_kwds or '')
         srv = MagicMock() if dry_run else srv_cls(host, **srv_kwds)
+        srv.set_debuglevel(self.verbose)
+
+        if self.tls:
+            srv.starttls(keyfile=self.tls_keyfile,
+                         certfile=self.tls_certfile,
+                         context=None)
+            srv.ehlo()
 
         return srv
 
