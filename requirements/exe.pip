@@ -34,9 +34,7 @@ formulas>=0.0.4
 
 ## Dice
 python-gnupg
-gitpython >= 2.1.0 ## Win+Cygwin support
-transitions
+gitpython >= 2.1.0      ## Win+Cygwin support
+transitions >= 0.5.0    ## prepare/finally cbs
 git+https://github.com/ankostis/traitlets#egg=traitlets-5.0.0.dev
-git+https://github.com/ankostis/transitions#egg=transitions-0.5.0.dev
-git+https://github.com/ankostis/PySocks#egg=transitions-1.6.7.dev
-PySocks
+PySocks >= 1.6.7        ## more proxy-error messages (#7)
