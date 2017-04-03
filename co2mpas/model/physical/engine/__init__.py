@@ -961,6 +961,48 @@ def define_full_bmep_curve(
     return func
 
 
+def identify_idle_engine_speed():
+    """
+    Defines the model to identify idle engine speed median and std.
+
+    .. dispatcher:: d
+
+        >>> d = identify_idle_engine_speed()
+
+    :return:
+        The model to identify idle engine speed median and std.
+    :rtype: schedula.Dispatcher
+    """
+
+    d = dsp.Dispatcher(
+        name='calculate_idle_engine_speed',
+        description='Identify idle engine speed median and std.'
+    )
+
+    d.add_function(
+        function=define_idle_model_detector,
+        inputs=['velocities', 'engine_speeds_out', 'stop_velocity',
+                'min_engine_on_speed'],
+        outputs=['idle_model_detector']
+    )
+
+    # identify idle engine speed
+    d.add_function(
+        function=identify_idle_engine_speed_median,
+        inputs=['idle_model_detector'],
+        outputs=['idle_engine_speed_median']
+    )
+
+    # identify idle engine speed
+    d.add_function(
+        function=identify_idle_engine_speed_std,
+        inputs=['idle_model_detector', 'engine_speeds_out',
+                'idle_engine_speed_median', 'min_engine_on_speed'],
+        outputs=['idle_engine_speed_std']
+    )
+    return d
+
+
 def engine():
     """
     Defines the engine model.
@@ -1072,26 +1114,19 @@ def engine():
         description='Standard deviation of idle engine speed [RPM].'
     )
 
-    d.add_function(
-        function=define_idle_model_detector,
-        inputs=['velocities', 'engine_speeds_out', 'stop_velocity',
-                'min_engine_on_speed'],
-        outputs=['idle_model_detector']
-    )
-
-    # identify idle engine speed
-    d.add_function(
-        function=identify_idle_engine_speed_median,
-        inputs=['idle_model_detector'],
-        outputs=['idle_engine_speed_median']
-    )
-
-    # identify idle engine speed
-    d.add_function(
-        function=identify_idle_engine_speed_std,
-        inputs=['idle_model_detector', 'engine_speeds_out',
-                'idle_engine_speed_median', 'min_engine_on_speed'],
-        outputs=['idle_engine_speed_std']
+    d.add_dispatcher(
+        dsp=identify_idle_engine_speed(),
+        inputs={
+            'velocities': 'velocities',
+            'engine_speeds_out': 'engine_speeds_out',
+            'stop_velocity': 'stop_velocity',
+            'min_engine_on_speed': 'min_engine_on_speed',
+            'idle_engine_speed_median': 'idle_engine_speed_median'
+        },
+        outputs={
+            'idle_engine_speed_median': 'idle_engine_speed_median',
+            'idle_engine_speed_std': 'idle_engine_speed_std'
+        }
     )
 
     # set idle engine speed tuple
