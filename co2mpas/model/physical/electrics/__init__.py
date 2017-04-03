@@ -747,6 +747,22 @@ def identify_alternator_current_threshold(
     return 0.0
 
 
+def get_alternator_current_threshold(alternator_status_model):
+    """
+    Gets the alternator current threshold [A] that identifies when the
+    alternator is off from the alternator status model.
+
+    :param alternator_status_model:
+        A function that predicts the alternator status.
+    :type alternator_status_model: Alternator_status_model
+
+    :return:
+        Alternator current threshold [A].
+    :rtype: float
+    """
+    return alternator_status_model.current_threshold
+
+
 def _starts_windows(times, engine_starts, dt):
     ts = times[engine_starts]
     from ..defaults import dfl
@@ -794,11 +810,12 @@ def identify_alternator_starts_windows(
 
 class Alternator_status_model(object):
     def __init__(self, bers_pred=None, charge_pred=None, min_soc=0.0,
-                 max_soc=100.0):
+                 max_soc=100.0, current_threshold=0.0):
         self.bers = bers_pred
         self.charge = charge_pred
         self.max = max_soc
         self.min = min_soc
+        self.current_threshold = current_threshold
 
     def __call__(self, *args, **kwargs):
         return self.predict(*args, **kwargs)
@@ -933,7 +950,8 @@ def _identify_balance_soc(times, state_of_charges):
 
 
 def calibrate_alternator_status_model(
-        times, alternator_statuses, state_of_charges, gear_box_powers_in):
+        times, alternator_statuses, state_of_charges, gear_box_powers_in,
+        alternator_current_threshold):
     """
     Calibrates the alternator status model.
 
@@ -963,7 +981,10 @@ def calibrate_alternator_status_model(
     :rtype: function
     """
 
-    model = Alternator_status_model().fit(
+    model = Alternator_status_model(
+        current_threshold=alternator_current_threshold
+    )
+    model.fit(
         times, alternator_statuses, state_of_charges, gear_box_powers_in
     )
 
@@ -1304,6 +1325,12 @@ def electrics():
     )
 
     d.add_function(
+        function=get_alternator_current_threshold,
+        inputs=['alternator_status_model'],
+        outputs=['alternator_current_threshold']
+    )
+
+    d.add_function(
         function=identify_alternator_current_threshold,
         inputs=['alternator_currents', 'velocities', 'on_engine',
                 'stop_velocity', 'alternator_off_threshold'],
@@ -1350,7 +1377,7 @@ def electrics():
     d.add_function(
         function=calibrate_alternator_status_model,
         inputs=['times', 'alternator_statuses', 'state_of_charges',
-                'gear_box_powers_in'],
+                'gear_box_powers_in', 'alternator_current_threshold'],
         outputs=['alternator_status_model'],
         weight=10
     )
