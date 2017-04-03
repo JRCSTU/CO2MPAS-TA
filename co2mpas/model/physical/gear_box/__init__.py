@@ -382,9 +382,7 @@ class GearBoxLosses(object):
                  equivalent_gear_box_heat_capacity, thermostat_temperature,
                  gear_box_temperature_references, gear_box_ratios=None):
         base = collections.OrderedDict()
-        if gear_box_ratios:
-            base['gear_box_ratios'] = gear_box_ratios
-
+        base['gear_box_ratios'] = gear_box_ratios
         base['thermostat_temperature'] = thermostat_temperature
         base['equivalent_gear_box_heat_capacity'] = \
             equivalent_gear_box_heat_capacity
@@ -393,10 +391,24 @@ class GearBoxLosses(object):
         base['gear_box_temperature_references'] = \
             gear_box_temperature_references
 
-        self.base = base
         self.loop = False
-        from .thermal import thermal
-        self.base_thermal = thermal()
+
+        # from .thermal import thermal
+        # inputs = (
+        #     'gear_box_temperature', 'delta_time', 'gear_box_power_out',
+        #     'gear_box_speed_out','gear_box_speed_in', 'gear_box_torque_out',
+        #     'gear'
+        # )
+        # _thermal = dsp_utl.SubDispatchPipe(
+        #     dsp=thermal(),
+        #     function_id='thermal',
+        #     inputs=tuple(base) + inputs,
+        #     outputs=('gear_box_temperature', 'gear_box_torque_in',
+        #              'gear_box_efficiency')
+        # )
+        from .thermal import _thermal
+
+        self._thermal = functools.partial(_thermal, *tuple(base.values()))
 
     def predict(self, *args, **kwargs):
         return np.array(list(self._yield_losses(*args, **kwargs))).T
@@ -412,20 +424,9 @@ class GearBoxLosses(object):
         inputs['gear_box_speed_out'] = gear_box_speeds_out
         inputs['gear_box_speed_in'] = gear_box_speeds_in
         inputs['gear_box_torque_out'] = gear_box_torques_out
+        inputs['gear'] = gears
 
-        if gears is not None:
-            inputs['gear'] = gears
-
-        func = dsp_utl.SubDispatchPipe(
-            dsp=self.base_thermal,
-            function_id='thermal',
-            inputs=tuple(self.base) + ('gear_box_temperature',) + tuple(inputs),
-            outputs=('gear_box_temperature', 'gear_box_torque_in',
-                     'gear_box_efficiency')
-        )
-        func = functools.partial(func, *tuple(self.base.values()))
-
-        o = [initial_gear_box_temperature]
+        o, func = [initial_gear_box_temperature], self._thermal
         args = np.column_stack(tuple(inputs.values()))
 
         for index in np.ndindex(args.shape[0]):

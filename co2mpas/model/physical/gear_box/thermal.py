@@ -133,6 +133,8 @@ def correct_gear_box_torque_in(
     """
 
     gbr = gear_box_ratios
+    if gbr is None or gear is None:
+        return gear_box_torque_in
 
     return gear_box_torque_out if gbr.get(gear, 0) == 1 else gear_box_torque_in
 
@@ -278,13 +280,6 @@ def thermal():
     )
 
     d.add_function(
-        function=dsp_utl.bypass,
-        inputs=['gear_box_torque_in<0>'],
-        outputs=['gear_box_torque_in'],
-        weight=100,
-    )
-
-    d.add_function(
         function=calculate_gear_box_efficiency,
         inputs=['gear_box_power_out', 'gear_box_speed_in',
                 'gear_box_torque_out', 'gear_box_torque_in'],
@@ -305,3 +300,33 @@ def thermal():
     )
 
     return d
+
+
+def _thermal(
+        gear_box_ratios, thermostat_temperature,
+        equivalent_gear_box_heat_capacity,
+        gear_box_efficiency_parameters_cold_hot,
+        gear_box_temperature_references, gear_box_temperature, delta_time,
+        gear_box_power_out, gear_box_speed_out, gear_box_speed_in,
+        gear_box_torque_out, gear):
+
+    gear_box_torque_in = calculate_gear_box_torque_in(
+        gear_box_torque_out, gear_box_speed_in, gear_box_speed_out,
+        gear_box_temperature, gear_box_efficiency_parameters_cold_hot,
+        gear_box_temperature_references)
+
+    gear_box_torque_in = correct_gear_box_torque_in(
+        gear_box_torque_out, gear_box_torque_in, gear, gear_box_ratios)
+
+    gear_box_efficiency = calculate_gear_box_efficiency(
+        gear_box_power_out, gear_box_speed_in, gear_box_torque_out,
+        gear_box_torque_in)
+
+    gear_box_heat = calculate_gear_box_heat(
+        gear_box_efficiency, gear_box_power_out, delta_time)
+
+    gear_box_temperature = calculate_gear_box_temperature(
+        gear_box_heat, gear_box_temperature, equivalent_gear_box_heat_capacity,
+        thermostat_temperature)
+
+    return list((gear_box_temperature, gear_box_torque_in, gear_box_efficiency))
