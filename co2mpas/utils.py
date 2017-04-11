@@ -54,7 +54,8 @@ class Constants(dict):
                 o = getattr(self, k, Constants())
                 if isinstance(o, Constants):
                     v = o.from_dict(v)
-                elif issubclass(o.__class__, Constants):
+                elif issubclass(o.__class__, Constants) or \
+                        issubclass(o, Constants):
                     v = o().from_dict(v)
                 if not v:
                     continue
