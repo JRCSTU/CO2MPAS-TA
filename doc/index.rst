@@ -1,7 +1,7 @@
 .. meta::
     :theme-color:   #CCCC00
 
-.. image:: _static/CO2MPAS_banner.svg
+.. image:: _static/CO2MPAS_banner.png
    :width: 600 px
    :align: center
 
