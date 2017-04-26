@@ -10,6 +10,7 @@
 It provides constants for the CO2MPAS formulas.
 """
 
+import collections
 import numpy as np
 import co2mpas.utils as co2_utl
 
@@ -77,6 +78,12 @@ class Values(co2_utl.Constants):
 
     #: Air density [kg/m3].
     air_density = 1.2
+
+    #: Has the vehicle a roof box? [-].
+    has_roof_box = False
+
+    #: Tyre class (C1, C2, and C3).
+    tyre_class = 'C1'
 
     #: Angle slope [rad].
     angle_slope = 0.0
@@ -180,6 +187,55 @@ class Values(co2_utl.Constants):
 
 #: Container of internal function parameters.
 class Functions(co2_utl.Constants):
+    class calculate_aerodynamic_drag_coefficient(co2_utl.Constants):
+        #: Aerodynamic drag coefficients function of vehicle category [-].
+        cw = {
+            'A': 0.34, 'B': 0.31, 'C': 0.29, 'D': 0.30, 'E': 0.30, 'F': 0.28,
+            'S': 0.29, 'M': 0.32, 'J': 0.38
+        }
+
+    class calculate_f2(co2_utl.Constants):
+        #: Deteriorating coefficient of the aerodynamic drag and frontal area
+        #: due to the roof box [-].
+        roof_box = 1.2
+
+    class calculate_rolling_resistance_coeff(co2_utl.Constants):
+        #: Rolling resistance coeff, function of tyre class and category [-].
+        #: http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:
+        #: 02009R1222-20120530&from=EN
+        coeff = {
+            'C1': {
+                'A': 6.5, 'B': 7.7, 'C': 9, 'D': 10.5, 'E': 10.5, 'F': 12,
+                'G': 12 + 1.5
+            },
+            'C2': {
+                'A': 5.5, 'B': 6.7, 'C': 8, 'D': 9.2, 'E': 9.2, 'F': 10.5,
+                'G': 10.5 + 1.3
+            },
+            'C3': {
+                'A': 4, 'B': 5, 'C': 6, 'D': 7, 'E': 8, 'F': 8 + 1, 'G': 8 + 1
+            }
+        }
+
+        coeff = {k: {i: j / 1000.0 for i, j in v.items()}
+                 for k, v in coeff.items()}
+
+    class calculate_f1(co2_utl.Constants):
+        #: Linear model coefficients.
+        qm = 2.7609 / 2, -71.735 / 2
+
+    class calculate_raw_frontal_area_v1(co2_utl.Constants):
+        #: Frontal area formulas function of vehicle_mass [function].
+        formulas = collections.defaultdict(
+            lambda: lambda vehicle_mass: (0.4041 * np.log(vehicle_mass) - 0.338)
+        )
+        formulas['J'] = lambda vehicle_mass: 0.0007 * vehicle_mass + 1.8721
+        formulas['M'] = formulas['J']
+
+    class calculate_frontal_area(co2_utl.Constants):
+        #: Projection factor from the row frontal area (h * w) [-].
+        projection_factor = 0.84
+
     class select_prediction_data(co2_utl.Constants):
         #: If True the theoretical WLTP will be predicted, otherwise the driven.
         theoretical = True

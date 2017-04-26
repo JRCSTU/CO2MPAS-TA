@@ -14,6 +14,7 @@ import schedula as dsp
 import scipy.interpolate as sci_itp
 import pykalman
 import numpy as np
+from .defaults import dfl
 
 
 def calculate_velocities(times, obd_velocities):
@@ -87,7 +88,7 @@ def calculate_aerodynamic_resistances(f2, velocities):
 
 
 def calculate_f2(
-        air_density, aerodynamic_drag_coefficient, frontal_area):
+        air_density, aerodynamic_drag_coefficient, frontal_area, has_roof_box):
     """
     Calculates the f2 coefficient [N/(km/h)^2].
 
@@ -102,15 +103,130 @@ def calculate_f2(
     :param frontal_area:
         Frontal area of the vehicle [m2].
     :type frontal_area: float
+    
+    :param has_roof_box:
+         Has the vehicle a roof box? [-].
+    :type has_roof_box: bool
 
     :return:
         As used in the dyno and defined by respective guidelines [N/(km/h)^2].
-    :rtype: numpy.array | float
+    :rtype: float
     """
 
     c = aerodynamic_drag_coefficient * frontal_area * air_density
 
-    return 0.5 * c / 3.6**2
+    if has_roof_box:
+        c *= dfl.functions.calculate_f2.roof_box
+
+    return 0.5 * c / 3.6 ** 2
+
+
+def calculate_raw_frontal_area_v1(vehicle_mass, vehicle_category):
+    """
+    Calculates raw frontal area of the vehicle [m2].
+
+    :param vehicle_mass:
+        Vehicle mass [kg].
+    :type vehicle_mass: float 
+
+    :param vehicle_category: 
+        Vehicle category (i.e., A, B, C, D, E, F, S, M, and J).
+    :type vehicle_category: str
+
+    :return:
+        Raw frontal area of the vehicle [m2].
+    :rtype: float
+    """
+    d = dfl.functions.calculate_raw_frontal_area_v1
+    return d.formulas[vehicle_category.upper()](vehicle_mass)
+
+
+def calculate_raw_frontal_area(vehicle_height, vehicle_width):
+    """
+    Calculates raw frontal area of the vehicle [m2].
+
+    :param vehicle_height:
+        Vehicle height [m].
+    :type vehicle_height: float 
+
+    :param vehicle_width: 
+        Vehicle width [m].
+    :type vehicle_width: float
+
+    :return:
+        Raw frontal area of the vehicle [m2].
+    :rtype: float
+    """
+    return vehicle_height * vehicle_width
+
+
+def calculate_frontal_area(raw_frontal_area):
+    """
+    Calculates the vehicle frontal area [m2].
+
+    :param raw_frontal_area:
+        Raw frontal area of the vehicle [m2].
+    :type raw_frontal_area: float 
+
+    :return:
+        Frontal area of the vehicle [m2].
+    :rtype: float
+    """
+    d = dfl.functions.calculate_frontal_area.projection_factor
+    return raw_frontal_area * d.projection_factor
+
+
+def calculate_aerodynamic_drag_coefficient(vehicle_category):
+    """
+    Calculates the aerodynamic drag coefficient [-].
+
+    :param vehicle_category: 
+        Vehicle category (i.e., A, B, C, D, E, F, S, M, and J).
+    :type vehicle_category: str
+
+    :return: 
+        Aerodynamic drag coefficient [-].
+    :rtype: float
+    """
+    d = dfl.functions.calculate_aerodynamic_drag_coefficient
+    return d.cw[vehicle_category.upper()]
+
+
+def calculate_rolling_resistance_coeff(tyre_class, tyre_category):
+    """
+    Calculates the rolling resistance coefficient [-].
+
+    :param tyre_class: 
+        Tyre class (i.e., C1, C2, and C3).
+    :type tyre_class: str
+
+    :param tyre_category: 
+        Tyre category (i.e., A, B, C, D, E, F, and G).
+    :type tyre_category: str
+
+    :return: 
+        Rolling resistance coefficient [-].
+    :rtype: float
+    """
+    coeff = dfl.functions.calculate_rolling_resistance_coeff.coeff
+    return coeff[tyre_class.upper()][tyre_category.upper()]
+
+
+def calculate_f1(f2):
+    """
+    Calculates the f1 road load [N/(km/h)].
+
+    :param f2:
+        As used in the dyno and defined by respective guidelines [N/(km/h)^2].
+    :type f2: float
+
+    :return: 
+        Defined by dyno procedure [N/(km/h)].
+    :rtype: float
+    """
+
+    q, m = dfl.functions.calculate_f1.qm
+    return m * f2 + q
 
 
 def calculate_angle_slopes(times, angle_slope):
@@ -250,7 +366,6 @@ def select_default_n_dyno_axes(cycle_type):
         Number of dyno axes [-].
     :rtype: int
     """
-    from .defaults import dfl
     par = dfl.functions.select_default_n_dyno_axes
     return par.DYNO_AXES.get(cycle_type.upper(), 2)
 
@@ -399,23 +514,72 @@ def vehicle():
         inputs=['f2', 'velocities'],
         outputs=['aerodynamic_resistances']
     )
-    from .defaults import dfl
+
+    d.add_function(
+        function=calculate_raw_frontal_area,
+        inputs=['vehicle_height', 'vehicle_width'],
+        outputs=['raw_frontal_area']
+    )
+
+    d.add_function(
+        function=calculate_raw_frontal_area_v1,
+        inputs=['vehicle_mass', 'vehicle_category'],
+        outputs=['raw_frontal_area'],
+        weight=5
+    )
+
+    d.add_function(
+        function=calculate_frontal_area,
+        inputs=['raw_frontal_area'],
+        outputs=['frontal_area']
+    )
+
+    d.add_function(
+        function=calculate_aerodynamic_drag_coefficient,
+        inputs=['vehicle_category'],
+        outputs=['aerodynamic_drag_coefficient']
+    )
+
     d.add_data(
         data_id='air_density',
         default_value=dfl.values.air_density,
     )
 
+    d.add_data(
+        data_id='has_roof_box',
+        default_value=dfl.values.has_roof_box,
+    )
+
     d.add_function(
         function=calculate_f2,
-        inputs=['air_density', 'aerodynamic_drag_coefficient', 'frontal_area'],
+        inputs=['air_density', 'aerodynamic_drag_coefficient', 'frontal_area',
+                'has_roof_box'],
         outputs=['f2'],
         weight=5
+    )
+
+    d.add_data(
+        data_id='tyre_class',
+        default_value=dfl.values.tyre_class
+    )
+
+    d.add_function(
+        function=calculate_rolling_resistance_coeff,
+        inputs=['tyre_class', 'tyre_category'],
+        outputs=['rolling_resistance_coeff']
     )
 
     d.add_function(
         function=calculate_f0,
         inputs=['vehicle_mass', 'rolling_resistance_coeff'],
         outputs=['f0'],
+        weight=5
+    )
+
+    d.add_function(
+        function=calculate_f1,
+        inputs=['f2'],
+        outputs=['f1'],
         weight=5
     )
 

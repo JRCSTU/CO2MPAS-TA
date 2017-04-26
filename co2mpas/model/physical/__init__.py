@@ -270,10 +270,18 @@ def physical():
             'vehicle_mass': 'vehicle_mass',
             'velocities': 'velocities',
             'road_loads': 'road_loads',
-            'angle_slopes': 'angle_slopes'
+            'angle_slopes': 'angle_slopes',
+            'vehicle_height': 'vehicle_height',
+            'vehicle_width': 'vehicle_width',
+            'vehicle_category': 'vehicle_category',
+            'has_roof_box': 'has_roof_box',
+            'tyre_class': 'tyre_class',
+            'tyre_category': 'tyre_category'
         },
         outputs={
             'f0': 'f0',
+            'f1': 'f1',
+            'f2': 'f2',
             'velocities': 'velocities',
             'climbing_force': 'climbing_force',
             'inertial_factor': 'inertial_factor',
