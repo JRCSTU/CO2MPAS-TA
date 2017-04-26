@@ -150,6 +150,7 @@ setup(
         'Topic :: Scientific/Engineering',
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
+    python_requires='>=3.5',  # http://www.python3statement.org/practicalities/
     setup_requires=[
         # PEP426-field actually not used by `pip`, hence
         # included also in /requirements/developmnet.pip.
