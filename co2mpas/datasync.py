@@ -175,6 +175,8 @@ def compute_shift(x, y):
 
 
 def _interp_wrapper(func, x, xp, fp, **kw):
+    if isinstance(kw.get('fill_value'), tuple) and not kw['fill_value']:
+        kw['fill_value'] = fp[0], fp[-1]
     return np.nan_to_num(func(xp, fp, **kw)(x))
 
 
@@ -190,7 +192,7 @@ _re_interpolation_method = regex.compile(
 def _interpolation_methods():
     methods = ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic',
                'spline', 'polynomial', 'barycentric')
-    kw = dict(fill_value=0, copy=False, bounds_error=False)
+    kw = dict(fill_value=(), copy=False, bounds_error=False)
     methods = {k: fnt.partial(_interp_wrapper, sci_itp.interp1d, kind=k, **kw)
                for k in methods}
 
