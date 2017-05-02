@@ -11,9 +11,9 @@ It contains functions that model the basic mechanics of the torque converter.
 
 import sklearn.metrics as sk_met
 import sklearn.ensemble as sk_ens
+import sklearn.pipeline as sk_pip
 import schedula as dsp
 import numpy as np
-
 
 def identify_torque_converter_speeds_delta(
         engine_speeds_out, engine_speeds_out_hot, cold_start_speeds_delta):
@@ -45,11 +45,27 @@ class TorqueConverter(object):
         self.predict = self.no_model
         self.regressor = None
 
+    def _fit_regressor(self, X, y):
+        from ..engine.thermal import _SelectFromModel
+        model = sk_ens.GradientBoostingRegressor(
+            random_state=0,
+            max_depth=2,
+            n_estimators=int(min(300, 0.25 * (len(y) - 1))),
+            loss='huber',
+            alpha=0.99
+        )
+        model = sk_pip.Pipeline([
+            ('feature_selection', _SelectFromModel(model, '0.8*median')),
+            ('classification', model)
+        ])
+        model.fit(X, y)
+        return model
+
     def __call__(self, *args, **kwargs):
         return self.predict(*args, **kwargs)
 
-    def _fit_sub_set(self, params, calibration_speed_threshold, stop_velocity,
-                     speeds_delta, accelerations, velocities,
+    def _fit_sub_set(self, params, speeds_delta, calibration_speed_threshold,
+                     stop_velocity, accelerations, velocities,
                      gear_box_speeds_in, gears, *args):
         b = np.isclose(accelerations, (0,)) & (velocities < stop_velocity)
         return ~(b & (abs(speeds_delta) > calibration_speed_threshold))
@@ -63,22 +79,13 @@ class TorqueConverter(object):
         )
         y = speeds_delta
 
-        regressor = sk_ens.GradientBoostingRegressor(
-            random_state=0,
-            max_depth=2,
-            n_estimators=int(min(300, 0.25 * (len(y) - 1))),
-            loss='huber',
-            alpha=0.99
-        )
-
         b = self._fit_sub_set(
-            params, calibration_speed_threshold, stop_velocity, speeds_delta,
+            params, speeds_delta, calibration_speed_threshold, stop_velocity,
             accelerations, velocities, gear_box_speeds_in, gears
         )
 
         if b.any():
-            regressor.fit(X[b, :], y[b])
-            self.regressor = regressor
+            self.regressor = self._fit_regressor(X[b, :], y[b])
             models = enumerate((self.model, self.no_model))
             a = times, params, self._prediction_inputs(X)
             error = sk_met.mean_absolute_error

@@ -61,7 +61,7 @@ def calculate_clutch_phases(
 
 def identify_clutch_speeds_delta(
         clutch_phases, engine_speeds_out, engine_speeds_out_hot,
-        cold_start_speeds_delta):
+        cold_start_speeds_delta, accelerations):
     """
     Identifies the engine speed delta due to the clutch [RPM].
 
@@ -81,6 +81,10 @@ def identify_clutch_speeds_delta(
         Engine speed delta due to the cold start [RPM].
     :type cold_start_speeds_delta: numpy.array
 
+    :param accelerations:
+        Acceleration vector [m/s2].
+    :type accelerations: numpy.array
+
     :return:
         Engine speed delta due to the clutch or torque converter [RPM].
     :rtype: numpy.array
@@ -89,6 +93,8 @@ def identify_clutch_speeds_delta(
     s, h, c = engine_speeds_out, engine_speeds_out_hot, cold_start_speeds_delta
     b = clutch_phases
     delta[b] = s[b] - h[b] - c[b]
+
+    delta[(delta > 0) & (accelerations < 0)] = 0
     return delta
 
 
@@ -153,13 +159,14 @@ def identify_clutch_window(
         return 0.0, 0.0
 
     delta = engine_speeds_out - engine_speeds_out_hot - cold_start_speeds_delta
-    X = np.column_stack(
-        (accelerations, velocities, gear_box_speeds_in, gears)
-    )
+
+    X = np.column_stack((accelerations, velocities, gear_box_speeds_in, gears))
+
     calculate_c_p = functools.partial(
         calculate_clutch_phases, times, velocities, gears, gear_shifts,
         stop_velocity
     )
+
     def _error(v):
         dn, up = v
         if up - dn > max_clutch_window_width:
@@ -193,10 +200,12 @@ class ClutchModel(TorqueConverter):
             predict = self.regressor.predict
             delta = functools.partial(np.interp, xp=times, fp=d)
             t = times - self.prev_dt
-            gbs = np.interp(t, xp=times, fp=X[:, -2])
+            gbs = np.interp(t, xp=times, fp=X[:, 2])
             i = np.where(clutch_phases)[0]
             for i, a in zip(i, np.column_stack((gbs, t, X))[i]):
-                d[i] = predict([tuple(a[2:]) + (a[0] + delta(a[1]),)])[0]
+                v = predict([tuple(a[2:]) + (a[0] + delta(a[1]),)])[0]
+                if not ((v >= 0) & (a[2] < 0)):
+                    d[i] = v
         return d
 
 
@@ -241,10 +250,14 @@ def calibrate_clutch_prediction_model(
     from ..defaults import dfl
     prev_dt = dfl.functions.calibrate_clutch_prediction_model.prev_dt
     model = ClutchModel(prev_dt=prev_dt)
-    es = np.interp(times - model.prev_dt, times,
-                   gear_box_speeds_in + delta_speeds)
-    model.fit(times, clutch_phases, None, None, delta_speeds, accelerations,
-              velocities, gear_box_speeds_in, gears, es)
+    es = np.interp(
+        times - model.prev_dt, times, gear_box_speeds_in + delta_speeds
+    )
+
+    model.fit(
+        times, clutch_phases, None, None,
+        delta_speeds, accelerations, velocities, gear_box_speeds_in, gears, es
+    )
 
     return model
 
@@ -257,7 +270,7 @@ def predict_clutch_speeds_delta(
 
     :param clutch_model:
         Clutch prediction model.
-    :type clutch_model: function
+    :type clutch_model: ClutchModel
 
     :param times:
         Time vector [s].
@@ -343,7 +356,7 @@ def clutch():
     d.add_function(
         function=identify_clutch_speeds_delta,
         inputs=['clutch_phases', 'engine_speeds_out', 'engine_speeds_out_hot',
-                'cold_start_speeds_delta'],
+                'cold_start_speeds_delta', 'accelerations'],
         outputs=['clutch_speeds_delta']
     )
 
