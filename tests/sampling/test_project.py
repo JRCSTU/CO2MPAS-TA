@@ -16,7 +16,6 @@ import tempfile
 from tests._tutils import chdir
 from tests.sampling import (test_inp_fpath, test_out_fpath,
                             test_pgp_fingerprint, test_pgp_key, test_pgp_trust)
-from traitlets.config import get_config
 import unittest
 
 import ddt
@@ -24,7 +23,7 @@ import ddt
 import itertools as itt
 import os.path as osp
 import pandas as pd
-import traitlets.config as trtc
+from co2mpas._vendor.traitlets import config as trtc
 
 
 init_logging(level=logging.DEBUG)
@@ -50,7 +49,7 @@ class TApp(unittest.TestCase):
     )
     def test_app(self, case):
         meth, cmd_cls = case
-        c = get_config()
+        c = trtc.get_config()
         c.Co2dice.raise_config_file_errors = True
         cmd = cmd_cls(config=c)
         meth(cmd)
@@ -129,7 +128,7 @@ class TProjectsDBStory(unittest.TestCase):
         cls._project_repo = tempfile.TemporaryDirectory()
         log.debug('Temp-repo: %s', cls._project_repo)
 
-        cls.cfg = c = trtc.get_config()
+        cls.cfg = c = trtc.trtc.get_config()
 
         c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         c.GpgSpec.keys_to_import = test_pgp_key
@@ -339,7 +338,7 @@ class TStraightStory(unittest.TestCase):
         cls._project_repo = tempfile.TemporaryDirectory()
         log.debug('Temp-repo: %s', cls._project_repo)
 
-        cls.cfg = c = trtc.get_config()
+        cls.cfg = c = trtc.trtc.get_config()
 
         c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         c.GpgSpec.keys_to_import = test_pgp_key
@@ -485,7 +484,7 @@ class TInitCmd(unittest.TestCase):
 
     @property
     def _config(self):
-        c = get_config()
+        c = trtc.get_config()
         c.ProjectsDB.repo_path = self._project_repo.name
         c.Spec.verbose = c.ProjectsDB.verbose = 0
         return c
@@ -511,7 +510,7 @@ class TBackupCmd(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.cfg = c = trtc.get_config()
+        cls.cfg = c = trtc.trtc.get_config()
 
         c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         c.GpgSpec.keys_to_import = test_pgp_key

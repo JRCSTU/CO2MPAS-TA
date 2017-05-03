@@ -17,7 +17,7 @@ import unittest
 import ddt
 
 import os.path as osp
-import traitlets.config as trtc
+from co2mpas._vendor.traitlets import config as trtc
 
 from . import test_pgp_fingerprint, test_pgp_key, test_pgp_trust
 

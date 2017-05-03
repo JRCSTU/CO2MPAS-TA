@@ -20,8 +20,8 @@ import re
 from typing import Text, Tuple, Union, Dict  # @UnusedImport
 
 import os.path as osp
-import traitlets as trt
-import traitlets.config as trtc
+from .._vendor import traitlets as trt
+from .._vendor.traitlets import config as trtc
 
 
 _pgp_regex = re.compile(r'^\s*-----[A-Z ]*PGP[A-Z ]*-----.+-----[A-Z ]*PGP[A-Z ]*-----\s*$', re.DOTALL)

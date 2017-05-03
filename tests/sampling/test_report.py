@@ -21,7 +21,7 @@ import ddt
 
 import os.path as osp
 import pandas as pd
-import traitlets.config as trtc
+from co2mpas._vendor.traitlets import config as trtc
 
 from . import (test_inp_fpath, test_out_fpath, test_vfid,
                test_pgp_fingerprint, test_pgp_key, test_pgp_trust)

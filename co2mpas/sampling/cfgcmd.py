@@ -11,7 +11,7 @@ from . import baseapp, CmdException
 from typing import Sequence, Text, List, Tuple    # @UnusedImport
 
 import os.path as osp
-import traitlets as trt
+from .._vendor import traitlets as trt
 
 
 class ConfigCmd(baseapp.Cmd):

@@ -40,7 +40,7 @@ import enum
 import re
 from typing import Text, Tuple
 
-import traitlets as trt
+from .._vendor import traitlets as trt
 
 
 class CmdException(trt.TraitError):

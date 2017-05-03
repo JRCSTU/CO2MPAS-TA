@@ -13,7 +13,7 @@ import sys
 from typing import (
     List, Sequence, Iterable, Text, Tuple, Dict, Callable, Union)  # @UnusedImport
 
-import traitlets as trt
+from .._vendor import traitlets as trt
 
 from . import CmdException, baseapp, dice, crypto
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport

@@ -15,7 +15,7 @@ from typing import (
 import os.path as osp
 import pandalone.utils as pndlu
 import pandas as pd
-import traitlets as trt
+from .._vendor import traitlets as trt
 
 from . import baseapp, project, CmdException, PFiles
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport

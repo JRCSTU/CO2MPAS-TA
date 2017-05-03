@@ -57,8 +57,8 @@ from toolz import dicttoolz as dtz, itertoolz as itz
 import itertools as itt
 import os.path as osp
 import pandalone.utils as pndlu
-import traitlets as trt
-import traitlets.config as trtc
+from .._vendor import traitlets as trt
+from .._vendor.traitlets import config as trtc
 
 from . import CmdException
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport

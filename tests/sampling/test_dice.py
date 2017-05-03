@@ -11,7 +11,7 @@ from co2mpas.sampling import baseapp, dice, cfgcmd
 import logging
 import os
 import tempfile
-from traitlets.config import get_config
+from co2mpas._vendor.traitlets.config import get_config
 import unittest
 
 import ddt

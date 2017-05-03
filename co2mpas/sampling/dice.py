@@ -21,7 +21,7 @@ from typing import Sequence, Text, List, Tuple  # @UnusedImport
 
 import os.path as osp
 import pandalone.utils as pndlu
-import traitlets as trt
+from .._vendor import traitlets as trt
 
 
 __title__ = APPNAME

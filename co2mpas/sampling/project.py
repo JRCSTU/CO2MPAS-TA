@@ -25,8 +25,8 @@ import functools as fnt
 import os.path as osp
 import pandalone.utils as pndlu
 import textwrap as tw
-import traitlets as trt
-import traitlets.config as trtc
+from .._vendor import traitlets as trt
+from .._vendor.traitlets import config as trtc
 
 from . import baseapp, dice, CmdException, PFiles
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport

@@ -22,7 +22,7 @@ import ddt
 import itertools as itt
 import os.path as osp
 import textwrap as tw
-import traitlets.config as trtc
+from co2mpas._vendor.traitlets import config as trtc
 
 
 init_logging(level=logging.DEBUG)
