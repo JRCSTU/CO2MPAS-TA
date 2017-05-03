@@ -58,14 +58,38 @@ class TstampSpec(dice.DiceSpec):
 
     ssl = trt.Bool(
         True,
-        help="""Whether to talk TLS/SSL to the SMTP/IMAP server; configure `port` separately!"""
+        help="""Whether to talk SSL to the SMTP/IMAP server; configure `port` separately!"""
+    ).tag(config=True)
+
+    tls = trt.Bool(
+        None, allow_none=True,
+        help="""
+        Whether to enabled TLS to the SMTP/IMAP server; usually SSL must be set to False.
+
+        For instance, Outlook servers use this setup.
+        """
+    ).tag(config=True)
+
+    tls_keyfile = trt.Unicode(
+        None, allow_none=True,
+        help="""
+        The keyfile and certfile parameters specify paths to optional files which contain
+        a certificate to be used to identify the local side of the connection.
+
+        see https://docs.python.org/3/library/ssl.html#ssl.wrap_socket
+        """
+    ).tag(config=True)
+
+    tls_certfile = trt.Unicode(
+        None, allow_none=True,
+        help="See help of `tls_keyfile`."
     ).tag(config=True)
 
     mail_kwds = trt.Dict(
         help="""
             Any extra key-value pairs passed to the SMTP/IMAP mail-client libraries.
             For instance, :class:`smtlib.SMTP_SSL` and :class:`smtlib.IMAP4_SSL`
-            support `keyfile`, `certfile`,  `ssl_context` and `timeout`,
+            support `keyfile`, `certfile`,  `ssl_context`(unusable :-/) and `timeout`,
             while SMTP/SSL support additionally `local_hostname` and `source_address`.
         """
     ).tag(config=True)
@@ -147,7 +171,7 @@ class TstampSpec(dice.DiceSpec):
         ok = False
         with self.make_server(dry_run) as srv:
             try:
-                srv.login(self.user_account_resolved, self.decipher('user_pswd'))
+                self.login(srv, self.user_account_resolved, self.decipher('user_pswd'))
                 ok = True
             finally:
                 self.log.info("Login %s: %s@%s ok? %s", type(srv).__name__,
@@ -256,6 +280,16 @@ class TstampSender(TstampSpec):
         self.monkeypatch_socks_module(smtplib)
         return smtplib.SMTP_SSL if self.ssl else smtplib.SMTP
 
+    def login(self, srv, user, pswd):
+        if self.tls:
+            srv.set_debuglevel(self.verbose)
+            srv.starttls(keyfile=self.tls_keyfile,
+                         certfile=self.tls_certfile,
+                         context=None)
+            srv.ehlo()
+
+        return srv.login(user, pswd)
+
     def send_timestamped_email(self, msg: Union[str, bytes], subject_suffix='', dry_run=False):
         from pprint import pformat
 
@@ -277,7 +311,7 @@ class TstampSender(TstampSpec):
         mail = self._prepare_mail(msg, subject_suffix)
 
         with self.make_server(dry_run) as srv:
-            srv.login(self.user_account_resolved, self.decipher('user_pswd'))
+            self.login(srv, self.user_account_resolved, self.decipher('user_pswd'))
 
             from logging import WARNING, INFO
             level = WARNING if dry_run else INFO
@@ -450,10 +484,17 @@ class TstampReceiver(TstampSpec):
         self.monkeypatch_socks_module(imaplib)
         return imaplib.IMAP4_SSL if self.ssl else imaplib.IMAP4
 
+    def login(self, srv, user, pswd):
+        srv.debug = int(self.verbose)
+        if self.tls:
+            srv.starttls()
+
+        return srv.login(user, pswd)
+
     # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
     def receive_timestamped_email(self, dry_run):
         with self.make_server(dry_run) as srv:
-            repl = srv.login(self.user_account_resolved, self.decipher('user_pswd'))
+            repl = self.login(srv, self.user_account_resolved, self.decipher('user_pswd'))
             """GMAIL-2FAuth: imaplib.error: b'[ALERT] Application-specific password required:
             https://support.google.com/accounts/answer/185833 (Failure)'"""
             self.log.debug("Sent IMAP user/pswd, server replied: %s", repl)
