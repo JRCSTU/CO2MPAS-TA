@@ -1,0 +1,2 @@
+target = "co2mpas/_vendor"
+requires = ["git+https://github.com/ankostis/traitlets@co2mpas"]
