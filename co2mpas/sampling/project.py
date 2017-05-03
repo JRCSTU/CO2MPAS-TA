@@ -34,7 +34,7 @@ from .._version import __dice_report_version__
 
 
 vehicle_family_id_regex = re.compile(r'^(?:IP|RL|RM|PR)-\d{2}-\w{2,3}-\d{4}-\d{4}$')
-git_project_regex = re.compile('^\w[\w-]+$')
+git_project_regex = re.compile(r'^\w[\w-]+$')
 
 _git_messaged_obj = re.compile(r'^(:?object|tag) ')
 _after_first_empty_line_regex = re.compile(r'\n\r?\n')
@@ -791,7 +791,7 @@ class Project(transitions.Machine, ProjectSpec):
 
 
 class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
-    """A git-based repository storing the TA projects (containing signed-files and sampling-responses).
+    r"""A git-based repository storing the TA projects (containing signed-files and sampling-responses).
 
     It handles checkouts but delegates index modifications to `Project` spec.
 
