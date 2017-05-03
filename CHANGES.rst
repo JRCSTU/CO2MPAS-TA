@@ -4,7 +4,7 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
-v1.5.6.dev3: bug-fixes
+v1.6.0.dev1: bug-fixes
 ==========================================================
 - Dice:
   - fix(crypto, #382): GPG-signing failed with non ASCII encodings, so had to leave
@@ -25,8 +25,14 @@ v1.5.6.dev3: bug-fixes
 - fix(io.schema, #379): could not handle user-given bag-phases column.
 - feat(tkui, #357): harmonize GUI-logs colors with AIO-console's, add `Copy` popup-meny item.
 - fix(baseapp): fix various logic flaws & minor bugs when autoencrypting ciphered config traits.
-- chore(dep): temporarily depend on new home-built *traitlets* lib, due to 5c8229a2486;
+- chore(dep): vendorize  *traitlets* lib.
   add *PySocks* private dep.
+- model:
+  - datasync:fix edges
+  - Rls: add extra formulas
+  - clutch: remove the peaks
+  - sphinx: failing due to SVGs
+  - fuel: fix tau func
 
 
 v1.5.5, file-ver: 2.2.6, 10-February 2017: "Stamp" release
