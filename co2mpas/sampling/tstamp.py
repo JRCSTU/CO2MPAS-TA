@@ -110,7 +110,7 @@ class TstampSpec(dice.DiceSpec):
         help="""Whether to skip DNS resolve of `socks_host` value."""
     ).tag(config=True)
 
-    socks_type = baseapp.FuzzyEnum(
+    socks_type = trt.FuzzyEnum(
         ['SOCKS4', 'SOCKS5', 'HTTP', 'disabled'], allow_none=True,
         help="""
         The SOCKS-proxy protocol to use for send/recv emails (case-insensitive).

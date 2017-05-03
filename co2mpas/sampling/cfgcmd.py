@@ -99,7 +99,7 @@ class ConfigCmd(baseapp.Cmd):
         - Might not print accurately the defaults/merged for all(!) traits.
         """
 
-        source = baseapp.FuzzyEnum(
+        source = trt.FuzzyEnum(
             'defaults files merged'.split(), default_value='merged', allow_none=False,
             help="""Show configuration parameters in code, stored on disk files, or merged."""
         ).tag(config=True)
