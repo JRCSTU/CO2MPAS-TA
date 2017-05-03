@@ -13,11 +13,11 @@ import logging
 import os
 import re
 import sys
-from ...traitlets.config.configurable import Configurable, SingletonConfigurable
-from ...traitlets.config.loader import (
+from .configurable import Configurable, SingletonConfigurable
+from .loader import (
     KVArgParseConfigLoader, PyFileConfigLoader, Config, ArgumentError, ConfigFileNotFound, JSONFileConfigLoader
 )
-from ...traitlets.traitlets import (
+from ..traitlets import (
     Bool, Unicode, List, Enum, Dict, Instance, TraitError, observe, observe_compat, default,
 )
 
@@ -261,7 +261,7 @@ class Application(SingletonConfigurable):
     # and the second being the help string for the subcommand
     subcommands = Dict()
     # parse_command_line will initialize a subapp, if requested
-    subapp = Instance('traitlets.config.application.Application', allow_none=True)
+    subapp = Instance('co2mpas._vendor.traitlets.config.application.Application', allow_none=True)
 
     # extra command-line arguments that don't set config values
     extra_args = List(Unicode())

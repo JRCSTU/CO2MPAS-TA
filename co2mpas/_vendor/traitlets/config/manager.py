@@ -8,8 +8,8 @@ import json
 import os
 
 from six import PY3
-from ...traitlets.config import LoggingConfigurable
-from ...traitlets.traitlets import Unicode
+from . import LoggingConfigurable
+from ..traitlets import Unicode
 
 
 def recursive_update(target, new):
@@ -35,7 +35,7 @@ def recursive_update(target, new):
 
 class BaseJSONConfigManager(LoggingConfigurable):
     """General JSON config manager
-    
+
     Deals with persisting/storing config in a json file
     """
 

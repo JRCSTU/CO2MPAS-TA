@@ -10,7 +10,7 @@ from copy import deepcopy
 import warnings
 
 from .loader import Config, LazyConfigValue, _is_section_key
-from ...traitlets.traitlets import (
+from ..traitlets import (
     HasTraits,
     Instance,
     Container,
@@ -41,7 +41,7 @@ class MultipleInstanceError(ConfigurableError):
 class Configurable(HasTraits):
 
     config = Instance(Config, (), {})
-    parent = Instance('traitlets.config.configurable.Configurable', allow_none=True)
+    parent = Instance('co2mpas._vendor.traitlets.config.configurable.Configurable', allow_none=True)
 
     def __init__(self, **kwargs):
         """Create a configurable given a config config.
@@ -312,7 +312,7 @@ class Configurable(HasTraits):
     @classmethod
     def class_config_section(cls, classes=None):
         """Get the config section for this class.
-        
+
         Parameters
         ----------
         classes: list, optional

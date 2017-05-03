@@ -17,7 +17,7 @@ from ipython_genutils.path import filefind
 from ipython_genutils import py3compat
 from ipython_genutils.encoding import DEFAULT_ENCODING
 from six import text_type, string_types
-from ...traitlets.traitlets import (
+from ..traitlets import (
     HasTraits, Container, List, Dict, Any,
 )
 
