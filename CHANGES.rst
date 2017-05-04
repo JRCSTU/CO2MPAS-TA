@@ -5,35 +5,48 @@ CO2MPAS Changes
 .. _changes:
 
 v1.6.0.dev1: bug-fixes
-==========================================================
-- :git:`314`: Move most demo-files to AIO archive - 2 files are left.
-- Dice:
-  - fix(crypto, #382): GPG-signing failed with non ASCII encodings, so had to leave
-    gpg-encoding as is (`'Latin-1'`) for STDIN/OUT streams to work in foreign locales;
-    fix crash when tstamp-sig did not pass (crash apparent only with ``-fd`` options).
-  - fix(report, #370): was always accepting dice-reports, even if TA-flags were "engineering".
-  - tstamp:
-    - feat(#384): suport SOCKSv4/v5 for tunneling SMTP/IMAP through firewalls.
-    - feat: add TLS
+======================
+The Dice
+--------
+- fix(crypto, #382): GPG-signing failed with non ASCII encodings, so had to
+  leave gpg-encoding as is (`'Latin-1'`) for STDIN/OUT streams to work in
+  foreign locales; fix crash when tstamp-sig did not pass (crash apparent only
+  with ``-fd`` options).
+- fix(report, #370): was always accepting dice-reports, even if TA-flags were
+  "engineering".
+- tstamp:
+- feat(#384): suport SOCKSv4/v5 for tunneling SMTP/IMAP through firewalls.
+- feat: add TLS
 
-  - Projects:
-    - fix(#371): `export` cmd produces an archive with local branches without all dice-report tags.
-    - deprecate ``--reset-git-settings``, now resetting by default
-      (inverted functionality possible with ``--preserved list``).
+Projects
+--------
+- fix(#371): `export` cmd produces an archive with local branches without all
+  dice-report tags.
+- deprecate ``--reset-git-settings``, now resetting by default (inverted
+  functionality possible with ``--preserved list``).
 
-- fix(main, logconf.yml): crash `logging.config` is a module, not a  module attribute,
-  (apparent only with``--logconf``).
+- fix(main, logconf.yml): crash `logging.config` is a module, not a  module
+  attribute, (apparent only with``--logconf``).
 - fix(io.schema, #379): could not handle user-given bag-phases column.
-- feat(tkui, #357): harmonize GUI-logs colors with AIO-console's, add `Copy` popup-meny item.
-- fix(baseapp): fix various logic flaws & minor bugs when autoencrypting ciphered config traits.
+- feat(tkui, #357): harmonize GUI-logs colors with AIO-console's, add `Copy`
+  popup-meny item.
+- fix(baseapp): fix various logic flaws & minor bugs when autoencrypting
+  ciphered config traits.
 - chore(dep): vendorize  *traitlets* lib.
   add *PySocks* private dep.
-- model:
-  - datasync:fix edges
-  - Rls: add extra formulas
-  - clutch: remove the peaks
-  - sphinx: failing due to SVGs
-  - fuel: fix tau func
+
+Model
+-----
+- datasync:fix edges
+- Rls: add extra formulas
+- clutch: remove the peaks
+- sphinx: failing due to SVGs
+- fuel: fix tau func
+
+IO & Data
+---------
+- :git:`314`: Move most demo-files to AIO archive - 2 files are left.
+
 
 
 v1.5.5, file-ver: 2.2.6, 10-February 2017: "Stamp" release
@@ -58,9 +71,10 @@ and `automatic transmission vehicles
 The DICE
 --------
 The new command-line tool ``co2dice`` reads |co2mpas| input and output files,
-packs them together, send their :term:`Hash-ID` in a request to a time-stamp server,
-and decodes the response to a random number of (1/100 cases) to arrive to these cases:
-- **SAMPLE **, meaning "do sample, and double-test in NEDC",  or
+packs them together, send their :term:`Hash-ID` in a request to a time-stamp
+server, and decodes the response to a random number of (1/100 cases) to arrive
+to these cases:
+- **SAMPLE**, meaning "do sample, and double-test in NEDC",  or
 - **OK**, meaning *no-sample".
 
 For its usage tkuidelines, visit the
@@ -89,7 +103,8 @@ Clutch model
   `Torque converter model`.
 
 - :git:`#330`: The *clutch model* prediction has been enhanced during gearshifts
-  by remove `clutch phases` when  ``(gears == 0……) | (velocities <= stop_velocity)``.
+  by remove `clutch phases` when
+  ``(gears == 0……) | (velocities <= stop_velocity)``.
 
 
 Final drive
@@ -100,10 +115,11 @@ Final drive
 IO
 --
 - :git:`341`: Input template & demo files include now the ``vehicle_family_id``
-  as a set of concatenated codes that are required to run the model in Type Approval
-  mode.
+  as a set of concatenated codes that are required to run the model in Type
+  Approval mode.
 - :git:`356`: enhancements of the output and dice reports have been made.
-- The *demo-files* are starting to move gradually from within |co2mpas| to the site.
+- The *demo-files* are starting to move gradually from within |co2mpas| to the
+  site.
 
 GUI
 ~~~
@@ -135,47 +151,54 @@ Software and Build chores(build, site, etc)
 Known Limitations
 -----------------
 
-1. *DICE* is considered to be in an *early alpha stage* of development, and not all bugs
-   have been ironed out.
-2. Concerning the *threat model* for the *DICE*, it  is relying "roughly" on following
-   premises:
+1. *DICE* is considered to be in an *early alpha stage* of development, and not
+   all bugs have been ironed out.
+2. Concerning the *threat model* for the *DICE*, it  is relying "roughly" on
+   following premises:
 
    a) A single cryptographic key will be shared among all TS personnel,
       not to hinder usability at this early stage.
-   b) There are no measures to ensure the trust of the procedure BEFORE the time-stamping.
-      The TS personnel running *DICE*, and its PC are to be trusted for non-tampering;
-   c) The (owner of the) time-stamp service is assumed not to collude with the OEMs
-      (or if doubts are raised, more elaborate measures can be *gradually* introduced).
-   d) The *DICE* does not strive to be tamper-resistant but rather tamper-evident.
-   e) The denial-of-service is not considered at this stage;  but given a choice between
-      blocking the Type Approval, and compromising IT-security, at the moment we choose
-      the later - according to the above premise, humans interventions are acceptable,
-      as long as they are recorded in the :term:`Hash DB` keeping a detectable
-      non-reputable trace.
+   b) There are no measures to ensure the trust of the procedure BEFORE the
+      time-stamping. The TS personnel running *DICE*, and its PC are to be
+      trusted for non-tampering;
+   c) The (owner of the) time-stamp service is assumed not to collude with the
+      OEMs (or if doubts are raised, more elaborate measures can be *gradually*
+      introduced).
+   d) The *DICE* does not strive to be tamper-resistant but rather
+      tamper-evident.
+   e) The denial-of-service is not considered at this stage;  but given a
+      choice between blocking the Type Approval, and compromising IT-security,
+      at the moment we choose the later - according to the above premise,
+      humans interventions are acceptable, as long as they are recorded in the
+      :term:`Hash DB` keeping a detectable non-reputable trace.
 
-3. *DICE* needs an email server that is capable to send *cleat-text* emails through.
-   Having an account-password & hostname of an SMTP server will suffice -
-   most *web-email* clients might spoil the encoding of the message
-   (i.e. *Web Outlook* is known to cause problems, *GMail* work OK if set to ``plain-text``).
+3. *DICE* needs an email server that is capable to send *cleat-text* emails
+   through. Having an account-password & hostname of an SMTP server will
+   suffice - most *web-email* clients might spoil the encoding of the message
+   (i.e. *Web Outlook* is known to cause problems, *GMail* work OK if set to
+   ``plain-text``).
 
-3. Not all *DICE* operations have been implemented yet - in particular, you have to use
-   a regular Git client to extract files from it ([1], [2], [3]).  Take care not to modify
-   the a project after it has been diced!
+4. Not all *DICE* operations have been implemented yet - in particular, you
+   have to use a regular Git client to extract files from it ([1], [2], [3]).
+   Take care not to modify the a project after it has been diced!
 
-4. There is no *expiration timeout* enforced yet on the tstamp-requests - in the case that
-   *a request is lost, or it takes arbitrary long time to return back*,  the TS may *force* another
-   tstamp-request.  At this early stage, human witnesses will reconcile which should be
-   the authoritative tstamp-response, should they eventually arrive both.  For this decision,
-   the *Hash DB* records are to be relied.
+5. There is no *expiration timeout* enforced yet on the tstamp-requests - in
+   the case that *a request is lost, or it takes arbitrary long time to return
+   back*,  the TS may *force* another tstamp-request. At this early stage,
+   human witnesses will reconcile which should be the authoritative
+   tstamp-response, should they eventually arrive both. For this decision, the
+   *Hash DB* records are to be relied.
 
-5. The last part of DICE, re-importing projects archives and/or dice-reports into TAA registry
-   has not yet been implemented completely (i.e. not working at all or not validating if hash-ids
-   have changed).
+6. The last part of DICE, re-importing projects archives and/or dice-reports
+   into TAA registry has not yet been implemented completely (i.e. not working
+   at all or not validating if hash-ids have changed).
 
-6. There are currently 4 cmd-line tools:  ``co2mpas``, ``co2gui``, ``co2dice`` & ``datasync``.
-   It is expected that in a next release they will be united under a single ``co2`` cmd.
+7. There are currently 4 cmd-line tools:  ``co2mpas``, ``co2gui``, ``co2dice``
+   & ``datasync``. It is expected that in a next release they will be united
+   under a single ``co2`` cmd.
 
-7. Regarding the "|co2mpas| model, all limitations from previous *"Rally"* release still apply.
+8. Regarding the "|co2mpas| model, all limitations from previous *"Rally"*
+   release still apply.
 
 - [1] https://desktop.github.com/
 - [3] https://www.atlassian.com/software/sourcetree

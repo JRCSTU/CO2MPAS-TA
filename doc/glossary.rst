@@ -85,10 +85,10 @@ Vehicle general characteristics
         * velocity of the vehicle is 0
         * the start-stop system is disengaged
         * the battery state of charge is at balance conditions.
-         For |co2mpas| purposes, the engine idle fuel consumption can be measured as follows: just after a WLTP physical test,
-         when the engine is still warm, leave the car to idle for 3 minutes so that it stabilizes. Then make a constant
-         measurement of fuel consumption for 2 minutes. Disregard the first minute, then calculate idle fuel consumption as the
-         average fuel consumption of the vehicle during the subsequent 1 minute.
+        For |co2mpas| purposes, the engine idle fuel consumption can be measured as follows: just after a WLTP physical test,
+        when the engine is still warm, leave the car to idle for 3 minutes so that it stabilizes. Then make a constant
+        measurement of fuel consumption for 2 minutes. Disregard the first minute, then calculate idle fuel consumption as the
+        average fuel consumption of the vehicle during the subsequent 1 minute.
 
     ``final_drive_ratio``
         Provide the ratio to be multiplied with all `gear_box_ratios`. If the car has more than 1 final drive ratio (eg,
@@ -102,10 +102,10 @@ Vehicle general characteristics
         - nominal width of the tyre, in [mm];
         - ratio of height to width [%]; and
         - the load index (e.g., 195/55R16\).
-         In case that the front and rear wheels are equipped with tyres of different radius (tyres of different width do not
-         affect |co2mpas|), then the size of the tyres fitted in the powered axle should be declared as input to |co2mpas|.
-         For vehicles with different front and rear wheels tyres tested in 4x4 mode, then the size of the tyres from the wheels
-         where the OBD/CAN vehicle speed signal is measured should be declared as input to |co2mpas|.
+        In case that the front and rear wheels are equipped with tyres of different radius (tyres of different width do not
+        affect |co2mpas|), then the size of the tyres fitted in the powered axle should be declared as input to |co2mpas|.
+        For vehicles with different front and rear wheels tyres tested in 4x4 mode, then the size of the tyres from the wheels
+        where the OBD/CAN vehicle speed signal is measured should be declared as input to |co2mpas|.
 
     ``gear_box_type``
         Indicate the kind of gear box among automatic transmission, manual transmission, or
@@ -539,10 +539,9 @@ Generic terms
 
     Rotational mass
         The rotational mass is defined in the WLTP GTR (ECE/TRANS/WP.29/GRPE/2016/3) as the equivalent effective mass of all
-the  wheels and vehicle components rotating with the wheels on the road while the gearbox is placed in neutral, in kg. It shall
-be measured or calculated using an appropriate technique agreed upon by the responsible authority. Alternatively, it may be
-estimated to be 3 per cent of the sum of the mass in running order and 25 kg.
-
+        the  wheels and vehicle components rotating with the wheels on the road while the gearbox is placed in neutral, in kg. It shall
+        be measured or calculated using an appropriate technique agreed upon by the responsible authority. Alternatively, it may be
+        estimated to be 3 per cent of the sum of the mass in running order and 25 kg.
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
 .. |CO2| replace:: CO\ :sub:`2`
 .. |NOx| replace:: NO\ :sub:`x`\
