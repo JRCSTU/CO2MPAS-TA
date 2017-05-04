@@ -6,46 +6,52 @@ CO2MPAS Changes
 
 v1.6.0.dev1: bug-fixes
 ======================
-The Dice
---------
-- fix(crypto, #382): GPG-signing failed with non ASCII encodings, so had to
+The Dice:
+---------
+- fix(crypto, :git:`382`): GPG-signing failed with non ASCII encodings, so had to
   leave gpg-encoding as is (`'Latin-1'`) for STDIN/OUT streams to work in
   foreign locales; fix crash when tstamp-sig did not pass (crash apparent only
   with ``-fd`` options).
-- fix(report, #370): was always accepting dice-reports, even if TA-flags were
+- fix(report, :git:`370`): was always accepting dice-reports, even if TA-flags were
   "engineering".
-- tstamp:
-- feat(#384): suport SOCKSv4/v5 for tunneling SMTP/IMAP through firewalls.
-- feat: add TLS
+- feat(tstamp, :git:`384`): support SOCKSv4/v5 for tunneling SMTP/IMAP through firewalls.
+- TODO: feat(tstamp, :git:`368`): add TLS
+- TODO: feat(tstamp): rename configuration params (old names issue deprecation warnings):
+  - ``x_recipients           --> tstamp_recipients``
+  - ``timestamping_addresses --> tstamper_address``
 
-Projects
---------
-- fix(#371): `export` cmd produces an archive with local branches without all
+Projects:
+---------
+- fix(:git:`371`): `export` cmd produces an archive with local branches without all
   dice-report tags.
 - deprecate ``--reset-git-settings``, now resetting by default (inverted
   functionality possible with ``--preserved list``).
 
 - fix(main, logconf.yml): crash `logging.config` is a module, not a  module
   attribute, (apparent only with``--logconf``).
-- fix(io.schema, #379): could not handle user-given bag-phases column.
-- feat(tkui, #357): harmonize GUI-logs colors with AIO-console's, add `Copy`
+- fix(io.schema, :git:`379`): could not handle user-given bag-phases column.
+- feat(tkui, :git:`357`): harmonize GUI-logs colors with AIO-console's, add `Copy`
   popup-meny item.
 - fix(baseapp): fix various logic flaws & minor bugs when autoencrypting
   ciphered config traits.
 - chore(dep): vendorize  *traitlets* lib.
   add *PySocks* private dep.
 
-Model
------
+Model:
+------
 - datasync:fix edges
 - Rls: add extra formulas
 - clutch: remove the peaks
 - sphinx: failing due to SVGs
 - fuel: fix tau func
 
-IO & Data
----------
+IO & Data:
+----------
 - :git:`314`: Move most demo-files to AIO archive - 2 files are left.
+
+Docs:
+-----
+- Add "Requirements" in installation section.
 
 
 
@@ -92,24 +98,24 @@ Model-changes
 
 Electric model
 ~~~~~~~~~~~~~~
-- :git:`#281`, :git:`#329`:
+- :git:`281`, :git:`329`:
   Improved prediction of the *electric model* of |co2mpas|, by setting a
   `balance SOC threshold` when the alternator is always on.
 
 
 Clutch model
 ~~~~~~~~~~~~
-- :git:`#330`: The *clutch model* has been updated to be fed with the
+- :git:`330`: The *clutch model* has been updated to be fed with the
   `Torque converter model`.
 
-- :git:`#330`: The *clutch model* prediction has been enhanced during gearshifts
+- :git:`330`: The *clutch model* prediction has been enhanced during gearshifts
   by remove `clutch phases` when
   ``(gears == 0……) | (velocities <= stop_velocity)``.
 
 
 Final drive
 ~~~~~~~~~~~
-- :git:`#342`: Enable an option to use more than one ``final_drive_ratios`` for
+- :git:`342`: Enable an option to use more than one ``final_drive_ratios`` for
   vehicles equipped with dual/variable clutch.
 
 IO
