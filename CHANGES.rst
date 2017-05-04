@@ -16,7 +16,7 @@ The Dice:
   "engineering".
 - feat(tstamp, :git:`384`): support SOCKSv4/v5 for tunneling SMTP/IMAP through firewalls.
 - TODO: feat(tstamp, :git:`368`): add TLS
-- TODO: feat(tstamp): rename configuration params (old names issue deprecation warnings):
+- feat(tstamp): rename configuration params (old names issue deprecation warnings):
   - ``x_recipients           --> tstamp_recipients``
   - ``timestamping_addresses --> tstamper_address``
 
