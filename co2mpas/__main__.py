@@ -302,7 +302,10 @@ def _cmd_demo(opts):
     file_stream_pairs = sorted(file_stream_pairs.items())
     _generate_files_from_streams(dst_folder, file_stream_pairs,
                                  force, file_category)
-    msg = "You may run DEMOS with:\n    co2mpas batch %s"
+    msg = (
+        "Run generated demo-files with command:\n    co2mpas batch %s"
+        "\n\nYou may find more demos inside `CO2MPAS/Demos` folder of your ALLINONE."
+    )
     log.info(msg, dst_folder)
 
 

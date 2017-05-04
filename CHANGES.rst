@@ -6,6 +6,7 @@ CO2MPAS Changes
 
 v1.6.0.dev1: bug-fixes
 ==========================================================
+- :git:`314`: Move most demo-files to AIO archive - 2 files are left.
 - Dice:
   - fix(crypto, #382): GPG-signing failed with non ASCII encodings, so had to leave
     gpg-encoding as is (`'Latin-1'`) for STDIN/OUT streams to work in foreign locales;
