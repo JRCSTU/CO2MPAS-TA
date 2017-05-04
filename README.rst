@@ -535,9 +535,12 @@ sub-command::
 
 Demo description
 ~~~~~~~~~~~~~~~~
-======= == ========== ========== === ==== ========== ========== ====
-  id    AT cal WLTP-H cal WLTP-L S/S BERS trg NEDC-H trg NEDC-L plan
-======= == ========== ========== === ==== ========== ========== ====
+The generated demos above, along with those inside the ``CO2MPAS/Demos`` AIO-folder
+have the following characteristics:
+
+======= == ========== ========== === ==== ========== ========== ==== ================
+  id    AT cal WLTP-H cal WLTP-L S/S BERS trg NEDC-H trg NEDC-L plan NEDC-error
+======= == ========== ========== === ==== ========== ========== ==== ================
    0           X                             X
    1           X                 X    X      X
    2    X                 X                              X
@@ -547,9 +550,9 @@ Demo description
    6    X      X                 X           X
    7    X      X                 X    X      X
    8           X          X                  X           X
-   9    X      X                 X    X      X
+   9    X      X                 X    X      X                       -5.21 (> 4%)
 simplan        X                             X                   X
-======= == ========== ========== === ==== ========== ========== ====
+======= == ========== ========== === ==== ========== ========== ==== ================
 
 
 Synchronizing time-series
