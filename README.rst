@@ -161,6 +161,29 @@ you may install the developer version.
 
 .. _all-in-one:
 
+Requirements
+--------------
+- These are the  minimum IT requirements for the Computer to run CO2MPAS & DICE:
+- 64-bit Intel or AMD processor (x86_64, aka x64, aka AMD64);
+- Microsoft Windows 7, or later;
+- 4 GB RAM (more recommended);
+- 2.4 GB hard disk storage for extracting the software, more space for the input/output files;
+- Execution-rights to the installation folder (but no Admin-rights).
+- An e-mail account to send & receive DICE e-mails;
+- Unhindered SMTP access to this email-server (no firewall on ports 25, 465, 587);
+  or access through SOCKS Proxy (see diagram below);
+
+  .. image:: doc/_static/firewalls.png
+     :width: 420
+
+- Unhindered HTTP/HTTPS  web-access (no firewall on ports 80, 443);
+  or access through HTTP Proxy;
+- (optional) Excel, to view & edit simulation’s input and output files;
+- (optional) GitHub account to submit and resolve issues.
+
+
+
+
 *All-In-One* Installation under Windows
 ---------------------------------------
 - Download **all-in-one archive** from https://github.com/JRCSTU/CO2MPAS-TA/releases/
