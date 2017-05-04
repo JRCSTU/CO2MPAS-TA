@@ -9,8 +9,7 @@
 It contains functions to predict the electrics of the vehicle.
 """
 
-import schedula as dsp
-import schedula.utils as dsp_utl
+import schedula as sh
 
 
 def calculate_battery_current(
@@ -278,7 +277,7 @@ def electrics_prediction():
     :rtype: SubDispatchPipe
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Electric sub model',
         description='Electric sub model to predict the alternator loads'
     )
@@ -320,7 +319,7 @@ def electrics_prediction():
         outputs=['engine_start_current']
     )
 
-    func = dsp_utl.SubDispatchPipe(
+    func = sh.SubDispatchPipe(
         dsp=d,
         function_id='electric_sub_model',
         inputs=['battery_capacity', 'alternator_status_model',

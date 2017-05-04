@@ -18,8 +18,7 @@ import numpy.ma as ma
 import scipy.integrate as sci_itg
 import scipy.stats as sci_sta
 import sklearn.metrics as sk_met
-import schedula.utils as dsp_utl
-import schedula as dsp
+import schedula as sh
 import co2mpas.utils as co2_utl
 import co2mpas.model.physical.defaults as defaults
 
@@ -37,7 +36,7 @@ def default_fuel_density(fuel_type):
     :rtype: float
     """
     if not defaults.dfl.functions.default_fuel_density.ENABLE:
-        return dsp.NONE
+        return sh.NONE
     return defaults.dfl.functions.default_fuel_density.FUEL_DENSITY[fuel_type]
 
 
@@ -54,7 +53,7 @@ def default_fuel_carbon_content(fuel_type):
     :rtype: float
     """
     if not defaults.dfl.functions.default_fuel_carbon_content.ENABLE:
-        return dsp.NONE
+        return sh.NONE
     CC = defaults.dfl.functions.default_fuel_carbon_content.CARBON_CONTENT
     return CC[fuel_type]
 
@@ -72,7 +71,7 @@ def default_engine_fuel_lower_heating_value(fuel_type):
     :rtype: float
     """
     if not defaults.dfl.functions.default_fuel_lower_heating_value.ENABLE:
-        return dsp.NONE
+        return sh.NONE
     LHV = defaults.dfl.functions.default_fuel_lower_heating_value.LHV
     return LHV[fuel_type]
 
@@ -384,7 +383,7 @@ class FMEP(object):
             for i in v:
                 try:
                     if i[1] is True or i[1].any():
-                        dsp_utl.get_nested_dicts(out, k, default=list).append(i)
+                        sh.get_nested_dicts(out, k, default=list).append(i)
                 except AttributeError:
                     pass
         return out
@@ -558,7 +557,7 @@ def _yield_factors(param_id, factor):
             if not isinstance(m, np.ma.core.MaskedConstant):
                 b = m == param_id
                 for k, v in factor.get(m, {}).items():
-                    j, i = dsp_utl.get_nested_dicts(p, k, default=_defaults)
+                    j, i = sh.get_nested_dicts(p, k, default=_defaults)
                     j[b], i[b] = v, 1
 
         for k, (j, n) in p.items():
@@ -572,7 +571,7 @@ def _tech_mult_factors(**params):
     factors = defaults.dfl.functions._tech_mult_factors.factors
     for k, v in factors.items():
         for i, j, n in _yield_factors(params.get(k, 0), v):
-            s = dsp_utl.get_nested_dicts(p, i, default=lambda: [0, 0])
+            s = sh.get_nested_dicts(p, i, default=lambda: [0, 0])
             s[0] += j
             s[1] += n
 
@@ -1383,7 +1382,7 @@ def _select_initial_friction_params(co2_params_initial_guess):
 
     params = co2_params_initial_guess.valuesdict()
 
-    return dsp_utl.selector(('l', 'l2'), params, output_type='list')
+    return sh.selector(('l', 'l2'), params, output_type='list')
 
 
 def define_initial_co2_emission_model_params_guess(
@@ -1466,7 +1465,7 @@ def define_initial_co2_emission_model_params_guess(
 
     friction_params = _select_initial_friction_params(p)
     if not missing_co2_params(params):
-        p = dsp_utl.NONE
+        p = sh.NONE
 
     return p, friction_params
 
@@ -2405,7 +2404,7 @@ def co2_emission():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Engine CO2 emission sub model',
         description='Calculates CO2 emission.'
     )
@@ -2594,7 +2593,7 @@ def co2_emission():
     )
 
     d.add_function(
-        function=dsp_utl.bypass,
+        function=sh.bypass,
         inputs=['phases_integration_times', 'cumulative_co2_emissions',
                 'phases_distances'],
         outputs=['extended_phases_integration_times',
@@ -2621,7 +2620,7 @@ def co2_emission():
     )
 
     d.add_function(
-        function=dsp_utl.bypass,
+        function=sh.bypass,
         inputs=['co2_emissions'],
         outputs=['identified_co2_emissions']
     )
@@ -2726,7 +2725,7 @@ def co2_emission():
 
     d.add_function(
         function_id='merge_wltp_phases_co2_emission',
-        function=dsp_utl.bypass,
+        function=sh.bypass,
         inputs=['co2_emission_low', 'co2_emission_medium', 'co2_emission_high',
                 'co2_emission_extra_high'],
         outputs=['phases_co2_emissions']
@@ -2744,7 +2743,7 @@ def co2_emission():
 
     d.add_function(
         function_id='merge_nedc_phases_co2_emission',
-        function=dsp_utl.bypass,
+        function=sh.bypass,
         inputs=['co2_emission_UDC', 'co2_emission_EUDC'],
         outputs=['phases_co2_emissions']
     )
@@ -2757,7 +2756,7 @@ def co2_emission():
     )
 
     d.add_function(
-        function=dsp_utl.add_args(calculate_willans_factors),
+        function=sh.add_args(calculate_willans_factors),
         inputs=['enable_willans', 'co2_params_calibrated',
                 'engine_fuel_lower_heating_value', 'engine_stroke',
                 'engine_capacity', 'min_engine_on_speed', 'fmep_model',
@@ -2776,7 +2775,7 @@ def co2_emission():
     )
 
     d.add_function(
-        function=dsp_utl.add_args(calculate_phases_willans_factors),
+        function=sh.add_args(calculate_phases_willans_factors),
         inputs=['enable_phases_willans', 'co2_params_calibrated',
                 'engine_fuel_lower_heating_value', 'engine_stroke',
                 'engine_capacity', 'min_engine_on_speed', 'fmep_model', 'times',

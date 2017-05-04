@@ -12,8 +12,9 @@ It contains functions that model the basic mechanics of the torque converter.
 import sklearn.metrics as sk_met
 import sklearn.ensemble as sk_ens
 import sklearn.pipeline as sk_pip
-import schedula as dsp
+import schedula as sh
 import numpy as np
+
 
 def identify_torque_converter_speeds_delta(
         engine_speeds_out, engine_speeds_out_hot, cold_start_speeds_delta):
@@ -247,7 +248,7 @@ def torque_converter():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Torque_converter',
         description='Models the torque converter.'
     )

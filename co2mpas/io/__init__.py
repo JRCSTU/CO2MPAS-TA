@@ -28,9 +28,8 @@ import datetime
 import logging
 import pathlib
 import regex
-import schedula.utils as dsp_utl
 from co2mpas._version import version
-import schedula as dsp
+import schedula as sh
 from . import schema, excel, dill
 import functools
 import itertools
@@ -93,9 +92,9 @@ def _summary2df(data):
         r = {}
         index = ['cycle', 'stage', 'usage']
 
-        for k, v in dsp_utl.stack_nested_keys(summary['results'], depth=4):
-            l = dsp_utl.get_nested_dicts(r, k[0], default=list)
-            l.append(dsp_utl.combine_dicts(dsp_utl.map_list(index, *k[1:]), v))
+        for k, v in sh.stack_nested_keys(summary['results'], depth=4):
+            l = sh.get_nested_dicts(r, k[0], default=list)
+            l.append(sh.combine_dicts(sh.map_list(index, *k[1:]), v))
 
         if r:
             df = _dd2df(
@@ -119,9 +118,9 @@ def _summary2df(data):
 
     if 'comparison' in summary:
         r = {}
-        for k, v in dsp_utl.stack_nested_keys(summary['comparison'], depth=3):
-            v = dsp_utl.combine_dicts(v, base={'param_id': k[-1]})
-            dsp_utl.get_nested_dicts(r, *k[:-1], default=list).append(v)
+        for k, v in sh.stack_nested_keys(summary['comparison'], depth=3):
+            v = sh.combine_dicts(v, base={'param_id': k[-1]})
+            sh.get_nested_dicts(r, *k[:-1], default=list).append(v)
         if r:
             df = _dd2df(
                 r, ['param_id'], depth=2,
@@ -218,7 +217,7 @@ def _cycle2df(data):
     out = data.get('output', {})
     write_schema = schema.define_data_schema(read=False)
     data_descriptions = get_doc_description()
-    for k, v in dsp_utl.stack_nested_keys(out, key=('output',), depth=3):
+    for k, v in sh.stack_nested_keys(out, key=('output',), depth=3):
         n, k = excel._sheet_name(k), k[-1]
         if 'ts' == k:
             df = _time_series2df(v, data_descriptions)
@@ -234,10 +233,10 @@ def _cycle2df(data):
 
 def _scores2df(data):
     n = ('data', 'calibration', 'model_scores')
-    if not dsp_utl.are_in_nested_dicts(data, *n):
+    if not sh.are_in_nested_dicts(data, *n):
         return {}
 
-    scores = dsp_utl.get_nested_dicts(data, *n)
+    scores = sh.get_nested_dicts(data, *n)
 
     it = (('model_selections', ['model_id'], 2, ('stage', 'cycle'), ()),
           ('score_by_model', ['model_id'], 1, ('cycle',), ()),
@@ -289,7 +288,7 @@ def _parameters2df(data, data_descriptions, write_schema):
         try:
             v = iter(validate({_param_parts(k)['param']: v}).items())
             param_id, v = next(v)
-            if v is not dsp_utl.NONE:
+            if v is not sh.NONE:
                 df.append({
                     'Parameter': _parse_name(param_id, data_descriptions),
                     'Model Name': k,
@@ -427,9 +426,9 @@ def _search_unit(units, default, *keys):
         return units[keys[-1]]
     except KeyError:
         try:
-            return _search_unit(units, dsp_utl.EMPTY, *keys[:-1])
+            return _search_unit(units, sh.EMPTY, *keys[:-1])
         except IndexError:
-            if default is dsp_utl.EMPTY:
+            if default is sh.EMPTY:
                 raise IndexError
             for i, u in units.items():
                 if any(i in k for k in keys):
@@ -472,7 +471,7 @@ def _dd2df(dd, index=None, depth=0, col_key=None, row_key=None):
     """
     frames = []
     import pandas as pd
-    for k, v in dsp_utl.stack_nested_keys(dd, depth=depth):
+    for k, v in sh.stack_nested_keys(dd, depth=depth):
         df = pd.DataFrame(v)
         df.drop_duplicates(subset=index, inplace=True)
         if index is not None:
@@ -552,7 +551,7 @@ def load_inputs():
     :rtype: SubDispatchFunction
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='load_inputs',
         description='Loads from files the inputs for the CO2MPAS model.'
     )
@@ -570,7 +569,7 @@ def load_inputs():
 
     d.add_function(
         function_id='load_data_from_cache',
-        function=dsp_utl.add_args(dill.load_from_dill, n=2),
+        function=sh.add_args(dill.load_from_dill, n=2),
         inputs=['overwrite_cache', 'input_file_name', 'cache_file_name'],
         outputs=['raw_data'],
         input_domain=check_cache_fpath_exists
@@ -626,7 +625,7 @@ def write_outputs():
     :rtype: SubDispatchFunction
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='write_outputs',
         description='Writes on files the outputs of the CO2MPAS model.'
     )
@@ -645,4 +644,4 @@ def write_outputs():
     inp = ['output_file_name', 'template_file_name', 'output_data',
            'start_time', 'main_flags']
 
-    return dsp_utl.SubDispatchFunction(d, d.name, inp)
+    return sh.SubDispatchFunction(d, d.name, inp)

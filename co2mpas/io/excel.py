@@ -18,7 +18,7 @@ import xlsxwriter.utility as xl_utl
 import inspect
 import itertools
 import regex
-import schedula.utils as dsp_utl
+import schedula as sh
 import json
 import os.path as osp
 import functools
@@ -160,7 +160,7 @@ def _parse_sheet(match, sheet, sheet_name, res=None):
         data = {k: v for k, v in data.items() if k}
 
     for k, v in _parse_values(data, match, "in sheet '%s'" % sheet_name):
-        dsp_utl.get_nested_dicts(res, *k[:-1])[k[-1]] = v
+        sh.get_nested_dicts(res, *k[:-1])[k[-1]] = v
     return res
 
 
@@ -218,7 +218,7 @@ def _parse_key(scope='base', usage='input', **match):
             yield 'flag', 'input_version'
         else:
             m = match.copy()
-            for c in dsp_utl.stlp(_get_cycle(usage=usage, **match)):
+            for c in sh.stlp(_get_cycle(usage=usage, **match)):
                 m['cycle'] = c
                 stage = _get_default_stage(usage=usage, **m)
                 yield scope, usage, stage, c, i
@@ -235,7 +235,7 @@ def _parse_values(data, default=None, where=''):
             continue
         match = {i: j.lower() for i, j in match.groupdict().items() if j}
 
-        for key in _parse_key(**dsp_utl.combine_dicts(default, match)):
+        for key in _parse_key(**sh.combine_dicts(default, match)):
             yield key, v
 
 
@@ -244,16 +244,16 @@ def _add_times_base(data, scope='base', usage='input', **match):
         return
     sh_type = _get_sheet_type(scope=scope, usage=usage, **match)
     n = (scope, 'target')
-    if sh_type == 'ts' and dsp_utl.are_in_nested_dicts(data, *n):
-        t = dsp_utl.get_nested_dicts(data, *n)
-        for k, v in dsp_utl.stack_nested_keys(t, key=n, depth=2):
+    if sh_type == 'ts' and sh.are_in_nested_dicts(data, *n):
+        t = sh.get_nested_dicts(data, *n)
+        for k, v in sh.stack_nested_keys(t, key=n, depth=2):
             if 'times' not in v:
                 n = list(k + ('times',))
                 n[1] = usage
-                if dsp_utl.are_in_nested_dicts(data, *n):
-                    v['times'] = dsp_utl.get_nested_dicts(data, *n)
+                if sh.are_in_nested_dicts(data, *n):
+                    v['times'] = sh.get_nested_dicts(data, *n)
                 else:
-                    for i, j in dsp_utl.stack_nested_keys(data, depth=4):
+                    for i, j in sh.stack_nested_keys(data, depth=4):
                         if 'times' in j:
                             v['times'] = j['times']
                             break
@@ -276,7 +276,7 @@ def parse_excel_file(file_path):
         excel_file = pd.ExcelFile(file_path)
     except FileNotFoundError:
         log.error("No such file or directory: '%s'", file_path)
-        return dsp_utl.NONE
+        return sh.NONE
 
     res, plans = {}, []
 
@@ -301,9 +301,9 @@ def parse_excel_file(file_path):
             plans.append(r['plan'])
         else:
             _add_times_base(r, **match)
-            dsp_utl.combine_nested_dicts(r, depth=5, base=res)
+            sh.combine_nested_dicts(r, depth=5, base=res)
 
-    for k, v in dsp_utl.stack_nested_keys(res.get('base', {}), depth=3):
+    for k, v in sh.stack_nested_keys(res.get('base', {}), depth=3):
         if k[0] != 'target':
             v['cycle_type'] = v.get('cycle_type', k[-1].split('_')[0]).upper()
             v['cycle_name'] = v.get('cycle_name', k[-1]).upper()
@@ -338,7 +338,7 @@ def _finalize_plan(res, plans, file_path):
     if not plans:
         plans = (pd.DataFrame(),)
 
-    for k, v in dsp_utl.stack_nested_keys(res.get('plan', {}), depth=4):
+    for k, v in sh.stack_nested_keys(res.get('plan', {}), depth=4):
         n = '.'.join(k)
         m = '.'.join(k[:-1])
         for p in plans:
@@ -421,7 +421,7 @@ def write_to_excel(data, output_file_name, template_file_name):
         _chart2excel(writer, sheet, v)
 
     if xlref:
-        xlref = sorted(dsp_utl.combine_dicts(*[x[1] for x in xlref]).items())
+        xlref = sorted(sh.combine_dicts(*[x[1] for x in xlref]).items())
         xlref = pd.DataFrame(xlref)
         xlref.set_index([0], inplace=True)
         _df2excel(writer, 'xlref', xlref, 0, (), index=True, header=False)
@@ -653,9 +653,9 @@ def _chart2excel(writer, sheet, charts):
                 ('legend', 'position'): lambda x: x[0],
             }
             it = {s: _filter[s](o) if s in _filter else o
-                  for s, o in dsp_utl.stack_nested_keys(v['set'])}
+                  for s, o in sh.stack_nested_keys(v['set'])}
 
-            for s, o in dsp_utl.map_dict(_map, it).items():
+            for s, o in sh.map_dict(_map, it).items():
                 c = chart
                 for j in s[:-1]:
                     c = getattr(c, j)

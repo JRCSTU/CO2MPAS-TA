@@ -11,8 +11,7 @@ It provides constants for the NEDC cycle.
 """
 
 import scipy.interpolate as sci_itp
-import schedula.utils as dsp_utl
-import schedula as dsp
+import schedula as sh
 import numpy as np
 import functools
 
@@ -199,7 +198,7 @@ def nedc_cycle():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='NEDC cycle model',
         description='Returns the theoretical times, velocities, and gears of '
                     'NEDC.'
@@ -231,7 +230,7 @@ def nedc_cycle():
 
     d.add_function(
         function_id='set_max_gear_as_default_k5',
-        function=dsp_utl.bypass,
+        function=sh.bypass,
         inputs=['max_gear'],
         outputs=['k5']
     )
@@ -244,7 +243,7 @@ def nedc_cycle():
 
     d.add_function(
         function_id='nedc_gears',
-        function=dsp_utl.add_args(nedc_gears),
+        function=sh.add_args(nedc_gears),
         inputs=['gear_box_type', 'times', 'max_gear', 'k1', 'k2', 'k5'],
         outputs=['gears'],
         input_domain=lambda *args: args[0] == 'manual'

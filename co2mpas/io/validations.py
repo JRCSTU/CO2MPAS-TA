@@ -12,7 +12,7 @@ It provides the CO2MPAS validation formulas.
 
 import numpy as np
 import copy
-import schedula.utils as dsp_utl
+import schedula as sh
 import co2mpas.utils as co2_utl
 from . import constants
 import functools
@@ -20,30 +20,30 @@ import functools
 
 def select_declaration_data(data, diff=None):
     res = {}
-    for k, v in dsp_utl.stack_nested_keys(constants.con_vals.DECLARATION_DATA):
-        if v and dsp_utl.are_in_nested_dicts(data, *k):
-            v = dsp_utl.get_nested_dicts(data, *k)
-            dsp_utl.get_nested_dicts(res, *k, default=co2_utl.ret_v(v))
+    for k, v in sh.stack_nested_keys(constants.con_vals.DECLARATION_DATA):
+        if v and sh.are_in_nested_dicts(data, *k):
+            v = sh.get_nested_dicts(data, *k)
+            sh.get_nested_dicts(res, *k, default=co2_utl.ret_v(v))
 
     if diff is not None:
         diff.clear()
-        diff.update(v[0] for v in dsp_utl.stack_nested_keys(data, depth=4))
-        it = (v[0] for v in dsp_utl.stack_nested_keys(res, depth=4))
+        diff.update(v[0] for v in sh.stack_nested_keys(data, depth=4))
+        it = (v[0] for v in sh.stack_nested_keys(res, depth=4))
         diff.difference_update(it)
     return res
 
 
 def overwrite_declaration_config_data(data):
     config = constants.con_vals.DECLARATION_SELECTOR_CONFIG
-    res = dsp_utl.combine_nested_dicts(data, depth=3)
+    res = sh.combine_nested_dicts(data, depth=3)
     key = ('config', 'selector', 'all')
 
-    d = copy.deepcopy(dsp_utl.get_nested_dicts(res, *key))
+    d = copy.deepcopy(sh.get_nested_dicts(res, *key))
 
-    for k, v in dsp_utl.stack_nested_keys(config):
-        dsp_utl.get_nested_dicts(d, *k, default=co2_utl.ret_v(v))
+    for k, v in sh.stack_nested_keys(config):
+        sh.get_nested_dicts(d, *k, default=co2_utl.ret_v(v))
 
-    dsp_utl.get_nested_dicts(res, *key[:-1])[key[-1]] = d
+    sh.get_nested_dicts(res, *key[:-1])[key[-1]] = d
 
     return res
 
@@ -70,7 +70,7 @@ def hard_validation(data, usage, stage, cycle, *args):
 def _check_sign_currents(data, *args):
     c = ('battery_currents', 'alternator_currents')
     try:
-        a = dsp_utl.selector(c, data, output_type='list')
+        a = sh.selector(c, data, output_type='list')
         s = check_sign_currents(*a)
         if not all(s):
             s = ' and '.join([k for k, v in zip(c, s) if not v])
@@ -84,7 +84,7 @@ def _check_initial_temperature(data, *args):
     t = ('initial_temperature', 'engine_coolant_temperatures',
          'engine_speeds_out', 'idle_engine_speed_median')
     try:
-        a = dsp_utl.selector(t, data, output_type='list')
+        a = sh.selector(t, data, output_type='list')
         if not check_initial_temperature(*a):
             msg = "Initial engine temperature outside permissible limits " \
                   "according to GTR!"

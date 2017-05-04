@@ -10,7 +10,7 @@ It contains functions that model the basic mechanics of a CVT.
 """
 
 
-import schedula as dsp
+import schedula as sh
 import sklearn.ensemble as sk_ens
 import numpy as np
 
@@ -155,7 +155,7 @@ def cvt_model():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='CVT model',
         description='Models the gear box.'
     )

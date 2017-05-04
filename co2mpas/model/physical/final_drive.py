@@ -9,8 +9,7 @@
 It contains functions that model the basic mechanics of the final drive.
 """
 
-import schedula.utils as dsp_utl
-import schedula as dsp
+import schedula as sh
 import logging
 import numpy as np
 log = logging.getLogger(__name__)
@@ -258,7 +257,7 @@ def final_drive():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Final drive',
         description='Models the final drive.'
     )
@@ -282,7 +281,7 @@ def final_drive():
     )
 
     d.add_function(
-        function=dsp_utl.add_args(calculate_final_drive_ratios),
+        function=sh.add_args(calculate_final_drive_ratios),
         inputs=['gear_box_type', 'final_drive_ratio'],
         outputs=['final_drive_ratios'],
         input_domain=is_cvt
@@ -317,7 +316,7 @@ def final_drive():
     )
 
     d.add_function(
-        function=dsp_utl.add_args(calculate_final_drive_torque_losses_v1),
+        function=sh.add_args(calculate_final_drive_torque_losses_v1),
         inputs=['n_dyno_axes', 'n_wheel_drive', 'final_drive_torques_out',
                 'final_drive_ratio_vector', 'final_drive_efficiency'],
         outputs=['final_drive_torque_losses'],

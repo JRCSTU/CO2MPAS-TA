@@ -9,12 +9,11 @@
 It contains reporting functions for output results.
 """
 
-import schedula as dsp
+import schedula as sh
 import collections
 import functools
 import numpy as np
 import sklearn.metrics as sk_met
-import schedula.utils as dsp_utl
 import co2mpas.utils as co2_utl
 import co2mpas.io.excel as co2_exl
 import dill
@@ -80,14 +79,14 @@ def compare_outputs_vs_targets(data):
     res = {}
     metrics = _get_metrics()
 
-    for k, t in dsp_utl.stack_nested_keys(data.get('target', {}), depth=3):
-        if not dsp_utl.are_in_nested_dicts(data, 'output', *k):
+    for k, t in sh.stack_nested_keys(data.get('target', {}), depth=3):
+        if not sh.are_in_nested_dicts(data, 'output', *k):
             continue
 
-        o = dsp_utl.get_nested_dicts(data, 'output', *k)
+        o = sh.get_nested_dicts(data, 'output', *k)
         v = _compare(t, o, metrics=metrics)
         if v:
-            dsp_utl.get_nested_dicts(res, *k, default=co2_utl.ret_v(v))
+            sh.get_nested_dicts(res, *k, default=co2_utl.ret_v(v))
 
     return res
 
@@ -191,7 +190,7 @@ def _map_cycle_report_graphs():
 def get_chart_reference(report):
     r, _map = {}, _map_cycle_report_graphs()
     out = report.get('output', {})
-    it = dsp_utl.stack_nested_keys(out, key=('output',), depth=3)
+    it = sh.stack_nested_keys(out, key=('output',), depth=3)
     for k, v in sorted(it):
         if k[-1] == 'ts' and 'times' in v:
             label = '{}/%s'.format(co2_exl._sheet_name(k))
@@ -205,9 +204,9 @@ def get_chart_reference(report):
                         'label': label % i
                     }
                     n = k[2], param_id, 'series'
-                    dsp_utl.get_nested_dicts(r, *n, default=list).append(d)
+                    sh.get_nested_dicts(r, *n, default=list).append(d)
 
-    for k, v in dsp_utl.stack_nested_keys(r, depth=2):
+    for k, v in sh.stack_nested_keys(r, depth=2):
         m = _map[k[1]]
         m.pop('label', None)
         v.update(m)
@@ -226,7 +225,7 @@ def _format_dict(gen, str_format='%s', func=lambda x: x):
 
 
 def _extract_summary_from_output(report, extracted):
-    for k, v in dsp_utl.stack_nested_keys(report.get('output', {}), depth=2):
+    for k, v in sh.stack_nested_keys(report.get('output', {}), depth=2):
         k = k[::-1]
         for u, i, j in _param_names_values(v.get('pa', {})):
             o = {}
@@ -244,30 +243,30 @@ def _extract_summary_from_output(report, extracted):
                 o = {i: j}
 
             if o:
-                dsp_utl.get_nested_dicts(extracted, *(k + (u,))).update(o)
+                sh.get_nested_dicts(extracted, *(k + (u,))).update(o)
 
 
 def _extract_summary_from_summary(report, extracted):
     n = ('summary', 'results')
-    if dsp_utl.are_in_nested_dicts(report, *n):
-        for j, w in dsp_utl.get_nested_dicts(report, *n).items():
+    if sh.are_in_nested_dicts(report, *n):
+        for j, w in sh.get_nested_dicts(report, *n).items():
             if j in ('declared_co2_emission', 'co2_emission',
                      'fuel_consumption'):
-                for k, v in dsp_utl.stack_nested_keys(w, depth=3):
+                for k, v in sh.stack_nested_keys(w, depth=3):
                     if v:
-                        dsp_utl.get_nested_dicts(extracted, *k).update(v)
+                        sh.get_nested_dicts(extracted, *k).update(v)
 
 
 def _extract_summary_from_model_scores(report, extracted):
     n = ('data', 'calibration', 'model_scores', 'model_selections')
-    if not dsp_utl.are_in_nested_dicts(report, *n):
+    if not sh.are_in_nested_dicts(report, *n):
         return False
 
-    sel = dsp_utl.get_nested_dicts(report, *n)
-    for k, v in dsp_utl.stack_nested_keys(extracted, depth=3):
+    sel = sh.get_nested_dicts(report, *n)
+    for k, v in sh.stack_nested_keys(extracted, depth=3):
         n = k[1::-1]
-        if k[-1] == 'output' and dsp_utl.are_in_nested_dicts(sel, *n):
-            gen = dsp_utl.get_nested_dicts(sel, *n)
+        if k[-1] == 'output' and sh.are_in_nested_dicts(sel, *n):
+            gen = sh.get_nested_dicts(sel, *n)
             gen = ((d['model_id'], d['status']) for d in gen if 'status' in d)
             o = _format_dict(gen, 'status %s')
             v.update(o)
@@ -284,7 +283,7 @@ def extract_summary(report, vehicle_name):
 
     _extract_summary_from_model_scores(report, extracted)
 
-    for k, v in dsp_utl.stack_nested_keys(extracted, depth=3):
+    for k, v in sh.stack_nested_keys(extracted, depth=3):
         v['vehicle_name'] = vehicle_name
 
     return extracted
@@ -292,11 +291,11 @@ def extract_summary(report, vehicle_name):
 
 def _add_special_data2report(data, report, to_keys, *from_keys):
     if from_keys[-1] != 'times' and \
-            dsp_utl.are_in_nested_dicts(data, *from_keys):
-        v = dsp_utl.get_nested_dicts(data, *from_keys)
+            sh.are_in_nested_dicts(data, *from_keys):
+        v = sh.get_nested_dicts(data, *from_keys)
         n = to_keys + ('{}.{}'.format(from_keys[0], from_keys[-1]),)
-        dsp_utl.get_nested_dicts(report, *n[:-1],
-                                 default=collections.OrderedDict)[n[-1]] = v
+        sh.get_nested_dicts(report, *n[:-1],
+                            default=collections.OrderedDict)[n[-1]] = v
         return True, v
     return False, None
 
@@ -312,7 +311,7 @@ def _split_by_data_format(data):
         s = None
 
     get_d = functools.partial(
-        dsp_utl.get_nested_dicts, d, default=collections.OrderedDict
+        sh.get_nested_dicts, d, default=collections.OrderedDict
     )
 
     for k, v in data.items():
@@ -326,11 +325,11 @@ def _split_by_data_format(data):
 
 def re_sample_targets(data):
     res = {}
-    for k, v in dsp_utl.stack_nested_keys(data.get('target', {}), depth=2):
-        if dsp_utl.are_in_nested_dicts(data, 'output', *k):
-            o = dsp_utl.get_nested_dicts(data, 'output', *k)
+    for k, v in sh.stack_nested_keys(data.get('target', {}), depth=2):
+        if sh.are_in_nested_dicts(data, 'output', *k):
+            o = sh.get_nested_dicts(data, 'output', *k)
             o = _split_by_data_format(o)
-            t = dsp_utl.selector(o, _split_by_data_format(v), allow_miss=True)
+            t = sh.selector(o, _split_by_data_format(v), allow_miss=True)
 
             if 'times' not in t.get('ts', {}) or 'times' not in o['ts']:
                 t.pop('ts', None)
@@ -340,17 +339,17 @@ def re_sample_targets(data):
                 if not _is_equal(x, xp):
                     for i, fp in time_series.items():
                         time_series[i] = np.interp(x, xp, fp)
-            v = dsp_utl.combine_dicts(*t.values())
-            dsp_utl.get_nested_dicts(res, *k, default=co2_utl.ret_v(v))
+            v = sh.combine_dicts(*t.values())
+            sh.get_nested_dicts(res, *k, default=co2_utl.ret_v(v))
 
     return res
 
 
 def format_report_output(data):
     res = {}
-    func = functools.partial(dsp_utl.get_nested_dicts,
+    func = functools.partial(sh.get_nested_dicts,
                              default=collections.OrderedDict)
-    for k, v in dsp_utl.stack_nested_keys(data.get('output', {}), depth=3):
+    for k, v in sh.stack_nested_keys(data.get('output', {}), depth=3):
         _add_special_data2report(data, res, k[:-1], 'target', *k)
 
         s, iv = _add_special_data2report(data, res, k[:-1], 'input', *k)
@@ -358,84 +357,84 @@ def format_report_output(data):
             func(res, *k[:-1])[k[-1]] = v
 
     output = {}
-    for k, v in dsp_utl.stack_nested_keys(res, depth=2):
+    for k, v in sh.stack_nested_keys(res, depth=2):
         v = _split_by_data_format(v)
-        dsp_utl.get_nested_dicts(output, *k, default=co2_utl.ret_v(v))
+        sh.get_nested_dicts(output, *k, default=co2_utl.ret_v(v))
 
     return output
 
 
 def _format_scores(scores):
     res = {}
-    for k, j in dsp_utl.stack_nested_keys(scores, depth=3):
+    for k, j in sh.stack_nested_keys(scores, depth=3):
         if k[-1] in ('limits', 'errors'):
             model_id = k[0]
             extra_field = ('score',) if k[-1] == 'errors' else ()
-            for i, v in dsp_utl.stack_nested_keys(j):
+            for i, v in sh.stack_nested_keys(j):
                 i = (model_id, i[-1], k[1],) + i[:-1] + extra_field
-                dsp_utl.get_nested_dicts(res, *i, default=co2_utl.ret_v(v))
+                sh.get_nested_dicts(res, *i, default=co2_utl.ret_v(v))
     sco = {}
-    for k, v in sorted(dsp_utl.stack_nested_keys(res, depth=4)):
-        v.update(dsp_utl.map_list(['model_id', 'param_id'], *k[:2]))
-        dsp_utl.get_nested_dicts(sco, *k[2:], default=list).append(v)
+    for k, v in sorted(sh.stack_nested_keys(res, depth=4)):
+        v.update(sh.map_list(['model_id', 'param_id'], *k[:2]))
+        sh.get_nested_dicts(sco, *k[2:], default=list).append(v)
     return sco
 
 
 def _format_selection(score_by_model, depth=-1, index='model_id'):
     res = {}
-    for k, v in sorted(dsp_utl.stack_nested_keys(score_by_model, depth=depth)):
+    for k, v in sorted(sh.stack_nested_keys(score_by_model, depth=depth)):
         v = v.copy()
         v[index] = k[0]
-        dsp_utl.get_nested_dicts(res, *k[1:], default=list).append(v)
+        sh.get_nested_dicts(res, *k[1:], default=list).append(v)
     return res
 
 
 def format_report_scores(data):
     res = {}
     scores = 'data', 'calibration', 'model_scores'
-    if dsp_utl.are_in_nested_dicts(data, *scores):
+    if sh.are_in_nested_dicts(data, *scores):
         n = scores + ('param_selections',)
-        v = _format_selection(dsp_utl.get_nested_dicts(data, *n), 2, 'param_id')
+        v = _format_selection(sh.get_nested_dicts(data, *n), 2, 'param_id')
         if v:
-            dsp_utl.get_nested_dicts(res, *n, default=co2_utl.ret_v(v))
+            sh.get_nested_dicts(res, *n, default=co2_utl.ret_v(v))
 
         n = scores + ('model_selections',)
-        v = _format_selection(dsp_utl.get_nested_dicts(data, *n), 3)
+        v = _format_selection(sh.get_nested_dicts(data, *n), 3)
         if v:
-            dsp_utl.get_nested_dicts(res, *n, default=co2_utl.ret_v(v))
+            sh.get_nested_dicts(res, *n, default=co2_utl.ret_v(v))
 
         n = scores + ('score_by_model',)
-        v = _format_selection(dsp_utl.get_nested_dicts(data, *n), 2)
+        v = _format_selection(sh.get_nested_dicts(data, *n), 2)
         if v:
-            dsp_utl.get_nested_dicts(res, *n, default=co2_utl.ret_v(v))
+            sh.get_nested_dicts(res, *n, default=co2_utl.ret_v(v))
 
         n = scores + ('scores',)
-        v = _format_scores(dsp_utl.get_nested_dicts(data, *n))
+        v = _format_scores(sh.get_nested_dicts(data, *n))
         if v:
-            dsp_utl.get_nested_dicts(res, *n, default=co2_utl.ret_v(v))
+            sh.get_nested_dicts(res, *n, default=co2_utl.ret_v(v))
 
         v = []
         for k in ('nedc_h', 'nedc_l', 'wltp_h', 'wltp_l'):
             n = 'data', 'prediction', 'models_%s' % k
-            if dsp_utl.are_in_nested_dicts(data, *n):
+            if sh.are_in_nested_dicts(data, *n):
                 v.append({
                     'cycle': k,
                     'uuid': base64.encodebytes(
-                        dill.dumps(dsp_utl.get_nested_dicts(data, *n))
+                        dill.dumps(sh.get_nested_dicts(data, *n))
                     )
                 })
 
         if v:
             n = scores + ('models_uuid',)
-            dsp_utl.get_nested_dicts(res, *n, default=co2_utl.ret_v(v))
+            sh.get_nested_dicts(res, *n, default=co2_utl.ret_v(v))
 
     return res
 
 
 def get_selection(data):
     n = ('data', 'calibration', 'model_scores', 'model_selections')
-    if dsp_utl.are_in_nested_dicts(data, *n):
-        return _format_selection(dsp_utl.get_nested_dicts(data, *n), 3)
+    if sh.are_in_nested_dicts(data, *n):
+        return _format_selection(sh.get_nested_dicts(data, *n), 3)
     return {}
 
 
@@ -459,17 +458,17 @@ def get_phases_values(data, what='co2_emission', base=None):
 
 def get_values(data, keys, tag=(), update=lambda k, v: v, base=None):
     k = ('input', 'target', 'output')
-    data = dsp_utl.selector(k, data, allow_miss=True)
+    data = sh.selector(k, data, allow_miss=True)
 
     base = {} if base is None else base
-    for k, v in dsp_utl.stack_nested_keys(data, depth=3):
+    for k, v in sh.stack_nested_keys(data, depth=3):
         k = k[::-1]
-        v = dsp_utl.selector(keys, v, allow_miss=True)
+        v = sh.selector(keys, v, allow_miss=True)
         v = update(k, v)
 
         if v:
             k = tag + k
-            dsp_utl.get_nested_dicts(base, *k, default=co2_utl.ret_v(v))
+            sh.get_nested_dicts(base, *k, default=co2_utl.ret_v(v))
 
     return base
 
@@ -531,7 +530,7 @@ def get_report_output_data(data):
 
     scores = format_report_scores(data)
     if scores:
-        dsp_utl.combine_nested_dicts(scores, base=report)
+        sh.combine_nested_dicts(scores, base=report)
 
     graphs = get_chart_reference(report)
     if graphs:
@@ -566,7 +565,7 @@ def report():
     """
 
     # Initialize a dispatcher.
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='make_report',
         description='Produces a vehicle report from CO2MPAS outputs.'
     )
@@ -585,4 +584,4 @@ def report():
 
     inputs = ['output_data', 'vehicle_name']
     outputs = ['report', 'summary']
-    return dsp_utl.SubDispatchFunction(d, d.name, inputs, outputs)
+    return sh.SubDispatchFunction(d, d.name, inputs, outputs)

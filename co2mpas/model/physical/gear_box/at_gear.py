@@ -18,8 +18,7 @@ import scipy.interpolate as sci_itp
 import scipy.optimize as sci_opt
 import sklearn.metrics as sk_met
 import sklearn.tree as sk_tree
-import schedula.utils as dsp_utl
-import schedula as dsp
+import schedula as sh
 import co2mpas.model.physical.defaults as defaults
 import co2mpas.utils as co2_utl
 import numpy as np
@@ -397,7 +396,7 @@ def identify_gear_shifting_velocity_limits(gears, velocities, stop_velocity):
 
     limits = {}
 
-    for v, (g0, g1) in zip(velocities, dsp_utl.pairwise(gears)):
+    for v, (g0, g1) in zip(velocities, sh.pairwise(gears)):
         if v >= stop_velocity and g0 != g1:
             limits[g0] = limits.get(g0, [[], []])
             limits[g0][g0 < g1].append(v)
@@ -813,7 +812,7 @@ def correct_gsv(gsv, stop_velocity):
 
     gsv[0] = [0, (stop_velocity, (defaults.dfl.INF, 0))]
 
-    for v0, v1 in dsp_utl.pairwise(gsv.values()):
+    for v0, v1 in sh.pairwise(gsv.values()):
         up0, down1 = (v0[1][0], v1[0][0])
 
         if down1 + stop_velocity <= v0[0]:
@@ -862,7 +861,7 @@ class GSPV(CMV):
 
         self.velocity_speed_ratios = velocity_speed_ratios
 
-        it = zip(velocities, wheel_powers, dsp_utl.pairwise(gears))
+        it = zip(velocities, wheel_powers, sh.pairwise(gears))
 
         for v, p, (g0, g1) in it:
             if v > stop_velocity and g0 != g1:
@@ -1522,7 +1521,7 @@ def at_gear():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Automatic gear model',
         description='Defines an omni-comprehensive gear shifting model for '
                     'automatic vehicles.'
@@ -1563,7 +1562,7 @@ def at_gear():
     )
 
     d.add_function(
-        function=dsp_utl.add_args(correct_gear_v0),
+        function=sh.add_args(correct_gear_v0),
         inputs=['fuel_saving_at_strategy', 'cycle_type',
                 'velocity_speed_ratios', 'MVL', 'engine_max_power',
                 'engine_max_speed_at_max_power', 'idle_engine_speed',
@@ -1574,7 +1573,7 @@ def at_gear():
     )
 
     d.add_function(
-        function=dsp_utl.add_args(correct_gear_v1),
+        function=sh.add_args(correct_gear_v1),
         inputs=['fuel_saving_at_strategy', 'cycle_type',
                 'velocity_speed_ratios', 'MVL', 'idle_engine_speed',
                 'plateau_acceleration'],
@@ -1612,24 +1611,12 @@ def at_gear():
         dsp_id='cmv_model',
         dsp=at_cmv(),
         input_domain=at_domain('CMV'),
-        inputs={
-            'specific_gear_shifting': dsp_utl.SINK,
-            'CMV': 'CMV',
-            'accelerations': 'accelerations',
-            'correct_gear': 'correct_gear',
-            'engine_speeds_out': 'engine_speeds_out',
-            'gears': 'gears',
-            'times': 'times',
-            'velocities': 'velocities',
-            'velocity_speed_ratios': 'velocity_speed_ratios',
-            'stop_velocity': 'stop_velocity',
-            'gear_filter': 'gear_filter',
-            'cycle_type': 'cycle_type'
-        },
-        outputs={
-            'CMV': 'CMV',
-            'gears': 'gears',
-        }
+        inputs=(
+            'CMV', 'accelerations', 'correct_gear', 'cycle_type',
+            'engine_speeds_out', 'gear_filter', 'gears', 'stop_velocity',
+            'times', 'velocities', 'velocity_speed_ratios',
+            {'specific_gear_shifting': sh.SINK}),
+        outputs=('CMV', 'gears')
     )
 
     d.add_dispatcher(
@@ -1637,25 +1624,12 @@ def at_gear():
         dsp_id='cmv_ch_model',
         input_domain=at_domain('CMV_Cold_Hot'),
         dsp=at_cmv_cold_hot(),
-        inputs={
-            'specific_gear_shifting': dsp_utl.SINK,
-            'CMV_Cold_Hot': 'CMV_Cold_Hot',
-            'accelerations': 'accelerations',
-            'correct_gear': 'correct_gear',
-            'engine_speeds_out': 'engine_speeds_out',
-            'gears': 'gears',
-            'time_cold_hot_transition': 'time_cold_hot_transition',
-            'times': 'times',
-            'velocities': 'velocities',
-            'velocity_speed_ratios': 'velocity_speed_ratios',
-            'stop_velocity': 'stop_velocity',
-            'gear_filter': 'gear_filter',
-            'cycle_type': 'cycle_type'
-        },
-        outputs={
-            'CMV_Cold_Hot': 'CMV_Cold_Hot',
-            'gears': 'gears',
-        }
+        inputs=(
+            'CMV_Cold_Hot', 'accelerations', 'correct_gear', 'cycle_type',
+            'engine_speeds_out', 'gear_filter', 'gears', 'stop_velocity',
+            'time_cold_hot_transition', 'times', 'velocities',
+            'velocity_speed_ratios', {'specific_gear_shifting': sh.SINK}),
+        outputs=('CMV_Cold_Hot', 'gears')
     )
 
     d.add_data(
@@ -1668,112 +1642,62 @@ def at_gear():
         dsp_id='dt_va_model',
         input_domain=dt_domain('DT_VA'),
         dsp=at_dt_va(),
-        inputs={
-            'use_dt_gear_shifting': dsp_utl.SINK,
-            'specific_gear_shifting': dsp_utl.SINK,
-            'DT_VA': 'DT_VA',
-            'accelerations': 'accelerations',
-            'correct_gear': 'correct_gear',
-            'gears': 'gears',
-            'times': 'times',
-            'velocities': 'velocities',
-            'gear_filter': 'gear_filter'
-        },
-        outputs={
-            'DT_VA': 'DT_VA',
-            'gears': 'gears',
-        }
+        inputs=(
+            'DT_VA', 'accelerations', 'correct_gear', 'gear_filter', 'gears',
+            'times', 'velocities',
+            {'specific_gear_shifting': sh.SINK,
+             'use_dt_gear_shifting': sh.SINK}),
+        outputs=('DT_VA', 'gears')
     )
 
     d.add_dispatcher(
         dsp_id='dt_vap_model',
         input_domain=dt_domain('DT_VAP'),
         dsp=at_dt_vap(),
-        inputs={
-            'use_dt_gear_shifting': dsp_utl.SINK,
-            'specific_gear_shifting': dsp_utl.SINK,
-            'DT_VAP': 'DT_VAP',
-            'accelerations': 'accelerations',
-            'correct_gear': 'correct_gear',
-            'motive_powers': 'motive_powers',
-            'gears': 'gears',
-            'times': 'times',
-            'velocities': 'velocities',
-            'gear_filter': 'gear_filter'
-        },
-        outputs={
-            'DT_VAP': 'DT_VAP',
-            'gears': 'gears',
-        }
+        inputs=(
+            'DT_VAP', 'accelerations', 'correct_gear', 'gear_filter', 'gears',
+            'motive_powers', 'times', 'velocities',
+            {'specific_gear_shifting': sh.SINK,
+             'use_dt_gear_shifting': sh.SINK}),
+        outputs=('DT_VAP', 'gears')
     )
 
     d.add_dispatcher(
         dsp_id='dt_vat_model',
         input_domain=lambda *args, **kwargs: False,
         dsp=at_dt_vat(),
-        inputs={
-            'use_dt_gear_shifting': dsp_utl.SINK,
-            'specific_gear_shifting': dsp_utl.SINK,
-            'DT_VAT': 'DT_VAT',
-            'accelerations': 'accelerations',
-            'correct_gear': 'correct_gear',
-            'gears': 'gears',
-            'engine_coolant_temperatures': 'engine_coolant_temperatures',
-            'times': 'times',
-            'velocities': 'velocities',
-            'gear_filter': 'gear_filter'
-        },
-        outputs={
-            'DT_VAT': 'DT_VAT',
-            'gears': 'gears',
-        }
+        inputs=(
+            'DT_VAT', 'accelerations', 'correct_gear',
+            'engine_coolant_temperatures', 'gear_filter', 'gears', 'times',
+            'velocities',
+            {'specific_gear_shifting': sh.SINK,
+             'use_dt_gear_shifting': sh.SINK}),
+        outputs=('DT_VAT', 'gears')
     )
 
     d.add_dispatcher(
         dsp_id='dt_vatp_model',
         input_domain=lambda *args, **kwargs: False,
         dsp=at_dt_vatp(),
-        inputs={
-            'use_dt_gear_shifting': dsp_utl.SINK,
-            'specific_gear_shifting': dsp_utl.SINK,
-            'DT_VATP': 'DT_VATP',
-            'accelerations': 'accelerations',
-            'correct_gear': 'correct_gear',
-            'motive_powers': 'motive_powers',
-            'gears': 'gears',
-            'engine_coolant_temperatures': 'engine_coolant_temperatures',
-            'times': 'times',
-            'velocities': 'velocities',
-            'gear_filter': 'gear_filter'
-        },
-        outputs={
-            'DT_VATP': 'DT_VATP',
-            'gears': 'gears',
-        }
+        inputs=(
+            'DT_VATP', 'accelerations', 'correct_gear',
+            'engine_coolant_temperatures', 'gear_filter', 'gears',
+            'motive_powers', 'times', 'velocities',
+            {'specific_gear_shifting': sh.SINK,
+             'use_dt_gear_shifting': sh.SINK}),
+        outputs=('DT_VATP', 'gears')
     )
 
     d.add_dispatcher(
         dsp_id='gspv_model',
         dsp=at_gspv(),
         input_domain=at_domain('GSPV'),
-        inputs={
-            'specific_gear_shifting': dsp_utl.SINK,
-            'GSPV': 'GSPV',
-            'accelerations': 'accelerations',
-            'correct_gear': 'correct_gear',
-            'motive_powers': 'motive_powers',
-            'gears': 'gears',
-            'times': 'times',
-            'velocities': 'velocities',
-            'velocity_speed_ratios': 'velocity_speed_ratios',
-            'stop_velocity': 'stop_velocity',
-            'gear_filter': 'gear_filter',
-            'cycle_type': 'cycle_type'
-        },
-        outputs={
-            'GSPV': 'GSPV',
-            'gears': 'gears',
-        }
+        inputs=(
+            'GSPV', 'accelerations', 'correct_gear', 'cycle_type',
+            'gear_filter', 'gears', 'motive_powers', 'stop_velocity', 'times',
+            'velocities', 'velocity_speed_ratios',
+            {'specific_gear_shifting': sh.SINK}),
+        outputs=('GSPV', 'gears')
     )
 
     d.add_dispatcher(
@@ -1781,25 +1705,12 @@ def at_gear():
         dsp_id='gspv_ch_model',
         dsp=at_gspv_cold_hot(),
         input_domain=at_domain('GSPV_Cold_Hot'),
-        inputs={
-            'specific_gear_shifting': dsp_utl.SINK,
-            'GSPV_Cold_Hot': 'GSPV_Cold_Hot',
-            'accelerations': 'accelerations',
-            'correct_gear': 'correct_gear',
-            'motive_powers': 'motive_powers',
-            'gears': 'gears',
-            'time_cold_hot_transition': 'time_cold_hot_transition',
-            'times': 'times',
-            'velocities': 'velocities',
-            'velocity_speed_ratios': 'velocity_speed_ratios',
-            'stop_velocity': 'stop_velocity',
-            'gear_filter': 'gear_filter',
-            'cycle_type': 'cycle_type'
-        },
-        outputs={
-            'GSPV_Cold_Hot': 'GSPV_Cold_Hot',
-            'gears': 'gears',
-        }
+        inputs=(
+            'GSPV_Cold_Hot', 'accelerations', 'correct_gear', 'cycle_type',
+            'gear_filter', 'gears', 'motive_powers', 'stop_velocity',
+            'time_cold_hot_transition', 'times', 'velocities',
+            'velocity_speed_ratios', {'specific_gear_shifting': sh.SINK}),
+        outputs=('GSPV_Cold_Hot', 'gears')
     )
 
     return d
@@ -1818,7 +1729,7 @@ def at_cmv():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Corrected Matrix Velocity Approach',
     )
 
@@ -1859,7 +1770,7 @@ def at_cmv_cold_hot():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Corrected Matrix Velocity Approach with Cold/Hot'
     )
 
@@ -1907,7 +1818,7 @@ def at_dt_va():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Decision Tree with Velocity & Acceleration'
     )
 
@@ -1945,7 +1856,7 @@ def at_dt_vap():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Decision Tree with Velocity, Acceleration, & Power'
     )
 
@@ -1989,7 +1900,7 @@ def at_dt_vat():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Decision Tree with Velocity, Acceleration & Temperature'
     )
 
@@ -2035,7 +1946,7 @@ def at_dt_vatp():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Decision Tree with Velocity, Acceleration, Temperature, & Power'
     )
 
@@ -2087,7 +1998,7 @@ def at_gspv():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Gear Shifting Power Velocity Approach'
     )
 
@@ -2127,7 +2038,7 @@ def at_gspv_cold_hot():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Gear Shifting Power Velocity Approach with Cold/Hot'
     )
 

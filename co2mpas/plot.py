@@ -12,7 +12,7 @@ import importlib
 import logging
 import sys
 import matplotlib.pyplot as plt
-import schedula.utils as dsp_utl
+import schedula as sh
 
 log = logging.getLogger(__name__)
 
@@ -185,7 +185,7 @@ def plot_time_series(
     :type y_label: dict
     """
 
-    x_id = dsp_utl.stlp(x_id)
+    x_id = sh.stlp(x_id)
     x, x_id = dsp.get_node(*x_id)
     if x_label is None:
         x_label = dsp.get_node(*x_id, node_attr='description')[0]
@@ -201,7 +201,7 @@ def plot_time_series(
             data = {'id': data, 'x': x}
 
         if 'id' in data:
-            y_id = dsp_utl.stlp(data.pop('id'))
+            y_id = sh.stlp(data.pop('id'))
 
             des = y_label is None or 'label' not in data
             if des or 'y' not in data:

@@ -27,8 +27,7 @@ import co2mpas.model.physical.defaults as defaults
 import numpy as np
 import sklearn.metrics as sk_met
 from sklearn.cluster import DBSCAN
-import schedula.utils as dsp_utl
-import schedula as dsp
+import schedula as sh
 import co2mpas.utils as co2_utl
 import functools
 
@@ -974,7 +973,7 @@ def identify_idle_engine_speed():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='calculate_idle_engine_speed',
         description='Identify idle engine speed median and std.'
     )
@@ -1016,7 +1015,7 @@ def engine():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Engine',
         description='Models the vehicle engine.'
     )
@@ -1116,29 +1115,22 @@ def engine():
 
     d.add_dispatcher(
         dsp=identify_idle_engine_speed(),
-        inputs={
-            'velocities': 'velocities',
-            'engine_speeds_out': 'engine_speeds_out',
-            'stop_velocity': 'stop_velocity',
-            'min_engine_on_speed': 'min_engine_on_speed',
-            'idle_engine_speed_median': 'idle_engine_speed_median'
-        },
-        outputs={
-            'idle_engine_speed_median': 'idle_engine_speed_median',
-            'idle_engine_speed_std': 'idle_engine_speed_std'
-        }
+        inputs=(
+            'engine_speeds_out', 'idle_engine_speed_median',
+            'min_engine_on_speed', 'stop_velocity', 'velocities'),
+        outputs=('idle_engine_speed_median', 'idle_engine_speed_std')
     )
 
     # set idle engine speed tuple
     d.add_function(
-        function=dsp_utl.bypass,
+        function=sh.bypass,
         inputs=['idle_engine_speed_median', 'idle_engine_speed_std'],
         outputs=['idle_engine_speed']
     )
 
     # set idle engine speed tuple
     d.add_function(
-        function=dsp_utl.bypass,
+        function=sh.bypass,
         inputs=['idle_engine_speed'],
         outputs=['idle_engine_speed_median', 'idle_engine_speed_std']
     )
@@ -1148,32 +1140,19 @@ def engine():
         include_defaults=True,
         dsp=thermal(),
         dsp_id='thermal',
-        inputs={
-            'times': 'times',
-            'on_engine': 'on_engine',
-            'accelerations': 'accelerations',
-            'engine_coolant_temperatures': 'engine_coolant_temperatures',
-            'final_drive_powers_in': 'final_drive_powers_in',
-            'idle_engine_speed': 'idle_engine_speed',
-            'engine_speeds_out_hot': 'engine_speeds_out_hot',
-            'engine_temperature_regression_model':
-                'engine_temperature_regression_model',
-            'initial_engine_temperature': 'initial_engine_temperature',
-            'engine_thermostat_temperature': 'engine_thermostat_temperature',
-            'engine_thermostat_temperature_window':
-                'engine_thermostat_temperature_window',
-            'max_engine_coolant_temperature': 'max_engine_coolant_temperature'
-        },
-        outputs={
-            'engine_temperature_regression_model':
-                'engine_temperature_regression_model',
-            'engine_thermostat_temperature': 'engine_thermostat_temperature',
-            'engine_thermostat_temperature_window':
-                'engine_thermostat_temperature_window',
-            'initial_engine_temperature': 'initial_engine_temperature',
-            'max_engine_coolant_temperature': 'max_engine_coolant_temperature',
-            'engine_temperature_derivatives': 'engine_temperature_derivatives'
-        }
+        inputs=(
+            'accelerations', 'engine_coolant_temperatures',
+            'engine_speeds_out_hot', 'engine_temperature_regression_model',
+            'engine_thermostat_temperature',
+            'engine_thermostat_temperature_window', 'final_drive_powers_in',
+            'idle_engine_speed', 'initial_engine_temperature',
+            'max_engine_coolant_temperature', 'on_engine', 'times'),
+        outputs=(
+            'engine_temperature_derivatives',
+            'engine_temperature_regression_model',
+            'engine_thermostat_temperature',
+            'engine_thermostat_temperature_window',
+            'initial_engine_temperature', 'max_engine_coolant_temperature')
     )
 
     d.add_function(
@@ -1195,33 +1174,16 @@ def engine():
         include_defaults=True,
         dsp=start_stop(),
         dsp_id='start_stop',
-        inputs={
-            'is_hybrid': 'is_hybrid',
-            'use_basic_start_stop': 'use_basic_start_stop',
-            'start_stop_model': 'start_stop_model',
-            'times': 'times',
-            'velocities': 'velocities',
-            'accelerations': 'accelerations',
-            'engine_coolant_temperatures': 'engine_coolant_temperatures',
-            'state_of_charges': 'state_of_charges',
-            'gears': 'gears',
-            'correct_start_stop_with_gears': 'correct_start_stop_with_gears',
-            'start_stop_activation_time': 'start_stop_activation_time',
-            'min_time_engine_on_after_start': 'min_time_engine_on_after_start',
-            'has_start_stop': 'has_start_stop',
-            'gear_box_type': 'gear_box_type',
-            'on_engine': 'on_engine',
-            'engine_speeds_out': 'engine_speeds_out',
-            'idle_engine_speed': 'idle_engine_speed',
-            'engine_starts': 'engine_starts'
-        },
-        outputs={
-            'on_engine': 'on_engine',
-            'engine_starts': 'engine_starts',
-            'use_basic_start_stop': 'use_basic_start_stop',
-            'start_stop_model': 'start_stop_model',
-            'correct_start_stop_with_gears': 'correct_start_stop_with_gears'
-        }
+        inputs=(
+            'accelerations', 'correct_start_stop_with_gears',
+            'engine_coolant_temperatures', 'engine_speeds_out', 'engine_starts',
+            'gear_box_type', 'gears', 'has_start_stop', 'idle_engine_speed',
+            'is_hybrid', 'min_time_engine_on_after_start', 'on_engine',
+            'start_stop_activation_time', 'start_stop_model',
+            'state_of_charges', 'times', 'use_basic_start_stop', 'velocities'),
+        outputs=(
+            'correct_start_stop_with_gears', 'engine_starts', 'on_engine',
+            'start_stop_model', 'use_basic_start_stop')
     )
 
     d.add_data(
@@ -1245,22 +1207,14 @@ def engine():
     from .cold_start import cold_start
     d.add_dispatcher(
         dsp=cold_start(),
-        inputs={
-            'engine_speeds_out': 'engine_speeds_out',
-            'engine_speeds_out_hot': 'engine_speeds_out_hot',
-            'engine_coolant_temperatures': 'engine_coolant_temperatures',
-            'engine_thermostat_temperature': 'engine_thermostat_temperature',
-            'on_idle': 'on_idle',
-            'cold_start_speeds_phases': 'cold_start_speeds_phases',
-            'idle_engine_speed': 'idle_engine_speed',
-            'on_engine': 'on_engine',
-            'cold_start_speed_model': 'cold_start_speed_model'
-        },
-        outputs={
-            'cold_start_speeds_phases': 'cold_start_speeds_phases',
-            'cold_start_speeds_delta': 'cold_start_speeds_delta',
-            'cold_start_speed_model': 'cold_start_speed_model'
-        }
+        inputs=(
+            'cold_start_speed_model', 'cold_start_speeds_phases',
+            'engine_coolant_temperatures', 'engine_speeds_out',
+            'engine_speeds_out_hot', 'engine_thermostat_temperature',
+            'idle_engine_speed', 'on_engine', 'on_idle'),
+        outputs=(
+            'cold_start_speed_model', 'cold_start_speeds_delta',
+            'cold_start_speeds_phases')
     )
 
     d.add_function(
@@ -1357,107 +1311,49 @@ def engine():
         include_defaults=True,
         dsp=co2_emission(),
         dsp_id='CO2_emission_model',
-        inputs={
-            'has_lean_burn': 'has_lean_burn',
-            'engine_has_cylinder_deactivation':
-                'engine_has_cylinder_deactivation',
-            'active_cylinder_ratios': 'active_cylinder_ratios',
-            'full_bmep_curve': 'full_bmep_curve',
-            'co2_emission_low': 'co2_emission_low',
-            'co2_emission_medium': 'co2_emission_medium',
-            'co2_emission_high': 'co2_emission_high',
-            'co2_emission_extra_high': 'co2_emission_extra_high',
-            'co2_emission_UDC': 'co2_emission_UDC',
-            'co2_emission_EUDC': 'co2_emission_EUDC',
-            'co2_params': 'co2_params',
-            'co2_params_calibrated': ('co2_params_calibrated', 'co2_params'),
-            'is_cycle_hot': 'is_cycle_hot',
-            'engine_capacity': 'engine_capacity',
-            'engine_fuel_lower_heating_value':
-                'engine_fuel_lower_heating_value',
-            'engine_idle_fuel_consumption': (
-                'engine_idle_fuel_consumption',
-                'idle_fuel_consumption_initial_guess'),
-            'engine_powers_out': 'engine_powers_out',
-            'engine_speeds_out': 'engine_speeds_out',
-            'engine_stroke': 'engine_stroke',
-            'engine_coolant_temperatures': 'engine_coolant_temperatures',
-            'engine_thermostat_temperature':
-                'engine_thermostat_temperature',
-            'engine_type': 'engine_type',
-            'fuel_carbon_content_percentage': 'fuel_carbon_content_percentage',
-            'fuel_carbon_content': 'fuel_carbon_content',
-            'idle_engine_speed': 'idle_engine_speed',
-            'mean_piston_speeds': 'mean_piston_speeds',
-            'on_engine': 'on_engine',
-            'engine_thermostat_temperature_window':
-                'engine_thermostat_temperature_window',
-            'times': 'times',
-            'velocities': 'velocities',
-            'calibration_status': 'calibration_status',
-            'initial_engine_temperature': 'initial_engine_temperature',
-            'fuel_consumptions': 'fuel_consumptions',
-            'co2_emissions': 'co2_emissions',
-            'co2_normalization_references': 'co2_normalization_references',
-            'fuel_type': 'fuel_type',
-            'phases_integration_times': 'phases_integration_times',
-            'enable_willans': 'enable_willans',
-            'enable_phases_willans': 'enable_phases_willans',
-            'accelerations': 'accelerations',
-            'motive_powers': 'motive_powers',
-            'missing_powers': 'missing_powers',
-            'stop_velocity': 'stop_velocity',
-            'min_engine_on_speed': 'min_engine_on_speed',
-            'fuel_density': 'fuel_density',
-            'angle_slopes': 'angle_slopes',
-            'engine_has_variable_valve_actuation':
-                'engine_has_variable_valve_actuation',
-            'has_periodically_regenerating_systems':
-                'has_periodically_regenerating_systems',
-            'ki_factor': 'ki_factor',
-            'engine_max_speed': 'engine_max_speed',
-            'has_selective_catalytic_reduction':
-                'has_selective_catalytic_reduction',
-            'has_exhausted_gas_recirculation': 'has_exhausted_gas_recirculation'
-        },
-        outputs={
-            'co2_emissions_model': 'co2_emissions_model',
-            'co2_emission_value': 'co2_emission_value',
-            'co2_emissions': 'co2_emissions',
-            'identified_co2_emissions': 'identified_co2_emissions',
-            'co2_error_function_on_emissions':
-                'co2_error_function_on_emissions',
-            'co2_error_function_on_phases': 'co2_error_function_on_phases',
-            'co2_params_calibrated': 'co2_params_calibrated',
-            'co2_params_initial_guess': 'co2_params_initial_guess',
-            'fuel_consumptions': 'fuel_consumptions',
-            'phases_co2_emissions': 'phases_co2_emissions',
-            'calibration_status': 'calibration_status',
-            'willans_factors': 'willans_factors',
-            'optimal_efficiency': 'optimal_efficiency',
-            'phases_fuel_consumptions': 'phases_fuel_consumptions',
-            'extended_phases_integration_times':
-                'extended_phases_integration_times',
-            'extended_phases_co2_emissions': 'extended_phases_co2_emissions',
-            'after_treatment_temperature_threshold':
-                'after_treatment_temperature_threshold',
-            'phases_willans_factors': 'phases_willans_factors',
-            'fuel_carbon_content_percentage': 'fuel_carbon_content_percentage',
-            'fuel_carbon_content': 'fuel_carbon_content',
-            'engine_fuel_lower_heating_value':
-                'engine_fuel_lower_heating_value',
-            'initial_friction_params': 'initial_friction_params',
-            'engine_idle_fuel_consumption': 'engine_idle_fuel_consumption',
-            'active_cylinders': 'active_cylinders',
-            'active_variable_valves': 'active_variable_valves',
-            'active_lean_burns': 'active_lean_burns',
-            'ki_factor': 'ki_factor',
-            'fuel_density': 'fuel_density',
-            'declared_co2_emission_value': 'declared_co2_emission_value',
-            'active_exhausted_gas_recirculations':
-                'active_exhausted_gas_recirculations',
-            'has_exhausted_gas_recirculation': 'has_exhausted_gas_recirculation'
-        },
+        inputs=(
+            'accelerations', 'active_cylinder_ratios', 'angle_slopes',
+            'calibration_status', 'co2_emission_EUDC', 'co2_emission_UDC',
+            'co2_emission_extra_high', 'co2_emission_high', 'co2_emission_low',
+            'co2_emission_medium', 'co2_emissions',
+            'co2_normalization_references', 'co2_params',
+            'enable_phases_willans', 'enable_willans', 'engine_capacity',
+            'engine_coolant_temperatures', 'engine_fuel_lower_heating_value',
+            'engine_has_cylinder_deactivation',
+            'engine_has_variable_valve_actuation', 'engine_max_speed',
+            'engine_powers_out', 'engine_speeds_out', 'engine_stroke',
+            'engine_thermostat_temperature',
+            'engine_thermostat_temperature_window', 'engine_type',
+            'fuel_carbon_content', 'fuel_carbon_content_percentage',
+            'fuel_consumptions', 'fuel_density', 'fuel_type', 'full_bmep_curve',
+            'has_exhausted_gas_recirculation', 'has_lean_burn',
+            'has_periodically_regenerating_systems',
+            'has_selective_catalytic_reduction', 'idle_engine_speed',
+            'initial_engine_temperature', 'is_cycle_hot', 'ki_factor',
+            'mean_piston_speeds', 'min_engine_on_speed', 'missing_powers',
+            'motive_powers', 'on_engine', 'phases_integration_times',
+            'stop_velocity', 'times', 'velocities',
+            {'co2_params_calibrated': ('co2_params_calibrated', 'co2_params'),
+             'engine_idle_fuel_consumption': (
+                 'engine_idle_fuel_consumption',
+                 'idle_fuel_consumption_initial_guess')}
+        ),
+        outputs=(
+            'active_cylinders', 'active_exhausted_gas_recirculations',
+            'active_lean_burns', 'active_variable_valves',
+            'after_treatment_temperature_threshold', 'calibration_status',
+            'co2_emission_value', 'co2_emissions', 'co2_emissions_model',
+            'co2_error_function_on_emissions', 'co2_error_function_on_phases',
+            'co2_params_calibrated', 'co2_params_initial_guess',
+            'declared_co2_emission_value', 'engine_fuel_lower_heating_value',
+            'engine_idle_fuel_consumption', 'extended_phases_co2_emissions',
+            'extended_phases_integration_times', 'fuel_carbon_content',
+            'fuel_carbon_content_percentage', 'fuel_consumptions',
+            'fuel_density', 'has_exhausted_gas_recirculation',
+            'identified_co2_emissions', 'initial_friction_params', 'ki_factor',
+            'optimal_efficiency', 'phases_co2_emissions',
+            'phases_fuel_consumptions', 'phases_willans_factors',
+            'willans_factors'),
         inp_weight={'co2_params': defaults.dfl.EPS}
     )
 

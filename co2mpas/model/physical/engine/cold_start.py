@@ -14,8 +14,7 @@ import sklearn.metrics as sk_met
 import sklearn.tree as sk_tree
 import co2mpas.utils as co2_utl
 import numpy as np
-import schedula.utils as dsp_utl
-import schedula as dsp
+import schedula as sh
 import lmfit
 
 
@@ -105,7 +104,7 @@ def _calibrate_models(delta, temp, speeds_hot, on_eng, idle, phases):
         _calibrate_css_model, delta, idle, on_eng, temp, speeds_hot
     )
 
-    ind = dsp_utl.counter()
+    ind = sh.counter()
     best = (np.inf, _css_model)
     delta, temp = delta[phases], temp[phases]
     ds = delta / idle
@@ -224,7 +223,7 @@ def cold_start():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='cold_start',
         description='Models the engine cold start strategy.'
     )

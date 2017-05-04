@@ -9,8 +9,7 @@
 It contains functions that model the basic mechanics of the vehicle.
 """
 
-import schedula.utils as dsp_utl
-import schedula as dsp
+import schedula as sh
 import scipy.interpolate as sci_itp
 import pykalman
 import numpy as np
@@ -492,7 +491,7 @@ def vehicle():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Vehicle free body diagram',
         description='Calculates forces and power acting on the vehicle.'
     )
@@ -646,7 +645,7 @@ def vehicle():
 
     d.add_function(
         function_id='grouping',
-        function=dsp_utl.bypass,
+        function=sh.bypass,
         inputs=['f0', 'f1', 'f2'],
         outputs=['road_loads']
     )
@@ -658,7 +657,7 @@ def vehicle():
 
     d.add_function(
         function_id='splitting',
-        function=dsp_utl.bypass,
+        function=sh.bypass,
         inputs=['road_loads'],
         outputs=['f0', 'f1', 'f2']
     )

@@ -22,8 +22,7 @@ Sub-Modules:
 
 """
 
-import schedula as dsp
-import schedula.utils as dsp_utl
+import schedula as sh
 import numpy as np
 
 
@@ -91,7 +90,7 @@ def select_phases_integration_times(cycle_type):
 
     from ..defaults import dfl
     v = dfl.functions.select_phases_integration_times.INTEGRATION_TIMES
-    return tuple(dsp_utl.pairwise(v[cycle_type.upper()]))
+    return tuple(sh.pairwise(v[cycle_type.upper()]))
 
 
 def _extract_indices(bag_phases):
@@ -136,7 +135,7 @@ def cycle():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Cycle model',
         description='Returns the theoretical times, velocities, and gears.'
     )
@@ -151,22 +150,10 @@ def cycle():
     d.add_dispatcher(
         include_defaults=True,
         dsp=nedc_cycle(),
-        inputs={
-            'cycle_type': dsp_utl.SINK,
-            'k1': 'k1',
-            'k2': 'k2',
-            'k5': 'k5',
-            'max_gear': 'max_gear',
-            'gear_box_type': 'gear_box_type',
-            'times': 'times',
-            'gears': 'gears'
-        },
-        outputs={
-            'velocities': 'velocities',
-            'gears': 'gears',
-            'max_time': 'max_time',
-            'initial_temperature': 'initial_temperature'
-        },
+        inputs=(
+            'gear_box_type', 'gears', 'k1', 'k2', 'k5', 'max_gear', 'times',
+            {'cycle_type': sh.SINK}),
+        outputs=('gears', 'initial_temperature', 'max_time', 'velocities'),
         input_domain=is_nedc
     )
 
@@ -174,38 +161,16 @@ def cycle():
     d.add_dispatcher(
         include_defaults=True,
         dsp=wltp_cycle(),
-        inputs={
-            'cycle_type': dsp_utl.SINK,
-            'gear_box_type': 'gear_box_type',
-            'times': 'times',
-            'wltp_base_model': 'wltp_base_model',
-            'velocities': 'velocities',
-            'accelerations': 'accelerations',
-            'motive_powers': 'motive_powers',
-            'speed_velocity_ratios': 'speed_velocity_ratios',
-            'idle_engine_speed': 'idle_engine_speed',
-            'inertial_factor': 'inertial_factor',
-            'downscale_phases': 'downscale_phases',
-            'climbing_force': 'climbing_force',
-            'full_load_curve': 'full_load_curve',
-            'downscale_factor': 'downscale_factor',
-            'downscale_factor_threshold': 'downscale_factor_threshold',
-            'vehicle_mass': 'vehicle_mass',
-            'driver_mass': 'driver_mass',
-            'road_loads': 'road_loads',
-            'engine_max_power': 'engine_max_power',
-            'engine_max_speed_at_max_power': 'engine_max_speed_at_max_power',
-            'max_velocity': 'max_velocity',
-            'wltp_class': 'wltp_class',
-            'max_speed_velocity_ratio': 'max_speed_velocity_ratio',
-            'gears': 'gears'
-        },
-        outputs={
-            'velocities': 'velocities',
-            'gears': 'gears',
-            'max_time': 'max_time',
-            'initial_temperature': 'initial_temperature'
-        },
+        inputs=(
+            'accelerations', 'climbing_force', 'downscale_factor',
+            'downscale_factor_threshold', 'downscale_phases', 'driver_mass',
+            'engine_max_power', 'engine_max_speed_at_max_power',
+            'full_load_curve', 'gear_box_type', 'gears', 'idle_engine_speed',
+            'inertial_factor', 'max_speed_velocity_ratio', 'max_velocity',
+            'motive_powers', 'road_loads', 'speed_velocity_ratios', 'times',
+            'vehicle_mass', 'velocities', 'wltp_base_model', 'wltp_class',
+            {'cycle_type': sh.SINK}),
+        outputs=('gears', 'initial_temperature', 'max_time', 'velocities'),
         input_domain=is_wltp
     )
 

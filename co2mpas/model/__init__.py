@@ -19,8 +19,7 @@ It contains a comprehensive list of all CO2MPAS software models and sub-models:
     selector
 """
 
-import schedula.utils as dsp_utl
-import schedula as dsp
+import schedula as sh
 
 
 def select_prediction_data(data, *new_data):
@@ -70,11 +69,11 @@ def select_prediction_data(data, *new_data):
     if not dfl.functions.select_prediction_data.theoretical:
         ids += ['times', 'velocities', 'gears']
 
-    data = dsp_utl.selector(ids, data, allow_miss=True)
+    data = sh.selector(ids, data, allow_miss=True)
 
     if new_data:
-        new_data = dsp_utl.combine_dicts(*new_data)
-        data = dsp_utl.combine_dicts(data, new_data)
+        new_data = sh.combine_dicts(*new_data)
+        data = sh.combine_dicts(data, new_data)
 
     if 'gears' in data and 'gears' not in new_data:
         if data.get('gear_box_type', 0) == 'automatic' or \
@@ -125,8 +124,8 @@ def model():
     """
 
     from .physical import physical
-    ph = dsp_utl.SubDispatch(physical())
-    d = dsp.Dispatcher(
+    ph = sh.SubDispatch(physical())
+    d = sh.Dispatcher(
         name='CO2MPAS model',
         description='Calibrates the models with WLTP data and predicts NEDC '
                     'cycle.'

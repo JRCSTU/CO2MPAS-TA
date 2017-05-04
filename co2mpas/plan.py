@@ -9,7 +9,7 @@
 It contains functions to make a simulation plan.
 """
 import tqdm
-import schedula.utils as dsp_utl
+import schedula as sh
 import co2mpas.utils as co2_utl
 import co2mpas.io as co2_io
 import co2mpas.batch as batch
@@ -66,17 +66,17 @@ def _get_inputs(d, inputs):
 def define_new_inputs(data, base):
     remove, new_base, new_flag, new_data = [], {}, set(), set()
 
-    for k, v in dsp_utl.stack_nested_keys(base.get('data', {}), ('base',), 4):
-        dsp_utl.get_nested_dicts(new_base, *k, default=co2_utl.ret_v(v))
+    for k, v in sh.stack_nested_keys(base.get('data', {}), ('base',), 4):
+        sh.get_nested_dicts(new_base, *k, default=co2_utl.ret_v(v))
 
-    for k, v in dsp_utl.stack_nested_keys(base.get('flag', {}), ('flag',), 1):
-        dsp_utl.get_nested_dicts(new_base, *k, default=co2_utl.ret_v(v))
+    for k, v in sh.stack_nested_keys(base.get('flag', {}), ('flag',), 1):
+        sh.get_nested_dicts(new_base, *k, default=co2_utl.ret_v(v))
 
     for k, v in data.items():
-        if v is dsp_utl.EMPTY:
+        if v is sh.EMPTY:
             remove.append(k)
 
-        dsp_utl.get_nested_dicts(new_base, *k[:-1])[k[-1]] = v
+        sh.get_nested_dicts(new_base, *k[:-1])[k[-1]] = v
 
         if k[0] == 'base':
             new_data.add('.'.join(k[1:4]))
@@ -87,14 +87,14 @@ def define_new_inputs(data, base):
         sol = base['dsp_solution']
         n, out_id = _get_inputs(sol, new_data)
         for k in n.intersection(sol):
-            dsp_utl.get_nested_dicts(new_base, 'base', *k.split('.'),
-                                     default=co2_utl.ret_v(sol[k]))
+            sh.get_nested_dicts(new_base, 'base', *k.split('.'),
+                                default=co2_utl.ret_v(sol[k]))
     else:
         d = base.get_node('CO2MPAS model', node_attr='function')[0].dsp
         out_id = set(d.data_nodes)
 
     for n, k in remove:
-        dsp_utl.get_nested_dicts(new_base, n).pop(k)
+        sh.get_nested_dicts(new_base, n).pop(k)
 
     return new_base, out_id
 
@@ -113,7 +113,7 @@ def make_simulation_plan(plan, timestamp, variation, flag, model=None):
     var = json.dumps(variation, sort_keys=True)
     o_cache, o_folder = flag['overwrite_cache'], flag['output_folder']
     modelconf = flag.get('modelconf', None)
-    kw, bases = dsp_utl.combine_dicts(flag, {'run_base': True}), set()
+    kw, bases = sh.combine_dicts(flag, {'run_base': True}), set()
     for (i, base_fpath, run), p in tqdm.tqdm(plan, disable=False):
         try:
             base = get_results(model, o_cache, base_fpath, timestamp, run, var,
@@ -133,7 +133,7 @@ def make_simulation_plan(plan, timestamp, variation, flag, model=None):
         new_base, o = define_new_inputs(p, base)
         inputs = batch.prepare_data(new_base, {}, base_fpath, o_cache, o_folder,
                                     timestamp, False, modelconf)[0]
-        inputs.update(dsp_utl.selector(set(base).difference(run_modes), base))
+        inputs.update(sh.selector(set(base).difference(run_modes), base))
         inputs['vehicle_name'] = name
         inputs.update(kw)
         res = run_base.dispatch(inputs)
@@ -154,9 +154,9 @@ def filter_summary(changes, new_outputs, summary):
         n = k[-2:1:-1]
         l.add(n)
         k = n + ('plan.%s' % '.'.join(i for i in k[:-1] if k not in n), k[-1])
-        dsp_utl.get_nested_dicts(variations, *k, default=co2_utl.ret_v(v))
+        sh.get_nested_dicts(variations, *k, default=co2_utl.ret_v(v))
 
-    for k, v in dsp_utl.stack_nested_keys(summary, depth=3):
+    for k, v in sh.stack_nested_keys(summary, depth=3):
         if k[:-1] in l:
-            dsp_utl.get_nested_dicts(variations, *k, default=co2_utl.ret_v(v))
+            sh.get_nested_dicts(variations, *k, default=co2_utl.ret_v(v))
     return variations

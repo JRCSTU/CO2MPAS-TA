@@ -13,7 +13,7 @@ It contains models to compare/select the calibrated co2_params.
 import logging
 import copy
 import functools
-import schedula.utils as dsp_utl
+import schedula as sh
 log = logging.getLogger(__name__)
 
 
@@ -96,5 +96,5 @@ def co2_params_selector(
         outputs=['rank']
     )
 
-    return dsp_utl.SubDispatch(d, outputs=['model', 'errors'],
-                               output_type='list')
+    return sh.SubDispatch(d, outputs=['model', 'errors'],
+                          output_type='list')

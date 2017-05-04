@@ -23,9 +23,8 @@ Sub-Modules:
 """
 
 
-import schedula as dsp
+import schedula as sh
 import math
-import schedula.utils as dsp_utl
 import co2mpas.model.physical.defaults as defaults
 import functools
 import numpy as np
@@ -619,7 +618,7 @@ def gear_box():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Gear box model',
         description='Models the gear box.'
     )
@@ -676,7 +675,7 @@ def gear_box():
     )
 
     d.add_function(
-        function=dsp_utl.bypass,
+        function=sh.bypass,
         inputs=['gear_box_torques_in<0>'],
         outputs=['gear_box_torques_in'],
         weight=100,
@@ -755,33 +754,15 @@ def gear_box():
     d.add_dispatcher(
         include_defaults=True,
         dsp=mechanical(),
-        inputs={
-            'n_gears': 'n_gears',
-            'times': 'times',
-            'velocities': 'velocities',
-            'accelerations': 'accelerations',
-            'velocity_speed_ratios': 'velocity_speed_ratios',
-            'engine_speeds_out': 'engine_speeds_out',
-            'final_drive_ratios': 'final_drive_ratios',
-            'gear_box_speeds_out': 'gear_box_speeds_out',
-            'gear_box_ratios': 'gear_box_ratios',
-            'gear_box_type': dsp_utl.SINK,
-            'gears': 'gears',
-            'idle_engine_speed': 'idle_engine_speed',
-            'r_dynamic': 'r_dynamic',
-            'stop_velocity': 'stop_velocity',
-            'plateau_acceleration': 'plateau_acceleration',
-            'change_gear_window_width': 'change_gear_window_width'
-        },
-        outputs={
-            'n_gears': 'n_gears',
-            'gears': 'gears',
-            'gear_box_ratios': 'gear_box_ratios',
-            'velocity_speed_ratios': 'velocity_speed_ratios',
-            'speed_velocity_ratios': 'speed_velocity_ratios',
-            'gear_box_speeds_in': 'gear_box_speeds_in',
-            'max_gear': 'max_gear',
-        },
+        inputs=(
+            'accelerations', 'change_gear_window_width', 'engine_speeds_out',
+            'final_drive_ratios', 'gear_box_ratios', 'gear_box_speeds_out',
+            'gears', 'idle_engine_speed', 'n_gears', 'plateau_acceleration',
+            'r_dynamic', 'stop_velocity', 'times', 'velocities',
+            'velocity_speed_ratios', {'gear_box_type': sh.SINK}),
+        outputs=(
+            'gear_box_ratios', 'gear_box_speeds_in', 'gears', 'max_gear',
+            'n_gears', 'speed_velocity_ratios', 'velocity_speed_ratios'),
         input_domain=not_cvt
     )
 
@@ -790,55 +771,22 @@ def gear_box():
         include_defaults=True,
         dsp=at_gear(),
         dsp_id='at_gear_shifting',
-        inputs={
-            'fuel_saving_at_strategy': 'fuel_saving_at_strategy',
-            'MVL': 'MVL',
-            'CMV': 'CMV',
-            'CMV_Cold_Hot': 'CMV_Cold_Hot',
-            'DT_VA': 'DT_VA',
-            'DT_VAT': 'DT_VAT',
-            'DT_VAP': 'DT_VAP',
-            'DT_VATP': 'DT_VATP',
-            'GSPV': 'GSPV',
-            'GSPV_Cold_Hot': 'GSPV_Cold_Hot',
-            'accelerations': 'accelerations',
-            'use_dt_gear_shifting': 'use_dt_gear_shifting',
-            'specific_gear_shifting': 'specific_gear_shifting',
-            'engine_speeds_out': 'engine_speeds_out',
-            'full_load_curve': 'full_load_curve',
-            'gears': 'gears',
-            'motive_powers': 'motive_powers',
-            'gear_box_type': dsp_utl.SINK,
-            'idle_engine_speed': 'idle_engine_speed',
-            'engine_max_power': 'engine_max_power',
-            'engine_max_speed_at_max_power': 'engine_max_speed_at_max_power',
-            'road_loads': 'road_loads',
-            'engine_coolant_temperatures': 'engine_coolant_temperatures',
-            'time_cold_hot_transition': 'time_cold_hot_transition',
-            'times': 'times',
-            'vehicle_mass': 'vehicle_mass',
-            'velocities': 'velocities',
-            'velocity_speed_ratios': 'velocity_speed_ratios',
-            'stop_velocity': 'stop_velocity',
-            'plateau_acceleration': 'plateau_acceleration',
-            'change_gear_window_width': 'change_gear_window_width',
-            'max_velocity_full_load_correction':
-                'max_velocity_full_load_correction',
-            'cycle_type': 'cycle_type'
-        },
-        outputs={
-            'specific_gear_shifting': 'specific_gear_shifting',
-            'gears': 'gears',
-            'MVL': 'MVL',
-            'CMV': 'CMV',
-            'CMV_Cold_Hot': 'CMV_Cold_Hot',
-            'DT_VA': 'DT_VA',
-            'DT_VAT': 'DT_VAT',
-            'DT_VAP': 'DT_VAP',
-            'DT_VATP': 'DT_VATP',
-            'GSPV': 'GSPV',
-            'GSPV_Cold_Hot': 'GSPV_Cold_Hot',
-        },
+        inputs=(
+            'CMV', 'CMV_Cold_Hot', 'DT_VA', 'DT_VAP', 'DT_VAT', 'DT_VATP',
+            'GSPV', 'GSPV_Cold_Hot', 'MVL', 'accelerations',
+            'change_gear_window_width', 'cycle_type',
+            'engine_coolant_temperatures', 'engine_max_power',
+            'engine_max_speed_at_max_power', 'engine_speeds_out',
+            'fuel_saving_at_strategy', 'full_load_curve', 'gears',
+            'idle_engine_speed', 'max_velocity_full_load_correction',
+            'motive_powers', 'plateau_acceleration', 'road_loads',
+            'specific_gear_shifting', 'stop_velocity',
+            'time_cold_hot_transition', 'times', 'use_dt_gear_shifting',
+            'vehicle_mass', 'velocities', 'velocity_speed_ratios',
+            {'gear_box_type': sh.SINK}),
+        outputs=(
+            'CMV', 'CMV_Cold_Hot', 'DT_VA', 'DT_VAP', 'DT_VAT', 'DT_VATP',
+            'GSPV', 'GSPV_Cold_Hot', 'MVL', 'gears', 'specific_gear_shifting'),
         input_domain=is_automatic
     )
 
@@ -847,24 +795,13 @@ def gear_box():
         include_defaults=True,
         dsp=cvt_model(),
         dsp_id='cvt_model',
-        inputs={
-            'on_engine': 'on_engine',
-            'gear_box_type': dsp_utl.SINK,
-            'engine_speeds_out': 'engine_speeds_out',
-            'velocities': 'velocities',
-            'accelerations': 'accelerations',
-            'gear_box_powers_out': 'gear_box_powers_out',
-            'CVT': 'CVT',
-            'idle_engine_speed': 'idle_engine_speed',
-            'stop_velocity': 'stop_velocity'
-        },
-        outputs={
-            'CVT': 'CVT',
-            'gear_box_speeds_in': 'gear_box_speeds_in',
-            'gears': 'gears',
-            'max_gear': 'max_gear',
-            'max_speed_velocity_ratio': 'max_speed_velocity_ratio'
-        },
+        inputs=(
+            'CVT', 'accelerations', 'engine_speeds_out', 'gear_box_powers_out',
+            'idle_engine_speed', 'on_engine', 'stop_velocity', 'velocities',
+            {'gear_box_type': sh.SINK}),
+        outputs=(
+            'CVT', 'gear_box_speeds_in', 'gears', 'max_gear',
+            'max_speed_velocity_ratio'),
         input_domain=is_cvt
     )
 

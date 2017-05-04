@@ -29,7 +29,7 @@ boltons
 pykalman
 wltp
 openpyxl>=2.4.0
-schedula>=0.1.9
+schedula>=0.1.11
 formulas>=0.0.4
 
 ## Dice

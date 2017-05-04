@@ -21,8 +21,7 @@ Sub-Modules:
     torque_converter
 """
 
-import schedula.utils as dsp_utl
-import schedula as dsp
+import schedula as sh
 import scipy.interpolate as sci_itp
 import numpy as np
 
@@ -144,7 +143,7 @@ def clutch_torque_converter():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Clutch and torque-converter',
         description='Models the clutch and torque-converter.'
     )
@@ -170,33 +169,18 @@ def clutch_torque_converter():
         input_domain=clutch_domain,
         dsp=clutch(),
         dsp_id='clutch',
-        inputs={
-            'times': 'times',
-            'accelerations': 'accelerations',
-            'has_torque_converter': dsp_utl.SINK,
-            'gear_box_type': dsp_utl.SINK,
-            'clutch_model': 'clutch_model',
-            'clutch_window': 'clutch_window',
-            'clutch_tc_speeds_delta': 'clutch_speeds_delta',
-            'gear_shifts': 'gear_shifts',
-            'stand_still_torque_ratio': 'stand_still_torque_ratio',
-            'lockup_speed_ratio': 'lockup_speed_ratio',
-            'max_clutch_window_width': 'max_clutch_window_width',
-            'engine_speeds_out': 'engine_speeds_out',
-            'engine_speeds_out_hot': 'engine_speeds_out_hot',
-            'cold_start_speeds_delta': 'cold_start_speeds_delta',
-            'velocities': 'velocities',
-            'gear_box_speeds_in': 'gear_box_speeds_in',
-            'gears': 'gears',
-            'stop_velocity': 'stop_velocity'
-        },
-        outputs={
-            'clutch_speeds_delta': 'clutch_tc_speeds_delta',
-            'clutch_window': 'clutch_window',
-            'clutch_model': 'clutch_model',
-            'k_factor_curve': 'k_factor_curve',
-            'clutch_phases': 'clutch_phases'
-        }
+        inputs=(
+            'accelerations', 'clutch_model', 'clutch_window',
+            'cold_start_speeds_delta', 'engine_speeds_out',
+            'engine_speeds_out_hot', 'gear_box_speeds_in', 'gear_shifts',
+            'gears', 'lockup_speed_ratio', 'max_clutch_window_width',
+            'stand_still_torque_ratio', 'stop_velocity', 'times', 'velocities',
+            {'clutch_tc_speeds_delta': 'clutch_speeds_delta',
+             'gear_box_type': sh.SINK,
+             'has_torque_converter': sh.SINK}),
+        outputs=(
+            'clutch_model', 'clutch_phases', 'clutch_window', 'k_factor_curve',
+            {'clutch_speeds_delta': 'clutch_tc_speeds_delta'})
     )
 
     from .torque_converter import torque_converter
@@ -206,30 +190,20 @@ def clutch_torque_converter():
         input_domain=torque_converter_domain,
         dsp=torque_converter(),
         dsp_id='torque_converter',
-        inputs={
-            'times': 'times',
-            'lock_up_tc_limits': 'lock_up_tc_limits',
-            'calibration_tc_speed_threshold': 'calibration_tc_speed_threshold',
-            'stop_velocity': 'stop_velocity',
-            'velocities': 'velocities',
-            'accelerations': 'accelerations',
-            'has_torque_converter': dsp_utl.SINK,
-            'gear_box_type': dsp_utl.SINK,
-            'gears': 'gears',
-            'clutch_tc_speeds_delta': 'torque_converter_speeds_delta',
-            'engine_speeds_out_hot': ('gear_box_speeds_in',
-                                      'engine_speeds_out_hot'),
-            'torque_converter_model': 'torque_converter_model',
-            'stand_still_torque_ratio': 'stand_still_torque_ratio',
-            'lockup_speed_ratio': 'lockup_speed_ratio',
-            'engine_speeds_out': 'engine_speeds_out',
-            'cold_start_speeds_delta': 'cold_start_speeds_delta'
-        },
-        outputs={
-            'torque_converter_speeds_delta': 'clutch_tc_speeds_delta',
-            'torque_converter_model': 'torque_converter_model',
-            'k_factor_curve': 'k_factor_curve'
-        }
+        inputs=(
+            'accelerations', 'calibration_tc_speed_threshold',
+            'cold_start_speeds_delta', 'engine_speeds_out', 'gears',
+            'lock_up_tc_limits', 'lockup_speed_ratio',
+            'stand_still_torque_ratio', 'stop_velocity', 'times',
+            'torque_converter_model', 'velocities',
+            {'clutch_tc_speeds_delta': 'torque_converter_speeds_delta',
+             'engine_speeds_out_hot':
+                 ('gear_box_speeds_in', 'engine_speeds_out_hot'),
+             'gear_box_type': sh.SINK,
+             'has_torque_converter': sh.SINK}),
+        outputs=(
+            'k_factor_curve', 'torque_converter_model',
+            {'torque_converter_speeds_delta': 'clutch_tc_speeds_delta'})
     )
 
     return d

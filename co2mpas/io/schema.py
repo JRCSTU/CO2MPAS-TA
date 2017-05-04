@@ -17,10 +17,9 @@ import os.path as osp
 from schema import Schema, Use, And, Or, Optional, SchemaError
 from sklearn.tree import DecisionTreeClassifier
 import pprint
-import schedula.utils as dsp_utl
+import schedula as sh
 from . import validations
 from . import excel
-import regex
 import functools
 from co2mpas.model.physical.gear_box.at_gear import CMV, MVL, GSPV
 
@@ -65,7 +64,7 @@ def _ta_mode(data):
                  ',\n'.join(diff))
         return False
 
-    if not dsp_utl.are_in_nested_dicts(data, 'flag', 'vehicle_family_id'):
+    if not sh.are_in_nested_dicts(data, 'flag', 'vehicle_family_id'):
         log.info('Since CO2MPAS is launched in type approval mode the '
                  '`vehicle_family_id` is required!\n'
                  'If you want to run without it use the cmd batch.')
@@ -96,9 +95,9 @@ def _eng_mode_parser(
         inputs = validations.overwrite_declaration_config_data(inputs)
 
     if not soft_validation:
-        for k, v in dsp_utl.stack_nested_keys(inputs, depth=3):
+        for k, v in sh.stack_nested_keys(inputs, depth=3):
             for c, msg in validations.hard_validation(v, *k):
-                dsp_utl.get_nested_dicts(errors, *k)[c] = SchemaError([], [msg])
+                sh.get_nested_dicts(errors, *k)[c] = SchemaError([], [msg])
 
     return inputs, errors
 
@@ -114,12 +113,12 @@ def validate_plan(plan, engineering_mode, soft_validation, use_selector):
         plan_id = 'plan id:{}'.format(i[0])
         for k, v in excel._parse_values(data, where='in plan'):
             if k[0] == 'base':
-                d = dsp_utl.get_nested_dicts(inp, *k[1:-1])
+                d = sh.get_nested_dicts(inp, *k[1:-1])
                 v = _add_validated_input(d, v_data, (plan_id,) + k, v, errors)
             elif k[0] == 'flag':
                 v = _add_validated_input({}, v_flag, (plan_id,) + k, v, errors)
 
-            if v is not dsp_utl.NONE:
+            if v is not sh.NONE:
                 inputs[k] = v
 
         errors = _eng_mode_parser(
@@ -129,7 +128,7 @@ def validate_plan(plan, engineering_mode, soft_validation, use_selector):
         validated_plan.append((i, inputs))
 
     if _log_errors_msg(errors):
-        return dsp_utl.NONE
+        return sh.NONE
 
     return validated_plan
 
@@ -137,8 +136,8 @@ def validate_plan(plan, engineering_mode, soft_validation, use_selector):
 def _validate_base_with_schema(data):
     read_schema = define_data_schema(read=True)
     inputs, errors, validate = {}, {}, read_schema.validate
-    for k, v in sorted(dsp_utl.stack_nested_keys(data, depth=4)):
-        d = dsp_utl.get_nested_dicts(inputs, *k[:-1])
+    for k, v in sorted(sh.stack_nested_keys(data, depth=4)):
+        d = sh.get_nested_dicts(inputs, *k[:-1])
         _add_validated_input(d, validate, k, v, errors)
 
     return inputs, errors
@@ -152,9 +151,9 @@ def validate_base(data, engineering_mode, soft_validation, use_selector):
     )
 
     if _log_errors_msg(e):
-        return dsp_utl.NONE
+        return sh.NONE
 
-    return {'.'.join(k): v for k, v in dsp_utl.stack_nested_keys(i, depth=3)}
+    return {'.'.join(k): v for k, v in sh.stack_nested_keys(i, depth=3)}
 
 
 def validate_flags(flags):
@@ -163,25 +162,25 @@ def validate_flags(flags):
     for k, v in sorted(flags.items()):
         _add_validated_input(inputs, validate, ('flag', k), v, errors)
     if _log_errors_msg(errors):
-        return dsp_utl.NONE
+        return sh.NONE
     return inputs
 
 
 def _add_validated_input(data, validate, keys, value, errors):
     try:
         k, v = next(iter(validate({keys[-1]: value}).items()))
-        if v is not dsp_utl.NONE:
+        if v is not sh.NONE:
             data[k] = v
             return v
     except SchemaError as ex:
-        dsp_utl.get_nested_dicts(errors, *keys[:-1])[keys[-1]] = ex
-    return dsp_utl.NONE
+        sh.get_nested_dicts(errors, *keys[:-1])[keys[-1]] = ex
+    return sh.NONE
 
 
 def _log_errors_msg(errors):
     if errors:
         msg = ['\nInput cannot be parsed, due to:']
-        for k, v in dsp_utl.stack_nested_keys(errors, depth=4):
+        for k, v in sh.stack_nested_keys(errors, depth=4):
             msg.append('{} in {}: {}'.format(k[-1], '/'.join(k[:-1]), v))
         log.error('\n  '.join(msg))
         return True
@@ -195,7 +194,7 @@ class Empty(object):
     @staticmethod
     def validate(data):
         if isinstance(data, str) and data == 'EMPTY':
-            return dsp_utl.EMPTY
+            return sh.EMPTY
 
         try:
             empty = not (data or data == 0)
@@ -203,7 +202,7 @@ class Empty(object):
             empty = np.isnan(data).all()
 
         if empty:
-            return dsp_utl.NONE
+            return sh.NONE
         else:
             raise SchemaError('%r is not empty' % data, None)
 
@@ -216,7 +215,7 @@ def _function(error=None, read=True, **kwargs):
     if read:
         error = error or 'should be a function!'
         return _eval(Use(_check_function), error=error)
-    return And(_check_function, Use(lambda x: dsp_utl.NONE), error=error)
+    return And(_check_function, Use(lambda x: sh.NONE), error=error)
 
 
 # noinspection PyUnusedLocal
@@ -384,7 +383,7 @@ def _gspv(error=None, **kwargs):
 def _dtc(error=None, read=True, **kwargs):
     if read:
         return _type(type=DecisionTreeClassifier, error=error)
-    return And(_dtc(), Use(lambda x: dsp_utl.NONE), error=error)
+    return And(_dtc(), Use(lambda x: sh.NONE), error=error)
 
 
 def _parameters2str(data):
@@ -473,7 +472,7 @@ def _dir(error=None, **kwargs):
 
 
 def is_sorted(iterable, key=lambda a, b: a <= b):
-    return all(key(a, b) for a, b in dsp_utl.pairwise(iterable))
+    return all(key(a, b) for a, b in sh.pairwise(iterable))
 
 
 # noinspection PyUnresolvedReferences
@@ -744,7 +743,7 @@ def define_data_schema(read=True):
     if not read:
 
         def f(x):
-            return x is dsp_utl.NONE
+            return x is sh.NONE
 
         schema = {k: And(v, Or(f, Use(str))) for k, v in schema.items()}
 
@@ -799,7 +798,7 @@ def define_flags_schema(read=True):
     if not read:
 
         def f(x):
-            return x is dsp_utl.NONE
+            return x is sh.NONE
 
         schema = {k: And(v, Or(f, Use(str))) for k, v in schema.items()}
 

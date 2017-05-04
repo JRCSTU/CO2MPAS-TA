@@ -11,7 +11,7 @@ It contains functions that model the basic mechanics of the clutch.
 
 import scipy.optimize as sci_opt
 import functools
-import schedula as dsp
+import schedula as sh
 import numpy as np
 from .torque_converter import TorqueConverter
 
@@ -321,7 +321,7 @@ def clutch():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Clutch',
         description='Models the clutch.'
     )

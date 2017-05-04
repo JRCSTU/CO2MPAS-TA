@@ -364,12 +364,12 @@ def parse_key_value_pair(arg):
 
 
 def fromiter(gen, dtype, keys=None, count=-1):
-    import schedula.utils as dsp_utl
+    import schedula as sh
 
     a = np.fromiter(gen, dtype=dtype, count=count)
     _keys = a.dtype.names
     if _keys:
-        return dsp_utl.selector(keys or _keys, a, output_type='list')
+        return sh.selector(keys or _keys, a, output_type='list')
     return a
 
 

@@ -20,9 +20,8 @@ Modules:
     co2_params
 """
 
-import schedula as dsp
+import schedula as sh
 import sklearn.metrics as sk_met
-import schedula.utils as dsp_utl
 import logging
 import collections
 import pprint
@@ -99,7 +98,7 @@ def _check(best):
 
 
 def _sort_rank_for_selecting_best(rank, select=(), **kwargs):
-    select = tuple(k.lower().replace('-', '_') for k in dsp_utl.stlp(select))
+    select = tuple(k.lower().replace('-', '_') for k in sh.stlp(select))
     mw = len(select) + 1
     w = {k: v for v, k in enumerate(select)}
     rank = sorted(((w.get(m[3], mw), i), m) for i, m in enumerate(rank))
@@ -131,8 +130,8 @@ def get_best_model(
 
 def _select_models(rank, scores, models_wo_err, selector_id, select=None, **kw):
     select = select or {}
-    indices = {0: [dsp_utl.NONE]}
-    func = functools.partial(dsp_utl.get_nested_dicts, indices, default=list)
+    indices = {0: [sh.NONE]}
+    func = functools.partial(sh.get_nested_dicts, indices, default=list)
     for k, v in select.items():
         func(_select_index(rank, v)).append(k)
 
@@ -148,14 +147,14 @@ def _select_models(rank, scores, models_wo_err, selector_id, select=None, **kw):
 
 
 def _select_index(rank, select=()):
-    for k in dsp_utl.stlp(select):
+    for k in sh.stlp(select):
         if k is None:
             i = -1
             break
         cycle = k.lower().replace('-', '_')
         gen = (i for i, m in enumerate(rank) if m[3] == cycle)
-        i = next(gen, dsp_utl.NONE)
-        if i is not dsp_utl.NONE:
+        i = next(gen, sh.NONE)
+        if i is not sh.NONE:
             break
     else:
         i = 0
@@ -192,8 +191,8 @@ def _check_model(rank, scores, models_wo_err, selector_id, index, cycles):
 
 def select_outputs(outputs, targets, results):
 
-    results = dsp_utl.selector(outputs, results, allow_miss=True)
-    results = dsp_utl.map_dict(dict(zip(outputs, targets)), results)
+    results = sh.selector(outputs, results, allow_miss=True)
+    results = sh.map_dict(dict(zip(outputs, targets)), results)
     it = ((k, results[k]) for k in targets if k in results)
     return collections.OrderedDict(it)
 
@@ -242,7 +241,7 @@ def define_sub_model(d, inputs, outputs, models, **kwargs):
         outputs = set(outputs).difference(missing)
     if inputs is not None:
         inputs = set(inputs).union(models)
-    return dsp_utl.SubDispatch(d.shrink_dsp(inputs, outputs))
+    return sh.SubDispatch(d.shrink_dsp(inputs, outputs))
 
 
 # noinspection PyUnusedLocal
@@ -369,7 +368,7 @@ def sub_models():
                    'gear_box_type', 'gears', 'accelerations', 'times',
                    'gear_shifts', 'engine_speeds_out_hot', 'velocities',
                    'lock_up_tc_limits', 'has_torque_converter'],
-        'define_sub_model': lambda d, **kwargs: dsp_utl.SubDispatch(d),
+        'define_sub_model': lambda d, **kwargs: sh.SubDispatch(d),
         'outputs': ['engine_speeds_out'],
         'targets': ['engine_speeds_out'],
         'metrics_inputs': ['on_engine'],
@@ -435,7 +434,7 @@ def sub_models():
                    'specific_gear_shifting', 'change_gear_window_width',
                    'max_velocity_full_load_correction', 'plateau_acceleration'],
         'inputs': at_pred_inputs,
-        'define_sub_model': lambda d, **kwargs: dsp_utl.SubDispatch(d),
+        'define_sub_model': lambda d, **kwargs: sh.SubDispatch(d),
         'outputs': ['gears', 'max_gear'],
         'targets': ['gears', 'max_gear'],
         'metrics': [sk_met.accuracy_score, None],
@@ -446,7 +445,7 @@ def sub_models():
 
 
 def tyre_models_selector(models_ids, data):
-    models = dsp_utl.selector(models_ids, data, allow_miss=True)
+    models = sh.selector(models_ids, data, allow_miss=True)
     if 'tyre_dynamic_rolling_coefficient' in models:
         models.pop('r_dynamic', None)
     return models
@@ -462,7 +461,7 @@ def at_models_selector(d, at_pred_inputs, models_ids, data):
     except KeyError:
         return {}
 
-    c_dicts, select, _g = dsp_utl.combine_dicts, dsp_utl.selector, d.dispatch
+    c_dicts, select, _g = sh.combine_dicts, sh.selector, d.dispatch
     t_e = ('mean_absolute_error', 'accuracy_score', 'correlation_coefficient')
 
     # at_models to be assessed.
@@ -512,35 +511,35 @@ def at_models_selector(d, at_pred_inputs, models_ids, data):
 def split_prediction_models(
         scores, calibrated_models, input_models, cycle_ids=()):
     sbm, model_sel, par = {}, {}, {}
-    for (k, c), v in dsp_utl.stack_nested_keys(scores, depth=2):
-        r = dsp_utl.selector(['models'], v, allow_miss=True)
+    for (k, c), v in sh.stack_nested_keys(scores, depth=2):
+        r = sh.selector(['models'], v, allow_miss=True)
 
         for m in r.get('models', ()):
-            dsp_utl.get_nested_dicts(par, m, 'calibration')[c] = c
+            sh.get_nested_dicts(par, m, 'calibration')[c] = c
 
         r.update(v.get('score', {}))
-        dsp_utl.get_nested_dicts(sbm, k, c, default=co2_utl.ret_v(r))
-        r = dsp_utl.selector(['success'], r, allow_miss=True)
-        r = dsp_utl.map_dict({'success': 'status'}, r, {'from': c})
-        dsp_utl.get_nested_dicts(model_sel, k, 'calibration')[c] = r
+        sh.get_nested_dicts(sbm, k, c, default=co2_utl.ret_v(r))
+        r = sh.selector(['success'], r, allow_miss=True)
+        r = sh.map_dict({'success': 'status'}, r, {'from': c})
+        sh.get_nested_dicts(model_sel, k, 'calibration')[c] = r
 
     p = {i: dict.fromkeys(input_models, 'input') for i in cycle_ids}
 
     models = {i: input_models.copy() for i in cycle_ids}
 
     for k, n in sorted(calibrated_models.items()):
-        d = n.get(dsp_utl.NONE, (None, True, {}))
+        d = n.get(sh.NONE, (None, True, {}))
 
         for i in cycle_ids:
             c, s, m = n.get(i, d)
             if m:
                 s = {'from': c, 'status': s}
-                dsp_utl.get_nested_dicts(model_sel, k, 'prediction')[i] = s
+                sh.get_nested_dicts(model_sel, k, 'prediction')[i] = s
                 models[i].update(m)
                 p[i].update(dict.fromkeys(m, c))
 
-    for k, v in dsp_utl.stack_nested_keys(p, ('prediction',), depth=2):
-        dsp_utl.get_nested_dicts(par, k[-1], *k[:-1], default=co2_utl.ret_v(v))
+    for k, v in sh.stack_nested_keys(p, ('prediction',), depth=2):
+        sh.get_nested_dicts(par, k[-1], *k[:-1], default=co2_utl.ret_v(v))
 
     s = {
         'param_selections': par,
@@ -566,13 +565,13 @@ def selector(*data, pred_cyl_ids=('nedc_h', 'nedc_l', 'wltp_h', 'wltp_l')):
 
     data = data or ('wltp_h', 'wltp_l')
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Models selector',
         description='Select the calibrated models.'
     )
 
     d.add_function(
-        function=functools.partial(dsp_utl.map_list, data),
+        function=functools.partial(sh.map_list, data),
         inputs=data,
         outputs=['CO2MPAS_results']
     )
@@ -605,7 +604,7 @@ def selector(*data, pred_cyl_ids=('nedc_h', 'nedc_l', 'wltp_h', 'wltp_l')):
 
     for k, v in setting.items():
         v['dsp'] = v.pop('define_sub_model', define_sub_model)(v.pop('d'), **v)
-        v['metrics'] = dsp_utl.map_list(v['targets'], *v['metrics'])
+        v['metrics'] = sh.map_list(v['targets'], *v['metrics'])
         d.add_function(
             function=v.pop('model_selector', _selector)(k, data, data, v),
             function_id='%s selector' % k,
@@ -621,7 +620,7 @@ def selector(*data, pred_cyl_ids=('nedc_h', 'nedc_l', 'wltp_h', 'wltp_l')):
         outputs=['selections'] + pred_mdl_ids
     )
 
-    func = dsp_utl.SubDispatchFunction(
+    func = sh.SubDispatchFunction(
         dsp=d,
         function_id='models_selector',
         inputs=('selector_settings', 'default_models') + data,
@@ -642,7 +641,7 @@ def define_selector_settings(selector_settings, node_ids=()):
 
 def _selector(name, data_in, data_out, setting):
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='%s selector' % name,
         description='Select the calibrated %s.' % name
     )
@@ -651,7 +650,7 @@ def _selector(name, data_in, data_out, setting):
     _sort_models = setting.pop('sort_models', sort_models)
 
     if 'weights' in setting:
-        _weights = dsp_utl.map_list(setting['targets'], *setting.pop('weights'))
+        _weights = sh.map_list(setting['targets'], *setting.pop('weights'))
     else:
         _weights = None
 
@@ -698,13 +697,13 @@ def _selector(name, data_in, data_out, setting):
         outputs=['model', 'errors']
     )
 
-    return dsp_utl.SubDispatch(d, outputs=['model', 'errors'],
-                               output_type='list')
+    return sh.SubDispatch(d, outputs=['model', 'errors'],
+                          output_type='list')
 
 
 def _errors(name, data_id, data_out, setting):
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='%s-%s errors' % (name, data_id),
         description='Calculates the error of calibrated model.',
     )
@@ -716,7 +715,7 @@ def _errors(name, data_id, data_out, setting):
         default_value=setting.pop('models', [])
     )
 
-    select_data = functools.partial(dsp_utl.selector, allow_miss=True)
+    select_data = functools.partial(sh.selector, allow_miss=True)
 
     d.add_function(
         function_id='select_models',
@@ -739,7 +738,7 @@ def _errors(name, data_id, data_out, setting):
 
         d.add_function(
             function=functools.partial(
-                dsp_utl.map_list, ['calibrated_models', 'data']
+                sh.map_list, ['calibrated_models', 'data']
             ),
             inputs=['calibrated_models', o],
             outputs=['input/%s' % o]
@@ -752,7 +751,7 @@ def _errors(name, data_id, data_out, setting):
         )
 
     i = ['error_settings', data_id] + [k for k in data_out if k != data_id]
-    func = dsp_utl.SubDispatchFunction(
+    func = sh.SubDispatchFunction(
         dsp=d,
         function_id=d.name,
         inputs=i
@@ -763,7 +762,7 @@ def _errors(name, data_id, data_out, setting):
 
 def _error(name, setting):
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name=name,
         description='Calculates the error of calibrated model of a reference.',
     )
@@ -778,35 +777,35 @@ def _error(name, setting):
 
     default_settings.update(setting)
 
-    it = dsp_utl.selector(['up_limit', 'dn_limit'], default_settings).items()
+    it = sh.selector(['up_limit', 'dn_limit'], default_settings).items()
 
     for k, v in it:
         if v is not None:
-            default_settings[k] = dsp_utl.map_list(setting['targets'], *v)
+            default_settings[k] = sh.map_list(setting['targets'], *v)
 
     d.add_function(
         function_id='select_inputs',
-        function=dsp_utl.map_dict,
+        function=sh.map_dict,
         inputs=['inputs_map', 'data'],
         outputs=['inputs<0>']
     )
 
     d.add_function(
         function_id='select_inputs',
-        function=functools.partial(dsp_utl.selector, allow_miss=True),
+        function=functools.partial(sh.selector, allow_miss=True),
         inputs=['inputs', 'inputs<0>'],
         outputs=['inputs<1>']
     )
 
     d.add_function(
-        function=dsp_utl.combine_dicts,
+        function=sh.combine_dicts,
         inputs=['calibrated_models', 'inputs<1>'],
         outputs=['prediction_inputs']
     )
 
     d.add_function(
         function_id='select_targets',
-        function=functools.partial(dsp_utl.selector, allow_miss=True),
+        function=functools.partial(sh.selector, allow_miss=True),
         inputs=['targets', 'data'],
         outputs=['references']
     )
@@ -828,7 +827,7 @@ def _error(name, setting):
 
     d.add_function(
         function_id='select_metrics_inputs',
-        function=functools.partial(dsp_utl.selector, allow_miss=True),
+        function=functools.partial(sh.selector, allow_miss=True),
         inputs=['metrics_inputs', 'data'],
         outputs=['metrics_args']
     )
@@ -848,7 +847,7 @@ def _error(name, setting):
     for k, v in default_settings.items():
         d.add_data(k, v)
 
-    func = dsp_utl.SubDispatch(
+    func = sh.SubDispatch(
         dsp=d,
         outputs=['errors', 'status'],
         output_type='list'

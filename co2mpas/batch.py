@@ -15,8 +15,7 @@ import re
 import threading
 from tqdm import tqdm
 
-import schedula as dsp
-import schedula.utils as dsp_utl
+import schedula as sh
 import co2mpas.io.excel as excel
 import co2mpas.io.schema as schema
 import co2mpas.utils as co2_utl
@@ -44,15 +43,15 @@ def parse_dsp_solution(solution):
 
     res = {}
     for k, v in solution.items():
-        dsp_utl.get_nested_dicts(res, *k.split('.'), default=co2_utl.ret_v(v))
+        sh.get_nested_dicts(res, *k.split('.'), default=co2_utl.ret_v(v))
 
-    for k, v in list(dsp_utl.stack_nested_keys(res, depth=3)):
+    for k, v in list(sh.stack_nested_keys(res, depth=3)):
         n, k = k[:-1], k[-1]
         if n == ('output', 'calibration') and k in ('wltp_l', 'wltp_h'):
-            v = dsp_utl.selector(('co2_emission_value',), v, allow_miss=True)
+            v = sh.selector(('co2_emission_value',), v, allow_miss=True)
             if v:
-                d = dsp_utl.get_nested_dicts(res, 'target', 'prediction')
-                d[k] = dsp_utl.combine_dicts(v, d.get(k, {}))
+                d = sh.get_nested_dicts(res, 'target', 'prediction')
+                d[k] = sh.combine_dicts(v, d.get(k, {}))
 
     res['pipe'] = solution.pipe
 
@@ -61,7 +60,7 @@ def parse_dsp_solution(solution):
 
 def notify_result_listener(result_listener, res, out_fpath=None):
     """Utility func to send to the listener the output-file discovered from the results."""
-    are_in = dsp_utl.are_in_nested_dicts
+    are_in = sh.are_in_nested_dicts
     if result_listener and (out_fpath or are_in(res, 'solution', 'output_file_name')):
         try:
             if not out_fpath:
@@ -135,7 +134,7 @@ def _yield_folder_files_results(
         'type_approval_mode': type_approval_mode
     }
 
-    _process_vehicle = dsp_utl.SubDispatch(model)
+    _process_vehicle = sh.SubDispatch(model)
 
     for fpath in _custom_tqdm(input_files, bar_format='{l_bar}{bar}{r_bar}'):
         yield _process_vehicle({'input_file_name': fpath}, kw)
@@ -170,8 +169,8 @@ def _process_folder_files(*args, result_listener=None, **kwargs):
 
     summary, n = {}, ('solution', 'summary')
     for res in _yield_folder_files_results(start_time, *args, **kwargs):
-        if dsp_utl.are_in_nested_dicts(res, *n):
-            _add2summary(summary, dsp_utl.get_nested_dicts(res, *n))
+        if sh.are_in_nested_dicts(res, *n):
+            _add2summary(summary, sh.get_nested_dicts(res, *n))
             notify_result_listener(result_listener, res)
 
     return summary, start_time
@@ -221,7 +220,7 @@ def plot_model_workflow(output_file_name=None, vehicle_name='', **kw):
         return {'directory': ofname, 'sites': SITES, 'index': True}
     except RuntimeError as ex:
         log.warning(ex, exc_info=1)
-    return dsp_utl.NONE
+    return sh.NONE
 
 
 def default_start_time():
@@ -293,13 +292,13 @@ def default_output_file_name(output_folder, fname, timestamp):
 
 def _add2summary(total_summary, summary, base_keys=None):
     base_keys = base_keys or {}
-    for k, v in dsp_utl.stack_nested_keys(summary, depth=3):
-        d = dsp_utl.get_nested_dicts(total_summary, *k, default=list)
+    for k, v in sh.stack_nested_keys(summary, depth=3):
+        d = sh.get_nested_dicts(total_summary, *k, default=list)
         if isinstance(v, list):
             for j in v:
-                d.append(dsp_utl.combine_dicts(j, base_keys))
+                d.append(sh.combine_dicts(j, base_keys))
         else:
-            d.append(dsp_utl.combine_dicts(v, base_keys))
+            d.append(sh.combine_dicts(v, base_keys))
 
 
 def _get_contain(d, *keys, default=None):
@@ -419,15 +418,15 @@ def prepare_data(raw_data, variation, input_file_name, overwrite_cache,
     for k, v in excel._parse_values(variation, match, "in variations"):
         if isinstance(v, str) and check_xlasso(v):
             v = lasso(v, sheets_factory, url_file=input_file_name)
-        dsp_utl.get_nested_dicts(r, *k[:-1])[k[-1]] = v
+        sh.get_nested_dicts(r, *k[:-1])[k[-1]] = v
 
     if 'plan' in r:
         if has_plan:
             plan = raw_data['plan'].copy()
-            for k, v in dsp_utl.stack_nested_keys(r['plan'], 4):
+            for k, v in sh.stack_nested_keys(r['plan'], 4):
                 plan['.'.join(k)] = v
         else:
-            gen = dsp_utl.stack_nested_keys(r['plan'], 4)
+            gen = sh.stack_nested_keys(r['plan'], 4)
             plan = pd.DataFrame([{'.'.join(k): v for k, v in gen}])
             excel._add_index_plan(plan, input_file_name)
 
@@ -435,16 +434,16 @@ def prepare_data(raw_data, variation, input_file_name, overwrite_cache,
         has_plan = True
 
     if 'base' in r:
-        r['base'] = dsp_utl.combine_nested_dicts(
+        r['base'] = sh.combine_nested_dicts(
             raw_data.get('base', {}), r['base'], depth=4
         )
 
     if 'flag' in r:
-        r['flag'] = dsp_utl.combine_nested_dicts(
+        r['flag'] = sh.combine_nested_dicts(
             raw_data.get('flag', {}), r['flag'], depth=1
         )
 
-    data = dsp_utl.combine_dicts(raw_data, r)
+    data = sh.combine_dicts(raw_data, r)
 
     if type_approval_mode:
         variation, has_plan = {}, False
@@ -470,7 +469,7 @@ def prepare_data(raw_data, variation, input_file_name, overwrite_cache,
 
     flag = schema.validate_flags(flag)
 
-    if flag is dsp_utl.NONE:
+    if flag is sh.NONE:
         return {}, pd.DataFrame([])
 
     schema.check_data_version(flag)
@@ -480,10 +479,10 @@ def prepare_data(raw_data, variation, input_file_name, overwrite_cache,
         'variation': variation,
         'input_file_name': input_file_name,
     }
-    res = dsp_utl.combine_dicts(flag, res)
-    base = dsp_utl.combine_dicts(res, {'data': data.get('base', {})})
-    plan = dsp_utl.combine_dicts(res, {'data': data.get('plan',
-                                                        pd.DataFrame([]))})
+    res = sh.combine_dicts(flag, res)
+    base = sh.combine_dicts(res, {'data': data.get('base', {})})
+    plan = sh.combine_dicts(res, {'data': data.get('plan',
+                                                   pd.DataFrame([]))})
 
     return base, plan
 
@@ -516,7 +515,7 @@ def vehicle_processing_model():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='CO2MPAS vehicle_processing_model',
         description='Processes a vehicle from the file path to the write of its'
                     ' outputs.'
@@ -533,7 +532,7 @@ def vehicle_processing_model():
         },
         outputs={
             'raw_data': 'raw_data',
-            dsp_utl.SINK: dsp_utl.SINK
+            sh.SINK: sh.SINK
         }
     )
 
@@ -605,7 +604,7 @@ def run_base():
     :rtype: Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='run_base',
         description='Processes a vehicle from the file path to the write of its'
                     ' outputs.'
@@ -632,7 +631,7 @@ def run_base():
     )
 
     d.add_function(
-        function=dsp_utl.add_args(schema.validate_base),
+        function=sh.add_args(schema.validate_base),
         inputs=['run_base', 'data', 'engineering_mode', 'soft_validation',
                 'use_selector'],
         outputs=['validated_base'],
@@ -670,7 +669,7 @@ def run_base():
 
     from .model import model
     d.add_function(
-        function=dsp_utl.SubDispatch(model()),
+        function=sh.SubDispatch(model()),
         inputs=['validated_base'],
         outputs=['dsp_solution'],
     )
@@ -702,22 +701,22 @@ def run_base():
 
     from .io import write_outputs
     d.add_function(
-        function=dsp_utl.add_args(write_outputs()),
+        function=sh.add_args(write_outputs()),
         inputs=['only_summary', 'output_file_name', 'template_file_name',
                 'report', 'start_time', 'flag'],
-        outputs=[dsp_utl.SINK],
+        outputs=[sh.SINK],
         input_domain=lambda *args: not args[0]
     )
 
     d.add_function(
-        function=dsp_utl.add_args(plot_model_workflow),
+        function=sh.add_args(plot_model_workflow),
         inputs=['plot_workflow', 'output_file_name', 'vehicle_name'],
-        outputs=[dsp_utl.PLOT],
+        outputs=[sh.PLOT],
         weight=30,
         input_domain=check_first_arg
     )
 
-    return dsp_utl.SubDispatch(d)
+    return sh.SubDispatch(d)
 
 
 def run_plan():
@@ -733,7 +732,7 @@ def run_plan():
     :rtype: Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='run_plan',
         description='Processes a vehicle plan.'
     )
@@ -754,7 +753,7 @@ def run_plan():
     )
 
     d.add_function(
-        function=dsp_utl.add_args(schema.validate_plan),
+        function=sh.add_args(schema.validate_plan),
         inputs=['run_plan', 'data', 'engineering_mode', 'soft_validation',
                 'use_selector'],
         outputs=['validated_plan'],
@@ -779,4 +778,4 @@ def run_plan():
         outputs=['summary']
     )
 
-    return dsp_utl.SubDispatch(d)
+    return sh.SubDispatch(d)

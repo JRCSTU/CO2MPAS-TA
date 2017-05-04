@@ -144,7 +144,7 @@ from co2mpas.__main__ import CmdException, init_logging, build_version_string, \
     parse_overrides
 import openpyxl
 import shutil
-import schedula.utils as dsp_utl
+import schedula as sh
 import collections
 
 
@@ -597,7 +597,7 @@ def _get_theoretical(profile):
         'downscale_factor': 0
     }
     profile = {k: v for k, v in profile.items() if v}
-    profile = dsp_utl.combine_dicts(defaults, profile)
+    profile = sh.combine_dicts(defaults, profile)
     profile['cycle_type'] = profile['cycle_type'].upper()
     profile['wltp_class'] = profile['wltp_class'].lower()
     profile['gear_box_type'] = profile['gear_box_type'].lower()
@@ -605,7 +605,7 @@ def _get_theoretical(profile):
     res = cycle().dispatch(
         inputs=profile, outputs=['times', 'velocities'], shrink=True
     )
-    data = dsp_utl.selector(['times', 'velocities'], res, output_type='list')
+    data = sh.selector(['times', 'velocities'], res, output_type='list')
     return pd.DataFrame(data).T
 
 

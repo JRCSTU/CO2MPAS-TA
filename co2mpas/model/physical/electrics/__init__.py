@@ -30,7 +30,7 @@ import sklearn.ensemble as sk_ens
 import sklearn.tree as sk_tree
 import sklearn.metrics as sk_met
 import sklearn.cluster as sk_clu
-import schedula as dsp
+import schedula as sh
 import co2mpas.utils as co2_utl
 
 
@@ -1244,7 +1244,7 @@ def electrics():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Electrics',
         description='Models the vehicle electrics.'
     )

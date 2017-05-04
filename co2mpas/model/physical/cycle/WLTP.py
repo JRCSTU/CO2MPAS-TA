@@ -13,8 +13,7 @@ It provides constants for the WLTP cycle.
 
 import wltp.experiment as wltp_exp
 import wltp.model as wltp_mdl
-import schedula as dsp
-import schedula.utils as dsp_utl
+import schedula as sh
 import logging
 import copy
 import numpy as np
@@ -314,8 +313,8 @@ def wltp_gears(
 
     gears[gears < 0] = 0
     log.warning('The WLTP gear-shift profile generation is for engineering '
-                'purposes and the results are by no means valid according to the '
-                'legislation.\nActually they are calculated based on a pre '
+                'purposes and the results are by no means valid according to '
+                'the legislation.\nActually they are calculated based on a pre '
                 'phase-1a version of the GTR spec.\n '
                 'Please provide the gear-shifting profile '
                 'within `prediction.WLTP` sheet.')
@@ -337,7 +336,7 @@ def get_dfl(wltp_base_model):
 
     params = wltp_base_model['params']
     keys = 'driver_mass', 'resistance_coeffs_regression_curves', 'wltc_data'
-    return dsp_utl.selector(keys, params, output_type='list')
+    return sh.selector(keys, params, output_type='list')
 
 
 def get_class_data(wltc_data, wltp_class):
@@ -362,7 +361,7 @@ def get_class_data(wltc_data, wltp_class):
 
 def define_wltp_base_model(base_model):
 
-    return dsp_utl.combine_dicts(wltp_mdl._get_model_base(), base_model)
+    return sh.combine_dicts(wltp_mdl._get_model_base(), base_model)
 
 
 def wltp_cycle():
@@ -378,7 +377,7 @@ def wltp_cycle():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='WLTP cycle model',
         description='Returns the theoretical times, velocities, and gears of '
                     'WLTP.'
@@ -436,7 +435,7 @@ def wltp_cycle():
     )
 
     d.add_function(
-        function=dsp_utl.add_args(wltp_gears),
+        function=sh.add_args(wltp_gears),
         inputs=['gear_box_type', 'full_load_curve', 'velocities',
                 'accelerations', 'motive_powers', 'speed_velocity_ratios',
                 'idle_engine_speed', 'engine_max_speed_at_max_power',
@@ -462,7 +461,7 @@ def calculate_wltp_velocities():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='WLTP velocities model',
         description='Returns the theoretical velocities of WLTP.'
     )
@@ -520,7 +519,7 @@ def calculate_wltp_velocities():
     )
 
     from ..vehicle import vehicle
-    func = dsp_utl.SubDispatchFunction(
+    func = sh.SubDispatchFunction(
         dsp=vehicle(),
         function_id='calculate_class_powers',
         inputs=['vehicle_mass', 'velocities', 'climbing_force', 'road_loads',

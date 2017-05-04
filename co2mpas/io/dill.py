@@ -14,12 +14,12 @@ import logging
 log = logging.getLogger(__name__)
 
 import dill
-import schedula.utils as dsp_utl
+import schedula as sh
 
 __all__ = ['load_from_dill', 'save_dill']
 
 
-@dsp_utl.open_file(0, mode='rb')
+@sh.open_file(0, mode='rb')
 def load_from_dill(fpath):
     """
     Load inputs from .dill file.
@@ -37,7 +37,7 @@ def load_from_dill(fpath):
 
 
 # noinspection PyUnusedLocal
-@dsp_utl.open_file(1, mode='wb')
+@sh.open_file(1, mode='wb')
 def save_dill(data, fpath, *args, **kwargs):
     log.debug('Writing dill-file: %s', fpath)
     dill.dump(data, fpath, recurse=False)

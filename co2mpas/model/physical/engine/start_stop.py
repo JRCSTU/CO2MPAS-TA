@@ -15,7 +15,7 @@ import sklearn.preprocessing as sk_prep
 import sklearn.feature_selection as sk_fsel
 import numpy as np
 import co2mpas.model.physical.defaults as defaults
-import schedula as dsp
+import schedula as sh
 import co2mpas.utils as co2_utl
 
 
@@ -375,7 +375,7 @@ def start_stop():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='start_stop',
         description='Models the engine start/stop strategy.'
     )

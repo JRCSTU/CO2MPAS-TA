@@ -11,8 +11,7 @@ It contains functions that model the basic mechanics of the wheels.
 
 import math
 import numpy as np
-import schedula.utils as dsp_utl
-import schedula as dsp
+import schedula as sh
 import co2mpas.utils as co2_utl
 from .gear_box import mechanical as gb_mec
 import regex
@@ -560,7 +559,7 @@ def wheels():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='Wheel model',
         description='It models the wheel dynamics.'
     )
@@ -668,7 +667,7 @@ def wheels():
     )
 
     d.add_function(
-        function=dsp_utl.bypass,
+        function=sh.bypass,
         inputs=['motive_powers'],
         outputs=['wheel_powers']
     )

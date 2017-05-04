@@ -15,7 +15,7 @@ from sklearn.linear_model import RANSACRegressor
 
 import co2mpas.utils as co2_utl
 import numpy as np
-import schedula as dsp
+import schedula as sh
 import sklearn.ensemble as sk_ens
 import sklearn.feature_selection as sk_fsel
 import sklearn.pipeline as sk_pip
@@ -434,7 +434,7 @@ def thermal():
     :rtype: schedula.Dispatcher
     """
 
-    d = dsp.Dispatcher(
+    d = sh.Dispatcher(
         name='thermal',
         description='Models the engine thermal behaviour.'
     )
