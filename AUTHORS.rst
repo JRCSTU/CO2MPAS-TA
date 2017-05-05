@@ -1,4 +1,4 @@
-- CO\ :sub:`2`\ MPAS-Team<co2mpas@jrc.ec.europa.eu>:
+- CO\ :sub:`2`\ MPAS-Team <JRC-CO2MPAS@ec.europa.eu>:
     - Vincenzo Arcidiacono <vincenzo.arcidiacono@ext.ec.europa.eu>
     - Stefanos Tsiamakis <stefanos.tsiakmakis@jrc.ec.europa.eu>
     - Georgios Fontaras <georgios.fontaras@ec.europa.eu>

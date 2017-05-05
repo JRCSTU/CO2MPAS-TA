@@ -2042,7 +2042,7 @@ class Co2guiCmd(baseapp.Cmd):
 
     TIP:
       If you bump into blocking errors, please use the `co2dice project backup` command and
-      send the generated archive-file back to "CO2MPAS-Team <co2mpas@jrc.ec.europa.eu>",
+      send the generated archive-file back to "CO2MPAS-Team <JRC-CO2MPAS@ec.europa.eu>",
       for examination.
 
     NOTE:
