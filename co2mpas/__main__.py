@@ -375,7 +375,7 @@ def _get_internal_file_streams(internal_folder, incl_regex=None):
             if not incl_regex or incl_regex.match(f)}
 
 
-_input_file_regex = re.compile('^\w')
+_input_file_regex = re.compile(r'^\w')
 
 
 def file_finder(xlsx_fpaths, file_ext='*.xlsx'):
