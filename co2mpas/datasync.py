@@ -175,6 +175,7 @@ def compute_shift(x, y):
 
 
 def _interp_wrapper(func, x, xp, fp, **kw):
+    x, xp, fp = np.asarray(x), np.asarray(xp), np.asarray(fp)
     if isinstance(kw.get('fill_value'), tuple) and not kw['fill_value']:
         kw['fill_value'] = fp[0], fp[-1]
     return np.nan_to_num(func(xp, fp, **kw)(x))
