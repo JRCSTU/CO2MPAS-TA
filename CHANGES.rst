@@ -4,7 +4,7 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
-v1.6.0.dev1: bug-fixes
+v1.6.0.dev3: bug-fixes
 ======================
 The Dice:
 ---------
