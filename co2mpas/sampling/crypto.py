@@ -403,7 +403,7 @@ class GpgSpec(baseapp.Spec):
         cipher = self.GPG.encrypt(plainbytes, self.master_key_resolved, armor=True)
         if not cipher.ok:
             self.log.debug("PswdId('%s'): encryption stderr: %s", pswdid, cipher.status, cipher.stderr)
-            raise ValueError("PswdId('%s'): %s!" % (pswdid, cipher.status))
+            raise ValueError("PswdId('%s') failed encryption due to: %s!" % (pswdid, cipher.status))
 
         return str(cipher)
 
