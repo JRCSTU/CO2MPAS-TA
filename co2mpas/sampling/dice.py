@@ -88,6 +88,18 @@ class DiceSpec(baseapp.Spec):
                                  % (myname, proposal['trait'].name))
         return value
 
+    ## Traitlets @validator to be used by sub-classes 
+    #  like that::
+    #
+    #      self._register_validator(DiceSpec._warn_deprecated, ['a', ])
+    #
+    def _warn_deprecated(self, proposal):
+        t = proposal['trait']
+        myname = type(self).__name__
+        self.log.warning("Trait `%s.%s`: %s" % (
+            myname, t.name, t.help))
+        
+        return proposal['value']
 
 ###################
 ##    Commands   ##

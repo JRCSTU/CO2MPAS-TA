@@ -223,12 +223,6 @@ class TstampSender(TstampSpec):
         help="Deprecated, but still functional.  Prefer `--TstampSender.tstamp_recipients` list  instead."
     ).tag(config=True)
 
-    @trt.validate('x_recipients', 'timestamping_addresses')
-    def _warn_deprecated(self, proposal):
-        t = proposal['trait']
-        self.log.warning("%s: %s" % (t.name, t.help))
-        return proposal['value']
-
     subject = trt.Unicode(
         help="""The subject-line to use for email sent to timestamp service. """
     ).tag(config=True)
@@ -242,7 +236,12 @@ class TstampSender(TstampSpec):
 
     def __init__(self, *args, **kwds):
         from .dice import DiceSpec
-        self._register_validator(DiceSpec._is_not_empty, ['host', 'subject', 'tstamp_recipients'])
+        self._register_validator(
+            DiceSpec._is_not_empty, 
+            ['host', 'subject', 'tstamp_recipients'])
+        self._register_validator(
+            DiceSpec._warn_deprecated, 
+            ['x_recipients', 'timestamping_addresses'])
         super().__init__(*args, **kwds)
 
     ## TODO: delete deprecated trait
