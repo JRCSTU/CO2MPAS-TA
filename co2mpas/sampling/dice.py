@@ -83,8 +83,9 @@ class DiceSpec(baseapp.Spec):
     def _is_not_empty(self, proposal):
         value = proposal['value']
         if not value:
+            myname = type(self).__name__
             raise trt.TraitError('%s.%s must not be empty!'
-                                 % (proposal['owner'].name, proposal['trait'].name))
+                                 % (myname, proposal['trait'].name))
         return value
 
 
