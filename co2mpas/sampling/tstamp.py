@@ -208,7 +208,7 @@ class TstampSender(TstampSpec):
     ## TODO: delete deprecated trait
     timestamping_addresses = trt.List(
         trt.Unicode(),
-        help="Deprecated, but still functional.  Prefer `--TstampSender.tstamper_address` instead. "
+        help="Deprecated, but still functional.  Prefer `--TstampSender.tstamper_address` instead, which is not a list. "
     ).tag(config=True)
 
     tstamper_address = trt.Unicode(
@@ -240,7 +240,8 @@ class TstampSender(TstampSpec):
 
     @trt.validate('x_recipients', 'timestamping_addresses')
     def _warn_deprecated(self, proposal):
-        self.log.warning(proposal['trait'].help)
+        t = proposal['trait']
+        self.log.warning("%s: %s" % (t.name, t.help))
         return proposal['value']
 
     subject = trt.Unicode(
