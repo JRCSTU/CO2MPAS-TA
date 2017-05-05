@@ -22,6 +22,7 @@ Modules:
     final_drive
     gear_box
     clutch_tc
+    cycle
     electrics
     engine
     defaults
