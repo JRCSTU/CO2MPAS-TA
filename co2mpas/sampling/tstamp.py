@@ -69,7 +69,7 @@ class TstampSpec(dice.DiceSpec):
         - False: do not try to upgrade;
         - None:  try to upgrade to *optionally* TLS, but only if
                  port=587 for SMTP, port=143 for IMAP; continue if server denied.
-        
+
         Usually SSL must be `False`. Microsoft Outlook servers use this setup.
         """
     ).tag(config=True)
@@ -237,10 +237,10 @@ class TstampSender(TstampSpec):
     def __init__(self, *args, **kwds):
         from .dice import DiceSpec
         self._register_validator(
-            DiceSpec._is_not_empty, 
+            DiceSpec._is_not_empty,
             ['host', 'subject', 'tstamp_recipients'])
         self._register_validator(
-            DiceSpec._warn_deprecated, 
+            DiceSpec._warn_deprecated,
             ['x_recipients', 'timestamping_addresses'])
         super().__init__(*args, **kwds)
 
@@ -286,7 +286,7 @@ class TstampSender(TstampSpec):
 
     def is_TLS_optional(self):
         return self.starttls is None and self.port == 587
-    
+
     def login(self, srv, user, pswd):
         srv.set_debuglevel(self.verbose)
         if self.starttls or self.is_TLS_optional():
@@ -299,7 +299,7 @@ class TstampSender(TstampSpec):
                     self.log.warning('Optional STARTTLS denied by server: %s', ex)
                 else:
                     raise
-                
+
             srv.ehlo()
 
         return srv.login(user, pswd)
@@ -501,7 +501,7 @@ class TstampReceiver(TstampSpec):
 
     def is_TLS_optional(self):
         return self.starttls is None and self.port == 143
-    
+
     def login(self, srv, user, pswd):
         srv.debug = int(self.verbose)
         if self.starttls:
