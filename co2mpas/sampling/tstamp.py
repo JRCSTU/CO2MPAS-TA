@@ -238,7 +238,7 @@ class TstampSender(TstampSpec):
         from .dice import DiceSpec
         self._register_validator(
             DiceSpec._is_not_empty,
-            ['host', 'subject', 'tstamp_recipients'])
+            ['host', 'subject'])
         self._register_validator(
             DiceSpec._warn_deprecated,
             ['x_recipients', 'timestamping_addresses'])
@@ -252,7 +252,7 @@ class TstampSender(TstampSpec):
                 if a]
         if not adrs:
             myname = type(self).__name__
-            raise trt.TraitError('One of `%s.timestamping_addresses` and ``%s.tstamper_address` must not be empty!'
+            raise trt.TraitError('One of `%s.tstamper_address` and ``%s.timestamping_addresses` must not be empty!'
                                  % (myname, myname))
         return adrs
 
@@ -260,6 +260,11 @@ class TstampSender(TstampSpec):
         x_recs = '\n'.join('X-Stamper-To: %s' % rec
                            for rec
                            in self.tstamp_recipients + self.x_recipients)
+        if not x_recs:
+            myname = type(self).__name__
+            raise trt.TraitError('One of `%s.tstamp_recipients` and ``%s.x_recipients` must not be empty!'
+                                 % (myname, myname))
+
         msg = "%s\n\n%s" % (x_recs, msg)
 
         return msg
