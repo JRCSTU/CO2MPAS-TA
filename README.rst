@@ -1,4 +1,4 @@
-.. image:: doc/_static/CO2MPAS_banner2.svg
+.. image:: doc/_static/CO2MPAS_banner.png
    :width: 640
 
 .. _start-opening:
