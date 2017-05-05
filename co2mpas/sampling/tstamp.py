@@ -136,14 +136,6 @@ class TstampSpec(dice.DiceSpec):
         help="""The password of the SOCKS-v5-proxy server for send/recv emails."""
     ).tag(config=True)
 
-    @trt.validate('host')
-    def _is_not_empty(self, proposal):
-        value = proposal['value']
-        if not value:
-            raise trt.TraitError('%s.%s must not be empty!'
-                                 % (proposal['owner'].name, proposal['trait'].name))
-        return value
-
     @property
     def user_account_resolved(self):
         return self.user_account is not None and self.user_account or self.user_email
@@ -256,7 +248,8 @@ class TstampSender(TstampSpec):
     ).tag(config=True)
 
     def __init__(self, *args, **kwds):
-        self._register_validator(self._is_not_empty, ['subject', 'tstamp_recipients'])
+        from .dice import DiceSpec
+        self._register_validator(DiceSpec._is_not_empty, ['host', 'subject', 'tstamp_recipients'])
         super().__init__(*args, **kwds)
 
     ## TODO: delete deprecated trait
