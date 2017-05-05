@@ -58,39 +58,32 @@ class TstampSpec(dice.DiceSpec):
 
     ssl = trt.Bool(
         True,
-        help="""Whether to talk SSL to the SMTP/IMAP server; configure `port` separately!"""
+        help="""Connect securely using TLS/SSL with SMTP/IMAP server; configure `port` separately!"""
     ).tag(config=True)
 
-    tls = trt.Bool(
+    starttls = trt.Bool(
         None, allow_none=True,
         help="""
-        Whether to enabled TLS to the SMTP/IMAP server; usually SSL must be set to False.
-
-        For instance, Outlook servers use this setup.
+        A tri-state flag defining whether to upgrade to TLS for SMTP/IMAP server:
+        - True:  require TLS upgrade, and fail if not accepted by server;
+        - False: do not try to upgrade;
+        - None:  try to upgrade to *optionally* TLS, but only if
+                 port=587 for SMTP, port=143 for IMAP; continue if server denied.
+        
+        Usually SSL must be `False`. Microsoft Outlook servers use this setup.
         """
-    ).tag(config=True)
-
-    tls_keyfile = trt.Unicode(
-        None, allow_none=True,
-        help="""
-        The keyfile and certfile parameters specify paths to optional files which contain
-        a certificate to be used to identify the local side of the connection.
-
-        see https://docs.python.org/3/library/ssl.html#ssl.wrap_socket
-        """
-    ).tag(config=True)
-
-    tls_certfile = trt.Unicode(
-        None, allow_none=True,
-        help="See help of `tls_keyfile`."
     ).tag(config=True)
 
     mail_kwds = trt.Dict(
         help="""
             Any extra key-value pairs passed to the SMTP/IMAP mail-client libraries.
             For instance, :class:`smtlib.SMTP_SSL` and :class:`smtlib.IMAP4_SSL`
-            support `keyfile`, `certfile`,  `ssl_context`(unusable :-/) and `timeout`,
+            support `keyfile`, `certfile`, `ssl_context`(unusable :-/) and `timeout`,
             while SMTP/SSL support additionally `local_hostname` and `source_address`.
+
+            The keyfile and certfile parameters specify paths to optional files which contain
+            a certificate to be used to identify the local side of the connection.
+            see https://docs.python.org/3/library/ssl.html#ssl.wrap_socket
         """
     ).tag(config=True)
 
@@ -292,12 +285,22 @@ class TstampSender(TstampSpec):
         self.monkeypatch_socks_module(smtplib)
         return smtplib.SMTP_SSL if self.ssl else smtplib.SMTP
 
+    def is_TLS_optional(self):
+        return self.starttls is None and self.port == 587
+    
     def login(self, srv, user, pswd):
-        if self.tls:
-            srv.set_debuglevel(self.verbose)
-            srv.starttls(keyfile=self.tls_keyfile,
-                         certfile=self.tls_certfile,
-                         context=None)
+        srv.set_debuglevel(self.verbose)
+        if self.starttls or self.is_TLS_optional():
+            try:
+                srv.starttls(keyfile=self.mail_kwds.get('keyfile'),
+                             certfile=self.mail_kwds.get('certfile'),
+                             context=None)
+            except Exception as ex:
+                if self.is_TLS_optional():
+                    self.log.warning('Optional STARTTLS denied by server: %s', ex)
+                else:
+                    raise
+                
             srv.ehlo()
 
         return srv.login(user, pswd)
@@ -339,7 +342,7 @@ class TstampSender(TstampSpec):
 
 _stamper_id_regex = re.compile(r"Comment: Stamper Reference Id: (\d+)")
 _stamper_banner_regex = re.compile(r"^#{56}\r?\n(?:^#[^\n]*\n)+^#{56}\r?\n\r?\n\r?\n(.*)",
-                                   re.MULTILINE | re.DOTALL)
+                                   re.MULTILINE | re.DOTALL)  # @UndefinedVariable
 
 
 class TstampReceiver(TstampSpec):
@@ -497,10 +500,19 @@ class TstampReceiver(TstampSpec):
         self.monkeypatch_socks_module(imaplib)
         return imaplib.IMAP4_SSL if self.ssl else imaplib.IMAP4
 
+    def is_TLS_optional(self):
+        return self.starttls is None and self.port == 143
+    
     def login(self, srv, user, pswd):
         srv.debug = int(self.verbose)
-        if self.tls:
-            srv.starttls()
+        if self.starttls:
+            try:
+                srv.starttls()
+            except Exception as ex:
+                if self.is_TLS_optional():
+                    self.log.warning('Optional STARTTLS denied by server: %s', ex)
+                else:
+                    raise
 
         return srv.login(user, pswd)
 
