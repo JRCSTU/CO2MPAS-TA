@@ -60,7 +60,7 @@ class TstampSpec(dice.DiceSpec):
 
     ssl = trt.Union(
         (trt.Bool(), trt.FuzzyEnum(['SSL/TLS', 'STARTTLS'])),
-        default_value=True, allow_none=True,
+        default_value=True,
         help="""
         Bool/enumeration for what encryption to use when connecting to SMTP/IMAP servers:
         - 'SSL/TLS':  Connect only through TLS/SSL, fail if server supports it
@@ -69,9 +69,6 @@ class TstampSpec(dice.DiceSpec):
                       (usual ports SMTP:587 IMAP:143).
         - True:       enforce most secure encryption, based on server port above;
                       If port is `None`, identical to 'SSL/TLS'.
-        - None:       Like `True`, but STARTTLS is *optional*, and for SMTP applied also for port 25.
-                      If port is `None`, identical to `SSL/TLS`.
-                      Don't use it, if explicit security level is desired.
         - False:      Do not use any encryption;  better use `skip_auth` param,
                       not to reveal credentials in plaintext.
 
@@ -88,30 +85,18 @@ class TstampSpec(dice.DiceSpec):
     ).tag(config=True)
 
     def _ssl_resolved(self):
-        """:return: a tuple of bool: (is_SSL, is_STARTTLS, is_STARTTLS_optional) """
+        """:return: a tuple of bool: (is_SSL, is_STARTTLS) """
         ssl, port = self.ssl, self.port
         if ssl is False:
-            return False, False, False
-
+            return False, False
         if ssl == 'SSL/TLS':
-            return True, False, False
-
+            return True, False
         if ssl == 'STARTTLS':
-            return False, True, False
-
+            return False, True
         if ssl is True:
             is_starttls = port in STARTTLS_PORTS
-            return not is_starttls, is_starttls, False
-
-        if ssl is None:
-            if port is None:
-                ## By default, most secure.
-                return True, False, False
-
-            is_starttls = port in (25, ) + STARTTLS_PORTS
-            return not is_starttls, is_starttls, True
-
-        assert False, ("Unexpected logiv-branch:", ssl, port)
+            return not is_starttls, is_starttls
+        assert False, ("Unexpected logic-branch:", ssl, port)
 
     mail_kwds = trt.Dict(
         help="""
@@ -328,23 +313,17 @@ class TstampSender(TstampSpec):
         import smtplib
 
         self.monkeypatch_socks_module(smtplib)
-        is_ssl, _, _ = self._ssl_resolved()
+        is_ssl, _ = self._ssl_resolved()
         return smtplib.SMTP_SSL if is_ssl else smtplib.SMTP
 
     def login_srv(self, srv, user, pswd):
         srv.set_debuglevel(self.verbose)
-        _, is_starttls, is_optional = self._ssl_resolved()
+        _, is_starttls = self._ssl_resolved()
         if is_starttls:
-            try:
-                self.log.debug('STARTTLS%s...', '(optional)' if is_optional else '')
-                srv.starttls(keyfile=self.mail_kwds.get('keyfile'),
-                             certfile=self.mail_kwds.get('certfile'),
-                             context=None)
-            except Exception as ex:
-                if is_optional:
-                    self.log.warning('Optional STARTTLS denied by server: %s', ex)
-                else:
-                    raise
+            self.log.debug('STARTTLS...')
+            srv.starttls(keyfile=self.mail_kwds.get('keyfile'),
+                         certfile=self.mail_kwds.get('certfile'),
+                         context=None)
 
             srv.ehlo()
 
@@ -546,21 +525,15 @@ class TstampReceiver(TstampSpec):
         import imaplib
 
         self.monkeypatch_socks_module(imaplib)
-        is_ssl, _, _ = self._ssl_resolved()
+        is_ssl, _ = self._ssl_resolved()
         return imaplib.IMAP4_SSL if is_ssl else imaplib.IMAP4
 
     def login_srv(self, srv, user, pswd):
         srv.debug = int(self.verbose)
-        _, is_starttls, is_optional = self._ssl_resolved()
+        _, is_starttls = self._ssl_resolved()
         if is_starttls:
-            self.log.debug('STARTTLS%s...', '(optional)' if is_optional else '')
-            try:
-                srv.starttls()
-            except Exception as ex:
-                if is_optional:
-                    self.log.warning('Optional STARTTLS denied by server: %s', ex)
-                else:
-                    raise
+            self.log.debug('STARTTLS...')
+            srv.starttls()
 
         srv.noop()
 
