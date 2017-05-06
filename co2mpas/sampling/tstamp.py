@@ -293,6 +293,8 @@ class TstampSender(TstampSpec):
         return self.starttls is None and self.port == 587
 
     def login_srv(self, srv, user, pswd):
+        import smtplib
+
         srv.set_debuglevel(self.verbose)
         if self.starttls or self.is_TLS_optional():
             try:
@@ -307,7 +309,10 @@ class TstampSender(TstampSpec):
 
             srv.ehlo()
 
-        return srv.login(user, pswd)
+        try:
+            return rv.login(user, pswd)
+        except smtplib.SMTPNotSupportedError as ex:
+            self.log.info('Server does not support authentication: %s', ex)
 
     def send_timestamped_email(self, msg: Union[str, bytes], subject_suffix='', dry_run=False):
         from pprint import pformat
