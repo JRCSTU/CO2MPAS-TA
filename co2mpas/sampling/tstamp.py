@@ -325,8 +325,6 @@ class TstampSender(TstampSpec):
                          certfile=self.mail_kwds.get('certfile'),
                          context=None)
 
-            srv.ehlo()
-
         srv.noop()
 
         if not self.skip_auth:
