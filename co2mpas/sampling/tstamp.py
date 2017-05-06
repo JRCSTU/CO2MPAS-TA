@@ -523,7 +523,11 @@ class TstampReceiver(TstampSpec):
                 else:
                     raise
 
-        return srv.login(user, pswd)
+        try:
+            return srv.login_cram_md5(user, pswd)
+        except Exception as ex:
+            self.log.warning('CRAM_MD5 login failed due to: %s', ex)
+            return srv.login(user, pswd)
 
     # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
     def receive_timestamped_email(self, dry_run):
