@@ -74,6 +74,11 @@ class TstampSpec(dice.DiceSpec):
         """
     ).tag(config=True)
 
+    skip_auth = trt.Bool(
+        False,
+        help="""Whether not to send any user/password credentials to the server"""
+    ).tag(config=True)
+
     mail_kwds = trt.Dict(
         help="""
             Any extra key-value pairs passed to the SMTP/IMAP mail-client libraries.
@@ -309,10 +314,11 @@ class TstampSender(TstampSpec):
 
             srv.ehlo()
 
-        try:
-            return rv.login(user, pswd)
-        except smtplib.SMTPNotSupportedError as ex:
-            self.log.info('Server does not support authentication: %s', ex)
+        if not self.skip_auth:
+            try:
+                return srv.login(user, pswd)
+            except smtplib.SMTPNotSupportedError as ex:
+                self.log.info('Server does not support authentication: %s', ex)
 
     def send_timestamped_email(self, msg: Union[str, bytes], subject_suffix='', dry_run=False):
         from pprint import pformat
@@ -523,11 +529,12 @@ class TstampReceiver(TstampSpec):
                 else:
                     raise
 
-        try:
-            return srv.login_cram_md5(user, pswd)
-        except Exception as ex:
-            self.log.warning('CRAM_MD5 login failed due to: %s', ex)
-            return srv.login(user, pswd)
+        if not self.skip_auth:
+            try:
+                return srv.login_cram_md5(user, pswd)
+            except Exception as ex:
+                self.log.warning('CRAM-MD5 login failed due to: %s', ex)
+                return srv.login(user, pswd)
 
     # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
     def receive_timestamped_email(self, dry_run):
