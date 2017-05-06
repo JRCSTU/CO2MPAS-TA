@@ -24,6 +24,8 @@ from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  
 ##     Specs     ##
 ###################
 
+STARTTLS_PORTS = (587, 143)
+
 
 class TstampSpec(dice.DiceSpec):
     """Common parameters and methods for both SMTP(sending emails) & IMAP(receiving emails)."""
@@ -56,21 +58,27 @@ class TstampSpec(dice.DiceSpec):
             If undefined, does its best.
         """).tag(config=True)
 
-    ssl = trt.Bool(
-        True,
-        help="""Connect securely using TLS/SSL with SMTP/IMAP server; configure `port` separately!"""
-    ).tag(config=True)
-
-    starttls = trt.Bool(
-        None, allow_none=True,
+    ssl = trt.Union(
+        (trt.Bool(), trt.FuzzyEnum(['SSL/TLS', 'STARTTLS'])),
+        default_value=True, allow_none=True,
         help="""
-        A tri-state flag defining whether to upgrade to TLS for SMTP/IMAP server:
-        - True:  require TLS upgrade, and fail if not accepted by server;
-        - False: do not try to upgrade;
-        - None:  try to upgrade to *optionally* TLS, but only if
-                 port=587 for SMTP, port=143 for IMAP; continue if server denied.
+        Bool/enumeration for what encryption to use when connecting to SMTP/IMAP servers:
+        - 'SSL/TLS':  Connect only through TLS/SSL, fail if server supports it
+                      (usual ports SMTP:465 IMAP:993).
+        - 'STARTTLS': Connect plain & upgrade to TLS/SSL later, fail if server supports it
+                      (usual ports SMTP:587 IMAP:143).
+        - True:       enforce most secure encryption, based on server port above;
+                      If port is `None`, identical to 'SSL/TLS'.
+        - None:       Like `True`, but STARTTLS is *optional*, and for SMTP applied also for port 25.
+                      If port is `None`, identical to `SSL/TLS`.
+                      Don't use it, if explicit security level is desired.
+        - False:      Do not use any encryption;  better use `skip_auth` param,
+                      not to reveal credentials in plaintext.
 
-        Usually SSL must be `False`. Microsoft Outlook servers use this setup.
+        Tip: Microsoft Outlook/Yahoo servers use STARTTLS.
+        See also:
+         - https://www.fastmail.com/help/technical/ssltlsstarttls.html
+         - http://forums.mozillazine.org/viewtopic.php?t=2730845
         """
     ).tag(config=True)
 
@@ -78,6 +86,32 @@ class TstampSpec(dice.DiceSpec):
         False,
         help="""Whether not to send any user/password credentials to the server"""
     ).tag(config=True)
+
+    def _ssl_resolved(self):
+        """:return: a tuple of bool: (is_SSL, is_STARTTLS, is_STARTTLS_optional) """
+        ssl, port = self.ssl, self.port
+        if ssl is False:
+            return False, False, False
+
+        if ssl == 'SSL/TLS':
+            return True, False, False
+
+        if ssl == 'STARTTLS':
+            return False, True, False
+
+        if ssl is True:
+            is_starttls = port in STARTTLS_PORTS
+            return not is_starttls, is_starttls, False
+
+        if ssl is None:
+            if port is None:
+                ## By default, most secure.
+                return True, False, False
+
+            is_starttls = port in (25, ) + STARTTLS_PORTS
+            return not is_starttls, is_starttls, True
+
+        assert False, ("Unexpected logiv-branch:", ssl, port)
 
     mail_kwds = trt.Dict(
         help="""
@@ -160,8 +194,8 @@ class TstampSpec(dice.DiceSpec):
     def check_login(self, dry_run):
         ok = False
         with self.make_server(dry_run) as srv:
-            self.log.info("Checking server %s: %s@%s ...", type(srv).__name__,
-                          self.user_account_resolved, srv.sock)
+            self.log.debug("Checking server %s: %s@%s ...", type(srv).__name__,
+                           self.user_account_resolved, srv.sock)
             try:
                 ok = self.login_srv(srv, self.user_account_resolved, self.decipher('user_pswd'))
             finally:
@@ -294,21 +328,20 @@ class TstampSender(TstampSpec):
         import smtplib
 
         self.monkeypatch_socks_module(smtplib)
-        return smtplib.SMTP_SSL if self.ssl else smtplib.SMTP
-
-    def is_TLS_optional(self):
-        return self.starttls is None and self.port == 587
+        is_ssl, _, _ = self._ssl_resolved()
+        return smtplib.SMTP_SSL if is_ssl else smtplib.SMTP
 
     def login_srv(self, srv, user, pswd):
         srv.set_debuglevel(self.verbose)
-        if self.starttls or self.is_TLS_optional():
+        _, is_starttls, is_optional = self._ssl_resolved()
+        if is_starttls:
             try:
-                self.log.info('STARTTLS%s...')
+                self.log.debug('STARTTLS%s...', '(optional)' if is_optional else '')
                 srv.starttls(keyfile=self.mail_kwds.get('keyfile'),
                              certfile=self.mail_kwds.get('certfile'),
                              context=None)
             except Exception as ex:
-                if self.is_TLS_optional():
+                if is_optional:
                     self.log.warning('Optional STARTTLS denied by server: %s', ex)
                 else:
                     raise
@@ -513,18 +546,18 @@ class TstampReceiver(TstampSpec):
         import imaplib
 
         self.monkeypatch_socks_module(imaplib)
-        return imaplib.IMAP4_SSL if self.ssl else imaplib.IMAP4
-
-    def is_TLS_optional(self):
-        return self.starttls is None and self.port == 143
+        is_ssl, _, _ = self._ssl_resolved()
+        return imaplib.IMAP4_SSL if is_ssl else imaplib.IMAP4
 
     def login_srv(self, srv, user, pswd):
         srv.debug = int(self.verbose)
-        if self.starttls:
+        _, is_starttls, is_optional = self._ssl_resolved()
+        if is_starttls:
+            self.log.debug('STARTTLS%s...', '(optional)' if is_optional else '')
             try:
                 srv.starttls()
             except Exception as ex:
-                if self.is_TLS_optional():
+                if is_optional:
                     self.log.warning('Optional STARTTLS denied by server: %s', ex)
                 else:
                     raise
@@ -535,7 +568,7 @@ class TstampReceiver(TstampSpec):
             try:
                 return srv.login_cram_md5(user, pswd)
             except Exception as ex:
-                self.log.warning('CRAM-MD5 login failed due to: %s', ex)
+                self.log.warning('Falling-back to plain-text after CRAM-MD5 auth failed: %s', ex)
                 return srv.login(user, pswd)
 
     # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
