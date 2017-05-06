@@ -23,7 +23,7 @@
 
 from ._version import (__version__, __updated__, __file_version__, __input_file_version__)
 
-__copyright__ = "Copyright (C) 2014-2016 European Commission (JRC)"
+__copyright__ = "Copyright (C) 2015-2017 European Commission (JRC)"
 __license__   = "EUPL 1.1+"
 __title__     = "co2mpas"
 __summary__   = "Vehicle simulator predicting NEDC CO2 emissions from WLTP " \
