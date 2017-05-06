@@ -744,12 +744,9 @@ class TstampCmd(baseapp.Cmd):
                 raise CmdException("Cmd '%s' takes no arguments, received %d: %r!"
                                    % (self.name, len(args), args))
 
-            sender = TstampSender(config=self.config)
-            sender._tstamper_address_resolved
-            sender.check_login(self.dry_run)
-
-            rcver = TstampReceiver(config=self.config)
-            rcver.check_login(self.dry_run)
+            return (s.check_login(self.dry_run)
+                    for s in [TstampSender(config=self.config),
+                              TstampReceiver(config=self.config)])
 
     def __init__(self, **kwds):
         kwds.setdefault('subcommands', baseapp.build_sub_cmds(*all_subcmds))
