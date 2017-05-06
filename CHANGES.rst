@@ -4,8 +4,8 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
-v1.6.0.dev3: bug-fixes
-======================
+v1.6.0.dev4: Dice networking & model fine-tuning
+================================================
 The Dice:
 ---------
 - fix(crypto, :git:`382`): GPG-signing failed with non ASCII encodings, so had to
@@ -15,7 +15,18 @@ The Dice:
 - fix(report, :git:`370`): was always accepting dice-reports, even if TA-flags were
   "engineering".
 - feat(tstamp, :git:`384`): support SOCKSv4/v5 for tunneling SMTP/IMAP through firewalls.
-- TODO: feat(tstamp, :git:`368`): add TLS
+- feat(tstamp, :git:`368`): Support *STARTTLS*, enhance ``DiceSpec.ssl`` config param::
+
+      Bool/enumeration for what encryption to use when connecting to SMTP/IMAP servers:
+      - 'SSL/TLS':  Connect only through TLS/SSL, fail if server supports it
+                    (usual ports SMTP:465 IMAP:993).
+      - 'STARTTLS': Connect plain & upgrade to TLS/SSL later, fail if server supports it
+                    (usual ports SMTP:587 IMAP:143).
+      - True:       enforce most secure encryption, based on server port above;
+                    If port is `None`, identical to 'SSL/TLS'.
+      - False:      Do not use any encryption;  better use `skip_auth` param,
+                    not to reveal credentials in plain-text.
+
 - feat(tstamp): rename configuration params (old names issue deprecation warnings):
   - ``x_recipients           --> tstamp_recipients``
   - ``timestamping_addresses --> tstamper_address``
