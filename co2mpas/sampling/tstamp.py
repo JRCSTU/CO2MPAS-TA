@@ -156,7 +156,7 @@ class TstampSpec(dice.DiceSpec):
         ok = False
         with self.make_server(dry_run) as srv:
             try:
-                self.login(srv, self.user_account_resolved, self.decipher('user_pswd'))
+                self.login_srv(srv, self.user_account_resolved, self.decipher('user_pswd'))
                 ok = True
             finally:
                 self.log.info("Login %s: %s@%s ok? %s", type(srv).__name__,
@@ -292,7 +292,7 @@ class TstampSender(TstampSpec):
     def is_TLS_optional(self):
         return self.starttls is None and self.port == 587
 
-    def login(self, srv, user, pswd):
+    def login_srv(self, srv, user, pswd):
         srv.set_debuglevel(self.verbose)
         if self.starttls or self.is_TLS_optional():
             try:
@@ -330,7 +330,7 @@ class TstampSender(TstampSpec):
         mail = self._prepare_mail(msg, subject_suffix)
 
         with self.make_server(dry_run) as srv:
-            self.login(srv, self.user_account_resolved, self.decipher('user_pswd'))
+            self.login_srv(srv, self.user_account_resolved, self.decipher('user_pswd'))
 
             from logging import WARNING, INFO
             level = WARNING if dry_run else INFO
@@ -507,7 +507,7 @@ class TstampReceiver(TstampSpec):
     def is_TLS_optional(self):
         return self.starttls is None and self.port == 143
 
-    def login(self, srv, user, pswd):
+    def login_srv(self, srv, user, pswd):
         srv.debug = int(self.verbose)
         if self.starttls:
             try:
@@ -523,7 +523,7 @@ class TstampReceiver(TstampSpec):
     # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
     def receive_timestamped_email(self, dry_run):
         with self.make_server(dry_run) as srv:
-            repl = self.login(srv, self.user_account_resolved, self.decipher('user_pswd'))
+            repl = self.login_srv(srv, self.user_account_resolved, self.decipher('user_pswd'))
             """GMAIL-2FAuth: imaplib.error: b'[ALERT] Application-specific password required:
             https://support.google.com/accounts/answer/185833 (Failure)'"""
             self.log.debug("Sent IMAP user/pswd, server replied: %s", repl)
