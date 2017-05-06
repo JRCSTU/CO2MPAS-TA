@@ -151,7 +151,7 @@ class TstampSpec(dice.DiceSpec):
             srv_kwds['port'] = port
         srv_cls = self.choose_server_class()
 
-        self.log.info("Login %s: %s@%s(%s)...", srv_cls.__name__,
+        self.log.info("Connecting to %s: %s@%s(%s)...", srv_cls.__name__,
                       self.user_account_resolved, host, srv_kwds or '')
         srv = MagicMock() if dry_run else srv_cls(host, **srv_kwds)
 
@@ -160,10 +160,12 @@ class TstampSpec(dice.DiceSpec):
     def check_login(self, dry_run):
         ok = False
         with self.make_server(dry_run) as srv:
+            self.log.info("Checking server %s: %s@%s ...", type(srv).__name__,
+                          self.user_account_resolved, srv.sock)
             try:
                 ok = self.login_srv(srv, self.user_account_resolved, self.decipher('user_pswd'))
             finally:
-                self.log.info("Login %s: %s@%s ok? %s", type(srv).__name__,
+                self.log.info("Checked server %s: %s@%s ok? %s", type(srv).__name__,
                               self.user_account_resolved, srv.sock, ok)
 
     def monkeypatch_socks_module(self, module):
@@ -303,6 +305,7 @@ class TstampSender(TstampSpec):
         srv.set_debuglevel(self.verbose)
         if self.starttls or self.is_TLS_optional():
             try:
+                self.log.info('STARTTLS%s...')
                 srv.starttls(keyfile=self.mail_kwds.get('keyfile'),
                              certfile=self.mail_kwds.get('certfile'),
                              context=None)
@@ -313,6 +316,8 @@ class TstampSender(TstampSpec):
                     raise
 
             srv.ehlo()
+
+        srv.noop()
 
         if not self.skip_auth:
             try:
@@ -528,6 +533,8 @@ class TstampReceiver(TstampSpec):
                     self.log.warning('Optional STARTTLS denied by server: %s', ex)
                 else:
                     raise
+
+        srv.noop()
 
         if not self.skip_auth:
             try:
