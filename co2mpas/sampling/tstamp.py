@@ -161,8 +161,7 @@ class TstampSpec(dice.DiceSpec):
         ok = False
         with self.make_server(dry_run) as srv:
             try:
-                self.login_srv(srv, self.user_account_resolved, self.decipher('user_pswd'))
-                ok = True
+                ok = self.login_srv(srv, self.user_account_resolved, self.decipher('user_pswd'))
             finally:
                 self.log.info("Login %s: %s@%s ok? %s", type(srv).__name__,
                               self.user_account_resolved, srv.sock, ok)
@@ -198,7 +197,8 @@ class TstampSender(TstampSpec):
     ## TODO: delete deprecated trait
     timestamping_addresses = trt.List(
         trt.Unicode(),
-        help="Deprecated, but still functional.  Prefer `--TstampSender.tstamper_address` instead, which is not a list. "
+        help="Deprecated, but still functional.  Prefer `TstampSender.tstamper_address` instead"
+        "  Note: it is not a list!"
     ).tag(config=True)
 
     tstamper_address = trt.Unicode(
@@ -225,7 +225,7 @@ class TstampSender(TstampSpec):
     ## TODO: delete deprecated trait
     x_recipients = trt.List(
         trt.Unicode(),
-        help="Deprecated, but still functional.  Prefer `--TstampSender.tstamp_recipients` list  instead."
+        help="Deprecated, but still functional.  Prefer `TstampSender.tstamp_recipients` list  instead."
     ).tag(config=True)
 
     subject = trt.Unicode(
