@@ -177,15 +177,26 @@ class TstampSpec(dice.DiceSpec):
         return srv
 
     def check_login(self, dry_run):
+        """Logs only and returns true/false; does not throw any exception!"""
         ok = False
-        with self.make_server(dry_run) as srv:
-            self.log.debug("Checking server %s: %s@%s ...", type(srv).__name__,
-                           self.user_account_resolved, srv.sock)
-            try:
+        srv_name = srv_sock = ''
+        try:
+            with self.make_server(dry_run) as srv:
+                srv_name = type(srv).__name__
+                srv_sock = srv.sock
+                self.log.debug("Authenticating %s: %s@%s ...", srv_name,
+                               self.user_account_resolved, srv.sock)
                 ok = self.login_srv(srv, self.user_account_resolved, self.decipher('user_pswd'))
-            finally:
-                self.log.info("Checked server %s: %s@%s ok? %s", type(srv).__name__,
-                              self.user_account_resolved, srv.sock, ok)
+
+            return True
+        except Exception as ex:
+            ok = ex
+            self.log.error("Connection FAILED due to: %s", ex, exc_info=ex)
+
+            return False
+        finally:
+            self.log.info("Connected to %s: %s@%s, ok? %s", srv_name,
+                          self.user_account_resolved, srv_sock, ok)
 
     def monkeypatch_socks_module(self, module):
         """
