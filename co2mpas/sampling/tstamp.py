@@ -373,6 +373,11 @@ _stamper_banner_regex = re.compile(r"^#{56}\r?\n(?:^#[^\n]*\n)+^#{56}\r?\n\r?\n\
 class TstampReceiver(TstampSpec):
     """IMAP & timestamp parameters and methods for receiving & parsing dice-report emails."""
 
+    cram_md5_login = trt.Bool(
+        False,
+        help="""Whether to authenticate using CRAM-MD5 method; leave it False, not oftenly used."""
+    ).tag(config=True)
+
     vfid_extraction_regex = trt.CRegExp(
         r"vehicle_family_id[^\n]+((?:IP|RL|RM|PR)-\d{2}-\w{2,3}-\d{4}-\d{4})",  # See also co2mpas.io.schema!
         help=""""An approximate way to get the project if timestamp parsing has failed. """
@@ -536,10 +541,9 @@ class TstampReceiver(TstampSpec):
         srv.noop()
 
         if not self.skip_auth:
-            try:
+            if self.cram_md5_login:
                 return srv.login_cram_md5(user, pswd)
-            except Exception as ex:
-                self.log.warning('Falling-back to plain-text after CRAM-MD5 auth failed: %s', ex)
+            else:
                 return srv.login(user, pswd)
 
     # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
