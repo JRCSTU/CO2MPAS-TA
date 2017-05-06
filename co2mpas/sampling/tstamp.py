@@ -55,7 +55,8 @@ class TstampSpec(dice.DiceSpec):
         None, allow_none=True,
         help="""
             The SMTP/IMAP server's port, usually 587/465 for SSL, 25 otherwise.
-            If undefined, does its best.
+            If undefined, does its best according to the `ssl` config,
+            which when `True`, uses SSL/TLS ports.
         """).tag(config=True)
 
     ssl = trt.Union(
@@ -70,7 +71,7 @@ class TstampSpec(dice.DiceSpec):
         - True:       enforce most secure encryption, based on server port above;
                       If port is `None`, identical to 'SSL/TLS'.
         - False:      Do not use any encryption;  better use `skip_auth` param,
-                      not to reveal credentials in plaintext.
+                      not to reveal credentials in plain-text.
 
         Tip: Microsoft Outlook/Yahoo servers use STARTTLS.
         See also:
@@ -96,6 +97,7 @@ class TstampSpec(dice.DiceSpec):
         if ssl is True:
             is_starttls = port in STARTTLS_PORTS
             return not is_starttls, is_starttls
+
         assert False, ("Unexpected logic-branch:", ssl, port)
 
     mail_kwds = trt.Dict(
@@ -169,8 +171,10 @@ class TstampSpec(dice.DiceSpec):
         if port is not None:
             srv_kwds['port'] = port
         srv_cls = self.choose_server_class()
+        _, is_startssl = self._ssl_resolved()
 
-        self.log.info("Connecting to %s: %s@%s(%s)...", srv_cls.__name__,
+        self.log.info("Connecting to %s%s: %s@%s(%s)...", srv_cls.__name__,
+                      '(STARTTLS)' if is_startssl else '',
                       self.user_account_resolved, host, srv_kwds or '')
         srv = MagicMock() if dry_run else srv_cls(host, **srv_kwds)
 
