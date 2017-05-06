@@ -106,7 +106,7 @@ The European Regulation setting the conditions for using |co2mpas| can be
 found in `the Comitology Register
 <http://ec.europa.eu/transparency/regcomitology/index.cfm?do=search.documentdetail&dos_id=0&ds_id=45835&version=2>`_
 after its adoption by the *Climate Change Committee* which took place on
-June 23, 2016.
+June 23, 2016 and its 2nd vote for modifications, on April 27, 2017.
 
 For recent activity, check the :doc:`changes`.
 
