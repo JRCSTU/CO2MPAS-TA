@@ -726,17 +726,28 @@ class TstampCmd(baseapp.Cmd):
             help="Verify dice-report and login to SMTP-server but do not actually send email to timestamp-service."
         ).tag(config=True)
 
+        srv = trt.FuzzyEnum(
+            ['SMTP', 'IMAP'], allow_none=True,
+            help="""Which server to attempt to login; attempts to both if `None`."""
+        ).tag(config=True)
+            
         def __init__(self, **kwds):
             from pandalone import utils as pndlu
 
             kwds.setdefault('conf_classes', [TstampSender, TstampReceiver])
             kwds.setdefault('cmd_flags', {
                 ('n', 'dry-run'): (
-                    {
-                        type(self).__name__: {'dry_run': True},
-                    },
+                    {type(self).__name__: {'dry_run': True}},
                     pndlu.first_line(type(self).dry_run.help)
-                )
+                ),
+                'smtp': (
+                    {type(self).__name__: {'srv': 'SMTP'}},
+                    "Attempts to login only to SMTP."
+                ),
+                'imap': (
+                    {type(self).__name__: {'srv': 'IMAP'}},
+                    "Attempts to login only to IMAP."
+                ),
             })
             super().__init__(**kwds)
 
@@ -746,9 +757,14 @@ class TstampCmd(baseapp.Cmd):
                 raise CmdException("Cmd '%s' takes no arguments, received %d: %r!"
                                    % (self.name, len(args), args))
 
-            return (s.check_login(self.dry_run)
-                    for s in [TstampSender(config=self.config),
-                              TstampReceiver(config=self.config)])
+            srv = self.srv
+            servers = [] 
+            if not srv or self.srv == 'SMTP':
+                servers.append(TstampSender(config=self.config))
+            if not srv or self.srv == 'IMAP':
+                servers.append(TstampReceiver(config=self.config))
+                
+            return (s.check_login(self.dry_run) for s in servers)
 
     def __init__(self, **kwds):
         kwds.setdefault('subcommands', baseapp.build_sub_cmds(*all_subcmds))
