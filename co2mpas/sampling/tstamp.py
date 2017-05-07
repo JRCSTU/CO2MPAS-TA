@@ -633,9 +633,9 @@ class TstampCmd(baseapp.Cmd):
             kwds.setdefault('cmd_flags', {
                 ('n', 'dry-run'): (
                     {
-                        'SendCmd': {'dry_run': True},
+                        type(self).__name__: {'dry_run': True},
                     },
-                    pndlu.first_line(TstampCmd.SendCmd.dry_run.help)
+                    pndlu.first_line(type(self).dry_run.help)
                 )
             })
             super().__init__(**kwds)
@@ -733,9 +733,9 @@ class TstampCmd(baseapp.Cmd):
             kwds.setdefault('cmd_flags', {
                 ('n', 'dry-run'): (
                     {
-                        'SendCmd': {'dry_run': True},
+                        type(self).__name__: {'dry_run': True},
                     },
-                    pndlu.first_line(TstampCmd.SendCmd.dry_run.help)
+                    pndlu.first_line(type(self).dry_run.help)
                 )
             })
             super().__init__(**kwds)
