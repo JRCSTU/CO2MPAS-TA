@@ -329,10 +329,12 @@ class TstampSender(TstampSpec):
 
         self.monkeypatch_socks_module(smtplib)
         is_ssl, _ = self._ssl_resolved()
-        return smtplib.SMTP_SSL if is_ssl else smtplib.SMTP
+        cls = smtplib.SMTP_SSL if is_ssl else smtplib.SMTP
+        cls.debuglevel = int(self.verbose)
 
+        return cls
+    
     def login_srv(self, srv, user, pswd):
-        srv.set_debuglevel(self.verbose)
         _, is_starttls = self._ssl_resolved()
         if is_starttls:
             self.log.debug('STARTTLS...')
@@ -543,11 +545,11 @@ class TstampReceiver(TstampSpec):
         import imaplib
 
         self.monkeypatch_socks_module(imaplib)
+        imaplib.Debug = 1 + 2 * int(self.verbose) if self.verbose else 0
         is_ssl, _ = self._ssl_resolved()
         return imaplib.IMAP4_SSL if is_ssl else imaplib.IMAP4
 
     def login_srv(self, srv, user, pswd):
-        srv.debug = int(self.verbose)
         _, is_starttls = self._ssl_resolved()
         if is_starttls:
             self.log.debug('STARTTLS...')

@@ -300,8 +300,10 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
         ~~~~~~~~~~~~~~~~~~~~~~~~~
         `project list/status`
             List project with the "long" format, include infos about the repo (when 2).
+        `tstamp`
+            Print SMTP/IMAP connection messages exchanged (WARN: passwords revealed!).
         `project init/open/append/tstamp`
-            Print committed-msg instead of try/false/proj-name.
+            Print committed-msg instead of try/false/proj-name (WARN: passwords revealed, see above!).
         `config show`
             Print parameters for all intermediate classes.
           """).tag(config=True)
