@@ -397,7 +397,7 @@ class TstampReceiver(TstampSpec):
 
     vfid_extraction_regex = trt.CRegExp(
         r"vehicle_family_id[^\n]+((?:IP|RL|RM|PR)-\d{2}-\w{2,3}-\d{4}-\d{4})",  # See also co2mpas.io.schema!
-        help=""""An approximate way to get the project if timestamp parsing has failed. """
+        help="""An approximate way to get the project if timestamp parsing has failed. """
     ).tag(config=True)
 
     def _capture_stamper_msg_and_id(self, ts_msg: Text, ts_heads: Text) -> int:
