@@ -1453,7 +1453,39 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 ##    Commands   ##
 ###################
 
-class ProjectCmd(baseapp.Cmd):
+class _SubCmd(baseapp.Cmd):
+    def __init__(self, **kwds):
+        dkwds = {
+            'conf_classes': [ProjectsDB, Project],
+            'cmd_flags': {
+                'reset-git-settings': (
+                    {
+                        'ProjectsDB': {'reset_git_settings': True},
+                    }, pndlu.first_line(ProjectsDB.reset_git_settings.help)
+                )
+            },
+        }
+        dkwds.update(kwds)
+        super().__init__(**dkwds)
+
+    @property
+    def projects_db(self) -> ProjectsDB:
+        p = ProjectsDB.instance(config=self.config)
+        p.config = self.config
+        return p
+
+    @property
+    def current_project(self) -> Project:
+        return self.projects_db.current_project()
+
+    def _format_result(self, concise, long, *, is_verbose=None):
+        is_verbose = self.verbose if is_verbose is None else is_verbose
+        result = long if is_verbose else concise
+
+        return isinstance(result, str) and result or _mydump(result)
+
+
+class ProjectCmd(_SubCmd):
     """
     Commands to administer the storage repo of TA *projects*.
 
@@ -1488,34 +1520,10 @@ class ProjectCmd(baseapp.Cmd):
 
     def __init__(self, **kwds):
         dkwds = {
-            'conf_classes': [ProjectsDB, Project],
-            'cmd_flags': {
-                'reset-git-settings': (
-                    {
-                        'ProjectsDB': {'reset_git_settings': True},
-                    }, pndlu.first_line(ProjectsDB.reset_git_settings.help)
-                )
-            },
             'subcommands': baseapp.build_sub_cmds(*all_subcmds),
         }
         dkwds.update(kwds)
         super().__init__(**dkwds)
-
-    @property
-    def projects_db(self) -> ProjectsDB:
-        p = ProjectsDB.instance(config=self.config)
-        p.config = self.config
-        return p
-
-    @property
-    def current_project(self) -> Project:
-        return self.projects_db.current_project()
-
-    def _format_result(self, concise, long, *, is_verbose=None):
-        is_verbose = self.verbose if is_verbose is None else is_verbose
-        result = long if is_verbose else concise
-
-        return isinstance(result, str) and result or _mydump(result)
 
     def run(self, *args):
         """Just to ensure project-repo created."""
@@ -1523,7 +1531,7 @@ class ProjectCmd(baseapp.Cmd):
         super().run(*args)
 
 
-class StatusCmd(ProjectCmd):
+class StatusCmd(_SubCmd):
     """
     Print various information about the projects-repo.
 
@@ -1539,7 +1547,7 @@ class StatusCmd(ProjectCmd):
         return self.projects_db.repo_status(as_text=True)
 
 
-class LsCmd(ProjectCmd):
+class LsCmd(_SubCmd):
     """
     List specified projects, or all, if none specified.
 
@@ -1554,7 +1562,7 @@ class LsCmd(ProjectCmd):
         return self.projects_db.proj_list(*args, as_text=True)
 
 
-class OpenCmd(ProjectCmd):
+class OpenCmd(_SubCmd):
     """
     Make an existing project as *current*.
 
@@ -1574,7 +1582,7 @@ class OpenCmd(ProjectCmd):
         return projDB.proj_list(proj.pname, as_text=True) if self.verbose else str(proj)
 
 
-class InitCmd(ProjectCmd):
+class InitCmd(_SubCmd):
     """
     Create a new project.
 
@@ -1590,7 +1598,7 @@ class InitCmd(ProjectCmd):
         return self.projects_db.proj_add(args[0])
 
 
-class AppendCmd(ProjectCmd):
+class AppendCmd(_SubCmd):
     """
     Import the specified input/output co2mpas files into the *current project*.
 
@@ -1653,7 +1661,7 @@ class AppendCmd(ProjectCmd):
         return self._format_result(ok, proj.result)
 
 
-class ReportCmd(ProjectCmd):
+class ReportCmd(_SubCmd):
     """
     Prepares or re-prints the signed dice-report that can be sent for timestamping.
 
@@ -1700,7 +1708,7 @@ class ReportCmd(ProjectCmd):
         return ok and proj.result or ok
 
 
-class TstampCmd(ProjectCmd):
+class TstampCmd(_SubCmd):
     """
     IRREVOCABLY send report to the time-stamp service, or print it for sending it manually (--dry-run).
 
@@ -1743,7 +1751,7 @@ class TstampCmd(ProjectCmd):
                                    is_verbose=self.verbose or proj.dry_run)
 
 
-class TparseCmd(ProjectCmd):
+class TparseCmd(_SubCmd):
     """
     Derives *decision* OK/SAMPLE flag from tstamped-response, and store it (or compare with existing).
 
@@ -1815,7 +1823,7 @@ class TparseCmd(ProjectCmd):
         return self._format_result(short, long)
 
 
-class ExportCmd(ProjectCmd):
+class ExportCmd(_SubCmd):
     """
     Archives projects.
 
@@ -1921,7 +1929,7 @@ class ExportCmd(ProjectCmd):
                 rmtree(exdir)
 
 
-class ImportCmd(ProjectCmd):
+class ImportCmd(_SubCmd):
     """
     Import the specified zipped project-archives into repo; reads SDIN if non specified.
 
@@ -1968,7 +1976,7 @@ class ImportCmd(ProjectCmd):
                     repo.delete_remote(remname)
 
 
-class BackupCmd(ProjectCmd):
+class BackupCmd(_SubCmd):
     """
     Backup projects repository into the archive filepath specified, or current-directory, if none specified.
 
