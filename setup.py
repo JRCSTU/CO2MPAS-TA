@@ -1,4 +1,4 @@
-#! python
+# -*- coding: utf-8 -*-
 ##
 ## Installs co2mpas:
 ## 		python setup.py install
@@ -34,7 +34,7 @@ def read_project_version():
 
 
 def read_text_lines(fname):
-    with io.open(os.path.join(mydir, fname)) as fd:
+    with io.open(os.path.join(mydir, fname), encoding='utf-8') as fd:
         return fd.readlines()
 
 
