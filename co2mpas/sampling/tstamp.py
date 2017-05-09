@@ -681,7 +681,8 @@ class TstampReceiver(TstampSpec):
                                 parse_as_RFC3501_date(cal, after))
 
         if projects:
-            criteria.append(pairwise_ORed(projects))
+            criteria.append(pairwise_ORed(projects,
+                                          lambda i: 'SUBJECT "%s"' % i))
 
         criteria = ' '.join(c.strip() for c in criteria)
 
@@ -700,7 +701,7 @@ class TstampReceiver(TstampSpec):
 
         while True:
             yield from self._proc_emails1(
-                is_wait, projects, read_only, dry_run, criteria)
+                is_wait, read_only, dry_run, criteria)
 
             if not is_wait:
                 break
@@ -713,7 +714,7 @@ class TstampReceiver(TstampSpec):
 
             # IDLE loops again with new server (ie in case of failures).
 
-    def _proc_emails1(self, is_wait, projects, read_only, dry_run, criteria):
+    def _proc_emails1(self, is_wait, read_only, dry_run, criteria):
         with self.make_server(dry_run) as srv:
             self.login_srv(srv,  # If login denied, raises.
                                 self.user_account_resolved,
@@ -726,8 +727,7 @@ class TstampReceiver(TstampSpec):
                 self.mailbox, ok, data)
 
             while True:
-                yield from self._proc_emails2(is_wait, projects,
-                                              dry_run, criteria, srv)
+                yield from self._proc_emails2(is_wait, dry_run, criteria, srv)
 
                 if is_wait and self._IDLE_supported:
                     ## IDLE within this internal loop
@@ -739,7 +739,7 @@ class TstampReceiver(TstampSpec):
                 else:  # External loop will handle POLL.
                     break
 
-    def _proc_emails2(self, is_wait, projects, dry_run, criteria, srv):
+    def _proc_emails2(self, is_wait, dry_run, criteria, srv):
         import email
         from pprint import pformat
 
@@ -793,7 +793,7 @@ def parse_as_RFC3501_date(cal, date):
 
     return dts
 
-def pairwise_ORed(items):
+def pairwise_ORed(items, item_printer):
     """
     :param items: 
         a non empty list/tuple
@@ -811,11 +811,12 @@ def pairwise_ORed(items):
         n = len(items)
         assert n > 0, items
         if n == 1:
-            return '"%s"' % items[0]
+            return item_printer(items[0])
         else:
             middle = (n + 1) // 2
             return '(OR %s %s)' % (
-                pairwise_ORed(items[:middle]), pairwise_ORed(items[middle:]))
+                pairwise_ORed(items[:middle], item_printer),
+                pairwise_ORed(items[middle:], item_printer))
 
 
 def monkeypatch_imaplib_for_IDLE(imaplib):
