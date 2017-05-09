@@ -73,7 +73,8 @@ class TstampSpec(dice.DiceSpec):
         - False:      Do not use any encryption;  better use `no_auth` param,
                       not to reveal credentials in plain-text.
 
-        Tip: Microsoft Outlook/Yahoo servers use STARTTLS.
+        Tip: 
+          Microsoft Outlook/Yahoo servers use STARTTLS.
         See also:
          - https://www.fastmail.com/help/technical/ssltlsstarttls.html
          - http://forums.mozillazine.org/viewtopic.php?t=2730845
@@ -120,7 +121,7 @@ class TstampSpec(dice.DiceSpec):
         If not set, SOCKS-proxying is disabled.
 
         Tip:
-          prefer a real IP and set `socks_skip_resolve=True`, or else,
+          Prefer a real IP and set `socks_skip_resolve=True`, or else,
           hostnames may resolve to _unsupported_ IPv6.
         """
     ).tag(config=True)
@@ -190,7 +191,7 @@ class TstampSpec(dice.DiceSpec):
                 srv_sock = srv.sock
                 self.log.debug("Authenticating %s: %s@%s ...", srv_name,
                                self.user_account_resolved, srv.sock)
-                self.login_srv(srv,  # Login denied, raises.
+                self.login_srv(srv,  # If login denied, raises.
                                self.user_account_resolved,
                                self.decipher('user_pswd'))
             ok = True
@@ -263,7 +264,7 @@ class TstampSender(TstampSpec):
     ## TODO: delete deprecated trait
     x_recipients = trt.List(
         trt.Unicode(),
-        help="Deprecated, but still functional.  Prefer `TstampSender.tstamp_recipients` list  instead."
+        help="Deprecated, but still functional.  Prefer `tstamp_recipients` list  instead."
     ).tag(config=True)
 
     subject = trt.Unicode(
@@ -279,6 +280,7 @@ class TstampSender(TstampSpec):
 
     def __init__(self, *args, **kwds):
         from .dice import DiceSpec
+
         self._register_validator(
             DiceSpec._is_not_empty,
             ['host', 'subject'])
@@ -335,7 +337,7 @@ class TstampSender(TstampSpec):
         cls.debuglevel = int(self.verbose)
 
         return cls
-    
+
     def login_srv(self, srv, user, pswd):
         _, is_starttls = self._ssl_resolved()
         if is_starttls:
@@ -347,7 +349,7 @@ class TstampSender(TstampSpec):
         srv.noop()
 
         if not self.no_auth:
-            (code, resp) = srv.login(user, pswd)  # Login denied, raises.
+            (code, resp) = srv.login(user, pswd)  # If login denied, raises.
             # 235: 'Authentication successful'
             if code == 503:
                 self.log.info('Already authenticated: %s', resp)
@@ -373,7 +375,7 @@ class TstampSender(TstampSpec):
         mail = self._prepare_mail(msg, subject_suffix)
 
         with self.make_server(dry_run) as srv:
-            self.login_srv(srv,  # Login denied, raises.
+            self.login_srv(srv,  # If login denied, raises.
                            self.user_account_resolved,
                            self.decipher('user_pswd'))
 
@@ -751,7 +753,7 @@ class TstampCmd(baseapp.Cmd):
             ['SMTP', 'IMAP'], allow_none=True,
             help="""Which server to attempt to login; attempts to both if `None`."""
         ).tag(config=True)
-            
+
         def __init__(self, **kwds):
             from pandalone import utils as pndlu
 
@@ -779,12 +781,12 @@ class TstampCmd(baseapp.Cmd):
                                    % (self.name, len(args), args))
 
             srv = self.srv
-            servers = [] 
+            servers = []
             if not srv or self.srv == 'SMTP':
                 servers.append(TstampSender(config=self.config))
             if not srv or self.srv == 'IMAP':
                 servers.append(TstampReceiver(config=self.config))
-                
+
             return (s.check_login(self.dry_run) for s in servers)
 
     def __init__(self, **kwds):
