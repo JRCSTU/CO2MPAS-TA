@@ -455,6 +455,8 @@ class GpgSpec(baseapp.Spec):
 
     def _proc_verfication(self, ver, keep_stderr: bool=None):
         """Convert *gnupg* lib's results into dict, hidding `stderr` if OK."""
+        if hasattr(ver, 'gpg'):
+            delattr(ver, 'gpg')
         keep_stderr = keep_stderr is None and not bool(ver)
         if not keep_stderr:
             ver.stderr = ''
