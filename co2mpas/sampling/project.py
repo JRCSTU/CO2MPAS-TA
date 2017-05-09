@@ -422,12 +422,13 @@ class Project(transitions.Machine, ProjectSpec):
                          initial=states[0],
                          transitions=trans,
                          send_event=True,
-                         global_prepare=['_cb_clear_result'],
+                         prepare_event=['_cb_clear_result'],
                          before_state_change=['_cb_check_my_index'],
                          after_state_change='_cb_commit_or_tag',
                          auto_transitions=False,
                          name=pname,
-                         **kwds)
+                         **kwds
+                         )
         self.on_enter_empty('_cb_stage_new_project_content')
         self.on_enter_tagged('_cb_pepare_email')
         self.on_enter_wltp_inp('_cb_stage_pfiles')
