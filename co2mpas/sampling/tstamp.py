@@ -781,6 +781,25 @@ class TstampReceiver(TstampSpec):
             infos = OrderedDict((i, m.get(i)) for i in self.email_infos)
             res = {m.get('Message-Id'): infos}
 
+            try:  # Bad tstamps brake parsing in there!!!
+                verdict = self.parse_tstamp_response(m.get_payload())
+            except Exception as ex:
+                self.log.debug("Failed parsing tstamp due to: %s\n%s",
+                               ex, res, exc_info=True)
+                infos['dice'] = "Failed due to: %s" % ex
+            else:
+                if self.verbose:
+                    infos.update(verdict)
+                else:
+                    try:
+                        infos['project'] = verdict['report']['project']
+                    except:
+                        pass
+                    try:
+                        infos['dice'] = verdict['dice']
+                    except:
+                        pass
+
             yield res
 
 
@@ -1058,10 +1077,13 @@ class TstampCmd(baseapp.Cmd):
 
 
         def run(self, *args):
+            ## If `verbose`, too many small details, need flow.
+            default_flow_style = None if self.verbose else False
             rcver = TstampReceiver(config=self.config)
             for res in rcver.receive_timestamped_emails(self.wait, args, 
                                                         True, self.dry_run):
-                yield _mydump(res)  #, default_flow_style=False)
+
+                yield _mydump(res, default_flow_style=default_flow_style)
 
     class LoginCmd(_Subcmd):
         """Attempts to login into SMTP server. """
