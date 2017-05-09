@@ -70,7 +70,7 @@ class TstampSpec(dice.DiceSpec):
                       (usual ports SMTP:587 IMAP:143).
         - True:       enforce most secure encryption, based on server port above;
                       If port is `None`, identical to 'SSL/TLS'.
-        - False:      Do not use any encryption;  better use `skip_auth` param,
+        - False:      Do not use any encryption;  better use `no_auth` param,
                       not to reveal credentials in plain-text.
 
         Tip: Microsoft Outlook/Yahoo servers use STARTTLS.
@@ -80,7 +80,7 @@ class TstampSpec(dice.DiceSpec):
         """
     ).tag(config=True)
 
-    skip_auth = trt.Bool(
+    no_auth = trt.Bool(
         False,
         help="""Whether not to send any user/password credentials to the server"""
     ).tag(config=True)
@@ -346,7 +346,7 @@ class TstampSender(TstampSpec):
 
         srv.noop()
 
-        if not self.skip_auth:
+        if not self.no_auth:
             (code, resp) = srv.login(user, pswd)  # Login denied, raises.
             # 235: 'Authentication successful'
             if code == 503:
@@ -566,7 +566,7 @@ class TstampReceiver(TstampSpec):
 
         srv.noop()
 
-        if self.skip_auth or not self.auth_mechanisms:
+        if self.no_auth or not self.auth_mechanisms:
             return
 
         authlist = [(auth, method) for auth, method 
