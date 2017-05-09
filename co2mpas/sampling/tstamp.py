@@ -469,16 +469,13 @@ class TstampReceiver(TstampSpec):
 
     email_infos = trt.List(
         trt.Unicode(),
-        #'(UID BODY[HEADER.FIELDS (DATE TO SUBJECT)])',
-        #default_value=['To', 'Subject', 'Received', 'Message-Id'],
         default_value=['To', 'Subject', 'Date'],
         help="""
         The email items to fetch for each matched email.
         
         Usually one of: 
-            Delivered-To, Received, From, To, Subject, Message-Id, Date
-        
-        TODO: Each list-element is a 3-tuple: ``(<label>, <fetch-item>, <format>)``
+            Delivered-To, Received, From, To, Subject, Date, 
+            Message-Id (always printed)
         """
     ).tag(config=True)
 
@@ -741,7 +738,6 @@ class TstampReceiver(TstampSpec):
 
     def _proc_emails2(self, is_wait, dry_run, criteria, srv):
         import email
-        from pprint import pformat
 
         encoding = 'utf-8'
 
@@ -761,8 +757,7 @@ class TstampReceiver(TstampSpec):
 
         ## FETCH tstamp emails.
         #
-        uids = b','.join(uids)
-        ok, data = srv.uid('FETCH', uids, "(RFC822)")
+        ok, data = srv.uid('FETCH', b','.join(uids), "(UID RFC822)")
         assert ok == 'OK', "Fetching emails failed due to: %s: %s" % (ok, data)
 
         for i, d in enumerate(data):
@@ -770,7 +765,17 @@ class TstampReceiver(TstampSpec):
                 assert d == b')', 'Unexpected FETCH data(%i): %s' % (i, d)
                 continue
             m = email.message_from_bytes(d[1])
-            yield  pformat({i: m.get_all(i) for i in self.email_infos})
+            
+            infos = OrderedDict((i, m.get(i)) for i in self.email_infos)
+            res = {m.get('Message-Id'): infos}
+
+            yield res
+
+
+def _mydump(obj, indent=2, **kwds):
+    import yaml
+    
+    return yaml.dump(obj, indent=indent, **kwds)
 
 
 def parse_as_RFC3501_date(cal, date):
@@ -1042,7 +1047,9 @@ class TstampCmd(baseapp.Cmd):
 
         def run(self, *args):
             rcver = TstampReceiver(config=self.config)
-            return rcver.receive_timestamped_emails(self.wait, args, True, self.dry_run)
+            for res in rcver.receive_timestamped_emails(self.wait, args, 
+                                                        True, self.dry_run):
+                yield _mydump(res)  #, default_flow_style=False)
 
     class LoginCmd(_Subcmd):
         """Attempts to login into SMTP server. """
