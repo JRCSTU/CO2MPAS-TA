@@ -397,9 +397,9 @@ _stamper_banner_regex = re.compile(r"^#{56}\r?\n(?:^#[^\n]*\n)+^#{56}\r?\n\r?\n\
 class TstampReceiver(TstampSpec):
     """IMAP & timestamp parameters and methods for receiving & parsing dice-report emails."""
 
-    cram_md5_login = trt.Bool(
-        False,
-        help="""Whether to authenticate using CRAM-MD5 method; leave it False, not oftenly used."""
+    auth_mechanisms = trt.List(
+        trt.FuzzyEnum(['CRAM-MD5', 'PLAIN']), default_value=['CRAM-MD5', 'PLAIN'],
+        help="""The order for IMAP authentications to try; CRAM-MD5 and PLAIN supported only."""
     ).tag(config=True)
 
     vfid_extraction_regex = trt.CRegExp(
@@ -557,6 +557,8 @@ class TstampReceiver(TstampSpec):
         return imaplib.IMAP4_SSL if is_ssl else imaplib.IMAP4
 
     def login_srv(self, srv, user, pswd):
+        from imaplib import IMAP4
+
         _, is_starttls = self._ssl_resolved()
         if is_starttls:
             self.log.debug('STARTTLS...')
@@ -564,14 +566,23 @@ class TstampReceiver(TstampSpec):
 
         srv.noop()
 
-        if not self.skip_auth:
-            if self.cram_md5_login:
-                (code, resp) = srv.login_cram_md5(user, pswd)
-            else:
-                (code, resp) = srv.login(user, pswd)
+        if self.skip_auth or not self.auth_mechanisms:
+            return
 
-        if code != 'OK':
-            raise IMAP4.error("Login DENIED due to: %s" % resp)
+        authlist = [(auth, method) for auth, method 
+                    in zip(['CRAM-MD5', 'PLAIN'], 
+                           [srv.login_cram_md5, srv.login])
+                    if 'AUTH=%s' % auth in srv.capabilities]
+
+        if not authlist:
+            msg = "IMAP AUTH extensions %s not supported by server: %s"
+            sup_auths = [c for c in srv.capabilities if c.startswith('AUTH')]
+            raise IMAP4.error(msg % (self.auth_mechanisms, sup_auths))
+
+        auth, authmethod = next(iter(authlist))
+        (ok, data) = authmethod(user, pswd)
+        if ok != 'OK':
+            raise IMAP4.error("Login DENIED due to: %s:%s" % (ok, data))
 
     # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
     def receive_timestamped_email(self, dry_run):
