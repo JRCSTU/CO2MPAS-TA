@@ -25,11 +25,11 @@ class ConfigCmd(baseapp.Cmd):
         """
         Store config defaults into specified path(s); '{confpath}' assumed if none specified.
 
-        - If a path resolves to a folder, the filename '{appname}_config.py' is appended.
-        - It OVERWRITES any pre-existing configuration file(s)!
-
         SYNTAX
             %(cmd_chain)s [OPTIONS] [<config-path-1>] ...
+
+        - If a path resolves to a folder, the filename '{appname}_config.py' is appended.
+        - It OVERWRITES any pre-existing configuration file(s)!
         """
 
         ## Class-docstring CANNOT contain string-interpolations!
