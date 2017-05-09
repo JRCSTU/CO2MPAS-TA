@@ -420,8 +420,12 @@ class TstampReceiver(TstampSpec):
         """
     ).tag(config=True)
 
-    email_criteria = trt.Unicode(
-        '(From "mailer@stamper.itconsult.co.uk") (Subject "Proof of Posting Certificate")',
+    email_criteria = trt.List(
+        trt.Unicode(),
+        default_value=[
+            'From "mailer@stamper.itconsult.co.uk"',
+            'Subject "Proof of Posting Certificate"',
+        ],
         help="""
         The RFC3501 IMAP "static" search criteria for fetching Stamper responses.
         """
@@ -659,7 +663,7 @@ class TstampReceiver(TstampSpec):
             raise IMAP4.error("Login DENIED due to: %s:%s" % (ok, data))
 
     def _prepare_search_criteria(self, is_wait, projects):
-        criteria = [self.email_criteria]
+        criteria = list(self.email_criteria)
         if is_wait:
             criteria.append(self.wait_criteria)
 
@@ -671,17 +675,19 @@ class TstampReceiver(TstampSpec):
             cal = pdt.Calendar(c)
 
             if before:
-                criteria.append('(SENTBEFORE "%s")' %
+                criteria.append('SENTBEFORE "%s"' %
                                 parse_as_RFC3501_date(cal, before))
             if after:
-                criteria.append('(SINCE "%s")' %
+                criteria.append('SINCE "%s"' %
                                 parse_as_RFC3501_date(cal, after))
 
         if projects:
             criteria.append(pairwise_ORed(projects,
-                                          lambda i: 'SUBJECT "%s"' % i))
+                                          lambda i: '(SUBJECT "%s")' % i))
 
-        criteria = ' '.join(c.strip() for c in criteria)
+        criteria = [c.strip() for c in criteria]
+        criteria = [c if c.startswith('(') else '(%s)' % c for c in criteria]
+        criteria = ' '.join(criteria)
 
         return criteria
 
