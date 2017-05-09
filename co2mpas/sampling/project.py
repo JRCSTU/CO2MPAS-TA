@@ -1504,7 +1504,7 @@ class ProjectCmd(_SubCmd):
             %(cmd_chain)s  open IP-10-AAA-2017-1006
 
         To see more infos about the current project, use:
-            %(cmd_chain)s  ls. -v
+            %(cmd_chain)s  ls . -v
 
         A typical workflow is this:
             %(cmd_chain)s  init RL-12-BM3-2016-0000
