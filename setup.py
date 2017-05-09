@@ -195,6 +195,7 @@ setup(
         'gitpython >= 2.1.0',       # Win+Cygwin support
         'transitions >= 0.5.0',     # prepare/finally cbs
         'PySocks >= 1.6.7',         # more proxy-error messages (#7)
+        'parsedatetime',
     ],
     packages=find_packages(exclude=[
         'tests', 'tests.*',

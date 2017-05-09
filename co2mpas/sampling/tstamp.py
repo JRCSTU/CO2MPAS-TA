@@ -409,6 +409,79 @@ class TstampReceiver(TstampSpec):
         help="""An approximate way to get the project if timestamp parsing has failed. """
     ).tag(config=True)
 
+    mailbox = trt.Unicode(
+        b'INBOX',
+        help="""
+        The mailbox folder name (case-sensitive except "INBOX") to search for tstamp responses in.
+
+        Tip: 
+          Although Gmail is not recommended, use '[Gmail]/All Mail'
+          to search in all its folders.
+        """
+    ).tag(config=True)
+
+    email_criteria = trt.Unicode(
+        '(From "mailer@stamper.itconsult.co.uk") (Subject "Proof of Posting Certificate")',
+        help="""
+        The RFC3501 IMAP "static" search criteria for fetching Stamper responses.
+        """
+    ).tag(config=True)
+
+    wait_criteria = trt.Unicode(
+        'RECENT', allow_none=True,
+        help="""The RFC3501 IMAP search criteria for when IDLE-waiting recent(?) messages."""
+    ).tag(config=True)
+
+    poll_delay = trt.Int(
+        60,
+        help="""How often(in sec) to poll IMAP server if it does not supported IDLE command. """
+    ).tag(config=True)
+
+    dates_locale = trt.Unicode(
+        'en_US', allow_none=True,
+        help="""
+        Locale to use when parsing dates (see `before_date`), or default if undefined.
+
+        locales: de_DE, en_AU, en_US, es, nl_NL, pt_BR, ru_RU, fr_FR
+        """
+    ).tag(config=True)
+
+    before_date = trt.Unicode(
+        None, allow_none=True,
+        help="""
+        Search messages sent before this point in time, in human readable form.
+
+        - eg: 
+          - yesterday, last year, previous Wednesday
+          - 18/3/53              ## order depending on your locale
+          - 10 days ago
+          - two days after eom   ## 2 days after end-of-moth
+          - Jan                  ## NOTE: after Feb, refers to NEXT January!
+        - For available locales, see `date_locale` param
+        - see https://github.com/bear/parsedatetime/blob/master/parsedatetime/pdt_locales/base.py)
+        """
+    ).tag(config=True)
+
+    after_date = trt.Unicode(
+        None, allow_none=True,
+        help="""Search messages sent before this point in time, in human readable form (see `before_date`)"""
+    ).tag(config=True)
+
+    email_infos = trt.List(
+        trt.Unicode(),
+        #'(UID BODY[HEADER.FIELDS (DATE TO SUBJECT)])',
+        #default_value=['To', 'Subject', 'Received', 'Message-Id'],
+        default_value=['To', 'Subject', 'Date'],
+        help="""
+        The email items to fetch for each matched email.
+        
+        Usually one of: 
+            Delivered-To, Received, From, To, Subject, Message-Id, Date
+        
+        TODO: Each list-element is a 3-tuple: ``(<label>, <fetch-item>, <format>)``
+        """
+    ).tag(config=True)
+
     def _capture_stamper_msg_and_id(self, ts_msg: Text, ts_heads: Text) -> int:
         stamper_id = msg = None
         m = _stamper_id_regex.search(ts_heads)
@@ -554,6 +627,8 @@ class TstampReceiver(TstampSpec):
         import imaplib
 
         self.monkeypatch_socks_module(imaplib)
+        monkeypatch_imaplib_for_IDLE(imaplib)
+
         imaplib.Debug = 1 + 2 * int(self.verbose) if self.verbose else 0
         is_ssl, _ = self._ssl_resolved()
         return imaplib.IMAP4_SSL if is_ssl else imaplib.IMAP4
@@ -586,17 +661,199 @@ class TstampReceiver(TstampSpec):
         if ok != 'OK':
             raise IMAP4.error("Login DENIED due to: %s:%s" % (ok, data))
 
-    # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
-    def receive_timestamped_email(self, dry_run):
-        with self.make_server(dry_run) as srv:
-            repl = self.login_srv(srv, self.user_account_resolved, self.decipher('user_pswd'))
-            """GMAIL-2FAuth: imaplib.error: b'[ALERT] Application-specific password required:
-            https://support.google.com/accounts/answer/185833 (Failure)'"""
-            self.log.debug("Sent IMAP user/pswd, server replied: %s", repl)
+    def _prepare_search_criteria(self, is_wait, projects):
+        criteria = [self.email_criteria]
+        if is_wait:
+            criteria.append(self.wait_criteria)
 
-            resp = srv.list()
-            print(resp[0])
-            return [srv.retr(i + 1) for i, msg_id in zip(range(10), resp[1])]  # @UnusedVariable
+        before, after = [self.before_date, self.after_date]
+        if before or after:
+            import parsedatetime as pdt
+
+            c = self.dates_locale and pdt.Constants(self.dates_locale)
+            cal = pdt.Calendar(c)
+
+            if before:
+                criteria.append('(SENTBEFORE "%s")' %
+                                parse_as_RFC3501_date(cal, before))
+            if after:
+                criteria.append('(SINCE "%s")' %
+                                parse_as_RFC3501_date(cal, after))
+
+        if projects:
+            criteria.append(pairwise_ORed(projects))
+
+        criteria = ' '.join(c.strip() for c in criteria)
+
+        return criteria
+
+    #: Server-capabillity captured after authed-connection established,
+    #: to decide which IDLE or POLL loop to use when `is_wait`.
+    _IDLE_supported = None
+
+    # IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
+    #      https://yuji.wordpress.com/2011/06/22/python-imaplib-imap-example-with-gmail/
+    def receive_timestamped_emails(self, is_wait, projects,
+                                  read_only, dry_run):
+        criteria = self._prepare_search_criteria(is_wait, projects)
+        self._IDLE_supported = None
+
+        while True:
+            yield from self._proc_emails1(
+                is_wait, projects, read_only, dry_run, criteria)
+
+            if not is_wait:
+                break
+
+            if not self._IDLE_supported:
+                ## POLL within this external loop.
+                #
+                import time
+                time.sleep(self.poll_delay)
+
+            # IDLE loops again with new server (ie in case of failures).
+
+    def _proc_emails1(self, is_wait, projects, read_only, dry_run, criteria):
+        with self.make_server(dry_run) as srv:
+            self.login_srv(srv,  # If login denied, raises.
+                                self.user_account_resolved,
+                                self.decipher('user_pswd'))
+
+            self._IDLE_supported = 'IDLE' in srv.capabilities
+
+            ok, data = srv.select(self.mailbox, read_only)
+            assert ok == 'OK', "Selecting mailbox '%s' failed due to: %s: %s" % (
+                self.mailbox, ok, data)
+
+            while True:
+                yield from self._proc_emails2(is_wait, projects,
+                                              dry_run, criteria, srv)
+
+                if is_wait and self._IDLE_supported:
+                    ## IDLE within this internal loop
+                    #
+                    self.log.info("IDLE waiting for emails...")
+                    event_line = wait_IDLE_IMAP_change(srv)
+                    self.log.debug("Broke out of IDLE due to: %s", event_line)
+
+                else:  # External loop will handle POLL.
+                    break
+
+    def _proc_emails2(self, is_wait, projects, dry_run, criteria, srv):
+        import email
+        from pprint import pformat
+
+        encoding = 'utf-8'
+
+        ## SEARCH for tstamp emails.
+        #
+        self.log.info("Searching tstamps: %s", criteria)
+        ok, data = srv.uid('SEARCH', 'CHARSET "%s"' % encoding,
+                           criteria.encode(encoding))
+        assert ok == 'OK', "Searching emails failed due to: %s: %s" % (ok, data)
+
+        uids = data[0].split()
+        self.log.info("Found %s tstamp emails: %s",
+                      len(uids), [u.decode() for u in uids])
+
+        if not uids:
+            return
+
+        ## FETCH tstamp emails.
+        #
+        uids = b','.join(uids)
+        ok, data = srv.uid('FETCH', uids, "(RFC822)")
+        assert ok == 'OK', "Fetching emails failed due to: %s: %s" % (ok, data)
+
+        for i, d in enumerate(data):
+            if i % 2 == 1:
+                assert d == b')', 'Unexpected FETCH data(%i): %s' % (i, d)
+                continue
+            m = email.message_from_bytes(d[1])
+            yield  pformat({i: m.get_all(i) for i in self.email_infos})
+
+
+def parse_as_RFC3501_date(cal, date):
+    """
+    >>> import parsedatetime as pdt
+
+    >>> cal = pdt.Calendar()
+    >>> t = cal.parse('9 May 2017')[0]
+    >>> [parse_as_RFC3501_date(cal, d, sourceTime=t)
+    ...  for d in ['previous Jan', '-2months', '10 days after eom']]
+    ['01-Jan-2017', '09-Mar-2017', '10-Jun-2017']
+    """
+    dt = cal.parseDT(date)[0]
+    dts = dt.strftime('%d-XXX-%Y')
+    months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ]
+    dts = dts.replace('XXX', months[dt.month - 1])
+
+    return dts
+
+def pairwise_ORed(items):
+    """
+    :param items: 
+        a non empty list/tuple
+
+    >>> print(pairwise_ORed([1]))
+    "1"
+    >>> print(pairwise_ORed([1,2]))
+    (OR "1" "2")
+    >>> print(pairwise_ORed([1,2,3]))
+    (OR (OR "1" "2") "3")
+    >>> print(pairwise_ORed([1,2,3,4,5,6,7]))
+    (OR (OR (OR "1" "2") (OR "3" "4")) (OR (OR "5" "6") "7"))
+    """
+    if isinstance(items, (tuple, list)):
+        n = len(items)
+        assert n > 0, items
+        if n == 1:
+            return '"%s"' % items[0]
+        else:
+            middle = (n + 1) // 2
+            return '(OR %s %s)' % (
+                pairwise_ORed(items[:middle]), pairwise_ORed(items[middle:]))
+
+
+def monkeypatch_imaplib_for_IDLE(imaplib):
+    imaplib.Commands['IDLE'] = ('SELECTED',)
+    imaplib.Commands['DONE'] = ('SELECTED',)
+
+
+def wait_IDLE_IMAP_change(srv):
+    """
+    Use RFC2177 `IDLE` IMAP command to wait for any status change.
+
+    :param sock_timeout:
+        After 29 min, IMAP-server closes socket.
+    :return: 
+        the raw line that broke IDLE, just for logging it, 
+        because is not included in `imaplib` moduele's logs.
+    """
+    cmd = 'IDLE'
+    tag = srv._command(cmd)
+
+    ## Pump untill continuation response `'+ idling'`.
+    #
+    while srv._get_response():
+        pass
+    assert srv.continuation_response.lower() == b'idling', srv.continuation_response
+
+    ev_reply = srv._get_response()  # Blocks waiting status-change.
+
+    ## Finalize `IDLE` cmd.
+    #
+    srv.send(b'DONE\r\n')
+    ok, data = srv._command_complete(cmd, tag)
+    ok, data = srv._untagged_response(ok, data, cmd)
+    assert ok == 'OK', "IDLE-Done failed due to: %s: %s" % (ok, data)
+
+    srv.noop()  # To update stats
+
+    return ev_reply
 
 
 ###################
@@ -724,12 +981,16 @@ class TstampCmd(baseapp.Cmd):
 
     class RecvCmd(_Subcmd):
         """
-        TODO: tstamp receive command
+        Fetch tstamps from IMAP server in one-shot or waiting mode, optionally searching for `project(s)` in subjetcs.
 
-        The receiving command waits for the response.and returns: 1: SAMPLE | 0: NO-SAMPLE
+        SYNTAX
+            %(cmd_chain)s [OPTIONS] [<project-1> ...]
+
+        The 
+        TODO: The receiving command waits for the response.and returns: 1: SAMPLE | 0: NO-SAMPLE
         Any other code is an error-code - communicate it to JRC.
 
-        To wait for the response after you have sent the dice-report, use this bash commands:
+        INVALID: To wait for the response after you have sent the dice-report, use this bash commands:
 
             %(cmd_chain)s
             if [ $? -eq 0 ]; then
@@ -739,8 +1000,48 @@ class TstampCmd(baseapp.Cmd):
             else
                 echo "ERROR CODE: $?"
         """
+
+        dry_run = trt.Bool(
+            help="Verify dice-report and login to SMTP-server but do not actually send email to timestamp-service."
+        ).tag(config=True)
+
+        wait = trt.Bool(
+            False,
+            help="""
+            Whether to wait reading IMAP for any email(s) satisfying the criteria and report them.
+
+            WARN: 
+              Process must be killed afterwards, so start it in the background.
+              e.g. `START /B co2dice ...` or append the `&` character in Bash.
+            NOTE: 
+              Development flag, use `co2dice project tstamp receive` cmd instead!
+            """
+        ).tag(config=True)
+
+        def __init__(self, **kwds):
+            from pandalone import utils as pndlu
+
+            kwds.setdefault('conf_classes', [TstampSender, TstampReceiver])
+            kwds.setdefault('cmd_flags', {
+                ('n', 'dry-run'): (
+                    {type(self).__name__: {'dry_run': True}},
+                    pndlu.first_line(type(self).dry_run.help)
+                ),
+                'wait': (
+                    {type(self).__name__: {'wait': True}},
+                    pndlu.first_line(type(self).wait.help)
+                ),
+            })
+            kwds.setdefault('cmd_aliases', {
+                'before': 'TstampReceiver.before_date',
+                'after': 'TstampReceiver.after_date',
+            })
+            super().__init__(**kwds)
+
+
         def run(self, *args):
-            raise CmdException("Not implemented yet!")
+            rcver = TstampReceiver(config=self.config)
+            return rcver.receive_timestamped_emails(self.wait, args, True, self.dry_run)
 
     class LoginCmd(_Subcmd):
         """Attempts to login into SMTP server. """
