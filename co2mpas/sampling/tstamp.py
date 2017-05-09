@@ -190,8 +190,10 @@ class TstampSpec(dice.DiceSpec):
                 srv_sock = srv.sock
                 self.log.debug("Authenticating %s: %s@%s ...", srv_name,
                                self.user_account_resolved, srv.sock)
-                ok = self.login_srv(srv, self.user_account_resolved, self.decipher('user_pswd'))
-
+                self.login_srv(srv,  # Login denied, raises.
+                               self.user_account_resolved,
+                               self.decipher('user_pswd'))
+            ok = True
             return True
         except Exception as ex:
             ok = ex
@@ -345,7 +347,10 @@ class TstampSender(TstampSpec):
         srv.noop()
 
         if not self.skip_auth:
-            return srv.login(user, pswd)
+            (code, resp) = srv.login(user, pswd)  # Login denied, raises.
+            # 235: 'Authentication successful'
+            if code == 503:
+                self.log.info('Already authenticated: %s', resp)
 
     def send_timestamped_email(self, msg: Union[str, bytes], subject_suffix='', dry_run=False):
         from pprint import pformat
@@ -368,7 +373,9 @@ class TstampSender(TstampSpec):
         mail = self._prepare_mail(msg, subject_suffix)
 
         with self.make_server(dry_run) as srv:
-            self.login_srv(srv, self.user_account_resolved, self.decipher('user_pswd'))
+            self.login_srv(srv,  # Login denied, raises.
+                           self.user_account_resolved,
+                           self.decipher('user_pswd'))
 
             from logging import WARNING, INFO
             level = WARNING if dry_run else INFO
@@ -559,9 +566,12 @@ class TstampReceiver(TstampSpec):
 
         if not self.skip_auth:
             if self.cram_md5_login:
-                return srv.login_cram_md5(user, pswd)
+                (code, resp) = srv.login_cram_md5(user, pswd)
             else:
-                return srv.login(user, pswd)
+                (code, resp) = srv.login(user, pswd)
+
+        if code != 'OK':
+            raise IMAP4.error("Login DENIED due to: %s" % resp)
 
     # TODO: IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
     def receive_timestamped_email(self, dry_run):
