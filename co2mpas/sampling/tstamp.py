@@ -198,7 +198,7 @@ class TstampSpec(dice.DiceSpec):
             return True
         except Exception as ex:
             ok = ex
-            self.log.error("Connection FAILED due to: %s", ex, exc_info=ex)
+            self.log.error("Connection FAILED due to: %s", ex, exc_info=True)
 
             return False
         finally:
@@ -509,7 +509,7 @@ class TstampReceiver(TstampSpec):
 
     def scan_for_project_name(self, mail_text: Text) -> int:
         """
-        Search in the text for any coarsly identifiable project-name (`vehicle_family_id`).
+        Search in the text for any coarsely identifiable project-name (`vehicle_family_id`).
 
         Use this if :meth:`parse_tstamp_response()` has failed to provide the answer.
         """
@@ -525,18 +525,20 @@ class TstampReceiver(TstampSpec):
     def parse_tstamped_tag(self, tag_text: Text) -> int:
         """
         :param msg_text:
-            The tag as extracted from tstamp response email by :meth:`crypto.pgp_split_clearsigned`.
+            The tag as extracted from tstamp response by :meth:`crypto.pgp_split_clearsigned`.
         """
         from pprint import pformat
 
         git_auth = crypto.get_git_auth(self.config)
         tag_ver = git_auth.verify_git_signed(tag_text.encode('utf-8'))
-        tag_verdict = OrderedDict({} if tag_ver is None else sorted(vars(tag_ver).items()))
+        tag_verdict = OrderedDict({}
+                                  if tag_ver is None
+                                  else sorted(vars(tag_ver).items()))
         if not tag_ver:
             ## Do not fail, it might be from an unknown sender.
             #
-            self.log.warning(
-                "Cannot verify dice-report's signature due to: %s", pformat(tag_verdict))
+            errmsg = "Cannot verify dice-report's signature due to: %s"
+            self.log.warning(errmsg, pformat(tag_verdict))
 
         ## Parse dice-report
         #
@@ -568,17 +570,21 @@ class TstampReceiver(TstampSpec):
 
         force = self.force
         stamper_auth = crypto.get_stamper_auth(self.config)
+        errlog = self.log.error if self.force else self.log.debug
 
         ts_ver = stamper_auth.verify_clearsigned(mail_text)
         ts_verdict = vars(ts_ver)
         if not ts_ver:
-            self.log.error("Cannot verify timestamp-response's signature due to: %s", pformat(ts_verdict))
+            errmsg = "Cannot verify timestamp-response's signature due to: %s"
             if not force or not ts_ver.signature_id:  # Need sig-id for decision.
-                raise CmdException(
-                    "Cannot verify timestamp-reponse signature due to: %s" % ts_ver.status)
+                self.log.debug(errmsg, pformat(ts_verdict))
+                raise CmdException(errmsg % ts_ver.status)
+            else:
+                self.log.error(errmsg, pformat(ts_verdict))
+
         if not ts_ver.valid:
             self.log.warning(
-                tw.dedent("""\
+                tw.dedent("""
                 Timestamp's signature is valid, but not *trusted*!
                   You may sign Timestamp-service's key(81959DB570B61F81) with a *fully* trusted secret-key,
                   or assign *full* trust on JRC's key(TODO:JRC-keyid-here) that already has done so.
@@ -588,9 +594,9 @@ class TstampReceiver(TstampSpec):
         ts_parts = crypto.pgp_split_clearsigned(mail_text)
         ts_verdict['parts'] = ts_parts
         if not ts_parts:
-            self.log.error("Cannot parse timestamp-response:"
-                           "\n  mail-txt: %s\n\n  ts-verdict: %s",
-                           mail_text, pformat(ts_verdict))
+            errlog("Cannot parse timestamp-response:"
+                   "\n  mail-txt: %s\n\n  ts-verdict: %s",
+                   mail_text, pformat(ts_verdict))
             if not force:
                 raise CmdException(
                     "Cannot parse timestamp-response!")
@@ -599,7 +605,7 @@ class TstampReceiver(TstampSpec):
             stamper_id, tag = self._capture_stamper_msg_and_id(ts_parts['msg'], ts_parts['sigarmor'])
             ts_verdict['stamper_id'] = stamper_id
             if not tag:
-                self.log.error("Failed parsing response content and/or stamper-id: %s\n%s",
+                errlog("Failed parsing response content and/or stamper-id: %s\n%s",
                                pformat(ts_parts), pformat(ts_verdict))
                 if not force:
                     raise CmdException("Timestamp-response had no *stamper-id*: %s" % ts_parts['sigarmor'])
