@@ -1611,6 +1611,7 @@ class AppendCmd(_SubCmd):
     - To report and tstamp a project, one file (at least) from *inp* & *out* must be given.
     - If an input/output are already present in the current project, use --force.
     - Note that any file argument not given with `--inp`, `--out`, will end-up as "other".
+    - If `--report` given, generates report if no file is missing.
     """
 
     examples = trt.Unicode("""
@@ -1632,6 +1633,10 @@ class AppendCmd(_SubCmd):
         help="Specify co2mpas OUTPUT files; use this option one or more times."
     ).tag(config=True)
 
+    report = trt.Bool(
+        help="When True, proceed to generate report; will fail if files missing"
+    ).tag(config=True)
+
     def __init__(self, **kwds):
         kwds.setdefault('cmd_aliases', {
             ('i', 'inp'): ('AppendCmd.inp', pndlu.first_line(type(self).inp.help)),
@@ -1639,10 +1644,12 @@ class AppendCmd(_SubCmd):
         })
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
-                {
-                    'Project': {'dry_run': True},
-                },
+                {'Project': {'dry_run': True}},
                 "Parse files but do not actually store them in the project."
+            ),
+            'report': (
+                {type(self).__name__: {'report': True}},
+                pndlu.first_line(type(self).dry_run.help)
             ),
         })
         super().__init__(**kwds)
@@ -1659,7 +1666,49 @@ class AppendCmd(_SubCmd):
         proj = self.current_project
         ok = proj.do_addfiles(pfiles=pfiles)
 
-        return self._format_result(ok, proj.result)
+        if not self.report:
+            return self._format_result(ok, proj.result)
+
+        ok = proj.do_report()
+
+        assert isinstance(proj.result, str)
+        return ok and proj.result or ok
+
+
+class InitCmd(AppendCmd):
+    """
+    Create a new project, and optionally append files and generate report.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] <project>
+    """
+
+    examples = trt.Unicode("""
+        To import both INPUT and OUTPUT files and generate report:
+
+            %(cmd_chain)s --inp co2mpas_input.xlsx --out co2mpas_results.xlsx --report
+        """)
+
+    inp = trt.List(
+        trt.Unicode(),
+        help="Specify co2mpas INPUT files; use this option one or more times."
+    ).tag(config=True)
+    out = trt.List(
+        trt.Unicode(),
+        help="Specify co2mpas OUTPUT files; use this option one or more times."
+    ).tag(config=True)
+
+    report = trt.Bool(
+        help="When True, proceed to generate report; will fail if files missing"
+    ).tag(config=True)
+
+    def run(self, *args):
+        if len(args) != 1:
+            raise CmdException(
+                "Cmd %r takes exactly one argument as the project-name, received %r!"
+                % (self.name, args))
+
+        return self.projects_db.proj_add(args[0])
 
 
 class ReportCmd(_SubCmd):
