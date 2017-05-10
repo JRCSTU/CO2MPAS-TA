@@ -705,6 +705,7 @@ class TstampReceiver(TstampSpec):
     #      https://yuji.wordpress.com/2011/06/22/python-imaplib-imap-example-with-gmail/
     def receive_timestamped_emails(self, is_wait, projects,
                                   read_only, dry_run):
+        """Yields all matched :class:`email.message.Message` emails from IMAP."""
         criteria = self._prepare_search_criteria(is_wait, projects)
         self._IDLE_supported = None
 
@@ -778,29 +779,32 @@ class TstampReceiver(TstampSpec):
                 continue
             m = email.message_from_bytes(d[1])
             
-            infos = OrderedDict((i, m.get(i)) for i in self.email_infos)
-            res = {m.get('Message-Id'): infos}
+            yield m
 
-            try:  # Bad tstamps brake parsing in there!!!
-                verdict = self.parse_tstamp_response(m.get_payload())
-            except Exception as ex:
-                self.log.debug("Failed parsing tstamp due to: %s\n%s",
-                               ex, res, exc_info=True)
-                infos['dice'] = "Failed due to: %s" % ex
+    def verify_recved_email(self, mail):
+        infos = OrderedDict((i, mail.get(i)) for i in self.email_infos)
+        res = {mail.get('Message-Id'): infos}
+
+        try:  # Bad tstamps brake parsing in there!!!
+            verdict = self.parse_tstamp_response(mail.get_payload())
+        except Exception as ex:
+            self.log.debug("Failed parsing tstamp due to: %s\n%s",
+                           ex, res, exc_info=True)
+            infos['dice'] = "Failed due to: %s" % ex
+        else:
+            if self.verbose:
+                infos.update(verdict)
             else:
-                if self.verbose:
-                    infos.update(verdict)
-                else:
-                    try:
-                        infos['project'] = verdict['report']['project']
-                    except:
-                        pass
-                    try:
-                        infos['dice'] = verdict['dice']
-                    except:
-                        pass
+                try:
+                    infos['project'] = verdict['report']['project']
+                except:
+                    pass
+                try:
+                    infos['dice'] = verdict['dice']
+                except:
+                    pass
 
-            yield res
+        return res
 
 
 def _mydump(obj, indent=2, **kwds):
@@ -1056,9 +1060,9 @@ class RecvCmd(_Subcmd):
         ## If `verbose`, too many small details, need flow.
         default_flow_style = None if self.verbose else False
         rcver = TstampReceiver(config=self.config)
-        for res in rcver.receive_timestamped_emails(self.wait, args,
+        for mail in rcver.receive_timestamped_emails(self.wait, args,
                                                     True, self.dry_run):
-
+            res = rcver.verify_recved_email(mail)
             yield _mydump(res, default_flow_style=default_flow_style)
 
 
