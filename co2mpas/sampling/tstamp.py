@@ -920,226 +920,231 @@ class TstampCmd(baseapp.Cmd):
             %(cmd_chain)s parse
     """)
 
-    class SendCmd(_Subcmd):
-        """
-        Send emails to be timestamped.
-
-        SYNTAX
-            %(cmd_chain)s [OPTIONS] [<report-file-1> ...]
-
-        - Do not use this command directly (unless experimenting) - prefer the `project tstamp` sub-command.
-        - If '-' is given or no files at all, it reads from STDIN.
-        - Many options related to sending & receiving the email are expected to be stored in the config-file.
-        - Use --verbose to print the timestamped email.
-        """
-
-        examples = trt.Unicode("""
-            To send a dice-report for a prepared project you have to know the `vehicle_family_id`:
-
-                git  cat-file  tag  tstamps/RL-12-BM3-2017-0001/1 | %(cmd_chain)s
-            """)
-
-        dry_run = trt.Bool(
-            help="Verify dice-report and login to SMTP-server but do not actually send email to timestamp-service."
-        ).tag(config=True)
-
-        def __init__(self, **kwds):
-            from pandalone import utils as pndlu
-
-            kwds.setdefault('conf_classes', [TstampSender, crypto.GitAuthSpec])
-            kwds.setdefault('cmd_flags', {
-                ('n', 'dry-run'): (
-                    {
-                        type(self).__name__: {'dry_run': True},
-                    },
-                    pndlu.first_line(type(self).dry_run.help)
-                )
-            })
-            super().__init__(**kwds)
-
-        def run(self, *args):
-            from boltons.setutils import IndexedSet as iset
-            from pandalone import utils as pndlu
-
-            files = iset(args) or ['-']
-            self.log.info("Timestamping '%s'...", tuple(files))
-
-            sender = TstampSender(config=self.config)
-            for file in files:
-                if file == '-':
-                    self.log.info("Reading STDIN; paste message verbatim!")
-                    mail_text = sys.stdin.read()
-                else:
-                    self.log.debug("Reading '%s'...", pndlu.convpath(file))
-                    with io.open(file, 'rt') as fin:
-                        mail_text = fin.read()
-
-                mail = sender.send_timestamped_email(mail_text, dry_run=self.dry_run)
-                if self.verbose or self.dry_run:
-                    return str(mail)
-
-    class ParseCmd(_Subcmd):
-        """
-        Verifies and derives the *decision* OK/SAMPLE flag from tstamped-response email.
-
-        SYNTAX
-            %(cmd_chain)s [OPTIONS] [<tstamped-file-1> ...]
-
-        - If '-' is given or no files at all, it reads from STDIN.
-        """
-        examples = trt.Unicode("""cat <mail> | %(cmd_chain)s""")
-
-        def __init__(self, **kwds):
-            kwds.setdefault('conf_classes', [TstampReceiver,
-                                             crypto.GitAuthSpec, crypto.StamperAuthSpec])
-            super().__init__(**kwds)
-
-        def run(self, *args):
-            from boltons.setutils import IndexedSet as iset
-            from pprint import pformat
-            from pandalone import utils as pndlu
-
-            files = iset(args) or ['-']
-            self.log.info("Parsing '%s'...", tuple(files))
-
-            rcver = TstampReceiver(config=self.config)
-            for file in files:
-                if file == '-':
-                    self.log.info("Reading STDIN; paste message verbatim!")
-                    mail_text = sys.stdin.read()
-                else:
-                    self.log.debug("Reading '%s'...", pndlu.convpath(file))
-                    with io.open(file, 'rt') as fin:
-                        mail_text = fin.read()
-
-                resp = rcver.parse_tstamp_response(mail_text)
-
-                yield pformat(resp)
-
-    class RecvCmd(_Subcmd):
-        """
-        Fetch tstamps from IMAP server in one-shot or waiting mode, optionally searching for `project(s)` in subjetcs.
-
-        SYNTAX
-            %(cmd_chain)s [OPTIONS] [<project-1> ...]
-
-        The 
-        TODO: The receiving command waits for the response.and returns: 1: SAMPLE | 0: NO-SAMPLE
-        Any other code is an error-code - communicate it to JRC.
-
-        INVALID: To wait for the response after you have sent the dice-report, use this bash commands:
-
-            %(cmd_chain)s
-            if [ $? -eq 0 ]; then
-                echo "NO-SAMPLE"
-            elif [ $? -eq 1 ]; then
-                echo "SAMPLE!"
-            else
-                echo "ERROR CODE: $?"
-        """
-
-        dry_run = trt.Bool(
-            help="Verify dice-report and login to SMTP-server but do not actually send email to timestamp-service."
-        ).tag(config=True)
-
-        wait = trt.Bool(
-            False,
-            help="""
-            Whether to wait reading IMAP for any email(s) satisfying the criteria and report them.
-
-            WARN: 
-              Process must be killed afterwards, so start it in the background.
-              e.g. `START /B co2dice ...` or append the `&` character in Bash.
-            NOTE: 
-              Development flag, use `co2dice project tstamp receive` cmd instead!
-            """
-        ).tag(config=True)
-
-        def __init__(self, **kwds):
-            from pandalone import utils as pndlu
-
-            kwds.setdefault('conf_classes', [TstampSender, TstampReceiver])
-            kwds.setdefault('cmd_flags', {
-                ('n', 'dry-run'): (
-                    {type(self).__name__: {'dry_run': True}},
-                    pndlu.first_line(type(self).dry_run.help)
-                ),
-                'wait': (
-                    {type(self).__name__: {'wait': True}},
-                    pndlu.first_line(type(self).wait.help)
-                ),
-            })
-            kwds.setdefault('cmd_aliases', {
-                'before': 'TstampReceiver.before_date',
-                'after': 'TstampReceiver.after_date',
-            })
-            super().__init__(**kwds)
-
-
-        def run(self, *args):
-            ## If `verbose`, too many small details, need flow.
-            default_flow_style = None if self.verbose else False
-            rcver = TstampReceiver(config=self.config)
-            for res in rcver.receive_timestamped_emails(self.wait, args, 
-                                                        True, self.dry_run):
-
-                yield _mydump(res, default_flow_style=default_flow_style)
-
-    class LoginCmd(_Subcmd):
-        """Attempts to login into SMTP server. """
-
-        dry_run = trt.Bool(
-            help="Verify dice-report and login to SMTP-server but do not actually send email to timestamp-service."
-        ).tag(config=True)
-
-        srv = trt.FuzzyEnum(
-            ['SMTP', 'IMAP'], allow_none=True,
-            help="""Which server to attempt to login; attempts to both if `None`."""
-        ).tag(config=True)
-
-        def __init__(self, **kwds):
-            from pandalone import utils as pndlu
-
-            kwds.setdefault('conf_classes', [TstampSender, TstampReceiver])
-            kwds.setdefault('cmd_flags', {
-                ('n', 'dry-run'): (
-                    {type(self).__name__: {'dry_run': True}},
-                    pndlu.first_line(type(self).dry_run.help)
-                ),
-                'smtp': (
-                    {type(self).__name__: {'srv': 'SMTP'}},
-                    "Attempts to login only to SMTP."
-                ),
-                'imap': (
-                    {type(self).__name__: {'srv': 'IMAP'}},
-                    "Attempts to login only to IMAP."
-                ),
-            })
-            super().__init__(**kwds)
-
-        def run(self, *args):
-            nargs = len(args)
-            if nargs > 0:
-                raise CmdException("Cmd '%s' takes no arguments, received %d: %r!"
-                                   % (self.name, len(args), args))
-
-            srv = self.srv
-            servers = []
-            if not srv or self.srv == 'SMTP':
-                servers.append(TstampSender(config=self.config))
-            if not srv or self.srv == 'IMAP':
-                servers.append(TstampReceiver(config=self.config))
-
-            return (s.check_login(self.dry_run) for s in servers)
-
     def __init__(self, **kwds):
         kwds.setdefault('subcommands', baseapp.build_sub_cmds(*all_subcmds))
         super().__init__(**kwds)
 
 
+
+class SendCmd(_Subcmd):
+    """
+    Send emails to be timestamped.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] [<report-file-1> ...]
+
+    - Do not use this command directly (unless experimenting) - prefer the `project tstamp` sub-command.
+    - If '-' is given or no files at all, it reads from STDIN.
+    - Many options related to sending & receiving the email are expected to be stored in the config-file.
+    - Use --verbose to print the timestamped email.
+    """
+
+    examples = trt.Unicode("""
+        To send a dice-report for a prepared project you have to know the `vehicle_family_id`:
+
+            git  cat-file  tag  tstamps/RL-12-BM3-2017-0001/1 | %(cmd_chain)s
+        """)
+
+    dry_run = trt.Bool(
+        help="Verify dice-report and login to SMTP-server but do not actually send email to timestamp-service."
+    ).tag(config=True)
+
+    def __init__(self, **kwds):
+        from pandalone import utils as pndlu
+
+        kwds.setdefault('conf_classes', [TstampSender, crypto.GitAuthSpec])
+        kwds.setdefault('cmd_flags', {
+            ('n', 'dry-run'): (
+                {
+                    type(self).__name__: {'dry_run': True},
+                },
+                pndlu.first_line(type(self).dry_run.help)
+            )
+        })
+        super().__init__(**kwds)
+
+    def run(self, *args):
+        from boltons.setutils import IndexedSet as iset
+        from pandalone import utils as pndlu
+
+        files = iset(args) or ['-']
+        self.log.info("Timestamping '%s'...", tuple(files))
+
+        sender = TstampSender(config=self.config)
+        for file in files:
+            if file == '-':
+                self.log.info("Reading STDIN; paste message verbatim!")
+                mail_text = sys.stdin.read()
+            else:
+                self.log.debug("Reading '%s'...", pndlu.convpath(file))
+                with io.open(file, 'rt') as fin:
+                    mail_text = fin.read()
+
+            mail = sender.send_timestamped_email(mail_text, dry_run=self.dry_run)
+            if self.verbose or self.dry_run:
+                return str(mail)
+
+
+class ParseCmd(_Subcmd):
+    """
+    Verifies and derives the *decision* OK/SAMPLE flag from tstamped-response email.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] [<tstamped-file-1> ...]
+
+    - If '-' is given or no files at all, it reads from STDIN.
+    """
+    examples = trt.Unicode("""cat <mail> | %(cmd_chain)s""")
+
+    def __init__(self, **kwds):
+        kwds.setdefault('conf_classes', [TstampReceiver,
+                                         crypto.GitAuthSpec, crypto.StamperAuthSpec])
+        super().__init__(**kwds)
+
+    def run(self, *args):
+        from boltons.setutils import IndexedSet as iset
+        from pprint import pformat
+        from pandalone import utils as pndlu
+
+        files = iset(args) or ['-']
+        self.log.info("Parsing '%s'...", tuple(files))
+
+        rcver = TstampReceiver(config=self.config)
+        for file in files:
+            if file == '-':
+                self.log.info("Reading STDIN; paste message verbatim!")
+                mail_text = sys.stdin.read()
+            else:
+                self.log.debug("Reading '%s'...", pndlu.convpath(file))
+                with io.open(file, 'rt') as fin:
+                    mail_text = fin.read()
+
+            resp = rcver.parse_tstamp_response(mail_text)
+
+            yield pformat(resp)
+
+
+class RecvCmd(_Subcmd):
+    """
+    Fetch tstamps from IMAP server in one-shot or waiting mode, optionally searching for `project(s)` in subjetcs.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] [<project-1> ...]
+
+    The 
+    TODO: The receiving command waits for the response.and returns: 1: SAMPLE | 0: NO-SAMPLE
+    Any other code is an error-code - communicate it to JRC.
+
+    INVALID: To wait for the response after you have sent the dice-report, use this bash commands:
+
+        %(cmd_chain)s
+        if [ $? -eq 0 ]; then
+            echo "NO-SAMPLE"
+        elif [ $? -eq 1 ]; then
+            echo "SAMPLE!"
+        else
+            echo "ERROR CODE: $?"
+    """
+
+    dry_run = trt.Bool(
+        help="Verify dice-report and login to SMTP-server but do not actually send email to timestamp-service."
+    ).tag(config=True)
+
+    wait = trt.Bool(
+        False,
+        help="""
+        Whether to wait reading IMAP for any email(s) satisfying the criteria and report them.
+
+        WARN: 
+          Process must be killed afterwards, so start it in the background.
+          e.g. `START /B co2dice ...` or append the `&` character in Bash.
+        NOTE: 
+          Development flag, use `co2dice project tstamp receive` cmd instead!
+        """
+    ).tag(config=True)
+
+    def __init__(self, **kwds):
+        from pandalone import utils as pndlu
+
+        kwds.setdefault('conf_classes', [TstampSender, TstampReceiver])
+        kwds.setdefault('cmd_flags', {
+            ('n', 'dry-run'): (
+                {type(self).__name__: {'dry_run': True}},
+                pndlu.first_line(type(self).dry_run.help)
+            ),
+            'wait': (
+                {type(self).__name__: {'wait': True}},
+                pndlu.first_line(type(self).wait.help)
+            ),
+        })
+        kwds.setdefault('cmd_aliases', {
+            'before': 'TstampReceiver.before_date',
+            'after': 'TstampReceiver.after_date',
+        })
+        super().__init__(**kwds)
+
+
+    def run(self, *args):
+        ## If `verbose`, too many small details, need flow.
+        default_flow_style = None if self.verbose else False
+        rcver = TstampReceiver(config=self.config)
+        for res in rcver.receive_timestamped_emails(self.wait, args,
+                                                    True, self.dry_run):
+
+            yield _mydump(res, default_flow_style=default_flow_style)
+
+
+class LoginCmd(_Subcmd):
+    """Attempts to login into SMTP server. """
+
+    dry_run = trt.Bool(
+        help="Verify dice-report and login to SMTP-server but do not actually send email to timestamp-service."
+    ).tag(config=True)
+
+    srv = trt.FuzzyEnum(
+        ['SMTP', 'IMAP'], allow_none=True,
+        help="""Which server to attempt to login; attempts to both if `None`."""
+    ).tag(config=True)
+
+    def __init__(self, **kwds):
+        from pandalone import utils as pndlu
+
+        kwds.setdefault('conf_classes', [TstampSender, TstampReceiver])
+        kwds.setdefault('cmd_flags', {
+            ('n', 'dry-run'): (
+                {type(self).__name__: {'dry_run': True}},
+                pndlu.first_line(type(self).dry_run.help)
+            ),
+            'smtp': (
+                {type(self).__name__: {'srv': 'SMTP'}},
+                "Attempts to login only to SMTP."
+            ),
+            'imap': (
+                {type(self).__name__: {'srv': 'IMAP'}},
+                "Attempts to login only to IMAP."
+            ),
+        })
+        super().__init__(**kwds)
+
+    def run(self, *args):
+        nargs = len(args)
+        if nargs > 0:
+            raise CmdException("Cmd '%s' takes no arguments, received %d: %r!"
+                               % (self.name, len(args), args))
+
+        srv = self.srv
+        servers = []
+        if not srv or self.srv == 'SMTP':
+            servers.append(TstampSender(config=self.config))
+        if not srv or self.srv == 'IMAP':
+            servers.append(TstampReceiver(config=self.config))
+
+        return (s.check_login(self.dry_run) for s in servers)
+
+
 all_subcmds = (
-    TstampCmd.LoginCmd,
-    TstampCmd.SendCmd,
-    TstampCmd.RecvCmd,
-    TstampCmd.ParseCmd
+    LoginCmd,
+    SendCmd,
+    RecvCmd,
+    ParseCmd
 )
