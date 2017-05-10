@@ -73,7 +73,7 @@ class TstampSpec(dice.DiceSpec):
         - False:      Do not use any encryption;  better use `no_auth` param,
                       not to reveal credentials in plain-text.
 
-        Tip: 
+        Tip:
           Microsoft Outlook/Yahoo servers use STARTTLS.
         See also:
          - https://www.fastmail.com/help/technical/ssltlsstarttls.html
@@ -414,7 +414,7 @@ class TstampReceiver(TstampSpec):
         help="""
         The mailbox folder name (case-sensitive except "INBOX") to search for tstamp responses in.
 
-        Tip: 
+        Tip:
           Although Gmail is not recommended, use '[Gmail]/All Mail'
           to search in all its folders.
         """
@@ -455,7 +455,7 @@ class TstampReceiver(TstampSpec):
         help="""
         Search messages sent before this point in time, in human readable form.
 
-        - eg: 
+        - eg:
           - yesterday, last year, previous Wednesday
           - 18/3/53              ## order depending on your locale
           - 10 days ago
@@ -476,9 +476,9 @@ class TstampReceiver(TstampSpec):
         default_value=['To', 'Subject', 'Date'],
         help="""
         The email items to fetch for each matched email.
-        
-        Usually one of: 
-            Delivered-To, Received, From, To, Subject, Date, 
+
+        Usually one of:
+            Delivered-To, Received, From, To, Subject, Date,
             Message-Id (always printed)
         """
     ).tag(config=True)
@@ -606,7 +606,7 @@ class TstampReceiver(TstampSpec):
             ts_verdict['stamper_id'] = stamper_id
             if not tag:
                 errlog("Failed parsing response content and/or stamper-id: %s\n%s",
-                               pformat(ts_parts), pformat(ts_verdict))
+                       pformat(ts_parts), pformat(ts_verdict))
                 if not force:
                     raise CmdException("Timestamp-response had no *stamper-id*: %s" % ts_parts['sigarmor'])
 
@@ -654,8 +654,8 @@ class TstampReceiver(TstampSpec):
         if self.no_auth or not self.auth_mechanisms:
             return
 
-        authlist = [(auth, method) for auth, method 
-                    in zip(['CRAM-MD5', 'PLAIN'], 
+        authlist = [(auth, method) for auth, method
+                    in zip(['CRAM-MD5', 'PLAIN'],
                            [srv.login_cram_md5, srv.login])
                     if 'AUTH=%s' % auth in srv.capabilities]
 
@@ -705,7 +705,7 @@ class TstampReceiver(TstampSpec):
     # IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
     #      https://yuji.wordpress.com/2011/06/22/python-imaplib-imap-example-with-gmail/
     def receive_timestamped_emails(self, is_wait, projects,
-                                  read_only, dry_run):
+                                   read_only, dry_run):
         """Yields all matched :class:`email.message.Message` emails from IMAP."""
         criteria = self._prepare_search_criteria(is_wait, projects)
         self._IDLE_supported = None
@@ -728,8 +728,8 @@ class TstampReceiver(TstampSpec):
     def _proc_emails1(self, is_wait, read_only, dry_run, criteria):
         with self.make_server(dry_run) as srv:
             self.login_srv(srv,  # If login denied, raises.
-                                self.user_account_resolved,
-                                self.decipher('user_pswd'))
+                           self.user_account_resolved,
+                           self.decipher('user_pswd'))
 
             self._IDLE_supported = 'IDLE' in srv.capabilities
 
@@ -776,7 +776,7 @@ class TstampReceiver(TstampSpec):
                 assert d == b')', 'Unexpected FETCH data(%i): %s' % (i, d)
                 continue
             m = email.message_from_bytes(d[1])
-            
+
             yield m
 
     def verify_recved_email(self, mail):
@@ -807,7 +807,7 @@ class TstampReceiver(TstampSpec):
 
 def _mydump(obj, indent=2, **kwds):
     import yaml
-    
+
     return yaml.dump(obj, indent=indent, **kwds)
 
 
@@ -831,9 +831,10 @@ def parse_as_RFC3501_date(cal, date):
 
     return dts
 
+
 def pairwise_ORed(items, item_printer):
     """
-    :param items: 
+    :param items:
         a non empty list/tuple
 
     >>> print(pairwise_ORed([1]))
@@ -861,20 +862,21 @@ def monkeypatch_imaplib_for_IDLE(imaplib):
     imaplib.Commands['IDLE'] = ('SELECTED',)
     imaplib.Commands['DONE'] = ('SELECTED',)
 
+
 def monkeypatch_imaplib_noop_debug_26543(imaplib):
     ## see https://bugs.python.org/issue26543
     import time
+
     def GOOD_untagged_response(self, typ, dat, name):
         if typ == 'NO':
             return typ, dat
-        if not name in self.untagged_responses:
+        if name not in self.untagged_responses:
             return typ, [None]
         data = self.untagged_responses.pop(name)
         if __debug__:
             if self.debug >= 5:
                 self._mesg('untagged_responses[%s] => %s' % (name, data))
         return typ, data
-
 
     if __debug__:
 
@@ -911,14 +913,15 @@ def monkeypatch_imaplib_noop_debug_26543(imaplib):
                     i = 0
                 n -= 1
 
+
 def wait_IDLE_IMAP_change(srv):
     """
     Use RFC2177 `IDLE` IMAP command to wait for any status change.
 
     :param sock_timeout:
         After 29 min, IMAP-server closes socket.
-    :return: 
-        the raw line that broke IDLE, just for logging it, 
+    :return:
+        the raw line that broke IDLE, just for logging it,
         because is not included in `imaplib` moduele's logs.
     """
     cmd = 'IDLE'
@@ -974,7 +977,6 @@ class TstampCmd(baseapp.Cmd):
     def __init__(self, **kwds):
         kwds.setdefault('subcommands', baseapp.build_sub_cmds(*all_subcmds))
         super().__init__(**kwds)
-
 
 
 class SendCmd(_Subcmd):
@@ -1039,7 +1041,7 @@ class SendCmd(_Subcmd):
 class RecvCmd(_Subcmd):
     """
     Fetch tstamps from IMAP server and derive *decisions* OK/SAMPLE flags.
-    
+
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<search-term-1> ...]
 
@@ -1052,16 +1054,16 @@ class RecvCmd(_Subcmd):
             %(cmd_chain)s --after today "IP-10-AAA-2017-1003"
             %(cmd_chain)s --after "last week"
             %(cmd_chain)s --after "1 year ago" --before "18 March 2017"
-            
+
         To wait for new mails arriving (and not to block console),
         on Linux:
             %(cmd_chain)s --wait &
             ## wait...
             kill %%1  ## Asumming this was the only job started.
-        
+
         On Windows:
             START \\B %(cmd_chain)s --wait
-            
+
         and kill with `TASKLIST/TASKKILL or with "Task Manager" GUI.
     """)
 
@@ -1074,9 +1076,9 @@ class RecvCmd(_Subcmd):
         help="""
         Whether to wait reading IMAP for any email(s) satisfying the criteria and report them.
 
-        WARN: 
+        WARN:
           Process must be killed afterwards, so start it in the background (see examples).
-        NOTE: 
+        NOTE:
           Development flag, use `co2dice project trecv` cmd for type-aprooval.
         """
     ).tag(config=True)
@@ -1110,13 +1112,12 @@ class RecvCmd(_Subcmd):
         })
         super().__init__(**kwds)
 
-
     def run(self, *args):
         ## If `verbose`, too many small details, need flow.
         default_flow_style = None if self.verbose else False
         rcver = TstampReceiver(config=self.config)
         for mail in rcver.receive_timestamped_emails(self.wait, args,
-                                                    True, self.dry_run):
+                                                     True, self.dry_run):
             if not self.raw:
                 res = rcver.verify_recved_email(mail)
                 yield _mydump(res, default_flow_style=default_flow_style)
@@ -1142,7 +1143,6 @@ class ParseCmd(_Subcmd):
 
     def run(self, *args):
         from boltons.setutils import IndexedSet as iset
-        from pprint import pformat
         from pandalone import utils as pndlu
 
         default_flow_style = None if self.verbose else False

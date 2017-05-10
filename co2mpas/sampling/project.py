@@ -1676,7 +1676,7 @@ class InitCmd(AppendCmd):
         In the simplest case, just create a new project like this:
 
             %(cmd_chain)s XX-12-YYY-2017-0000
-            
+
         To import both INPUT and OUTPUT files and generate report:
 
             %(cmd_chain)s --inp co2mpas_input.xlsx --out co2mpas_results.xlsx --report
@@ -1716,7 +1716,7 @@ class InitCmd(AppendCmd):
                     break
             else:
                 assert False, "Failed derriving project-id from: %s" % finfos
-            
+
             self.projects_db.proj_add(project)
 
 
@@ -1888,8 +1888,8 @@ class TparseCmd(_SubCmd):
 class TrecvCmd(TparseCmd):
     """
     Fetch tstamps from IMAP server, derive *decisions* OK/SAMPLE flags and store them (or compare with existing).
- 
-    
+
+
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<search-term-1> ...]
 
@@ -1909,16 +1909,16 @@ class TrecvCmd(TparseCmd):
             %(cmd_chain)s --after today "IP-10-AAA-2017-1003"
             %(cmd_chain)s --after "last week"
             %(cmd_chain)s --after "1 year ago" --before "18 March 2017"
-            
+
         To wait for new mails arriving (and not to block console),
         on Linux:
             %(cmd_chain)s --wait &
             ## wait...
             kill %%1  ## Asumming this was the only job started.
-        
+
         On Windows:
             START \\B %(cmd_chain)s --wait
-            
+
         and kill with `TASKLIST/TASKKILL or with "Task Manager" GUI.
     """)
 
@@ -1927,7 +1927,7 @@ class TrecvCmd(TparseCmd):
         help="""
         Whether to wait reading IMAP for any email(s) satisfying the criteria and report them.
 
-        WARN: 
+        WARN:
           Process must be killed afterwards, so start it in the background.
           e.g. `START /B co2dice ...` or append the `&` character in Bash.
         """
