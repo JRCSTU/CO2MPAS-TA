@@ -1643,11 +1643,14 @@ class AppendCmd(_SubCmd):
     def run(self, *args):
         ## TODO: Support heuristic inp/out classification
         pfiles = PFiles(inp=self.inp, out=self.out, other=args)
-        self.log.info("Importing report files...\n  %s", pfiles)
         if not pfiles.nfiles():
             raise CmdException(
                 "Cmd %r must be given at least one file argument, received %d: %r!"
                 % (self.name, pfiles.nfiles(), pfiles))
+        if pfiles.find_nonfiles():
+            raise CmdException("Cmd %r: missing or non-regular files: %s" %
+                               (self.name, pfiles.find_nonfiles()))
+        self.log.info("Importing report files...\n  %s", pfiles)
 
         return self.append_and_report(pfiles)
 
@@ -1707,6 +1710,10 @@ class InitCmd(AppendCmd):
         if len(args) == 1:
             return self.projects_db.proj_add(args[0])
         else:
+            if pfiles.find_nonfiles():
+                raise CmdException("Cmd %r: missing or non-regular files: %s" %
+                                   (self.name, pfiles.find_nonfiles()))
+
             from . import report
 
             repspec = report.Report(config=self.config)

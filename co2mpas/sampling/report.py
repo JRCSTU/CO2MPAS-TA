@@ -276,11 +276,14 @@ class ReportCmd(baseapp.Cmd):
         else:
             ## TODO: Support heuristic inp/out classification
             pfiles = PFiles(inp=self.inp, out=self.out, other=args)
-            self.log.info("Extracting %s from files...\n  %s", infos, pfiles)
             if not pfiles.nfiles():
                 raise CmdException(
                     "Cmd %r must be given at least one file argument, received %d: %r!"
                     % (self.name, pfiles.nfiles(), pfiles))
+            if pfiles.find_nonfiles():
+                raise CmdException("Cmd %r: missing or non-regular files: %s" %
+                                   (self.name, pfiles.find_nonfiles()))
+            self.log.info("Extracting %s from files...\n  %s", infos, pfiles)
 
         import yaml
 

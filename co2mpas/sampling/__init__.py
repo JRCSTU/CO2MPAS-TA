@@ -77,6 +77,14 @@ class PFiles(namedtuple('PFiles', all_io_kinds)):
     def nfiles(self):
         return sum(len(f) for f in self._asdict().values())
 
+    def find_nonfiles(self):
+        import os.path as osp
+        import itertools as itt
+
+        return [fpath for fpath in
+                itt.chain(self.inp, self.out, self.other)
+                if not osp.isfile(fpath)]
+
 
 #: Allow creation of PFiles with partial arguments.
 PFiles.__new__.__defaults__ = ([], ) * len(all_io_kinds)
