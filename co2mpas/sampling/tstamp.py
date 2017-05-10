@@ -987,25 +987,32 @@ class SendCmd(_Subcmd):
 
 class RecvCmd(_Subcmd):
     """
-    Fetch tstamps from IMAP server in one-shot or waiting mode, optionally searching for `project(s)` in subjetcs.
-
+    Fetch tstamps from IMAP server and derive *decisions* OK/SAMPLE flags.
+    
     SYNTAX
-        %(cmd_chain)s [OPTIONS] [<project-1> ...]
+        %(cmd_chain)s [OPTIONS] [<search-term-1> ...]
 
-    The 
-    TODO: The receiving command waits for the response.and returns: 1: SAMPLE | 0: NO-SAMPLE
-    Any other code is an error-code - communicate it to JRC.
-
-    INVALID: To wait for the response after you have sent the dice-report, use this bash commands:
-
-        %(cmd_chain)s
-        if [ $? -eq 0 ]; then
-            echo "NO-SAMPLE"
-        elif [ $? -eq 1 ]; then
-            echo "SAMPLE!"
-        else
-            echo "ERROR CODE: $?"
+    - Fetch of emails in one-shot search, or use --wait.
+    - For terms are searched in the email-subject - tip: use the project name(s).
     """
+
+    examples = trt.Unicode("""
+        To search emails in one-shot:
+            %(cmd_chain)s --after today "IP-10-AAA-2017-1003"
+            %(cmd_chain)s --after "last week"
+            %(cmd_chain)s --after "1 year ago" --before "18 March 2017"
+            
+        To wait for new mails arriving (and not to block console),
+        on Linux:
+            %(cmd_chain)s --wait &
+            ## wait...
+            kill %%1  ## Asumming this was the only job started.
+        
+        On Windows:
+            START \\B %(cmd_chain)s --wait
+            
+        and kill with `TASKLIST/TASKKILL or with "Task Manager" GUI.
+    """)
 
     dry_run = trt.Bool(
         help="Verify dice-report and login to SMTP-server but do not actually send email to timestamp-service."
@@ -1017,10 +1024,9 @@ class RecvCmd(_Subcmd):
         Whether to wait reading IMAP for any email(s) satisfying the criteria and report them.
 
         WARN: 
-          Process must be killed afterwards, so start it in the background.
-          e.g. `START /B co2dice ...` or append the `&` character in Bash.
+          Process must be killed afterwards, so start it in the background (see examples).
         NOTE: 
-          Development flag, use `co2dice project tstamp receive` cmd instead!
+          Development flag, use `co2dice project trecv` cmd for type-aprooval.
         """
     ).tag(config=True)
 
@@ -1076,6 +1082,7 @@ class ParseCmd(_Subcmd):
         from pprint import pformat
         from pandalone import utils as pndlu
 
+        default_flow_style = None if self.verbose else False
         files = iset(args) or ['-']
         self.log.info("Parsing '%s'...", tuple(files))
 
@@ -1089,9 +1096,9 @@ class ParseCmd(_Subcmd):
                 with io.open(file, 'rt') as fin:
                     mail_text = fin.read()
 
-            resp = rcver.parse_tstamp_response(mail_text)
+            res = rcver.parse_tstamp_response(mail_text)
 
-            yield pformat(resp)
+            yield _mydump(res, default_flow_style=default_flow_style)
 
 
 class LoginCmd(_Subcmd):

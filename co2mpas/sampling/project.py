@@ -1850,7 +1850,7 @@ class TparseCmd(_SubCmd):
             ),
             'build-registry': (
                 {
-                    'TparseCmd': {'build_registry': True},
+                    type(self).__name__: {'build_registry': True},
                 },
                 pndlu.first_line(type(self).build_registry.help)
             ),
@@ -1883,6 +1883,79 @@ class TparseCmd(_SubCmd):
         short, long = report.get('dice', ok), report
 
         return self._format_result(short, long)
+
+
+class TrecvCmd(TparseCmd):
+    """
+    Fetch tstamps from IMAP server, derive *decisions* OK/SAMPLE flags and store them (or compare with existing).
+ 
+    
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] [<search-term-1> ...]
+
+
+    - The fetching of emails can happen in one-shot or waiting mode.
+    - For terms are searched in the email-subject - tip: use the project name(s).
+    - If --force, ignores most verification/parsing errors.
+    - The --build-registry is for those handling "foreign" dices (i.e. TAAs),
+      that is, when you don't have the files of the projects in the repo.
+      With this option, tstamp-response get, it extracts the dice-repot and adds it
+      as a "broken" tag referring to projects that might not exist in the repo,
+      assuming they don't clash with pre-existing dice-reponses.
+    """
+
+    examples = trt.Unicode("""
+        %(cmd_chain)s --after today "IP-10-AAA-2017-1003"
+        %(cmd_chain)s --after "last week"
+        %(cmd_chain)s --after "1 year ago" --before "18 March 2017"
+    """)
+
+    wait = trt.Bool(
+        False,
+        help="""
+        Whether to wait reading IMAP for any email(s) satisfying the criteria and report them.
+
+        WARN: 
+          Process must be killed afterwards, so start it in the background.
+          e.g. `START /B co2dice ...` or append the `&` character in Bash.
+        """
+    ).tag(config=True)
+
+    def __init__(self, **kwds):
+        kwds.setdefault('cmd_aliases', {
+            'before': 'TstampReceiver.before_date',
+            'after': 'TstampReceiver.after_date',
+        })
+        kwds.setdefault('cmd_flags', {
+            ('n', 'dry-run'): (
+                {'Project': {'dry_run': True}},
+                "Pase the tstamped response without storing it in the project."
+            ),
+            'wait': (
+                {type(self).__name__: {'wait': True}},
+                pndlu.first_line(type(self).wait.help)
+            ),
+        })
+        super().__init__(**kwds)
+
+    def run(self, *args):
+        from . import tstamp
+
+        pdb = self.projects_db
+        rcver = tstamp.TstampReceiver(config=self.config)
+        for mail in rcver.receive_timestamped_emails(self.wait, args,
+                                                    True, self.dry_run):
+            ok = False
+            mail_text = mail.get_payload()
+            if self.build_registry:
+                report = pdb.proj_parse_stamped_and_assign_project(mail_text)
+            else:
+                proj = self.current_project
+                ok = proj.do_storedice(tstamp_txt=mail_text)
+                report = proj.result
+
+            short, long = report.get('dice', ok), report
+            yield self._format_result(short, long)
 
 
 class ExportCmd(_SubCmd):
@@ -2074,6 +2147,6 @@ class BackupCmd(_SubCmd):
 
 all_subcmds = (LsCmd, InitCmd, OpenCmd,
                AppendCmd, ReportCmd,
-               TstampCmd, TparseCmd,
+               TstampCmd, TrecvCmd, TparseCmd,
                StatusCmd,
                ExportCmd, ImportCmd, BackupCmd)
