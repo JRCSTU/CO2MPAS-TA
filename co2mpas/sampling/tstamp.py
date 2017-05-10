@@ -86,6 +86,7 @@ class TstampSpec(dice.DiceSpec):
         help="""Whether not to send any user/password credentials to the server"""
     ).tag(config=True)
 
+    @property
     def _ssl_resolved(self):
         """:return: a tuple of bool: (is_SSL, is_STARTTLS) """
         ssl, port = self.ssl, self.port
@@ -172,7 +173,7 @@ class TstampSpec(dice.DiceSpec):
         if port is not None:
             srv_kwds['port'] = port
         srv_cls = self.choose_server_class()
-        _, is_startssl = self._ssl_resolved()
+        _, is_startssl = self._ssl_resolved
 
         self.log.info("Connecting to %s%s: %s@%s(%s)...", srv_cls.__name__,
                       '(STARTTLS)' if is_startssl else '',
@@ -336,14 +337,14 @@ class TstampSender(TstampSpec):
         import smtplib
 
         self.monkeypatch_socks_module(smtplib)
-        is_ssl, _ = self._ssl_resolved()
+        is_ssl, _ = self._ssl_resolved
         cls = smtplib.SMTP_SSL if is_ssl else smtplib.SMTP
         cls.debuglevel = int(self.verbose)
 
         return cls
 
     def login_srv(self, srv, user, pswd):
-        _, is_starttls = self._ssl_resolved()
+        _, is_starttls = self._ssl_resolved
         if is_starttls:
             self.log.debug('STARTTLS...')
             srv.starttls(keyfile=self.mail_kwds.get('keyfile'),
@@ -642,13 +643,13 @@ class TstampReceiver(TstampSpec):
         monkeypatch_imaplib_noop_debug_26543(imaplib)
 
         imaplib.Debug = 1 + 2 * int(self.verbose) if self.verbose else 0
-        is_ssl, _ = self._ssl_resolved()
+        is_ssl, _ = self._ssl_resolved
         return imaplib.IMAP4_SSL if is_ssl else imaplib.IMAP4
 
     def login_srv(self, srv, user, pswd):
         from imaplib import IMAP4
 
-        _, is_starttls = self._ssl_resolved()
+        _, is_starttls = self._ssl_resolved
         if is_starttls:
             self.log.debug('STARTTLS...')
             srv.starttls()
