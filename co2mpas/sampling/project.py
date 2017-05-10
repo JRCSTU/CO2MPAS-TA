@@ -582,8 +582,8 @@ class Project(transitions.Machine, ProjectSpec):
         """
         import shutil
 
-        self.log.info('Importing files: %s...', event.kwargs)
         pfiles = _evarg(event, 'pfiles', PFiles)
+        self.log.info('Importing files: %s...', pfiles)
 
         ## Check extraction of report works ok,
         #  and that VFids match.
@@ -591,6 +591,7 @@ class Project(transitions.Machine, ProjectSpec):
         try:
             rep = self._report_spec()
             rep.get_dice_report(pfiles, expected_vfid=self.pname)
+            ## TODO: reuse these findos later, if --report given.
         except CmdException as ex:
             msg = "Failed extracting report from %s, due to: %s"
             if self.force:
@@ -1583,22 +1584,6 @@ class OpenCmd(_SubCmd):
         return projDB.proj_list(proj.pname, as_text=True) if self.verbose else str(proj)
 
 
-class InitCmd(_SubCmd):
-    """
-    Create a new project.
-
-    SYNTAX
-        %(cmd_chain)s [OPTIONS] <project>
-    """
-    def run(self, *args):
-        if len(args) != 1:
-            raise CmdException(
-                "Cmd %r takes exactly one argument as the project-name, received %r!"
-                % (self.name, args))
-
-        return self.projects_db.proj_add(args[0])
-
-
 class AppendCmd(_SubCmd):
     """
     Import the specified input/output co2mpas files into the *current project*.
@@ -1639,8 +1624,8 @@ class AppendCmd(_SubCmd):
 
     def __init__(self, **kwds):
         kwds.setdefault('cmd_aliases', {
-            ('i', 'inp'): ('AppendCmd.inp', pndlu.first_line(type(self).inp.help)),
-            ('o', 'out'): ('AppendCmd.out', pndlu.first_line(type(self).out.help)),
+            ('i', 'inp'): ('AppendCmd.inp', pndlu.first_line(AppendCmd.inp.help)),
+            ('o', 'out'): ('AppendCmd.out', pndlu.first_line(AppendCmd.out.help)),
         })
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
@@ -1648,8 +1633,8 @@ class AppendCmd(_SubCmd):
                 "Parse files but do not actually store them in the project."
             ),
             'report': (
-                {type(self).__name__: {'report': True}},
-                pndlu.first_line(type(self).dry_run.help)
+                {AppendCmd.__name__: {'report': True}},
+                pndlu.first_line(AppendCmd.report.help)
             ),
         })
         super().__init__(**kwds)
@@ -1663,6 +1648,9 @@ class AppendCmd(_SubCmd):
                 "Cmd %r must be given at least one file argument, received %d: %r!"
                 % (self.name, pfiles.nfiles(), pfiles))
 
+        return self.append_and_report(self, pfiles)
+
+    def append_and_report(self, pfiles):
         proj = self.current_project
         ok = proj.do_addfiles(pfiles=pfiles)
 
@@ -1684,31 +1672,54 @@ class InitCmd(AppendCmd):
     """
 
     examples = trt.Unicode("""
+        In the simplest case, just create a new project like this:
+
+            %(cmd_chain)s XX-12-YYY-2017-0000
+            
         To import both INPUT and OUTPUT files and generate report:
 
             %(cmd_chain)s --inp co2mpas_input.xlsx --out co2mpas_results.xlsx --report
+
+        Notice that in this case the project-name gets derived from the files.
         """)
 
-    inp = trt.List(
-        trt.Unicode(),
-        help="Specify co2mpas INPUT files; use this option one or more times."
-    ).tag(config=True)
-    out = trt.List(
-        trt.Unicode(),
-        help="Specify co2mpas OUTPUT files; use this option one or more times."
-    ).tag(config=True)
-
-    report = trt.Bool(
-        help="When True, proceed to generate report; will fail if files missing"
-    ).tag(config=True)
-
     def run(self, *args):
-        if len(args) != 1:
-            raise CmdException(
-                "Cmd %r takes exactly one argument as the project-name, received %r!"
-                % (self.name, args))
+        pfiles = PFiles(inp=self.inp, out=self.out, other=args)
 
-        return self.projects_db.proj_add(args[0])
+        if not (len(args) == 1) ^ bool(pfiles.inp or pfiles.out):
+            raise CmdException(
+                "Cmd %r takes either a project-name or extracts it "
+                "from --inp or --out files given; received args(%s), %s!"
+                % (self.name, args, pfiles))
+
+        if self.report and not (pfiles.inp and pfiles.out):
+            raise CmdException(
+                "Cmd %r needs BOTH --inp and --out files when --report given; "
+                "received args(%s), %s!"
+                % (self.name, args, pfiles))
+
+
+        if len(args) == 1:
+            return self.projects_db.proj_add(args[0])
+        else:
+            from . import report
+
+            repspec = report.Report(config=self.config)
+            finfos = repspec.get_dice_report(pfiles)
+            for fpath, data in finfos.items():
+                iokind = data['iokind']
+                if iokind in ('inp', 'out'):
+                    project = data['report']['vehicle_family_id']
+                    self.log.info("Project '%s' derived from '%s' file: %s",
+                                  project, iokind, fpath)
+                    break
+            else:
+                assert False, "Failed derriving project-id from: %s" % finfos
+            
+            self.projects_db.proj_add(project)
+
+
+        return self.append_and_report(pfiles)
 
 
 class ReportCmd(_SubCmd):
