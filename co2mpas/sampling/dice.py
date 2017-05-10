@@ -88,7 +88,7 @@ class DiceSpec(baseapp.Spec):
                                  % (myname, proposal['trait'].name))
         return value
 
-    ## Traitlets @validator to be used by sub-classes 
+    ## Traitlets @validator to be used by sub-classes
     #  like that::
     #
     #      self._register_validator(DiceSpec._warn_deprecated, ['a', ])
@@ -98,8 +98,9 @@ class DiceSpec(baseapp.Spec):
         myname = type(self).__name__
         self.log.warning("Trait `%s.%s`: %s" % (
             myname, t.name, t.help))
-        
+
         return proposal['value']
+
 
 ###################
 ##    Commands   ##
@@ -168,7 +169,7 @@ def all_app_configurables() -> Tuple:
     from co2mpas.sampling import crypto, project, report, tstamp
     return all_cmds() + (
         baseapp.Spec, project.ProjectsDB,  # TODO: specs maybe missing from all-config-classes.
-        crypto.VaultSpec,
+        crypto.VaultSpec, crypto.GitAuthSpec, crypto.StamperAuthSpec,
         report.Report,
         tstamp.TstampSender,
         tstamp.TstampReceiver,

@@ -15,10 +15,10 @@ The Dice:
 - fix(report, :git:`370`): was always accepting dice-reports, even if TA-flags were
   "engineering".
 - refact(tstamp): rename configuration params (old names issue deprecation warnings)::
-  
+
       x_recipients           --> tstamp_recipients
-      timestamping_addresses --> tstamper_address
-    
+      timestamping_addresses --> tstamper_address  ## Not a list anymore!
+
 - feat(tstamp, :git:`368`): Support *STARTTLS*, enhance ``DiceSpec.ssl`` config param::
 
       Bool/enumeration for what encryption to use when connecting to SMTP/IMAP servers:
@@ -32,15 +32,15 @@ The Dice:
                     not to reveal credentials in plain-text.
 
 - feat(tstamp, :git:`384`): support SOCKSv4/v5 for tunneling SMTP/IMAP through firewalls.
-- feat(tstamp): Add ``tstamp recv`` and ``project trecv`` commands that 
+- feat(tstamp): Add ``tstamp recv`` and ``project trecv`` commands that
   connect to *IMAP* server, search for tstamp emails, parse them and
   derive the *decisions OK/SAMPLE* flags.  Can work also in "daemon" mode,
   waiting for new emails to arrive.
-- feat(tstamp, :git:`394`): Unify the initial project sub-cmds ``init``, 
+- feat(tstamp, :git:`394`): Unify the initial project sub-cmds ``init``,
   ``append`` and ``report``, so now it's possible to run all three of them::
-  
+
       co2dice project init --inp co2mpas_input.xlsx --out co2mpas_results.xlsx --report
-  
+
   The ``project append`` supports also  the new ``--report`` option.
 - feat(tstamp): ``tstamp login`` can check *SMTP*/*IMAP* server connection selectively.
 

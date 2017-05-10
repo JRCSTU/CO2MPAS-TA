@@ -106,12 +106,12 @@ class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
                 cmsg_txt = cmsg_txt[m.end():]
 
             _CommitMsg._check_commit_msg_version(cmsg_txt[:30])
-            l = yaml.load(cmsg_txt)
-            if not isinstance(l, list) or not l:
+            m = yaml.load(cmsg_txt)
+            if not isinstance(m, list) or not m:
                 raise ValueError("expected a non-empty list")
 
-            headline = l[0]
-            cmsg = _CommitMsg(data=l[1:], **headline)
+            headline = m[0]
+            cmsg = _CommitMsg(data=m[1:], **headline)
 
             return cmsg
         except Exception as ex:
@@ -151,6 +151,7 @@ def _pname2ref_name(pname: Text) -> Text:
 
 def _get_ref(refs, refname: Text, default: 'git.Reference'=None) -> 'git.Reference':
     return refname and refname in refs and refs[refname] or default
+
 
 _DICES_PREFIX = 'dices/'
 
@@ -1590,9 +1591,8 @@ class AppendCmd(_SubCmd):
     Import the specified input/output co2mpas files into the *current project*.
 
     SYNTAX
-        %(cmd_chain)s [OPTIONS] ( --inp <co2mpas-file> |
-                                  --out <co2mpas-file> |
-                                  <any-file> ) ...
+        %(cmd_chain)s [OPTIONS] ( --inp <co2mpas-input> | --out <co2mpas-output> ) ...
+                                [<any-other-file>] ...
 
     - To report and tstamp a project, one file (at least) from *inp* & *out* must be given.
     - If an input/output are already present in the current project, use --force.
@@ -1670,6 +1670,11 @@ class InitCmd(AppendCmd):
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] <project>
+        %(cmd_chain)s [OPTIONS] ( --inp <co2mpas-input> | --out <co2mpas-output> ) ...
+                                [<any-other-file>] ...
+
+    - The 1st form, the project-id is given explicetely.
+    - The 2nd form, the project-id gets derrived from the files, and must be identical.
     """
 
     examples = trt.Unicode("""
@@ -1698,7 +1703,6 @@ class InitCmd(AppendCmd):
                 "Cmd %r needs BOTH --inp and --out files when --report given; "
                 "received args(%s), %s!"
                 % (self.name, args, pfiles))
-
 
         if len(args) == 1:
             return self.projects_db.proj_add(args[0])
@@ -1958,7 +1962,7 @@ class TrecvCmd(TparseCmd):
         pdb = self.projects_db
         rcver = tstamp.TstampReceiver(config=self.config)
         for mail in rcver.receive_timestamped_emails(self.wait, args,
-                                                    True, dry_run=False):
+                                                     True, dry_run=False):
             ok = False
             mail_text = mail.get_payload()
             if self.build_registry:

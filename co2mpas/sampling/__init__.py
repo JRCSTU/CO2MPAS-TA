@@ -9,8 +9,7 @@ co2dice: prepare/sign/send/receive/validate/archive Type Approval sampling email
 
 This is an articulated application comprised of the following:
 
-- A GUI application, based on the `kivy UI framework
-  <https://kivy.org/>` or plain :mod:`tkinter`;
+- A GUI application, based on the :mod:`tkinter` framework;
 - a library performing the backend-tasks,
   implemented with :class:`baseapp.Spec` instances;
 - the ``co2dice`` hierarchical cmd-line tool,
@@ -30,8 +29,6 @@ The ``Spec`` and ``Cmd`` classes are build on top of the
 `traitlets framework <http://traitlets.readthedocs.io/>`
 to read and validate configuration parameters found in files
 and/or cmd-line arguments (see :mod:`baseapp`).
-
-The GUI part relies additionally on the *kivy* configuration scheme.
 
 For usage examples read the "Random Sampling" section in the manual (http://co2mpas.io).
 """
@@ -56,9 +53,9 @@ class PFiles(namedtuple('PFiles', all_io_kinds)):
     """
     Holder of project-files stored in the repository.
 
-    :ivar inp: ``[fname1, ...]``
-    :ivar out: ``[fname1, ...]``
-    :ivar other: ``{index: fname}``
+    :ivar inp:   ``[fname1, ...]``
+    :ivar out:   ``[fname1, ...]``
+    :ivar other: ``[fname1, ...]``
     """
     ## INFO: Defined here to avoid circular deps between report.py <-> project.py,
     #  because it is used in their function declarations.
