@@ -1649,7 +1649,7 @@ class AppendCmd(_SubCmd):
                 "Cmd %r must be given at least one file argument, received %d: %r!"
                 % (self.name, pfiles.nfiles(), pfiles))
 
-        return self.append_and_report(self, pfiles)
+        return self.append_and_report(pfiles)
 
     def append_and_report(self, pfiles):
         proj = self.current_project
@@ -1718,7 +1718,6 @@ class InitCmd(AppendCmd):
                 assert False, "Failed derriving project-id from: %s" % finfos
 
             self.projects_db.proj_add(project)
-
 
         return self.append_and_report(pfiles)
 
