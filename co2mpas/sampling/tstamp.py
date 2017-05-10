@@ -278,6 +278,10 @@ class TstampSender(TstampSpec):
         """
     ).tag(config=True)
 
+    @property
+    def _from_address_resolved(self):
+        return self.from_address or self.user_email
+
     def __init__(self, *args, **kwds):
         from .dice import DiceSpec
 
@@ -319,7 +323,7 @@ class TstampSender(TstampSpec):
 
         mail = MIMEText(msg, 'plain')
         mail['Subject'] = '%s %s' % (self.subject, subject_suffix)
-        mail['From'] = self.from_address or self.user_email
+        mail['From'] = self._from_address_resolved
         mail['To'] = ', '.join(self._tstamper_address_resolved)
         if self.cc_addresses:
             mail['Cc'] = ', '.join(self.cc_addresses)
@@ -383,7 +387,7 @@ class TstampSender(TstampSpec):
             level = WARNING if dry_run else INFO
             prefix = "DRY-RUN:  No email has been sent!\n  " if dry_run else ''
             self.log.log(level, "%sTimestamping %d-char email from '%s' to %s-->%s",
-                         prefix, len(msg), self.from_address,
+                         prefix, len(msg), self._from_address_resolved,
                          self._tstamper_address_resolved,
                          self.tstamp_recipients + self.x_recipients)
             srv.send_message(mail)
