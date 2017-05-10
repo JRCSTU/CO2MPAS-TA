@@ -274,7 +274,8 @@ def _generate_files_from_streams(
             os.makedirs(dst_folder)
         else:
             raise CmdException(
-                "Destination folder '%s' does not exist!" % dst_folder)
+                "Destination folder '%s' does not exist!  "
+                "Use --force to create it." % dst_folder)
     if not osp.isdir(dst_folder):
         raise CmdException(
             "Destination '%s' is not a <output-folder>!" % dst_folder)
@@ -283,7 +284,7 @@ def _generate_files_from_streams(
         dst_fpath = osp.join(dst_folder, src_fname)
         if osp.exists(dst_fpath) and not force:
             msg = "Creating %s file '%s' skipped, already exists! \n  " \
-                  "Use '-f' to overwrite it."
+                  "Use --force to overwrite it."
             log.info(msg, file_category, dst_fpath)
         else:
             log.info("Creating %s file '%s'...", file_category, dst_fpath)
@@ -344,7 +345,7 @@ def save_template(dst_fpaths, force):
         if osp.exists(fpath) and not force:
             raise CmdException(
                 "Writing file '%s' skipped, already exists! "
-                "Use '-f' to overwrite it." % fpath)
+                "Use --force to overwrite it." % fpath)
         if osp.isdir(fpath):
             raise CmdException(
                 "Expecting a file-name instead of directory '%s'!" % fpath)
