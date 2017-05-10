@@ -720,7 +720,7 @@ def _calculate_co2_emissions(
 
     :param tau_function:
         Tau-function of the extended Willans curve.
-    :type tau_function: function
+    :type tau_function: callable
 
     :param fmep_model:
         Engine FMEP model.
@@ -856,7 +856,7 @@ def define_co2_emissions_model(
 
     :param tau_function:
         Tau-function of the extended Willans curve.
-    :type tau_function: function
+    :type tau_function: callable
 
     :param fmep_model:
         Engine FMEP model.
@@ -864,7 +864,7 @@ def define_co2_emissions_model(
 
     :return:
         CO2 emissions model (co2_emissions = models(params)).
-    :rtype: function
+    :rtype: callable
     """
 
     ts = (engine_speeds_out, engine_powers_out, engine_coolant_temperatures,
@@ -1151,7 +1151,7 @@ def identify_co2_emissions(
 
     :param co2_emissions_model:
         CO2 emissions model (co2_emissions = models(params)).
-    :type co2_emissions_model: function
+    :type co2_emissions_model: callable
 
     :param params_initial_guess:
         Initial guess of co2 emission model params.
@@ -1172,7 +1172,7 @@ def identify_co2_emissions(
     :param co2_error_function_on_phases:
         Error function (according to co2 emissions phases) to calibrate the CO2
         emission model params.
-    :type co2_error_function_on_phases: function
+    :type co2_error_function_on_phases: callable
 
     :param engine_coolant_temperatures:
         Engine coolant temperature vector [°C].
@@ -1218,7 +1218,7 @@ def define_co2_error_function_on_emissions(co2_emissions_model, co2_emissions):
 
     :param co2_emissions_model:
         CO2 emissions model (co2_emissions = models(params)).
-    :type co2_emissions_model: function
+    :type co2_emissions_model: callable
 
     :param co2_emissions:
         CO2 instantaneous emissions vector [CO2g/s].
@@ -1227,7 +1227,7 @@ def define_co2_error_function_on_emissions(co2_emissions_model, co2_emissions):
     :return:
         Error function (according to co2 emissions time series) to calibrate the
         CO2 emission model params.
-    :rtype: function
+    :rtype: callable
     """
 
     def error_func(params, sub_values=None):
@@ -1247,7 +1247,7 @@ def define_co2_error_function_on_phases(
 
     :param co2_emissions_model:
         CO2 emissions model (co2_emissions = models(params)).
-    :type co2_emissions_model: function
+    :type co2_emissions_model: callable
 
     :param phases_co2_emissions:
         Cumulative CO2 of cycle phases [CO2g].
@@ -1268,7 +1268,7 @@ def define_co2_error_function_on_phases(
     :return:
         Error function (according to co2 emissions phases) to calibrate the CO2
         emission model params.
-    :rtype: function
+    :rtype: callable
     """
 
     def error_func(params, phases=None):
@@ -1303,7 +1303,7 @@ def predict_co2_emissions(co2_emissions_model, params):
 
     :param co2_emissions_model:
         CO2 emissions model (co2_emissions = models(params)).
-    :type co2_emissions_model: function
+    :type co2_emissions_model: callable
 
     :param params:
         CO2 emission model parameters (a2, b2, a, b, c, l, l2, t, trg).
@@ -1509,7 +1509,7 @@ def define_tau_function(after_treatment_temperature_threshold):
 
     :return:
         Tau-function of the extended Willans curve.
-    :rtype: function
+    :rtype: callable
     """
     T_mean, T_end = np.array(after_treatment_temperature_threshold) + 273
     s = np.log(T_end / T_mean) / sci_sta.norm.ppf(0.95)
@@ -1578,12 +1578,12 @@ def calibrate_co2_params(
     :param co2_error_function_on_emissions:
         Error function (according to co2 emissions time series) to calibrate the
         CO2 emission model params.
-    :type co2_error_function_on_emissions: function
+    :type co2_error_function_on_emissions: callable
 
     :param co2_error_function_on_phases:
         Error function (according to co2 emissions phases) to calibrate the CO2
         emission model params.
-    :type co2_error_function_on_phases: function
+    :type co2_error_function_on_phases: callable
 
     :param co2_params_initial_guess:
         Initial guess of CO2 emission model params.
@@ -1692,7 +1692,7 @@ def calibrate_model_params(
 
     :param error_function:
         Model error function.
-    :type error_function: function
+    :type error_function: callable
 
     :param params:
         Initial guess of model params.
@@ -2280,7 +2280,7 @@ def calibrate_co2_params_v1(
 
     :param co2_emissions_model:
         CO2 emissions model (co2_emissions = models(params)).
-    :type co2_emissions_model: function
+    :type co2_emissions_model: callable
 
     :param fuel_consumptions:
         Instantaneous fuel consumption vector [g/s].

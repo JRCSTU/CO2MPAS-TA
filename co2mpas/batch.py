@@ -91,7 +91,7 @@ def process_folder_files(input_files, output_folder,
         A callable that will receive a 2 tuple for each file as it is produced::
 
                 (<filepath>, <contents>)
-    :type result_listener: function
+    :type result_listener: callable
 
     """
 

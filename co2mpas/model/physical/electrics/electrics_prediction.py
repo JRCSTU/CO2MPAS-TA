@@ -74,7 +74,7 @@ def calculate_alternator_current(
 
     :param alternator_current_model:
         Alternator current model.
-    :type alternator_current_model: function
+    :type alternator_current_model: callable
 
     :param engine_start_current:
         Current demand to start the engine [A].
@@ -166,7 +166,7 @@ def predict_alternator_status(
 
     :param alternator_status_model:
          Function that predicts the alternator status.
-    :type alternator_status_model: function
+    :type alternator_status_model: callable
 
     :param time:
         Time [s].

@@ -126,7 +126,7 @@ def calibrate_start_stop_model(
 
     :return:
         Start/stop model.
-    :rtype: function
+    :rtype: callable
     """
 
     soc = np.zeros_like(state_of_charges)

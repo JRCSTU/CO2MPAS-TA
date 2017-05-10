@@ -165,7 +165,7 @@ def median_filter(x, y, dx_window, filter=statistics.median_high):
 
     :param filter:
         Filter function.
-    :type filter: function
+    :type filter: callable
 
     :return:
         Moving median-high of y values over a constant dx.
@@ -205,11 +205,11 @@ def reject_outliers(x, n=1, med=np.median, std=np.std):
 
     :param med:
         Median function.
-    :type med: function, optional
+    :type med: callable, optional
 
     :param std:
         Standard deviation function.
-    :type std: function, optional
+    :type std: callable, optional
 
     :return:
         Median and standard deviation.
@@ -236,7 +236,7 @@ def ret_v(v):
 
     :return:
         Function that return the argument v.
-    :rtype: function
+    :rtype: callable
     """
 
     return lambda: v

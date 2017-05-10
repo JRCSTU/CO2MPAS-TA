@@ -160,7 +160,7 @@ def calibrate_cold_start_speed_model(
 
     :return:
         Cold start speed model.
-    :rtype: function
+    :rtype: callable
     """
 
     model = _calibrate_models(
@@ -180,7 +180,7 @@ def calculate_cold_start_speeds_delta(
 
     :param cold_start_speed_model:
         Cold start speed model.
-    :type cold_start_speed_model: function
+    :type cold_start_speed_model: callable
 
     :param on_engine:
         If the engine is on [-].

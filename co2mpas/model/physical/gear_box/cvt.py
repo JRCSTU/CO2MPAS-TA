@@ -43,7 +43,7 @@ def calibrate_cvt(
 
     :return:
         Continuously variable transmission model.
-    :rtype: function
+    :rtype: callable
     """
     b = on_engine
     X = np.column_stack((velocities, accelerations, gear_box_powers_out))[b]
@@ -71,7 +71,7 @@ def predict_gear_box_speeds_in(
 
     :param cvt:
         Continuously variable transmission model.
-    :type cvt: function
+    :type cvt: callable
 
     :param velocities:
         Vehicle velocity [km/h].

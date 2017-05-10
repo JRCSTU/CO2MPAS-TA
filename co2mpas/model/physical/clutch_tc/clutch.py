@@ -298,7 +298,7 @@ def default_clutch_k_factor_curve():
 
     :return:
         k factor curve.
-    :rtype: function
+    :rtype: callable
     """
     from ..defaults import dfl
     par = dfl.functions.default_clutch_k_factor_curve

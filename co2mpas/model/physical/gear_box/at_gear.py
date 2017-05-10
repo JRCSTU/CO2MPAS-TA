@@ -237,7 +237,7 @@ def correct_gear_v0(
 
     :return:
         A function to correct the predicted gear.
-    :rtype: function
+    :rtype: callable
     """
 
     mvl = _upgrade_gsm(mvl, velocity_speed_ratios, cycle_type)
@@ -283,7 +283,7 @@ def correct_gear_v1(
 
     :return:
         A function to correct the predicted gear.
-    :rtype: function
+    :rtype: callable
     """
 
     mvl = _upgrade_gsm(mvl, velocity_speed_ratios, cycle_type)
@@ -338,7 +338,7 @@ def correct_gear_v2(
 
     :return:
         A function to correct the predicted gear.
-    :rtype: function
+    :rtype: callable
     """
 
     correct_gear = CorrectGear(velocity_speed_ratios, idle_engine_speed)
@@ -365,7 +365,7 @@ def correct_gear_v3(velocity_speed_ratios, idle_engine_speed):
 
     :return:
         A function to correct the predicted gear.
-    :rtype: function
+    :rtype: callable
     """
 
     correct_gear = CorrectGear(velocity_speed_ratios, idle_engine_speed)
@@ -441,7 +441,7 @@ def define_gear_filter(
 
     :return:
         Gear filter function.
-    :rtype: function
+    :rtype: callable
     """
 
     def gear_filter(times, gears):
@@ -667,7 +667,7 @@ def calibrate_gear_shifting_cmv(
 
     :param correct_gear:
         A function to correct the predicted gear.
-    :type correct_gear: function
+    :type correct_gear: callable
 
     :param gears:
         Gear vector [-].
@@ -713,7 +713,7 @@ def calibrate_gear_shifting_cmv_hot_cold(
 
     :param correct_gear:
         A function to correct the predicted gear.
-    :type correct_gear: function
+    :type correct_gear: callable
 
     :param times:
         Time vector [s].
@@ -1100,11 +1100,11 @@ def prediction_gears_decision_tree(
 
     :param correct_gear:
         A function to correct the gear predicted.
-    :type correct_gear: function
+    :type correct_gear: callable
 
     :param gear_filter:
         Gear filter function.
-    :type gear_filter: function
+    :type gear_filter: callable
 
     :param decision_tree:
         A decision tree classifier to predict gears.
@@ -1147,11 +1147,11 @@ def prediction_gears_gsm(
 
     :param correct_gear:
         A function to correct the gear predicted.
-    :type correct_gear: function
+    :type correct_gear: callable
 
     :param gear_filter:
         Gear filter function.
-    :type gear_filter: function
+    :type gear_filter: callable
 
     :param cycle_type:
         Cycle type (WLTP or NEDC).
@@ -1213,11 +1213,11 @@ def prediction_gears_gsm_hot_cold(
 
     :param correct_gear:
         A function to correct the gear predicted.
-    :type correct_gear: function
+    :type correct_gear: callable
 
     :param gear_filter:
         Gear filter function.
-    :type gear_filter: function
+    :type gear_filter: callable
 
     :param cycle_type:
         Cycle type (WLTP or NEDC).

@@ -48,7 +48,7 @@ def define_k_factor_curve(stand_still_torque_ratio=1.0, lockup_speed_ratio=0.0):
 
     :return:
         k factor curve.
-    :rtype: function
+    :rtype: callable
     """
 
     x = [0, lockup_speed_ratio, 1]
@@ -69,7 +69,7 @@ def calculate_clutch_tc_powers(
 
     :param k_factor_curve:
         k factor curve.
-    :type k_factor_curve: function
+    :type k_factor_curve: callable
 
     :param gear_box_speeds_in:
         Gear box speed vector [RPM].

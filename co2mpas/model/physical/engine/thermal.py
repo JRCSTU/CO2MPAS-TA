@@ -306,7 +306,7 @@ def calibrate_engine_temperature_regression_model(
 
     :return:
         The calibrated engine temperature regression model.
-    :rtype: function
+    :rtype: callable
     """
 
     model = ThermalModel()
@@ -327,7 +327,7 @@ def predict_engine_coolant_temperatures(
 
     :param model:
         Engine temperature regression model.
-    :type model: function
+    :type model: callable
 
     :param times:
         Time vector [s].

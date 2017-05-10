@@ -48,7 +48,7 @@ def predict_vehicle_electrics_and_engine_behavior(
 
     :param electrics_model:
         Electrics model.
-    :type electrics_model: function
+    :type electrics_model: callable
 
     :param start_stop_model:
         Start/stop model.

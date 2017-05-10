@@ -450,7 +450,7 @@ def define_alternator_current_model(alternator_charging_currents):
 
     :return:
         Alternator current model.
-    :rtype: function
+    :rtype: callable
     """
 
     return AlternatorCurrentModel(alternator_charging_currents)
@@ -577,7 +577,7 @@ def calibrate_alternator_current_model(
 
     :return:
         Alternator current model.
-    :rtype: function
+    :rtype: callable
     """
     model = AlternatorCurrentModel()
     model.fit(
@@ -978,7 +978,7 @@ def calibrate_alternator_status_model(
 
     :return:
         A function that predicts the alternator status.
-    :rtype: function
+    :rtype: callable
     """
 
     model = Alternator_status_model(
@@ -1014,7 +1014,7 @@ def define_alternator_status_model(
 
     :return:
         A function that predicts the alternator status.
-    :rtype: function
+    :rtype: callable
     """
 
     def bers_pred(X):
@@ -1107,7 +1107,7 @@ def define_electrics_model(
 
     :param alternator_current_model:
         Alternator current model.
-    :type alternator_current_model: function
+    :type alternator_current_model: callable
 
     :param max_battery_charging_current:
         Maximum charging current of the battery [A].
@@ -1139,7 +1139,7 @@ def define_electrics_model(
 
     :return:
        Electrics model.
-    :rtype: function
+    :rtype: callable
     """
 
     electrics_model = ElectricModel(
@@ -1161,7 +1161,7 @@ def predict_vehicle_electrics(
 
     :param electrics_model:
         Electrics model.
-    :type electrics_model: function
+    :type electrics_model: callable
 
     :param initial_state_of_charge:
         Initial state of charge of the battery [%].
