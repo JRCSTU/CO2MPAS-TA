@@ -1458,20 +1458,6 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 ###################
 
 class _SubCmd(baseapp.Cmd):
-    def __init__(self, **kwds):
-        dkwds = {
-            'conf_classes': [ProjectsDB, Project],
-            'cmd_flags': {
-                'reset-git-settings': (
-                    {
-                        'ProjectsDB': {'reset_git_settings': True},
-                    }, pndlu.first_line(ProjectsDB.reset_git_settings.help)
-                )
-            },
-        }
-        dkwds.update(kwds)
-        super().__init__(**dkwds)
-
     @property
     def projects_db(self) -> ProjectsDB:
         p = ProjectsDB.instance(config=self.config)
@@ -1524,6 +1510,14 @@ class ProjectCmd(_SubCmd):
 
     def __init__(self, **kwds):
         dkwds = {
+            'conf_classes': [ProjectsDB, Project],
+            'cmd_flags': {
+                'reset-git-settings': (
+                    {
+                        'ProjectsDB': {'reset_git_settings': True},
+                    }, pndlu.first_line(ProjectsDB.reset_git_settings.help)
+                )
+            },
             'subcommands': baseapp.build_sub_cmds(*all_subcmds),
         }
         dkwds.update(kwds)
@@ -1800,7 +1794,8 @@ class TstampCmd(_SubCmd):
         from . import crypto
         from . import tstamp
 
-        kwds.setdefault('conf_classes', [tstamp.TstampSender, crypto.GitAuthSpec])
+        kwds.setdefault('conf_classes', [
+            tstamp.TstampSender, crypto.GitAuthSpec])
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
                 {
@@ -1960,7 +1955,6 @@ class TrecvCmd(TparseCmd):
                 pndlu.first_line(type(self).wait.help)
             ),
         })
-        self.cmd_aliases = self.cmd_aliases.copy()
         super().__init__(**kwds)
 
     def run(self, *args):

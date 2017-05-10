@@ -830,6 +830,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         from . import crypto
 
         cls = type(self)
+        ## FIXME: can all move o CO2diceCmd and remain here containers only.
         dkwds = {
             ## Traits defaults are always applied...??
             #
