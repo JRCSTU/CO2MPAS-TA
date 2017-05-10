@@ -164,6 +164,7 @@ class Report(baseapp.Spec):
             fpath = pndlu.convpath(fpath)
             yield (fpath, 'other', None)
 
+    ## TODO: Rename Report to `extract_file_infos()`.
     def get_dice_report(self, iofiles: PFiles, expected_vfid=None):
         tuples = self._yield_report_tuples_from_iofiles(iofiles, expected_vfid)
         report = OrderedDict((file_tuple[0], _report_tuple_2_dict(*file_tuple))
@@ -228,12 +229,6 @@ class ReportCmd(baseapp.Cmd):
     __report = None
 
     @property
-    def repspec(self):
-        if not self.__report:
-            self.__report = Report(config=self.config)
-        return self.__report
-
-    @property
     def projects_db(self):
         p = project.ProjectsDB.instance(config=self.config)
         p.config = self.config
@@ -289,7 +284,7 @@ class ReportCmd(baseapp.Cmd):
 
         import yaml
 
-        repspec = self.repspec
+        repspec = Report(config=self.config)
         if self.vfids_only:
             repspec.force = True  # Irrelevant to check for mismatching VFids.
             for fpath, data in repspec.get_dice_report(pfiles).items():
