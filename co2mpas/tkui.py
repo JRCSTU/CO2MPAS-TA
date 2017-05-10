@@ -67,7 +67,7 @@ import functools as fnt
 import os.path as osp
 import textwrap as tw
 import tkinter as tk
-from ._vendor import traitlets as trt
+from co2mpas._vendor import traitlets as trt
 
 
 APPNAME = 'co2mpas'
