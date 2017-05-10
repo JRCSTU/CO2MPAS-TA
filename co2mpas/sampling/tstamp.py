@@ -989,11 +989,6 @@ def wait_IDLE_IMAP_change(srv):
 ##    Commands   ##
 ###################
 
-
-class _Subcmd(baseapp.Cmd):
-    pass
-
-
 class TstampCmd(baseapp.Cmd):
     """
     Commands to manage the communications with the Timestamp server.
@@ -1017,7 +1012,7 @@ class TstampCmd(baseapp.Cmd):
         super().__init__(**kwds)
 
 
-class SendCmd(_Subcmd):
+class SendCmd(baseapp.Cmd):
     """
     Send emails to be timestamped.
 
@@ -1076,7 +1071,7 @@ class SendCmd(_Subcmd):
                 return str(mail)
 
 
-class RecvCmd(_Subcmd):
+class RecvCmd(baseapp.Cmd):
     """
     Fetch tstamps from IMAP server and derive *decisions* OK/SAMPLE flags.
 
@@ -1163,7 +1158,7 @@ class RecvCmd(_Subcmd):
                 yield mail.get_payload()
 
 
-class ParseCmd(_Subcmd):
+class ParseCmd(baseapp.Cmd):
     """
     Verifies and derives the *decision* OK/SAMPLE flag from tstamped-response email.
 
@@ -1202,7 +1197,7 @@ class ParseCmd(_Subcmd):
             yield _mydump(res, default_flow_style=default_flow_style)
 
 
-class LoginCmd(_Subcmd):
+class LoginCmd(baseapp.Cmd):
     """Attempts to login into SMTP server. """
 
     dry_run = trt.Bool(
