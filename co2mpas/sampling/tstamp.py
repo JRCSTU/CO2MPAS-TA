@@ -985,45 +985,6 @@ class SendCmd(_Subcmd):
                 return str(mail)
 
 
-class ParseCmd(_Subcmd):
-    """
-    Verifies and derives the *decision* OK/SAMPLE flag from tstamped-response email.
-
-    SYNTAX
-        %(cmd_chain)s [OPTIONS] [<tstamped-file-1> ...]
-
-    - If '-' is given or no files at all, it reads from STDIN.
-    """
-    examples = trt.Unicode("""cat <mail> | %(cmd_chain)s""")
-
-    def __init__(self, **kwds):
-        kwds.setdefault('conf_classes', [TstampReceiver,
-                                         crypto.GitAuthSpec, crypto.StamperAuthSpec])
-        super().__init__(**kwds)
-
-    def run(self, *args):
-        from boltons.setutils import IndexedSet as iset
-        from pprint import pformat
-        from pandalone import utils as pndlu
-
-        files = iset(args) or ['-']
-        self.log.info("Parsing '%s'...", tuple(files))
-
-        rcver = TstampReceiver(config=self.config)
-        for file in files:
-            if file == '-':
-                self.log.info("Reading STDIN; paste message verbatim!")
-                mail_text = sys.stdin.read()
-            else:
-                self.log.debug("Reading '%s'...", pndlu.convpath(file))
-                with io.open(file, 'rt') as fin:
-                    mail_text = fin.read()
-
-            resp = rcver.parse_tstamp_response(mail_text)
-
-            yield pformat(resp)
-
-
 class RecvCmd(_Subcmd):
     """
     Fetch tstamps from IMAP server in one-shot or waiting mode, optionally searching for `project(s)` in subjetcs.
@@ -1092,6 +1053,45 @@ class RecvCmd(_Subcmd):
                                                     True, self.dry_run):
 
             yield _mydump(res, default_flow_style=default_flow_style)
+
+
+class ParseCmd(_Subcmd):
+    """
+    Verifies and derives the *decision* OK/SAMPLE flag from tstamped-response email.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] [<tstamped-file-1> ...]
+
+    - If '-' is given or no files at all, it reads from STDIN.
+    """
+    examples = trt.Unicode("""cat <mail> | %(cmd_chain)s""")
+
+    def __init__(self, **kwds):
+        kwds.setdefault('conf_classes', [TstampReceiver,
+                                         crypto.GitAuthSpec, crypto.StamperAuthSpec])
+        super().__init__(**kwds)
+
+    def run(self, *args):
+        from boltons.setutils import IndexedSet as iset
+        from pprint import pformat
+        from pandalone import utils as pndlu
+
+        files = iset(args) or ['-']
+        self.log.info("Parsing '%s'...", tuple(files))
+
+        rcver = TstampReceiver(config=self.config)
+        for file in files:
+            if file == '-':
+                self.log.info("Reading STDIN; paste message verbatim!")
+                mail_text = sys.stdin.read()
+            else:
+                self.log.debug("Reading '%s'...", pndlu.convpath(file))
+                with io.open(file, 'rt') as fin:
+                    mail_text = fin.read()
+
+            resp = rcver.parse_tstamp_response(mail_text)
+
+            yield pformat(resp)
 
 
 class LoginCmd(_Subcmd):
