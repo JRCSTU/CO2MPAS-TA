@@ -635,6 +635,7 @@ class TstampReceiver(TstampSpec):
 
         self.monkeypatch_socks_module(imaplib)
         monkeypatch_imaplib_for_IDLE(imaplib)
+        monkeypatch_imaplib_noop_debug_26543(imaplib)
 
         imaplib.Debug = 1 + 2 * int(self.verbose) if self.verbose else 0
         is_ssl, _ = self._ssl_resolved()
@@ -863,6 +864,55 @@ def monkeypatch_imaplib_for_IDLE(imaplib):
     imaplib.Commands['IDLE'] = ('SELECTED',)
     imaplib.Commands['DONE'] = ('SELECTED',)
 
+def monkeypatch_imaplib_noop_debug_26543(imaplib):
+    ## see https://bugs.python.org/issue26543
+    import time
+    def GOOD_untagged_response(self, typ, dat, name):
+        if typ == 'NO':
+            return typ, dat
+        if not name in self.untagged_responses:
+            return typ, [None]
+        data = self.untagged_responses.pop(name)
+        if __debug__:
+            if self.debug >= 5:
+                self._mesg('untagged_responses[%s] => %s' % (name, data))
+        return typ, data
+
+
+    if __debug__:
+
+        def _mesg(self, s, secs=None):
+            if secs is None:
+                secs = time.time()
+            tm = time.strftime('%M:%S', time.localtime(secs))
+            sys.stderr.write('  %s.%02d %s\n' % (tm, (secs * 100) % 100, s))
+            sys.stderr.flush()
+
+        def _dump_ur(self, d):  # @ReservedAssignment
+            # Dump untagged responses (in `d').
+            if d:
+                self._mesg('untagged responses dump:' +
+                           ''.join('\n\t\t%s: %r' % x for x in d.items()))
+
+        def _log(self, line):
+            # Keep log of last `_cmd_log_len' interactions for debugging.
+            self._cmd_log[self._cmd_log_idx] = (line, time.time())
+            self._cmd_log_idx += 1
+            if self._cmd_log_idx >= self._cmd_log_len:
+                self._cmd_log_idx = 0
+
+        def print_log(self):
+            self._mesg('last %d IMAP4 interactions:' % len(self._cmd_log))
+            i, n = self._cmd_log_idx, self._cmd_log_len
+            while n:
+                try:
+                    self._mesg(*self._cmd_log[i])
+                except:
+                    pass
+                i += 1
+                if i >= self._cmd_log_len:
+                    i = 0
+                n -= 1
 
 def wait_IDLE_IMAP_change(srv):
     """
