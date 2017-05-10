@@ -73,8 +73,9 @@ class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
         m = _CommitMsgVer_regex.search(msg_starting_txt)
         if not m:
             raise ValueError(
-                "incompatible message, cannot parse its version'" %
-                (msg_starting_txt, prog_ver[0], prog_ver[1]))
+                "incompatible message, cannot parse its version, "
+                "expected version %s', message header: \n%s)," %
+                (__dice_report_version__, msg_starting_txt))
 
         major, minor, micro = m.group(1, 2, 3)
         if int(major) != int(prog_ver[0]) or int(minor) > int(prog_ver[1]):
