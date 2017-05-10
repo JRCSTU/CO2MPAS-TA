@@ -170,7 +170,7 @@ def validate_flags(flags):
 def _add_validated_input(data, validate, keys, value, errors):
     try:
         k, v = next(iter(validate({keys[-1]: value}).items()))
-        if v is not sh.NONE:
+        if v is not sh.NONE and v is not sh.EMPTY:
             data[k] = v
             return v
     except SchemaError as ex:
