@@ -455,7 +455,8 @@ class GpgSpec(baseapp.Spec):
 
         if not signed.data:
             self.log.debug("Signing stderr: %s", signed.stderr)
-            raise ValueError("No signed due to: %s!" % getattr(signed, 'status'))
+            raise ValueError("No signed due to: %s!" %
+                             getattr(signed, 'status', '??'))
 
         return str(signed)
 
@@ -524,7 +525,7 @@ def get_vault(config: trtc.Config) -> VaultSpec:
 
 
 class GitAuthSpec(trtc.SingletonConfigurable, GpgSpec):
-    """The private key of the TA/TS importing filesnto git-repos is stored here."""
+    """The private key of the TA/TS importing files into git-repos is stored here."""
 
 
 def get_git_auth(config: trtc.Config) -> GitAuthSpec:
