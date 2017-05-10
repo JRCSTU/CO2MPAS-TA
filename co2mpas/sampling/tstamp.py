@@ -1033,7 +1033,8 @@ class RecvCmd(_Subcmd):
     def __init__(self, **kwds):
         from pandalone import utils as pndlu
 
-        kwds.setdefault('conf_classes', [TstampSender, TstampReceiver])
+        kwds.setdefault('conf_classes', [
+            TstampReceiver, crypto.GitAuthSpec, crypto.StamperAuthSpec])
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
                 {type(self).__name__: {'dry_run': True}},
