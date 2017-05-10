@@ -30,7 +30,7 @@ mydir = osp.dirname(__file__)
 
 
 tstamp_responses = [(
-    "Failed parsing commit message due to: TypeError",
+    """Failed parsing commit message due to: ValueError\("incompatible message,""",
     941136, {
         'hexnum': '346C4B1FDF5343D6F4B0BF10D660FEDC25B66',
         'percent': 74,
@@ -121,7 +121,7 @@ SjzL9Fp7gP5OsJZ1uRMtP9MzMTjvjMS1IKmNwPvVsvSe+77S3+urMgklH7ciypsT
 extra stuff
 
 """), (
-        "Failed parsing commit message due to: TypeError",
+        """Failed parsing commit message due to: ValueError\("incompatible message,""",
     941144, {
         'hexnum': 'A6C6E3771EA412EE56B4E61A10CDE90776D53419',
         'percent': 41,
@@ -193,7 +193,7 @@ aVryU+Z1cn1UO+59VsUeoaUcJqr7wNmwR5Zzyzp7Obm7ZlEvE5Gqfg==
 =y4Fb
 -----END PGP SIGNATURE-----
 """), (
-    r"Failed parsing commit message due to: ValueError\('expected a non-empty",
+    r"""Failed parsing commit message due to: ValueError\("incompatible message,""",
     941518, {
         'hexnum': 'A100EBD962AEA3349AFC6396D48015131BCA866F',
         'percent': 19,
@@ -600,7 +600,7 @@ class TRX(unittest.TestCase):
 
     def test_parse_timestamp_bad(self):
         rcv = tstamp.TstampReceiver(config=self.cfg)
-        ex_msg = r"Cannot verify timestamp-reponse signature due to: incorrect passphrase"
+        ex_msg = r"Cannot verify timestamp-response's signature due to: incorrect passphrase"
         with self.assertRaisesRegex(tstamp.CmdException, ex_msg):
             rcv.parse_tstamp_response("")
 
