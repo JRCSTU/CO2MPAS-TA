@@ -496,14 +496,13 @@ class GpgSpec(baseapp.Spec):
             The object returned by *gnupg*, with the splitted parts in `parts` attribute.
         """
         csig = pgp_split_sig(git_bytes)
-        if csig:
-            msg = _git_detachsig_canonical_regexb.sub(b'\n', csig['msg'])
-            msg = _git_detachsig_strip_top_empty_lines_regexb.sub(b'', msg)
-            ver = self.verify_detached(csig['sigarmor'], msg)
+        msg = _git_detachsig_canonical_regexb.sub(b'\n', csig['msg'])
+        msg = _git_detachsig_strip_top_empty_lines_regexb.sub(b'', msg)
+        ver = self.verify_detached(csig['sigarmor'], msg)
 
-            ver.parts = csig
+        ver.parts = csig
 
-            return ver
+        return ver
 
 
 ########################################

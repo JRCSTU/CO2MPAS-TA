@@ -530,15 +530,15 @@ class TstampReceiver(TstampSpec):
         from pprint import pformat
 
         git_auth = crypto.get_git_auth(self.config)
+        ## FIXME: Should I catch errors there?  Decision not affected!
         tag_ver = git_auth.verify_git_signed(tag_text.encode('utf-8'))
-        tag_verdict = OrderedDict({}
-                                  if tag_ver is None
-                                  else sorted(vars(tag_ver).items()))
+        tag_verdict = OrderedDict(sorted(vars(tag_ver).items()))
         if not tag_ver:
             ## Do not fail, it might be from an unknown sender.
             #
             errmsg = "Cannot verify dice-report's signature due to: %s"
-            self.log.warning(errmsg, pformat(tag_verdict))
+            cause = pformat(tag_verdict) if self.verbose else tag_ver.status
+            self.log.warning(errmsg, cause)
 
         ## Parse dice-report
         #
