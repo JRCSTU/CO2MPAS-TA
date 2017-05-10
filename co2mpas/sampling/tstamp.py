@@ -913,6 +913,8 @@ def monkeypatch_imaplib_noop_debug_26543(imaplib):
                     i = 0
                 n -= 1
 
+    imaplib.IMAP4._untagged_response = GOOD_untagged_response
+
 
 def wait_IDLE_IMAP_change(srv):
     """
