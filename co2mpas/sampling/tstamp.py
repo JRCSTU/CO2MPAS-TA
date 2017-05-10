@@ -362,19 +362,33 @@ class TstampSender(TstampSpec):
     def send_timestamped_email(self, msg: Union[str, bytes], subject_suffix='', dry_run=False):
         from pprint import pformat
 
+        ## TODO: Schedula to the rescue!
+
         msg_bytes = msg if isinstance(msg, bytes) else msg.encode('utf-8')
         git_auth = crypto.get_git_auth(self.config)
-        ver = git_auth.verify_git_signed(msg_bytes)
-        verdict = None if ver is None else pformat(vars(ver))
-        if not ver:
+
+        ## Allow to skip report syntxa-errors/verification if --force,
+        #  but still report the kind of syntax/sig failure
+        #
+        try:
+            ver = git_auth.verify_git_signed(msg_bytes)
+            verdict = pformat(sorted(vars(ver).items()))
+        except Exception as ex:
+            msg = "Failed to extract signed dice-report from tstamp!\n%s" % ex
             if self.force:
-                self.log.warning("Content to timestamp failed signature verification!  %s",
-                                 verdict)
+                self.log.warning(msg)
             else:
-                raise CmdException("Content to timestamp failed signature verification!\n  %s"
-                                   % verdict)
+                raise CmdException(msg)
         else:
-            self.log.debug("Content to timestamp gets verified OK: %s" % verdict)
+            if not ver:
+                msg = "Cannot verify dice-report's signature!\n%s" % verdict
+                if self.force:
+                    self.log.warning(msg)
+                else:
+                    raise CmdException(msg)
+            else:
+                msg = "The dice-report in timestamp got verified OK: %s"
+                self.log.debug(msg % verdict)
 
         msg = self._append_tstamp_recipients(msg)
         mail = self._prepare_mail(msg, subject_suffix)
@@ -534,39 +548,61 @@ class TstampReceiver(TstampSpec):
         """
         from pprint import pformat
 
+        ## TODO: Schedula to the rescue!
+
+        stag_bytes = tag_text.encode('utf-8')
         git_auth = crypto.get_git_auth(self.config)
-        ## FIXME: Should I catch errors there?  Decision not affected!
-        tag_ver = git_auth.verify_git_signed(tag_text.encode('utf-8'))
-        tag_verdict = OrderedDict(sorted(vars(tag_ver).items()))
-        if not tag_ver:
-            ## Do not fail, it might be from an unknown sender.
-            #
-            errmsg = "Cannot verify dice-report's signature due to: %s"
-            cause = pformat(tag_verdict) if self.verbose else tag_ver.status
-            self.log.warning(errmsg, cause)
+
+        ## Allow parsing signed/unsigned reports when --force,
+        #
+        ver = None
+        try:
+            ver = git_auth.verify_git_signed(stag_bytes)
+            verdict = OrderedDict(sorted(vars(ver).items()))
+        except Exception as ex:
+            msg = "Failed to extract signed dice-report from tstamp!\n%s" % ex
+            if self.force:
+                self.log.warning(msg)
+                verdict = OrderedDict(sig=msg)
+
+                ## Fall-back assuming report was not signed at all.
+                tag = stag_bytes
+            else:
+                raise CmdException(msg)
+
+        else:
+            if not ver:
+                #
+                ## Do not fail, it might be from an unknown sender.
+
+                msg = "Cannot verify dice-report's signature!\n%s"
+                self.log.warning(msg, pformat(verdict))
+            else:
+                msg = "The dice-report in timestamp got verified OK: %s"
+                self.log.debug(msg % pformat(verdict))
+
+            tag = verdict['parts']['msg']
 
         ## Parse dice-report
         #
         from . import project
 
-        tag_csig = tag_verdict['parts']
-        tag = tag_csig['msg']
         try:
             cmsg = project._CommitMsg.parse_commit_msg(tag.decode('utf-8'))
-            tag_verdict['commit_msg'] = cmsg._asdict()
-            tag_verdict['project'] = cmsg.p
-            tag_verdict['project_source'] = 'report'
+            verdict['commit_msg'] = cmsg._asdict()
+            verdict['project'] = cmsg.p
+            verdict['project_source'] = 'report'
         except Exception as ex:
             if not self.force:
                 raise
             else:
                 self.log.error("Cannot parse dice-report due to: %s", ex)
 
-        if 'project' not in tag_verdict:
-            tag_verdict['project'] = self.scan_for_project_name(tag_text)
-            tag_verdict['project_source'] = 'grep'
+        if 'project' not in verdict:
+            verdict['project'] = self.scan_for_project_name(tag_text)
+            verdict['project_source'] = 'grep'
 
-        return tag_verdict
+        return verdict
 
     def parse_tstamp_response(self, mail_text: Text) -> int:
         ## TODO: Could use dispatcher to parse tstamp-response, if failback routes were working...

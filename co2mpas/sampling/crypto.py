@@ -116,6 +116,8 @@ def pgp_split_clearsigned(text: str) -> Dict:
 
         return groups
 
+    raise ValueError("%i-len text is not a PGP-clear-sig!" % len(text))
+
 
 def pgp_split_sig(git_content: bytes) -> (bytes, bytes):
     """
@@ -157,7 +159,9 @@ def pgp_split_sig(git_content: bytes) -> (bytes, bytes):
     :param git_content:
             Bytes as fetched from ``git cat-file tag/commit <HASHID>``.
     :return:
-            A 2-tuple(msg, sig), None if no sig found.
+            A 2-tuple: ``(msg, sig)``
+    :raise:
+            ValueError if not a sig
 
     See: https://lists.gnupg.org/pipermail/gnupg-users/2014-August/050780.html
     """
@@ -170,6 +174,8 @@ def pgp_split_sig(git_content: bytes) -> (bytes, bytes):
             ('msg', git_content[:split_pos]),
             ('sigarmor', git_content[split_pos:]),
         ])
+
+    raise ValueError("%i-len text is not a PGP-sig!" % len(git_content))
 
 
 class GpgSpec(baseapp.Spec):
