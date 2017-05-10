@@ -1034,6 +1034,10 @@ class RecvCmd(_Subcmd):
         """
     ).tag(config=True)
 
+    raw = trt.Bool(
+        help="Skip verification and print raw email text, ready to be used with `parse` cmd."
+    ).tag(config=True)
+
     def __init__(self, **kwds):
         from pandalone import utils as pndlu
 
@@ -1047,6 +1051,10 @@ class RecvCmd(_Subcmd):
             'wait': (
                 {type(self).__name__: {'wait': True}},
                 pndlu.first_line(type(self).wait.help)
+            ),
+            'raw': (
+                {type(self).__name__: {'raw': True}},
+                pndlu.first_line(type(self).raw.help)
             ),
         })
         kwds.setdefault('cmd_aliases', {
@@ -1062,8 +1070,11 @@ class RecvCmd(_Subcmd):
         rcver = TstampReceiver(config=self.config)
         for mail in rcver.receive_timestamped_emails(self.wait, args,
                                                     True, self.dry_run):
-            res = rcver.verify_recved_email(mail)
-            yield _mydump(res, default_flow_style=default_flow_style)
+            if not self.raw:
+                res = rcver.verify_recved_email(mail)
+                yield _mydump(res, default_flow_style=default_flow_style)
+            else:
+                yield mail.get_payload()
 
 
 class ParseCmd(_Subcmd):
