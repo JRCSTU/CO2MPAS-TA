@@ -753,13 +753,10 @@ class TstampReceiver(TstampSpec):
     def _proc_emails2(self, is_wait, dry_run, criteria, srv):
         import email
 
-        encoding = 'utf-8'
-
         ## SEARCH for tstamp emails.
         #
         self.log.info("Searching tstamps: %s", criteria)
-        ok, data = srv.uid('SEARCH', 'CHARSET "%s"' % encoding,
-                           criteria.encode(encoding))
+        ok, data = srv.uid('SEARCH', criteria.encode())
         assert ok == 'OK', "Searching emails failed due to: %s: %s" % (ok, data)
 
         uids = data[0].split()
