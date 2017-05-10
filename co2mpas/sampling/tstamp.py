@@ -360,8 +360,6 @@ class TstampSender(TstampSpec):
                 self.log.info('Already authenticated: %s', resp)
 
     def send_timestamped_email(self, msg: Union[str, bytes], subject_suffix='', dry_run=False):
-        from pprint import pformat
-
         ## TODO: Schedula to the rescue!
 
         msg_bytes = msg if isinstance(msg, bytes) else msg.encode('utf-8')
@@ -372,7 +370,7 @@ class TstampSender(TstampSpec):
         #
         try:
             ver = git_auth.verify_git_signed(msg_bytes)
-            verdict = pformat(sorted(vars(ver).items()))
+            verdict = _mydump(sorted(vars(ver).items()))
         except Exception as ex:
             msg = "Failed to extract signed dice-report from tstamp!\n%s" % ex
             if self.force:
@@ -546,8 +544,6 @@ class TstampReceiver(TstampSpec):
         :param msg_text:
             The tag as extracted from tstamp response by :meth:`crypto.pgp_split_clearsigned`.
         """
-        from pprint import pformat
-
         ## TODO: Schedula to the rescue!
 
         stag_bytes = tag_text.encode('utf-8')
@@ -576,10 +572,10 @@ class TstampReceiver(TstampSpec):
                 ## Do not fail, it might be from an unknown sender.
 
                 msg = "Cannot verify dice-report's signature!\n%s"
-                self.log.warning(msg, pformat(verdict))
+                self.log.warning(msg, _mydump(verdict))
             else:
                 msg = "The dice-report in timestamp got verified OK: %s"
-                self.log.debug(msg % pformat(verdict))
+                self.log.debug(msg % _mydump(verdict))
 
             tag = verdict['parts']['msg']
 
@@ -607,7 +603,6 @@ class TstampReceiver(TstampSpec):
     def parse_tstamp_response(self, mail_text: Text) -> int:
         ## TODO: Could use dispatcher to parse tstamp-response, if failback routes were working...
         import textwrap as tw
-        from pprint import pformat
 
         force = self.force
         stamper_auth = crypto.get_stamper_auth(self.config)
@@ -618,10 +613,10 @@ class TstampReceiver(TstampSpec):
         if not ts_ver:
             errmsg = "Cannot verify timestamp-response's signature due to: %s"
             if not force or not ts_ver.signature_id:  # Need sig-id for decision.
-                self.log.debug(errmsg, pformat(ts_verdict))
+                self.log.debug(errmsg, _mydump(sorted(ts_verdict.items())))
                 raise CmdException(errmsg % ts_ver.status)
             else:
-                self.log.error(errmsg, pformat(ts_verdict))
+                self.log.error(errmsg, _mydump(sorted(ts_verdict.items())))
 
         if not ts_ver.valid:
             self.log.warning(
@@ -630,14 +625,14 @@ class TstampReceiver(TstampSpec):
                   You may sign Timestamp-service's key(81959DB570B61F81) with a *fully* trusted secret-key,
                   or assign *full* trust on JRC's key(TODO:JRC-keyid-here) that already has done so.
                     %s
-                """), pformat(ts_verdict))
+                """), _mydump(sorted(ts_verdict.items())))
 
         ts_parts = crypto.pgp_split_clearsigned(mail_text)
         ts_verdict['parts'] = ts_parts
         if not ts_parts:
             errlog("Cannot parse timestamp-response:"
                    "\n  mail-txt: %s\n\n  ts-verdict: %s",
-                   mail_text, pformat(ts_verdict))
+                   mail_text, _mydump(sorted(ts_verdict.items())))
             if not force:
                 raise CmdException(
                     "Cannot parse timestamp-response!")
@@ -647,7 +642,7 @@ class TstampReceiver(TstampSpec):
             ts_verdict['stamper_id'] = stamper_id
             if not tag:
                 errlog("Failed parsing response content and/or stamper-id: %s\n%s",
-                       pformat(ts_parts), pformat(ts_verdict))
+                       _mydump(ts_parts), _mydump(sorted(ts_verdict.items())))
                 if not force:
                     raise CmdException("Timestamp-response had no *stamper-id*: %s" % ts_parts['sigarmor'])
 
@@ -660,7 +655,7 @@ class TstampReceiver(TstampSpec):
         dice100 = num % 100
         decision = 'OK' if dice100 < 90 else 'SAMPLE'
 
-        #self.log.info("Timestamp sig did not verify: %s", pformat(tag_verdict))
+        #self.log.info("Timestamp sig did not verify: %s", _mydump(tag_verdict))
         return OrderedDict([
             ('tstamp', ts_verdict),
             ('report', tag_verdict),
