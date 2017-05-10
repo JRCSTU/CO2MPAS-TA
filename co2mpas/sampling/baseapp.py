@@ -1074,7 +1074,16 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                           self.name, pformat(self.config))
 
         if self.subapp is None:
-            return self.run(*self.extra_args)
+            res = self.run(*self.extra_args)
+
+            try:
+                persist_path = self._resolved_persist_file
+                self.store_pconfig(self._resolved_persist_file)
+            except Exception as ex:
+                self.log.warning("Failed saving persistent config due to: %s",
+                                 persist_path, ex)
+
+            return res
 
         return self.subapp.start()
 
