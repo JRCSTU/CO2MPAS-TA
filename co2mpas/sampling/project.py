@@ -1905,9 +1905,21 @@ class TrecvCmd(TparseCmd):
     """
 
     examples = trt.Unicode("""
-        %(cmd_chain)s --after today "IP-10-AAA-2017-1003"
-        %(cmd_chain)s --after "last week"
-        %(cmd_chain)s --after "1 year ago" --before "18 March 2017"
+        To search emails in one-shot:
+            %(cmd_chain)s --after today "IP-10-AAA-2017-1003"
+            %(cmd_chain)s --after "last week"
+            %(cmd_chain)s --after "1 year ago" --before "18 March 2017"
+            
+        To wait for new mails arriving (and not to block console),
+        on Linux:
+            %(cmd_chain)s --wait &
+            ## wait...
+            kill %%1  ## Asumming this was the only job started.
+        
+        On Windows:
+            START \\B %(cmd_chain)s --wait
+            
+        and kill with `TASKLIST/TASKKILL or with "Task Manager" GUI.
     """)
 
     wait = trt.Bool(
@@ -1922,11 +1934,13 @@ class TrecvCmd(TparseCmd):
     ).tag(config=True)
 
     def __init__(self, **kwds):
-        kwds.setdefault('cmd_aliases', {
+        ## Note here cannot update kwds-defaults,
+        #  or would cancel baseclass's choices.
+        self.cmd_aliases.update({
             'before': 'TstampReceiver.before_date',
             'after': 'TstampReceiver.after_date',
         })
-        kwds.setdefault('cmd_flags', {
+        self.cmd_flags.update({
             ('n', 'dry-run'): (
                 {'Project': {'dry_run': True}},
                 "Pase the tstamped response without storing it in the project."
@@ -1936,6 +1950,7 @@ class TrecvCmd(TparseCmd):
                 pndlu.first_line(type(self).wait.help)
             ),
         })
+        self.cmd_aliases = self.cmd_aliases.copy()
         super().__init__(**kwds)
 
     def run(self, *args):
@@ -1944,7 +1959,7 @@ class TrecvCmd(TparseCmd):
         pdb = self.projects_db
         rcver = tstamp.TstampReceiver(config=self.config)
         for mail in rcver.receive_timestamped_emails(self.wait, args,
-                                                    True, self.dry_run):
+                                                    True, dry_run=False):
             ok = False
             mail_text = mail.get_payload()
             if self.build_registry:
