@@ -423,10 +423,10 @@ def prepare_data(raw_data, variation, input_file_name, overwrite_cache,
     if 'plan' in r:
         if has_plan:
             plan = raw_data['plan'].copy()
-            for k, v in sh.stack_nested_keys(r['plan'], 4):
+            for k, v in sh.stack_nested_keys(r['plan'], depth=4):
                 plan['.'.join(k)] = v
         else:
-            gen = sh.stack_nested_keys(r['plan'], 4)
+            gen = sh.stack_nested_keys(r['plan'], depth=4)
             plan = pd.DataFrame([{'.'.join(k): v for k, v in gen}])
             excel._add_index_plan(plan, input_file_name)
 
