@@ -16,8 +16,9 @@ The Dice:
   "engineering".
 - refact(tstamp): rename configuration params (old names issue deprecation warnings)::
 
-      x_recipients           --> tstamp_recipients
-      timestamping_addresses --> tstamper_address  ## Not a list anymore!
+    x_recipients           --> tstamp_recipients
+    timestamping_addresses --> tstamper_address           ## Not a list anymore!
+    TstampReceiver.subject --> TstampSpec.subject_prefix  ## Also used by `recv` cmd.
 
 - feat(tstamp, :git:`368`): Support *STARTTLS*, enhance ``DiceSpec.ssl`` config param::
 
