@@ -158,7 +158,12 @@ class TstampSpec(dice.DiceSpec):
     ).tag(config=True)
 
     subject_prefix = trt.Unicode(
-        help="""Prefixes project-ids when sending emails, used as search term when receiving. """
+        allow_none=True,
+        help="""
+        Prefixes project-ids when sending emails, used as search term when receiving.
+        
+        If none, Receiver will not add it to its criteria; Sender will scream. 
+        """
     ).tag(config=True)
 
     @property
@@ -727,7 +732,8 @@ class TstampReceiver(TstampSpec):
 
     def _prepare_search_criteria(self, is_wait, projects):
         criteria = list(self.email_criteria)
-        criteria.append('Subject "%s"' % self.subject_prefix)
+        if self.subject_prefix:
+            criteria.append('Subject "%s"' % self.subject_prefix)
         if is_wait:
             criteria.append(self.wait_criteria)
 
