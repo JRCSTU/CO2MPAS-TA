@@ -1832,13 +1832,6 @@ class TparseCmd(_SubCmd):
       as a "broken" tag referring to projects that might not exist in the repo,
       assuming they don't clash with pre-existing dice-reponses.
     """
-#    - The --build-registry is for those handling "foreign" dices (i.e. TAAs),
-
-    #examples = trt.Unicode(""" """)
-
-#    build_registry = trt.Bool(
-#        help="When true, store stamp-response to project referenced, instead of *current*."
-#    ).tag(config=True)
 
     def __init__(self, **kwds):
         from . import tstamp
@@ -1853,12 +1846,6 @@ class TparseCmd(_SubCmd):
                 },
                 "Pase the tstamped response without storing it in the project."
             ),
-#            'build-registry': (
-#                {
-#                    type(self).__name__: {'build_registry': True},
-#                },
-#                pndlu.first_line(type(self).build_registry.help)
-#            ),
         })
         super().__init__(**kwds)
 
@@ -1877,13 +1864,9 @@ class TparseCmd(_SubCmd):
             with io.open(file, 'rt') as fin:
                 mail_text = fin.read()
 
-        if False:  #self.build_registry:
-            report = self.projects_db.proj_parse_stamped_and_assign_project(mail_text)
-            ok = False
-        else:
-            proj = self.current_project
-            ok = proj.do_storedice(tstamp_txt=mail_text)
-            report = proj.result
+        proj = self.current_project
+        ok = proj.do_storedice(tstamp_txt=mail_text)
+        report = proj.result
 
         short, long = report.get('dice', ok), report
 
@@ -1974,12 +1957,9 @@ class TrecvCmd(TparseCmd):
             mail_text = mail.get_payload()
             infos = rcver.verify_recved_email(mail)
             try:
-                if False:#self.build_registry:
-                    report = pdb.proj_parse_stamped_and_assign_project(mail_text)
-                else:
-                    proj = self.current_project
-                    ok = proj.do_storedice(tstamp_txt=mail_text)
-                    report = proj.result
+                proj = self.current_project
+                ok = proj.do_storedice(tstamp_txt=mail_text)
+                report = proj.result
 
                 short, long = report.get('dice', ok), report
                 yield self._format_result(short, long)
