@@ -1966,16 +1966,21 @@ class TrecvCmd(TparseCmd):
                                                      True, dry_run=False):
             ok = False
             mail_text = mail.get_payload()
-            if self.build_registry:
-                report = pdb.proj_parse_stamped_and_assign_project(mail_text)
-            else:
-                proj = self.current_project
-                ok = proj.do_storedice(tstamp_txt=mail_text)
-                report = proj.result
+            infos = rcver.verify_recved_email(mail)
+            try:
+                if self.build_registry:
+                    report = pdb.proj_parse_stamped_and_assign_project(mail_text)
+                else:
+                    proj = self.current_project
+                    ok = proj.do_storedice(tstamp_txt=mail_text)
+                    report = proj.result
 
-            short, long = report.get('dice', ok), report
-            yield self._format_result(short, long)
-
+                short, long = report.get('dice', ok), report
+                yield self._format_result(short, long)
+            except Exception as ex:
+                self.log.warning('Failed storing %s email, due to: %s',
+                               mail.get('Message-Id'), ex)
+                infos['parsed'] = str(ex)
 
 class ExportCmd(_SubCmd):
     """
