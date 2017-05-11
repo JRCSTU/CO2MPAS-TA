@@ -1986,7 +1986,7 @@ class TrecvCmd(TparseCmd):
                 short, long = report.get('dice', ok), report
                 yield self._format_result(short, long)
             except Exception as ex:
-                self.log.warning('Failed storing %s email, due to: %s',
+                self.log.error('Failed storing %s email, due to: %s',
                                mail.get('Message-Id'), ex)
                 infos['parsed'] = str(ex)
 
