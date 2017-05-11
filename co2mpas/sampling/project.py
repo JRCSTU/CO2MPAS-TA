@@ -1956,9 +1956,7 @@ class TrecvCmd(TparseCmd):
         rcver = tstamp.TstampReceiver(config=self.config)
 
         ## IMAP & CmdException raised here.
-        emails = rcver.receive_timestamped_emails(self.wait, args,
-                                                  read_only=False,
-                                                  dry_run=False)
+        emails = rcver.receive_timestamped_emails(self.wait, args, read_only=False)
         for mail in emails:
             mid = mail.get('Message-Id')
             try:

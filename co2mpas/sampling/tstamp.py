@@ -173,9 +173,7 @@ class TstampSpec(dice.DiceSpec):
     def choose_server_class(self):
         raise NotImplemented()
 
-    def make_server(self, dry_run):
-        from unittest.mock import MagicMock
-
+    def make_server(self):
         host = self.host
         port = self.port
         srv_kwds = self.mail_kwds.copy()
@@ -187,7 +185,7 @@ class TstampSpec(dice.DiceSpec):
         self.log.info("Connecting to %s%s: %s@%s(%s)...", srv_cls.__name__,
                       '(STARTTLS)' if is_startssl else '',
                       self.user_account_resolved, host, srv_kwds or '')
-        srv = MagicMock() if dry_run else srv_cls(host, **srv_kwds)
+        srv = srv_cls(host, **srv_kwds)
 
         return srv
 
@@ -196,7 +194,7 @@ class TstampSpec(dice.DiceSpec):
         ok = False
         srv_name = srv_sock = ''
         try:
-            with self.make_server(dry_run) as srv:
+            with self.make_server() as srv:
                 srv_name = type(srv).__name__
                 srv_sock = srv.sock
                 self.log.debug("Authenticating %s: %s@%s ...", srv_name,
@@ -374,7 +372,8 @@ class TstampSender(TstampSpec):
             if code == 503:
                 self.log.info('Already authenticated: %s', resp)
 
-    def send_timestamped_email(self, msg: Union[str, bytes], subject_suffix='', dry_run=False):
+    def send_timestamped_email(self, msg: Union[str, bytes],
+                               subject_suffix='', dry_run=False):
         ## TODO: Schedula to the rescue!
 
         msg_bytes = msg if isinstance(msg, bytes) else msg.encode('utf-8')
@@ -406,7 +405,7 @@ class TstampSender(TstampSpec):
         msg = self._append_tstamp_recipients(msg)
         mail = self._prepare_mail(msg, subject_suffix)
 
-        with self.make_server(dry_run) as srv:
+        with self.make_server() as srv:
             self.login_srv(srv,  # If login denied, raises.
                            self.user_account_resolved,
                            self.decipher('user_pswd'))
@@ -418,7 +417,8 @@ class TstampSender(TstampSpec):
                          prefix, len(msg), self._from_address_resolved,
                          self._tstamper_address_resolved,
                          self.tstamp_recipients + self.x_recipients)
-            srv.send_message(mail)
+            if not dry_run:
+                srv.send_message(mail)
 
         return mail
 
@@ -734,7 +734,7 @@ class TstampReceiver(TstampSpec):
         reject_IMAP_no_response("login", resp)
 
     def list_mailbox(self, directory='""', pattern='*'):
-        with self.make_server(dry_run=False) as srv:
+        with self.make_server() as srv:
             self.login_srv(srv,  # If login denied, raises.
                            self.user_account_resolved,
                            self.decipher('user_pswd'))
@@ -781,15 +781,19 @@ class TstampReceiver(TstampSpec):
 
     # IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
     #      https://yuji.wordpress.com/2011/06/22/python-imaplib-imap-example-with-gmail/
-    def receive_timestamped_emails(self, is_wait, projects,
-                                   read_only, dry_run):
-        """Yields all matched :class:`email.message.Message` emails from IMAP."""
+    def receive_timestamped_emails(self, is_wait, projects, read_only):
+        """
+        Yields all matched :class:`email.message.Message` emails from IMAP.
+        
+        :param read_only:
+            when true, doesn mark fetched emails as `Seen`.
+        """
         criteria = self._prepare_search_criteria(is_wait, projects)
         self._IDLE_supported = None
 
         while True:
             yield from self._proc_emails1(
-                is_wait, read_only, dry_run, criteria)
+                is_wait, read_only, criteria)
 
             if not is_wait:
                 break
@@ -802,8 +806,8 @@ class TstampReceiver(TstampSpec):
 
             # IDLE loops again with new server (ie in case of failures).
 
-    def _proc_emails1(self, is_wait, read_only, dry_run, criteria):
-        with self.make_server(dry_run) as srv:
+    def _proc_emails1(self, is_wait, read_only, criteria):
+        with self.make_server() as srv:
             self.login_srv(srv,  # If login denied, raises.
                            self.user_account_resolved,
                            self.decipher('user_pswd'))
@@ -814,7 +818,7 @@ class TstampReceiver(TstampSpec):
             reject_IMAP_no_response("select mailbox", resp)
 
             while True:
-                yield from self._proc_emails2(is_wait, dry_run, criteria, srv)
+                yield from self._proc_emails2(is_wait, criteria, srv)
 
                 if is_wait and self._IDLE_supported:
                     ## IDLE within this internal loop
@@ -826,7 +830,7 @@ class TstampReceiver(TstampSpec):
                 else:  # External loop will handle POLL.
                     break
 
-    def _proc_emails2(self, is_wait, dry_run, criteria, srv):
+    def _proc_emails2(self, is_wait, criteria, srv):
         import email
 
         ## SEARCH for tstamp emails.
@@ -1161,10 +1165,6 @@ class RecvCmd(baseapp.Cmd):
 
         and kill with `TASKLIST/TASKKILL or with "Task Manager" GUI.
     """)
-
-    dry_run = trt.Bool(
-        help="Verify dice-report and login to SMTP-server but do not actually send email to timestamp-service."
-    ).tag(config=True)
 
     wait = trt.Bool(
         False,
