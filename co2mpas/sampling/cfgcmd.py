@@ -217,8 +217,107 @@ class ShowCmd(baseapp.Cmd):
         yield from func(config, args)
 
 
+class DescCmd(baseapp.Cmd):
+    """
+    Describe config-params with their name '<class>.<param>' containing search-strings (case-insensitive)
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] [<search-term--1>] ...
+    """
+
+    examples = trt.Unicode("""
+        To list just what matched:
+            %(cmd_chain)s --list 'criteria'
+            %(cmd_chain)s -l --cls 'config'
+            %(cmd_chain)s -l --regex  '^t.+cmd'
+            
+        To view help on specific parameters:
+            %(cmd_chain)s wait
+            %(cmd_chain)s -e 'rec.+wait'
+            
+        To view help on full classes:
+            %(cmd_chain)s -ecl 'rec.+wait'
+    """)
+    
+    list = trt.Bool(
+        help="Just list any matches."
+    ).tag(config=True)
+
+    cls = trt.Bool(
+        help="Match and print full classes only."
+    ).tag(config=True)
+
+    regex = trt.Bool(
+        help="Search terms as regex."
+    ).tag(config=True)
+
+    def __init__(self, **kwds):
+        import pandalone.utils as pndlu
+
+        super().__init__(
+            cmd_flags={
+                ('l', 'list'): (
+                    {type(self).__name__: {'list': True}},
+                    pndlu.first_line(type(self).list.help)
+                ),
+                ('e', 'regex'): (
+                    {type(self).__name__: {'regex': True}},
+                    pndlu.first_line(type(self).regex.help)
+                ),
+                ('c', 'cls'): (
+                    {type(self).__name__: {'cls': True}},
+                    pndlu.first_line(type(self).cls.help)
+                ),
+            }
+        )
+
+    def run(self, *args):
+        import re
+        from toolz import dicttoolz as dtz
+
+        def matcher(r):
+            if self.regex:
+                return re.compile(r, re.I).search
+            else:
+                return lambda w: r.lower() in w.lower()
+            
+        matchers = [matcher(t) for t in args]
+
+        def is_matching(word):
+            return any(m(word) for m in matchers)
+
+        ## Prefer to modify `class_names` after `initialize()`, or else,
+        #  the cmd options would be irrelevant and fatty :-)
+        self.classes = self.all_app_configurables()
+        all_classes = list(self._classes_with_config_traits())
+
+        if self.cls:
+            search_map = {cls.__name__: cls
+                   for cls in all_classes}
+
+            def printer(ne, cls):
+                return cls.class_get_help()
+
+        else:
+            search_map = {'%s.%s' % (cls.__name__, attr): (cls, trait)
+                   for cls in all_classes
+                   for attr, trait in cls.class_traits(config=True).items()}
+            
+            def printer(name, v):
+                cls, attr = v
+                return cls.class_get_trait_help(attr)
+            
+        res_map = dtz.keyfilter(is_matching, search_map)
+
+        for name, v in sorted(res_map.items()):
+            if self.list:
+                yield name
+            else:
+                yield printer(name, v)
+
 config_subcmds = (
     WriteCmd,
     PathsCmd,
     ShowCmd,
+    DescCmd,
 )
