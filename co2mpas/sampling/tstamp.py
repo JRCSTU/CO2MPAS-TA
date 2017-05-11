@@ -706,9 +706,11 @@ class TstampReceiver(TstampSpec):
         _, is_starttls = self._ssl_resolved
         if is_starttls:
             self.log.debug('STARTTLS...')
-            srv.starttls()
+            resp = srv.starttls()
+            reject_IMAP_no_response("starttls", resp)
 
-        srv.noop()
+        resp = srv.noop()
+        reject_IMAP_no_response("noop", resp)
 
         if self.no_auth or not self.auth_mechanisms:
             return
@@ -724,9 +726,8 @@ class TstampReceiver(TstampSpec):
             raise IMAP4.error(msg % (self.auth_mechanisms, sup_auths))
 
         auth, authmethod = next(iter(authlist))
-        (ok, data) = authmethod(user, pswd)
-        if ok != 'OK':
-            raise IMAP4.error("Login DENIED due to: %s:%s" % (ok, data))
+        resp = authmethod(user, pswd)
+        reject_IMAP_no_response("login", resp)
 
     def list_mailbox(self, directory='""', pattern='*'):
         with self.make_server(dry_run=False) as srv:
@@ -734,11 +735,10 @@ class TstampReceiver(TstampSpec):
                            self.user_account_resolved,
                            self.decipher('user_pswd'))
 
-            ok, data = srv.list(directory, pattern)
-            if ok == 'OK':
-                res = [d.decode() for d in data if d]
-                return ["Found %i mailboxes:" % len(res)] + res
-            return str((ok, data))
+            resp = srv.list(directory, pattern)
+            data = reject_IMAP_no_response("list mailboxes", resp)
+            res = [d.decode() for d in data if d]
+            return ["Found %i mailboxes:" % len(res)] + res
 
     def _prepare_search_criteria(self, is_wait, projects):
         criteria = list(self.email_criteria)
@@ -806,9 +806,8 @@ class TstampReceiver(TstampSpec):
 
             self._IDLE_supported = 'IDLE' in srv.capabilities
 
-            ok, data = srv.select(self.mailbox, read_only)
-            assert ok == 'OK', "Selecting mailbox '%s' failed due to: %s: %s" % (
-                self.mailbox, ok, data)
+            resp = srv.select(self.mailbox, read_only)
+            reject_IMAP_no_response("select mailbox", resp)
 
             while True:
                 yield from self._proc_emails2(is_wait, dry_run, criteria, srv)
@@ -829,8 +828,8 @@ class TstampReceiver(TstampSpec):
         ## SEARCH for tstamp emails.
         #
         self.log.info("Searching tstamps: %s", criteria)
-        ok, data = srv.uid('SEARCH', criteria.encode())
-        assert ok == 'OK', "Searching emails failed due to: %s: %s" % (ok, data)
+        resp = srv.uid('SEARCH', criteria.encode())
+        data = reject_IMAP_no_response("search emails", resp)
 
         uids = data[0].split()
         self.log.info("Found %s tstamp emails: %s",
@@ -841,8 +840,8 @@ class TstampReceiver(TstampSpec):
 
         ## FETCH tstamp emails.
         #
-        ok, data = srv.uid('FETCH', b','.join(uids), "(UID RFC822)")
-        assert ok == 'OK', "Fetching emails failed due to: %s: %s" % (ok, data)
+        resp = srv.uid('FETCH', b','.join(uids), "(UID RFC822)")
+        data = reject_IMAP_no_response("fetch emails", resp)
 
         for i, d in enumerate(data):
             if i % 2 == 1:
@@ -883,6 +882,13 @@ def _mydump(obj, indent=2, **kwds):
     import yaml
 
     return yaml.dump(obj, indent=indent, **kwds)
+
+
+def reject_IMAP_no_response(cmd, resp):
+    ok, data = resp
+    if ok == 'OK':
+        return data
+    raise CmdException("Command %s: %s, %s" % (cmd, ok, data))
 
 
 def parse_as_RFC3501_date(cal, date):
@@ -1211,9 +1217,10 @@ class RecvCmd(baseapp.Cmd):
         default_flow_style = None if self.verbose else False
         rcver = TstampReceiver(config=self.config)
 
-        for mail in rcver.receive_timestamped_emails(self.wait, args,
-                                                     read_only=True,
-                                                     dry_run=self.dry_run):
+        emails = rcver.receive_timestamped_emails(self.wait, args,
+                                                  read_only=True,
+                                                  dry_run=self.dry_run)
+        for mail in emails:
             mid = mail.get('Message-Id')
             if self.form == 'raw':
                 yield mail.get_payload()

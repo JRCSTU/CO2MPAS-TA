@@ -1951,12 +1951,13 @@ class TrecvCmd(TparseCmd):
 
         default_flow_style = None if self.verbose else False
         warn = self.log.warning
-        pdb = self.projects_db
         rcver = tstamp.TstampReceiver(config=self.config)
 
-        for mail in rcver.receive_timestamped_emails(self.wait, args,
-                                                     read_only=False,
-                                                     dry_run=False):
+        ## IMAP & CmdException raised here.
+        emails = rcver.receive_timestamped_emails(self.wait, args,
+                                                  read_only=False,
+                                                  dry_run=False)
+        for mail in emails:
             mid = mail.get('Message-Id')
             try:
                 verdict = rcver.parse_tstamp_response(mail.get_payload())
