@@ -284,6 +284,16 @@ class TstampSender(TstampSpec):
         """
     ).tag(config=True)
 
+    subject = trt.Unicode(
+        allow_none=True,
+        help="""Deprecated, and NON functional.
+          
+        Replaced either by the top-level `TstampDice.subject_prefix` or  
+        the `subject_prefix` options in `TstampSender` and `TstampReceiver` classes.  
+        The later is needed for when searching old tstamps.
+        """
+    ).tag(config=True)
+
     @property
     def _from_address_resolved(self):
         return self.from_address or self.user_email
@@ -296,7 +306,7 @@ class TstampSender(TstampSpec):
             ['host', 'subject_prefix'])
         self._register_validator(
             DiceSpec._warn_deprecated,
-            ['x_recipients', 'timestamping_addresses'])
+            ['x_recipients', 'timestamping_addresses', 'subject'])
         super().__init__(*args, **kwds)
 
     ## TODO: delete deprecated trait
