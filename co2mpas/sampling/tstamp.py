@@ -441,9 +441,18 @@ class TstampReceiver(TstampSpec):
         trt.Unicode(),
         default_value=[
             'From "mailer@stamper.itconsult.co.uk"',
+            'Subject "Proof of Posting Certificate"',
         ],
         help="""
-        The RFC3501 IMAP "static" search criteria for fetching Stamper responses.
+        RFC3501 IMAP search terms ANDed together for fetching Stamper responses.
+        
+        - More criteria are appended on runtime, ie `TstampSender.subject`, 
+          `wait_criteria` if --wait, and args to `recv` command as ORed 
+          subject terms. 
+        - If you want to fetch tstamps sent to `tstamp_recipients`, 
+          either leave this empty, or set it to email-address of the sender:
+        
+            ['From "tstamp-sender@foo.com"']
         """
     ).tag(config=True)
 
