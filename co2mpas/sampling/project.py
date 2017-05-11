@@ -1399,7 +1399,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             return proj.do_storedice(verdict=verdict)
         else:
             ## TODO: build_registry
-            self.log.warning("Registration of arbitrary Dice-reports is not implemented yet!")
+            self.log.warning("Foreign dice-reports are discarded.")
             return verdict
 
     def proj_list(self, *pnames: Text, verbose=None,
@@ -1827,18 +1827,18 @@ class TparseCmd(_SubCmd):
 
     - If '-' is given or no file at all, it reads from STDIN.
     - If --force, ignores most verification/parsing errors.
-    - The --build-registry is for those handling "foreign" dices (i.e. TAAs),
       that is, when you don't have the files of the projects in the repo.
       With this option, tstamp-response get, it extracts the dice-repot and adds it
       as a "broken" tag referring to projects that might not exist in the repo,
       assuming they don't clash with pre-existing dice-reponses.
     """
+#    - The --build-registry is for those handling "foreign" dices (i.e. TAAs),
 
     #examples = trt.Unicode(""" """)
 
-    build_registry = trt.Bool(
-        help="When true, store stamp-response to project referenced, instead of *current*."
-    ).tag(config=True)
+#    build_registry = trt.Bool(
+#        help="When true, store stamp-response to project referenced, instead of *current*."
+#    ).tag(config=True)
 
     def __init__(self, **kwds):
         from . import tstamp
@@ -1853,12 +1853,12 @@ class TparseCmd(_SubCmd):
                 },
                 "Pase the tstamped response without storing it in the project."
             ),
-            'build-registry': (
-                {
-                    type(self).__name__: {'build_registry': True},
-                },
-                pndlu.first_line(type(self).build_registry.help)
-            ),
+#            'build-registry': (
+#                {
+#                    type(self).__name__: {'build_registry': True},
+#                },
+#                pndlu.first_line(type(self).build_registry.help)
+#            ),
         })
         super().__init__(**kwds)
 
@@ -1877,7 +1877,7 @@ class TparseCmd(_SubCmd):
             with io.open(file, 'rt') as fin:
                 mail_text = fin.read()
 
-        if self.build_registry:
+        if False:  #self.build_registry:
             report = self.projects_db.proj_parse_stamped_and_assign_project(mail_text)
             ok = False
         else:
@@ -1902,12 +1902,12 @@ class TrecvCmd(TparseCmd):
     - The fetching of emails can happen in one-shot or waiting mode.
     - For terms are searched in the email-subject - tip: use the project name(s).
     - If --force, ignores most verification/parsing errors.
-    - The --build-registry is for those handling "foreign" dices (i.e. TAAs),
       that is, when you don't have the files of the projects in the repo.
       With this option, tstamp-response get, it extracts the dice-repot and adds it
       as a "broken" tag referring to projects that might not exist in the repo,
       assuming they don't clash with pre-existing dice-reponses.
     """
+    #- The --build-registry is for those handling "foreign" dices (i.e. TAAs),
 
     examples = trt.Unicode("""
         To search emails in one-shot:
@@ -1974,7 +1974,7 @@ class TrecvCmd(TparseCmd):
             mail_text = mail.get_payload()
             infos = rcver.verify_recved_email(mail)
             try:
-                if self.build_registry:
+                if False:#self.build_registry:
                     report = pdb.proj_parse_stamped_and_assign_project(mail_text)
                 else:
                     proj = self.current_project
