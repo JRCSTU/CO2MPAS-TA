@@ -461,6 +461,10 @@ class TstampReceiver(TstampSpec):
         help="""
         RFC3501 IMAP search terms ANDed together for fetching Stamper responses.
         
+        - Note that elements are not just string - most probably you want:
+        
+            TEXT "foo bar"
+            
         - More criteria are appended on runtime, ie `TstampSpec.subject_prefix`, 
           `wait_criteria` if --wait, and any args to `recv` command as ORed 
           and searched as subject terms. 
@@ -827,7 +831,7 @@ class TstampReceiver(TstampSpec):
 
         ## SEARCH for tstamp emails.
         #
-        self.log.info("Searching tstamps: %s", criteria)
+        self.log.info("Searching: %s", criteria)
         resp = srv.uid('SEARCH', criteria.encode())
         data = reject_IMAP_no_response("search emails", resp)
 
