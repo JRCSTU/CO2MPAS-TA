@@ -1939,8 +1939,14 @@ class TrecvCmd(TparseCmd):
     ).tag(config=True)
 
     def __init__(self, **kwds):
+        from . import tstamp
+        from . import crypto
+
         ## Note here cannot update kwds-defaults,
         #  or would cancel baseclass's choices.
+        self.conf_classes.extend([
+            tstamp.TstampSender, tstamp.TstampReceiver, 
+            crypto.GitAuthSpec, crypto.StamperAuthSpec])
         self.cmd_aliases.update({
             'before': 'TstampReceiver.before_date',
             'after': 'TstampReceiver.after_date',
@@ -1961,8 +1967,10 @@ class TrecvCmd(TparseCmd):
         from . import tstamp
 
         pdb = self.projects_db
+        sndr = tstamp.TstampSender(config=self.config)
         rcver = tstamp.TstampReceiver(config=self.config)
-        for mail in rcver.receive_timestamped_emails(self.wait, args,
+        for mail in rcver.receive_timestamped_emails(self.wait,
+                                                     sndr.subject, args,
                                                      True, dry_run=False):
             ok = False
             mail_text = mail.get_payload()

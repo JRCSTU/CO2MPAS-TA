@@ -441,7 +441,6 @@ class TstampReceiver(TstampSpec):
         trt.Unicode(),
         default_value=[
             'From "mailer@stamper.itconsult.co.uk"',
-            'Subject "Proof of Posting Certificate"',
         ],
         help="""
         The RFC3501 IMAP "static" search criteria for fetching Stamper responses.
@@ -717,8 +716,9 @@ class TstampReceiver(TstampSpec):
                 return ["Found %i mailboxes:" % len(res)] + res
             return str((ok, data))
 
-    def _prepare_search_criteria(self, is_wait, projects):
+    def _prepare_search_criteria(self, is_wait, subject, projects):
         criteria = list(self.email_criteria)
+        criteria.append('Subject "%s"' % subject)
         if is_wait:
             criteria.append(self.wait_criteria)
 
@@ -752,10 +752,10 @@ class TstampReceiver(TstampSpec):
 
     # IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
     #      https://yuji.wordpress.com/2011/06/22/python-imaplib-imap-example-with-gmail/
-    def receive_timestamped_emails(self, is_wait, projects,
+    def receive_timestamped_emails(self, is_wait, subject, projects,
                                    read_only, dry_run):
         """Yields all matched :class:`email.message.Message` emails from IMAP."""
-        criteria = self._prepare_search_criteria(is_wait, projects)
+        criteria = self._prepare_search_criteria(is_wait, subject, projects)
         self._IDLE_supported = None
 
         while True:
@@ -1136,7 +1136,8 @@ class RecvCmd(baseapp.Cmd):
         from pandalone import utils as pndlu
 
         kwds.setdefault('conf_classes', [
-            TstampReceiver, crypto.GitAuthSpec, crypto.StamperAuthSpec])
+            TstampSender, TstampReceiver,
+            crypto.GitAuthSpec, crypto.StamperAuthSpec])
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
                 {type(self).__name__: {'dry_run': True}},
@@ -1160,8 +1161,10 @@ class RecvCmd(baseapp.Cmd):
     def run(self, *args):
         ## If `verbose`, too many small details, need flow.
         default_flow_style = None if self.verbose else False
+        sndr = TstampSender(config=self.config)
         rcver = TstampReceiver(config=self.config)
-        for mail in rcver.receive_timestamped_emails(self.wait, args,
+        for mail in rcver.receive_timestamped_emails(self.wait,
+                                                     sndr.subject, args,
                                                      True, self.dry_run):
             if not self.raw:
                 res = rcver.verify_recved_email(mail)
