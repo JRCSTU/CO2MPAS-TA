@@ -96,8 +96,8 @@ class DiceSpec(baseapp.Spec):
     def _warn_deprecated(self, proposal):
         t = proposal['trait']
         myname = type(self).__name__
-        self.log.warning("Trait `%s.%s`: %s" % (
-            myname, t.name, t.help))
+        if proposal['value']:
+            self.log.warning("Trait `%s.%s`: %s" % (myname, t.name, t.help))
 
         return proposal['value']
 
