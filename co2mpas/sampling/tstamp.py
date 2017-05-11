@@ -157,6 +157,10 @@ class TstampSpec(dice.DiceSpec):
         help="""The password of the SOCKS-v5-proxy server for send/recv emails."""
     ).tag(config=True)
 
+    subject_prefix = trt.Unicode(
+        help="""Prefixes project-ids when sending emails, used as search term when receiving. """
+    ).tag(config=True)
+
     @property
     def user_account_resolved(self):
         return self.user_account is not None and self.user_account or self.user_email
@@ -268,10 +272,6 @@ class TstampSender(TstampSpec):
         help="Deprecated, but still functional.  Prefer `tstamp_recipients` list  instead."
     ).tag(config=True)
 
-    subject = trt.Unicode(
-        help="""The subject-line to use for email sent to timestamp service. """
-    ).tag(config=True)
-
     from_address = trt.Unicode(
         None, allow_none=True,
         help="""Your email-address to use as `From:` for timestamp email, or none to use `user_email`.
@@ -288,7 +288,7 @@ class TstampSender(TstampSpec):
 
         self._register_validator(
             DiceSpec._is_not_empty,
-            ['host', 'subject'])
+            ['host', 'subject_prefix'])
         self._register_validator(
             DiceSpec._warn_deprecated,
             ['x_recipients', 'timestamping_addresses'])
@@ -323,7 +323,7 @@ class TstampSender(TstampSpec):
         from email.mime.text import MIMEText
 
         mail = MIMEText(msg, 'plain')
-        mail['Subject'] = '%s %s' % (self.subject, subject_suffix)
+        mail['Subject'] = '%s %s' % (self.subject_prefix, subject_suffix)
         mail['From'] = self._from_address_resolved
         mail['To'] = ', '.join(self._tstamper_address_resolved)
         if self.cc_addresses:
@@ -446,9 +446,9 @@ class TstampReceiver(TstampSpec):
         help="""
         RFC3501 IMAP search terms ANDed together for fetching Stamper responses.
         
-        - More criteria are appended on runtime, ie `TstampSender.subject`, 
-          `wait_criteria` if --wait, and args to `recv` command as ORed 
-          subject terms. 
+        - More criteria are appended on runtime, ie `TstampSpec.subject_prefix`, 
+          `wait_criteria` if --wait, and any args to `recv` command as ORed 
+          and searched as subject terms. 
         - If you want to fetch tstamps sent to `tstamp_recipients`, 
           either leave this empty, or set it to email-address of the sender:
         
@@ -725,9 +725,9 @@ class TstampReceiver(TstampSpec):
                 return ["Found %i mailboxes:" % len(res)] + res
             return str((ok, data))
 
-    def _prepare_search_criteria(self, is_wait, subject, projects):
+    def _prepare_search_criteria(self, is_wait, projects):
         criteria = list(self.email_criteria)
-        criteria.append('Subject "%s"' % subject)
+        criteria.append('Subject "%s"' % self.subject_prefix)
         if is_wait:
             criteria.append(self.wait_criteria)
 
@@ -761,10 +761,10 @@ class TstampReceiver(TstampSpec):
 
     # IMAP receive, see https://pymotw.com/2/imaplib/ for IMAP example.
     #      https://yuji.wordpress.com/2011/06/22/python-imaplib-imap-example-with-gmail/
-    def receive_timestamped_emails(self, is_wait, subject, projects,
+    def receive_timestamped_emails(self, is_wait, projects,
                                    read_only, dry_run):
         """Yields all matched :class:`email.message.Message` emails from IMAP."""
-        criteria = self._prepare_search_criteria(is_wait, subject, projects)
+        criteria = self._prepare_search_criteria(is_wait, projects)
         self._IDLE_supported = None
 
         while True:
@@ -1113,7 +1113,8 @@ class RecvCmd(baseapp.Cmd):
         %(cmd_chain)s [OPTIONS] [<search-term-1> ...]
 
     - Fetch of emails in one-shot search, or use --wait.
-    - For terms are searched in the email-subject - tip: use the project name(s).
+    - The terms are ORed and searched within the email's subject-line;
+      tip: use the project name(s).
     """
 
     examples = trt.Unicode("""
@@ -1185,10 +1186,8 @@ class RecvCmd(baseapp.Cmd):
     def run(self, *args):
         ## If `verbose`, too many small details, need flow.
         default_flow_style = None if self.verbose else False
-        sndr = TstampSender(config=self.config)
         rcver = TstampReceiver(config=self.config)
-        for mail in rcver.receive_timestamped_emails(self.wait,
-                                                     sndr.subject, args,
+        for mail in rcver.receive_timestamped_emails(self.wait, args,
                                                      True, self.dry_run):
             if not self.raw:
                 res = rcver.verify_recved_email(mail)

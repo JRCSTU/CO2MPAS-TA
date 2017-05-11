@@ -1967,10 +1967,8 @@ class TrecvCmd(TparseCmd):
         from . import tstamp
 
         pdb = self.projects_db
-        sndr = tstamp.TstampSender(config=self.config)
         rcver = tstamp.TstampReceiver(config=self.config)
-        for mail in rcver.receive_timestamped_emails(self.wait,
-                                                     sndr.subject, args,
+        for mail in rcver.receive_timestamped_emails(self.wait, args,
                                                      True, dry_run=False):
             ok = False
             mail_text = mail.get_payload()
