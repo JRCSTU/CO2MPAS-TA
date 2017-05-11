@@ -705,6 +705,15 @@ class TstampReceiver(TstampSpec):
         if ok != 'OK':
             raise IMAP4.error("Login DENIED due to: %s:%s" % (ok, data))
 
+    def list_mailbox(self, directory='""', pattern='*'):
+        with self.make_server(dry_run=False) as srv:
+            self.login_srv(srv,  # If login denied, raises.
+                           self.user_account_resolved,
+                           self.decipher('user_pswd'))
+
+            ok, data = srv.list(directory, pattern)
+            return [d.decode() for d in data]
+
     def _prepare_search_criteria(self, is_wait, projects):
         criteria = list(self.email_criteria)
         if is_wait:
@@ -1158,6 +1167,19 @@ class RecvCmd(baseapp.Cmd):
                 yield mail.get_payload()
 
 
+class MailboxCmd(baseapp.Cmd):
+    """Lists mailboxes in IMAP server. """
+
+    def __init__(self, **kwds):
+        kwds.setdefault('conf_classes', [TstampReceiver])
+        super().__init__(**kwds)
+
+    def run(self, *args):
+        ## If `verbose`, too many small details, need flow.
+        rcver = TstampReceiver(config=self.config)
+        return rcver.list_mailbox(*args)
+
+
 class ParseCmd(baseapp.Cmd):
     """
     Verifies and derives the *decision* OK/SAMPLE flag from tstamped-response email.
@@ -1249,5 +1271,6 @@ all_subcmds = (
     LoginCmd,
     SendCmd,
     RecvCmd,
+    MailboxCmd,
     ParseCmd
 )
