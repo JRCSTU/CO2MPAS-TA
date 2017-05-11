@@ -1949,24 +1949,48 @@ class TrecvCmd(TparseCmd):
     def run(self, *args):
         from . import tstamp
 
+        default_flow_style = None if self.verbose else False
+        warn = self.log.warning
         pdb = self.projects_db
         rcver = tstamp.TstampReceiver(config=self.config)
-        for mail in rcver.receive_timestamped_emails(self.wait, args,
-                                                     True, dry_run=False):
-            ok = False
-            mail_text = mail.get_payload()
-            infos = rcver.verify_recved_email(mail)
-            try:
-                proj = self.current_project
-                ok = proj.do_storedice(tstamp_txt=mail_text)
-                report = proj.result
 
-                short, long = report.get('dice', ok), report
-                yield self._format_result(short, long)
+        for mail in rcver.receive_timestamped_emails(self.wait, args,
+                                                     read_only=False,
+                                                     dry_run=False):
+            mid = mail.get('Message-Id')
+            try:
+                verdict = rcver.parse_tstamp_response(mail.get_payload())
+            except Exception as ex:
+                verdict = ex
+                warn("Failed parsing %s tstamp due to: %s", mid, ex)
+
+            ## Store full-verdict (verbose).
+            infos = rcver._get_recved_email_infos(mail, verdict, verbose=True)
+            pname = infos.get('project')
+
+            if pname is None:
+                ## Must have already warn
+                continue
+            
+            try:
+                proj = self.proj_open(pname)
+            except CmdException:
+                ## TODO: build_registry
+                warn("Tstamp %s from foreign project '%s' discarded.",
+                     mid, pname)
+                continue
+
+            try:
+                proj.do_storedice(verdict=verdict)
+                #report = proj.result  # Not needed, we already have verdict.
             except Exception as ex:
                 self.log.error('Failed storing %s email, due to: %s',
-                               mail.get('Message-Id'), ex)
-                infos['parsed'] = str(ex)
+                               mid, ex)
+
+            ## Respect verbose flag for print-outs.
+            infos2 = rcver._get_recved_email_infos(mail, verdict)
+            yield _mydump({mid: infos2}, default_flow_style=default_flow_style)
+
 
 class ExportCmd(_SubCmd):
     """

@@ -836,18 +836,19 @@ class TstampReceiver(TstampSpec):
 
             yield m
 
-    def verify_recved_email(self, mail):
-        infos = OrderedDict((i, mail.get(i)) for i in self.email_infos)
-        res = {mail.get('Message-Id'): infos}
+    def _get_recved_email_infos(self, mail, verdict_or_ex, verbose=None):
+        """Does not raise anything."""
+        verbose = verbose is None and self.verbose or verbose
 
-        try:  # Bad tstamps brake parsing in there!!!
-            verdict = self.parse_tstamp_response(mail.get_payload())
-        except Exception as ex:
-            self.log.debug("Failed parsing tstamp due to: %s\n%s",
-                           ex, res, exc_info=True)
-            infos['dice'] = "Failed due to: %s" % ex
+        infos = OrderedDict((i, mail.get(i)) for i in self.email_infos)
+
+        if verdict_or_ex is None:
+            pass
+        elif isinstance(verdict_or_ex, Exception):
+            infos['dice'] = "Failed due to: %s" % verdict_or_ex
         else:
-            if self.verbose:
+            verdict = verdict_or_ex
+            if verbose:
                 infos.update(verdict)
             else:
                 try:
@@ -859,7 +860,7 @@ class TstampReceiver(TstampSpec):
                 except:
                     pass
 
-        return res
+        return infos
 
 
 def _mydump(obj, indent=2, **kwds):
@@ -1151,8 +1152,10 @@ class RecvCmd(baseapp.Cmd):
         """
     ).tag(config=True)
 
-    raw = trt.Bool(
-        help="Skip verification and print raw email text, ready to be used with `parse` cmd."
+    form = trt.FuzzyEnum(
+        ['list', 'raw'],
+        allow_none=True,                
+        help="""If not none, skip tstamp verification and print raw email or `email_infos`."""
     ).tag(config=True)
 
     def __init__(self, **kwds):
@@ -1170,9 +1173,13 @@ class RecvCmd(baseapp.Cmd):
                 {type(self).__name__: {'wait': True}},
                 pndlu.first_line(type(self).wait.help)
             ),
+            'list': (
+                {type(self).__name__: {'form': 'list'}},
+                "Just list matched emails."
+            ),
             'raw': (
-                {type(self).__name__: {'raw': True}},
-                pndlu.first_line(type(self).raw.help)
+                {type(self).__name__: {'form': 'raw'}},
+                "Just print matched email content(s)."
             ),
         })
         kwds.setdefault('cmd_aliases', {
@@ -1187,13 +1194,27 @@ class RecvCmd(baseapp.Cmd):
         ## If `verbose`, too many small details, need flow.
         default_flow_style = None if self.verbose else False
         rcver = TstampReceiver(config=self.config)
+
         for mail in rcver.receive_timestamped_emails(self.wait, args,
-                                                     True, self.dry_run):
-            if not self.raw:
-                res = rcver.verify_recved_email(mail)
-                yield _mydump(res, default_flow_style=default_flow_style)
-            else:
+                                                     read_only=True,
+                                                     dry_run=self.dry_run):
+            mid = mail.get('Message-Id')
+            if self.form == 'raw':
                 yield mail.get_payload()
+            else:
+                if self.form == 'list':
+                    verdict = None
+                else:
+                    try:
+                        verdict = rcver.parse_tstamp_response(mail.get_payload())
+                    except Exception as ex:
+                        verdict = ex
+                        self.log.warning("Failed parsing %s tstamp due to: %s",
+                                         mid, ex)
+
+                infos = rcver._get_recved_email_infos(mail, verdict)
+
+                yield _mydump({mid: infos}, default_flow_style=default_flow_style)
 
 
 class ParseCmd(baseapp.Cmd):
