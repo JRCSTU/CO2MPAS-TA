@@ -1083,6 +1083,19 @@ class SendCmd(baseapp.Cmd):
                 return str(mail)
 
 
+class MailboxCmd(baseapp.Cmd):
+    """Lists mailboxes in IMAP server. """
+
+    def __init__(self, **kwds):
+        kwds.setdefault('conf_classes', [TstampReceiver])
+        super().__init__(**kwds)
+
+    def run(self, *args):
+        ## If `verbose`, too many small details, need flow.
+        rcver = TstampReceiver(config=self.config)
+        return rcver.list_mailbox(*args)
+
+
 class RecvCmd(baseapp.Cmd):
     """
     Fetch tstamps from IMAP server and derive *decisions* OK/SAMPLE flags.
@@ -1172,19 +1185,6 @@ class RecvCmd(baseapp.Cmd):
                 yield _mydump(res, default_flow_style=default_flow_style)
             else:
                 yield mail.get_payload()
-
-
-class MailboxCmd(baseapp.Cmd):
-    """Lists mailboxes in IMAP server. """
-
-    def __init__(self, **kwds):
-        kwds.setdefault('conf_classes', [TstampReceiver])
-        super().__init__(**kwds)
-
-    def run(self, *args):
-        ## If `verbose`, too many small details, need flow.
-        rcver = TstampReceiver(config=self.config)
-        return rcver.list_mailbox(*args)
 
 
 class ParseCmd(baseapp.Cmd):
