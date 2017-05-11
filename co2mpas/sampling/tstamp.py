@@ -1117,10 +1117,10 @@ class RecvCmd(baseapp.Cmd):
     """
 
     examples = trt.Unicode("""
-        To search emails in one-shot:
+        To search emails in one-shot (bash):
             %(cmd_chain)s --after today "IP-10-AAA-2017-1003"
-            %(cmd_chain)s --after "last week"
             %(cmd_chain)s --after "1 year ago" --before "18 March 2017"
+            %(cmd_chain)s --after "yesterday" --search 'From "foo@bar.com"'  
 
         To wait for new mails arriving (and not to block console),
         on Linux:
@@ -1178,6 +1178,7 @@ class RecvCmd(baseapp.Cmd):
             'before': 'TstampReceiver.before_date',
             'after': 'TstampReceiver.after_date',
             'mailbox': 'TstampReceiver.mailbox',
+            'search': 'TstampReceiver.email_criteria',
         })
         super().__init__(**kwds)
 
