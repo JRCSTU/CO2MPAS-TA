@@ -376,7 +376,9 @@ class TstampSender(TstampSpec):
                                subject_suffix='', dry_run=False):
         ## TODO: Schedula to the rescue!
 
-        msg_bytes = msg if isinstance(msg, bytes) else msg.encode('utf-8')
+        msg_bytes = msg
+        if isinstance(msg, str):
+            msg_bytes = msg.encode('ASCII', errors='surrogateescape')
         git_auth = crypto.get_git_auth(self.config)
 
         ## Allow to skip report syntxa-errors/verification if --force,
@@ -576,7 +578,7 @@ class TstampReceiver(TstampSpec):
         """
         ## TODO: Schedula to the rescue!
 
-        stag_bytes = tag_text.encode('utf-8')
+        stag_bytes = tag_text.encode('ASCII', errors='surrogateescape')
         git_auth = crypto.get_git_auth(self.config)
 
         ## Allow parsing signed/unsigned reports when --force,
@@ -614,7 +616,8 @@ class TstampReceiver(TstampSpec):
         from . import project
 
         try:
-            cmsg = project._CommitMsg.parse_commit_msg(tag.decode('utf-8'))
+            tag_str = tag.decode('ASCII', errors='surrogateescape')
+            cmsg = project._CommitMsg.parse_commit_msg(tag_str)
             verdict['commit_msg'] = cmsg._asdict()
             verdict['project'] = cmsg.p
             verdict['project_source'] = 'report'
