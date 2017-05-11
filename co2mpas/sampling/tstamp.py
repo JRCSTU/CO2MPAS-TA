@@ -457,8 +457,8 @@ class TstampReceiver(TstampSpec):
     ).tag(config=True)
 
     wait_criteria = trt.Unicode(
-        'RECENT', allow_none=True,
-        help="""The RFC3501 IMAP search criteria for when IDLE-waiting recent(?) messages."""
+        'NEW', allow_none=True,
+        help="""The RFC3501 IMAP search criteria for when IDLE-waiting, usually RECENT+UNSEEN messages."""
     ).tag(config=True)
 
     poll_delay = trt.Int(
