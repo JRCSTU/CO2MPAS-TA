@@ -1155,6 +1155,7 @@ class RecvCmd(baseapp.Cmd):
         kwds.setdefault('cmd_aliases', {
             'before': 'TstampReceiver.before_date',
             'after': 'TstampReceiver.after_date',
+            'mailbox': 'TstampReceiver.mailbox',
         })
         super().__init__(**kwds)
 
