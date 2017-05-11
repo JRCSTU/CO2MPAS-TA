@@ -401,7 +401,7 @@ class TstampSender(TstampSpec):
                     raise CmdException(msg)
             else:
                 msg = "The dice-report in timestamp got verified OK: %s"
-                self.log.debug(msg % verdict)
+                self.log.debug(msg, verdict)
 
         msg = self._append_tstamp_recipients(msg)
         mail = self._prepare_mail(msg, subject_suffix)
@@ -602,7 +602,7 @@ class TstampReceiver(TstampSpec):
                 self.log.warning(msg, _mydump(verdict))
             else:
                 msg = "The dice-report in timestamp got verified OK: %s"
-                self.log.debug(msg % _mydump(verdict))
+                self.log.debug(msg, _mydump(verdict))
 
             tag = verdict['parts']['msg']
 
