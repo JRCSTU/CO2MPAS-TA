@@ -431,8 +431,8 @@ class TstampReceiver(TstampSpec):
         help="""
         The mailbox folder name (case-sensitive except "INBOX") to search for tstamp responses in.
 
-        Tip:
-          Although Gmail is not recommended, use '[Gmail]/All Mail'
+        - Use `mailbox` subcmd to list all mailboxes.
+        - Tip: Although Gmail is not recommended, use "[Gmail]/All Mail"
           to search in all its folders.
         """
     ).tag(config=True)
@@ -712,7 +712,10 @@ class TstampReceiver(TstampSpec):
                            self.decipher('user_pswd'))
 
             ok, data = srv.list(directory, pattern)
-            return [d.decode() for d in data]
+            if ok == 'OK':
+                res = [d.decode() for d in data if d]
+                return ["Found %i mailboxes:" % len(res)] + res
+            return str((ok, data))
 
     def _prepare_search_criteria(self, is_wait, projects):
         criteria = list(self.email_criteria)
