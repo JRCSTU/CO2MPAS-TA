@@ -81,11 +81,11 @@ class DiceSpec(baseapp.Spec):
 
     @trt.validate('user_name', 'user_email')
     def _is_not_empty(self, proposal):
-        value = proposal['value']
+        value = proposal.value
         if not value:
             myname = type(self).__name__
             raise trt.TraitError('%s.%s must not be empty!'
-                                 % (myname, proposal['trait'].name))
+                                 % (myname, proposal.trait.name))
         return value
 
     ## Traitlets @validator to be used by sub-classes
@@ -94,12 +94,12 @@ class DiceSpec(baseapp.Spec):
     #      self._register_validator(DiceSpec._warn_deprecated, ['a', ])
     #
     def _warn_deprecated(self, proposal):
-        t = proposal['trait']
+        t = proposal.trait
         myname = type(self).__name__
-        if proposal['value']:
+        if proposal.value:
             self.log.warning("Trait `%s.%s`: %s" % (myname, t.name, t.help))
 
-        return proposal['value']
+        return proposal.value
 
 
 ###################

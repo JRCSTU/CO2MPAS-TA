@@ -844,7 +844,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
     ## Useless, see https://github.com/ipython/traitlets/issues/287
     # @trt.validate('repo_path')
     # def _normalize_path(self, proposal):
-    #     repo_path = proposal['value']
+    #     repo_path = proposal.value
     #     if not osp.isabs(repo_path):
     #         repo_path = osp.join(default_config_dir(), repo_path)
     #     repo_path = pndlu.convpath(repo_path)
