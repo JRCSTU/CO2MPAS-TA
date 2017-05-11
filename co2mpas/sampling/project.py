@@ -835,9 +835,11 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         help="Deprecated and non-functional!  Replaced by `--ProjectsDB.preserved_git_settings` list."
     ).tag(config=True)
 
-    @trt.validate('reset_git_settings')
-    def _warn_deprecated(self, proposal):
-        self.log.warning(type(self).reset_git_settings.help)
+    def __init__(self, *args, **kwds):
+        from .dice import DiceSpec
+
+        self._register_validator(DiceSpec._warn_deprecated,
+                                 ['reset_git_settings'])
 
     ## Useless, see https://github.com/ipython/traitlets/issues/287
     # @trt.validate('repo_path')
