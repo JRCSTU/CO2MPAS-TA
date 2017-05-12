@@ -308,7 +308,7 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
             Print parameters for all intermediate classes.
           """).tag(config=True)
 
-    ## TODO: Retrofitt to force-flags (with code for each specific permission).
+    ## TODO: Retrofit to force-flags (with code for each specific permission).
     force = trt.Bool(
         False,
         ## INFO: Add force flag explanations here.
@@ -331,6 +331,27 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
         super().__init__(**kwargs)
         self.observe_ptraits()
 
+    ###############
+    ## Traitlet @validators to be used by sub-classes
+    #  like that::
+    #
+    #      self._register_validator(<my_class>._warn_deprecated, ['a', ])
+
+    def _is_not_empty(self, proposal):
+        value = proposal.value
+        if not value:
+            myname = type(self).__name__
+            raise trt.TraitError('%s.%s must not be empty!'
+                                 % (myname, proposal.trait.name))
+        return value
+
+    def _warn_deprecated(self, proposal):
+        t = proposal.trait
+        myname = type(self).__name__
+        if proposal.value:
+            self.log.warning("Trait `%s.%s`: %s" % (myname, t.name, t.help))
+
+        return proposal.value
 
 ###################
 ##    Commands   ##

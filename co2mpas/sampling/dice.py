@@ -77,27 +77,10 @@ class DiceSpec(baseapp.Spec):
         help="""The email address of the default user invoking the app. Must not be empty!"""
     ).tag(config=True)
 
-    @trt.validate('user_name', 'user_email')
-    def _is_not_empty(self, proposal):
-        value = proposal.value
-        if not value:
-            myname = type(self).__name__
-            raise trt.TraitError('%s.%s must not be empty!'
-                                 % (myname, proposal.trait.name))
-        return value
-
-    ## Traitlets @validator to be used by sub-classes
-    #  like that::
-    #
-    #      self._register_validator(DiceSpec._warn_deprecated, ['a', ])
-    #
-    def _warn_deprecated(self, proposal):
-        t = proposal.trait
-        myname = type(self).__name__
-        if proposal.value:
-            self.log.warning("Trait `%s.%s`: %s" % (myname, t.name, t.help))
-
-        return proposal.value
+    def __init__(self, **kwds):
+        self._register_validator(DiceSpec._is_not_empty,
+                                 ['user_name', 'user_email'])
+        super().__init__(**kwds)
 
 
 ###################
