@@ -222,7 +222,7 @@ class GpgSpec(baseapp.Spec):
     ).tag(config=True)
 
     gnupgoptions = trt.List(
-        trt.Unicode(None, allow_none=False),
+        trt.Unicode(),
         default_value=[
             '--allow-weak-digest-algos',  # Timestamp-service's key use MD5!
             '--armor',

@@ -70,12 +70,10 @@ class DiceSpec(baseapp.Spec):
     """Common parameters dice functionality."""
 
     user_name = trt.Unicode(
-        None, allow_none=False,
         help="""The Name & Surname of the default user invoking the app.  Must not be empty!"""
     ).tag(config=True)
 
     user_email = trt.Unicode(
-        None, allow_none=False,
         help="""The email address of the default user invoking the app. Must not be empty!"""
     ).tag(config=True)
 
