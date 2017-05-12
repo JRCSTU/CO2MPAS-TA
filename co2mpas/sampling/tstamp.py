@@ -1216,10 +1216,6 @@ class RecvCmd(baseapp.Cmd):
             TstampSender, TstampReceiver,
             crypto.GitAuthSpec, crypto.StamperAuthSpec])
         kwds.setdefault('cmd_flags', {
-            ('n', 'dry-run'): (
-                {type(self).__name__: {'dry_run': True}},
-                pndlu.first_line(type(self).dry_run.help)
-            ),
             'wait': (
                 {type(self).__name__: {'wait': True}},
                 pndlu.first_line(type(self).wait.help)
@@ -1247,8 +1243,7 @@ class RecvCmd(baseapp.Cmd):
         rcver = TstampReceiver(config=self.config)
 
         emails = rcver.receive_timestamped_emails(self.wait, args,
-                                                  read_only=True,
-                                                  dry_run=self.dry_run)
+                                                  read_only=True)
         for mail in emails:
             mid = mail.get('Message-Id')
             if self.form == 'raw':
