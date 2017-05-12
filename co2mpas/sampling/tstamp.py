@@ -486,13 +486,22 @@ class TstampReceiver(TstampSpec):
         help="""
         RFC3501 IMAP search terms ANDed together for fetching Stamper responses.
 
-        - Note that elements are not just string - most probably you want:
+        - Note that elements are not just strings - to combine NOT, AND & OR
+          with the following criteria, all parenthesized:
+            SUBJECT | BODY | "foo bar"
+            TEXT "foo bar"        # Search subject & body
+            FROM  | TO | CC | BCC "foo@bar"
+            SENTON "15-May-2017"
 
-            TEXT "foo bar"
+          or just those 'special" flags:
+            (UN)ANSWERED | (UN)FLAGGED | (UN)SEEN | RECENT | NEW | OLD
 
+        - A single delimiter-space between and double-quoting of  strings
+          are both compulsory;
+        - see https://tools.ietf.org/html/rfc3501#page-49 for more.
         - More criteria are appended on runtime, ie `TstampSpec.subject_prefix`,
           `wait_criteria` if --wait, and any args to `recv` command as ORed
-          and searched as subject terms.
+          and searched as subject terms (i.e. the (projects-ids").
         - If you want to fetch tstamps sent to `tstamp_recipients`,
           either leave this empty, or set it to email-address of the sender:
 
