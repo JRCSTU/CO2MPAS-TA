@@ -617,7 +617,7 @@ class TRX(unittest.TestCase):
 
 
 @ddt.ddt
-class Configed(unittest.TestCase):
+class TstampShell(unittest.TestCase):
     def test_login_smoketest(self):
         ret = sbp.check_call('co2dice tstamp login', env=os.environ)
         self.assertEqual(ret, 0)
@@ -625,3 +625,20 @@ class Configed(unittest.TestCase):
     def test_mailbox_smoketest(self):
         ret = sbp.check_call('co2dice tstamp mailbox', env=os.environ)
         self.assertEqual(ret, 0)
+
+    def test_recv_smoketest(self):
+        ret = sbp.check_call('co2dice tstamp recv', env=os.environ)
+        self.assertEqual(ret, 0)
+
+        ret = sbp.check_call('co2dice tstamp recv --raw', env=os.environ)
+        self.assertEqual(ret, 0)
+
+        ret = sbp.check_call('co2dice tstamp recv --list', env=os.environ)
+        self.assertEqual(ret, 0)
+
+    def test_send_smoketest(self):
+        fpath = osp.join(mydir, '..', '..', 'setup.py')
+        ret = sbp.check_call('co2dice tstamp send %s --dry-run -f' % fpath,
+                             env=os.environ)
+        self.assertEqual(ret, 0)
+
