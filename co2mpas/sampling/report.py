@@ -31,7 +31,21 @@ def _report_tuple_2_dict(fpath, iokind, report) -> dict:
         ('iokind', iokind)])
 
     if isinstance(report, pd.DataFrame):
-        report = OrderedDict((k, list(v)) for k, v in report.T.items())
+        decs_rounding = 4  # Keep report below 78 chars width.
+
+        def fmt_row_as_pair(i, k, v):
+            try:
+                v = round(v.astype(float), decs_rounding)
+            except:
+                pass
+            v = v.tolist()
+
+            return ('%i.%s' % (i, k), v)
+
+        ## Enumerate for duplicate-items, see #396.
+        report = OrderedDict(fmt_row_as_pair(i, k, v)
+                             for i, (k, v) in
+                             enumerate(report.T.items()))
     elif isinstance(report, pd.Series):
         report = OrderedDict(report.items())
     elif report is not None:
