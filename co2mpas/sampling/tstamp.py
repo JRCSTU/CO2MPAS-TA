@@ -386,21 +386,21 @@ class TstampSender(TstampSpec):
             ver = git_auth.verify_git_signed(msg_bytes)
             verdict = _mydump(sorted(vars(ver).items()))
         except Exception as ex:
-            msg = "Failed to extract signed dice-report from tstamp!\n%s" % ex
+            err = "Failed to extract signed dice-report from tstamp!\n%s" % ex
             if self.force:
-                self.log.warning(msg)
+                self.log.warning(err)
             else:
-                raise CmdException(msg)
+                raise CmdException(err)
         else:
             if not ver:
-                msg = "Cannot verify dice-report's signature!\n%s" % verdict
+                err = "Cannot verify dice-report's signature!\n%s" % verdict
                 if self.force:
-                    self.log.warning(msg)
+                    self.log.warning(err)
                 else:
-                    raise CmdException(msg)
+                    raise CmdException(err)
             else:
-                msg = "The dice-report in timestamp got verified OK: %s"
-                self.log.debug(msg, verdict)
+                err = "The dice-report in timestamp got verified OK: %s"
+                self.log.debug(err, verdict)
 
         msg = self._append_tstamp_recipients(msg)
         mail = self._prepare_mail(msg, subject_suffix)
