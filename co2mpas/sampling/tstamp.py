@@ -405,19 +405,22 @@ class TstampSender(TstampSpec):
         msg = self._append_tstamp_recipients(msg)
         mail = self._prepare_mail(msg, subject_suffix)
 
-        with self.make_server() as srv:
-            self.login_srv(srv,  # If login denied, raises.
-                           self.user_account_resolved,
-                           self.decipher('user_pswd'))
+        if dry_run:
+            self.log.warning("DRY-RUN:  No email has been sent!\n  "
+                             "the printed %d-char TEXT-email from '%s' to %s-->%s",
+                             len(msg), self._from_address_resolved,
+                             self._tstamper_address_resolved,
+                             self.tstamp_recipients + self.x_recipients)
+        else:
+            with self.make_server() as srv:
+                self.login_srv(srv,  # If login denied, raises.
+                               self.user_account_resolved,
+                               self.decipher('user_pswd'))
 
-            from logging import WARNING, INFO
-            level = WARNING if dry_run else INFO
-            prefix = "DRY-RUN:  No email has been sent!\n  " if dry_run else ''
-            self.log.log(level, "%sTimestamping %d-char email from '%s' to %s-->%s",
-                         prefix, len(msg), self._from_address_resolved,
-                         self._tstamper_address_resolved,
-                         self.tstamp_recipients + self.x_recipients)
-            if not dry_run:
+                self.log.info("Timestamping %d-char email from '%s' to %s-->%s",
+                              len(msg), self._from_address_resolved,
+                              self._tstamper_address_resolved,
+                              self.tstamp_recipients + self.x_recipients)
                 srv.send_message(mail)
 
         return mail
