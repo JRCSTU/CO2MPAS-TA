@@ -280,9 +280,7 @@ class ReportCmd(baseapp.Cmd):
                 raise CmdException(
                     "Cmd %r must be given at least one file argument, received %d: %r!"
                     % (self.name, pfiles.nfiles(), pfiles))
-            if pfiles.find_nonfiles():
-                raise CmdException("Cmd %r: missing or non-regular files: %s" %
-                                   (self.name, pfiles.find_nonfiles()))
+            pfiles.check_files_exist(self.name)
             self.log.info("Extracting %s from files...\n  %s", infos, pfiles)
 
         import yaml

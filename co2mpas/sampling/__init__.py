@@ -85,6 +85,11 @@ class PFiles(namedtuple('PFiles', all_io_kinds)):
                 itt.chain(self.inp, self.out, self.other)
                 if not osp.isfile(fpath)]
 
+    def check_files_exist(self, name):
+        badfiles = self.find_nonfiles()
+        if badfiles:
+            raise CmdException("%s: %i file(s) missing or not regular: %s" %
+                               (name, len(badfiles), badfiles))
 
 #: Allow creation of PFiles with partial arguments.
 PFiles.__new__.__defaults__ = ([], ) * len(all_io_kinds)

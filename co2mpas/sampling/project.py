@@ -1643,9 +1643,7 @@ class AppendCmd(_SubCmd):
             raise CmdException(
                 "Cmd %r must be given at least one file argument, received %d: %r!"
                 % (self.name, pfiles.nfiles(), pfiles))
-        if pfiles.find_nonfiles():
-            raise CmdException("Cmd %r: missing or non-regular files: %s" %
-                               (self.name, pfiles.find_nonfiles()))
+        pfiles.check_files_exist(self.name)
         self.log.info("Importing report files...\n  %s", pfiles)
 
         return self.append_and_report(pfiles)
@@ -1706,9 +1704,7 @@ class InitCmd(AppendCmd):
         if len(args) == 1:
             return self.projects_db.proj_add(args[0])
         else:
-            if pfiles.find_nonfiles():
-                raise CmdException("Cmd %r: missing or non-regular files: %s" %
-                                   (self.name, pfiles.find_nonfiles()))
+            pfiles.check_files_exist(self.name)
 
             from . import report
 
