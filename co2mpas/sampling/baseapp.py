@@ -1224,13 +1224,30 @@ def consume_cmd(result):
     - Remember to have logging setup properly before invoking this.
     - This the 2nd half of the replacement for :meth:`Application.launch_instance()`.
     """
+    import sys
     import types
+
+    any_none_bool = False
+    all_true = True
+
+    def emit(i):
+        nonlocal any_none_bool, all_true
+
+        if isinstance(i, bool):
+            all_true &= i
+        else:
+            any_none_bool = True
+            print(i)
 
     if result is not None:
         if isinstance(result, types.GeneratorType):
             for i in result:
                 print(i)
         elif isinstance(result, (tuple, list)):
-            print(os.linesep.join(result))
+            for i in result:
+                emit(i)
         else:
-            print(result)
+            emit(result)
+
+    ok = any_none_bool or all_true
+    sys.exit(0 if ok else 1)
