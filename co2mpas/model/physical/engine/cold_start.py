@@ -121,7 +121,7 @@ def _calibrate_models(delta, temp, speeds_hot, on_eng, idle, phases):
     for t in _identify_temp_limit(delta, temp):
         _set_attr(p, {'temp_limit': t}, attr='value')
         ds_max = ds[temp <= t].max()
-        if ds_max > 0:
+        if not np.isclose(ds_max, 0.0):
             _set_attr(p, {'ds': ds_max}, attr='max')
             best = min(func(x0=p, ind=ind()), best)
 
