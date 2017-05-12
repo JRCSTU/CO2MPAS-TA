@@ -14,12 +14,23 @@ The Dice:
   with ``-fd`` options).
 - fix(report, :git:`370`): was always accepting dice-reports, even if TA-flags were
   "engineering".
+  
 - refact(tstamp): rename configuration params (old names issue deprecation warnings)::
 
     x_recipients           --> tstamp_recipients
     timestamping_addresses --> tstamper_address           ## Not a list anymore!
     TstampReceiver.subject --> TstampSpec.subject_prefix  ## Also used by `recv` cmd.
 
+- feat: new commands:
+
+  - ``tstamp recv``: Fetch tstamps from IMAP server and derive *decisions* 
+    OK/SAMPLE flags.
+  - ``tstamp mailbox``: Lists mailboxes in IMAP server.
+  - ``project trecv``: Fetch tstamps from IMAP server, derive *decisions* 
+    OK/SAMPLE flags and store them (or compare with existing).
+  - ``config desc``: Describe config-params searched by ``'<class>.<param>'`` 
+    (case-insensitive).    
+    
 - feat(tstamp, :git:`368`): Support *STARTTLS*, enhance ``DiceSpec.ssl`` config param::
 
       Bool/enumeration for what encryption to use when connecting to SMTP/IMAP servers:

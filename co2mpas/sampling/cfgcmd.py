@@ -219,7 +219,7 @@ class ShowCmd(baseapp.Cmd):
 
 class DescCmd(baseapp.Cmd):
     """
-    Describe config-params with their name '<class>.<param>' containing search-strings (case-insensitive)
+    Describe config-params with their name '<class>.<param>' containing search-strings (case-insensitive).
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<search-term--1>] ...
