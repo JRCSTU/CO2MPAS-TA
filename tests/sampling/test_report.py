@@ -10,6 +10,8 @@ from co2mpas.__main__ import init_logging
 from co2mpas.sampling import CmdException, report, project, crypto
 import logging
 import numpy as np
+import os
+import subprocess as sbp
 import re
 import yaml
 import shutil
@@ -250,3 +252,42 @@ class TReportProject(TReportBase):
                     path, iokind, rpt = "tests\sampling\output.xlsx", 'out', True
                 self.assertTrue(f.endswith(path), rpt)
                 self.check_report_tuple(rec, test_vfid, path, iokind, rpt)
+
+
+@ddt.ddt
+class TReportShell(unittest.TestCase):
+    def test_report_other_smoketest(self):
+        fpath = osp.join(mydir, '..', '..', 'setup.py')
+        ret = sbp.check_call('co2dice report %s' % fpath,
+                             env=os.environ)
+        self.assertEqual(ret, 0)
+
+    def test_report_inp_smoketest(self):
+        fpath = osp.join(mydir, 'input.xlsx')
+        ret = sbp.check_call('co2dice report -i %s' % fpath,
+                             env=os.environ)
+        self.assertEqual(ret, 0)
+
+    def test_report_out_smoketest(self):
+        fpath = osp.join(mydir, 'output.xlsx')
+        ret = sbp.check_call('co2dice report -o %s' % fpath,
+                             env=os.environ)
+        self.assertEqual(ret, 0)
+
+    def test_report_io_smoketest(self):
+        fpath1 = osp.join(mydir, 'input.xlsx')
+        fpath2 = osp.join(mydir, 'output.xlsx')
+        ret = sbp.check_call('co2dice report -i %s -o %s' %
+                             (fpath1, fpath2),
+                             env=os.environ)
+        self.assertEqual(ret, 0)
+
+    def test_report_iof_smoketest(self):
+        fpath1 = osp.join(mydir, 'input.xlsx')
+        fpath2 = osp.join(mydir, 'output.xlsx')
+        fpath3 = osp.join(mydir, '__init__.py')
+        ret = sbp.check_call('co2dice report -i %s -o %s %s' %
+                             (fpath1, fpath2, fpath3),
+                             env=os.environ)
+        self.assertEqual(ret, 0)
+
