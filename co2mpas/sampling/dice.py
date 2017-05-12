@@ -185,7 +185,7 @@ def main(argv=None, log_level=None, **app_init_kwds):
     import transitions
 
     init_logging(level=log_level, color=True)
-    log = logging.getLogger(__name__)
+    log = logging.getLogger(APPNAME)
 
     try:
         cmd = Co2dice.make_cmd(argv, **app_init_kwds)
