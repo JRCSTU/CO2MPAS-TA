@@ -9,8 +9,10 @@
 from co2mpas.__main__ import init_logging
 from co2mpas.sampling import tstamp, crypto
 import logging
+import os
 from pprint import pformat as pf
 import shutil
+import subprocess as sbp
 import tempfile
 import unittest
 
@@ -546,7 +548,6 @@ ct0p7ZWQqb7xn2Q3IFuU/vOiUTc5XZTnrpUr5QkHV00IMOnPnvSnag==
 """),
 ]
 
-
 @ddt.ddt
 class TRX(unittest.TestCase):
 
@@ -613,3 +614,14 @@ class TRX(unittest.TestCase):
             self.check_timestamp_fails(rcv, verdicts[-1], fail_regex)
             rcv.force = True
         self.check_timestamp(rcv, *verdicts)
+
+
+@ddt.ddt
+class Configed(unittest.TestCase):
+    def test_login_smoketest(self):
+        ret = sbp.check_call('co2dice tstamp login', env=os.environ)
+        self.assertEqual(ret, 0)
+
+    def test_mailbox_smoketest(self):
+        ret = sbp.check_call('co2dice tstamp mailbox', env=os.environ)
+        self.assertEqual(ret, 0)
