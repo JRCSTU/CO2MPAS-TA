@@ -167,6 +167,7 @@ class TstampSpec(dice.DiceSpec):
     ).tag(config=True)
 
     subject_prefix = trt.Unicode(
+        '[co2dice.test]: ',
         allow_none=True,
         help="""
         Prefixes project-ids when sending emails, used as search term when receiving.
@@ -174,6 +175,15 @@ class TstampSpec(dice.DiceSpec):
         If none, Receiver will not add it to its criteria; Sender will scream.
         """
     ).tag(config=True)
+
+    #@trt.validate('subject_prefix')  # Only @sender, IMAP may search UTF-8?
+    def _is_all_latin(self, proposal):
+        value = proposal.value
+        if any(ord(c) >= 128 for c in value):
+            myname = type(self).__name__
+            raise trt.TraitError('%s.%s must not contain non-ASCII chars!'
+                                 % (myname, proposal.trait.name))
+        return value
 
     @property
     def user_account_resolved(self):
@@ -306,14 +316,15 @@ class TstampSender(TstampSpec):
         return self.from_address or self.user_email
 
     def __init__(self, *args, **kwds):
-        from .dice import DiceSpec
-
         self._register_validator(
-            DiceSpec._is_not_empty,
+            TstampSender._is_not_empty,
             ['host', 'subject_prefix'])
         self._register_validator(
-            DiceSpec._warn_deprecated,
+            TstampSender._warn_deprecated,
             ['x_recipients', 'timestamping_addresses', 'subject'])
+        self._register_validator(
+            TstampSender._is_all_latin,
+            ['subject_prefix'])
         super().__init__(*args, **kwds)
 
     ## TODO: delete deprecated trait
