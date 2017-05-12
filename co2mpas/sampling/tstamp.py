@@ -19,7 +19,16 @@ from . import CmdException, baseapp, dice, crypto
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 
 
-#
+def _to_bytes(s):
+    if not isinstance(s, bytes):
+        return s.encode('ASCII', errors='surrogateescape')
+
+
+def _to_str(b):
+    if not isinstance(b, str):
+        return b.decode('ASCII', errors='surrogateescape')
+
+
 ###################
 ##     Specs     ##
 ###################
@@ -161,8 +170,8 @@ class TstampSpec(dice.DiceSpec):
         allow_none=True,
         help="""
         Prefixes project-ids when sending emails, used as search term when receiving.
-        
-        If none, Receiver will not add it to its criteria; Sender will scream. 
+
+        If none, Receiver will not add it to its criteria; Sender will scream.
         """
     ).tag(config=True)
 
@@ -285,9 +294,9 @@ class TstampSender(TstampSpec):
     subject = trt.Unicode(
         allow_none=True,
         help="""Deprecated, and NON functional.
-          
-        Replaced either by the top-level `TstampDice.subject_prefix` or  
-        the `subject_prefix` options in `TstampSender` and `TstampReceiver` classes.  
+
+        Replaced either by the top-level `TstampDice.subject_prefix` or
+        the `subject_prefix` options in `TstampSender` and `TstampReceiver` classes.
         The later is needed for when searching old tstamps.
         """
     ).tag(config=True)
@@ -378,7 +387,7 @@ class TstampSender(TstampSpec):
 
         msg_bytes = msg
         if isinstance(msg, str):
-            msg_bytes = msg.encode('ASCII', errors='surrogateescape')
+            msg_bytes = _to_bytes(msg)
         git_auth = crypto.get_git_auth(self.config)
 
         ## Allow to skip report syntxa-errors/verification if --force,
@@ -465,17 +474,17 @@ class TstampReceiver(TstampSpec):
         ],
         help="""
         RFC3501 IMAP search terms ANDed together for fetching Stamper responses.
-        
+
         - Note that elements are not just string - most probably you want:
-        
+
             TEXT "foo bar"
-            
-        - More criteria are appended on runtime, ie `TstampSpec.subject_prefix`, 
-          `wait_criteria` if --wait, and any args to `recv` command as ORed 
-          and searched as subject terms. 
-        - If you want to fetch tstamps sent to `tstamp_recipients`, 
+
+        - More criteria are appended on runtime, ie `TstampSpec.subject_prefix`,
+          `wait_criteria` if --wait, and any args to `recv` command as ORed
+          and searched as subject terms.
+        - If you want to fetch tstamps sent to `tstamp_recipients`,
           either leave this empty, or set it to email-address of the sender:
-        
+
             ['From "tstamp-sender@foo.com"']
         """
     ).tag(config=True)
@@ -578,7 +587,7 @@ class TstampReceiver(TstampSpec):
         """
         ## TODO: Schedula to the rescue!
 
-        stag_bytes = tag_text.encode('ASCII', errors='surrogateescape')
+        stag_bytes = _to_bytes(tag_text)
         git_auth = crypto.get_git_auth(self.config)
 
         ## Allow parsing signed/unsigned reports when --force,
@@ -616,8 +625,7 @@ class TstampReceiver(TstampSpec):
         from . import project
 
         try:
-            tag_str = tag.decode('ASCII', errors='surrogateescape')
-            cmsg = project._CommitMsg.parse_commit_msg(tag_str)
+            cmsg = project._CommitMsg.parse_commit_msg(_to_str(tag))
             verdict['commit_msg'] = cmsg._asdict()
             verdict['project'] = cmsg.p
             verdict['project_source'] = 'report'
@@ -790,7 +798,7 @@ class TstampReceiver(TstampSpec):
     def receive_timestamped_emails(self, is_wait, projects, read_only):
         """
         Yields all matched :class:`email.message.Message` emails from IMAP.
-        
+
         :param read_only:
             when true, doesn mark fetched emails as `Seen`.
         """
@@ -1158,7 +1166,7 @@ class RecvCmd(baseapp.Cmd):
         To search emails in one-shot (bash):
             %(cmd_chain)s --after today "IP-10-AAA-2017-1003"
             %(cmd_chain)s --after "1 year ago" --before "18 March 2017"
-            %(cmd_chain)s --after "yesterday" --search 'From "foo@bar.com"'  
+            %(cmd_chain)s --after "yesterday" --search 'From "foo@bar.com"'
 
         To wait for new mails arriving (and not to block console),
         on Linux:
@@ -1186,7 +1194,7 @@ class RecvCmd(baseapp.Cmd):
 
     form = trt.FuzzyEnum(
         ['list', 'raw'],
-        allow_none=True,                
+        allow_none=True,
         help="""If not none, skip tstamp verification and print raw email or `email_infos`."""
     ).tag(config=True)
 
