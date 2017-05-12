@@ -4,6 +4,11 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
+v1.5.7, file-ver: 2.2.6, 15-May-2017: "Telio" release
+==========================================================
+Backported DICE-1.6.x to co2mpas-1.5.5.post1 for installation in AIO-1.5.5.
+
+
 v1.5.x, file-ver: 2.2.6, 10-February 2017: "Stamp" release
 ==========================================================
 .. image:: https://cloud.githubusercontent.com/assets/501585/20363048/

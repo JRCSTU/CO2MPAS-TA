@@ -9,7 +9,7 @@
 
 
 #: Authoritative project's PEP 440 version.
-__version__ = version = "1.5.5.post1"  # Also update README.rst, CHANGES.rst,
+__version__ = version = "1.5.7.dev0"  # Also update README.rst, CHANGES.rst,
 
 #: Input/Output file's version.
 __file_version__ = "2.2.6"
@@ -21,4 +21,4 @@ __dice_report_version__ = '1.0.0'
 
 # Please UPDATE TIMESTAMP WHEN BUMPING VERSIONS AND BEFORE RELEASE.
 #: Release date.
-__updated__ = "2017-02-20 13:00:00"
+__updated__ = "2017-05-13 01:44:10"
