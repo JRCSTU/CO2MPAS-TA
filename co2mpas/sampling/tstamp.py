@@ -795,7 +795,7 @@ class TstampReceiver(TstampSpec):
             criteria = [c for c in criteria if c]
 
         if subj:
-            criteria.append('Subject "%s"' % subj)
+            criteria.append('SUBJECT "%s"' % subj)
 
         if is_wait and waitcrt:
             criteria.append(waitcrt)
