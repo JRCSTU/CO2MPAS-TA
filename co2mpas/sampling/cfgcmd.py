@@ -33,7 +33,7 @@ def prepare_matcher(terms, is_regex):
 
 class ConfigCmd(baseapp.Cmd):
     """
-    Commands to manage configuration-options loaded from filesystem.
+    Commands to manage configuration-options loaded from filesystem, cmd-line or defaults.
 
     Read also the help message for `--config-paths` generic option.
     """
@@ -271,8 +271,8 @@ class DescCmd(baseapp.Cmd):
     def __init__(self, **kwds):
         import pandalone.utils as pndlu
 
-        super().__init__(
-            cmd_flags={
+        kwds.setdefault(
+            'cmd_flags', {
                 ('l', 'list'): (
                     {type(self).__name__: {'list': True}},
                     pndlu.first_line(type(self).list.help)
@@ -287,6 +287,7 @@ class DescCmd(baseapp.Cmd):
                 ),
             }
         )
+        super().__init__(**kwds)
 
     def run(self, *args):
         from toolz import dicttoolz as dtz
