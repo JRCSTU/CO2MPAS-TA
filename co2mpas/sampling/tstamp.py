@@ -561,6 +561,11 @@ class TstampReceiver(TstampSpec):
         """
     ).tag(config=True)
 
+    @trt.validate('subject_prefix', 'wait_criterio', 'before_date', 'after_date')
+    def _strip_trait(self, p):
+        v = p.value
+        return v and v.strip()
+
     def _capture_stamper_msg_and_id(self, ts_msg: Text, ts_heads: Text) -> int:
         stamper_id = msg = None
         m = _stamper_id_regex.search(ts_heads)
@@ -779,32 +784,41 @@ class TstampReceiver(TstampSpec):
             return ["Found %i mailboxes:" % len(res)] + res
 
     def _prepare_search_criteria(self, is_wait, projects):
-        criteria = list(self.email_criteria)
-        if self.subject_prefix:
-            criteria.append('Subject "%s"' % self.subject_prefix)
-        if is_wait:
-            criteria.append(self.wait_criterio)
-
+        subj = self.subject_prefix
         before, after = [self.before_date, self.after_date]
+        waitcrt = self.wait_criterio
+
+        criteria = [c and c.strip() for c in self.email_criteria]
+        criteria = [c for c in criteria if c]
+
+        if subj:
+            criteria.append('Subject "%s"' % subj)
+
+        if is_wait and waitcrt:
+            criteria.append(waitcrt)
+
         if before or after:
             import parsedatetime as pdt
 
             c = self.dates_locale and pdt.Constants(self.dates_locale)
             cal = pdt.Calendar(c)
 
-            if before:
+            if before and before.strip():
                 criteria.append('SENTBEFORE "%s"' %
                                 parse_as_RFC3501_date(cal, before))
-            if after:
+            if after and after.strip():
                 criteria.append('SINCE "%s"' %
                                 parse_as_RFC3501_date(cal, after))
 
+        projects = [c and c.strip() for c in projects]
+        projects = [c for c in projects if c]
         if projects:
             criteria.append(pairwise_ORed(projects,
                                           lambda i: '(SUBJECT "%s")' % i))
 
         criteria = [c.strip() for c in criteria]
-        criteria = [c if c.startswith('(') else '(%s)' % c for c in criteria]
+        criteria = [c if c.startswith('(') else '(%s)' % c
+                    for c in criteria]
         criteria = ' '.join(criteria)
 
         return criteria
