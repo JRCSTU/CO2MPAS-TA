@@ -500,7 +500,7 @@ class TstampReceiver(TstampSpec):
           are both compulsory;
         - see https://tools.ietf.org/html/rfc3501#page-49 for more.
         - More criteria are appended on runtime, ie `TstampSpec.subject_prefix`,
-          `wait_criteria` if --wait, and any args to `recv` command as ORed
+          `wait_criterio` if --wait, and any args to `recv` command as ORed
           and searched as subject terms (i.e. the (projects-ids").
         - If you want to fetch tstamps sent to `tstamp_recipients`,
           either leave this empty, or set it to email-address of the sender:
@@ -509,7 +509,7 @@ class TstampReceiver(TstampSpec):
         """
     ).tag(config=True)
 
-    wait_criteria = trt.Unicode(
+    wait_criterio = trt.Unicode(
         'NEW', allow_none=True,
         help="""The RFC3501 IMAP search criteria for when IDLE-waiting, usually RECENT+UNSEEN messages."""
     ).tag(config=True)
@@ -783,7 +783,7 @@ class TstampReceiver(TstampSpec):
         if self.subject_prefix:
             criteria.append('Subject "%s"' % self.subject_prefix)
         if is_wait:
-            criteria.append(self.wait_criteria)
+            criteria.append(self.wait_criterio)
 
         before, after = [self.before_date, self.after_date]
         if before or after:
