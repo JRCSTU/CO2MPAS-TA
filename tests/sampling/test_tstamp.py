@@ -636,6 +636,18 @@ class TRX(unittest.TestCase):
         crt = rcv._prepare_search_criteria(True, projects)
         self.assertEqual(crt, '')
 
+    def test_criteria_dupe_projects(self):
+        rcv = tstamp.TstampReceiver(email_criteria=[],
+                                    subject_prefix='')
+        crt = rcv._prepare_search_criteria(False, [])  # sanity
+        self.assertEqual(crt, '')
+
+        crt = rcv._prepare_search_criteria(False, ['ab', 'ab'])
+        self.assertNotIn('OR', crt)
+
+        crt = rcv._prepare_search_criteria(False, ['ab', 'foo', 'ab'])
+        self.assertEqual(crt.count('OR'), 1)
+
 
 @ddt.ddt
 class TstampShell(unittest.TestCase):

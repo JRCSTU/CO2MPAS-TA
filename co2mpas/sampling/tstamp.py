@@ -814,7 +814,7 @@ class TstampReceiver(TstampSpec):
                                 parse_as_RFC3501_date(cal, after))
 
         projects = [c and c.strip() for c in projects]
-        projects = [c for c in projects if c]
+        projects = list(set(c for c in projects if c))
         if projects:
             criteria.append(pairwise_ORed(projects,
                                           lambda i: '(SUBJECT "%s")' % i))
