@@ -181,8 +181,8 @@ class TstampSpec(dice.DiceSpec):
         value = proposal.value
         if any(ord(c) >= 128 for c in value):
             myname = type(self).__name__
-            raise trt.TraitError('%s.%s must not contain non-ASCII chars!'
-                                 % (myname, proposal.trait.name))
+            raise trt.TraitError('%s.%s must not contain non-ASCII chars: %s'
+                                 % (myname, proposal.trait.name, value))
         return value
 
     @property
