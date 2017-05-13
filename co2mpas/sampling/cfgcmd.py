@@ -14,6 +14,23 @@ import os.path as osp
 from .._vendor import traitlets as trt
 
 
+def prepare_matcher(terms, is_regex):
+    import re
+
+    def matcher(r):
+        if is_regex:
+            return re.compile(r, re.I).search
+        else:
+            return lambda w: r.lower() in w.lower()
+        
+    matchers = [matcher(t) for t in terms]
+
+    def match(word):
+        return any(m(word) for m in matchers)
+
+    return match
+
+
 class ConfigCmd(baseapp.Cmd):
     """
     Commands to manage configuration-options loaded from filesystem.
@@ -272,19 +289,7 @@ class DescCmd(baseapp.Cmd):
         )
 
     def run(self, *args):
-        import re
         from toolz import dicttoolz as dtz
-
-        def matcher(r):
-            if self.regex:
-                return re.compile(r, re.I).search
-            else:
-                return lambda w: r.lower() in w.lower()
-            
-        matchers = [matcher(t) for t in args]
-
-        def is_matching(word):
-            return any(m(word) for m in matchers)
 
         ## Prefer to modify `class_names` after `initialize()`, or else,
         #  the cmd options would be irrelevant and fatty :-)
@@ -307,7 +312,8 @@ class DescCmd(baseapp.Cmd):
                 cls, attr = v
                 return cls.class_get_trait_help(attr)
             
-        res_map = dtz.keyfilter(is_matching, search_map)
+        match = prepare_matcher(args, self.regex)
+        res_map = dtz.keyfilter(match, search_map)
 
         for name, v in sorted(res_map.items()):
             if self.list:
