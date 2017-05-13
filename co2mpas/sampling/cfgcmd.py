@@ -22,7 +22,7 @@ def prepare_matcher(terms, is_regex):
             return re.compile(r, re.I).search
         else:
             return lambda w: r.lower() in w.lower()
-        
+
     matchers = [matcher(t) for t in terms]
 
     def match(word):
@@ -240,6 +240,8 @@ class DescCmd(baseapp.Cmd):
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<search-term--1>] ...
+
+    - Use --verbose to view config-params on all intermediate classes.
     """
 
     examples = trt.Unicode("""
@@ -247,15 +249,14 @@ class DescCmd(baseapp.Cmd):
             %(cmd_chain)s --list 'criteria'
             %(cmd_chain)s -l --cls 'config'
             %(cmd_chain)s -l --regex  '^t.+cmd'
-            
         To view help on specific parameters:
             %(cmd_chain)s wait
             %(cmd_chain)s -e 'rec.+wait'
-            
+
         To view help on full classes:
             %(cmd_chain)s -ecl 'rec.+wait'
     """)
-    
+
     list = trt.Bool(
         help="Just list any matches."
     ).tag(config=True)
@@ -312,11 +313,11 @@ class DescCmd(baseapp.Cmd):
                 (cls.class_traits
                  if self.verbose
                  else cls.class_own_traits)(config=True).items()}
-            
+
             def printer(name, v):
                 cls, attr = v
                 return cls.class_get_trait_help(attr)
-            
+
         match = prepare_matcher(args, self.regex)
         res_map = dtz.keyfilter(match, search_map)
 
