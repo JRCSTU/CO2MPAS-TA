@@ -305,9 +305,13 @@ class DescCmd(baseapp.Cmd):
                 return cls.class_get_help()
 
         else:
-            search_map = {'%s.%s' % (cls.__name__, attr): (cls, trait)
-                   for cls in all_classes
-                   for attr, trait in cls.class_traits(config=True).items()}
+            search_map = {
+                '%s.%s' % (cls.__name__, attr): (cls, trait)
+                for cls in all_classes
+                for attr, trait in
+                (cls.class_traits
+                 if self.verbose
+                 else cls.class_own_traits)(config=True).items()}
             
             def printer(name, v):
                 cls, attr = v
