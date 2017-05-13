@@ -616,20 +616,24 @@ class TRX(unittest.TestCase):
         self.check_timestamp(rcv, *verdicts)
 
     @ddt.data(
-        (None, []),
-        ('', []),
-        ('  ', []),
+        (None, None, []),
+        (None, '', []),
+        (None, '  ', []),
 
-        (None, ['', '  ']),
-        ('', ['', '  ']),
-        ('  ', ['', '  ']),
+        ([], None, []),
+        ([], '', []),
+        ([], '  ', []),
+
+        (['', '  '], None, ['', '  ']),
+        (['', '  '], '', ['', '  ']),
+        (['', '  '], '  ', ['', '  ']),
     )
     def test_criteria_stripping(self, case):
-        one, many = case
-        rcv = tstamp.TstampReceiver(email_criteria=many,
+        ecrts, one, projects = case
+        rcv = tstamp.TstampReceiver(email_criteria=ecrts,
                                     wait_criterio=one,
                                     subject_prefix=one)
-        crt = rcv._prepare_search_criteria(True, many)
+        crt = rcv._prepare_search_criteria(True, projects)
         self.assertEqual(crt, '')
 
 

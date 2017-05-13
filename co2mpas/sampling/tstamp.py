@@ -478,7 +478,7 @@ class TstampReceiver(TstampSpec):
     ).tag(config=True)
 
     email_criteria = trt.List(
-        trt.Unicode(),
+        trt.Unicode(), allow_none=True,
         default_value=[
             'From "mailer@stamper.itconsult.co.uk"',
             'Subject "Proof of Posting Certificate"',
@@ -788,8 +788,11 @@ class TstampReceiver(TstampSpec):
         before, after = [self.before_date, self.after_date]
         waitcrt = self.wait_criterio
 
-        criteria = [c and c.strip() for c in self.email_criteria]
-        criteria = [c for c in criteria if c]
+        if not self.email_criteria:
+            criteria = []
+        else:
+            criteria = [c and c.strip() for c in self.email_criteria]
+            criteria = [c for c in criteria if c]
 
         if subj:
             criteria.append('Subject "%s"' % subj)
