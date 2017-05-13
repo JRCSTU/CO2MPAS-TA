@@ -7,7 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 from co2mpas.__main__ import init_logging, file_finder
 from co2mpas.batch import vehicle_processing_model
-import schedula.utils as dsp_utl
+import schedula as sh
 import os
 import os.path as osp
 import sys
@@ -99,7 +99,7 @@ class SeatBelt(unittest.TestCase):
                  OVERWRITE_SEATBELT, RUN_INPUT_FOLDER, RUN_ALL_FILES, res_file)
 
         if not OVERWRITE_SEATBELT and osp.isfile(res_file):
-            old_results = dsp_utl.load_dispatcher(res_file)
+            old_results = sh.load_dispatcher(res_file)
             log.info("Old results loaded!")
         else:
             old_results = None
@@ -126,16 +126,16 @@ class SeatBelt(unittest.TestCase):
                 'variation': {'flag.only_summary': True}
             }
             r = model.dispatch(inputs=inputs)
-            r = dsp_utl.selector(['report', 'summary'], r['solution'])
+            r = sh.selector(['report', 'summary'], r['solution'])
             r.get('report', {}).pop('pipe', None)
-            results.append(sorted(dsp_utl.stack_nested_keys(r)))
+            results.append(sorted(sh.stack_nested_keys(r)))
 
         if not OVERWRITE_SEATBELT and osp.isfile(res_file):
             log.info('Comparing...')
             self._check_results(results, old_results)
         else:
             os.environ["OVERWRITE_SEATBELT"] = '0'
-            dsp_utl.save_dispatcher(results, res_file)
+            sh.save_dispatcher(results, res_file)
             log.info('Overwritten seat belt %r.', res_file)
 
 

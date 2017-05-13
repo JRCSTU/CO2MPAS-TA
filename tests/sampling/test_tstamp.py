@@ -9,15 +9,17 @@
 from co2mpas.__main__ import init_logging
 from co2mpas.sampling import tstamp, crypto
 import logging
+import os
 from pprint import pformat as pf
 import shutil
+import subprocess as sbp
 import tempfile
 import unittest
 
 import ddt
 
 import os.path as osp
-import traitlets.config as trtc
+from co2mpas._vendor.traitlets import config as trtc
 
 from . import test_pgp_fingerprint, test_pgp_key, test_pgp_trust
 
@@ -30,7 +32,7 @@ mydir = osp.dirname(__file__)
 
 
 tstamp_responses = [(
-    "Failed parsing commit message due to: TypeError",
+    """Failed parsing commit message due to: ValueError\("incompatible message,""",
     941136, {
         'hexnum': '346C4B1FDF5343D6F4B0BF10D660FEDC25B66',
         'percent': 74,
@@ -121,7 +123,7 @@ SjzL9Fp7gP5OsJZ1uRMtP9MzMTjvjMS1IKmNwPvVsvSe+77S3+urMgklH7ciypsT
 extra stuff
 
 """), (
-        "Failed parsing commit message due to: TypeError",
+        """Failed parsing commit message due to: ValueError\("incompatible message,""",
     941144, {
         'hexnum': 'A6C6E3771EA412EE56B4E61A10CDE90776D53419',
         'percent': 41,
@@ -193,7 +195,7 @@ aVryU+Z1cn1UO+59VsUeoaUcJqr7wNmwR5Zzyzp7Obm7ZlEvE5Gqfg==
 =y4Fb
 -----END PGP SIGNATURE-----
 """), (
-    r"Failed parsing commit message due to: ValueError\('expected a non-empty",
+    r"""Failed parsing commit message due to: ValueError\("incompatible message,""",
     941518, {
         'hexnum': 'A100EBD962AEA3349AFC6396D48015131BCA866F',
         'percent': 19,
@@ -546,7 +548,6 @@ ct0p7ZWQqb7xn2Q3IFuU/vOiUTc5XZTnrpUr5QkHV00IMOnPnvSnag==
 """),
 ]
 
-
 @ddt.ddt
 class TRX(unittest.TestCase):
 
@@ -587,7 +588,8 @@ class TRX(unittest.TestCase):
 
     def test_send_timestamp(self):
         snd = tstamp.TstampSender(config=self.cfg)
-        ex_msg = r"Content to timestamp failed signature verification!\s+None"
+        ex_msg = ("Failed to extract signed dice-report from tstamp!\\s+"
+                  "0-len text is not a PGP-sig!")
         with self.assertRaisesRegex(tstamp.CmdException, ex_msg):
             snd.send_timestamped_email("", dry_run=True)
 
@@ -600,7 +602,7 @@ class TRX(unittest.TestCase):
 
     def test_parse_timestamp_bad(self):
         rcv = tstamp.TstampReceiver(config=self.cfg)
-        ex_msg = r"Cannot verify timestamp-reponse signature due to: incorrect passphrase"
+        ex_msg = r"Cannot verify timestamp-response's signature due to: incorrect passphrase"
         with self.assertRaisesRegex(tstamp.CmdException, ex_msg):
             rcv.parse_tstamp_response("")
 
@@ -612,3 +614,31 @@ class TRX(unittest.TestCase):
             self.check_timestamp_fails(rcv, verdicts[-1], fail_regex)
             rcv.force = True
         self.check_timestamp(rcv, *verdicts)
+
+
+@ddt.ddt
+class TstampShell(unittest.TestCase):
+    def test_login_smoketest(self):
+        ret = sbp.check_call('co2dice tstamp login', env=os.environ)
+        self.assertEqual(ret, 0)
+
+    def test_mailbox_smoketest(self):
+        ret = sbp.check_call('co2dice tstamp mailbox', env=os.environ)
+        self.assertEqual(ret, 0)
+
+    def test_recv_smoketest(self):
+        ret = sbp.check_call('co2dice tstamp recv', env=os.environ)
+        self.assertEqual(ret, 0)
+
+        ret = sbp.check_call('co2dice tstamp recv --raw', env=os.environ)
+        self.assertEqual(ret, 0)
+
+        ret = sbp.check_call('co2dice tstamp recv --list', env=os.environ)
+        self.assertEqual(ret, 0)
+
+    def test_send_smoketest(self):
+        fpath = osp.join(mydir, '..', '..', 'setup.py')
+        ret = sbp.check_call('co2dice tstamp send %s --dry-run -f' % fpath,
+                             env=os.environ)
+        self.assertEqual(ret, 0)
+

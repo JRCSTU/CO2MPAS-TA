@@ -4,13 +4,103 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
-v1.5.7, file-ver: 2.2.6, 15-May-2017: "Telio" release
-==========================================================
-Backported DICE-1.6.x to co2mpas-1.5.5.post1 for installation in AIO-1.5.5.
+
+v1.6.0.dev4: Dice networking & model fine-tuning
+================================================
+The Dice:
+---------
+- fix(crypto, :git:`382`): GPG-signing failed with non ASCII encodings, so had to
+  leave gpg-encoding as is (`'Latin-1'`) for STDIN/OUT streams to work in
+  foreign locales; fix crash when tstamp-sig did not pass (crash apparent only
+  with ``-fd`` options).
+- fix(report, :git:`370`): was always accepting dice-reports, even if TA-flags were
+  "engineering".
+  
+- refact(tstamp): rename configuration params (old names issue deprecation warnings)::
+
+    x_recipients           --> tstamp_recipients
+    timestamping_addresses --> tstamper_address           ## Not a list anymore!
+    TstampReceiver.subject --> TstampSpec.subject_prefix  ## Also used by `recv` cmd.
+
+- feat: new commands:
+
+  - ``tstamp recv``: Fetch tstamps from IMAP server and derive *decisions* 
+    OK/SAMPLE flags.
+  - ``tstamp mailbox``: Lists mailboxes in IMAP server.
+  - ``project trecv``: Fetch tstamps from IMAP server, derive *decisions* 
+    OK/SAMPLE flags and store them (or compare with existing).
+  - ``config desc``: Describe config-params searched by ``'<class>.<param>'`` 
+    (case-insensitive).    
+    
+- feat(tstamp, :git:`368`): Support *STARTTLS*, enhance ``DiceSpec.ssl`` config param::
+
+      Bool/enumeration for what encryption to use when connecting to SMTP/IMAP servers:
+      - 'SSL/TLS':  Connect only through TLS/SSL, fail if server supports it
+                    (usual ports SMTP:465 IMAP:993).
+      - 'STARTTLS': Connect plain & upgrade to TLS/SSL later, fail if server supports it
+                    (usual ports SMTP:587 IMAP:143).
+      - True:       enforce most secure encryption, based on server port above;
+                    If port is `None`, identical to 'SSL/TLS'.
+      - False:      Do not use any encryption;  better use `skip_auth` param,
+                    not to reveal credentials in plain-text.
+
+- feat(tstamp, :git:`384`): support SOCKSv4/v5 for tunneling SMTP/IMAP through firewalls.
+- feat(tstamp): Add ``tstamp recv`` and ``project trecv`` commands that
+  connect to *IMAP* server, search for tstamp emails, parse them and
+  derive the *decisions OK/SAMPLE* flags.  Can work also in "daemon" mode,
+  waiting for new emails to arrive.
+- feat(tstamp, :git:`394`): Unify the initial project sub-cmds ``init``,
+  ``append`` and ``report``, so now it's possible to run all three of them::
+
+      co2dice project init --inp co2mpas_input.xlsx --out co2mpas_results.xlsx --report
+
+  The ``project append`` supports also  the new ``--report`` option.
+- feat(tstamp): ``tstamp login`` can check *SMTP*/*IMAP* server connection selectively.
+
+Projects:
+---------
+- fix(:git:`371`): `export` cmd produces an archive with local branches without all
+  dice-report tags.
+- deprecate ``--reset-git-settings``, now resetting by default (inverted
+  functionality possible with ``--preserved list``).
+
+- fix(main, logconf.yml): crash `logging.config` is a module, not a  module
+  attribute, (apparent only with``--logconf``).
+- fix(io.schema, :git:`379`): could not handle user-given bag-phases column.
+- feat(tkui, :git:`357`): harmonize GUI-logs colors with AIO-console's, add `Copy`
+  popup-meny item.
+- fix(baseapp): fix various logic flaws & minor bugs when autoencrypting
+  ciphered config traits.
+- chore(dep): vendorize  *traitlets* lib.
+  add *PySocks* private dep.
+
+Model:
+------
+- datasync:fix edges
+- Rls: add extra formulas
+- clutch: remove the peaks
+- sphinx: failing due to SVGs
+- fuel: fix tau func
+
+IO & Data:
+----------
+- :git:`314`: Move most demo-files to AIO archive - 2 files are left.
+
+Docs:
+-----
+- Add "Requirements" in installation section.
 
 
-v1.5.x, file-ver: 2.2.6, 10-February 2017: "Stamp" release
-==========================================================
+
+v1.5.7, file-ver: 2.2.6, 15-May-2017: "telio" release
+=======
+- Backported DICE-1.6.x to co2mpas-1.5.5.post1 for installation in AIO-1.5.5.
+- See above for DICE-changes.
+
+
+
+v1.5.5, file-ver: 2.2.6, 10-February 2017: "Stamp" release
+=======
 .. image:: https://cloud.githubusercontent.com/assets/501585/20363048/
    09b0c724-ac3e-11e6-81b4-bc49d12e6aa1.png
    :align: center
@@ -31,13 +121,14 @@ and `automatic transmission vehicles
 The DICE
 --------
 The new command-line tool ``co2dice`` reads |co2mpas| input and output files,
-packs them together, send their :term:`Hash-ID` in a request to a time-stamp server,
-and decodes the response to a random number of (1/100 cases) to arrive to these cases:
-- **SAMPLE **, meaning "do sample, and double-test in NEDC",  or
+packs them together, send their :term:`Hash-ID` in a request to a time-stamp
+server, and decodes the response to a random number of (1/100 cases) to arrive
+to these cases:
+- **SAMPLE**, meaning "do sample, and double-test in NEDC",  or
 - **OK**, meaning *no-sample".
 
-For its usage guidelines, visit the
-`Wiki <https://github.com/JRCSTU/CO2MPAS-TA/wiki/CO2MPAS-user-guidelines>`.
+For its usage tkuidelines, visit the
+`Wiki <https://github.com/JRCSTU/CO2MPAS-TA/wiki/CO2MPAS-user-tkuidelines>`.
 
 
 Model-changes
@@ -51,38 +142,40 @@ Model-changes
 
 Electric model
 ~~~~~~~~~~~~~~
-- :git:`#281`, :git:`#329`:
+- :git:`281`, :git:`329`:
   Improved prediction of the *electric model* of |co2mpas|, by setting a
   `balance SOC threshold` when the alternator is always on.
 
 
 Clutch model
 ~~~~~~~~~~~~
-- :git:`#330`: The *clutch model* has been updated to be fed with the
+- :git:`330`: The *clutch model* has been updated to be fed with the
   `Torque converter model`.
 
-- :git:`#330`: The *clutch model* prediction has been enhanced during gearshifts
-  by remove `clutch phases` when  ``(gears == 0……) | (velocities <= stop_velocity)``.
+- :git:`330`: The *clutch model* prediction has been enhanced during gearshifts
+  by remove `clutch phases` when
+  ``(gears == 0……) | (velocities <= stop_velocity)``.
 
 
 Final drive
 ~~~~~~~~~~~
-- :git:`#342`: Enable an option to use more than one ``final_drive_ratios`` for
+- :git:`342`: Enable an option to use more than one ``final_drive_ratios`` for
   vehicles equipped with dual/variable clutch.
 
 IO
 --
 - :git:`341`: Input template & demo files include now the ``vehicle_family_id``
-  as a set of concatenated codes that are required to run the model in Type Approval
-  mode.
+  as a set of concatenated codes that are required to run the model in Type
+  Approval mode.
 - :git:`356`: enhancements of the output and dice reports have been made.
-- The *demo-files* are starting to move gradually from within |co2mpas| to the site.
+- The *demo-files* are starting to move gradually from within |co2mpas| to the
+  site.
 
 GUI
 ~~~
 - :git:`359`: Don't keep files that do not exist in the output list after
   simulation.
-- GUI launches with ``co2gui`` command (not with ``co2mpas gui``).
+- GUI launches with ``co2tkui`` command (not with ``co2mpas gui``).
 
 Software and Build chores(build, site, etc)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -108,47 +201,54 @@ Software and Build chores(build, site, etc)
 Known Limitations
 -----------------
 
-1. *DICE* is considered to be in an *early alpha stage* of development, and not all bugs
-   have been ironed out.
-2. Concerning the *threat model* for the *DICE*, it  is relying "roughly" on following
-   premises:
+1. *DICE* is considered to be in an *early alpha stage* of development, and not
+   all bugs have been ironed out.
+2. Concerning the *threat model* for the *DICE*, it  is relying "roughly" on
+   following premises:
 
    a) A single cryptographic key will be shared among all TS personnel,
       not to hinder usability at this early stage.
-   b) There are no measures to ensure the trust of the procedure BEFORE the time-stamping.
-      The TS personnel running *DICE*, and its PC are to be trusted for non-tampering;
-   c) The (owner of the) time-stamp service is assumed not to collude with the OEMs
-      (or if doubts are raised, more elaborate measures can be *gradually* introduced).
-   d) The *DICE* does not strive to be tamper-resistant but rather tamper-evident.
-   e) The denial-of-service is not considered at this stage;  but given a choice between
-      blocking the Type Approval, and compromising IT-security, at the moment we choose
-      the later - according to the above premise, humans interventions are acceptable,
-      as long as they are recorded in the :term:`Hash DB` keeping a detectable
-      non-reputable trace.
+   b) There are no measures to ensure the trust of the procedure BEFORE the
+      time-stamping. The TS personnel running *DICE*, and its PC are to be
+      trusted for non-tampering;
+   c) The (owner of the) time-stamp service is assumed not to collude with the
+      OEMs (or if doubts are raised, more elaborate measures can be *gradually*
+      introduced).
+   d) The *DICE* does not strive to be tamper-resistant but rather
+      tamper-evident.
+   e) The denial-of-service is not considered at this stage;  but given a
+      choice between blocking the Type Approval, and compromising IT-security,
+      at the moment we choose the later - according to the above premise,
+      humans interventions are acceptable, as long as they are recorded in the
+      :term:`Hash DB` keeping a detectable non-reputable trace.
 
-3. *DICE* needs an email server that is capable to send *cleat-text* emails through.
-   Having an account-password & hostname of an SMTP server will suffice -
-   most *web-email* clients might spoil the encoding of the message
-   (i.e. *Web Outlook* is known to cause problems, *GMail* work OK if set to ``plain-text``).
+3. *DICE* needs an email server that is capable to send *cleat-text* emails
+   through. Having an account-password & hostname of an SMTP server will
+   suffice - most *web-email* clients might spoil the encoding of the message
+   (i.e. *Web Outlook* is known to cause problems, *GMail* work OK if set to
+   ``plain-text``).
 
-3. Not all *DICE* operations have been implemented yet - in particular, you have to use
-   a regular Git client to extract files from it ([1], [2], [3]).  Take care not to modify
-   the a project after it has been diced!
+4. Not all *DICE* operations have been implemented yet - in particular, you
+   have to use a regular Git client to extract files from it ([1], [2], [3]).
+   Take care not to modify the a project after it has been diced!
 
-4. There is no *expiration timeout* enforced yet on the tstamp-requests - in the case that
-   *a request is lost, or it takes arbitrary long time to return back*,  the TS may *force* another
-   tstamp-request.  At this early stage, human witnesses will reconcile which should be
-   the authoritative tstamp-response, should they eventually arrive both.  For this decision,
-   the *Hash DB* records are to be relied.
+5. There is no *expiration timeout* enforced yet on the tstamp-requests - in
+   the case that *a request is lost, or it takes arbitrary long time to return
+   back*,  the TS may *force* another tstamp-request. At this early stage,
+   human witnesses will reconcile which should be the authoritative
+   tstamp-response, should they eventually arrive both. For this decision, the
+   *Hash DB* records are to be relied.
 
-5. The last part of DICE, re-importing projects archives and/or dice-reports into TAA registry
-   has not yet been implemented completely (i.e. not working at all or not validating if hash-ids
-   have changed).
+6. The last part of DICE, re-importing projects archives and/or dice-reports
+   into TAA registry has not yet been implemented completely (i.e. not working
+   at all or not validating if hash-ids have changed).
 
-6. There are currently 4 cmd-line tools:  ``co2mpas``, ``co2gui``, ``co2dice`` & ``datasync``.
-   It is expected that in a next release they will be united under a single ``co2`` cmd.
+7. There are currently 4 cmd-line tools:  ``co2mpas``, ``co2gui``, ``co2dice``
+   & ``datasync``. It is expected that in a next release they will be united
+   under a single ``co2`` cmd.
 
-7. Regarding the "|co2mpas| model, all limitations from previous *"Rally"* release still apply.
+8. Regarding the "|co2mpas| model, all limitations from previous *"Rally"*
+   release still apply.
 
 - [1] https://desktop.github.com/
 - [3] https://www.atlassian.com/software/sourcetree

@@ -57,8 +57,8 @@ from toolz import dicttoolz as dtz, itertoolz as itz
 import itertools as itt
 import os.path as osp
 import pandalone.utils as pndlu
-import traitlets as trt
-import traitlets.config as trtc
+from .._vendor import traitlets as trt
+from .._vendor.traitlets import config as trtc
 
 from . import CmdException
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
@@ -102,43 +102,6 @@ def default_persist_fpath():
     return osp.join(default_config_dir(), '%s_persist' % APPNAME)
 #
 ################################################
-
-
-## TODO: Delete FuzzyEnum if ipython/traitlets#371 merged
-class FuzzyEnum(trt.Enum):
-    """An case-ignoring enum matching choices by unique prefixes/substrings."""
-
-    case_sensitive = False
-    #: If True, choices match anywhere in the string, otherwise match prefixes.
-    substring_matching = False
-
-    def __init__(self, values, default_value=trt.Undefined,
-                 case_sensitive=False, substring_matching=False, **kwargs):
-        self.case_sensitive = case_sensitive
-        self.substring_matching = substring_matching
-        values = [trt.cast_unicode_py2(value) for value in values]
-        super().__init__(values, default_value=default_value, **kwargs)
-
-    def validate(self, obj, value):
-        if isinstance(value, str):
-            value = trt.cast_unicode_py2(value)
-        if not isinstance(value, trt.six.string_types):
-            self.error(obj, value)
-
-        conv_func = (lambda c: c) if self.case_sensitive else str.lower
-        substring_matching = self.substring_matching
-        match_func = ((lambda v, c: v in c)
-                      if substring_matching
-                      else (lambda v, c: c.startswith(v)))
-        value = conv_func(value)
-        choices = self.values
-        matches = [match_func(value, conv_func(c)) for c in choices]
-        if sum(matches) == 1:
-            for v, m in zip(choices, matches):
-                if m:
-                    return v
-
-        self.error(obj, value)
 
 
 class PeristentMixin:
@@ -337,13 +300,15 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
         ~~~~~~~~~~~~~~~~~~~~~~~~~
         `project list/status`
             List project with the "long" format, include infos about the repo (when 2).
+        `tstamp`
+            Print SMTP/IMAP connection messages exchanged (WARN: passwords revealed!).
         `project init/open/append/tstamp`
-            Print committed-msg instead of try/false/proj-name.
+            Print committed-msg instead of try/false/proj-name (WARN: passwords revealed, see above!).
         `config show`
             Print parameters for all intermediate classes.
           """).tag(config=True)
 
-    ## TODO: Retrofitt to force-flags (with code for each specific permission).
+    ## TODO: Retrofit to force-flags (with code for each specific permission).
     force = trt.Bool(
         False,
         ## INFO: Add force flag explanations here.
@@ -366,6 +331,27 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
         super().__init__(**kwargs)
         self.observe_ptraits()
 
+    ###############
+    ## Traitlet @validators to be used by sub-classes
+    #  like that::
+    #
+    #      self._register_validator(<my_class>._warn_deprecated, ['a', ])
+
+    def _is_not_empty(self, proposal):
+        value = proposal.value
+        if not value:
+            myname = type(self).__name__
+            raise trt.TraitError('%s.%s must not be empty!'
+                                 % (myname, proposal.trait.name))
+        return value
+
+    def _warn_deprecated(self, proposal):
+        t = proposal.trait
+        myname = type(self).__name__
+        if proposal.value:
+            self.log.warning("Trait `%s.%s`: %s" % (myname, t.name, t.help))
+
+        return proposal.value
 
 ###################
 ##    Commands   ##
@@ -865,6 +851,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         from . import crypto
 
         cls = type(self)
+        ## FIXME: can all move o CO2diceCmd and remain here containers only.
         dkwds = {
             ## Traits defaults are always applied...??
             #
@@ -895,8 +882,8 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                         },
                     },
                     """
-                    Log more logging, fail on config-errors,
-                    and print config on each cmd startup.
+                    Log more (POSSIBLY PASSWORDS!) infos & fail early.
+
                     Not to be confused with `--verbose`.
                     """
                 ),
@@ -945,6 +932,17 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         from . import dice
         return iset(itt.chain(dice.all_app_configurables(), self.classes))
 
+    def _make_vault_from_configs(self, static_config, persist_config):
+        from . import crypto
+
+        vault_config = copy.deepcopy(static_config)
+        if persist_config:
+            vault_config.merge(persist_config)
+        vault_config.merge(self.cli_config)
+        vault = crypto.get_vault(vault_config)
+
+        return vault
+
     def _validate_cipher_traits_against_config_files(self, static_config, persist_config):
         """
         Check plaintext :class:`crypto.Cipher` config-values and encrypt them if *persistent*, scream if *static*.
@@ -952,8 +950,9 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         TODO: UNTESTABLE :-( to speed-up app start-app, run in 2 "passes" (the 2nd pass is optional):
 
         - Pass-1 checks configs only for current Cmd's :attr:`classes`, and
-          if any iregularities are detected, then laucnh
-        - Pass-2 to searches :meth:`all_app_configurables()`.
+          if any iregularities are detected (un-encrypted persistent or static ciphers),
+          then laucnh ...
+        - Pass-2 to search :meth:`all_app_configurables()`.
         """
         from . import crypto
 
@@ -970,29 +969,24 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                 ('static', 'persist'))
             if c[0]
         )
-        ## Vault lazily created if needed,
-        #  configed with user-input...
-        #
         vault = None  # lazily created
-        vault_config = static_config.copy()  # TODO: move where vaulut createdXXX
-        if persist_config:
-            vault_config.merge(persist_config)
-        vault_config.merge(self.cli_config)
         ## Outputs
         #
-        ntraits_encrypted = 0   # Counts encrypt-operations of *persist* traits.
-        screams = []            # Collect non-encrypted *static* traits.
+        ntraits_encrypted = 0       # Counts encrypt-operations of *persist* traits.
+        static_screams = iset()     # Collect non-encrypted *static* traits.
 
-        def scan_config(config_classes, break_on_irregularities):
-            nonlocal vault, vault_config, ntraits_encrypted
+        def scan_config(config_classes, know_all_classes):
+            """:return: true meaning full-scan is needed."""
+            nonlocal vault, ntraits_encrypted
 
+            rerun = False
             for config, encrypt_plain, config_source in configs:
                 for clsname, traits in config.items():
                     cls = config_classes.get(clsname)
                     if not cls:
-                        if not break_on_irregularities:  # Only scream when full check.
+                        if know_all_classes:  # Only scream when full check.
                             self.log.warning(
-                                "Unknown class `%s` in *%s* file-configs while ecrypting values.",
+                                "Unknown class `%s` in *%s* file-configs while encrypting values.",
                                 clsname, config_source)
                         continue
 
@@ -1008,36 +1002,36 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                             continue
 
                         ## Irregularities have been found!
-
-                        if break_on_irregularities:
-                            raise NextPass()
+                        rerun = True
 
                         key = '%s.%s' % (clsname, tname)
                         if encrypt_plain:
-                            if not vault:
-                                vault = crypto.get_vault(vault_config)
                             self.log.info("Auto-encrypting cipher-trait(%r)...", key)
+                            if not vault:
+                                vault = self._make_vault_from_configs(static_config, persist_config)
+
                             config[clsname][tname] = vault.encryptobj(key, tvalue)
                             ntraits_encrypted += 1
                         else:
-                            ## FIXME: screams abouty autoencrypted!
-                            screams.append(key)
+                            static_screams.add(key)
+
+            return rerun
 
         try:
             # If --encrypt, go directly to pass-2.
-            pass_2 = self.encrypt
+            passes = (True, ) if self.encrypt else (False, True)
+
             ## Loop for the 2-passes trick.
             #
-            while True:
+            for full_check in passes:
                 scan_classes = (self.all_app_configurables()
-                                if pass_2
+                                if full_check
                                 else self.classes)
-                config_classes = {c.__name__: c for c in scan_classes}
-                try:
-                    scan_config(config_classes, not pass_2)
-                except NextPass:
-                    pass_2 = True
-                else:
+                config_classes = {c.__name__: c
+                                  for c in
+                                  self._classes_with_config_traits(scan_classes)}
+                rerun = scan_config(config_classes, full_check)
+                if not rerun:
                     break
         finally:
             ## Ensure any encrypted traits are saved.
@@ -1048,8 +1042,9 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                               persist_path, ntraits_encrypted)
                 self.store_pconfig(persist_path)
 
-        if screams:
-            msg = "Found %d non-encrypted params in static-configs: %s" % (len(screams), screams)
+        if static_screams:
+            msg = "Found %d non-encrypted params in static-configs: %s" % (
+                len(static_screams), static_screams)
             if self.raise_config_file_errors:
                 raise trt.TraitError(msg)
             else:
@@ -1101,7 +1096,16 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                           self.name, pformat(self.config))
 
         if self.subapp is None:
-            return self.run(*self.extra_args)
+            res = self.run(*self.extra_args)
+
+            try:
+                persist_path = self._resolved_persist_file
+                self.store_pconfig(self._resolved_persist_file)
+            except Exception as ex:
+                self.log.warning("Failed saving persistent config due to: %s",
+                                 persist_path, ex)
+
+            return res
 
         return self.subapp.start()
 
@@ -1220,13 +1224,30 @@ def consume_cmd(result):
     - Remember to have logging setup properly before invoking this.
     - This the 2nd half of the replacement for :meth:`Application.launch_instance()`.
     """
+    import sys
     import types
+
+    any_none_bool = False
+    all_true = True
+
+    def emit(i):
+        nonlocal any_none_bool, all_true
+
+        if isinstance(i, bool):
+            all_true &= i
+        else:
+            any_none_bool = True
+            print(i)
 
     if result is not None:
         if isinstance(result, types.GeneratorType):
             for i in result:
                 print(i)
         elif isinstance(result, (tuple, list)):
-            print(os.linesep.join(result))
+            for i in result:
+                emit(i)
         else:
-            print(result)
+            emit(result)
+
+    ok = any_none_bool or all_true
+    sys.exit(0 if ok else 1)

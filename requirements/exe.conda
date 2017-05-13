@@ -1,4 +1,4 @@
-## Dependencies for the *conda* package-manager.
+## Dependencies for the *conda* package-manager. (MIGHT NOT BE UPTODATE!)
 ## Use this command to install them::
 ##
 ##      conda install --file requirements/exe.conda

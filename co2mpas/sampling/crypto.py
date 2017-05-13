@@ -20,8 +20,8 @@ import re
 from typing import Text, Tuple, Union, Dict  # @UnusedImport
 
 import os.path as osp
-import traitlets as trt
-import traitlets.config as trtc
+from .._vendor import traitlets as trt
+from .._vendor.traitlets import config as trtc
 
 
 _pgp_regex = re.compile(r'^\s*-----[A-Z ]*PGP[A-Z ]*-----.+-----[A-Z ]*PGP[A-Z ]*-----\s*$', re.DOTALL)
@@ -116,6 +116,8 @@ def pgp_split_clearsigned(text: str) -> Dict:
 
         return groups
 
+    raise ValueError("%i-len text is not a PGP-clear-sig!" % len(text))
+
 
 def pgp_split_sig(git_content: bytes) -> (bytes, bytes):
     """
@@ -157,7 +159,9 @@ def pgp_split_sig(git_content: bytes) -> (bytes, bytes):
     :param git_content:
             Bytes as fetched from ``git cat-file tag/commit <HASHID>``.
     :return:
-            A 2-tuple(msg, sig), None if no sig found.
+            A 2-tuple: ``(msg, sig)``
+    :raise:
+            ValueError if not a sig
 
     See: https://lists.gnupg.org/pipermail/gnupg-users/2014-August/050780.html
     """
@@ -170,6 +174,8 @@ def pgp_split_sig(git_content: bytes) -> (bytes, bytes):
             ('msg', git_content[:split_pos]),
             ('sigarmor', git_content[split_pos:]),
         ])
+
+    raise ValueError("%i-len text is not a PGP-sig!" % len(git_content))
 
 
 class GpgSpec(baseapp.Spec):
@@ -216,7 +222,7 @@ class GpgSpec(baseapp.Spec):
     ).tag(config=True)
 
     gnupgoptions = trt.List(
-        trt.Unicode(None, allow_none=False),
+        trt.Unicode(),
         default_value=[
             '--allow-weak-digest-algos',  # Timestamp-service's key use MD5!
             '--armor',
@@ -372,7 +378,6 @@ class GpgSpec(baseapp.Spec):
                 keyring=self.keyring,
                 options=self.gnupgoptions,
                 secret_keyring=self.secret_keyring)
-            GPG.encoding = 'utf-8'
 
             if self.keys_to_import:
                 self._import_keys_and_trust(GPG)
@@ -404,7 +409,7 @@ class GpgSpec(baseapp.Spec):
         cipher = self.GPG.encrypt(plainbytes, self.master_key_resolved, armor=True)
         if not cipher.ok:
             self.log.debug("PswdId('%s'): encryption stderr: %s", pswdid, cipher.status, cipher.stderr)
-            raise ValueError("PswdId('%s'): %s!" % (pswdid, cipher.status))
+            raise ValueError("PswdId('%s') failed encryption due to: %s!" % (pswdid, cipher.status))
 
         return str(cipher)
 
@@ -434,7 +439,7 @@ class GpgSpec(baseapp.Spec):
             raise ValueError("PswdId('%s'): decryption failed due to: %s" % (pswdid, ex))
 
         if not plain.ok:
-            self.log.debug("PswdId('%s'): decryption stderr: %s", pswdid, plain.stderr)
+            self.log.debug("PswdId('%s'): decryption stderr: %s", pswdid, getattr(plain, 'stderr', ''))
             raise ValueError("PswdId('%s'): %s!" % (pswdid, plain.status))
 
         plainobj = pickle.loads(plain.data)
@@ -450,12 +455,15 @@ class GpgSpec(baseapp.Spec):
 
         if not signed.data:
             self.log.debug("Signing stderr: %s", signed.stderr)
-            raise ValueError("No signed due to: %s!" % getattr(signed, 'status'))
+            raise ValueError("No signed due to: %s!" %
+                             getattr(signed, 'status', '??'))
 
         return str(signed)
 
     def _proc_verfication(self, ver, keep_stderr: bool=None):
         """Convert *gnupg* lib's results into dict, hidding `stderr` if OK."""
+        if hasattr(ver, 'gpg'):
+            delattr(ver, 'gpg')
         keep_stderr = keep_stderr is None and not bool(ver)
         if not keep_stderr:
             ver.stderr = ''
@@ -495,14 +503,13 @@ class GpgSpec(baseapp.Spec):
             The object returned by *gnupg*, with the splitted parts in `parts` attribute.
         """
         csig = pgp_split_sig(git_bytes)
-        if csig:
-            msg = _git_detachsig_canonical_regexb.sub(b'\n', csig['msg'])
-            msg = _git_detachsig_strip_top_empty_lines_regexb.sub(b'', msg)
-            ver = self.verify_detached(csig['sigarmor'], msg)
+        msg = _git_detachsig_canonical_regexb.sub(b'\n', csig['msg'])
+        msg = _git_detachsig_strip_top_empty_lines_regexb.sub(b'', msg)
+        ver = self.verify_detached(csig['sigarmor'], msg)
 
-            ver.parts = csig
+        ver.parts = csig
 
-            return ver
+        return ver
 
 
 ########################################
@@ -518,7 +525,7 @@ def get_vault(config: trtc.Config) -> VaultSpec:
 
 
 class GitAuthSpec(trtc.SingletonConfigurable, GpgSpec):
-    """The private key of the TA/TS importing filesnto git-repos is stored here."""
+    """The private key of the TA/TS importing files into git-repos is stored here."""
 
 
 def get_git_auth(config: trtc.Config) -> GitAuthSpec:

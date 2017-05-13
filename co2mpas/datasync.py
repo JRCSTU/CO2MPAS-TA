@@ -144,7 +144,7 @@ from co2mpas.__main__ import CmdException, init_logging, build_version_string, \
     parse_overrides
 import openpyxl
 import shutil
-import schedula.utils as dsp_utl
+import schedula as sh
 import collections
 
 
@@ -175,6 +175,9 @@ def compute_shift(x, y):
 
 
 def _interp_wrapper(func, x, xp, fp, **kw):
+    x, xp, fp = np.asarray(x), np.asarray(xp), np.asarray(fp)
+    if isinstance(kw.get('fill_value'), tuple) and not kw['fill_value']:
+        kw['fill_value'] = fp[0], fp[-1]
     return np.nan_to_num(func(xp, fp, **kw)(x))
 
 
@@ -190,7 +193,7 @@ _re_interpolation_method = regex.compile(
 def _interpolation_methods():
     methods = ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic',
                'spline', 'polynomial', 'barycentric')
-    kw = dict(fill_value=0, copy=False, bounds_error=False)
+    kw = dict(fill_value=(), copy=False, bounds_error=False)
     methods = {k: fnt.partial(_interp_wrapper, sci_itp.interp1d, kind=k, **kw)
                for k in methods}
 
@@ -595,7 +598,7 @@ def _get_theoretical(profile):
         'downscale_factor': 0
     }
     profile = {k: v for k, v in profile.items() if v}
-    profile = dsp_utl.combine_dicts(defaults, profile)
+    profile = sh.combine_dicts(defaults, profile)
     profile['cycle_type'] = profile['cycle_type'].upper()
     profile['wltp_class'] = profile['wltp_class'].lower()
     profile['gear_box_type'] = profile['gear_box_type'].lower()
@@ -603,7 +606,7 @@ def _get_theoretical(profile):
     res = cycle().dispatch(
         inputs=profile, outputs=['times', 'velocities'], shrink=True
     )
-    data = dsp_utl.selector(['times', 'velocities'], res, output_type='list')
+    data = sh.selector(['times', 'velocities'], res, output_type='list')
     return pd.DataFrame(data).T
 
 

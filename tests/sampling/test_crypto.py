@@ -22,7 +22,7 @@ import ddt
 import itertools as itt
 import os.path as osp
 import textwrap as tw
-import traitlets.config as trtc
+from co2mpas._vendor.traitlets import config as trtc
 
 
 init_logging(level=logging.DEBUG)
@@ -351,26 +351,32 @@ class TGpgSpec(unittest.TestCase):
     def test_parse_clearsigned(self, case):
         exp_msg, clearsigned = case
 
-        csig = crypto.pgp_split_clearsigned(clearsigned)
         if isinstance(exp_msg, str):
+            csig = crypto.pgp_split_clearsigned(clearsigned)
             self.assertIsInstance(csig, dict)
             self.assertEqual(len(csig), 4)
             self.assertEqual(csig['msg'], exp_msg)
             self.assertIsNotNone(csig['sigarmor'])
         else:
-            self.assertIsNone(csig)
+            with self.assertRaisesRegex(
+                    ValueError,
+                    "-len text is not a PGP-clear-sig!") as exmsg:
+                crypto.pgp_split_clearsigned(clearsigned)
 
         ## Check with \r\n at the end.
         #
         clearsigned = re.sub('$\n^', '\r\n', clearsigned, re.MULTILINE)
-        csig = crypto.pgp_split_clearsigned(clearsigned)
         if isinstance(exp_msg, str):
+            csig = crypto.pgp_split_clearsigned(clearsigned)
             self.assertIsInstance(csig, dict)
             self.assertEqual(len(csig), 4)
             self.assertEqual(csig['msg'], re.sub('$\n^', '\r\n', exp_msg), re.MULTILINE)
             self.assertIsNotNone(csig['sigarmor'])
         else:
-            self.assertIsNone(csig)
+            with self.assertRaisesRegex(
+                    ValueError,
+                    "-len text is not a PGP-clear-sig!") as exmsg:
+                crypto.pgp_split_clearsigned(clearsigned)
 
     def test_parse_git_tag_unknown_pubkey(self):
         import git

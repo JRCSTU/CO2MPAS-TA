@@ -59,7 +59,6 @@ import re
 import sys
 from tkinter import StringVar, ttk, filedialog
 from typing import Any, Union, Mapping, Text, Dict, Callable  # @UnusedImport
-import warnings
 import weakref
 
 from toolz import dicttoolz as dtz
@@ -68,7 +67,7 @@ import functools as fnt
 import os.path as osp
 import textwrap as tw
 import tkinter as tk
-import traitlets as trt
+from co2mpas._vendor import traitlets as trt
 
 
 APPNAME = 'co2mpas'
@@ -280,7 +279,7 @@ def define_ttk_styles():
 LOGGING_TAGS = OrderedDict((
     (logging.CRITICAL, {'background': "red", 'foreground': "yellow"}),
     (logging.ERROR, {'foreground': "red"}),
-    (logging.WARNING, {'foreground': "magenta"}),
+    (logging.WARNING, {'foreground': "orange"}),
     (logging.INFO, {'foreground': "blue"}),
     (logging.DEBUG, {'foreground': "grey"}),
     (logging.NOTSET, {}),
@@ -509,9 +508,9 @@ def add_tooltip(widget, key, allow_misses=False, no_lookup=False):
         If true, uses the `key` as tooltip text.
     """
     try:
-        from idlelib.ToolTip import ToolTip
+        from idlelib.ToolTip import ToolTip  # @UnusedImport
     except Exception:
-        from idlelib.tooltip import ToolTip
+        from idlelib.tooltip import ToolTip  # @UnresolvedImport @Reimport
 
     if no_lookup:
         tooltip_text = key
@@ -846,6 +845,7 @@ class LogPanel(ttk.Labelframe):
         self._log_text = _log_text = tk.Text(self,
                                              state=tk.DISABLED, wrap=tk.NONE,
                                              font="Courier 8",
+                                             background='#e7fbfe',
                                              **_sunken
                                              )
         _log_text.grid(row=0, column=0, sticky='nswe')
@@ -1000,17 +1000,27 @@ class LogPanel(ttk.Labelframe):
         # Popup menu
         #
         popup = tk.Menu(target, tearoff=0)
-        popup.add_cascade(label="Log threshold", menu=threshold_menu)
+
+        popup.add_command(label="Copy", command=self.copy_selected_log,
+                          underline=1, accelerator="Ctrl+C")
+        popup.add_command(label="Select All", command=self.select_all_log,
+                          underline=1, accelerator="Ctrl+A")
+        popup.add_separator()
+        popup.add_cascade(label="Set log threshold", menu=threshold_menu)
         popup.add_cascade(label="Filter levels", menu=filters_menu)
         popup.add_checkbutton(
             label="Wrap lines", command=self.toggle_text_wrapped)
         popup.add_separator()
-        popup.add_command(label="Save as...", command=self.save_log)
+        popup.add_command(label="Save log as...", command=self.save_log)
         popup.add_separator()
-        popup.add_command(label="Clear logs", command=self.clear_log)
+        popup.add_command(label="Clear log", command=self.clear_log)
 
         def do_popup(event):
+            wtext = event.widget
+            copy_cmd_state = 'active' if wtext.tag_nextrange(tk.SEL, '1.0') else 'disabled'
+            popup.entryconfig("Copy", state=copy_cmd_state)
             popup.post(event.x_root, event.y_root)
+
         target.bind("<Button-3>", do_popup)
 
     def _apply_filters(self):
@@ -1038,10 +1048,22 @@ class LogPanel(ttk.Labelframe):
         self['text'] = 'Log messages (%s)' % ', '.join(
             '%s: %i' % (lname, count) for lname, count in levels_counted if count)
 
+    def select_all_log(self):
+        self._log_text.tag_add(tk.SEL, '1.0', tk.END)
+
+    def copy_selected_log(self):
+        wtext = self._log_text
+        if wtext.tag_nextrange(tk.SEL, '1.0'):
+            txt = wtext.get(tk.SEL_FIRST, tk.SEL_LAST)
+            wtext.clipboard_clear()
+            wtext.clipboard_append(txt)
+            wtext.see(tk.SEL_FIRST)  # Scroll to selection.
+
     def clear_log(self):
-        self._log_text['state'] = tk.NORMAL
-        self._log_text.delete('1.0', tk.END)
-        self._log_text['state'] = tk.DISABLED
+        wtext = self._log_text
+        wtext['state'] = tk.NORMAL
+        wtext.delete('1.0', tk.END)
+        wtext['state'] = tk.DISABLED
         self._log_counters.clear()
         self._update_title()
 
@@ -2020,7 +2042,7 @@ class Co2guiCmd(baseapp.Cmd):
 
     TIP:
       If you bump into blocking errors, please use the `co2dice project backup` command and
-      send the generated archive-file back to "CO2MPAS-Team <co2mpas@jrc.ec.europa.eu>",
+      send the generated archive-file back to "CO2MPAS-Team <JRC-CO2MPAS@ec.europa.eu>",
       for examination.
 
     NOTE:

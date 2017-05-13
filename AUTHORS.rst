@@ -1,9 +1,9 @@
-- CO\ :sub:`2`\ MPAS-Team<co2mpas@jrc.ec.europa.eu>:
-    - Vincenzo Arcidiacono <vincenzo.arcidiacono@ext.jrc.ec.europa.eu>
+- CO\ :sub:`2`\ MPAS-Team <JRC-CO2MPAS@ec.europa.eu>:
+    - Vincenzo Arcidiacono <vincenzo.arcidiacono@ext.ec.europa.eu>
     - Stefanos Tsiamakis <stefanos.tsiakmakis@jrc.ec.europa.eu>
     - Georgios Fontaras <georgios.fontaras@ec.europa.eu>
-    - Biagio Ciuffo <biagio.ciuffo@jrc.ec.europa.eu>
+    - Biagio Ciuffo <biagio.ciuffo@ec.europa.eu>
     - Victor Valverde <victor.valverde-morales@ec.europa.eu>
-    - Jelica Pavlovic <jelica.pavlovic@jrc.ec.europa.eu>
-    - Dimitrios Komnos <dimitrios.komnos@jrc.ec.europa.eu>
+    - Jelica Pavlovic <jelica.pavlovic@ec.europa.eu>
+    - Dimitrios Komnos <dimitrios.komnos@ext.ec.europa.eu>
     - Kostis Anagnostopoulos <kostis.anagnostopoulos@ext.ec.europa.eu>

@@ -22,8 +22,8 @@ import ddt
 import itertools as itt
 import os.path as osp
 import pandalone.utils as pndlu
-import traitlets as trt
-import traitlets.config as trtc
+from co2mpas._vendor import traitlets as trt
+from co2mpas._vendor.traitlets import config as trtc
 
 from . import test_crypto as cryptotc
 

@@ -8,11 +8,12 @@
 my_dir=`dirname "$0"`
 cd $my_dir/..
 
-## Generate Site:
-rm -r ./doc/_build/
-#cmd /C co2mpas modelgraph -O doc/_build/html/_static/ co2mpas.model.model co2mpas.model.physical.wheels.wheels
-cmd /C python setup.py build_sphinx
-
+if [ $# -gt 1 ]; then
+    ## Generate Site:
+    rm -r ./doc/_build/
+    #cmd /C co2mpas modelgraph -O doc/_build/html/_static/ co2mpas.model.model co2mpas.model.physical.wheels.wheels
+    cmd /C python setup.py build_sphinx
+fi
 
 rm -rf build/* dist/*
 python setup.py build bdist_wheel sdist

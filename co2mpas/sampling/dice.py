@@ -21,7 +21,7 @@ from typing import Sequence, Text, List, Tuple  # @UnusedImport
 
 import os.path as osp
 import pandalone.utils as pndlu
-import traitlets as trt
+from co2mpas._vendor import traitlets as trt
 
 
 __title__ = APPNAME
@@ -70,22 +70,17 @@ class DiceSpec(baseapp.Spec):
     """Common parameters dice functionality."""
 
     user_name = trt.Unicode(
-        None, allow_none=False,
         help="""The Name & Surname of the default user invoking the app.  Must not be empty!"""
     ).tag(config=True)
 
     user_email = trt.Unicode(
-        None, allow_none=False,
         help="""The email address of the default user invoking the app. Must not be empty!"""
     ).tag(config=True)
 
-    @trt.validate('user_name', 'user_email')
-    def _is_not_empty(self, proposal):
-        value = proposal['value']
-        if not value:
-            raise trt.TraitError('%s.%s must not be empty!'
-                                 % (proposal['owner'].name, proposal['trait'].name))
-        return value
+    def __init__(self, **kwds):
+        self._register_validator(DiceSpec._is_not_empty,
+                                 ['user_name', 'user_email'])
+        super().__init__(**kwds)
 
 
 ###################
@@ -100,7 +95,7 @@ class Co2dice(Cmd):
 
     TIP:
       If you bump into blocking errors, please use the `co2dice project backup` command and
-      send the generated archive-file back to "CO2MPAS-Team <co2mpas@jrc.ec.europa.eu>",
+      send the generated archive-file back to "CO2MPAS-Team <JRC-CO2MPAS@ec.europa.eu>",
       for examination.
 
     NOTE:
@@ -155,7 +150,7 @@ def all_app_configurables() -> Tuple:
     from co2mpas.sampling import crypto, project, report, tstamp
     return all_cmds() + (
         baseapp.Spec, project.ProjectsDB,  # TODO: specs maybe missing from all-config-classes.
-        crypto.VaultSpec,
+        crypto.VaultSpec, crypto.GitAuthSpec, crypto.StamperAuthSpec,
         report.Report,
         tstamp.TstampSender,
         tstamp.TstampReceiver,
@@ -171,7 +166,7 @@ def main(argv=None, log_level=None, **app_init_kwds):
     import transitions
 
     init_logging(level=log_level, color=True)
-    log = logging.getLogger(__name__)
+    log = logging.getLogger(APPNAME)
 
     try:
         cmd = Co2dice.make_cmd(argv, **app_init_kwds)
@@ -207,14 +202,12 @@ if __name__ == '__main__':
     #argv = 'project --help'.split()
     #argv = 'project ls--vlevel=3'.split()
     #argv = '--debug'.split()
-    #argv = 'project ls. --reset-git-settings'.split()
     #argv = 'project status -v'.split()
     #argv = 'project --help-all'.split()
     #argv = 'project status --verbose --debug'.split()
     #argv = 'project status --Project.verbose=2 --debug'.split()
-    #argv = 'project ls --Project.reset_git_settings=True'.split()
-    #argv = '--Project.reset_git_settings=True'.split()
-    #argv = 'project ls --reset-git-settings'.split()
+    #argv = 'project ls --Project.preserved_git_settings=.*'.split()
+    #argv = '--Project.preserved_git_settings=.*'.split()
     #argv = 'project init P1 --force'.split()
     #argv = 'project append  out=tests/sampling/output.xlsx'.split()
     #argv = 'project append  inp=tests/sampling/input.xlsx'.split()

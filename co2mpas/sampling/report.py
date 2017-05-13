@@ -15,7 +15,7 @@ from typing import (
 import os.path as osp
 import pandalone.utils as pndlu
 import pandas as pd
-import traitlets as trt
+from .._vendor import traitlets as trt
 
 from . import baseapp, project, CmdException, PFiles
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
@@ -31,7 +31,21 @@ def _report_tuple_2_dict(fpath, iokind, report) -> dict:
         ('iokind', iokind)])
 
     if isinstance(report, pd.DataFrame):
-        report = OrderedDict((k, list(v)) for k, v in report.T.items())
+        decs_rounding = 4  # Keep report below 78 chars width.
+
+        def fmt_row_as_pair(i, k, v):
+            try:
+                v = round(v.astype(float), decs_rounding)
+            except:
+                pass
+            v = v.tolist()
+
+            return ('%i.%s' % (i, k), v)
+
+        ## Enumerate for duplicate-items, see #396.
+        report = OrderedDict(fmt_row_as_pair(i, k, v)
+                             for i, (k, v) in
+                             enumerate(report.T.items()))
     elif isinstance(report, pd.Series):
         report = OrderedDict(report.items())
     elif report is not None:
@@ -118,11 +132,15 @@ class Report(baseapp.Spec):
                         "'%s' != expected('%s')'" %
                         (file_vfid, expected_vfid))
 
+        def is_excel_true_or_null(val):
+            return val is None or val is True or str(val).lower() == 'true'
+
         def check_is_ta(fpath, report):
             ta_flags = report.ix['TA_mode', :]
-            is_ta_mode = all(f is None or f for f in ta_flags)
+            self.log.debug("TA flags for file('%s'): %s" % (fpath, ta_flags))
+            is_ta_mode = all(is_excel_true_or_null(f) for f in ta_flags)
             if not is_ta_mode:
-                return ("file is NOT in TA mode")
+                return "file is NOT in TA mode: %s" % ta_flags
 
         for fpath in iofiles.inp:
             fpath = pndlu.convpath(fpath)
@@ -160,6 +178,7 @@ class Report(baseapp.Spec):
             fpath = pndlu.convpath(fpath)
             yield (fpath, 'other', None)
 
+    ## TODO: Rename Report to `extract_file_infos()`.
     def get_dice_report(self, iofiles: PFiles, expected_vfid=None):
         tuples = self._yield_report_tuples_from_iofiles(iofiles, expected_vfid)
         report = OrderedDict((file_tuple[0], _report_tuple_2_dict(*file_tuple))
@@ -224,12 +243,6 @@ class ReportCmd(baseapp.Cmd):
     __report = None
 
     @property
-    def repspec(self):
-        if not self.__report:
-            self.__report = Report(config=self.config)
-        return self.__report
-
-    @property
     def projects_db(self):
         p = project.ProjectsDB.instance(config=self.config)
         p.config = self.config
@@ -277,15 +290,16 @@ class ReportCmd(baseapp.Cmd):
         else:
             ## TODO: Support heuristic inp/out classification
             pfiles = PFiles(inp=self.inp, out=self.out, other=args)
-            self.log.info("Extracting %s from files...\n  %s", infos, pfiles)
             if not pfiles.nfiles():
                 raise CmdException(
                     "Cmd %r must be given at least one file argument, received %d: %r!"
                     % (self.name, pfiles.nfiles(), pfiles))
+            pfiles.check_files_exist(self.name)
+            self.log.info("Extracting %s from files...\n  %s", infos, pfiles)
 
         import yaml
 
-        repspec = self.repspec
+        repspec = Report(config=self.config)
         if self.vfids_only:
             repspec.force = True  # Irrelevant to check for mismatching VFids.
             for fpath, data in repspec.get_dice_report(pfiles).items():

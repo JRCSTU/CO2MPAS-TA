@@ -65,7 +65,8 @@ def _ta_mode(data):
                  ',\n'.join(diff))
         return False
 
-    if not dsp_utl.are_in_nested_dicts(data, 'flag', 'vehicle_family_id'):
+    if not dsp_utl.are_in_nested_dicts(data, 'flag', 'vehicle_family_id') \
+            or not data['flag']['vehicle_family_id']:
         log.info('Since CO2MPAS is launched in type approval mode the '
                  '`vehicle_family_id` is required!\n'
                  'If you want to run without it use the cmd batch.')

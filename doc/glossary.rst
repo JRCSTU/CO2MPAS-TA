@@ -85,15 +85,15 @@ Vehicle general characteristics
         * velocity of the vehicle is 0
         * the start-stop system is disengaged
         * the battery state of charge is at balance conditions.
-         For |co2mpas| purposes, the engine idle fuel consumption can be measured as follows: just after a WLTP physical test,
-         when the engine is still warm, leave the car to idle for 3 minutes so that it stabilizes. Then make a constant
-         measurement of fuel consumption for 2 minutes. Disregard the first minute, then calculate idle fuel consumption as the
-         average fuel consumption of the vehicle during the subsequent 1 minute.
+        For |co2mpas| purposes, the engine idle fuel consumption can be measured as follows: just after a WLTP physical test,
+        when the engine is still warm, leave the car to idle for 3 minutes so that it stabilizes. Then make a constant
+        measurement of fuel consumption for 2 minutes. Disregard the first minute, then calculate idle fuel consumption as the
+        average fuel consumption of the vehicle during the subsequent 1 minute.
 
     ``final_drive_ratio``
-        Provide the ratio to be multiplied with all `gear_box_ratios`. If the car has more than 1 final drive ratio,       
-        set the final_drive_ratio cell to 1 and provide the appropriate final drive ratio for each gear in the gear_box_ratios
-        tab
+        Provide the ratio to be multiplied with all `gear_box_ratios`. If the car has more than 1 final drive ratio (eg,
+        vehicles with dual/variable clutch), leave blank the final_drive_ratio cell in the Inputs tab and provide the
+        appropriate final drive ratio for each gear in the gear_box_ratios tab.
 
     ``tyre_code``
         Tyre code of the tyres used in the WLTP test (e.g., P195/55R16 85H\).
@@ -102,10 +102,10 @@ Vehicle general characteristics
         - nominal width of the tyre, in [mm];
         - ratio of height to width [%]; and
         - the load index (e.g., 195/55R16\).
-         In case that the front and rear wheels are equipped with tyres of different radius (tyres of different width do not
-         affect |co2mpas|), then the size of the tyres fitted in the powered axle should be declared as input to |co2mpas|.
-         For vehicles with different front and rear wheels tyres tested in 4x4 mode, then the size of the tyres from the wheels
-         where the OBD/CAN vehicle speed signal is measured should be declared as input to |co2mpas|.
+        In case that the front and rear wheels are equipped with tyres of different radius (tyres of different width do not
+        affect |co2mpas|), then the size of the tyres fitted in the powered axle should be declared as input to |co2mpas|.
+        For vehicles with different front and rear wheels tyres tested in 4x4 mode, then the size of the tyres from the wheels
+        where the OBD/CAN vehicle speed signal is measured should be declared as input to |co2mpas|.
 
     ``gear_box_type``
         Indicate the kind of gear box among automatic transmission, manual transmission, or
@@ -154,7 +154,7 @@ Road loads
 ----------
 .. glossary::
     ``vehicle_mass.WLTP-H``
-        Dyno applied mass [kg].
+        Simulated inertia applied during the WLTP-H test on the dyno [kg].
 
     ``f0.WLTP-H``
         Set the F0 road load coefficient for WLTP-H. This scalar corresponds to the rolling resistance force [N], when the angle slope is 0.
@@ -167,7 +167,7 @@ Road loads
         :math:`[\frac{N}{{kmh}^2}]`.
 
     ``vehicle_mass.WLTP-L``
-        Dyno applied mass [kg].
+        Simulated inertia applied during the WLTP-H test on the dyno [kg].
 
     ``f0.WLTP-L``
         Set the F0 road load coefficient for WLTP-L. This scalar corresponds to the rolling resistance force [N], when the angle slope is 0.
@@ -409,27 +409,30 @@ Dyno configuration
         Set it to 1 in case a 1 rotating axis dyno was used during the WLTP-L test.
 
 
-Reports & exchanged files
-=========================
+DICE
+====
 .. glossary::
     dice report
     dice report sheet
         A sheet in the output file containing non-confidential results of the simulation to be communicated
-        to supervision bodies through a timestamp server.
+        to supervision bodies through a `timestamp server`.
 
     dice email
+    dice request email
         The actual email sent to be timestamped (roughly derived from Input + output files)::
 
         := dice Report + HASH #1
 
     dice stamp
-        The response email from timestamp-server, from which the OK/SAMPLE decision-flag is derived:
+    dice response email
+        The timestamped `dice email` as received from the `timestamp server`,
+        from which the OK/SAMPLE decision-flag is derived:
 
-        := dice email + Signature (random)
+        := dice email + timestamp + Signature (random)
 
     decision flag
     dice decision flag
-        The ``'OK'``/``'SAMPLE'`` flag derived from the dice stamp's signature - it is an abstract entity,
+        The ``'OK'``/``'SAMPLE'`` flag derived from the `dice stamp`'s signature - it is an abstract entity,
         not stored anywhere per se, but it combined with other data to ensure an unequivocal link with them.
         The meaning of the flag's valuesd is the following:
 
@@ -441,7 +444,8 @@ Reports & exchanged files
     .. image:: _static/dice_co2mpas_dev.PNG
 
     dice decision
-        A new file stored in the TAA files as received from timestamps server::
+        A new file that is stored in the TAA files which contains the `dice stamp` and
+        the derived `decision flag`::
 
         := dice stamp + decision flag
 
@@ -454,6 +458,11 @@ Reports & exchanged files
         unequivocally associated with all files & reports above::
 
         := output Report + dice decision + Hash #2
+
+    timestamp server
+        The email service that appends a cryptographic signature on all its incoming e-mails,
+        certifying thus the existence in time of those emails.  The trust on its certifications
+        stems from the list of signatures published daily in its site.
 
 
 Generic terms
@@ -469,7 +478,7 @@ Generic terms
         The capability of |co2mpas| to duplicate the exact simulation results when running repeatedly
         **on the same** computer.
         This is guaranteed by using non-stochastic algorithms (or using always the same random-seed).
-        
+
     reproducibility
     replicability
         The capability of |co2mpas| to duplicate the exact same simulation results on **a different computer**.
@@ -527,13 +536,12 @@ Generic terms
 
     Capped cycles
         For vehicles that cannot follow the standard NEDC/WLTP cycles (for example, because they have not enough power to attain the acceleration and maximum speed values required in the operating cycle) it is still possible to use the |co2mpas| tool to predict the NEDC |co2| emission. For these capped cycles, the vehicle has to be operated with the accelerator control fully depressed until they once again reach the required operating curve. Thus, the operated cycle may last more than the standard duration seconds and the subphases may vary in duration. Therefore there is a need to indicate the exact duration of each subphase. This can be done by filling in, the corresponding bag_phases vector in the input file which define the phases integration time [1,1,1,...,2,2,2,...,3,3,3,...,4,4,4]. Providing this input for WLTP cycles together with the other standard vectorial inputs such as speed,engine speed, etc. allows |co2mpas| to process a "modified" WLTP and get calibrated properly. The NEDC that is predicted corresponds to the respective NEDC velocity profile and gearshifting that applies to the capped cycle, which is provided in the appropriate tab. Note that, providing NEDC velocity and gear shifting profile is not allowed for normal vehicles.
-        
+
     Rotational mass
         The rotational mass is defined in the WLTP GTR (ECE/TRANS/WP.29/GRPE/2016/3) as the equivalent effective mass of all
-the  wheels and vehicle components rotating with the wheels on the road while the gearbox is placed in neutral, in kg. It shall
-be measured or calculated using an appropriate technique agreed upon by the responsible authority. Alternatively, it may be 
-estimated to be 3 per cent of the sum of the mass in running order and 25 kg.
-        
+        the  wheels and vehicle components rotating with the wheels on the road while the gearbox is placed in neutral, in kg. It shall
+        be measured or calculated using an appropriate technique agreed upon by the responsible authority. Alternatively, it may be
+        estimated to be 3 per cent of the sum of the mass in running order and 25 kg.
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
 .. |CO2| replace:: CO\ :sub:`2`
 .. |NOx| replace:: NO\ :sub:`x`\

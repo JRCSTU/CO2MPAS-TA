@@ -7,8 +7,8 @@
 |co2mpas|: Vehicle simulator predicting NEDC |CO2| emissions from WLTP
 ######################################################################
 
-:release:       1.5.7.dev0
-:date:          2017-05-13 01:44:10
+:release:       1.5.7.dev1
+:date:          2017-05-13 01:55:07
 :home:          http://co2mpas.io/
 :repository:    https://github.com/JRCSTU/CO2MPAS-TA
 :pypi-repo:     https://pypi.org/project/co2mpas/
@@ -19,19 +19,21 @@
                 EU, JRC, IET, STU, correlation, back-translation, policy,
                 monitoring, M1, N1, simulator, engineering, scientific
 :developers:    .. include:: AUTHORS.rst
-:copyright:     2015-2016 European Commission (`JRC <https://ec.europa.eu/jrc/>`_)
+:copyright:     2015-2017 European Commission (`JRC <https://ec.europa.eu/jrc/>`_)
 :license:       `EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_
 
 |co2mpas| is backward-looking longitudinal-dynamics |CO2| and
 fuel-consumption simulator for light-duty M1 & N1 vehicles (cars and vans), specially crafted to
-*calculate CO2 emissions of a vehicle subject to a NEDC test using the results of a WLTP test*,
-according to the *EU* legislation (see `History`_ section, below).
+*estimate and type-approve CO2 emissions* of vehicles undergoing NEDC testing
+based on the emissions produced during WLTP tests, according to the *EU legislation*
+(see `History`_ section, below).
 
-It is an open-source project developed with Python-3.5+,
-using |winpython|_ & |anaconda|_ under Windows 7, Anaconda under MacOS, and
-standard python environment under Linux.
+It is an open-source project(`EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_)
+developed for Python-3.5+ using |winpython|_ & |anaconda|_ under Windows 7,
+Anaconda under MacOS, and standard python environment under Linux.
 It runs either as a *console command* or as a *desktop GUI application*,
-and it uses Excel-files for its input & output data.
+and it uses Excel-files or pure python structures (dictionary and lists) for its
+input & output data.
 
 
 Quick Start
@@ -104,7 +106,7 @@ The European Regulation setting the conditions for using |co2mpas| can be
 found in `the Comitology Register
 <http://ec.europa.eu/transparency/regcomitology/index.cfm?do=search.documentdetail&dos_id=0&ds_id=45835&version=2>`_
 after its adoption by the *Climate Change Committee* which took place on
-June 23, 2016.
+June 23, 2016 and its 2nd vote for modifications, on April 27, 2017.
 
 For recent activity, check the :doc:`changes`.
 
@@ -158,6 +160,29 @@ you may install the developer version.
       running |co2mpas| for Type Approval (TA).
 
 .. _all-in-one:
+
+Requirements
+--------------
+- These are the  minimum IT requirements for the Computer to run CO2MPAS & DICE:
+- 64-bit Intel or AMD processor (x86_64, aka x64, aka AMD64);
+- Microsoft Windows 7, or later;
+- 4 GB RAM (more recommended);
+- 2.4 GB hard disk storage for extracting the software, more space for the input/output files;
+- Execution-rights to the installation folder (but no Admin-rights).
+- An e-mail account to send & receive DICE e-mails;
+- Unhindered SMTP access to this email-server (no firewall on ports 25, 465, 587);
+  or access through SOCKS Proxy (see diagram below);
+
+  .. image:: doc/_static/firewalls.png
+     :width: 420
+
+- Unhindered HTTP/HTTPS  web-access (no firewall on ports 80, 443);
+  or access through HTTP Proxy;
+- (optional) Excel, to view & edit simulation’s input and output files;
+- (optional) GitHub account to submit and resolve issues.
+
+
+
 
 *All-In-One* Installation under Windows
 ---------------------------------------
@@ -321,7 +346,7 @@ Alternatively, open the CONSOLE and type the following command:
 
     ## Check co2mpas version.
     $ co2mpas -V
-    co2mpas-1.5.7.dev0
+    co2mpas-1.5.7.dev1
 
 
 |co2mpas| command syntax
@@ -335,7 +360,7 @@ you have installed |co2mpas| (see :ref:`install` above) and type::
     Predict NEDC CO2 emissions from WLTP.
 
     :Home:         http://co2mpas.io/
-    :Copyright:    2015-2016 European Commission, JRC <https://ec.europa.eu/jrc/>
+    :Copyright:    2015-2017 European Commission, JRC <https://ec.europa.eu/jrc/>
     :License:       EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>
 
     Use the `batch` sub-command to simulate a vehicle contained in an excel-file.
@@ -489,7 +514,7 @@ may reference different parts of the spreadsheet following the syntax of the
 Demo files
 ----------
 The simulator contains demo-files that are a nice starting point to try out.
-You can download the *demo* vehicles from the GUI:
+You can generate those *demo* vehicles from the GUI:
 
 .. image:: _static/Co2mpasALLINONE-Demo.gif
    :scale: 75%
@@ -500,26 +525,22 @@ Or you can create the demo files inside the *input-folder* with the ``demo``
 sub-command::
 
     $ co2mpas demo input -f
-    2016-11-14 16:33:07,520: INFO:co2mpas_main:Creating INPUT-DEMO file 'input\co2mpas_demo-0.xlsx'...
-    2016-11-14 16:33:07,525: INFO:co2mpas_main:Creating INPUT-DEMO file 'input\co2mpas_demo-1.xlsx'...
-    2016-11-14 16:33:07,530: INFO:co2mpas_main:Creating INPUT-DEMO file 'input\co2mpas_demo-2.xlsx'...
-    2016-11-14 16:33:07,535: INFO:co2mpas_main:Creating INPUT-DEMO file 'input\co2mpas_demo-3.xlsx'...
-    2016-11-14 16:33:07,540: INFO:co2mpas_main:Creating INPUT-DEMO file 'input\co2mpas_demo-4.xlsx'...
-    2016-11-14 16:33:07,546: INFO:co2mpas_main:Creating INPUT-DEMO file 'input\co2mpas_demo-5.xlsx'...
-    2016-11-14 16:33:07,551: INFO:co2mpas_main:Creating INPUT-DEMO file 'input\co2mpas_demo-6.xlsx'...
-    2016-11-14 16:33:07,556: INFO:co2mpas_main:Creating INPUT-DEMO file 'input\co2mpas_demo-7.xlsx'...
-    2016-11-14 16:33:07,560: INFO:co2mpas_main:Creating INPUT-DEMO file 'input\co2mpas_demo-8.xlsx'...
-    2016-11-14 16:33:07,565: INFO:co2mpas_main:Creating INPUT-DEMO file 'input\co2mpas_demo-9.xlsx'...
-    2016-11-14 16:33:07,570: INFO:co2mpas_main:Creating INPUT-DEMO file 'input\co2mpas_simplan.xlsx'...
-    2016-11-14 16:33:07,574: INFO:co2mpas_main:You may run DEMOS with:
-        co2mpas batch input
+    17:57:43       : INFO:co2mpas_main:Creating INPUT-DEMO file 't\co2mpas_demo-1.xlsx'...
+    17:57:43       : INFO:co2mpas_main:Creating INPUT-DEMO file 't\co2mpas_simplan.xlsx'...
+    17:57:43       : INFO:co2mpas_main:Run generated demo-files with command:
+        co2mpas batch t
+
+    You may find more demos inside `CO2MPAS/Demos` folder of your ALLINONE.
 
 
 Demo description
 ~~~~~~~~~~~~~~~~
-======= == ========== ========== === ==== ========== ========== ====
-  id    AT cal WLTP-H cal WLTP-L S/S BERS trg NEDC-H trg NEDC-L plan
-======= == ========== ========== === ==== ========== ========== ====
+The generated demos above, along with those inside the ``CO2MPAS/Demos`` AIO-folder
+have the following characteristics:
+
+======= == ========== ========== === ==== ========== ========== ==== ================
+  id    AT cal WLTP-H cal WLTP-L S/S BERS trg NEDC-H trg NEDC-L plan NEDC-error
+======= == ========== ========== === ==== ========== ========== ==== ================
    0           X                             X
    1           X                 X    X      X
    2    X                 X                              X
@@ -529,9 +550,9 @@ Demo description
    6    X      X                 X           X
    7    X      X                 X    X      X
    8           X          X                  X           X
-   9    X      X                 X    X      X
+   9    X      X                 X    X      X                       -5.21 (> 4%)
 simplan        X                             X                   X
-======= == ========== ========== === ==== ========== ========== ====
+======= == ========== ========== === ==== ========== ========== ==== ================
 
 
 Synchronizing time-series
@@ -1327,7 +1348,7 @@ Install |co2mpas| package
         Downloading http://pypi.co2mpas.io/packages/co2mpas-...
         ...
         Installing collected packages: co2mpas
-        Successfully installed co2mpas-1.5.7.dev0
+        Successfully installed co2mpas-1.5.7.dev1
 
    .. Warning::
         **Installation failures:**
@@ -1347,8 +1368,8 @@ Install |co2mpas| package
    .. code-block:: console
 
        > co2mpas -vV
-       co2mpas_version: 1.5.7.dev0
-       co2mpas_rel_date: 2017-05-13 01:44:10
+       co2mpas_version: 1.5.7.dev1
+       co2mpas_rel_date: 2017-05-13 01:55:07
        co2mpas_path: d:\co2mpas_ALLINONE-64bit-v1.4.1\Apps\WinPython\python-3.4.3\lib\site-packages\co2mpas
        python_path: D:\co2mpas_ALLINONE-64bit-v1.4.1\WinPython\python-3.4.3
        python_version: 3.4.3 (v3.4.3:9b73f1c3e601, Feb 24 2015, 22:44:40) [MSC v.1600 XXX]

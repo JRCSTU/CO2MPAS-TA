@@ -1,4 +1,4 @@
-#! python
+# -*- coding: utf-8 -*-
 ##
 ## Installs co2mpas:
 ## 		python setup.py install
@@ -34,7 +34,7 @@ def read_project_version():
 
 
 def read_text_lines(fname):
-    with io.open(os.path.join(mydir, fname)) as fd:
+    with io.open(os.path.join(mydir, fname), encoding='utf-8') as fd:
         return fd.readlines()
 
 
@@ -150,6 +150,7 @@ setup(
         'Topic :: Scientific/Engineering',
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
+    python_requires='>=3.5',  # http://www.python3statement.org/practicalities/
     setup_requires=[
         # PEP426-field actually not used by `pip`, hence
         # included also in /requirements/developmnet.pip.
@@ -176,7 +177,7 @@ setup(
         'graphviz',
         'docopt',
         'six',
-        'pandalone[xlrd]>=0.2.0', ## For datasync pascha-fixes and openpyxl version.
+        'pandalone[xlrd]>=0.2.0', # For datasync pascha-fixes and openpyxl version.
         'regex',
         'schema',
         'tqdm',
@@ -186,18 +187,15 @@ setup(
         'pykalman',
         'wltp',
         'openpyxl>=2.4.0',
-        'Pillow',           ## for tkui
+        'Pillow',           # for tkui
         'toolz',
-        'schedula>=0.1.9',
-        'formulas>=0.0.4',
-        'traitlets>=5.0.0',
+        'schedula>=0.1.12',
+        'formulas>=0.0.5',
         'python-gnupg',
-        'gitpython>=2.1.0', ## Win+Cygwin support
-        'transitions',
-    ],
-    dependency_links=[
-        'https://github.com/ankostis/traitlets/tarball/master#egg=traitlets-5.0.0',
-        'https://github.com/ankostis/transition/tarball/master#egg=transition-0.4.4',
+        'gitpython >= 2.1.0',       # Win+Cygwin support
+        'transitions >= 0.5.0',     # prepare/finally cbs
+        'PySocks >= 1.6.7',         # more proxy-error messages (#7)
+        'parsedatetime',
     ],
     packages=find_packages(exclude=[
         'tests', 'tests.*',

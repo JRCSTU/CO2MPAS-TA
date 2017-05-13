@@ -25,8 +25,8 @@ import functools as fnt
 import os.path as osp
 import pandalone.utils as pndlu
 import textwrap as tw
-import traitlets as trt
-import traitlets.config as trtc
+from .._vendor import traitlets as trt
+from .._vendor.traitlets import config as trtc
 
 from . import baseapp, dice, CmdException, PFiles
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
@@ -34,7 +34,7 @@ from .._version import __dice_report_version__
 
 
 vehicle_family_id_regex = re.compile(r'^(?:IP|RL|RM|PR)-\d{2}-\w{2,3}-\d{4}-\d{4}$')
-git_project_regex = re.compile('^\w[\w-]+$')
+git_project_regex = re.compile(r'^\w[\w-]+$')
 
 _git_messaged_obj = re.compile(r'^(:?object|tag) ')
 _after_first_empty_line_regex = re.compile(r'\n\r?\n')
@@ -73,8 +73,9 @@ class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
         m = _CommitMsgVer_regex.search(msg_starting_txt)
         if not m:
             raise ValueError(
-                "incompatible message, cannot parse its version'" %
-                (msg_starting_txt, prog_ver[0], prog_ver[1]))
+                "incompatible message, cannot parse its version, "
+                "expected version %s', message header: \n%s)," %
+                (__dice_report_version__, msg_starting_txt))
 
         major, minor, micro = m.group(1, 2, 3)
         if int(major) != int(prog_ver[0]) or int(minor) > int(prog_ver[1]):
@@ -105,12 +106,12 @@ class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
                 cmsg_txt = cmsg_txt[m.end():]
 
             _CommitMsg._check_commit_msg_version(cmsg_txt[:30])
-            l = yaml.load(cmsg_txt)
-            if not isinstance(l, list) or not l:
+            m = yaml.load(cmsg_txt)
+            if not isinstance(m, list) or not m:
                 raise ValueError("expected a non-empty list")
 
-            headline = l[0]
-            cmsg = _CommitMsg(data=l[1:], **headline)
+            headline = m[0]
+            cmsg = _CommitMsg(data=m[1:], **headline)
 
             return cmsg
         except Exception as ex:
@@ -150,6 +151,7 @@ def _pname2ref_name(pname: Text) -> Text:
 
 def _get_ref(refs, refname: Text, default: 'git.Reference'=None) -> 'git.Reference':
     return refname and refname in refs and refs[refname] or default
+
 
 _DICES_PREFIX = 'dices/'
 
@@ -422,12 +424,13 @@ class Project(transitions.Machine, ProjectSpec):
                          initial=states[0],
                          transitions=trans,
                          send_event=True,
-                         global_prepare=['_cb_clear_result'],
+                         prepare_event=['_cb_clear_result'],
                          before_state_change=['_cb_check_my_index'],
                          after_state_change='_cb_commit_or_tag',
                          auto_transitions=False,
                          name=pname,
-                         **kwds)
+                         **kwds
+                         )
         self.on_enter_empty('_cb_stage_new_project_content')
         self.on_enter_tagged('_cb_pepare_email')
         self.on_enter_wltp_inp('_cb_stage_pfiles')
@@ -581,8 +584,8 @@ class Project(transitions.Machine, ProjectSpec):
         """
         import shutil
 
-        self.log.info('Importing files: %s...', event.kwargs)
         pfiles = _evarg(event, 'pfiles', PFiles)
+        self.log.info('Importing files: %s...', pfiles)
 
         ## Check extraction of report works ok,
         #  and that VFids match.
@@ -590,6 +593,7 @@ class Project(transitions.Machine, ProjectSpec):
         try:
             rep = self._report_spec()
             rep.get_dice_report(pfiles, expected_vfid=self.pname)
+            ## TODO: reuse these findos later, if --report given.
         except CmdException as ex:
             msg = "Failed extracting report from %s, due to: %s"
             if self.force:
@@ -791,7 +795,7 @@ class Project(transitions.Machine, ProjectSpec):
 
 
 class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
-    """A git-based repository storing the TA projects (containing signed-files and sampling-responses).
+    r"""A git-based repository storing the TA projects (containing signed-files and sampling-responses).
 
     It handles checkouts but delegates index modifications to `Project` spec.
 
@@ -817,18 +821,30 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         """.format(confdir=baseapp.default_config_dir())
     ).tag(config=True)
 
-    reset_git_settings = trt.Bool(
-        False,
+    preserved_git_settings = trt.List(
+        trt.Unicode(),
         help="""
-        When enabled, re-writes default git's config-settings on app start up.
+        On app start up, re-write git's all config-settings except those mathcing this list of regexes.
         Git settings include user-name and email address, so this option might be usefull
         when the regular owner running the app has changed.
         """).tag(config=True)
 
+    ## TODO: Delete `reset_git_settings` in next big release after 1.5.5.
+    reset_git_settings = trt.Bool(
+        False,
+        help="Deprecated and non-functional!  Replaced by `--ProjectsDB.preserved_git_settings` list."
+    ).tag(config=True)
+
+    def __init__(self, *args, **kwds):
+        from .dice import DiceSpec
+
+        self._register_validator(DiceSpec._warn_deprecated,
+                                 ['reset_git_settings'])
+
     ## Useless, see https://github.com/ipython/traitlets/issues/287
     # @trt.validate('repo_path')
     # def _normalize_path(self, proposal):
-    #     repo_path = proposal['value']
+    #     repo_path = proposal.value
     #     if not osp.isabs(repo_path):
     #         repo_path = osp.join(default_config_dir(), repo_path)
     #     repo_path = pndlu.convpath(repo_path)
@@ -859,17 +875,12 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         try:
             self.log.debug('Opening repo %r...', repo_path)
             self.__repo = git.Repo(repo_path)
-            if self.reset_git_settings:
-                self.log.info("Resetting to default settings of repo(%s)...",
-                              self.__repo.git_dir)
-            check_only = not self.reset_git_settings
         except git.InvalidGitRepositoryError as ex:
             self.log.info("...failed opening repo '%s',\n  initializing a new repo %r instead...",
                           ex, repo_path)
             self.__repo = git.Repo.init(repo_path)
-            check_only = False
 
-        self._write_repo_configs(check_only=check_only)
+        self._write_repo_configs(preserved_git_settings=self.preserved_git_settings)
 
     @trt.observe('repo_path')
     def _cleanup_old_repo(self, change):
@@ -893,7 +904,12 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             self._setup_repo()
         return self.__repo
 
-    def _write_repo_configs(self, check_only=False):
+    def _write_repo_configs(self, preserved_git_settings=()):
+        r"""
+        :type preserved_git_settings:
+            list-of-regex expressions fully matching git-configs,
+            e.g ``user\..+`` matches both ``user.name`` and ``user.email``.
+        """
         from . import crypto
 
         log = self.log
@@ -919,7 +935,9 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             ('user.signingkey', git_auth.master_key_resolved),
         ]
 
+        preserved_git_settings = [re.compile(r) for r in preserved_git_settings]
         unexpected_kvalues = OrderedDict()
+        overwritten_count = 0
         with repo.config_writer('repository') as cw:
             for key, val in gconfigs:
                 sec, prop = key.split('.')
@@ -935,16 +953,26 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                     if isinstance(val, str):
                         val = val.strip()
 
-                    if old_val != val:
-                        unexpected_kvalues[key] = (old_val, val)
-                except:
-                    unexpected_kvalues[key] = ('<missing>', val)
+                    if old_val == val:
+                        continue
 
-                if check_only:
+                    diff_value = [old_val, val]
+                except:
+                    diff_value = ['<missing>', val]
+
+                is_preserved = any(r.match(key) for r in preserved_git_settings)
+
+                ## Update record of preserve/overwrite actions.
+                #
+                diff_value.append('<preserved>' if is_preserved else '<overwritten>')
+                unexpected_kvalues[key] = diff_value
+
+                if is_preserved:
                     continue
 
                 ## Write setting.
                 #
+                overwritten_count += 1
                 ok = False
                 try:
                     ## gitpython-developers/GitPython#578
@@ -959,14 +987,11 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                                   key, val)
 
             if unexpected_kvalues:
-                log.warning("Missmatched values found in GIT configs: %s\n%s%s\n",
+                log.warning("Overwritten %d out of %d missmatched value in git-settings('%s'):"
+                            "\n  %s",
+                            overwritten_count, len(unexpected_kvalues),
                             osp.join(repo.git_dir, 'config'),
-                            tw.indent(_mydump(unexpected_kvalues), '    '),
-                            "\n  TIP: If you are not sure why git-settings changed, "
-                            "         use `--reset-git-settings` along with your next `project` cmd."
-                            if check_only else
-                            '\n  Differences have been corrected.'
-                            )
+                            tw.indent(_mydump(unexpected_kvalues), '    '))
 
     def read_git_settings(self, prefix: Text=None, config_level: Text=None):  # -> List(Text):
         """
@@ -1376,7 +1401,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             return proj.do_storedice(verdict=verdict)
         else:
             ## TODO: build_registry
-            self.log.warning("Registration of arbitrary Dice-reports is not implemented yet!")
+            self.log.warning("Foreign dice-reports are discarded.")
             return verdict
 
     def proj_list(self, *pnames: Text, verbose=None,
@@ -1434,7 +1459,25 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 ##    Commands   ##
 ###################
 
-class ProjectCmd(baseapp.Cmd):
+class _SubCmd(baseapp.Cmd):
+    @property
+    def projects_db(self) -> ProjectsDB:
+        p = ProjectsDB.instance(config=self.config)
+        p.config = self.config
+        return p
+
+    @property
+    def current_project(self) -> Project:
+        return self.projects_db.current_project()
+
+    def _format_result(self, concise, long, *, is_verbose=None):
+        is_verbose = self.verbose if is_verbose is None else is_verbose
+        result = long if is_verbose else concise
+
+        return isinstance(result, str) and result or _mydump(result)
+
+
+class ProjectCmd(_SubCmd):
     """
     Commands to administer the storage repo of TA *projects*.
 
@@ -1453,7 +1496,7 @@ class ProjectCmd(baseapp.Cmd):
             %(cmd_chain)s  open IP-10-AAA-2017-1006
 
         To see more infos about the current project, use:
-            %(cmd_chain)s  ls. -v
+            %(cmd_chain)s  ls . -v
 
         A typical workflow is this:
             %(cmd_chain)s  init RL-12-BM3-2016-0000
@@ -1482,29 +1525,13 @@ class ProjectCmd(baseapp.Cmd):
         dkwds.update(kwds)
         super().__init__(**dkwds)
 
-    @property
-    def projects_db(self) -> ProjectsDB:
-        p = ProjectsDB.instance(config=self.config)
-        p.config = self.config
-        return p
-
-    @property
-    def current_project(self) -> Project:
-        return self.projects_db.current_project()
-
-    def _format_result(self, concise, long, *, is_verbose=None):
-        is_verbose = self.verbose if is_verbose is None else is_verbose
-        result = long if is_verbose else concise
-
-        return isinstance(result, str) and result or _mydump(result)
-
     def run(self, *args):
         """Just to ensure project-repo created."""
         self.projects_db.repo
         super().run(*args)
 
 
-class StatusCmd(ProjectCmd):
+class StatusCmd(_SubCmd):
     """
     Print various information about the projects-repo.
 
@@ -1520,7 +1547,7 @@ class StatusCmd(ProjectCmd):
         return self.projects_db.repo_status(as_text=True)
 
 
-class LsCmd(ProjectCmd):
+class LsCmd(_SubCmd):
     """
     List specified projects, or all, if none specified.
 
@@ -1535,7 +1562,7 @@ class LsCmd(ProjectCmd):
         return self.projects_db.proj_list(*args, as_text=True)
 
 
-class OpenCmd(ProjectCmd):
+class OpenCmd(_SubCmd):
     """
     Make an existing project as *current*.
 
@@ -1555,34 +1582,18 @@ class OpenCmd(ProjectCmd):
         return projDB.proj_list(proj.pname, as_text=True) if self.verbose else str(proj)
 
 
-class InitCmd(ProjectCmd):
-    """
-    Create a new project.
-
-    SYNTAX
-        %(cmd_chain)s [OPTIONS] <project>
-    """
-    def run(self, *args):
-        if len(args) != 1:
-            raise CmdException(
-                "Cmd %r takes exactly one argument as the project-name, received %r!"
-                % (self.name, args))
-
-        return self.projects_db.proj_add(args[0])
-
-
-class AppendCmd(ProjectCmd):
+class AppendCmd(_SubCmd):
     """
     Import the specified input/output co2mpas files into the *current project*.
 
     SYNTAX
-        %(cmd_chain)s [OPTIONS] ( --inp <co2mpas-file> |
-                                  --out <co2mpas-file> |
-                                  <any-file> ) ...
+        %(cmd_chain)s [OPTIONS] ( --inp <co2mpas-input> | --out <co2mpas-output> ) ...
+                                [<any-other-file>] ...
 
     - To report and tstamp a project, one file (at least) from *inp* & *out* must be given.
     - If an input/output are already present in the current project, use --force.
     - Note that any file argument not given with `--inp`, `--out`, will end-up as "other".
+    - If `--report` given, generates report if no file is missing.
     """
 
     examples = trt.Unicode("""
@@ -1604,17 +1615,23 @@ class AppendCmd(ProjectCmd):
         help="Specify co2mpas OUTPUT files; use this option one or more times."
     ).tag(config=True)
 
+    report = trt.Bool(
+        help="When True, proceed to generate report; will fail if files missing"
+    ).tag(config=True)
+
     def __init__(self, **kwds):
         kwds.setdefault('cmd_aliases', {
-            ('i', 'inp'): ('AppendCmd.inp', pndlu.first_line(type(self).inp.help)),
-            ('o', 'out'): ('AppendCmd.out', pndlu.first_line(type(self).out.help)),
+            ('i', 'inp'): ('AppendCmd.inp', pndlu.first_line(AppendCmd.inp.help)),
+            ('o', 'out'): ('AppendCmd.out', pndlu.first_line(AppendCmd.out.help)),
         })
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
-                {
-                    'Project': {'dry_run': True},
-                },
+                {'Project': {'dry_run': True}},
                 "Parse files but do not actually store them in the project."
+            ),
+            'report': (
+                {AppendCmd.__name__: {'report': True}},
+                pndlu.first_line(AppendCmd.report.help)
             ),
         })
         super().__init__(**kwds)
@@ -1622,19 +1639,93 @@ class AppendCmd(ProjectCmd):
     def run(self, *args):
         ## TODO: Support heuristic inp/out classification
         pfiles = PFiles(inp=self.inp, out=self.out, other=args)
-        self.log.info("Importing report files...\n  %s", pfiles)
         if not pfiles.nfiles():
             raise CmdException(
                 "Cmd %r must be given at least one file argument, received %d: %r!"
                 % (self.name, pfiles.nfiles(), pfiles))
+        pfiles.check_files_exist(self.name)
+        self.log.info("Importing report files...\n  %s", pfiles)
 
+        return self.append_and_report(pfiles)
+
+    def append_and_report(self, pfiles):
         proj = self.current_project
         ok = proj.do_addfiles(pfiles=pfiles)
 
-        return self._format_result(ok, proj.result)
+        if not self.report:
+            return self._format_result(ok, proj.result)
+
+        ok = proj.do_report()
+
+        assert isinstance(proj.result, str)
+        return ok and proj.result or ok
 
 
-class ReportCmd(ProjectCmd):
+class InitCmd(AppendCmd):
+    """
+    Create a new project, and optionally append files and generate report.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] <project>
+        %(cmd_chain)s [OPTIONS] ( --inp <co2mpas-input> | --out <co2mpas-output> ) ...
+                                [<any-other-file>] ...
+
+    - The 1st form, the project-id is given explicetely.
+    - The 2nd form, the project-id gets derrived from the files, and must be identical.
+    """
+
+    examples = trt.Unicode("""
+        In the simplest case, just create a new project like this:
+
+            %(cmd_chain)s XX-12-YYY-2017-0000
+
+        To import both INPUT and OUTPUT files and generate report:
+
+            %(cmd_chain)s --inp co2mpas_input.xlsx --out co2mpas_results.xlsx --report
+
+        Notice that in this case the project-name gets derived from the files.
+        """)
+
+    def run(self, *args):
+        pfiles = PFiles(inp=self.inp, out=self.out, other=args)
+
+        if not (len(args) == 1) ^ bool(pfiles.inp or pfiles.out):
+            raise CmdException(
+                "Cmd %r takes either a project-name or extracts it "
+                "from --inp or --out files given; received args(%s), %s!"
+                % (self.name, args, pfiles))
+
+        if self.report and not (pfiles.inp and pfiles.out):
+            raise CmdException(
+                "Cmd %r needs BOTH --inp and --out files when --report given; "
+                "received args(%s), %s!"
+                % (self.name, args, pfiles))
+
+        if len(args) == 1:
+            return self.projects_db.proj_add(args[0])
+        else:
+            pfiles.check_files_exist(self.name)
+
+            from . import report
+
+            repspec = report.Report(config=self.config)
+            finfos = repspec.get_dice_report(pfiles)
+            for fpath, data in finfos.items():
+                iokind = data['iokind']
+                if iokind in ('inp', 'out'):
+                    project = data['report']['vehicle_family_id']
+                    self.log.info("Project '%s' derived from '%s' file: %s",
+                                  project, iokind, fpath)
+                    break
+            else:
+                assert False, "Failed derriving project-id from: %s" % finfos
+
+            self.projects_db.proj_add(project)
+
+        return self.append_and_report(pfiles)
+
+
+class ReportCmd(_SubCmd):
     """
     Prepares or re-prints the signed dice-report that can be sent for timestamping.
 
@@ -1681,7 +1772,7 @@ class ReportCmd(ProjectCmd):
         return ok and proj.result or ok
 
 
-class TstampCmd(ProjectCmd):
+class TstampCmd(_SubCmd):
     """
     IRREVOCABLY send report to the time-stamp service, or print it for sending it manually (--dry-run).
 
@@ -1701,7 +1792,8 @@ class TstampCmd(ProjectCmd):
         from . import crypto
         from . import tstamp
 
-        kwds.setdefault('conf_classes', [tstamp.TstampSender, crypto.GitAuthSpec])
+        kwds.setdefault('conf_classes', [
+            tstamp.TstampSender, crypto.GitAuthSpec])
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
                 {
@@ -1724,7 +1816,7 @@ class TstampCmd(ProjectCmd):
                                    is_verbose=self.verbose or proj.dry_run)
 
 
-class TparseCmd(ProjectCmd):
+class TparseCmd(_SubCmd):
     """
     Derives *decision* OK/SAMPLE flag from tstamped-response, and store it (or compare with existing).
 
@@ -1733,18 +1825,11 @@ class TparseCmd(ProjectCmd):
 
     - If '-' is given or no file at all, it reads from STDIN.
     - If --force, ignores most verification/parsing errors.
-    - The --build-registry is for those handling "foreign" dices (i.e. TAAs),
       that is, when you don't have the files of the projects in the repo.
       With this option, tstamp-response get, it extracts the dice-repot and adds it
       as a "broken" tag referring to projects that might not exist in the repo,
       assuming they don't clash with pre-existing dice-reponses.
     """
-
-    #examples = trt.Unicode(""" """)
-
-    build_registry = trt.Bool(
-        help="When true, store stamp-response to project referenced, instead of *current*."
-    ).tag(config=True)
 
     def __init__(self, **kwds):
         from . import tstamp
@@ -1758,12 +1843,6 @@ class TparseCmd(ProjectCmd):
                     'Project': {'dry_run': True},
                 },
                 "Pase the tstamped response without storing it in the project."
-            ),
-            'build-registry': (
-                {
-                    'TparseCmd': {'build_registry': True},
-                },
-                pndlu.first_line(type(self).build_registry.help)
             ),
         })
         super().__init__(**kwds)
@@ -1783,20 +1862,134 @@ class TparseCmd(ProjectCmd):
             with io.open(file, 'rt') as fin:
                 mail_text = fin.read()
 
-        if self.build_registry:
-            report = self.projects_db.proj_parse_stamped_and_assign_project(mail_text)
-            ok = False
-        else:
-            proj = self.current_project
-            ok = proj.do_storedice(tstamp_txt=mail_text)
-            report = proj.result
+        proj = self.current_project
+        ok = proj.do_storedice(tstamp_txt=mail_text)
+        report = proj.result
 
         short, long = report.get('dice', ok), report
 
         return self._format_result(short, long)
 
 
-class ExportCmd(ProjectCmd):
+class TrecvCmd(TparseCmd):
+    """
+    Fetch tstamps from IMAP server, derive *decisions* OK/SAMPLE flags and store them (or compare with existing).
+
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] [<search-term-1> ...]
+
+
+    - The fetching of emails can happen in one-shot or waiting mode.
+    - For terms are searched in the email-subject - tip: use the project name(s).
+    - If --force, ignores most verification/parsing errors.
+      that is, when you don't have the files of the projects in the repo.
+      With this option, tstamp-response get, it extracts the dice-repot and adds it
+      as a "broken" tag referring to projects that might not exist in the repo,
+      assuming they don't clash with pre-existing dice-reponses.
+    """
+    #- The --build-registry is for those handling "foreign" dices (i.e. TAAs),
+
+    examples = trt.Unicode("""
+        To search emails in one-shot:
+            %(cmd_chain)s --after today "IP-10-AAA-2017-1003"
+            %(cmd_chain)s --after "last week"
+            %(cmd_chain)s --after "1 year ago" --before "18 March 2017"
+
+        To wait for new mails arriving (and not to block console),
+        on Linux:
+            %(cmd_chain)s --wait &
+            ## wait...
+            kill %%1  ## Asumming this was the only job started.
+
+        On Windows:
+            START \\B %(cmd_chain)s --wait
+
+        and kill with `TASKLIST/TASKKILL or with "Task Manager" GUI.
+    """)
+
+    wait = trt.Bool(
+        False,
+        help="""
+        Whether to wait reading IMAP for any email(s) satisfying the criteria and report them.
+
+        WARN:
+          Process must be killed afterwards, so start it in the background.
+          e.g. `START /B co2dice ...` or append the `&` character in Bash.
+        """
+    ).tag(config=True)
+
+    def __init__(self, **kwds):
+        from . import tstamp
+        from . import crypto
+
+        ## Note here cannot update kwds-defaults,
+        #  or would cancel baseclass's choices.
+        self.conf_classes.extend([
+            tstamp.TstampSender, tstamp.TstampReceiver, 
+            crypto.GitAuthSpec, crypto.StamperAuthSpec])
+        self.cmd_aliases.update({
+            'before': 'TstampReceiver.before_date',
+            'after': 'TstampReceiver.after_date',
+        })
+        self.cmd_flags.update({
+            ('n', 'dry-run'): (
+                {'Project': {'dry_run': True}},
+                "Pase the tstamped response without storing it in the project."
+            ),
+            'wait': (
+                {type(self).__name__: {'wait': True}},
+                pndlu.first_line(type(self).wait.help)
+            ),
+        })
+        super().__init__(**kwds)
+
+    def run(self, *args):
+        from . import tstamp
+
+        default_flow_style = None if self.verbose else False
+        warn = self.log.warning
+        rcver = tstamp.TstampReceiver(config=self.config)
+
+        ## IMAP & CmdException raised here.
+        emails = rcver.receive_timestamped_emails(self.wait, args, read_only=False)
+        for mail in emails:
+            mid = mail.get('Message-Id')
+            try:
+                verdict = rcver.parse_tstamp_response(mail.get_payload())
+            except Exception as ex:
+                verdict = ex
+                warn("Failed parsing %s tstamp due to: %s", mid, ex)
+
+            ## Store full-verdict (verbose).
+            infos = rcver._get_recved_email_infos(mail, verdict, verbose=True)
+            pname = infos.get('project')
+
+            if pname is None:
+                ## Must have already warn
+                continue
+            
+            try:
+                proj = self.proj_open(pname)
+            except CmdException:
+                ## TODO: build_registry
+                warn("Tstamp %s from foreign project '%s' discarded.",
+                     mid, pname)
+                continue
+
+            try:
+                proj.do_storedice(verdict=verdict)
+                #report = proj.result  # Not needed, we already have verdict.
+            except Exception as ex:
+                self.log.error('Failed storing %s email, due to: %s',
+                               mid, ex)
+
+            ## Respect verbose flag for print-outs.
+            infos2 = rcver._get_recved_email_infos(mail, verdict)
+            yield _mydump({mid: infos2}, default_flow_style=default_flow_style)
+
+
+class ExportCmd(_SubCmd):
     """
     Archives projects.
 
@@ -1852,15 +2045,15 @@ class ExportCmd(ProjectCmd):
                             continue
 
                         ## FIXME: Either ALL TAGS (--tags) or NONE without it!
-                        fetch_infos = rem.fetch(pp, tags=True)
+                        fetch_infos = rem.fetch(pp, tag=True)
 
                         ## Create local branches in exrepo
                         #
                         for fi in fetch_infos:
                             path = fi.remote_ref_path
-                            #if fi.flags == fi.NEW_HEAD:  ## FIXME: Why only 0 is bransh!!
-                            #if fi.flags == 0:  ## FIXME: Why only 0 is bransh!!
-                            #    exrepo.create_head(path, fi.ref)
+                            #if fi.flags == fi.NEW_HEAD:  ## 0 is new branch!!
+                            if fi.flags == 0:
+                                exrepo.create_head(path, fi.ref)
                             yield 'packed: %s' % path
 
                     root_dir, base_dir = osp.split(exrepo.working_dir)
@@ -1897,11 +2090,12 @@ class ExportCmd(ProjectCmd):
                 finally:
                     exrepo.delete_remote(rem)
             finally:
+                exrepo.__del__()
                 del exrepo
                 rmtree(exdir)
 
 
-class ImportCmd(ProjectCmd):
+class ImportCmd(_SubCmd):
     """
     Import the specified zipped project-archives into repo; reads SDIN if non specified.
 
@@ -1948,7 +2142,7 @@ class ImportCmd(ProjectCmd):
                     repo.delete_remote(remname)
 
 
-class BackupCmd(ProjectCmd):
+class BackupCmd(_SubCmd):
     """
     Backup projects repository into the archive filepath specified, or current-directory, if none specified.
 
@@ -1984,6 +2178,6 @@ class BackupCmd(ProjectCmd):
 
 all_subcmds = (LsCmd, InitCmd, OpenCmd,
                AppendCmd, ReportCmd,
-               TstampCmd, TparseCmd,
+               TstampCmd, TrecvCmd, TparseCmd,
                StatusCmd,
                ExportCmd, ImportCmd, BackupCmd)

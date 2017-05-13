@@ -9,7 +9,7 @@ r"""
 Predict NEDC CO2 emissions from WLTP.
 
 :Home:         http://co2mpas.io/
-:Copyright:    2015-2016 European Commission, JRC <https://ec.europa.eu/jrc/>
+:Copyright:    2015-2017 European Commission, JRC <https://ec.europa.eu/jrc/>
 :License:       EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>
 
 Use the `batch` sub-command to simulate a vehicle contained in an excel-file.
@@ -168,12 +168,13 @@ def _set_numpy_logging():
 
 def init_logging(level=None, frmt=None, logconf_file=None, color=False):
     if logconf_file:
+        from logging import config as lcfg
         if osp.splitext(logconf_file)[1] in '.yaml' or '.yml':
             with io.open(logconf_file) as fd:
                 log_dict = yaml.safe_load(fd)
-                logging.config.dictConfig(log_dict)
+                lcfg.dictConfig(log_dict)
         else:
-            logging.config.fileConfig(logconf_file)
+            lcfg.fileConfig(logconf_file)
     else:
         if level is None:
             level = logging.INFO
@@ -186,7 +187,13 @@ def init_logging(level=None, frmt=None, logconf_file=None, color=False):
         if color:
             from rainbow_logging_handler import RainbowLoggingHandler
 
-            color_handler = RainbowLoggingHandler(sys.stderr, color_funcName=('black', 'yellow', True))
+            color_handler = RainbowLoggingHandler(sys.stderr,
+                                                  color_message_debug=('grey', None, False),
+                                                  color_message_info=('blue', None, False),
+                                                  color_message_warning=('yellow', None, True),
+                                                  color_message_error=('red', None, True),
+                                                  color_message_critical=('white', 'red', True),
+                                                  )
             formatter = formatter = logging.Formatter(frmt)
             color_handler.setFormatter(formatter)
 
@@ -267,7 +274,8 @@ def _generate_files_from_streams(
             os.makedirs(dst_folder)
         else:
             raise CmdException(
-                "Destination folder '%s' does not exist!" % dst_folder)
+                "Destination folder '%s' does not exist!  "
+                "Use --force to create it." % dst_folder)
     if not osp.isdir(dst_folder):
         raise CmdException(
             "Destination '%s' is not a <output-folder>!" % dst_folder)
@@ -276,7 +284,7 @@ def _generate_files_from_streams(
         dst_fpath = osp.join(dst_folder, src_fname)
         if osp.exists(dst_fpath) and not force:
             msg = "Creating %s file '%s' skipped, already exists! \n  " \
-                  "Use '-f' to overwrite it."
+                  "Use --force to overwrite it."
             log.info(msg, file_category, dst_fpath)
         else:
             log.info("Creating %s file '%s'...", file_category, dst_fpath)
@@ -295,7 +303,10 @@ def _cmd_demo(opts):
     file_stream_pairs = sorted(file_stream_pairs.items())
     _generate_files_from_streams(dst_folder, file_stream_pairs,
                                  force, file_category)
-    msg = "You may run DEMOS with:\n    co2mpas batch %s"
+    msg = (
+        "Run generated demo-files with command:\n    co2mpas batch %s"
+        "\n\nYou may find more demos inside `CO2MPAS/Demos` folder of your ALLINONE."
+    )
     log.info(msg, dst_folder)
 
 
@@ -334,7 +345,7 @@ def save_template(dst_fpaths, force):
         if osp.exists(fpath) and not force:
             raise CmdException(
                 "Writing file '%s' skipped, already exists! "
-                "Use '-f' to overwrite it." % fpath)
+                "Use --force to overwrite it." % fpath)
         if osp.isdir(fpath):
             raise CmdException(
                 "Expecting a file-name instead of directory '%s'!" % fpath)
@@ -365,7 +376,7 @@ def _get_internal_file_streams(internal_folder, incl_regex=None):
             if not incl_regex or incl_regex.match(f)}
 
 
-_input_file_regex = re.compile('^\w')
+_input_file_regex = re.compile(r'^\w')
 
 
 def file_finder(xlsx_fpaths, file_ext='*.xlsx'):
