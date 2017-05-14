@@ -1570,11 +1570,11 @@ class OpenCmd(_SubCmd):
         %(cmd_chain)s [OPTIONS] <project>
     """
     def run(self, *args):
-        self.log.info('Opening project %r...', args)
         if len(args) != 1:
             raise CmdException(
                 "Cmd %r takes exactly one argument as the project-name, received %r!"
                 % (self.name, args))
+        self.log.info('Opening project %r...', args)
 
         projDB = self.projects_db
         proj = projDB.proj_open(args[0])
@@ -1947,6 +1947,7 @@ class TrecvCmd(TparseCmd):
     def run(self, *args):
         from . import tstamp
 
+        self.log.info("Receiving emails for projects(s) %s: ...", args)
         default_flow_style = None if self.verbose else False
         warn = self.log.warning
         rcver = tstamp.TstampReceiver(config=self.config)
@@ -2154,10 +2155,11 @@ class BackupCmd(_SubCmd):
     ).tag(config=True)
 
     def run(self, *args):
-        self.log.info('Archiving repo into %r...', args)
         if len(args) > 1:
             raise CmdException('Cmd %r takes one optional filepath, received %d: %r!'
                                % (self.name, len(args), args))
+        self.log.info('Archiving repo into %r...', args)
+        
         archive_fpath = args and args[0] or None
         kwds = {}
         if archive_fpath:
