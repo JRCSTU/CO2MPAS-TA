@@ -1122,7 +1122,8 @@ class SendCmd(baseapp.Cmd):
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<report-file-1> ...]
 
-    - Do not use this command directly (unless experimenting) - prefer the `project tstamp` sub-command.
+    - Do not use this command directly (unless experimenting) - prefer 
+      the `project tsend` sub-command.
     - If '-' is given or no files at all, it reads from STDIN.
     - Many options related to sending & receiving the email are expected to be stored in the config-file.
     - Use --verbose to print the timestamped email.

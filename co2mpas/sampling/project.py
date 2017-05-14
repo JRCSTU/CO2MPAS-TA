@@ -1738,7 +1738,9 @@ class ReportCmd(_SubCmd):
     - Eventually the *Dice Report* parameters will be time-stamped and disseminated to
       TA authorities & oversight bodies with an email, to receive back
       the sampling decision.
-    - To get report ready for sending it MANUALLY, use tstamp` sub-command.
+    - To send the report to the stamper, use `tsend` sub-command.
+    - To get report ready for sending it MANUALLY, use `tsend --dry-run` 
+      instead.
 
     """
 
@@ -1773,6 +1775,13 @@ class ReportCmd(_SubCmd):
 
 
 class TstampCmd(_SubCmd):
+    """Deprecated: renamed as `tsend`!"""
+    def run(self, *args):
+        raise CmdException("Cmd %r has been renamed to %r!"
+                               % (self.name, 'tsend'))
+
+
+class TsendCmd(_SubCmd):
     """
     IRREVOCABLY send report to the time-stamp service, or print it for sending it manually (--dry-run).
 
@@ -1978,17 +1987,16 @@ class TrecvCmd(TparseCmd):
                      mid, pname)
                 continue
 
+            ## Respect verbose flag for print-outs.
+            infos = rcver._get_recved_email_infos(mail, verdict)
+            yield _mydump({mid: infos}, default_flow_style=default_flow_style)
+
             try:
                 proj.do_storedice(verdict=verdict)
                 #report = proj.result  # Not needed, we already have verdict.
             except Exception as ex:
                 self.log.error('Failed storing %s email, due to: %s',
                                mid, ex)
-
-            ## Respect verbose flag for print-outs.
-            if not self.verbose:
-                infos = rcver._get_recved_email_infos(mail, verdict)
-            yield _mydump({mid: infos}, default_flow_style=default_flow_style)
 
 
 class ExportCmd(_SubCmd):
@@ -2181,6 +2189,8 @@ class BackupCmd(_SubCmd):
 
 all_subcmds = (LsCmd, InitCmd, OpenCmd,
                AppendCmd, ReportCmd,
-               TstampCmd, TrecvCmd, TparseCmd,
+               TstampCmd,  ## TODO: delete deprecated `projext tsend` cmd
+               TsendCmd,
+               TrecvCmd, TparseCmd,
                StatusCmd,
                ExportCmd, ImportCmd, BackupCmd)
