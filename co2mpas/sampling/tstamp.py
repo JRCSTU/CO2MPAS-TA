@@ -181,8 +181,8 @@ class TstampSpec(dice.DiceSpec):
         value = proposal.value
         if any(ord(c) >= 128 for c in value):
             myname = type(self).__name__
-            raise trt.TraitError('%s.%s must not contain non-ASCII chars!'
-                                 % (myname, proposal.trait.name))
+            raise trt.TraitError('%s.%s must not contain non-ASCII chars: %s'
+                                 % (myname, proposal.trait.name, value))
         return value
 
     @property
@@ -478,7 +478,7 @@ class TstampReceiver(TstampSpec):
     ).tag(config=True)
 
     email_criteria = trt.List(
-        trt.Unicode(),
+        trt.Unicode(), allow_none=True,
         default_value=[
             'From "mailer@stamper.itconsult.co.uk"',
             'Subject "Proof of Posting Certificate"',
@@ -500,7 +500,7 @@ class TstampReceiver(TstampSpec):
           are both compulsory;
         - see https://tools.ietf.org/html/rfc3501#page-49 for more.
         - More criteria are appended on runtime, ie `TstampSpec.subject_prefix`,
-          `wait_criteria` if --wait, and any args to `recv` command as ORed
+          `wait_criterio` if --wait, and any args to `recv` command as ORed
           and searched as subject terms (i.e. the (projects-ids").
         - If you want to fetch tstamps sent to `tstamp_recipients`,
           either leave this empty, or set it to email-address of the sender:
@@ -509,7 +509,7 @@ class TstampReceiver(TstampSpec):
         """
     ).tag(config=True)
 
-    wait_criteria = trt.Unicode(
+    wait_criterio = trt.Unicode(
         'NEW', allow_none=True,
         help="""The RFC3501 IMAP search criteria for when IDLE-waiting, usually RECENT+UNSEEN messages."""
     ).tag(config=True)
@@ -560,6 +560,11 @@ class TstampReceiver(TstampSpec):
             Message-Id (always printed)
         """
     ).tag(config=True)
+
+    @trt.validate('subject_prefix', 'wait_criterio', 'before_date', 'after_date')
+    def _strip_trait(self, p):
+        v = p.value
+        return v and v.strip()
 
     def _capture_stamper_msg_and_id(self, ts_msg: Text, ts_heads: Text) -> int:
         stamper_id = msg = None
@@ -779,32 +784,44 @@ class TstampReceiver(TstampSpec):
             return ["Found %i mailboxes:" % len(res)] + res
 
     def _prepare_search_criteria(self, is_wait, projects):
-        criteria = list(self.email_criteria)
-        if self.subject_prefix:
-            criteria.append('Subject "%s"' % self.subject_prefix)
-        if is_wait:
-            criteria.append(self.wait_criteria)
-
+        subj = self.subject_prefix
         before, after = [self.before_date, self.after_date]
+        waitcrt = self.wait_criterio
+
+        if not self.email_criteria:
+            criteria = []
+        else:
+            criteria = [c and c.strip() for c in self.email_criteria]
+            criteria = [c for c in criteria if c]
+
+        if subj:
+            criteria.append('SUBJECT "%s"' % subj)
+
+        if is_wait and waitcrt:
+            criteria.append(waitcrt)
+
         if before or after:
             import parsedatetime as pdt
 
             c = self.dates_locale and pdt.Constants(self.dates_locale)
             cal = pdt.Calendar(c)
 
-            if before:
+            if before and before.strip():
                 criteria.append('SENTBEFORE "%s"' %
                                 parse_as_RFC3501_date(cal, before))
-            if after:
+            if after and after.strip():
                 criteria.append('SINCE "%s"' %
                                 parse_as_RFC3501_date(cal, after))
 
+        projects = [c and c.strip() for c in projects]
+        projects = list(set(c for c in projects if c))
         if projects:
             criteria.append(pairwise_ORed(projects,
                                           lambda i: '(SUBJECT "%s")' % i))
 
         criteria = [c.strip() for c in criteria]
-        criteria = [c if c.startswith('(') else '(%s)' % c for c in criteria]
+        criteria = [c if c.startswith('(') else '(%s)' % c
+                    for c in criteria]
         criteria = ' '.join(criteria)
 
         return criteria
@@ -1105,7 +1122,8 @@ class SendCmd(baseapp.Cmd):
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<report-file-1> ...]
 
-    - Do not use this command directly (unless experimenting) - prefer the `project tstamp` sub-command.
+    - Do not use this command directly (unless experimenting) - prefer 
+      the `project tsend` sub-command.
     - If '-' is given or no files at all, it reads from STDIN.
     - Many options related to sending & receiving the email are expected to be stored in the config-file.
     - Use --verbose to print the timestamped email.

@@ -14,9 +14,26 @@ import os.path as osp
 from .._vendor import traitlets as trt
 
 
+def prepare_matcher(terms, is_regex):
+    import re
+
+    def matcher(r):
+        if is_regex:
+            return re.compile(r, re.I).search
+        else:
+            return lambda w: r.lower() in w.lower()
+
+    matchers = [matcher(t) for t in terms]
+
+    def match(word):
+        return any(m(word) for m in matchers)
+
+    return match
+
+
 class ConfigCmd(baseapp.Cmd):
     """
-    Commands to manage configuration-options loaded from filesystem.
+    Commands to manage configuration-options loaded from filesystem, cmd-line or defaults.
 
     Read also the help message for `--config-paths` generic option.
     """
@@ -222,7 +239,9 @@ class DescCmd(baseapp.Cmd):
     Describe config-params with their name '<class>.<param>' containing search-strings (case-insensitive).
 
     SYNTAX
-        %(cmd_chain)s [OPTIONS] [<search-term--1>] ...
+        %(cmd_chain)s [OPTIONS] <search-term--1> [<search-term--2> ...]
+        
+    - Use --verbose to view config-params on all intermediate classes.
     """
 
     examples = trt.Unicode("""
@@ -230,15 +249,14 @@ class DescCmd(baseapp.Cmd):
             %(cmd_chain)s --list 'criteria'
             %(cmd_chain)s -l --cls 'config'
             %(cmd_chain)s -l --regex  '^t.+cmd'
-            
         To view help on specific parameters:
             %(cmd_chain)s wait
             %(cmd_chain)s -e 'rec.+wait'
-            
+
         To view help on full classes:
             %(cmd_chain)s -ecl 'rec.+wait'
     """)
-    
+
     list = trt.Bool(
         help="Just list any matches."
     ).tag(config=True)
@@ -254,8 +272,8 @@ class DescCmd(baseapp.Cmd):
     def __init__(self, **kwds):
         import pandalone.utils as pndlu
 
-        super().__init__(
-            cmd_flags={
+        kwds.setdefault(
+            'cmd_flags', {
                 ('l', 'list'): (
                     {type(self).__name__: {'list': True}},
                     pndlu.first_line(type(self).list.help)
@@ -270,21 +288,14 @@ class DescCmd(baseapp.Cmd):
                 ),
             }
         )
+        super().__init__(**kwds)
 
     def run(self, *args):
-        import re
         from toolz import dicttoolz as dtz
 
-        def matcher(r):
-            if self.regex:
-                return re.compile(r, re.I).search
-            else:
-                return lambda w: r.lower() in w.lower()
-            
-        matchers = [matcher(t) for t in args]
-
-        def is_matching(word):
-            return any(m(word) for m in matchers)
+        if len(args) == 0:
+            raise CmdException('Cmd %r takes at least one <search-term>!'
+                               % self.name)
 
         ## Prefer to modify `class_names` after `initialize()`, or else,
         #  the cmd options would be irrelevant and fatty :-)
@@ -299,15 +310,20 @@ class DescCmd(baseapp.Cmd):
                 return cls.class_get_help()
 
         else:
-            search_map = {'%s.%s' % (cls.__name__, attr): (cls, trait)
-                   for cls in all_classes
-                   for attr, trait in cls.class_traits(config=True).items()}
-            
+            search_map = {
+                '%s.%s' % (cls.__name__, attr): (cls, trait)
+                for cls in all_classes
+                for attr, trait in
+                (cls.class_traits
+                 if self.verbose
+                 else cls.class_own_traits)(config=True).items()}
+
             def printer(name, v):
                 cls, attr = v
                 return cls.class_get_trait_help(attr)
-            
-        res_map = dtz.keyfilter(is_matching, search_map)
+
+        match = prepare_matcher(args, self.regex)
+        res_map = dtz.keyfilter(match, search_map)
 
         for name, v in sorted(res_map.items()):
             if self.list:

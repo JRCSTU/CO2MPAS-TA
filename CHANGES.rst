@@ -22,6 +22,13 @@ The Dice:
     timestamping_addresses --> tstamper_address           ## Not a list anymore!
     TstampReceiver.subject --> TstampSpec.subject_prefix  ## Also used by `recv` cmd.
 
+- feat: renamed command: ``project tstamp -- > project tsend``.
+  Now there is symmetricity between ``co2dice tstamp`` and ``co2dice project`` 
+  cmds::
+   
+    tstamp send <--> project tsend
+    tstamp recv <--> project recv
+    
 - feat: new commands:
 
   - ``tstamp recv``: Fetch tstamps from IMAP server and derive *decisions* 
