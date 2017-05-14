@@ -1986,8 +1986,9 @@ class TrecvCmd(TparseCmd):
                                mid, ex)
 
             ## Respect verbose flag for print-outs.
-            infos2 = rcver._get_recved_email_infos(mail, verdict)
-            yield _mydump({mid: infos2}, default_flow_style=default_flow_style)
+            if not self.verbose:
+                infos = rcver._get_recved_email_infos(mail, verdict)
+            yield _mydump({mid: infos}, default_flow_style=default_flow_style)
 
 
 class ExportCmd(_SubCmd):
