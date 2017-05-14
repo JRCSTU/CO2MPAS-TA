@@ -239,8 +239,8 @@ class DescCmd(baseapp.Cmd):
     Describe config-params with their name '<class>.<param>' containing search-strings (case-insensitive).
 
     SYNTAX
-        %(cmd_chain)s [OPTIONS] [<search-term--1>] ...
-
+        %(cmd_chain)s [OPTIONS] <search-term--1> [<search-term--2> ...]
+        
     - Use --verbose to view config-params on all intermediate classes.
     """
 
@@ -292,6 +292,10 @@ class DescCmd(baseapp.Cmd):
 
     def run(self, *args):
         from toolz import dicttoolz as dtz
+
+        if len(args) == 0:
+            raise CmdException('Cmd %r takes at least one <search-term>!'
+                               % self.name)
 
         ## Prefer to modify `class_names` after `initialize()`, or else,
         #  the cmd options would be irrelevant and fatty :-)
