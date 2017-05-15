@@ -263,6 +263,8 @@ def _extract_summary_from_model_scores(report, extracted):
         return False
 
     sel = sh.get_nested_dicts(report, *n)
+    s = ('data', 'calibration', 'model_scores', 'score_by_model')
+    score = sh.get_nested_dicts(report, *s)
     for k, v in sh.stack_nested_keys(extracted, depth=3):
         n = k[1::-1]
         if k[-1] == 'output' and sh.are_in_nested_dicts(sel, *n):
@@ -270,6 +272,11 @@ def _extract_summary_from_model_scores(report, extracted):
             gen = ((d['model_id'], d['status']) for d in gen if 'status' in d)
             o = _format_dict(gen, 'status %s')
             v.update(o)
+            if k[1] == 'calibration' and k[0] in score:
+                gen = score[k[0]]
+                gen = ((d['model_id'], d['score']) for d in gen if 'score' in d)
+                o = _format_dict(gen, 'score %s')
+                v.update(o)
 
     return True
 
