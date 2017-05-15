@@ -531,7 +531,7 @@ class TstampReceiver(TstampSpec):
     before_date = trt.Unicode(
         None, allow_none=True,
         help="""
-        Search messages sent before this point in time, in human readable form.
+        Search messages sent before the specified day, in human readable form.
 
         - eg:
           - yesterday, last year, previous Wednesday
@@ -546,7 +546,12 @@ class TstampReceiver(TstampSpec):
 
     after_date = trt.Unicode(
         None, allow_none=True,
-        help="""Search messages sent before this point in time, in human readable form (see `before_date`)"""
+        help="""Search messages sent before the specified date, in human readable form (see `before_date`)"""
+    ).tag(config=True)
+
+    on_date = trt.Unicode(
+        None, allow_none=True,
+        help="""Search messages for this day, in human readable form (see `before_date`)"""
     ).tag(config=True)
 
     email_infos = trt.List(
@@ -561,7 +566,8 @@ class TstampReceiver(TstampSpec):
         """
     ).tag(config=True)
 
-    @trt.validate('subject_prefix', 'wait_criterio', 'before_date', 'after_date')
+    @trt.validate('subject_prefix', 'wait_criterio',
+                  'before_date', 'after_date', 'on_date')
     def _strip_trait(self, p):
         v = p.value
         return v and v.strip()
@@ -785,7 +791,7 @@ class TstampReceiver(TstampSpec):
 
     def _prepare_search_criteria(self, is_wait, projects):
         subj = self.subject_prefix
-        before, after = [self.before_date, self.after_date]
+        dates = [self.before_date, self.after_date, self.on_date]
         waitcrt = self.wait_criterio
 
         if not self.email_criteria:
@@ -800,18 +806,19 @@ class TstampReceiver(TstampSpec):
         if is_wait and waitcrt:
             criteria.append(waitcrt)
 
-        if before or after:
+        if any(dates):
             import parsedatetime as pdt
 
+            kw_date_pairs = [(kw, dt)
+                          for kw, dt
+                          in zip(['SENTBEFORE', 'SINCE', 'ON'], dates)
+                          if dt]
             c = self.dates_locale and pdt.Constants(self.dates_locale)
             cal = pdt.Calendar(c)
 
-            if before and before.strip():
-                criteria.append('SENTBEFORE "%s"' %
-                                parse_as_RFC3501_date(cal, before))
-            if after and after.strip():
-                criteria.append('SINCE "%s"' %
-                                parse_as_RFC3501_date(cal, after))
+            for kw, dt in kw_date_pairs:
+                rfc_date = parse_as_RFC3501_date(cal, dt)
+                criteria.append('%s "%s"' % (kw, rfc_date))
 
         projects = [c and c.strip() for c in projects]
         projects = list(set(c for c in projects if c))
@@ -1259,6 +1266,7 @@ class RecvCmd(baseapp.Cmd):
         kwds.setdefault('cmd_aliases', {
             'before': 'TstampReceiver.before_date',
             'after': 'TstampReceiver.after_date',
+            'on': 'TstampReceiver.on_date',
             'mailbox': 'TstampReceiver.mailbox',
             'search': 'TstampReceiver.email_criteria',
         })
