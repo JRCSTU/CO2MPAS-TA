@@ -731,28 +731,6 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         with io.open(config_file, mode='wt') as fp:
             fp.write(config_text)
 
-    def print_subcommands(self):
-        from ipython_genutils.text import indent, wrap_paragraphs, dedent
-
-        """Print the subcommand part of the help."""
-        ## Overridden, to print "default" sub-cmd.
-        if not self.subcommands:
-            return
-
-        lines = ["Subcommands"]
-        lines.append('=' * len(lines[0]))
-        for p in wrap_paragraphs(self.subcommand_description.format(
-                app=self.name)):
-            lines.append(p)
-        lines.append('')
-        for subc, (cls, hlp) in self.subcommands.items():
-            lines.append(subc)
-
-            if hlp:
-                lines.append(indent(dedent(hlp.strip())))
-        lines.append('')
-        print(os.linesep.join(lines))
-
     def _my_text_interpolations(self):
         cmd_chain = reversed(self.my_cmd_chain())
         return {'app_cmd': APPNAME,
