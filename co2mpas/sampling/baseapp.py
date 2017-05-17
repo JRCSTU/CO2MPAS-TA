@@ -755,6 +755,30 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
             yield trtc.indent(trtc.dedent(txt))
             yield ''
 
+    def emit_help_epilogue(self, classes):
+        """Yield the very bottom lines of the help message.
+
+        If classes=False (the default), print `--help-all` msg.
+        """
+        if not classes:
+            yield ("For help on specific params, "
+                   "use `%(app_cmd)s config desc <param-1> ...`." %
+                   self._my_text_interpolations())
+        for l in super().emit_help_epilogue(classes):
+            yield l
+
+    def emit_help_epilogue(self, classes):
+        """Yield the very bottom lines of the help message.
+
+        If classes=False (the default), print `--help-all` msg.
+        """
+        if not classes:
+            yield ("For help on specific params, "
+                   "use `%(app_cmd)s config desc <param-1> ...`." %
+                   self._my_text_interpolations())
+        for l in super().emit_help_epilogue(classes):
+            yield l
+
     ## Needed because some sub-cmd name clash and
     #  *argparse* screams about conflicts.
     #  See https://github.com/ipython/traitlets/pull/360
