@@ -736,24 +736,24 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         return {'app_cmd': APPNAME,
                 'cmd_chain': ' '.join(c.name for c in cmd_chain)}
 
-    def print_description(self):
+    def emit_description(self):
         ## Overridden for interpolating app-name.
         txt = self.description or self.__doc__
         txt %= self._my_text_interpolations()
         for p in trtc.wrap_paragraphs(txt):
-            print(p)
-            print()
+            yield p
+            yield ''
 
-    def print_examples(self):
+    def emit_examples(self):
         ## Overridden for interpolating app-name.
-        txt = self.examples
-        if txt:
+        if self.examples:
+            txt = self.examples
             txt = txt.strip() % self._my_text_interpolations()
-            print("Examples")
-            print("--------")
-            print()
-            print(trtc.indent(trtc.dedent(txt)))
-            print()
+            yield "Examples"
+            yield "--------"
+            yield ''
+            yield trtc.indent(trtc.dedent(txt))
+            yield ''
 
     ## Needed because some sub-cmd name clash and
     #  *argparse* screams about conflicts.
