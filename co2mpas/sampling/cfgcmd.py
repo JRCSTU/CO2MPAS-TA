@@ -265,7 +265,8 @@ class DescCmd(baseapp.Cmd):
     ).tag(config=True)
 
     cls = trt.Bool(
-        help="Match and print full classes only."
+        help="Search terms in class-names; "
+        "with --verbose it prints class's config params."
     ).tag(config=True)
 
     regex = trt.Bool(
@@ -309,8 +310,26 @@ class DescCmd(baseapp.Cmd):
             search_map = {cls.__name__: cls
                           for cls in all_classes}
 
-            def printer(ne, cls):
-                return cls.class_get_help()
+            if self.verbose:
+                def printer(ne, cls):
+                    return cls.class_get_help()
+            else:
+                def printer(ne, clazz):
+                    from ipython_genutils.text import wrap_paragraphs
+
+                    help_lines = []
+                    base_classes = ', '.join(p.__name__ for p in clazz.__bases__)
+                    help_lines.append(u'%s(%s)' % (clazz.__name__, base_classes))
+                    help_lines.append(len(help_lines[0]) * u'-')
+
+                    cls_desc = getattr(clazz, 'description', None)
+                    if not isinstance(cls_desc, str):
+                        cls_desc = clazz.__doc__
+                    if cls_desc:
+                        help_lines.extend(wrap_paragraphs(cls_desc))
+                    help_lines.append('')
+
+                    return '\n'.join(help_lines)
 
         else:
             search_map = {
