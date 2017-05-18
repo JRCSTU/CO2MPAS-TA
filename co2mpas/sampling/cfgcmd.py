@@ -176,9 +176,6 @@ class ShowCmd(baseapp.Cmd):
 
         classes = list(self._classes_with_config_traits())
         if class_names:
-            ## On specific class_names show all inherited traits.
-            show_own_traits_only = False
-
             ## Preserve order and report misses.
             #
             class_names = iset(class_names)
