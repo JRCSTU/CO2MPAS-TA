@@ -76,6 +76,7 @@ class WriteCmd(baseapp.Cmd):
         for fpath in args:
             self.write_default_config(fpath, self.force)
 
+
 class PathsCmd(baseapp.Cmd):
     """
     List resolved various paths and actual config-files loaded (descending order).
@@ -107,6 +108,7 @@ class PathsCmd(baseapp.Cmd):
         gpg = crypto.GpgSpec(config=self.config)
         yield "  +--gnupgexe: %s" % gpg.gnupgexe_resolved
         yield "  +--gnupghome: %s" % gpg.gnupghome_resolved
+
 
 class ShowCmd(baseapp.Cmd):
     """
@@ -237,12 +239,12 @@ class ShowCmd(baseapp.Cmd):
 
 class DescCmd(baseapp.Cmd):
     """
-    Describe config-params with their name '<class>.<param>' containing search-strings (case-insensitive).
+    Describe config-params with '<class>.<param>' matching search sub-strings (case-insensitive).
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] <search-term--1> [<search-term--2> ...]
 
-    - Use --verbose to view config-params on all intermediate classes.
+    - Use --verbose to view config-params from all base-classes.
     """
 
     examples = trt.Unicode("""
@@ -305,7 +307,7 @@ class DescCmd(baseapp.Cmd):
 
         if self.cls:
             search_map = {cls.__name__: cls
-                   for cls in all_classes}
+                          for cls in all_classes}
 
             def printer(ne, cls):
                 return cls.class_get_help()
@@ -331,6 +333,7 @@ class DescCmd(baseapp.Cmd):
                 yield name
             else:
                 yield printer(name, v)
+
 
 config_subcmds = (
     WriteCmd,
