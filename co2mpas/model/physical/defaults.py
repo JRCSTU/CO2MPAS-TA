@@ -226,10 +226,11 @@ class Functions(co2_utl.Constants):
 
     class calculate_raw_frontal_area_v1(co2_utl.Constants):
         #: Frontal area formulas function of vehicle_mass [function].
-        formulas = collections.defaultdict(
-            lambda: lambda vehicle_mass: (0.4041 * np.log(vehicle_mass) - 0.338)
+        formulas = dict.fromkeys(
+            'ABCDEFS',
+            'lambda vehicle_mass: (0.4041 * np.log(vehicle_mass) - 0.338)'
         )
-        formulas['J'] = lambda vehicle_mass: 0.0007 * vehicle_mass + 1.8721
+        formulas['J'] = 'lambda vehicle_mass: 0.0007 * vehicle_mass + 1.8721'
         formulas['M'] = formulas['J']
 
     class calculate_frontal_area(co2_utl.Constants):

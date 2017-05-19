@@ -137,7 +137,7 @@ def calculate_raw_frontal_area_v1(vehicle_mass, vehicle_category):
     :rtype: float
     """
     d = dfl.functions.calculate_raw_frontal_area_v1
-    return d.formulas[vehicle_category.upper()](vehicle_mass)
+    return eval(d.formulas[vehicle_category.upper()])(vehicle_mass)
 
 
 def calculate_raw_frontal_area(vehicle_height, vehicle_width):
