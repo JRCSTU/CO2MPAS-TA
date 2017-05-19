@@ -692,7 +692,7 @@ def define_data_schema(read=True):
                   read=read),
         'extended_integration_times': tuplefloat,
         'phases_fuel_consumptions': tuplefloat,
-
+        'co2_rescaling_factors': tuplefloat,
         'accelerations': np_array,
         'alternator_currents': np_array,
         'active_cylinders': np_array,

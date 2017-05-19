@@ -443,7 +443,7 @@ def physical():
             'on_engine', 'on_idle', 'optimal_efficiency',
             'phases_co2_emissions', 'phases_fuel_consumptions',
             'phases_willans_factors', 'start_stop_model',
-            'use_basic_start_stop', 'willans_factors'),
+            'use_basic_start_stop', 'willans_factors', 'co2_rescaling_factors'),
         inp_weight={'initial_temperature': 5}
     )
 
