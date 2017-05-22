@@ -437,8 +437,9 @@ def _run_batch(opts, **kwargs):
                 output_folder = '%s/' % output_folder
             mkdirs(output_folder)
         else:
-            raise CmdException("Specify a folder for "
-                               "the '-O %s' option!" % output_folder)
+            msg = ("Cannot find '%s' folder!"
+                   "\n  Specify an existing folder for '-O' option.")
+            raise CmdException(msg % osp.abspath(output_folder))
 
     _init_defaults(opts['--modelconf'])
 
@@ -462,8 +463,10 @@ def _cmd_modelconf(opts):
                 output_folder = '%s/' % output_folder
             mkdirs(output_folder)
         else:
-            raise CmdException("Specify a folder for "
-                               "the '-O %s' option!" % output_folder)
+            msg = ("Cannot find '%s' folder!"
+                   "\n  Specify an existing folder for the '-O' option.")
+            raise CmdException(msg % osp.abspath(output_folder))
+
     import datetime
     fname = datetime.datetime.now().strftime('%Y%m%d_%H%M%S-conf.yaml')
     fname = osp.join(output_folder, fname)
