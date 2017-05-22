@@ -1209,7 +1209,7 @@ def identify_co2_emissions(
             break
         k0 = k1
 
-    return co2, tuple(k0)
+    return co2, tuple(k0), i
 
 
 def identify_co2_emissions_v1(co2_emissions, cumulative_co2_emissions):
@@ -2636,7 +2636,8 @@ def co2_emission():
                 'extended_cumulative_co2_emissions',
                 'co2_error_function_on_phases', 'engine_coolant_temperatures',
                 'is_cycle_hot'],
-        outputs=['identified_co2_emissions', 'co2_rescaling_factors'],
+        outputs=['identified_co2_emissions', 'co2_rescaling_factors',
+                 'perturbations_count'],
         weight=5
     )
 
