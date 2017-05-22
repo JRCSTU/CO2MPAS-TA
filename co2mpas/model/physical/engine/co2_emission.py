@@ -1229,7 +1229,7 @@ def identify_co2_emissions_v1(co2_emissions, cumulative_co2_emissions):
         factors [-].
     :rtype: numpy.array, tuple[float]
     """
-    return co2_emission, (1.0,) * len(cumulative_co2_emissions)
+    return co2_emissions, (1.0,) * len(cumulative_co2_emissions)
 
 
 def define_co2_error_function_on_emissions(co2_emissions_model, co2_emissions):
