@@ -239,7 +239,9 @@ def _extract_summary_from_output(report, extracted):
             elif i == 'phases_willans_factors':
                 for n, m in enumerate(j):
                     o.update(_format_dict(m.items(), '%s phase {}'.format(n)))
-            elif i == 'has_sufficient_power':
+            elif i in ('has_sufficient_power', 'co2_rescaling_factors',
+                       'extended_phases_distances',
+                       'extended_phases_integration_times'):
                 o = {i: j}
 
             if o:

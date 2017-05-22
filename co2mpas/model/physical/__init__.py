@@ -430,7 +430,7 @@ def physical():
             'engine_temperature_regression_model',
             'engine_thermostat_temperature',
             'engine_thermostat_temperature_window', 'engine_type',
-            'extended_phases_co2_emissions',
+            'extended_phases_co2_emissions', 'extended_phases_distances',
             'extended_phases_integration_times', 'fuel_carbon_content',
             'fuel_carbon_content_percentage', 'fuel_consumptions',
             'fuel_density', 'full_load_curve', 'full_load_powers',
