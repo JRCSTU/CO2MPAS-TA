@@ -1295,6 +1295,8 @@ def define_co2_error_function_on_phases(
     :rtype: callable
     """
 
+    weights = [j - i for i, j in phases_integration_times]
+
     def error_func(params, phases=None):
 
         if phases:
@@ -1305,14 +1307,14 @@ def define_co2_error_function_on_phases(
                 if i in phases:
                     m, n = np.searchsorted(times, p)
                     b[m:n] = True
-                    w.append(phases_co2_emissions[i])
+                    w.append(weights[i])
                 else:
                     w.append(0)
 
             co2[b] = co2_emissions_model(params, sub_values=b)[0]
         else:
             co2 = co2_emissions_model(params)[0]
-            w = None  # cumulative_co2_emissions
+            w = weights
 
         cco2 = calculate_cumulative_co2(
             times, phases_integration_times, co2, phases_distances)
