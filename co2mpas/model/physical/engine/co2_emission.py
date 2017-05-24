@@ -16,6 +16,7 @@ import lmfit
 import numpy as np
 import numpy.ma as ma
 import scipy.integrate as sci_itg
+import scipy.interpolate as sci_int
 import scipy.stats as sci_sta
 import sklearn.metrics as sk_met
 import schedula as sh
@@ -1124,21 +1125,48 @@ def calculate_phases_co2_emissions(cumulative_co2_emissions, phases_distances):
     return cumulative_co2_emissions / phases_distances
 
 
-def _rescale_co2_emissions(
-        co2_emissions_model, times, phases_integration_times,
-        cumulative_co2_emissions, params_initial_guess):
-    co2_emissions = co2_emissions_model(params_initial_guess)[0]
-    trapz = sci_itg.trapz
-    k_factors = []
-    for cco2, p in zip(cumulative_co2_emissions, phases_integration_times):
+def _define_rescaling_function(
+        co2_emissions_model, cumulative_co2_emissions, phases_integration_times,
+        times):
+    rescaling_matrix = _rescaling_matrix(phases_integration_times, times)
+    dx, it = np.append(np.diff(times), [0]), []
+    for p in phases_integration_times:
         i, j = np.searchsorted(times, p)
-        k = cco2 / trapz(co2_emissions[i:j], times[i:j])
-        if np.isnan(k) or np.isinf(k):
-            k = 1
+        d = dx[i:j].copy()
+        d[1:-1] = d[1:-1] + d[:-2]
+        it.append((i, j, d[:, None] * rescaling_matrix[i:j, :] / 2))
 
-        co2_emissions[i:j] *= k
-        k_factors.append(k)
-    return co2_emissions, np.array(k_factors)
+    def _rescaling_function(params_initial_guess):
+        co2_emissions = co2_emissions_model(params_initial_guess)[0]
+        A = []
+        for i, j, m in it:
+            A.append(np.sum(co2_emissions[i:j, None] * m, 0))
+
+        k_factors = np.linalg.solve(A, cumulative_co2_emissions)
+        co2_emissions *= np.dot(rescaling_matrix, k_factors)
+        return co2_emissions, k_factors
+
+    return _rescaling_function
+
+
+def _rescaling_matrix(phases_integration_times, times):
+    d = defaults.dfl.functions._rescaling_matrix
+    a, b = np.array([-1, 1]) * d.a / 2, d.b
+    pit = np.array(phases_integration_times)
+    mean = np.mean(pit, 1)
+    points = np.zeros((len(phases_integration_times), 4), float)
+    points[0, 0], points[-1, 3] = -np.inf, np.inf
+    points[1:, 0] = (pit[1:, 0] - mean[:-1]) * (1 - b) + mean[:-1]
+    points[:, 1:3] = np.column_stack((mean,) * 2) + np.diff(pit, axis=1) * a
+    points[:-1, 3] = (mean[1:] - pit[:-1, 1]) * b + pit[:-1, 1]
+
+    r, y = [], (0, 1, 1, 0)
+    for x in points:
+        func = sci_int.interp1d(x, y, 'linear', bounds_error=False, fill_value=0)
+        r.append(func(times))
+    r = np.column_stack(r)
+    r[np.isnan(r)] = 1
+    return r / np.sum(r, 1)[:, None]
 
 
 def identify_co2_emissions(
@@ -1189,9 +1217,9 @@ def identify_co2_emissions(
     """
 
     p = params_initial_guess
-    rescale = functools.partial(
-        _rescale_co2_emissions, co2_emissions_model, times,
-        phases_integration_times, cumulative_co2_emissions
+    rescale = _define_rescaling_function(
+        co2_emissions_model, cumulative_co2_emissions, phases_integration_times,
+        times
     )
     dfl = defaults.dfl.functions.identify_co2_emissions
     calibrate = functools.partial(

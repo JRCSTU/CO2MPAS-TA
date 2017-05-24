@@ -187,6 +187,13 @@ class Values(co2_utl.Constants):
 
 #: Container of internal function parameters.
 class Functions(co2_utl.Constants):
+    class _rescaling_matrix(co2_utl.Constants):
+        #: Percentage width top base (i.e., short base) [-].
+        a = 0.5
+        #: Percentage to define the bottom base (i.e., long base) from the phase
+        #: corner [-].
+        b = 1
+
     class calculate_aerodynamic_drag_coefficient(co2_utl.Constants):
         #: Aerodynamic drag coefficients function of vehicle category [-].
         cw = {
