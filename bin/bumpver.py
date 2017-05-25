@@ -4,20 +4,23 @@
 Bump & commit a new version
 
 USAGE:
-    bumpver [-c | -t] [<new-ver>]
+    bumpver [-n] [-c | -t] [<new-ver>]
 
-TODO OPTIONS:
-  -c    commit afterwards
-  -t    tag afterwards (commit implied)
+OPTIONS:
+  -n, --dry-run     do not write files - just pretend
+  -c                TODO: commit afterwards
+  -t                TODO: tag afterwards (commit implied)
 
-Without any arg, just prints version from file.
+Without <new-ver> prints version extracted from current file.
 
 """
 
-import os
 import os.path as osp
 import sys
 import re
+
+import docopt
+
 
 my_dir = osp.dirname(__file__)
 
@@ -46,13 +49,10 @@ def replace_substrings(file_pairs, subst_pairs):
             nrepl = txt.count(old)
             new_txt = txt.replace(old, new)
 
-            with open(fpath, 'wt', encoding='utf-8') as fp:
-                fp.write(new_txt)
-
-            yield '%s: %i x (%s --> %s)' % (fpath, nrepl, old, new)
+            yield (new_txt, fpath, nrepl, old, new)
 
 
-def bumpver(new_ver):
+def bumpver(new_ver, dry_run=False):
     vfile_txt = read_txtfile(VFILE)
     matches = [regex.search(vfile_txt)
                for regex
@@ -74,20 +74,25 @@ def bumpver(new_ver):
         file_pairs = [(VFILE, vfile_txt), (RFILE, None)]
         subst_pairs = [(oldv, new_ver), (oldd, new_date)]
 
-        yield from replace_substrings(file_pairs, subst_pairs)
+        for repl in replace_substrings(file_pairs, subst_pairs):
+            new_txt, fpath, nrepl, old, new = repl
+
+            if not dry_run:
+                with open(fpath, 'wt', encoding='utf-8') as fp:
+                    fp.write(new_txt)
+
+            fpath = osp.normpath(fpath)
+            yield '%s: %i x (%s --> %s)' % (fpath, nrepl, old, new)
 
 
-def main(*argv):
-    if len(argv) == 1:
-        new_ver = None
-    elif len(argv) == 2:
-        new_ver = argv[1]
-    else:
-        sys.exit('Specify just <new-ver>, not: %s\n    bumpver <new-ver>' %
-                 str(argv))
+def main(*args):
+    opts = docopt.docopt(__doc__, argv=args)
+
+    new_ver = opts['<new-ver>']
+    dry_run = opts['--dry-run']
 
     try:
-        for i in bumpver(new_ver):
+        for i in bumpver(new_ver, dry_run):
             print(i)
     except CmdException as ex:
         sys.exit(str(ex))
@@ -96,4 +101,4 @@ def main(*argv):
 
 
 if __name__ == '__main__':
-    main(*sys.argv)
+    main(*sys.argv[1:])
