@@ -55,7 +55,7 @@ def extract_file_regexes(fpath, regexes):
 
     if not all(matches):
         raise CmdException("Failed extracting current version: "
-                           "\n  ver: %s\n  date: %s" % matches)
+                           "\n  ver: %s\n  date: %s" % tuple(matches))
 
     return [m.group(1) for m in matches]
 
@@ -96,10 +96,13 @@ def strip_ver2_commonprefix(ver1, ver2):
 
 
 def run_testcases():
-    sys.path.append(osp.normpath(osp.join(my_dir, '..')))
     import unittest
-    import tests.test_docs
-    suite = unittest.TestLoader().loadTestsFromModule(tests.test_docs)
+
+    ## Needed to import TCs AFTER grafting of versions on them.
+    sys.path.append(osp.normpath(osp.join(my_dir, '..')))
+    import tests.test_docs as test_docs  # @IgnorePep8
+
+    suite = unittest.TestLoader().loadTestsFromModule(test_docs)
     res = unittest.TextTestRunner(failfast=True).run(suite)
 
     if not res.wasSuccessful():
