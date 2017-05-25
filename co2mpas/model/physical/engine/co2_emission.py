@@ -15,12 +15,16 @@ import itertools
 import lmfit
 import numpy as np
 import numpy.ma as ma
-import scipy.integrate as sci_itg
 import scipy.stats as sci_sta
 import sklearn.metrics as sk_met
 import schedula as sh
 import co2mpas.utils as co2_utl
 import co2mpas.model.physical.defaults as defaults
+
+
+#area = np.trapz
+def area(x, y):
+    return np.sum(x * np.gradient(y))
 
 
 def default_fuel_density(fuel_type):
@@ -940,7 +944,7 @@ def calculate_cumulative_co2(
 
     for p in phases_integration_times:
         i, j = np.searchsorted(times, p)
-        co2.append(sci_itg.trapz(co2_emissions[i:j], times[i:j]))
+        co2.append(area(co2_emissions[i:j], times[i:j]))
 
     return np.array(co2) / phases_distances
 
@@ -1082,12 +1086,11 @@ def calculate_extended_cumulative_co2_emissions(
     r[~on_engine] = 0
     _cco2, phases = [], []
     cco2 = phases_co2_emissions * phases_distances
-    trapz = sci_itg.trapz
     for cco2, (t0, t1) in zip(cco2, phases_integration_times):
         i, j = np.searchsorted(times, (t0, t1))
         if i == j:
             continue
-        v = trapz(r[i:j], times[i:j])
+        v = area(r[i:j], times[i:j])
         c = [0.0]
 
         p = [t for t in extended_integration_times if t0 < t < t1]
@@ -1095,7 +1098,7 @@ def calculate_extended_cumulative_co2_emissions(
         for k, t in zip(np.searchsorted(times, p), p):
             phases.append((t0, t))
             t0 = t
-            c.append(trapz(r[i:k], times[i:k]) / v)
+            c.append(area(r[i:k], times[i:k]) / v)
         phases.append((t0, t1))
         c.append(1.0)
 
@@ -1128,11 +1131,10 @@ def _rescale_co2_emissions(
         co2_emissions_model, times, phases_integration_times,
         cumulative_co2_emissions, params_initial_guess):
     co2_emissions = co2_emissions_model(params_initial_guess)[0]
-    trapz = sci_itg.trapz
     k_factors = []
     for cco2, p in zip(cumulative_co2_emissions, phases_integration_times):
         i, j = np.searchsorted(times, p)
-        k = cco2 / trapz(co2_emissions[i:j], times[i:j])
+        k = cco2 / area(co2_emissions[i:j], times[i:j])
         if np.isnan(k) or np.isinf(k):
             k = 1
 
@@ -1183,7 +1185,7 @@ def identify_co2_emissions(
     :type is_cycle_hot: bool
 
     :return:
-        The instantaneous CO2 emission vector [CO2g/s] and the phases rescaling 
+        The instantaneous CO2 emission vector [CO2g/s] and the phases rescaling
         factors [-].
     :rtype: numpy.array, tuple[float]
     """
@@ -1219,13 +1221,13 @@ def identify_co2_emissions_v1(co2_emissions, cumulative_co2_emissions):
     :param co2_emissions:
         CO2 instantaneous emissions vector [CO2g/s].
     :type co2_emissions: numpy.array
-    
+
     :param cumulative_co2_emissions:
         Cumulative CO2 of cycle phases [CO2g].
     :type cumulative_co2_emissions: numpy.array
-    
+
     :return:
-        The instantaneous CO2 emission vector [CO2g/s] and the phases rescaling 
+        The instantaneous CO2 emission vector [CO2g/s] and the phases rescaling
         factors [-].
     :rtype: numpy.array, tuple[float]
     """

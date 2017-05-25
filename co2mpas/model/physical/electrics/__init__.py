@@ -34,6 +34,9 @@ import schedula as sh
 import co2mpas.utils as co2_utl
 
 
+#area = np.trapz
+def area(x, y):
+    return np.sum(x * np.gradient(y))
 
 def calculate_engine_start_demand(
         engine_moment_inertia, idle_engine_speed, alternator_efficiency,
@@ -358,10 +361,10 @@ def identify_electric_loads(
         # noinspection PyUnresolvedReferences
         p[p > 0] = 0.0
         # noinspection PyTypeChecker
-        p = np.trapz(p, x=times[i:j])
+        p = area(p, x=times[i:j])
 
         if p < 0:
-            l = np.trapz(np.choose(on_engine[i:j], loads), x=times[i:j])
+            l = area(np.choose(on_engine[i:j], loads), x=times[i:j])
             if p < l:
                 start_demand.append(p - l)
 
