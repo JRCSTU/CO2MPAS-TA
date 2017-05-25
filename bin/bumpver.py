@@ -1,16 +1,16 @@
 #!python
 #
 """
-Bump & commit a new version
+Script to bump, commit and tag new versions.
 
 USAGE:
-    bumpver [-n] [-f] [-c | -t]  [<new-ver>]
+    bumpver [-n] [-f] [-c] [-t <message>]  [<new-ver>]
 
 OPTIONS:
   -f, --force       Bump (and optionally) commit even if version is the same.
   -n, --dry-run     Do not write files - just pretend.
   -c, --commit      Commit afterwards.
-  -t, --tag         TODO: Tag afterwards (commit implied).
+  -t, --tag=<msg>   Adds a signed tag with the given message (commit implied).
 
 Without <new-ver> prints version extracted from current file.
 
@@ -135,10 +135,20 @@ def do_commit(new_ver, old_ver, dry_run, ver_files):
             exec_cmd(cmd)
 
 
-def bumpver(new_ver, dry_run=False, force=False, tag_after_commit: bool=None):
+def do_tag(tag, tag_msg, dry_run):
+    cmd = ['git', 'tag', tag, '-s', '-m', tag_msg]
+    cmd_str = format_syscmd(cmd)
+    if dry_run:
+        yield "DRYRUN: %s" % cmd_str
+    else:
+        yield "EXEC: %s" % cmd_str
+        exec_cmd(cmd)
+
+
+def bumpver(new_ver, dry_run=False, force=False, tag_after_commit=None):
     """
     :param tag_after_commit:
-        if None, neither commit or tag applied.
+        if true, do `git commit`, if string, also `git tag` with that as msg.
     """
     regexes = [VFILE_regex_v, VFILE_regex_d]
     old_ver, old_date = extract_file_regexes(VFILE, regexes)
@@ -180,8 +190,9 @@ def bumpver(new_ver, dry_run=False, force=False, tag_after_commit: bool=None):
         if tag_after_commit is not None:
             yield from do_commit(new_ver, old_ver, dry_run, ver_files)
 
-            if tag_after_commit is True:
-                yield "TAGGED!"
+            if isinstance(tag_after_commit, str):
+                tag = 'v%s' % new_ver
+                yield from do_tag(tag, tag_after_commit, dry_run)
 
 
 def main(*args):
@@ -194,9 +205,9 @@ def main(*args):
     commit = opts['--commit']
     tag = opts['--tag']
     if tag:
-        tag_after_commit = True
+        tag_after_commit = tag
     elif commit:
-        tag_after_commit = False
+        tag_after_commit = True
     else:
         tag_after_commit = None
 
