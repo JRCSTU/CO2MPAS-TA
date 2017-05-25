@@ -1204,12 +1204,15 @@ def identify_co2_emissions(
     error_function = define_co2_error_function_on_emissions
     co2, k0 = rescale(p)
     n, xatol = dfl.n_perturbations, dfl.xatol
+    skip_cold_hot_optimizations = False
     for i in range(n):
-        p = calibrate(error_function(co2_emissions_model, co2), p)[0]
+        p = calibrate(error_function(co2_emissions_model, co2), p,
+                      skip_cold_hot_optimizations=skip_cold_hot_optimizations)[0]
         co2, k1 = rescale(p)
         if np.max(np.abs(k1 - k0)) <= xatol:
             break
         k0 = k1
+        skip_cold_hot_optimizations = True
 
     return co2, tuple(k0), i
 
@@ -1294,6 +1297,8 @@ def define_co2_error_function_on_phases(
     :rtype: callable
     """
 
+    weights = [j - i for i, j in phases_integration_times]
+
     def error_func(params, phases=None):
 
         if phases:
@@ -1304,14 +1309,14 @@ def define_co2_error_function_on_phases(
                 if i in phases:
                     m, n = np.searchsorted(times, p)
                     b[m:n] = True
-                    w.append(phases_co2_emissions[i])
+                    w.append(weights[i])
                 else:
                     w.append(0)
 
             co2[b] = co2_emissions_model(params, sub_values=b)[0]
         else:
             co2 = co2_emissions_model(params)[0]
-            w = None  # cumulative_co2_emissions
+            w = weights
 
         cco2 = calculate_cumulative_co2(
             times, phases_integration_times, co2, phases_distances)
@@ -1589,7 +1594,8 @@ def calibrate_co2_params(
     is_cycle_hot, engine_coolant_temperatures, co2_error_function_on_phases,
     co2_error_function_on_emissions, co2_params_initial_guess,
     _3rd_step=defaults.dfl.functions.calibrate_co2_params.enable_third_step,
-    _3rd_emissions=defaults.dfl.functions.calibrate_co2_params.third_step_against_emissions):
+    _3rd_emissions=defaults.dfl.functions.calibrate_co2_params.third_step_against_emissions,
+    skip_cold_hot_optimizations=False):
     """
     Calibrates the CO2 emission model parameters (a2, b2, a, b, c, l, l2, t, trg
     ).
@@ -1642,13 +1648,13 @@ def calibrate_co2_params(
         return p
 
     cold_p = ['t0', 't1']
-    if hot.any():
+    if not skip_cold_hot_optimizations and hot.any():
         _set_attr(p, ['t0', 't1'], default=0.0, attr='value')
         p = calibrate(cold_p, p, sub_values=hot)
     else:
         success.append((True, copy.deepcopy(p)))
 
-    if cold.any():
+    if not skip_cold_hot_optimizations and cold.any():
         _set_attr(p, {'t0': values['t0'], 't1': values['t1']}, attr='value')
         hot_p = ['a2', 'a', 'b', 'c', 'l', 'l2']
         p = calibrate(hot_p, p, sub_values=cold)
