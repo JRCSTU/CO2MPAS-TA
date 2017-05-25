@@ -7,9 +7,10 @@ USAGE:
     bumpver [-n] [-c | -t] [<new-ver>]
 
 OPTIONS:
-  -n, --dry-run     do not write files - just pretend
-  -c                TODO: commit afterwards
-  -t                TODO: tag afterwards (commit implied)
+  -f, --force       Bump (and optionally) commit even if version is the same.
+  -n, --dry-run     Do not write files - just pretend.
+  -c, --commit      TODO: Commit afterwards.
+  -t, --tag         TODO: Tag afterwards (commit implied).
 
 Without <new-ver> prints version extracted from current file.
 
@@ -71,7 +72,7 @@ def replace_substrings(files, subst_pairs):
         yield (txt, fpath, replacements)
 
 
-def bumpver(new_ver, dry_run=False):
+def bumpver(new_ver, dry_run=False, force=False):
     regexes = [VFILE_regex_v, VFILE_regex_d]
     old_ver, old_date = extract_file_regexes(VFILE, regexes)
 
@@ -79,6 +80,15 @@ def bumpver(new_ver, dry_run=False):
         yield old_ver
         yield old_date
     else:
+        if new_ver == old_ver:
+            msg = "Version '%s'already bumped"
+            if force:
+                msg += ", but --force  effected."
+                yield msg % new_ver
+            else:
+                msg += "!\n Use of --force recommended."
+                raise CmdException(msg % new_ver)
+
         from datetime import datetime
 
         new_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S%z')
@@ -103,9 +113,10 @@ def main(*args):
 
     new_ver = opts['<new-ver>']
     dry_run = opts['--dry-run']
+    force = opts['--force']
 
     try:
-        for i in bumpver(new_ver, dry_run):
+        for i in bumpver(new_ver, dry_run, force):
             print(i)
     except CmdException as ex:
         sys.exit(str(ex))
