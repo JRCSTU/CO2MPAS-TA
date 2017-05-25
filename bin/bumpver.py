@@ -4,12 +4,12 @@
 Bump & commit a new version
 
 USAGE:
-    bumpver [-n] [-c | -t] [<new-ver>]
+    bumpver [-n] [-f] [-c | -t]  [<new-ver>]
 
 OPTIONS:
   -f, --force       Bump (and optionally) commit even if version is the same.
   -n, --dry-run     Do not write files - just pretend.
-  -c, --commit      TODO: Commit afterwards.
+  -c, --commit      Commit afterwards.
   -t, --tag         TODO: Tag afterwards (commit implied).
 
 Without <new-ver> prints version extracted from current file.
@@ -72,7 +72,74 @@ def replace_substrings(files, subst_pairs):
         yield (txt, fpath, replacements)
 
 
-def bumpver(new_ver, dry_run=False, force=False):
+def format_syscmd(cmd):
+    if isinstance(cmd, (list, tuple)):
+        cmd = ' '.join('"%s"' % s if ' ' in s else s
+                       for s in cmd)
+    else:
+        assert isinstance(cmd, str), cmd
+
+    return cmd
+
+
+def strip_ver2_commonprefix(ver1, ver2):
+    cprefix = osp.commonprefix([ver1, ver2])
+    if cprefix:
+        striplen = cprefix.rfind('.')
+        if striplen > 0:
+            striplen += 1
+        else:
+            striplen = len(cprefix)
+        ver2 = ver2[striplen:]
+
+    return ver2
+
+
+def run_testcases():
+    sys.path.append(osp.normpath(osp.join(my_dir, '..')))
+    import unittest
+    import tests.test_docs
+    suite = unittest.TestLoader().loadTestsFromModule(tests.test_docs)
+    res = unittest.TextTestRunner(failfast=True).run(suite)
+
+    if not res.wasSuccessful():
+        raise CmdException("Doc TCs failed, probably version-bumping has failed!")
+
+
+def exec_cmd(cmd):
+    import subprocess as sbp
+
+    err = sbp.call(cmd, stderr=sbp.STDOUT)
+    if err:
+        raise CmdException("Failed(%i) on: %s" % (err, format_syscmd(cmd)))
+
+
+def do_commit(new_ver, old_ver, dry_run, ver_files):
+    import pathlib
+
+    new_ver = strip_ver2_commonprefix(old_ver, new_ver)
+    cmt_msg = 'chore(ver): bump %s-->%s' % (old_ver, new_ver)
+
+    ver_files = [pathlib.Path(f).as_posix() for f in ver_files]
+    commands = [
+        ['git', 'add'] + ver_files,
+        ['git', 'commit', '-m', cmt_msg]
+    ]
+
+    for cmd in commands:
+        cmd_str = format_syscmd(cmd)
+        if dry_run:
+            yield "DRYRUN: %s" % cmd_str
+        else:
+            yield "EXEC: %s" % cmd_str
+            exec_cmd(cmd)
+
+
+def bumpver(new_ver, dry_run=False, force=False, tag_after_commit: bool=None):
+    """
+    :param tag_after_commit:
+        if None, neither commit or tag applied.
+    """
     regexes = [VFILE_regex_v, VFILE_regex_d]
     old_ver, old_date = extract_file_regexes(VFILE, regexes)
 
@@ -107,6 +174,15 @@ def bumpver(new_ver, dry_run=False, force=False):
             for old, new, nrepl in replacements:
                 yield '  %i x (%24s --> %s)' % (nrepl, old, new)
 
+        yield "...now launching DocTCs..."
+        run_testcases()
+
+        if tag_after_commit is not None:
+            yield from do_commit(new_ver, old_ver, dry_run, ver_files)
+
+            if tag_after_commit is True:
+                yield "TAGGED!"
+
 
 def main(*args):
     opts = docopt.docopt(__doc__, argv=args)
@@ -115,8 +191,17 @@ def main(*args):
     dry_run = opts['--dry-run']
     force = opts['--force']
 
+    commit = opts['--commit']
+    tag = opts['--tag']
+    if tag:
+        tag_after_commit = True
+    elif commit:
+        tag_after_commit = False
+    else:
+        tag_after_commit = None
+
     try:
-        for i in bumpver(new_ver, dry_run, force):
+        for i in bumpver(new_ver, dry_run, force, tag_after_commit):
             print(i)
     except CmdException as ex:
         sys.exit(str(ex))
