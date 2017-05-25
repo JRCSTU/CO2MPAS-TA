@@ -63,11 +63,12 @@ def replace_substrings(files, subst_pairs):
     for fpath in files:
         txt = read_txtfile(fpath)
 
+        replacements = []
         for old, new in subst_pairs:
-            nrepl = txt.count(old)
-            new_txt = txt.replace(old, new)
+            replacements.append((old, new, txt.count(old)))
+            txt = txt.replace(old, new)
 
-            yield (new_txt, fpath, nrepl, old, new)
+        yield (txt, fpath, replacements)
 
 
 def bumpver(new_ver, dry_run=False):
@@ -86,13 +87,15 @@ def bumpver(new_ver, dry_run=False):
         subst_pairs = [(old_ver, new_ver), (old_date, new_date)]
 
         for repl in replace_substrings(ver_files, subst_pairs):
-            new_txt, fpath, nrepl, old, new = repl
+            new_txt, fpath, replacements = repl
 
             if not dry_run:
                 with open(fpath, 'wt', encoding='utf-8') as fp:
                     fp.write(new_txt)
 
-            yield '%20s: %i x (%s --> %s)' % (fpath, nrepl, old, new)
+            yield '%s: ' % fpath
+            for old, new, nrepl in replacements:
+                yield '  %i x (%24s --> %s)' % (nrepl, old, new)
 
 
 def main(*args):
