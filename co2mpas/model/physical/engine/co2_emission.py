@@ -23,8 +23,8 @@ import co2mpas.model.physical.defaults as defaults
 
 
 #area = np.trapz
-def area(x, y):
-    return np.sum(x * np.gradient(y))
+def area(y, x):
+    return np.sum(y * np.gradient(x))
 
 
 def default_fuel_density(fuel_type):

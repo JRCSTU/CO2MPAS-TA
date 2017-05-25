@@ -35,8 +35,9 @@ import co2mpas.utils as co2_utl
 
 
 #area = np.trapz
-def area(x, y):
-    return np.sum(x * np.gradient(y))
+def area(y, x):
+    return np.sum(y * np.gradient(x))
+
 
 def calculate_engine_start_demand(
         engine_moment_inertia, idle_engine_speed, alternator_efficiency,
