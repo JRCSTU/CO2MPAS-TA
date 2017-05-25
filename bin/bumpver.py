@@ -18,6 +18,7 @@ Without <new-ver> prints version extracted from current file.
 import os.path as osp
 import sys
 import re
+import functools as fnt
 
 import docopt
 
@@ -35,15 +36,32 @@ class CmdException(Exception):
     pass
 
 
+@fnt.lru_cache()
 def read_txtfile(fpath):
     with open(fpath, 'rt', encoding='utf-8') as fp:
         return fp.read()
 
 
-def replace_substrings(file_pairs, subst_pairs):
-    for fpath, txt in file_pairs:
-        if not txt:
-            txt = read_txtfile(fpath)
+def extract_file_regexes(fpath, regexes):
+    """
+    :param regexes:
+        A sequence of regexes to "search", having a single capturing-group.
+    :return:
+        One groups per regex, or raise if any regex did not match.
+    """
+    txt = read_txtfile(fpath)
+    matches = [regex.search(txt) for regex in regexes]
+
+    if not all(matches):
+        raise CmdException("Failed extracting current version: "
+                           "\n  ver: %s\n  date: %s" % matches)
+
+    return [m.group(1) for m in matches]
+
+
+def replace_substrings(files, subst_pairs):
+    for fpath in files:
+        txt = read_txtfile(fpath)
 
         for old, new in subst_pairs:
             nrepl = txt.count(old)
@@ -53,15 +71,8 @@ def replace_substrings(file_pairs, subst_pairs):
 
 
 def bumpver(new_ver, dry_run=False):
-    vfile_txt = read_txtfile(VFILE)
-    matches = [regex.search(vfile_txt)
-               for regex
-               in [VFILE_regex_v, VFILE_regex_d]]
-
-    if not all(matches):
-        raise CmdException("Failed extracting current version: "
-                           "\n  ver: %s\n  date: %s" % matches)
-    oldv, oldd = (m.group(1) for m in matches)
+    regexes = [VFILE_regex_v, VFILE_regex_d]
+    oldv, oldd = extract_file_regexes(VFILE, regexes)
 
     if not new_ver:
         yield oldv
@@ -71,10 +82,10 @@ def bumpver(new_ver, dry_run=False):
 
         new_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S%z')
 
-        file_pairs = [(VFILE, vfile_txt), (RFILE, None)]
+        files = [VFILE, RFILE]
         subst_pairs = [(oldv, new_ver), (oldd, new_date)]
 
-        for repl in replace_substrings(file_pairs, subst_pairs):
+        for repl in replace_substrings(files, subst_pairs):
             new_txt, fpath, nrepl, old, new = repl
 
             if not dry_run:
@@ -82,7 +93,7 @@ def bumpver(new_ver, dry_run=False):
                     fp.write(new_txt)
 
             fpath = osp.normpath(fpath)
-            yield '%s: %i x (%s --> %s)' % (fpath, nrepl, old, new)
+            yield '%20s: %i x (%s --> %s)' % (fpath, nrepl, old, new)
 
 
 def main(*args):
