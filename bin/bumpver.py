@@ -72,27 +72,26 @@ def replace_substrings(files, subst_pairs):
 
 def bumpver(new_ver, dry_run=False):
     regexes = [VFILE_regex_v, VFILE_regex_d]
-    oldv, oldd = extract_file_regexes(VFILE, regexes)
+    old_ver, old_date = extract_file_regexes(VFILE, regexes)
 
     if not new_ver:
-        yield oldv
-        yield oldd
+        yield old_ver
+        yield old_date
     else:
         from datetime import datetime
 
         new_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S%z')
 
-        files = [VFILE, RFILE]
-        subst_pairs = [(oldv, new_ver), (oldd, new_date)]
+        ver_files = [osp.normpath(f) for f in [VFILE, RFILE]]
+        subst_pairs = [(old_ver, new_ver), (old_date, new_date)]
 
-        for repl in replace_substrings(files, subst_pairs):
+        for repl in replace_substrings(ver_files, subst_pairs):
             new_txt, fpath, nrepl, old, new = repl
 
             if not dry_run:
                 with open(fpath, 'wt', encoding='utf-8') as fp:
                     fp.write(new_txt)
 
-            fpath = osp.normpath(fpath)
             yield '%20s: %i x (%s --> %s)' % (fpath, nrepl, old, new)
 
 
