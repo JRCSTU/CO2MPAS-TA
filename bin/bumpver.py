@@ -138,14 +138,21 @@ def do_commit(new_ver, old_ver, dry_run, ver_files):
             exec_cmd(cmd)
 
 
-def do_tag(tag, tag_msg, dry_run):
+def do_tag(tag, tag_msg, dry_run, force):
     cmd = ['git', 'tag', tag, '-s', '-m', tag_msg]
+    if force:
+        cmd.append('--force')
     cmd_str = format_syscmd(cmd)
     if dry_run:
         yield "DRYRUN: %s" % cmd_str
     else:
         yield "EXEC: %s" % cmd_str
         exec_cmd(cmd)
+
+
+def check_tag_exists(tag):
+    ## NOTE: Git cmd would work for tags with slashes!
+    return osp.isfile(osp.join(my_dir, '..', '.git/refs/tags', tag))
 
 
 def bumpver(new_ver, dry_run=False, force=False, tag_after_commit=None):
@@ -155,19 +162,23 @@ def bumpver(new_ver, dry_run=False, force=False, tag_after_commit=None):
     """
     regexes = [VFILE_regex_v, VFILE_regex_d]
     old_ver, old_date = extract_file_regexes(VFILE, regexes)
+    tag = 'v%s' % new_ver
+
+    tag_exists = check_tag_exists(tag)
 
     if not new_ver:
         yield old_ver
         yield old_date
     else:
-        if new_ver == old_ver:
-            msg = "Version '%s'already bumped"
+        if new_ver == old_ver or tag_exists:
+            msg = ("Version '%s'already bumped(%s) or tag exists(%s)" %
+                   (new_ver, new_ver == old_ver, tag_exists))
             if force:
                 msg += ", but --force  effected."
-                yield msg % new_ver
+                yield msg
             else:
                 msg += "!\n Use of --force recommended."
-                raise CmdException(msg % new_ver)
+                raise CmdException(msg)
 
         from datetime import datetime
 
@@ -194,8 +205,7 @@ def bumpver(new_ver, dry_run=False, force=False, tag_after_commit=None):
             yield from do_commit(new_ver, old_ver, dry_run, ver_files)
 
             if isinstance(tag_after_commit, str):
-                tag = 'v%s' % new_ver
-                yield from do_tag(tag, tag_after_commit, dry_run)
+                yield from do_tag(tag, tag_after_commit, dry_run, force)
 
 
 def main(*args):
