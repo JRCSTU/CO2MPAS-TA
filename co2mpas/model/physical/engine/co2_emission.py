@@ -1183,7 +1183,7 @@ def identify_co2_emissions(
     :type is_cycle_hot: bool
 
     :return:
-        The instantaneous CO2 emission vector [CO2g/s] and the phases rescaling 
+        The instantaneous CO2 emission vector [CO2g/s] and the phases rescaling
         factors [-].
     :rtype: numpy.array, tuple[float]
     """
@@ -1202,6 +1202,7 @@ def identify_co2_emissions(
     error_function = define_co2_error_function_on_emissions
     co2, k0 = rescale(p)
     n, xatol = dfl.n_perturbations, dfl.xatol
+    i = -1  # Define it, in case n == 0.
     for i in range(n):
         p = calibrate(error_function(co2_emissions_model, co2), p)[0]
         co2, k1 = rescale(p)
@@ -1219,13 +1220,13 @@ def identify_co2_emissions_v1(co2_emissions, cumulative_co2_emissions):
     :param co2_emissions:
         CO2 instantaneous emissions vector [CO2g/s].
     :type co2_emissions: numpy.array
-    
+
     :param cumulative_co2_emissions:
         Cumulative CO2 of cycle phases [CO2g].
     :type cumulative_co2_emissions: numpy.array
-    
+
     :return:
-        The instantaneous CO2 emission vector [CO2g/s] and the phases rescaling 
+        The instantaneous CO2 emission vector [CO2g/s] and the phases rescaling
         factors [-].
     :rtype: numpy.array, tuple[float]
     """
