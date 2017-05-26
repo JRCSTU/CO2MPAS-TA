@@ -1136,8 +1136,8 @@ def calculate_phases_co2_emissions(cumulative_co2_emissions, phases_distances):
 
 def _define_rescaling_function(
         co2_emissions_model, cumulative_co2_emissions, phases_integration_times,
-        times):
-    rescaling_matrix = _rescaling_matrix(phases_integration_times, times)
+        times, rescaling_matrix):
+
     dx, it = np.append(np.diff(times), [0]), []
     for p in phases_integration_times:
         i, j = np.searchsorted(times, p)
@@ -1158,7 +1158,8 @@ def _define_rescaling_function(
     return _rescaling_function
 
 
-def _rescaling_matrix(phases_integration_times, times):
+def _rescaling_matrix(
+        phases_integration_times, times, velocities, stop_velocity):
     d = defaults.dfl.functions._rescaling_matrix
     a, b = np.array([-1, 1]) * d.a / 2, d.b
     pit = np.array(phases_integration_times)
@@ -1171,18 +1172,33 @@ def _rescaling_matrix(phases_integration_times, times):
 
     r, y = [], (0, 1, 1, 0)
     for x in points:
-        func = sci_int.interp1d(x, y, 'linear', bounds_error=False, fill_value=0)
+        func = sci_int.interp1d(
+            x, y, 'linear', bounds_error=False, fill_value=0
+        )
         r.append(func(times))
     r = np.column_stack(r)
     r[np.isnan(r)] = 1
+    b = np.asarray(velocities <= stop_velocity, int)
+    it = np.split(range(b.size), np.where(np.diff(b) != 0)[0] + 1)[1 - b[0]::2]
+    for x in it:
+        i = list(itertools.chain(*(np.where(v > 0)[0] for v in r[x])))
+        r[x] = 0
+        r[x, int(np.median(i))] = 1
     return r / np.sum(r, 1)[:, None]
+
+
+def _rescaling_score(times, rescaling_matrix, k):
+    x = np.dot(rescaling_matrix, k)
+    m = np.trapz(x, times) / (times[-1] - times[0])
+    std = np.sqrt(np.trapz((x - m) ** 2, times) / (times[-1] - times[0]))
+    return m, std
 
 
 def identify_co2_emissions(
         co2_emissions_model, params_initial_guess, times,
         phases_integration_times, cumulative_co2_emissions,
         co2_error_function_on_phases, engine_coolant_temperatures,
-        is_cycle_hot):
+        is_cycle_hot, velocities, stop_velocity):
     """
     Identifies instantaneous CO2 emission vector [CO2g/s].
 
@@ -1226,9 +1242,12 @@ def identify_co2_emissions(
     """
 
     p = params_initial_guess
+    rescaling_matrix = _rescaling_matrix(
+        phases_integration_times, times, velocities, stop_velocity
+    )
     rescale = _define_rescaling_function(
         co2_emissions_model, cumulative_co2_emissions, phases_integration_times,
-        times
+        times, rescaling_matrix
     )
     dfl = defaults.dfl.functions.identify_co2_emissions
     calibrate = functools.partial(
@@ -1238,8 +1257,8 @@ def identify_co2_emissions(
     )
     error_function = define_co2_error_function_on_emissions
     co2, k0 = rescale(p)
-    n, xatol = dfl.n_perturbations, dfl.xatol
-    for i in range(n):
+    xatol, n = dfl.xatol, 0
+    for n in range(dfl.n_perturbations):
         p = calibrate(error_function(co2_emissions_model, co2), p)[0]
         co2, k1 = rescale(p)
         if np.max(np.abs(k1 - k0)) <= xatol:
@@ -2675,7 +2694,7 @@ def co2_emission():
                 'extended_phases_integration_times',
                 'extended_cumulative_co2_emissions',
                 'co2_error_function_on_phases', 'engine_coolant_temperatures',
-                'is_cycle_hot'],
+                'is_cycle_hot', 'velocities', 'stop_velocity'],
         outputs=['identified_co2_emissions', 'co2_rescaling_factors',
                  'perturbations_count'],
         weight=5
