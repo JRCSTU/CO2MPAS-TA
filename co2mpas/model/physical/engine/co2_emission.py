@@ -1147,11 +1147,8 @@ def _define_rescaling_function(
 
     def _rescaling_function(params_initial_guess):
         co2_emissions = co2_emissions_model(params_initial_guess)[0]
-        A = []
-        for i, j, m in it:
-            A.append(np.sum(co2_emissions[i:j, None] * m, 0))
-
-        k_factors = np.linalg.solve(A, cumulative_co2_emissions)
+        A = [np.sum(co2_emissions[i:j, None] * m, 0) for i, j, m in it]
+        k_factors = np.linalg.lstsq(A, cumulative_co2_emissions)[0]
         co2_emissions *= np.dot(rescaling_matrix, k_factors)
         return co2_emissions, k_factors
 
@@ -1265,7 +1262,7 @@ def identify_co2_emissions(
             break
         k0 = k1
 
-    return co2, tuple(k0), i
+    return co2, tuple(k0), n
 
 
 def identify_co2_emissions_v1(co2_emissions, cumulative_co2_emissions):
