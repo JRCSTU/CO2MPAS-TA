@@ -2694,7 +2694,7 @@ def co2_emission():
 
     d.add_function(
         function=identify_co2_emissions_v1,
-        inputs=['co2_emissions', 'extended_cumulative_co2_emissions'],
+        inputs=['co2_emissions'],
         outputs=['identified_co2_emissions', 'co2_rescaling_scores']
     )
 
