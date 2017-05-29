@@ -1353,8 +1353,7 @@ def engine():
             'identified_co2_emissions', 'initial_friction_params', 'ki_factor',
             'optimal_efficiency', 'phases_co2_emissions',
             'phases_fuel_consumptions', 'phases_willans_factors',
-            'willans_factors', 'co2_rescaling_factors', 'perturbations_count',
-            'extended_phases_distances'),
+            'willans_factors', 'co2_rescaling_scores'),
         inp_weight={'co2_params': defaults.dfl.EPS}
     )
 

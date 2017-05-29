@@ -1233,8 +1233,8 @@ def identify_co2_emissions(
     :type is_cycle_hot: bool
 
     :return:
-        The instantaneous CO2 emission vector [CO2g/s] and the phases rescaling 
-        factors [-].
+        The instantaneous CO2 emission vector [CO2g/s] and rescaling scores 
+        (i.e., mean, std, and number of perturbations) [-].
     :rtype: numpy.array, tuple[float]
     """
 
@@ -1262,10 +1262,10 @@ def identify_co2_emissions(
             break
         k0 = k1
 
-    return co2, tuple(k0), n
+    return co2, _rescaling_score(times, rescaling_matrix, k0) + (n,)
 
 
-def identify_co2_emissions_v1(co2_emissions, cumulative_co2_emissions):
+def identify_co2_emissions_v1(co2_emissions):
     """
     Identifies instantaneous CO2 emission vector [CO2g/s].
 
@@ -1273,16 +1273,12 @@ def identify_co2_emissions_v1(co2_emissions, cumulative_co2_emissions):
         CO2 instantaneous emissions vector [CO2g/s].
     :type co2_emissions: numpy.array
     
-    :param cumulative_co2_emissions:
-        Cumulative CO2 of cycle phases [CO2g].
-    :type cumulative_co2_emissions: numpy.array
-    
     :return:
-        The instantaneous CO2 emission vector [CO2g/s] and the phases rescaling 
-        factors [-].
+        The instantaneous CO2 emission vector [CO2g/s] and rescaling scores 
+        (i.e., mean, std, and number of perturbations) [-].
     :rtype: numpy.array, tuple[float]
     """
-    return co2_emissions, (1.0,) * len(cumulative_co2_emissions)
+    return co2_emissions, (1.0, 0, 0)
 
 
 def define_co2_error_function_on_emissions(co2_emissions_model, co2_emissions):
@@ -2692,15 +2688,14 @@ def co2_emission():
                 'extended_cumulative_co2_emissions',
                 'co2_error_function_on_phases', 'engine_coolant_temperatures',
                 'is_cycle_hot', 'velocities', 'stop_velocity'],
-        outputs=['identified_co2_emissions', 'co2_rescaling_factors',
-                 'perturbations_count'],
+        outputs=['identified_co2_emissions', 'co2_rescaling_scores'],
         weight=5
     )
 
     d.add_function(
         function=identify_co2_emissions_v1,
         inputs=['co2_emissions', 'extended_cumulative_co2_emissions'],
-        outputs=['identified_co2_emissions', 'co2_rescaling_factors']
+        outputs=['identified_co2_emissions', 'co2_rescaling_scores']
     )
 
     d.add_function(

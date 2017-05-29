@@ -430,8 +430,8 @@ def physical():
             'engine_temperature_regression_model',
             'engine_thermostat_temperature',
             'engine_thermostat_temperature_window', 'engine_type',
-            'extended_phases_co2_emissions', 'extended_phases_distances',
-            'extended_phases_integration_times', 'perturbations_count',
+            'extended_phases_co2_emissions',
+            'extended_phases_integration_times',
             'fuel_carbon_content',
             'fuel_carbon_content_percentage', 'fuel_consumptions',
             'fuel_density', 'full_load_curve', 'full_load_powers',
@@ -444,7 +444,7 @@ def physical():
             'on_engine', 'on_idle', 'optimal_efficiency',
             'phases_co2_emissions', 'phases_fuel_consumptions',
             'phases_willans_factors', 'start_stop_model',
-            'use_basic_start_stop', 'willans_factors', 'co2_rescaling_factors'),
+            'use_basic_start_stop', 'willans_factors', 'co2_rescaling_scores'),
         inp_weight={'initial_temperature': 5}
     )
 
