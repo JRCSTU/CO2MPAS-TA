@@ -1007,18 +1007,12 @@ def calculate_extended_integration_times(
     :rtype: tuple
     """
 
-    lv, pit = velocities <= stop_velocity, phases_integration_times
-    pit = set(itertools.chain(*pit))
-    hv = ~lv
-    j, l, phases = np.argmax(hv), len(lv), []
-    while j < l:
-        i = np.argmax(lv[j:]) + j
-        j = np.argmax(hv[i:]) + i
-
-        if i == j:
-            break
-
-        t0, t1 = times[i], times[j]
+    lv, pit = np.zeros(velocities.size + 2), np.unique(phases_integration_times)
+    lv[1:-1] = np.asarray(velocities <= stop_velocity, int)
+    indices = np.where(np.diff(lv) != 0)[0].reshape(-1, 2)
+    split_points = []
+    for i, j in indices:
+        t0, t1 = times[i], times[j - 1]
         if t1 - t0 < 20 or any(t0 <= x <= t1 for x in pit):
             continue
 
@@ -1027,28 +1021,34 @@ def calculate_extended_integration_times(
             t = np.median(times[i:j][b])
         else:
             t = (t0 + t1) / 2
-        phases.append(t)
+        split_points.append(t)
     try:
-        i = np.searchsorted(engine_coolant_temperatures,
-                            (after_treatment_temperature_threshold[1],))[0]
-        t = times[i]
-        phases.append(t)
+        i = np.searchsorted(
+            engine_coolant_temperatures,
+            (after_treatment_temperature_threshold[1],)
+        )[0]
+        if not lv[i + 1]:
+            split_points.append(times[i])
     except IndexError:
         pass
 
-    return sorted(phases)
+    return sorted(split_points)
 
 
 def calculate_extended_cumulative_co2_emissions(
-        times, on_engine, extended_integration_times,
+        times, velocities, on_engine, extended_integration_times,
         co2_normalization_references, phases_integration_times,
-        phases_co2_emissions, phases_distances):
+        phases_co2_emissions, phases_distances, stop_velocity):
     """
     Calculates the extended cumulative CO2 of cycle phases [CO2g].
 
     :param times:
         Time vector [s].
     :type times: numpy.array
+
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array
 
     :param on_engine:
         If the engine is on [-].
@@ -1074,6 +1074,10 @@ def calculate_extended_cumulative_co2_emissions(
         Cycle phases distances [km].
     :type phases_distances: numpy.array
 
+    :param stop_velocity:
+        Maximum velocity to consider the vehicle stopped [km/h].
+    :type stop_velocity: float
+
     :return:
         Extended cumulative CO2 of cycle phases [CO2g].
     :rtype: numpy.array
@@ -1081,22 +1085,27 @@ def calculate_extended_cumulative_co2_emissions(
 
     r = co2_normalization_references.copy()
     r[~on_engine] = 0
+    lv = np.asarray(velocities <= stop_velocity, int)
     _cco2, phases = [], []
     cco2 = phases_co2_emissions * phases_distances
     trapz = sci_itg.trapz
+
+    def _stops(i, j):
+        return trapz(lv[i:j], times[i:j]) / (times[j] - times[i])
+
     for cco2, (t0, t1) in zip(cco2, phases_integration_times):
         i, j = np.searchsorted(times, (t0, t1))
         if i == j:
             continue
         v = trapz(r[i:j], times[i:j])
-        c = [0.0]
+        c, k0 = [0.0], i
 
         p = [t for t in extended_integration_times if t0 < t < t1]
-
         for k, t in zip(np.searchsorted(times, p), p):
-            phases.append((t0, t))
-            t0 = t
-            c.append(trapz(r[i:k], times[i:k]) / v)
+            if k < j and _stops(k0, k) < 0.5 and _stops(k, j) < 0.5:
+                phases.append((t0, t))
+                t0, k0 = t, k
+                c.append(trapz(r[i:k], times[i:k]) / v)
         phases.append((t0, t1))
         c.append(1.0)
 
@@ -2572,9 +2581,10 @@ def co2_emission():
 
     d.add_function(
         function=calculate_extended_cumulative_co2_emissions,
-        inputs=['times', 'on_engine', 'extended_integration_times',
-                'co2_normalization_references', 'phases_integration_times',
-                'phases_co2_emissions', 'phases_distances'],
+        inputs=['times', 'velocities', 'on_engine',
+                'extended_integration_times', 'co2_normalization_references',
+                'phases_integration_times', 'phases_co2_emissions',
+                'phases_distances', 'stop_velocity'],
         outputs=['extended_cumulative_co2_emissions',
                  'extended_phases_integration_times']
     )
