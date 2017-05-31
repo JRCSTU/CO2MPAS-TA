@@ -289,7 +289,6 @@ class Functions(co2_utl.Constants):
         #: Use co2 error function against co2_emissions on the third step? [-]
         third_step_against_emissions = False
 
-
     class identify_co2_emissions(co2_utl.Constants):
         #: Number of perturbations to identify the co2_emissions [-].
         n_perturbations = 100
