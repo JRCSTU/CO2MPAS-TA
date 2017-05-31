@@ -497,7 +497,10 @@ def _dd2df(dd, index=None, depth=0, col_key=None, row_key=None):
         df = df.reindex_axis(ax, axis='index', copy=False)
 
     if index is not None:
-        df.index.set_names(index, inplace=True)
+        if len(index) == 1 and isinstance(df.index, pd.MultiIndex):
+            df.index = pd.Index(df.index, name=index[0])
+        else:
+            df.index.set_names(index, inplace=True)
 
     return df
 
