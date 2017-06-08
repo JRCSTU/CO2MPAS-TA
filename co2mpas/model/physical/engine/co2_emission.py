@@ -1249,21 +1249,23 @@ def identify_co2_emissions(
     dfl = defaults.dfl.functions.identify_co2_emissions
     calibrate = functools.partial(
         calibrate_co2_params, is_cycle_hot, engine_coolant_temperatures,
-        co2_error_function_on_phases, _3rd_step=dfl.enable_third_step,
+        co2_error_function_on_phases,
+        _1st_step=dfl.enable_first_step,
+        _2nd_step=dfl.enable_second_step,
+        _3rd_step=dfl.enable_third_step,
         _3rd_emissions=dfl.third_step_against_emissions
     )
+
     error_function = define_co2_error_function_on_emissions
     co2, k0 = rescale(p)
     xatol, n = dfl.xatol, 0
-    skip_cold_hot_optimizations = False
+
     for n in range(dfl.n_perturbations):
-        p = calibrate(error_function(co2_emissions_model, co2), p,
-                      skip_cold_hot_optimizations=skip_cold_hot_optimizations)[0]
+        p = calibrate(error_function(co2_emissions_model, co2), p)[0]
         co2, k1 = rescale(p)
         if np.max(np.abs(k1 - k0)) <= xatol:
             break
         k0 = k1
-        skip_cold_hot_optimizations = True
 
     return co2, _rescaling_score(times, rescaling_matrix, k0) + (n,)
 
@@ -1640,9 +1642,10 @@ def _set_attr(params, data, default=False, attr='vary'):
 def calibrate_co2_params(
     is_cycle_hot, engine_coolant_temperatures, co2_error_function_on_phases,
     co2_error_function_on_emissions, co2_params_initial_guess,
+    _1st_step=defaults.dfl.functions.calibrate_co2_params.enable_first_step,
+    _2nd_step=defaults.dfl.functions.calibrate_co2_params.enable_second_step,
     _3rd_step=defaults.dfl.functions.calibrate_co2_params.enable_third_step,
-    _3rd_emissions=defaults.dfl.functions.calibrate_co2_params.third_step_against_emissions,
-    skip_cold_hot_optimizations=False):
+    _3rd_emissions=defaults.dfl.functions.calibrate_co2_params.third_step_against_emissions):
     """
     Calibrates the CO2 emission model parameters (a2, b2, a, b, c, l, l2, t, trg
     ).
@@ -1695,13 +1698,13 @@ def calibrate_co2_params(
         return p
 
     cold_p = ['t0', 't1']
-    if not skip_cold_hot_optimizations and hot.any():
+    if _1st_step and hot.any():
         _set_attr(p, ['t0', 't1'], default=0.0, attr='value')
         p = calibrate(cold_p, p, sub_values=hot)
     else:
         success.append((True, copy.deepcopy(p)))
 
-    if not skip_cold_hot_optimizations and cold.any():
+    if _2nd_step and cold.any():
         _set_attr(p, {'t0': values['t0'], 't1': values['t1']}, attr='value')
         hot_p = ['a2', 'a', 'b', 'c', 'l', 'l2']
         p = calibrate(hot_p, p, sub_values=cold)
