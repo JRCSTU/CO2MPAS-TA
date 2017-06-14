@@ -205,7 +205,7 @@ Requirements
      :alt: Extract Co2mpas-ALLINONE into Desktop
      :align: center
 
-- Run ``INSTALL.bat`` script contained in the root of the unzipped folder.
+- Run ``INSTALL.vbs`` script contained in the root of the unzipped folder.
   It will install links for commons |co2mpas| tasks under your *Windows*
   Start-Menu.
 
