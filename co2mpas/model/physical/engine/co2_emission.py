@@ -9,19 +9,27 @@
 It contains functions to predict the CO2 emissions.
 """
 
+
+
 import copy
 import functools
 import itertools
+import logging
+
 import lmfit
+
+import co2mpas.model.physical.defaults as defaults
+import co2mpas.utils as co2_utl
 import numpy as np
 import numpy.ma as ma
+import schedula as sh
 import scipy.integrate as sci_itg
 import scipy.interpolate as sci_int
 import scipy.stats as sci_sta
 import sklearn.metrics as sk_met
-import schedula as sh
-import co2mpas.utils as co2_utl
-import co2mpas.model.physical.defaults as defaults
+
+
+log = logging.getLogger(__name__)
 
 
 def default_fuel_density(fuel_type):
@@ -1704,6 +1712,7 @@ def calibrate_co2_params(npert: int,
     if _is_pert_step_enabled(npert, _1st_step) and hot.any():
         _set_attr(p, cold_p, default=0.0, attr='value')
         p = calibrate(cold_p, p, sub_values=hot)
+        log.debug('  #pert: %s, optimize: HOT', npert)
     else:
         success.append((True, copy.deepcopy(p)))
 
@@ -1711,6 +1720,7 @@ def calibrate_co2_params(npert: int,
         _set_attr(p, {'t0': values['t0'], 't1': values['t1']}, attr='value')
         hot_p = ['a2', 'a', 'b', 'c', 'l', 'l2']
         p = calibrate(hot_p, p, sub_values=cold)
+        log.debug('  #pert: %s, optimize: COLD', npert)
     else:
         success.append((True, copy.deepcopy(p)))
         ## FIXME: Why destroy solutions?
@@ -1725,6 +1735,7 @@ def calibrate_co2_params(npert: int,
         else:
             err = co2_error_function_on_phases
         p, s = calibrate_model_params(err, p)
+        log.debug('  #pert: %s, optimize: FULL', npert)
 
     else:
         s = True
