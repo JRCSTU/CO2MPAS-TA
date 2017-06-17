@@ -1688,8 +1688,8 @@ def calibrate_co2_params(npert: int,
     def calibrate(id_p, p, **kws):
         _set_attr(p, id_p, default=False)
         p, s = calibrate_model_params(co2_error_function_on_emissions, p, **kws)
-        _set_attr(p, vary)
         success.append((s, copy.deepcopy(p)))
+        _set_attr(p, vary)
         return p
 
     cold_p = ['t0', 't1']
