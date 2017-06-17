@@ -309,10 +309,10 @@ class Functions(co2_utl.Constants):
         #:    * 3 runs on 1st, 3rd, 6th, ...;
         #:    * -1: run only once, at the 1st perturbation;
         #:    * -5 run the first 5 perts and stop.
-        enable_first_step = 3
+        enable_first_step = -1
 
         #: Optimize COLD cycle-part separately (see above)
-        enable_second_step = 3
+        enable_second_step = -1
 
         #: Optimize against full cycle? [bool]
         enable_third_step = True
