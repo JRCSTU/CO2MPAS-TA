@@ -1,0 +1,84 @@
+version: 1
+
+root:
+    level: DEBUG
+    handlers: [console]
+
+loggers:
+    # co2mpas: {}
+    # co2mpas_main: {}
+    # co2mpas.batch: {}
+    # co2mpas.io: {}
+    # co2mpas.io.dill: {}
+    # co2mpas.io.excel: {}
+    # co2mpas.io.schema: {}
+    # co2mpas.model: {}
+    # co2mpas.model.physical: {}
+    # co2mpas.model.physical.cycle: {}
+    # co2mpas.model.physical.cycle.WLTP: {}
+    # co2mpas.model.physical.engine.co2_emission: {}
+    # co2mpas.model.physical.final_drive: {}
+    # co2mpas.model.physical.wheels: {}
+    # co2mpas.model.selector: {}
+    # co2mpas.model.selector.co2_params: {}
+    # co2mpas.plan: {}
+
+    # co2dice: {}
+    # co2mpas.sampling: {}
+    # co2mpas.sampling.baseapp: {}
+    # co2mpas.sampling.cfgcmd: {}
+    # co2mpas.sampling.crypto: {}
+    # co2mpas.sampling.project: {}
+    # co2mpas.sampling.report: {}
+    # co2mpas.sampling.tstamp: {}
+
+    ## DICE libs:
+    #
+    # git: {}
+    # gnupg: {}
+    # socks: {}
+    # traitlets: {}
+    # transitions: {}
+    
+    # asyncio: {}
+    # bcdocs: {}
+    # boto3: {}
+    # botocore: {}
+    # concurrent: {}
+    # dill: {}
+    # future_stdlib: {}
+    # pandalone: {}
+    # pandalone.xleash: {}
+    pandalone.xleash.io:
+        level: WARNING
+    # pandalone.xlsutils: {}
+    # past: {}
+    # PIL: {}
+    pip:
+        level: WARNING
+    # py: {}
+    # py.warnings: {}
+    # requests: {}
+    # s3fs: {}
+    # s3transfer: {}
+    # schedula: {}
+    # wltp: {}
+
+formatters:
+    long:
+        format: \%(asctime)-15s:%(levelname)5.5s:%(name)s:%(message)s
+
+handlers:
+  console:
+    class : logging.StreamHandler
+    formatter: long
+    #level   : INFO
+    #filters: [allow_foo]
+    #stream  : ext://sys.stderr
+
+#   file:
+#     class : logging.handlers.RotatingFileHandler
+#     formatter: long
+#     filename: co2mpas.log
+#     maxBytes: 1024
+#     backupCount: 3
