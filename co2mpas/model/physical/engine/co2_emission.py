@@ -1630,6 +1630,14 @@ def _set_attr(params, data, default=False, attr='vary'):
     return params
 
 
+def _is_pert_step_enabled(npert, flag):
+    if not flag:
+        return flag
+    if flag < 0:
+        return npert == -flag
+    return npert % flag == 0
+
+
 def calibrate_co2_params(npert: int,
     is_cycle_hot, engine_coolant_temperatures, co2_error_function_on_phases,
     co2_error_function_on_emissions, co2_params_initial_guess,
@@ -1693,13 +1701,13 @@ def calibrate_co2_params(npert: int,
         return p
 
     cold_p = ['t0', 't1']
-    if (_1st_step is True or npert < _1st_step) and hot.any():
+    if _is_pert_step_enabled(npert, _1st_step) and hot.any():
         _set_attr(p, cold_p, default=0.0, attr='value')
         p = calibrate(cold_p, p, sub_values=hot)
     else:
         success.append((True, copy.deepcopy(p)))
 
-    if (_2nd_step is True or npert < _2nd_step) and cold.any():
+    if  _is_pert_step_enabled(npert, _2nd_step) and cold.any():
         _set_attr(p, {'t0': values['t0'], 't1': values['t1']}, attr='value')
         hot_p = ['a2', 'a', 'b', 'c', 'l', 'l2']
         p = calibrate(hot_p, p, sub_values=cold)

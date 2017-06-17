@@ -299,15 +299,21 @@ class Functions(co2_utl.Constants):
         #: Number of perturbations to identify the co2_emissions [-].
         n_perturbations = 100
 
-        #: Optimze against the HOT part of the cycle? [bool or nperts]
-        #: Setting 1 runs only once, at the begining.
-        enable_first_step = 1
+        #: Optimize HOT cycle-part separately whenever mod(nperts) == 0,
+        #: or the first n times if negative.
+        #: [bool or nperts]
+        #:
+        #: Values:
+        #:     * (False, 0) disables it,
+        #:     * 1 runs on every pertubation,
+        #:     * 3 runs every pertubations (1st included),
+        #:     * -1: runs only oncw at the beggining, -2 twice, etc.
+        enable_first_step = 3
 
-        #: Optimze against the COLD part of the cycle? [bool or nperts]
-        #: Setting 1 runs only once, at the begining.
-        enable_second_step = 1
+        #: Optimize COLD cycle-part separately (see above)
+        enable_second_step = 3
 
-        #: Optimze against full cycle? [bool]
+        #: Optimize against full cycle? [bool]
         enable_third_step = True
 
         #: Use error function against co2_emissions in perturbation loop? [-]
