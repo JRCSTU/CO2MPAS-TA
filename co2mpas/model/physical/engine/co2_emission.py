@@ -2711,7 +2711,8 @@ def co2_emission():
                 'co2_error_function_on_phases', 'engine_coolant_temperatures',
                 'is_cycle_hot', 'velocities', 'stop_velocity'],
         outputs=['identified_co2_emissions', 'co2_rescaling_scores',
-                 'co2_params_calibrated', 'calibration_status'],
+                 'o1', 'o2'],
+#                 'co2_params_calibrated', 'calibration_status'],
         weight=5
     )
 
@@ -2728,14 +2729,14 @@ def co2_emission():
         outputs=['co2_error_function_on_phases']
     )
 
-#    d.add_function(
-#        function=calibrate_co2_params,
-#        inputs=['is_cycle_hot', 'engine_coolant_temperatures',
-#                'co2_error_function_on_phases',
-#                'co2_error_function_on_emissions',
-#                'co2_params_initial_guess'],
-#        outputs=['co2_params_calibrated', 'calibration_status']
-#    )
+    d.add_function(
+        function=(lambda *args, **kwds: calibrate_co2_params(0, *args, **kwds)),
+        inputs=['is_cycle_hot', 'engine_coolant_temperatures',
+                'co2_error_function_on_phases',
+                'co2_error_function_on_emissions',
+                'co2_params_initial_guess'],
+        outputs=['co2_params_calibrated', 'calibration_status']
+    )
 
     d.add_function(
         function=define_co2_params_calibrated,
