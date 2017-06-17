@@ -1256,8 +1256,10 @@ def identify_co2_emissions(
     )
     dfl = defaults.dfl.functions.identify_co2_emissions
     calibrate = functools.partial(
-        calibrate_co2_params, is_cycle_hot, engine_coolant_temperatures,
-        co2_error_function_on_phases,
+        calibrate_co2_params,
+        is_cycle_hot=is_cycle_hot,
+        engine_coolant_temperatures=engine_coolant_temperatures,
+        co2_error_function_on_phases=co2_error_function_on_phases,
         _1st_step=dfl.enable_first_step,
         _2nd_step=dfl.enable_second_step,
         _3rd_step=dfl.enable_third_step,
@@ -1269,7 +1271,10 @@ def identify_co2_emissions(
     xatol, n = dfl.xatol, 0
 
     for n in range(dfl.n_perturbations):
-        p = calibrate(error_function(co2_emissions_model, co2), p)[0]
+        p = calibrate(
+            npert=n,
+            co2_error_function_on_emissions=error_function(co2_emissions_model, co2),
+            co2_params_initial_guess=p)[0]
         co2, k1 = rescale(p)
         if np.max(np.abs(k1 - k0)) <= xatol:
             break
@@ -1647,7 +1652,13 @@ def _set_attr(params, data, default=False, attr='vary'):
     return params
 
 
-def calibrate_co2_params(
+def _is_pert_step_enabled(npert, flag):
+    if flag < 0:
+        return npert % -flag == 0
+    return npert < flag
+
+
+def calibrate_co2_params(npert: int,
     is_cycle_hot, engine_coolant_temperatures, co2_error_function_on_phases,
     co2_error_function_on_emissions, co2_params_initial_guess,
     _1st_step=defaults.dfl.functions.calibrate_co2_params.enable_first_step,
@@ -1657,6 +1668,9 @@ def calibrate_co2_params(
     """
     Calibrates the CO2 emission model parameters (a2, b2, a, b, c, l, l2, t, trg
     ).
+
+    :param npert:
+        The zero-based number of the perturbation currently running.
 
     :param engine_coolant_temperatures:
         Engine coolant temperature vector [°C].
@@ -2730,7 +2744,7 @@ def co2_emission():
     )
 
     d.add_function(
-        function=calibrate_co2_params,
+        function=(lambda *args, **kwds: calibrate_co2_params(0, *args, **kwds)),
         inputs=['is_cycle_hot', 'engine_coolant_temperatures',
                 'co2_error_function_on_phases',
                 'co2_error_function_on_emissions',
