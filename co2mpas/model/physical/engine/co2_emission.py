@@ -1248,8 +1248,10 @@ def identify_co2_emissions(
     )
     dfl = defaults.dfl.functions.identify_co2_emissions
     calibrate = functools.partial(
-        calibrate_co2_params, is_cycle_hot, engine_coolant_temperatures,
-        co2_error_function_on_phases,
+        calibrate_co2_params,
+        is_cycle_hot=is_cycle_hot,
+        engine_coolant_temperatures=engine_coolant_temperatures,
+        co2_error_function_on_phases=co2_error_function_on_phases,
         _1st_step=dfl.enable_first_step,
         _2nd_step=dfl.enable_second_step,
         _3rd_step=dfl.enable_third_step,
@@ -1261,7 +1263,10 @@ def identify_co2_emissions(
     xatol, n = dfl.xatol, 0
 
     for n in range(dfl.n_perturbations):
-        p, success = calibrate(n, error_function(co2_emissions_model, co2), p)
+        p, success = calibrate(
+            npert=n,
+            co2_error_function_on_emissions=error_function(co2_emissions_model, co2),
+            co2_params_initial_guess=p)
         co2, k1 = rescale(p)
         if np.max(np.abs(k1 - k0)) <= xatol:
             break
@@ -1716,7 +1721,8 @@ def calibrate_co2_params(npert: int,
         p = calibrate(hot_p, p, sub_values=cold)
     else:
         success.append((True, copy.deepcopy(p)))
-        _set_attr(p, ['t0', 't1'], default=0.0, attr='value')
+        ## FIXME: Why destroy solutions?
+        #_set_attr(p, cold_p, default=0.0, attr='value')
         _set_attr(p, cold_p, default=False)
 
     if _3rd_step:
