@@ -1275,22 +1275,6 @@ def identify_co2_emissions(
     return co2, _rescaling_score(times, rescaling_matrix, k0) + (n,), p, success
 
 
-def identify_co2_emissions_v1(co2_emissions):
-    """
-    Identifies instantaneous CO2 emission vector [CO2g/s].
-
-    :param co2_emissions:
-        CO2 instantaneous emissions vector [CO2g/s].
-    :type co2_emissions: numpy.array
-    
-    :return:
-        The instantaneous CO2 emission vector [CO2g/s] and rescaling scores 
-        (i.e., mean, std, and number of perturbations) [-].
-    :rtype: numpy.array, tuple[float]
-    """
-    return co2_emissions, (1.0, 0, 0)
-
-
 def define_co2_error_function_on_emissions(co2_emissions_model, co2_emissions):
     """
     Defines an error function (according to co2 emissions time series) to
@@ -2710,12 +2694,6 @@ def co2_emission():
         outputs=['identified_co2_emissions', 'co2_rescaling_scores',
                  'co2_params_calibrated', 'calibration_status'],
         weight=5
-    )
-
-    d.add_function(
-        function=identify_co2_emissions_v1,
-        inputs=['co2_emissions'],
-        outputs=['identified_co2_emissions', 'co2_rescaling_scores']
     )
 
     d.add_function(
