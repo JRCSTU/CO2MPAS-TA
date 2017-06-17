@@ -1261,7 +1261,7 @@ def identify_co2_emissions(
     xatol, n = dfl.xatol, 0
 
     for n in range(dfl.n_perturbations):
-        p, success = calibrate(error_function(co2_emissions_model, co2), p)
+        p, success = calibrate(n, error_function(co2_emissions_model, co2), p)
         co2, k1 = rescale(p)
         if np.max(np.abs(k1 - k0)) <= xatol:
             break
@@ -1629,6 +1629,8 @@ def _set_attr(params, data, default=False, attr='vary'):
 
     for k, v in data.items():
         p = params[k]
+        ## FIXME: Why read and re-set all attributes instead of a single one??
+        #
         s = {i: getattr(p, i) for i in d}
         s[attr] = v
         p.set(**s)
@@ -1639,7 +1641,7 @@ def _set_attr(params, data, default=False, attr='vary'):
     return params
 
 
-def calibrate_co2_params(
+def calibrate_co2_params(npert: int,
     is_cycle_hot, engine_coolant_temperatures, co2_error_function_on_phases,
     co2_error_function_on_emissions, co2_params_initial_guess,
     _1st_step=defaults.dfl.functions.calibrate_co2_params.enable_first_step,
@@ -1649,6 +1651,10 @@ def calibrate_co2_params(
     """
     Calibrates the CO2 emission model parameters (a2, b2, a, b, c, l, l2, t, trg
     ).
+
+    :param npert:
+        The number of the pertubation currently running.
+    :type engine_coolant_temperatures: numpy.array
 
     :param engine_coolant_temperatures:
         Engine coolant temperature vector [°C].
@@ -1698,13 +1704,13 @@ def calibrate_co2_params(
         return p
 
     cold_p = ['t0', 't1']
-    if _1st_step and hot.any():
+    if (_1st_step is True or npert < _1st_step) and hot.any():
         _set_attr(p, ['t0', 't1'], default=0.0, attr='value')
         p = calibrate(cold_p, p, sub_values=hot)
     else:
         success.append((True, copy.deepcopy(p)))
 
-    if _2nd_step and cold.any():
+    if (_2nd_step is True or npert < _2nd_step) and cold.any():
         _set_attr(p, {'t0': values['t0'], 't1': values['t1']}, attr='value')
         hot_p = ['a2', 'a', 'b', 'c', 'l', 'l2']
         p = calibrate(hot_p, p, sub_values=cold)

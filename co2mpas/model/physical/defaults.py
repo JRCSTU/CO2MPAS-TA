@@ -299,13 +299,15 @@ class Functions(co2_utl.Constants):
         #: Number of perturbations to identify the co2_emissions [-].
         n_perturbations = 100
 
-        #: Enable first step in the co2_params calibration? [-]
-        enable_first_step = False
+        #: Optimze against the HOT part of the cycle? [bool or nperts]
+        #: Setting 1 runs only once, at the begining.
+        enable_first_step = 1
 
-        #: Enable second step in the co2_params calibration? [-]
-        enable_second_step = False
+        #: Optimze against the COLD part of the cycle? [bool or nperts]
+        #: Setting 1 runs only once, at the begining.
+        enable_second_step = 1
 
-        #: Enable third step co2_params calibration in perturbation loop? [-]
+        #: Optimze against full cycle? [bool]
         enable_third_step = True
 
         #: Use error function against co2_emissions in perturbation loop? [-]
