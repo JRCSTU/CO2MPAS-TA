@@ -1261,13 +1261,13 @@ def identify_co2_emissions(
     xatol, n = dfl.xatol, 0
 
     for n in range(dfl.n_perturbations):
-        p = calibrate(error_function(co2_emissions_model, co2), p)[0]
+        p, success = calibrate(error_function(co2_emissions_model, co2), p)
         co2, k1 = rescale(p)
         if np.max(np.abs(k1 - k0)) <= xatol:
             break
         k0 = k1
 
-    return co2, _rescaling_score(times, rescaling_matrix, k0) + (n,)
+    return co2, _rescaling_score(times, rescaling_matrix, k0) + (n,), p, success
 
 
 def identify_co2_emissions_v1(co2_emissions):
@@ -2695,7 +2695,8 @@ def co2_emission():
                 'extended_cumulative_co2_emissions',
                 'co2_error_function_on_phases', 'engine_coolant_temperatures',
                 'is_cycle_hot', 'velocities', 'stop_velocity'],
-        outputs=['identified_co2_emissions', 'co2_rescaling_scores'],
+        outputs=['identified_co2_emissions', 'co2_rescaling_scores',
+                 'co2_params_calibrated', 'calibration_status'],
         weight=5
     )
 
@@ -2718,14 +2719,14 @@ def co2_emission():
         outputs=['co2_error_function_on_phases']
     )
 
-    d.add_function(
-        function=calibrate_co2_params,
-        inputs=['is_cycle_hot', 'engine_coolant_temperatures',
-                'co2_error_function_on_phases',
-                'co2_error_function_on_emissions',
-                'co2_params_initial_guess'],
-        outputs=['co2_params_calibrated', 'calibration_status']
-    )
+#    d.add_function(
+#        function=calibrate_co2_params,
+#        inputs=['is_cycle_hot', 'engine_coolant_temperatures',
+#                'co2_error_function_on_phases',
+#                'co2_error_function_on_emissions',
+#                'co2_params_initial_guess'],
+#        outputs=['co2_params_calibrated', 'calibration_status']
+#    )
 
     d.add_function(
         function=define_co2_params_calibrated,
