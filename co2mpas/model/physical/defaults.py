@@ -284,13 +284,13 @@ class Functions(co2_utl.Constants):
 
     class calibrate_co2_params(co2_utl.Constants):
         #: Enable first step in the co2_params calibration? [-]
-        enable_first_step = True
+        enable_first_step = False
 
         #: Enable second step in the co2_params calibration? [-]
         enable_second_step = True
 
         #: Enable third step in the co2_params calibration? [-]
-        enable_third_step = True
+        enable_third_step = False
 
         #: Use co2 error function against co2_emissions on the third step? [-]
         third_step_against_emissions = True
