@@ -104,6 +104,11 @@ def default_persist_fpath():
 ################################################
 
 
+def get_class_logger(cls):
+    """Mimic log-hierarchies also for traitlet classes."""
+    return logging.getLogger('%s.%s' % (cls.__module__, cls.__name__))
+
+
 class PeristentMixin:
     """
     A *cmd* and *spec* mixin to support storing of *persistent* traits into external file.
@@ -272,9 +277,10 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
     """Common properties for all configurables."""
     ## See module documentation for developer's guidelines.
 
+    ## Override traitlet loggers that are non-hierarchic.
     @trt.default('log')
-    def _log(self):
-        return logging.getLogger(type(self).__name__)
+    def _log_default(self):
+        return get_class_logger(type(self))
 
     # The log level for the application
     log_level = trt.Enum((0, 10, 20, 30, 40, 50, 'DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL'),
@@ -496,6 +502,12 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         name = class2cmd_name(type(self))
         return name
 
+    ## Override traitlet loggers that are non-hierarchic.
+    #  Note that spec's default does not apply due to(?) mro.
+    @trt.default('log')
+    def _log_default(self):
+        return get_class_logger(type(self))
+
     config_paths = trt.List(
         trt.Unicode(),
         None, allow_none=True,
@@ -561,11 +573,6 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                %s --encrypt
         """ % APPNAME
     ).tag(config=True)
-
-    @trt.default('log')
-    def _log(self):
-        ## Use a regular logger.
-        return logging.getLogger(type(self).__name__)
 
     _cfgfiles_registry = CfgFilesRegistry()
 
