@@ -710,10 +710,10 @@ if __name__ == '__main__':
         msg = "Sorry, Python >= 3.5 is required, but found: {}"
         sys.exit(msg.format(sys.version_info))
     try:
-        main()
+        sys.exit(main())
     except CmdException as ex:
         log.info('%r', ex)
-        exit(ex.args[0])
+        sys.exit(ex.args[0])
     except Exception as ex:
         log.error('%r', ex)
         raise

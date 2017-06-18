@@ -16,7 +16,6 @@ from collections import OrderedDict
 import logging
 import os
 import re
-import textwrap
 from typing import Sequence, Text, List, Tuple  # @UnusedImport
 
 import os.path as osp
@@ -170,7 +169,7 @@ def main(argv=None, log_level=None, **app_init_kwds):
 
     try:
         cmd = Co2dice.make_cmd(argv, **app_init_kwds)
-        baseapp.consume_cmd(cmd.start())
+        return baseapp.consume_cmd(cmd.start())
     except (CmdException, trt.TraitError, transitions.MachineError) as ex:
         ## Suppress stack-trace for "expected" errors.
         #
@@ -180,7 +179,7 @@ def main(argv=None, log_level=None, **app_init_kwds):
         #  tyarkoni/transitions#179 & tyarkoni/transitions#180 merged.
         log.debug('App exited due to: %s', ex, exc_info=1)
         log.error(ex.args[0])
-        exit(-1)
+        return -1
     except Exception as ex:
         ## Shell will see any exception x2, but we have to log it anyways,
         #  in case log has been redirected to a file.
@@ -188,8 +187,9 @@ def main(argv=None, log_level=None, **app_init_kwds):
         log.error('Launch failed due to: %s', ex, exc_info=1)
         raise ex
 
-
 if __name__ == '__main__':
+    import sys
+
     argv = None  # Uses sys.argv.
     ## DEBUG AID ARGS, remember to delete them once developed.
     #argv = ''.split()
@@ -222,8 +222,8 @@ if __name__ == '__main__':
     #argv = 'tstamp send'.split()
     #argv = 'tstamp login'.split()
     # Invoked from IDEs, so enable debug-logging.
-    main(argv, log_level=logging.DEBUG)
-    #main()
+    sys.exit(main(argv, log_level=logging.DEBUG))
+    #sys.exit(main())
 
     #from traitlets.config import trtc.get_config
 
@@ -231,4 +231,4 @@ if __name__ == '__main__':
     #c.Application.log_level=0
     #c.Spec.log_level='ERROR'
     #cmd = chain_cmds([Co2dice, ProjectCmd, InitCmd], argv=['project_foo'])
-    # baseapp.consume_cmd(cmd.start())
+    # sys.exit(baseapp.consume_cmd(cmd.start()))

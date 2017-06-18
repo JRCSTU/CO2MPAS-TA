@@ -2351,11 +2351,12 @@ def main(argv=None, log_level=None, **app_init_kwds):
     try:
         ##Co2dice.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!
         cmd = Co2guiCmd.make_cmd(argv, **app_init_kwds)
-        baseapp.consume_cmd(cmd.start())
+        return baseapp.consume_cmd(cmd.start())
     except (baseapp.CmdException, trt.TraitError) as ex:
         ## Suppress stack-trace for "expected" errors.
         log.debug('App exited due to: %s', ex, exc_info=1)
-        exit(ex.args[0])
+        log.error(ex.args[0])
+        return -1
     except Exception as ex:
         ## Shell will see any exception x2, but we have to log it anyways,
         #  in case log has been redirected to a file.
@@ -2370,4 +2371,4 @@ if __name__ == '__main__':
     if sys.version_info < (3, 5):
         sys.exit("Sorry, Python >= 3.5 is required, but found: {}"
                  .format(sys.version_info))
-    main()
+    sys.exit(main())

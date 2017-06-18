@@ -19,7 +19,7 @@ To run a base command, use this code::
 To run nested commands and print its output, use :func:`baseapp.chain_cmds()` like that::
 
     cmd = chain_cmds([MainCmd, Sub1Cmd, Sub2Cmd], argv)  ## `argv` without sub-cmds
-    baseapp.consume_cmd(cmd.start())
+    sys.exit(baseapp.consume_cmd(cmd.start()))
 
 Of course you can mix'n match.
 
@@ -1226,7 +1226,7 @@ def consume_cmd(result):
     :param cmd:
         Whatever is retuened by a :meth:`Cmd.start()`/`Cmd.run()` methods.
     :return:
-        Does not return anything!  Just prints stuff.
+        exit-code (0 is ok)
 
     - Remember to have logging setup properly before invoking this.
     - This the 2nd half of the replacement for :meth:`Application.launch_instance()`.
@@ -1256,5 +1256,8 @@ def consume_cmd(result):
         else:
             emit(result)
 
-    ok = any_none_bool or all_true
-    sys.exit(0 if ok else 1)
+    ## NOTE: Enable this code to update `/logconf.yaml`.
+    #print('\n'.join(sorted(logging.Logger.manager.loggerDict)))
+
+    return any_none_bool or all_true
+
