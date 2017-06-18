@@ -483,7 +483,7 @@ def _cmd_gui(opts):
 
 
 def _main(*args):
-    """Does not ``sys.exit()`` like :func:`main()` but throws any exception."""
+    """Throws any exception or (optionally) return an exit-code."""
 
     opts = docopt.docopt(__doc__, argv=args or sys.argv[1:])
 
@@ -524,14 +524,17 @@ def _main(*args):
 
 
 def main(*args):
+    """Handles some exceptions politely and returns the exit-code."""
+
     if sys.version_info < (3, 5):
         return ("Sorry, Python >= 3.5 is required, but found: %s" %
                 str(sys.version_info))
+
     try:
         _main(*args)
     except CmdException as ex:
         log.error('%r', ex)
-        return -1
+        return ex  # It's string will be printed.
     except Exception as ex:
         log.error('%r', ex)
         raise

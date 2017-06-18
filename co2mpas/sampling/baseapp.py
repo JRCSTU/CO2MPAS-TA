@@ -19,7 +19,7 @@ To run a base command, use this code::
 To run nested commands and print its output, use :func:`baseapp.chain_cmds()` like that::
 
     cmd = chain_cmds([MainCmd, Sub1Cmd, Sub2Cmd], argv)  ## `argv` without sub-cmds
-    sys.exit(baseapp.consume_cmd(cmd.start()))
+    sys.exit(baseapp.consume_cmd(cmd.start()) and 0)
 
 Of course you can mix'n match.
 
@@ -1150,7 +1150,8 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         :param argv:
             Like :meth:`initialize()`, if undefined, replaced with ``sys.argv[1:]``.
 
-        - Tip: Apply :func:`consume_cmd()` on return values to process generators of :meth:`run()`.
+        - Tip: Apply :func:`consume_cmd()` on return values to process 
+          generators of :meth:`run()`.
         - This functions is the 1st half of :meth:`launch_instance()` which
           invokes and discards :meth:`start()` results.
         """
@@ -1226,7 +1227,7 @@ def consume_cmd(result):
     :param cmd:
         Whatever is retuened by a :meth:`Cmd.start()`/`Cmd.run()` methods.
     :return:
-        exit-code (0 is ok)
+        True if all ok, False if any cmd emitted false.
 
     - Remember to have logging setup properly before invoking this.
     - This the 2nd half of the replacement for :meth:`Application.launch_instance()`.

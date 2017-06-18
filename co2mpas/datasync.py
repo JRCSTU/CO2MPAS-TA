@@ -660,12 +660,8 @@ def _cmd_template(opts):
         overwrite_ref(fpath)
 
 
-def main(*args):
-    """Does not ``sys.exit()`` like a when invoked as script, throws exceptions instead."""
-    if sys.version_info < (3, 5):
-        return ("Sorry, Python >= 3.5 is required, but found: %s" %
-                str(sys.version_info))
-
+def _main(*args):
+    """Throws any exception or (optionally) return an exit-code."""
     opts = docopt.docopt(__doc__, argv=args or sys.argv[1:])
 
     verbose = opts['--verbose']
@@ -708,12 +704,21 @@ def main(*args):
             interpolation_methods=parse_overrides(opts['-i'], option_name='-i'))
 
 
-if __name__ == '__main__':
+def main(*args):
+    """Handles some exceptions politely and returns the exit-code."""
+    if sys.version_info < (3, 5):
+        return ("Sorry, Python >= 3.5 is required, but found: %s" %
+                str(sys.version_info))
+
     try:
-        sys.exit(main())
+        return  _main(*args)
     except CmdException as ex:
-        log.info('%r', ex)
-        sys.exit(ex.args[0])
+        log.error('%r', ex)
+        return ex
     except Exception as ex:
         log.error('%r', ex)
         raise
+
+
+if __name__ == '__main__':
+    sys.exit(main())

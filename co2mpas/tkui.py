@@ -2345,6 +2345,7 @@ class Co2guiCmd(baseapp.Cmd):
 
 
 def main(argv=None, log_level=None, **app_init_kwds):
+    """Handles some exceptions politely and returns the exit-code."""
     if sys.version_info < (3, 5):
         return ("Sorry, Python >= 3.5 is required, but found: %s" %
                 str(sys.version_info))
@@ -2355,18 +2356,19 @@ def main(argv=None, log_level=None, **app_init_kwds):
     try:
         ##Co2dice.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!
         cmd = Co2guiCmd.make_cmd(argv, **app_init_kwds)
-        return baseapp.consume_cmd(cmd.start())
+        return baseapp.consume_cmd(cmd.start() and 0)
     except (baseapp.CmdException, trt.TraitError) as ex:
         ## Suppress stack-trace for "expected" errors.
         log.debug('App exited due to: %s', ex, exc_info=1)
-        log.error(ex.args[0])
-        return -1
+        log.error('%r', ex)
+        return ex
     except Exception as ex:
         ## Shell will see any exception x2, but we have to log it anyways,
         #  in case log has been redirected to a file.
         #
         log.error('Launch failed due to: %s', ex, exc_info=1)
         raise ex
+
 
 if __name__ == '__main__':
     if __package__ is None:

@@ -160,6 +160,8 @@ def all_app_configurables() -> Tuple:
 
 def main(argv=None, log_level=None, **app_init_kwds):
     """
+    Handles some exceptions politely and returns the exit-code.
+    
     :param argv:
         If `None`, use :data:`sys.argv`; use ``[]`` to explicitly use no-args.
     """
@@ -174,7 +176,7 @@ def main(argv=None, log_level=None, **app_init_kwds):
 
     try:
         cmd = Co2dice.make_cmd(argv, **app_init_kwds)
-        return baseapp.consume_cmd(cmd.start())
+        return baseapp.consume_cmd(cmd.start()) and 0
     except (CmdException, trt.TraitError, transitions.MachineError) as ex:
         ## Suppress stack-trace for "expected" errors.
         #
@@ -183,8 +185,8 @@ def main(argv=None, log_level=None, **app_init_kwds):
         #  to facilitate debugging from log/ex messages, unless
         #  tyarkoni/transitions#179 & tyarkoni/transitions#180 merged.
         log.debug('App exited due to: %s', ex, exc_info=1)
-        log.error(ex.args[0])
-        return -1
+        log.error('%r', ex)
+        return ex  # It's string will be printed.
     except Exception as ex:
         ## Shell will see any exception x2, but we have to log it anyways,
         #  in case log has been redirected to a file.
@@ -193,7 +195,11 @@ def main(argv=None, log_level=None, **app_init_kwds):
         raise ex
 
 if __name__ == '__main__':
+    if __package__ is None:
+        __package__ = "co2mpas.sampling"  # @ReservedAssignment
+
     argv = None  # Uses sys.argv.
+
     ## DEBUG AID ARGS, remember to delete them once developed.
     #argv = ''.split()
     #argv = '--debug'.split()
@@ -234,4 +240,4 @@ if __name__ == '__main__':
     #c.Application.log_level=0
     #c.Spec.log_level='ERROR'
     #cmd = chain_cmds([Co2dice, ProjectCmd, InitCmd], argv=['project_foo'])
-    # sys.exit(baseapp.consume_cmd(cmd.start()))
+    # sys.exit(baseapp.consume_cmd(cmd.start()) and 0)
