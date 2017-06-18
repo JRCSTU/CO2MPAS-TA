@@ -14,9 +14,9 @@ import sys
 from setuptools import setup, find_packages
 
 
-if sys.version_info < (3, 4):
-    msg = "Sorry, Python >= 3.4 is required, but found: {}"
-    sys.exit(msg.format(sys.version_info))
+if sys.version_info < (3, 5):
+    sys.exit("Sorry, Python >= 3.5 is required, but found: %s" %
+             str(sys.version_info))
 
 
 proj_name = 'co2mpas'
@@ -128,7 +128,7 @@ setup(
     url='https://co2mpas.io/',
     license='EUPL 1.1+',
     author='CO2MPAS-Team',
-    author_email='co2mpas@jrc.ec.europa.eu',
+    author_email='JRC-CO2MPAS@ec.europa.eu',
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
