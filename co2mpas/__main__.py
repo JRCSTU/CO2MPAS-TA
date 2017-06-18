@@ -156,8 +156,9 @@ class CmdException(Exception):
 proj_name = 'co2mpas'
 
 log = logging.getLogger('co2mpas_main')
-logging.getLogger('pandalone.xleash.io').setLevel(logging.WARNING)
-
+#: Load  this file automatically if it exists in HOME and configure logging,
+#: unless overridden with --logconf.
+default_logconf_file = osp.expanduser(osp.join('~', '.co2_logconf.yaml'))
 
 def _set_numpy_logging():
     rlog = logging.getLogger()
@@ -166,9 +167,15 @@ def _set_numpy_logging():
         np.seterr(divide='ignore', invalid='ignore')
 
 
-def init_logging(level=None, frmt=None, logconf_file=None, color=False):
+def init_logging(level=None, frmt=None, logconf_file=None,
+                 color=False, default_logconf_file=default_logconf_file):
+    if logconf_file is None and osp.exists(default_logconf_file):
+        logconf_file = default_logconf_file
+
     if logconf_file:
         from logging import config as lcfg
+        
+        logconf_file = osp.expanduser(logconf_file)
         if osp.splitext(logconf_file)[1] in '.yaml' or '.yml':
             with io.open(logconf_file) as fd:
                 log_dict = yaml.safe_load(fd)
@@ -183,6 +190,8 @@ def init_logging(level=None, frmt=None, logconf_file=None, color=False):
         logging.basicConfig(level=level, format=frmt)
         rlog = logging.getLogger()
         rlog.level = level  # because `basicConfig()` does not reconfig root-logger when re-invoked.
+
+        logging.getLogger('pandalone.xleash.io').setLevel(logging.WARNING)
 
         if color:
             from rainbow_logging_handler import RainbowLoggingHandler
@@ -531,7 +540,7 @@ def main(*args):
                 str(sys.version_info))
 
     try:
-        _main(*args)
+        return _main(*args)
     except CmdException as ex:
         log.error('%r', ex)
         return ex  # It's string will be printed.
