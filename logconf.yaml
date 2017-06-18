@@ -2,7 +2,8 @@ version: 1
 
 root:
     level: DEBUG
-    handlers: [console]
+    #handlers: [console]
+    handlers: [colored]
 
 loggers:
     # co2mpas: {}
@@ -69,16 +70,26 @@ formatters:
         format: \%(asctime)-15s:%(levelname)5.5s:%(name)s:%(message)s
 
 handlers:
-  console:
-    class : logging.StreamHandler
-    formatter: long
-    #level   : INFO
-    #filters: [allow_foo]
-    #stream  : ext://sys.stderr
+    console:
+        class : logging.StreamHandler
+        formatter: long
+        #level   : INFO
+        #filters: [allow_foo]
+        #stream  : ext://sys.stderr
 
-#   file:
-#     class : logging.handlers.RotatingFileHandler
-#     formatter: long
-#     filename: co2mpas.log
-#     maxBytes: 1024
-#     backupCount: 3
+    colored:
+        (): 'rainbow_logging_handler.RainbowLoggingHandler'
+        stream: ext://sys.stderr
+        formatter: long
+        color_message_debug:    [grey, null, false]
+        color_message_info:     [blue, null, false]
+        color_message_warning:  [yellow, null, true]
+        color_message_error:    [red, null, true]
+        color_message_critical: [white, red, true]
+  
+#     file:
+#         class : logging.handlers.RotatingFileHandler
+#         formatter: long
+#         filename: co2mpas.log
+#         maxBytes: 1024
+#         backupCount: 3
