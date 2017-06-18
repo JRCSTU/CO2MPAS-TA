@@ -1724,7 +1724,7 @@ def calibrate_co2_params(npert: int,
     else:
         success.append((True, copy.deepcopy(p)))
         ## FIXME: Why destroy solutions?
-        #_set_attr(p, cold_p, default=0.0, attr='value')
+        _set_attr(p, cold_p, default=0.0, attr='value')
         _set_attr(p, cold_p, default=False)
 
     if _3rd_step:
