@@ -2345,6 +2345,10 @@ class Co2guiCmd(baseapp.Cmd):
 
 
 def main(argv=None, log_level=None, **app_init_kwds):
+    if sys.version_info < (3, 5):
+        return ("Sorry, Python >= 3.5 is required, but found: %s" %
+                str(sys.version_info))
+
     cmain.init_logging(level=log_level)
     log = logging.getLogger(__name__)
 
@@ -2368,7 +2372,4 @@ if __name__ == '__main__':
     if __package__ is None:
         __package__ = "co2mpas"  # @ReservedAssignment
 
-    if sys.version_info < (3, 5):
-        sys.exit("Sorry, Python >= 3.5 is required, but found: {}"
-                 .format(sys.version_info))
     sys.exit(main())

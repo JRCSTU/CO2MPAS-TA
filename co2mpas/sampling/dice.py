@@ -16,6 +16,7 @@ from collections import OrderedDict
 import logging
 import os
 import re
+import sys
 from typing import Sequence, Text, List, Tuple  # @UnusedImport
 
 import os.path as osp
@@ -162,6 +163,10 @@ def main(argv=None, log_level=None, **app_init_kwds):
     :param argv:
         If `None`, use :data:`sys.argv`; use ``[]`` to explicitly use no-args.
     """
+    if sys.version_info < (3, 5):
+        return ("Sorry, Python >= 3.5 is required, but found: %s" %
+                str(sys.version_info))
+
     import transitions
 
     init_logging(level=log_level, color=True)
@@ -188,8 +193,6 @@ def main(argv=None, log_level=None, **app_init_kwds):
         raise ex
 
 if __name__ == '__main__':
-    import sys
-
     argv = None  # Uses sys.argv.
     ## DEBUG AID ARGS, remember to delete them once developed.
     #argv = ''.split()

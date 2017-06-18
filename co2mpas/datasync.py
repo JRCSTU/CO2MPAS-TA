@@ -662,6 +662,9 @@ def _cmd_template(opts):
 
 def main(*args):
     """Does not ``sys.exit()`` like a when invoked as script, throws exceptions instead."""
+    if sys.version_info < (3, 5):
+        return ("Sorry, Python >= 3.5 is required, but found: %s" %
+                str(sys.version_info))
 
     opts = docopt.docopt(__doc__, argv=args or sys.argv[1:])
 
@@ -706,9 +709,6 @@ def main(*args):
 
 
 if __name__ == '__main__':
-    if sys.version_info < (3, 5):
-        msg = "Sorry, Python >= 3.5 is required, but found: {}"
-        sys.exit(msg.format(sys.version_info))
     try:
         sys.exit(main())
     except CmdException as ex:

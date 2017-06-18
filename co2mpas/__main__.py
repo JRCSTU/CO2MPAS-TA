@@ -524,6 +524,9 @@ def _main(*args):
 
 
 def main(*args):
+    if sys.version_info < (3, 5):
+        return ("Sorry, Python >= 3.5 is required, but found: %s" %
+                str(sys.version_info))
     try:
         _main(*args)
     except CmdException as ex:
@@ -535,8 +538,4 @@ def main(*args):
 
 
 if __name__ == '__main__':
-
-    if sys.version_info < (3, 5):
-        sys.exit("Sorry, Python >= 3.5 is required, but found: {}"
-                 .format(sys.version_info))
     sys.exit(main())
