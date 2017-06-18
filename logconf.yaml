@@ -1,10 +1,13 @@
-## Sample file with loggers used by co2mpas, 
+## Sample file with loggers used by co2mpas,
 #  for facilitating configuring their levels.
-#  
-#  You may copy it to _/.co2_logconf.yaml and it will be loaded automatically,
+#
+#  You may copy it to ~/.co2_logconf.yaml and it will be loaded automatically,
 #  or pass it with --logconf
 #
 version: 1
+
+## https://fangpenlin.com/posts/2012/08/26/good-logging-practice-in-python/#capture-exceptions-and-record-them-with-traceback
+disable_existing_loggers: false
 
 root:
     level: INFO
@@ -23,7 +26,7 @@ loggers:
     # co2mpas.model.physical: {}
     # co2mpas.model.physical.cycle: {}
     # co2mpas.model.physical.cycle.WLTP: {}
-    # co2mpas.model.physical.engine.co2_emission: {} 
+    # co2mpas.model.physical.engine.co2_emission: {}
     # co2mpas.model.physical.final_drive: {}
     # co2mpas.model.physical.wheels: {}
     # co2mpas.model.selector: {}
@@ -46,7 +49,7 @@ loggers:
     # socks: {}
     # traitlets: {}
     # transitions: {}
-    
+
     # asyncio: {}
     # bcdocs: {}
     # boto3: {}
@@ -92,7 +95,7 @@ handlers:
         color_message_warning:  [yellow, null, true]
         color_message_error:    [red, null, true]
         color_message_critical: [white, red, true]
-  
+
 #     file:
 #         class : logging.handlers.RotatingFileHandler
 #         formatter: long
