@@ -219,12 +219,15 @@ setup(
     entry_points={
         'console_scripts': [
             '%(p)s = %(p)s.__main__:main' % {'p': proj_name},
-            'datasync = %(p)s.datasync:main' % {'p': proj_name},
-            'co2dice = %(p)s.sampling.dice:main ' % {'p': proj_name},
             '%(p)s-autocompletions = %(p)s.__main__:print_autocompletions' % {'p': proj_name},
-
-            ## No `gui_script` because it flickers a console-window!
-            #  better invoke it with a Windows shortcut "minimized.
+            'datasync = co2mpas.datasync:main',
+            'co2dice = co2mpas.sampling.dice:main ',
+        ],
+        ## Note: launching gui-scripts from start-menu
+        #  still flickers console-window, so
+        #  better invoke them with a Windows shortcut "minimized.
+        #  Check also: https://github.com/pypa/setuptools/issues/410
+        'gui_scripts': [
             'co2gui = co2mpas.tkui:main'
         ],
     },
