@@ -210,17 +210,19 @@ class Functions(co2_utl.Constants):
         #: Rolling resistance coeff, function of tyre class and category [-].
         #: http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:
         #: 02009R1222-20120530&from=EN
+        #: (table A4/1 of eu legislation not world wide)
         coeff = {
             'C1': {
-                'A': 6.5, 'B': 7.7, 'C': 9, 'D': 10.5, 'E': 10.5, 'F': 12,
-                'G': 12 + 1.5
+                'A': 5.9, 'B': 7.1, 'C': 8.4, 'D': 9.8, 'E': 9.8, 'F': 11.3,
+                'G': 12.9
             },
             'C2': {
-                'A': 5.5, 'B': 6.7, 'C': 8, 'D': 9.2, 'E': 9.2, 'F': 10.5,
-                'G': 10.5 + 1.3
+                'A': 4.9, 'B': 6.1, 'C': 7.4, 'D': 8.6, 'E': 8.6, 'F': 9.9,
+                'G': 11.2
             },
             'C3': {
-                'A': 4, 'B': 5, 'C': 6, 'D': 7, 'E': 8, 'F': 8 + 1, 'G': 8 + 1
+                'A': 3.5, 'B': 4.5, 'C': 5.5, 'D': 6.5, 'E': 7.5, 'F': 8.5,
+                'G': 8.5
             }
         }
 
