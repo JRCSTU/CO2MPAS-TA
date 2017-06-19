@@ -1734,8 +1734,9 @@ def calibrate_co2_params(npert: int,
         log.debug('  #pert: %s, optimize: COLD', npert)
     else:
         success.append((True, copy.deepcopy(p)))
-        _set_attr(p, ['t0', 't1'], default=0.0, attr='value')
-        _set_attr(p, cold_p, default=False)
+        if _2nd_step:
+            _set_attr(p, ['t0', 't1'], default=0.0, attr='value')
+            _set_attr(p, cold_p, default=False)
 
     if _3rd_step:
         #p = restrict_bounds(p)
