@@ -175,6 +175,23 @@ def calculate_frontal_area(raw_frontal_area):
     return raw_frontal_area * d.projection_factor
 
 
+def calculate_aerodynamic_drag_coefficient_v1(vehicle_body):
+    """
+    Calculates the aerodynamic drag coefficient [-].
+
+    :param vehicle_body: 
+        Vehicle body (i.e., cabriolet, sedan, hatchback, stationwagon,
+        suv/crossover, mpv, coupé, bus, bestelwagen, pick-up).
+    :type vehicle_body: str
+
+    :return: 
+        Aerodynamic drag coefficient [-].
+    :rtype: float
+    """
+    d = dfl.functions.calculate_aerodynamic_drag_coefficient_v1
+    return d.cw[vehicle_body.lower()]
+
+
 def calculate_aerodynamic_drag_coefficient(vehicle_category):
     """
     Calculates the aerodynamic drag coefficient [-].
@@ -531,6 +548,12 @@ def vehicle():
         function=calculate_frontal_area,
         inputs=['raw_frontal_area'],
         outputs=['frontal_area']
+    )
+
+    d.add_function(
+        function=calculate_aerodynamic_drag_coefficient_v1,
+        inputs=['vehicle_body'],
+        outputs=['aerodynamic_drag_coefficient']
     )
 
     d.add_function(

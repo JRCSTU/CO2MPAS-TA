@@ -546,6 +546,10 @@ def define_data_schema(read=True):
         'fuel_type': _select(types=('gasoline', 'diesel', 'LPG', 'NG',
                                     'ethanol', 'biodiesel'), read=read),
         'vehicle_category': _select(types='ABCDEFSMJ', read=read),
+        'vehicle_body': _select(types=(
+            'cabriolet', 'sedan', 'hatchback', 'stationwagon', 'suv/crossover',
+            'mpv', 'coupé', 'bus', 'bestelwagen','pick-up'
+        ), read=read),
         'tyre_class': _select(types=('C1', 'C2', 'C3'), read=read),
         'tyre_category': _select(types='ABCDEFG', read=read),
         'engine_fuel_lower_heating_value': positive,

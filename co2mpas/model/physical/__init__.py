@@ -231,8 +231,8 @@ def physical():
             'f1', 'f2', 'frontal_area', 'has_roof_box', 'inertial_factor',
             'n_dyno_axes', 'obd_velocities', 'road_loads',
             'rolling_resistance_coeff', 'times', 'tyre_category', 'tyre_class',
-            'vehicle_category', 'vehicle_height', 'vehicle_mass',
-            'vehicle_width', 'velocities'),
+            'vehicle_body', 'vehicle_category', 'vehicle_height',
+            'vehicle_mass', 'vehicle_width', 'velocities'),
         outputs=(
             'accelerations', 'angle_slopes', 'climbing_force', 'f0', 'f1', 'f2',
             'inertial_factor', 'motive_powers', 'n_dyno_axes', 'road_loads',

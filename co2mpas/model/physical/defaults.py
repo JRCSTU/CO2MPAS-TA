@@ -194,6 +194,15 @@ class Functions(co2_utl.Constants):
         #: corner [-].
         b = 0.2
 
+    class calculate_aerodynamic_drag_coefficient_v1(co2_utl.Constants):
+        #: Aerodynamic drag coefficients function of vehicle body [-].
+        cw = {
+            'cabriolet': 0.28, 'sedan': 0.27, 'hatchback': 0.3,
+            'stationwagon': 0.28, 'suv/crossover': 0.35, 'mpv': 0.3,
+            'coupé': 0.27, 'bus': 0.35, 'bestelwagen': 0.35,
+            'pick-up': 0.4  # estimated.
+        }
+
     class calculate_aerodynamic_drag_coefficient(co2_utl.Constants):
         #: Aerodynamic drag coefficients function of vehicle category [-].
         cw = {
