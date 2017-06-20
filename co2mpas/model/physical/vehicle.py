@@ -172,7 +172,7 @@ def calculate_frontal_area(raw_frontal_area):
     :rtype: float
     """
     d = dfl.functions.calculate_frontal_area.projection_factor
-    return raw_frontal_area * d.projection_factor
+    return raw_frontal_area * d
 
 
 def calculate_aerodynamic_drag_coefficient_v1(vehicle_body):
