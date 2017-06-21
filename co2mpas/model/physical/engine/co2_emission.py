@@ -1721,11 +1721,17 @@ def calibrate_co2_params(npert: int,
 
     cold_p = ['t0', 't1']
     if _1st_step and hot.any():
-        _set_attr(p, ['t0', 't1'], default=0.0, attr='value')
+        _set_attr(p, cold_p, default=0.0, attr='value')
         p = calibrate(cold_p, p, sub_values=hot)
         log.debug('  #pert: %s, optimize: HOT', npert)
     else:
         success.append((True, copy.deepcopy(p)))
+
+    if cold.any():
+        _set_attr(p, sh.selector(cold_p, values), attr='value')
+    else:
+        _set_attr(p, cold_p, default=0.0, attr='value')
+        _set_attr(p, cold_p, default=False)
 
     if _2nd_step and cold.any():
         _set_attr(p, {'t0': values['t0'], 't1': values['t1']}, attr='value')
@@ -1734,9 +1740,6 @@ def calibrate_co2_params(npert: int,
         log.debug('  #pert: %s, optimize: COLD', npert)
     else:
         success.append((True, copy.deepcopy(p)))
-        if _2nd_step:
-            _set_attr(p, ['t0', 't1'], default=0.0, attr='value')
-            _set_attr(p, cold_p, default=False)
 
     if _3rd_step:
         #p = restrict_bounds(p)
