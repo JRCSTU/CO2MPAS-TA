@@ -1530,7 +1530,8 @@ def define_initial_co2_emission_model_params_guess(
     EPS = dfl.EPS
     for k, kw in sorted(default.items()):
         kw['name'] = k
-        kw['value'] = params.get(k, kw['value'])
+
+        kw['value'] = params.get(k, kw.get('value', None))
 
         if k in bounds:
             b = bounds[k]
@@ -1540,10 +1541,11 @@ def define_initial_co2_emission_model_params_guess(
         elif 'vary' not in kw:
             kw['vary'] = k not in params
 
-        if 'min' in kw and kw['value'] < kw['min']:
-            kw['min'] = kw['value'] - EPS
-        if 'max' in kw and kw['value'] > kw['max']:
-            kw['max'] = kw['value'] + EPS
+        if kw['value'] is not None:
+            if 'min' in kw and kw['value'] < kw['min']:
+                kw['min'] = kw['value'] - EPS
+            if 'max' in kw and kw['value'] > kw['max']:
+                kw['max'] = kw['value'] + EPS
 
         if 'min' in kw and 'max' in kw and kw['min'] == kw['max']:
             kw['vary'] = False
