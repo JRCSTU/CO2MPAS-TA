@@ -349,6 +349,7 @@ def _summary_map():
         'co2_params l': 'l',
         'co2_params l2': 'l2',
         'co2_params t0': 't0',
+        'co2_params dt': 'dt',
         'co2_params t1': 't1',
         'co2_params trg': 'trg',
         'co2_emission_low': 'low',

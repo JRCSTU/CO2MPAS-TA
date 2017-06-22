@@ -1510,7 +1510,7 @@ def define_initial_co2_emission_model_params_guess(
 
     if is_cycle_hot:
         default['t0'].update({'value': 0.0, 'vary': False})
-        default['t1'].update({'value': 0.0, 'vary': False})
+        default['dt'].update({'value': 0.0, 'vary': False})
 
     p = lmfit.Parameters()
     from ..defaults import dfl
@@ -1696,7 +1696,7 @@ def calibrate_co2_params(
     hot = ~cold
 
     # Definition of thermal and willans parameters.
-    thermal_p = {'t0', 't1', 'trg'}
+    thermal_p = {'t0', 't1', 'dt', 'trg'}
     willans_p = {'a2', 'b2', 'a', 'b', 'c', 'l', 'l2'}
 
     # Identification of all parameters that can vary.
@@ -1733,7 +1733,7 @@ def calibrate_co2_params(
         # Hence, to avoid erroneous results, thermal parameters are fixed to
         # zero because they cannot be identified.
         _set_attr(p, thermal_p, False, 'vary')
-        _set_attr(p, pvary.intersection(('t0', 't1')), 0, 'value')
+        _set_attr(p, pvary.intersection(('t0', 'dt')), 0, 'value')
         pvary -= thermal_p
 
     p = opt(_2nd_step and cold.any() and thermal_p or set(), p, sub_values=cold)
@@ -2296,7 +2296,7 @@ def missing_co2_params(params, *args, _not=False):
     :rtype: bool
     """
 
-    s = {'a', 'b', 'c', 'a2', 'b2', 'l', 'l2', 't0', 't1', 'trg'}
+    s = {'a', 'b', 'c', 'a2', 'b2', 'l', 'l2', 't0', 'dt', 'trg'}
 
     if _not:
         return set(params).issuperset(s)
