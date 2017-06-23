@@ -40,7 +40,8 @@ class ConfigCmd(baseapp.Cmd):
 
     def __init__(self, **kwds):
             super().__init__(
-                subcommands=baseapp.build_sub_cmds(*config_subcmds))
+                subcommands=baseapp.build_sub_cmds(*config_subcmds),
+                **kwds)
 
 
 class WriteCmd(baseapp.Cmd):
