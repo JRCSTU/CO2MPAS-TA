@@ -9,6 +9,6 @@
 ## Pure python libs from Setup + Build + Dev + Test requirements.
 setuptools-git >= 0.3
 wheel
-sphinx >= 1.5.5  # sphinx-1.4.8 certainly could not handle SVGs.
+sphinx == 1.5.5  # sphinx-1.4.8 certainly could not handle SVGs.
 nose
 ddt
