@@ -240,7 +240,7 @@ class DescCmd(baseapp.Cmd):
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] <search-term--1> [<search-term--2> ...]
-        
+
     - Use --verbose to view config-params on all intermediate classes.
     """
 
@@ -253,8 +253,8 @@ class DescCmd(baseapp.Cmd):
             %(cmd_chain)s wait
             %(cmd_chain)s -e 'rec.+wait'
 
-        To view help on full classes:
-            %(cmd_chain)s -ecl 'rec.+wait'
+        To list classes matching a regex:
+            %(cmd_chain)s -ecl 'rec.*cmd'
     """)
 
     list = trt.Bool(
