@@ -9,27 +9,19 @@
 It contains functions to predict the CO2 emissions.
 """
 
-
-
 import copy
 import functools
 import itertools
-import logging
-
 import lmfit
-
-import co2mpas.model.physical.defaults as defaults
-import co2mpas.utils as co2_utl
 import numpy as np
 import numpy.ma as ma
-import schedula as sh
 import scipy.integrate as sci_itg
 import scipy.interpolate as sci_int
 import scipy.stats as sci_sta
 import sklearn.metrics as sk_met
-
-
-log = logging.getLogger(__name__)
+import schedula as sh
+import co2mpas.utils as co2_utl
+import co2mpas.model.physical.defaults as defaults
 
 
 def default_fuel_density(fuel_type):
@@ -1256,10 +1248,8 @@ def identify_co2_emissions(
     )
     dfl = defaults.dfl.functions.identify_co2_emissions
     calibrate = functools.partial(
-        calibrate_co2_params,
-        is_cycle_hot=is_cycle_hot,
-        engine_coolant_temperatures=engine_coolant_temperatures,
-        co2_error_function_on_phases=co2_error_function_on_phases,
+        calibrate_co2_params, is_cycle_hot, engine_coolant_temperatures,
+        co2_error_function_on_phases,
         _1st_step=dfl.enable_first_step,
         _2nd_step=dfl.enable_second_step,
         _3rd_step=dfl.enable_third_step,
@@ -1271,10 +1261,7 @@ def identify_co2_emissions(
     xatol, n = dfl.xatol, 0
 
     for n in range(dfl.n_perturbations):
-        p = calibrate(
-            npert=n,
-            co2_error_function_on_emissions=error_function(co2_emissions_model, co2),
-            co2_params_initial_guess=p)[0]
+        p = calibrate(error_function(co2_emissions_model, co2), p)[0]
         co2, k1 = rescale(p)
         if np.max(np.abs(k1 - k0)) <= xatol:
             break
@@ -1623,7 +1610,7 @@ def _set_attr(params, data, default=False, attr='vary'):
 
     :param data:
         Parameter ids to be set or key/value to set.
-    :type data: list | dict
+    :type data: iterable | dict
 
     :param default:
         Default value to set if a list of parameters ids is provided.
@@ -1654,13 +1641,15 @@ def _set_attr(params, data, default=False, attr='vary'):
     return params
 
 
-def _is_pert_step_enabled(npert, flag):
-    if flag < 0:
-        return npert % -flag == 0
-    return npert < flag
+def _identify_cold_phase(p, is_cycle_hot, engine_coolant_temperatures):
+    cold = np.zeros_like(engine_coolant_temperatures, dtype=bool)
+    if not is_cycle_hot:
+        i = co2_utl.argmax(engine_coolant_temperatures >= p['trg'].value)
+        cold[:i] = True
+    return cold
 
 
-def calibrate_co2_params(npert: int,
+def calibrate_co2_params(
     is_cycle_hot, engine_coolant_temperatures, co2_error_function_on_phases,
     co2_error_function_on_emissions, co2_params_initial_guess,
     _1st_step=defaults.dfl.functions.calibrate_co2_params.enable_first_step,
@@ -1670,9 +1659,6 @@ def calibrate_co2_params(npert: int,
     """
     Calibrates the CO2 emission model parameters (a2, b2, a, b, c, l, l2, t, trg
     ).
-
-    :param npert:
-        The zero-based number of the perturbation currently running.
 
     :param engine_coolant_temperatures:
         Engine coolant temperature vector [°C].
@@ -1702,97 +1688,60 @@ def calibrate_co2_params(npert: int,
     :rtype: (lmfit.Parameters, list)
     """
 
+    # Safety measure to not modify the initial guess.
     p = copy.deepcopy(co2_params_initial_guess)
-    vary = {k: v.vary for k, v in p.items()}
-    values = {k: v._val for k, v in p.items()}
 
-    cold = np.zeros_like(engine_coolant_temperatures, dtype=bool)
-    if not is_cycle_hot:
-        i = co2_utl.argmax(engine_coolant_temperatures >= p['trg'].value)
-        cold[:i] = True
+    # Identify cold and hot phases.
+    cold = _identify_cold_phase(p, is_cycle_hot, engine_coolant_temperatures)
     hot = ~cold
 
-    success = [(True, copy.deepcopy(p))]
+    # Definition of thermal and willans parameters.
+    thermal_p = {'t0', 't1', 'trg'}
+    willans_p = {'a2', 'b2', 'a', 'b', 'c', 'l', 'l2'}
 
-    def calibrate(id_p, p, **kws):
-        _set_attr(p, id_p, default=False)
-        p, s = calibrate_model_params(co2_error_function_on_emissions, p, **kws)
-        _set_attr(p, vary)
-        success.append((s, copy.deepcopy(p)))
+    # Identification of all parameters that can vary.
+    pvary = {k for k, v in p.items() if v.vary}
+
+    # Zero step: Initialization of the statuses.
+    statuses = [(True, copy.deepcopy(p))]
+
+    # Definition of the optimization function.
+    def opt(id_p, p, on_emissions=True, **kws):
+        fixp = pvary - id_p
+        _set_attr(p, fixp, False, 'vary')
+        if pvary - fixp:
+
+            if on_emissions:
+                err = co2_error_function_on_emissions
+            else:
+                err = co2_error_function_on_phases
+
+            p, s = calibrate_model_params(err, p, **kws)
+        else:
+            s = True
+        statuses.append((s, copy.deepcopy(p)))
+        _set_attr(p, pvary, True, 'vary')
         return p
 
-    cold_p = ['t0', 't1']
-    if _1st_step and hot.any():
-        _set_attr(p, cold_p, default=0.0, attr='value')
-        p = calibrate(cold_p, p, sub_values=hot)
-        log.debug('  #pert: %s, optimize: HOT', npert)
-    else:
-        success.append((True, copy.deepcopy(p)))
+    # First step: Calibration of willans parameters using the hot phase.
+    p = opt(_1st_step and hot.any() and willans_p or set(), p, sub_values=hot)
 
-    if cold.any():
-        _set_attr(p, sh.selector(cold_p, values), attr='value')
-    else:
-        _set_attr(p, cold_p, default=0.0, attr='value')
-        _set_attr(p, cold_p, default=False)
+    # Second step: Calibration of thermal parameters using the cold phase.
+    if not cold.any():
+        # When the cycle is hot thermal parameters have no effect.
+        # The third step will modify arbitrarily this parameters.
+        # Hence, to avoid erroneous results, thermal parameters are fixed to
+        # zero because they cannot be identified.
+        _set_attr(p, thermal_p, False, 'vary')
+        _set_attr(p, pvary.intersection(('t0', 't1')), 0, 'value')
+        pvary -= thermal_p
 
-    if _2nd_step and cold.any():
-        _set_attr(p, {'t0': values['t0'], 't1': values['t1']}, attr='value')
-        hot_p = ['a2', 'a', 'b', 'c', 'l', 'l2']
-        p = calibrate(hot_p, p, sub_values=cold)
-        log.debug('  #pert: %s, optimize: COLD', npert)
-    else:
-        success.append((True, copy.deepcopy(p)))
+    p = opt(_2nd_step and cold.any() and thermal_p or set(), p, sub_values=cold)
 
-    if _3rd_step:
-        #p = restrict_bounds(p)
+    # Third step: Calibration of all parameters.
+    p = opt(_3rd_step and pvary or set(), p, on_emissions=_3rd_emissions)
 
-        if _3rd_emissions:
-            err = co2_error_function_on_emissions
-        else:
-            err = co2_error_function_on_phases
-        p, s = calibrate_model_params(err, p)
-        log.debug('  #pert: %s, optimize: FULL', npert)
-
-    else:
-        s = True
-
-    success.append((s, copy.deepcopy(p)))
-    _set_attr(p, vary)
-
-    return p, success
-
-
-def restrict_bounds(co2_params):
-    """
-    Returns restricted bounds of CO2 emission model params (a2, b2, a, b, c, l,
-    l2, t, trg).
-
-    :param co2_params:
-        CO2 emission model params (a2, b2, a, b, c, l, l2, t, trg).
-    :type co2_params: Parameters
-
-    :return:
-        Restricted bounds of CO2 emission model params (a2, b2, a, b, c, l, l2,
-        t, trg).
-    :rtype: dict
-    """
-    p = copy.deepcopy(co2_params)
-    m = defaults.dfl.functions.restrict_bounds.CO2_PARAMS_LIMIT_MULTIPLIERS
-
-    def _limits(k, v):
-        try:
-            v = tuple(np.asarray(m[k]) * v.value)
-            return min(v), max(v)
-        except KeyError:
-            return v.min, v.max
-
-    for k, v in p.items():
-        v.min, v.max = _limits(k, v)
-
-        if lmfit.parameter.isclose(v.min, v.max, atol=1e-13, rtol=1e-13):
-            v.set(value=np.mean((v.max, v.min)), min=None, max=None, vary=False)
-
-    return p
+    return p, statuses
 
 
 def calibrate_model_params(
@@ -2750,7 +2699,7 @@ def co2_emission():
     )
 
     d.add_function(
-        function=(lambda *args, **kwds: calibrate_co2_params(0, *args, **kwds)),
+        function=calibrate_co2_params,
         inputs=['is_cycle_hot', 'engine_coolant_temperatures',
                 'co2_error_function_on_phases',
                 'co2_error_function_on_emissions',
