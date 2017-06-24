@@ -6,6 +6,11 @@ CO2MPAS Changes
 
 v1.6.0.dev4: Dice & model fine-tuning
 ================================================
+The Dice:
+---------
+- refact(config): enhance ``co2dice config desc`` and ``config show`` commands
+  to provide help-text and configured values for specific classes & params
+  (instead of show-all ``--help`` anf ``--help-all`` options).
 
 Model:
 ------
@@ -18,6 +23,7 @@ Model:
 IO & Data:
 ----------
 - :git:`314`: Move most demo-files to AIO archive - 2 files are left.
+
 
 
 v1.5.7.b3, 14 May 2017: Dice networking features for Ispra Workshop
