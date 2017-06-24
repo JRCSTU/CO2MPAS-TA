@@ -1739,7 +1739,7 @@ class ReportCmd(_SubCmd):
       TA authorities & oversight bodies with an email, to receive back
       the sampling decision.
     - To send the report to the stamper, use `tsend` sub-command.
-    - To get report ready for sending it MANUALLY, use `tsend --dry-run` 
+    - To get report ready for sending it MANUALLY, use `tsend --dry-run`
       instead.
 
     """
@@ -1935,7 +1935,7 @@ class TrecvCmd(TparseCmd):
         ## Note here cannot update kwds-defaults,
         #  or would cancel baseclass's choices.
         self.conf_classes.extend([
-            tstamp.TstampSender, tstamp.TstampReceiver, 
+            tstamp.TstampSender, tstamp.TstampReceiver,
             crypto.GitAuthSpec, crypto.StamperAuthSpec])
         self.cmd_aliases.update({
             'before': 'TstampReceiver.before_date',
@@ -1978,7 +1978,7 @@ class TrecvCmd(TparseCmd):
             if pname is None:
                 ## Must have already warn
                 continue
-            
+
             try:
                 proj = self.proj_open(pname)
             except CmdException:
@@ -2168,7 +2168,7 @@ class BackupCmd(_SubCmd):
             raise CmdException('Cmd %r takes one optional filepath, received %d: %r!'
                                % (self.name, len(args), args))
         self.log.info('Archiving repo into %r...', args)
-        
+
         archive_fpath = args and args[0] or None
         kwds = {}
         if archive_fpath:
