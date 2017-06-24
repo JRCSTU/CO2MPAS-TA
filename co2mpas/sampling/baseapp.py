@@ -311,7 +311,8 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
         `project init/open/append/tstamp`
             Print committed-msg instead of try/false/proj-name (WARN: passwords revealed, see above!).
         `config show` and `config desc`
-            Print also class-parameters when --class, including those from intermediate classes.
+            Print class-parameters from the whole hierarchy, including those
+            from intermediate classes.
           """).tag(config=True)
 
     ## TODO: Retrofit to force-flags (with code for each specific permission).

@@ -200,30 +200,81 @@ class ShowCmd(baseapp.Cmd):
     Print configurations (defaults | files | merged) before any validations.
 
     SYNTAX
-        %(cmd_chain)s [OPTIONS] [--source=(merged | default)] [<class-1> ...]
+        %(cmd_chain)s [OPTIONS] [--source=(merged | default)] [<search-term-1> ...]
         %(cmd_chain)s [OPTIONS] --source file
 
-    - Use --verbose to view config-params on all intermediate classes.
-    - Similarly, you may also add `--show-config` global option
-      on any command to view more targeted results.
-    - Might not print accurately the defaults/merged for all(!) traits.
+    - Search-terms are matched case-insensitively against '<class>.<param>'.
+    - Use --verbose to view values for config-params as they apply in the
+      whole hierarchy (not
+    - Defaults/merged might not be always accurate!
+      TIP: you may also add `--show-config` global option on any command
+      to view configured values accurately on runtime.
+    - Results are sorted in "application order" (later configurations override
+      previous ones); use --sort for alphabetical order.
     """
+
+    examples = trt.Unicode("""
+        View all "merged" configuration values:
+            %(cmd_chain)s
+
+        View all "default" or "in file" configuration values, respectively:
+            %(cmd_chain)s --source defaults
+            %(cmd_chain)s --s f
+
+        View help on specific parameters:
+            %(cmd_chain)s tstamp
+            %(cmd_chain)s -e 'rec.+wait'
+
+        List classes matching a regex:
+            %(cmd_chain)s -ecl 'rec.*cmd'
+    """)
 
     source = trt.FuzzyEnum(
         'defaults files merged'.split(), default_value='merged', allow_none=False,
         help="""Show configuration parameters in code, stored on disk files, or merged."""
     ).tag(config=True)
 
-    def __init__(self, **kwds):
-            import pandalone.utils as pndlu
+    list = trt.Bool(
+        help="Just list any matches."
+    ).tag(config=True)
 
-            kwds.setdefault('cmd_aliases', {
-                ('s', 'source'): ('ShowCmd.source',
-                                  pndlu.first_line(ShowCmd.source.help))
-            })
-            kwds.setdefault('encrypt', True)  # Encrypted ALL freshly edited pconfigs.
-            kwds.setdefault('raise_config_file_errors', False)
-            super().__init__(**kwds)
+    regex = trt.Bool(
+        help="Search terms as regular-expressions."
+    ).tag(config=True)
+
+    sort = trt.Bool(
+        help="""
+        Sort classes alphabetically; by default, classes listed in "application order",
+        that is, later configurations override previous ones.
+        """
+    ).tag(config=True)
+
+    def __init__(self, **kwds):
+        import pandalone.utils as pndlu
+
+        kwds.setdefault('cmd_aliases', {
+            ('s', 'source'): ('ShowCmd.source',
+                              pndlu.first_line(ShowCmd.source.help))
+        })
+        kwds.setdefault(
+            'cmd_flags', {
+                ('l', 'list'): (
+                    {type(self).__name__: {'list': True}},
+                    pndlu.first_line(type(self).list.help)
+                ),
+                ('e', 'regex'): (
+                    {type(self).__name__: {'regex': True}},
+                    pndlu.first_line(type(self).regex.help)
+                ),
+                ('t', 'sort'): (
+                    {type(self).__name__: {'sort': True}},
+                    pndlu.first_line(type(self).sort.help)
+                ),
+            }
+        )
+        kwds.setdefault('encrypt', True)  # Encrypted ALL freshly edited pconfigs.
+        kwds.setdefault('raise_config_file_errors', False)
+        super().__init__(**kwds)
 
     def initialize(self, argv=None):
         ## Copied from `Cmd.initialize()`.
@@ -249,53 +300,43 @@ class ShowCmd(baseapp.Cmd):
             except:
                 yield '  +--%s' % v
 
-    def _yield_configs_and_defaults(self, config, class_names, merged: bool):
-        from boltons.setutils import IndexedSet as iset
+    def _yield_configs_and_defaults(self, config, search_terms, merged: bool):
+        get_classes = (self._classes_inc_parents
+                       if self.verbose else
+                       self._classes_with_config_traits)
+        all_classes = list(get_classes(self.all_app_configurables()))
 
-        ## Prefer to modify `class_names` after `initialize()`, or else,
-        #  the cmd options would be irrelevant and fatty :-)
-        self.classes = self.all_app_configurables()
+        ## Merging needs to visit all hierarchy.
+        own_traits = not (self.verbose or merged)
+        search_map = prepare_search_map(all_classes, own_traits)
+        if search_terms:
+            matcher = prepare_matcher(search_terms, self.regex)
+            search_map = dtz.keyfilter(matcher, search_map)
+        items = search_map.items()
+        if self.sort:
+            items = sorted(items)  # Sort by class-name (traits always sorted).
 
-        ## Merging works only if all class_names visited.
-        show_own_traits_only = not (self.verbose or merged)
-
-        classes = list(self._classes_with_config_traits())
-        if class_names:
-            ## Preserve order and report misses.
-            #
-            class_names = iset(class_names)
-            all_classes = {cls.__name__: cls
-                           for cls
-                           in classes}
-            all_cls_names = all_classes.keys()
-            unknown_names = class_names - all_cls_names
-            matched_names = class_names & all_cls_names
-            classes = [all_classes[cname] for cname in matched_names]
-            if unknown_names:
-                self.log.warning('Unknown classes given: %s', ', '.join(unknown_names))
-
-        for cls in classes:
-            clsname = cls.__name__
-            if class_names and clsname not in class_names:
+        for key, (cls, trait) in items:
+            if self.list:
+                yield key
+                continue
+            if not trait:
+                ## Not --verbose and class not owning traits.
                 continue
 
+            clsname, trtname = key.split('.')
             cls_printed = False
 
-            cls_traits = (cls.class_own_traits(config=True)
-                          if show_own_traits_only else
-                          cls.class_traits(config=True))
-            for name, trait in sorted(cls_traits.items()):
-                key = '%s.%s' % (clsname, name)
-                if merged and key in config:
-                    val = config[clsname][name]
-                else:
-                    val = repr(trait.default())
+            if merged and key in config:
+                val = config[clsname][trtname]
+            else:
+                val = repr(trait.default())
 
-                if not cls_printed:
-                    base_classes = ', '.join(p.__name__ for p in cls.__bases__)
-                    yield '%s(%s)' % (clsname, base_classes)
-                    cls_printed = True
-                yield '  +--%s = %s' % (name, val)
+            if not cls_printed:
+                base_classes = ', '.join(p.__name__ for p in cls.__bases__)
+                yield '%s(%s)' % (clsname, base_classes)
+                cls_printed = True
+            yield '  +--%s = %s' % (trtname, val)
 
     def run(self, *args):
         source = self.source.lower()
