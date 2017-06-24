@@ -247,8 +247,9 @@ class DescCmd(baseapp.Cmd):
     examples = trt.Unicode("""
         To list just what matched:
             %(cmd_chain)s --list 'criteria'
-            %(cmd_chain)s -l --cls 'config'
+            %(cmd_chain)s -l --class 'config'
             %(cmd_chain)s -l --regex  '^t.+cmd'
+
         To view help on specific parameters:
             %(cmd_chain)s wait
             %(cmd_chain)s -e 'rec.+wait'
@@ -261,7 +262,7 @@ class DescCmd(baseapp.Cmd):
         help="Just list any matches."
     ).tag(config=True)
 
-    cls = trt.Bool(
+    clazz = trt.Bool(
         help="Search terms in class-names; "
         "with --verbose it prints class's config params."
     ).tag(config=True)
@@ -283,9 +284,9 @@ class DescCmd(baseapp.Cmd):
                     {type(self).__name__: {'regex': True}},
                     pndlu.first_line(type(self).regex.help)
                 ),
-                ('c', 'cls'): (
-                    {type(self).__name__: {'cls': True}},
-                    pndlu.first_line(type(self).cls.help)
+                ('c', 'class'): (
+                    {type(self).__name__: {'clazz': True}},
+                    pndlu.first_line(type(self).clazz.help)
                 ),
             }
         )
@@ -303,7 +304,7 @@ class DescCmd(baseapp.Cmd):
         self.classes = self.all_app_configurables()
         all_classes = list(self._classes_with_config_traits())
 
-        if self.cls:
+        if self.clazz:
             search_map = {cls.__name__: cls
                           for cls in all_classes}
 

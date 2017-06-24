@@ -310,8 +310,8 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
             Print SMTP/IMAP connection messages exchanged (WARN: passwords revealed!).
         `project init/open/append/tstamp`
             Print committed-msg instead of try/false/proj-name (WARN: passwords revealed, see above!).
-        `config show`
-            Print parameters for all intermediate classes.
+        `config show` and `config desc`
+            Print also class-parameters when --class, including those from intermediate classes.
           """).tag(config=True)
 
     ## TODO: Retrofit to force-flags (with code for each specific permission).
@@ -1152,7 +1152,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         :param argv:
             Like :meth:`initialize()`, if undefined, replaced with ``sys.argv[1:]``.
 
-        - Tip: Apply :func:`consume_cmd()` on return values to process 
+        - Tip: Apply :func:`consume_cmd()` on return values to process
           generators of :meth:`run()`.
         - This functions is the 1st half of :meth:`launch_instance()` which
           invokes and discards :meth:`start()` results.
