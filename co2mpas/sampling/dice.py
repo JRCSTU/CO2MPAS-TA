@@ -57,14 +57,6 @@ def app_config_dir():
 
     return osp.abspath(osp.join(home_dir, '.co2dice'))
 
-_list_response_regex = re.compile(r'\((?P<flags>.*?)\) "(?P<delimiter>.*)" (?P<name>.*)')
-
-
-def _parse_list_response(line):
-    flags, delimiter, mailbox_name = _list_response_regex.match(line).groups()
-    mailbox_name = mailbox_name.strip('"')
-    return (flags, delimiter, mailbox_name)
-
 
 class DiceSpec(baseapp.Spec):
     """Common parameters dice functionality."""
