@@ -4,8 +4,10 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
-v1.6.0.dev4: Dice networking & model fine-tuning
-================================================
+v1.5.7.b3, 14 May 2017: Dice networking features for Ispra Workshop
+========================================================================
+Pre-released just a new `co2mpas` python package - not a new *AIO*.
+
 The Dice:
 ---------
 - fix(crypto, :git:`382`): GPG-signing failed with non ASCII encodings, so had to
@@ -14,7 +16,7 @@ The Dice:
   with ``-fd`` options).
 - fix(report, :git:`370`): was always accepting dice-reports, even if TA-flags were
   "engineering".
-  
+
 - refact(tstamp): rename configuration params (old names issue deprecation warnings)::
 
     x_recipients           --> tstamp_recipients
@@ -22,22 +24,22 @@ The Dice:
     TstampReceiver.subject --> TstampSpec.subject_prefix  ## Also used by `recv` cmd.
 
 - feat: renamed command: ``project tstamp -- > project tsend``.
-  Now there is symmetricity between ``co2dice tstamp`` and ``co2dice project`` 
+  Now there is symmetricity between ``co2dice tstamp`` and ``co2dice project``
   cmds::
-   
+
     tstamp send <--> project tsend
     tstamp recv <--> project recv
-    
+
 - feat: new commands:
 
-  - ``tstamp recv``: Fetch tstamps from IMAP server and derive *decisions* 
+  - ``tstamp recv``: Fetch tstamps from IMAP server and derive *decisions*
     OK/SAMPLE flags.
   - ``tstamp mailbox``: Lists mailboxes in IMAP server.
-  - ``project trecv``: Fetch tstamps from IMAP server, derive *decisions* 
+  - ``project trecv``: Fetch tstamps from IMAP server, derive *decisions*
     OK/SAMPLE flags and store them (or compare with existing).
-  - ``config desc``: Describe config-params searched by ``'<class>.<param>'`` 
-    (case-insensitive).    
-    
+  - ``config desc``: Describe config-params searched by ``'<class>.<param>'``
+    (case-insensitive).
+
 - feat(tstamp, :git:`368`): Support *STARTTLS*, enhance ``DiceSpec.ssl`` config param::
 
       Bool/enumeration for what encryption to use when connecting to SMTP/IMAP servers:
@@ -64,7 +66,7 @@ The Dice:
 - feat(tstamp): ``tstamp login`` can check *SMTP*/*IMAP* server connection selectively.
 
 Projects:
----------
+~~~~~~~~~
 - fix(:git:`371`): `export` cmd produces an archive with local branches without all
   dice-report tags.
 - deprecate ``--reset-git-settings``, now resetting by default (inverted
@@ -79,22 +81,6 @@ Projects:
   ciphered config traits.
 - chore(dep): vendorize  *traitlets* lib.
   add *PySocks* private dep.
-
-Model:
-------
-- datasync:fix edges
-- Rls: add extra formulas
-- clutch: remove the peaks
-- sphinx: failing due to SVGs
-- fuel: fix tau func
-
-IO & Data:
-----------
-- :git:`314`: Move most demo-files to AIO archive - 2 files are left.
-
-Docs:
------
-- Add "Requirements" in installation section.
 
 
 
