@@ -37,6 +37,9 @@ class TcfgcmdShell(unittest.TestCase):
         ret = sbp.check_call('co2dice config desc', env=os.environ)
         self.assertEqual(ret, 0)
 
-        ret = sbp.check_call('co2dice config desc TstampReceiver', env=os.environ)
+    @ddt.data('', 'TstampReceiver', 'recv', '-l rec', '-e rec', '-le rec'
+              '-ecl rec', '-cl rec')
+    def test_desc_smoketest(self, case):
+        cmd = ('co2dice config desc ' + case).strip()
+        ret = sbp.check_call(cmd, env=os.environ)
         self.assertEqual(ret, 0)
-

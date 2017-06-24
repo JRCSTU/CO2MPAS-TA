@@ -8,10 +8,11 @@
 """Dice traitlets sub-commands for manipulating configurations"""
 
 from . import baseapp, CmdException
-from typing import Sequence, Text, List, Tuple    # @UnusedImport
-
-import os.path as osp
 from .._vendor import traitlets as trt
+from collections import OrderedDict
+from toolz import dicttoolz as dtz
+from typing import Sequence, Text, List, Tuple    # @UnusedImport
+import os.path as osp
 
 
 def prepare_matcher(terms, is_regex):
@@ -31,24 +32,46 @@ def prepare_matcher(terms, is_regex):
     return match
 
 
-def prepare_search_map(all_classes, search_in_classnames, verbose):
-    if search_in_classnames:
-        search_map = {cls.__name__: cls
-                      for cls in all_classes}
+def prepare_search_map(all_classes, own_traits):
+    """
+    :param own_traits:
+        bool or None (no traits)
+    :return:
+        ``{'ClassName.trait_name': (class, trait)`` When `own_traits` not None,
+        ``{clsname: class}``) otherwise.
+        Note: 1st case might contain None as trait!
+    """
+    if own_traits is None:
+        return OrderedDict([
+            (cls.__name__, cls)
+            for cls in all_classes])
+
+    if own_traits:
+        class_traits = lambda cls: cls.class_own_traits(config=True)
     else:
-        search_map = {
-            '%s.%s' % (cls.__name__, attr): (cls, trait)
-            for cls in all_classes
-            for attr, trait in
-            (cls.class_traits
-             if verbose
-             else cls.class_own_traits)(config=True).items()}
+        class_traits = lambda cls: cls.class_traits(config=True)
 
-    return search_map
+    ## Not using comprehension
+    #  to work for classes with no traits.
+    #
+    smap = []
+    for cls in all_classes:
+        clsname = cls.__name__
+        traits = class_traits(cls)
+        if not traits:
+            smap.append((clsname, (cls, None)))
+            continue
+
+        for attr, trait in sorted(traits.items()):
+            smap.append(('%s.%s' % (clsname, attr), (cls, trait)))
+
+    return OrderedDict(smap)
 
 
-def prepare_help_selector(classes_in_values, verbose):
-    if classes_in_values:
+def prepare_help_selector(only_class_in_values, verbose):
+    from .._vendor.traitlets import config as trtc
+
+    if only_class_in_values:
         if verbose:
             def selector(ne, cls):
                 return cls.class_get_help()
@@ -68,24 +91,29 @@ def prepare_help_selector(classes_in_values, verbose):
                     help_lines.extend(wrap_paragraphs(cls_desc))
                 help_lines.append('')
 
+                try:
+                    txt = cls.examples.default_value.strip()
+                    if txt:
+                        help_lines.append("Examples")
+                        help_lines.append("--------")
+                        help_lines.append(trtc.indent(trtc.dedent(txt)))
+                        help_lines.append('')
+                except AttributeError:
+                    pass
+
                 return '\n'.join(help_lines)
 
     else:
         def selector(name, v):
             cls, attr = v
-            return cls.class_get_trait_help(attr)
+            if not attr:
+                #
+                ## Not verbose and class not owning any trait.
+                return "--%s" % name
+            else:
+                return cls.class_get_trait_help(attr)
 
     return selector
-
-
-def prepare_values_selector(search_in_classnames, verbose):
-    if search_in_classnames:
-        if verbose:
-            def selector(ne, cls):
-                return cls.class_get_help()
-        else:
-            def selector(ne, clazz):
-                from ipython_genutils.text import wrap_paragraphs
 
 
 class ConfigCmd(baseapp.Cmd):
@@ -293,27 +321,44 @@ class ShowCmd(baseapp.Cmd):
 
 class DescCmd(baseapp.Cmd):
     """
-    Print help for config-params where search-terms match in '<class>.<param>' (case-insensitive).
+    List and print help for configurable classes and parameters.
 
     SYNTAX
-        %(cmd_chain)s [OPTIONS] <search-term--1> [<search-term--2> ...]
+        %(cmd_chain)s [-l] [-c] [-t] [-v] [<search-term> ...]
 
-    - Use --verbose to view config-params as they apply in the whole hierarchy,
-      or when --clazz, to view help for all class-parameters.
+    - If no search-terms provided, returns all.
+    - Search-terms are matched case-insensitively against '<class>.<param>',
+      or against '<class>' if --class.
+    - Use --verbose (-v) to view config-params from the whole hierarchy, that is,
+      including those from intermediate classes.
+    - Use --class (-c) to view just the help-text of classes.
+    - Results are sorted in "application order" (later configurations override
+      previous ones); use --sort for alphabetical order.
     """
 
     examples = trt.Unicode("""
-        To list just what matched:
-            %(cmd_chain)s --list 'criteria'
-            %(cmd_chain)s -l --class 'config'
-            %(cmd_chain)s -l --regex  '^t.+cmd'
+    LIST:
+        %(cmd_chain)s --list         # List configurable parameters.
+        %(cmd_chain)s -l --class     # List configurable classes.
+        %(cmd_chain)s -l --verbose   # List config params in all hierarchy.
 
-        To view help on specific parameters:
-            %(cmd_chain)s wait
-            %(cmd_chain)s -e 'rec.+wait'
+     Exploit the fact that <class>.<param> are separated with a dot('.):
+        %(cmd_chain)s -l Cmd.        # List commands and their own params.
+        %(cmd_chain)s -lv Cmd.       # List commands including inherited params.
+        %(cmd_chain)s -l ceiver.     # List params of TStampReceiver spec class.
+        %(cmd_chain)s -l .user       # List parameters starting with 'user' prefix.
 
-        To list classes matching a regex:
-            %(cmd_chain)s -ecl 'rec.*cmd'
+     Use regular expressions (--regex):
+        %(cmd_chain)s -le  ^t.+cmd   # List params for cmds starting with 't'.
+        %(cmd_chain)s -le  date$     # List params ending with 'date'.
+        %(cmd_chain)s -le  mail.*\.  # Search 'mail' anywhere in class-names.
+        %(cmd_chain)s -le  \..*mail  # Search 'mail' anywhere in param-names.
+
+    HELP:
+    Do all of the above and remove -l.
+    For instance:
+        %(cmd_chain)s -c DescCmd    # View help for this cmd without its parameters.
+        %(cmd_chain)s -t Spec.      # View help sorted alphabetically
     """)
 
     list = trt.Bool(
@@ -321,12 +366,25 @@ class DescCmd(baseapp.Cmd):
     ).tag(config=True)
 
     clazz = trt.Bool(
-        help="Print class-help only (unless --verbose given); "
-        "matching happens also on class-names."
+        help="Print class-help only; matching happens also on class-names."
     ).tag(config=True)
 
     regex = trt.Bool(
-        help="Search terms as regular-expressions."
+        help="""
+        Search terms as regular-expressions.
+
+        Example:
+             %(cmd_chain)s -e ^DescCmd.regex
+
+        will print the help-text of this parameter (--regex, -e).
+        """
+    ).tag(config=True)
+
+    sort = trt.Bool(
+        help="""
+        Sort classes alphabetically; by default, classes listed in "application order",
+        that is, later configurations override previous ones.
+        """
     ).tag(config=True)
 
     def __init__(self, **kwds):
@@ -346,29 +404,33 @@ class DescCmd(baseapp.Cmd):
                     {type(self).__name__: {'clazz': True}},
                     pndlu.first_line(type(self).clazz.help)
                 ),
+                ('t', 'sort'): (
+                    {type(self).__name__: {'sort': True}},
+                    pndlu.first_line(type(self).sort.help)
+                ),
             }
         )
         super().__init__(**kwds)
 
     def run(self, *args):
-        from toolz import dicttoolz as dtz
-
-        if len(args) == 0:
-            raise CmdException('Cmd %r takes at least one <search-term>!'
-                               % self.name)
-
         ## Prefer to modify `class_names` after `initialize()`, or else,
         #  the cmd options would be irrelevant and fatty :-)
-        self.classes = self.all_app_configurables()
-        all_classes = list(self._classes_with_config_traits())
+        get_classes = (self._classes_inc_parents
+                       if self.clazz or self.verbose else
+                       self._classes_with_config_traits)
+        all_classes = list(get_classes(self.all_app_configurables()))
+        own_traits = None if self.clazz else not self.verbose
 
-        search_map = prepare_search_map(all_classes, self.clazz, self.verbose)
-        matcher = prepare_matcher(args, self.regex)
+        search_map = prepare_search_map(all_classes, own_traits)
+        if args:
+            matcher = prepare_matcher(args, self.regex)
+            search_map = dtz.keyfilter(matcher, search_map)
+        items = search_map.items()
+        if self.sort:
+            items = sorted(items)  # Sort by class-name (traits always sorted).
+
         selector = prepare_help_selector(self.clazz, self.verbose)
-
-        res_map = dtz.keyfilter(matcher, search_map)
-
-        for name, v in sorted(res_map.items()):
+        for name, v in items:
             if self.list:
                 yield name
             else:
