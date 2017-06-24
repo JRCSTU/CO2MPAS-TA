@@ -31,6 +31,63 @@ def prepare_matcher(terms, is_regex):
     return match
 
 
+def prepare_search_map(all_classes, search_in_classnames, verbose):
+    if search_in_classnames:
+        search_map = {cls.__name__: cls
+                      for cls in all_classes}
+    else:
+        search_map = {
+            '%s.%s' % (cls.__name__, attr): (cls, trait)
+            for cls in all_classes
+            for attr, trait in
+            (cls.class_traits
+             if verbose
+             else cls.class_own_traits)(config=True).items()}
+
+    return search_map
+
+
+def prepare_help_selector(classes_in_values, verbose):
+    if classes_in_values:
+        if verbose:
+            def selector(ne, cls):
+                return cls.class_get_help()
+        else:
+            def selector(ne, cls):
+                from ipython_genutils.text import wrap_paragraphs
+
+                help_lines = []
+                base_classes = ', '.join(p.__name__ for p in cls.__bases__)
+                help_lines.append(u'%s(%s)' % (cls.__name__, base_classes))
+                help_lines.append(len(help_lines[0]) * u'-')
+
+                cls_desc = getattr(cls, 'description', None)
+                if not isinstance(cls_desc, str):
+                    cls_desc = cls.__doc__
+                if cls_desc:
+                    help_lines.extend(wrap_paragraphs(cls_desc))
+                help_lines.append('')
+
+                return '\n'.join(help_lines)
+
+    else:
+        def selector(name, v):
+            cls, attr = v
+            return cls.class_get_trait_help(attr)
+
+    return selector
+
+
+def prepare_values_selector(search_in_classnames, verbose):
+    if search_in_classnames:
+        if verbose:
+            def selector(ne, cls):
+                return cls.class_get_help()
+        else:
+            def selector(ne, clazz):
+                from ipython_genutils.text import wrap_paragraphs
+
+
 class ConfigCmd(baseapp.Cmd):
     """
     Commands to manage configuration-options loaded from filesystem, cmd-line or defaults.
@@ -236,12 +293,13 @@ class ShowCmd(baseapp.Cmd):
 
 class DescCmd(baseapp.Cmd):
     """
-    Describe config-params with '<class>.<param>' matching search sub-strings (case-insensitive).
+    Print help for config-params where search-terms match in '<class>.<param>' (case-insensitive).
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] <search-term--1> [<search-term--2> ...]
 
-    - Use --verbose to view config-params from all base-classes.
+    - Use --verbose to view config-params as they apply in the whole hierarchy,
+      or when --clazz, to view help for all class-parameters.
     """
 
     examples = trt.Unicode("""
@@ -263,12 +321,12 @@ class DescCmd(baseapp.Cmd):
     ).tag(config=True)
 
     clazz = trt.Bool(
-        help="Search terms in class-names; "
-        "with --verbose it prints class's config params."
+        help="Print class-help only (unless --verbose given); "
+        "matching happens also on class-names."
     ).tag(config=True)
 
     regex = trt.Bool(
-        help="Search terms as regex."
+        help="Search terms as regular-expressions."
     ).tag(config=True)
 
     def __init__(self, **kwds):
@@ -304,52 +362,17 @@ class DescCmd(baseapp.Cmd):
         self.classes = self.all_app_configurables()
         all_classes = list(self._classes_with_config_traits())
 
-        if self.clazz:
-            search_map = {cls.__name__: cls
-                          for cls in all_classes}
+        search_map = prepare_search_map(all_classes, self.clazz, self.verbose)
+        matcher = prepare_matcher(args, self.regex)
+        selector = prepare_help_selector(self.clazz, self.verbose)
 
-            if self.verbose:
-                def printer(ne, cls):
-                    return cls.class_get_help()
-            else:
-                def printer(ne, clazz):
-                    from ipython_genutils.text import wrap_paragraphs
-
-                    help_lines = []
-                    base_classes = ', '.join(p.__name__ for p in clazz.__bases__)
-                    help_lines.append(u'%s(%s)' % (clazz.__name__, base_classes))
-                    help_lines.append(len(help_lines[0]) * u'-')
-
-                    cls_desc = getattr(clazz, 'description', None)
-                    if not isinstance(cls_desc, str):
-                        cls_desc = clazz.__doc__
-                    if cls_desc:
-                        help_lines.extend(wrap_paragraphs(cls_desc))
-                    help_lines.append('')
-
-                    return '\n'.join(help_lines)
-
-        else:
-            search_map = {
-                '%s.%s' % (cls.__name__, attr): (cls, trait)
-                for cls in all_classes
-                for attr, trait in
-                (cls.class_traits
-                 if self.verbose
-                 else cls.class_own_traits)(config=True).items()}
-
-            def printer(name, v):
-                cls, attr = v
-                return cls.class_get_trait_help(attr)
-
-        match = prepare_matcher(args, self.regex)
-        res_map = dtz.keyfilter(match, search_map)
+        res_map = dtz.keyfilter(matcher, search_map)
 
         for name, v in sorted(res_map.items()):
             if self.list:
                 yield name
             else:
-                yield printer(name, v)
+                yield selector(name, v)
 
 
 config_subcmds = (
