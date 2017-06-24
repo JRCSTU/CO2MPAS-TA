@@ -140,20 +140,29 @@ def all_cmds():
 #
 def all_app_configurables() -> Tuple:
     from co2mpas.sampling import crypto, project, report, tstamp
-    return all_cmds() + (
+    all_config_classes = all_cmds() + (
         baseapp.Spec, project.ProjectsDB,  # TODO: specs maybe missing from all-config-classes.
         crypto.VaultSpec, crypto.GitAuthSpec, crypto.StamperAuthSpec,
         report.Report,
         tstamp.TstampSender,
         tstamp.TstampReceiver,
     )
+
+    # ## TODO: Enable when `project TstampCmd` dropped, and `report` renamed.
+    # #
+    # all_names = [cls.__name__ for cls in all_config_classes]
+    # assert len(set(all_names)) == len(all_names), (
+    #     "Duplicate configurable names!", sorted(all_names))
+
+    return all_config_classes
+
 ####################################
 
 
 def main(argv=None, log_level=None, **app_init_kwds):
     """
     Handles some exceptions politely and returns the exit-code.
-    
+
     :param argv:
         If `None`, use :data:`sys.argv`; use ``[]`` to explicitly use no-args.
     """
