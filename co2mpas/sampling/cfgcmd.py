@@ -59,7 +59,7 @@ def prepare_search_map(all_classes, own_traits):
         clsname = cls.__name__
         traits = class_traits(cls)
         if not traits:
-            smap.append((clsname, (cls, None)))
+            smap.append((clsname + '.', (cls, None)))
             continue
 
         for attr, trait in sorted(traits.items()):
