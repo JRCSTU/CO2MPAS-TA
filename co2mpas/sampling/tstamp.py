@@ -1142,7 +1142,7 @@ class SendCmd(baseapp.Cmd):
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<report-file-1> ...]
 
-    - Do not use this command directly (unless experimenting) - prefer 
+    - Do not use this command directly (unless experimenting) - prefer
       the `project tsend` sub-command.
     - If '-' is given or no files at all, it reads from STDIN.
     - Many options related to sending & receiving the email are expected to be stored in the config-file.
@@ -1215,18 +1215,24 @@ class RecvCmd(baseapp.Cmd):
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<search-term-1> ...]
 
+    - Use --view to just fetch and view emails, not validate.
     - Fetch of emails in one-shot search, or use --wait.
     - The terms are ORed and searched within the email's subject-line;
       tip: use the project name(s).
     """
 
     examples = trt.Unicode("""
-        To search emails in one-shot (bash):
+        Search today's emails:
             %(cmd_chain)s --after today "IP-10-AAA-2017-1003"
+
+        Just view (not validate) emails on some date:
+            %(cmd_chain)s --on "28 Feb 2018"  --raw
+
+        Other search formats:
             %(cmd_chain)s --after "1 year ago" --before "18 March 2017"
             %(cmd_chain)s --after "yesterday" --search 'From "foo@bar.com"'
 
-        To wait for new mails arriving (and not to block console),
+        Wait for new mails to arrive (and not to block console),
         on Linux:
             %(cmd_chain)s --wait &
             ## wait...
