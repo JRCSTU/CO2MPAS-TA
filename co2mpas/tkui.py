@@ -2354,7 +2354,7 @@ def main(argv=None, log_level=None, **app_init_kwds):
     log = logging.getLogger(__name__)
 
     try:
-        ##Co2dice.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!
+        ##Co2diceCmd.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!
         cmd = Co2guiCmd.make_cmd(argv, **app_init_kwds)
         return baseapp.consume_cmd(cmd.start() and 0)
     except (baseapp.CmdException, trt.TraitError) as ex:

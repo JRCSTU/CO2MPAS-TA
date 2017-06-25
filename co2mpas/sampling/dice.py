@@ -79,7 +79,7 @@ class DiceSpec(baseapp.Spec):
 ##    Commands   ##
 ###################
 
-class Co2dice(Cmd):
+class Co2diceCmd(Cmd):
     """
     Prepare/sign/send/receive/validate & archive Type Approval sampling emails for *co2mpas*.
 
@@ -125,7 +125,7 @@ def all_cmds():
     return (
         (
             baseapp.Cmd,
-            Co2dice,
+            Co2diceCmd,
             project.ProjectCmd,
             report.ReportCmd,
             tstamp.TstampCmd,
@@ -176,7 +176,7 @@ def main(argv=None, log_level=None, **app_init_kwds):
     log = logging.getLogger(APPNAME)
 
     try:
-        cmd = Co2dice.make_cmd(argv, **app_init_kwds)
+        cmd = Co2diceCmd.make_cmd(argv, **app_init_kwds)
         return baseapp.consume_cmd(cmd.start()) and 0
     except (CmdException, trt.TraitError, transitions.MachineError) as ex:
         ## Suppress stack-trace for "expected" errors.
@@ -240,5 +240,5 @@ if __name__ == '__main__':
     #c = trtc.get_config()
     #c.Application.log_level=0
     #c.Spec.log_level='ERROR'
-    #cmd = chain_cmds([Co2dice, ProjectCmd, InitCmd], argv=['project_foo'])
+    #cmd = chain_cmds([Co2diceCmd, ProjectCmd, InitCmd], argv=['project_foo'])
     # sys.exit(baseapp.consume_cmd(cmd.start()) and 0)
