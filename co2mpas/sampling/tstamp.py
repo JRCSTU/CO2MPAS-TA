@@ -556,9 +556,9 @@ class TstampReceiver(TstampSpec):
 
     email_infos = trt.List(
         trt.Unicode(),
-        default_value=['To', 'Subject', 'Date'],
+        default_value=['To', 'Subject', 'Date'], allow_none=True,
         help="""
-        The email items to fetch for each matched email.
+        The email items to fetch for each matched email, all if None.
 
         Usually one of:
             Delivered-To, Received, From, To, Subject, Date,
