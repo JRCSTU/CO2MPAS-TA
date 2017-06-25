@@ -555,13 +555,13 @@ class TstampReceiver(TstampSpec):
     ).tag(config=True)
 
     email_infos = trt.List(
-        trt.Unicode(),
+        trt.Unicode(allow_none=True),
         default_value=['To', 'Subject', 'Date'], allow_none=True,
         help="""
-        The email items to fetch for each matched email, all if None.
+        The email items to fetch for each matched email, all if None or contains a None.
 
-        Usually one of:
-            Delivered-To, Received, From, To, Subject, Date,
+        Usually one of case-insensitive:
+            Delivered-To, Received, From, To, Subject, Date, Body
             Message-Id (always printed)
         """
     ).tag(config=True)
@@ -920,8 +920,21 @@ class TstampReceiver(TstampSpec):
     def _get_recved_email_infos(self, mail, verdict_or_ex, verbose=None):
         """Does not raise anything."""
         verbose = verbose is None and self.verbose or verbose
+        email_infos = self.email_infos
 
-        infos = OrderedDict((i, mail.get(i)) for i in self.email_infos)
+        ## Decide fields to include in the reasults.
+        #
+        include_body = 'body' in [i.lower() for i in email_infos if i]
+        if any(i is None for i in email_infos):
+            ## Any None signifies include all.
+            infos = OrderedDict(mail.items())
+            include_body = True
+        else:
+            infos = OrderedDict((i, mail.get(i))
+                                for i in email_infos
+                                if i in mail)
+        if include_body:  # Body last one, for console.
+            infos['Body'] = mail.get_payload()
 
         if verdict_or_ex is None:
             pass
