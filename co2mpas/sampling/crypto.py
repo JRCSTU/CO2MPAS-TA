@@ -178,6 +178,12 @@ def pgp_split_sig(git_content: bytes) -> (bytes, bytes):
     raise ValueError("%i-len text is not a PGP-sig!" % len(git_content))
 
 
+def filter_gpg_stderr(stderr: Text) -> Text:
+    """return '' if nothing matched"""
+    groups = re.findall('gpg: (.*)', stderr)
+    return '\n  '.join(i.strip() for i in groups) if groups else ''
+
+
 class GpgSpec(baseapp.Spec):
     """
     Configurable parameters for instantiating a GnuPG instance
@@ -408,8 +414,12 @@ class GpgSpec(baseapp.Spec):
 
         cipher = self.GPG.encrypt(plainbytes, self.master_key_resolved, armor=True)
         if not cipher.ok:
-            self.log.debug("PswdId('%s'): encryption stderr: %s", pswdid, cipher.status, cipher.stderr)
-            raise ValueError("PswdId('%s') failed encryption due to: %s!" % (pswdid, cipher.status))
+            ## When failing due to untrusted-key, status is '',
+            #  and only stderr show infos
+            stderr = getattr(cipher, 'stderr', '')
+            raise ValueError(
+                "PswdId('%s'): %s\n  %s" %
+                (pswdid, cipher.status, filter_gpg_stderr(stderr)))
 
         return str(cipher)
 
@@ -439,8 +449,11 @@ class GpgSpec(baseapp.Spec):
             raise ValueError("PswdId('%s'): decryption failed due to: %s" % (pswdid, ex))
 
         if not plain.ok:
-            self.log.debug("PswdId('%s'): decryption stderr: %s", pswdid, getattr(plain, 'stderr', ''))
-            raise ValueError("PswdId('%s'): %s!" % (pswdid, plain.status))
+            stderr = getattr(plain, 'stderr', '')
+            self.log.debug("PswdId('%s'): decryption stderr: %s", pswdid, stderr)
+            raise ValueError(
+                "PswdId('%s'): %s\n  %s" %
+                (pswdid, plain.status, filter_gpg_stderr(stderr)))
 
         plainobj = pickle.loads(plain.data)
 
