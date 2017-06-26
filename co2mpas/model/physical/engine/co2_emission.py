@@ -1227,9 +1227,10 @@ def identify_co2_emissions(
     :type is_cycle_hot: bool
 
     :return:
-        The instantaneous CO2 emission vector [CO2g/s] and rescaling scores 
-        (i.e., mean, std, and number of perturbations) [-].
-    :rtype: numpy.array, tuple[float]
+        The instantaneous CO2 emission vector [CO2g/s], rescaling scores 
+        (i.e., mean, std, and number of perturbations) [-], and the identified 
+        initial guess of co2 emission model params.
+    :rtype: numpy.array, tuple[float], dict
     """
 
     p = params_initial_guess
@@ -1240,42 +1241,48 @@ def identify_co2_emissions(
         co2_emissions_model, cumulative_co2_emissions, phases_integration_times,
         times, rescaling_matrix
     )
+
     dfl = defaults.dfl.functions.identify_co2_emissions
-    calibrate = functools.partial(
-        calibrate_co2_params, is_cycle_hot, engine_coolant_temperatures,
-        _1st_step=dfl.enable_first_step,
-        _2nd_step=dfl.enable_second_step,
-        _3rd_step=dfl.enable_third_step,
-    )
+    n, (co2, k0) = 0, rescale(p)
 
-    error_function = define_co2_error_function_on_emissions
-    co2, k0 = rescale(p)
-    xatol, n = dfl.xatol, 0
+    if dfl.enable_first_step or dfl.enable_second_step or dfl.enable_third_step:
+        calibrate = functools.partial(
+            calibrate_co2_params, is_cycle_hot, engine_coolant_temperatures,
+            _1st_step=dfl.enable_first_step,
+            _2nd_step=dfl.enable_second_step,
+            _3rd_step=dfl.enable_third_step,
+        )
+        err_function, xatol = define_co2_error_function_on_emissions, dfl.xatol
+        for n in range(dfl.n_perturbations):
+            p = calibrate(err_function(co2_emissions_model, co2), p)[0]
+            co2, k1 = rescale(p)
+            if np.max(np.abs(k1 - k0)) <= xatol:
+                k0 = k1
+                break
+            k0 = k1
 
-    for n in range(dfl.n_perturbations):
-        p = calibrate(error_function(co2_emissions_model, co2), p)[0]
-        co2, k1 = rescale(p)
-        if np.max(np.abs(k1 - k0)) <= xatol:
-            break
-        k0 = k1
-
-    return co2, _rescaling_score(times, rescaling_matrix, k0) + (n,)
+    return co2, _rescaling_score(times, rescaling_matrix, k0) + (n,), p
 
 
-def identify_co2_emissions_v1(co2_emissions):
+def identify_co2_emissions_v1(co2_emissions, params_initial_guess):
     """
     Identifies instantaneous CO2 emission vector [CO2g/s].
 
     :param co2_emissions:
         CO2 instantaneous emissions vector [CO2g/s].
     :type co2_emissions: numpy.array
+
+    :param params_initial_guess:
+        Initial guess of co2 emission model params.
+    :type params_initial_guess: dict
     
     :return:
-        The instantaneous CO2 emission vector [CO2g/s] and rescaling scores 
-        (i.e., mean, std, and number of perturbations) [-].
-    :rtype: numpy.array, tuple[float]
+        The instantaneous CO2 emission vector [CO2g/s], rescaling scores 
+        (i.e., mean, std, and number of perturbations) [-], and the identified 
+        initial guess of co2 emission model params.
+    :rtype: numpy.array, tuple[float], dict
     """
-    return co2_emissions, (1.0, 0, 0)
+    return co2_emissions, (1.0, 0, 0), params_initial_guess
 
 
 def define_co2_error_function_on_emissions(co2_emissions_model, co2_emissions):
@@ -2656,14 +2663,16 @@ def co2_emission():
                 'extended_cumulative_co2_emissions',
                 'engine_coolant_temperatures', 'is_cycle_hot', 'velocities',
                 'stop_velocity'],
-        outputs=['identified_co2_emissions', 'co2_rescaling_scores'],
+        outputs=['identified_co2_emissions', 'co2_rescaling_scores',
+                 'co2_params_identified'],
         weight=5
     )
 
     d.add_function(
         function=identify_co2_emissions_v1,
-        inputs=['co2_emissions'],
-        outputs=['identified_co2_emissions', 'co2_rescaling_scores']
+        inputs=['co2_emissions', 'co2_params_initial_guess'],
+        outputs=['identified_co2_emissions', 'co2_rescaling_scores',
+                 'co2_params_identified']
     )
 
     d.add_function(
@@ -2682,8 +2691,7 @@ def co2_emission():
     d.add_function(
         function=calibrate_co2_params,
         inputs=['is_cycle_hot', 'engine_coolant_temperatures',
-                'co2_error_function_on_emissions',
-                'co2_params_initial_guess'],
+                'co2_error_function_on_emissions', 'co2_params_identified'],
         outputs=['co2_params_calibrated', 'calibration_status']
     )
 
