@@ -187,8 +187,8 @@ def main(argv=None, log_level=None, **app_init_kwds):
         #    https://github.com/ankostis/transitions@master
         #  to facilitate debugging from log/ex messages, unless
         #  tyarkoni/transitions#179 & tyarkoni/transitions#180 merged.
-        log.debug('App exited due to: %s', ex, exc_info=1)
-        log.error('%r', ex)
+        log.debug('App exited due to: %r', ex, exc_info=1)
+        log.error('%s', ex)
         return ex  # It's string will be printed.
     except Exception as ex:
         ## Shell will see any exception x2, but we have to log it anyways,

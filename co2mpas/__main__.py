@@ -174,7 +174,7 @@ def init_logging(level=None, frmt=None, logconf_file=None,
 
     if logconf_file:
         from logging import config as lcfg
-        
+
         logconf_file = osp.expanduser(logconf_file)
         if osp.splitext(logconf_file)[1] in '.yaml' or '.yml':
             with io.open(logconf_file) as fd:
@@ -542,7 +542,8 @@ def main(*args):
     try:
         return _main(*args)
     except CmdException as ex:
-        log.error('%r', ex)
+        log.debug('App exited due to: %r', ex, exc_info=1)
+        log.error('%s', ex)
         return ex  # It's string will be printed.
     except Exception as ex:
         log.error('%r', ex)

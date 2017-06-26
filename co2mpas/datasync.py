@@ -711,9 +711,10 @@ def main(*args):
                 str(sys.version_info))
 
     try:
-        return  _main(*args)
+        return _main(*args)
     except CmdException as ex:
-        log.error('%r', ex)
+        log.debug('App exited due to: %r', ex, exc_info=1)
+        log.error('%s', ex)
         return ex
     except Exception as ex:
         log.error('%r', ex)

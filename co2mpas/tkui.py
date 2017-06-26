@@ -2359,8 +2359,8 @@ def main(argv=None, log_level=None, **app_init_kwds):
         return baseapp.consume_cmd(cmd.start() and 0)
     except (baseapp.CmdException, trt.TraitError) as ex:
         ## Suppress stack-trace for "expected" errors.
-        log.debug('App exited due to: %s', ex, exc_info=1)
-        log.error('%r', ex)
+        log.debug('App exited due to: %r', ex, exc_info=1)
+        log.error('%s', ex)
         return ex
     except Exception as ex:
         ## Shell will see any exception x2, but we have to log it anyways,
