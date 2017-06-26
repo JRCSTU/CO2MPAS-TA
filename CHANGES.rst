@@ -11,6 +11,7 @@ The Dice:
 - refact(config): enhance ``co2dice config desc`` and ``config show`` commands
   to provide help-text and configured values for specific classes & params
   (instead of show-all ``--help`` anf ``--help-all`` options).
+- fix(tstamp): BCC-addresses were treated as CCs.
 
 Model:
 ------

@@ -365,7 +365,7 @@ class TstampSender(TstampSpec):
         if self.cc_addresses:
             mail['Cc'] = ', '.join(self.cc_addresses)
         if self.bcc_addresses:
-            mail['Cc'] = ', '.join(self.bcc_addresses)
+            mail['Bcc'] = ', '.join(self.bcc_addresses)
 
         return mail
 
