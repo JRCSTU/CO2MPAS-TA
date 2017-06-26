@@ -303,9 +303,6 @@ class Functions(co2_utl.Constants):
         #: Enable third step in the co2_params calibration? [-]
         enable_third_step = True
 
-        #: Use co2 error function against co2_emissions on the third step? [-]
-        third_step_against_emissions = True
-
     class identify_co2_emissions(co2_utl.Constants):
         #: Number of perturbations to identify the co2_emissions [-].
         n_perturbations = 100
@@ -318,9 +315,6 @@ class Functions(co2_utl.Constants):
 
         #: Enable third step co2_params calibration in perturbation loop? [-]
         enable_third_step = True
-
-        #: Use error function against co2_emissions in perturbation loop? [-]
-        third_step_against_emissions = True
 
         #: Absolute error in k_refactor between iterations that is acceptable
         #: for convergence in perturbation loop [-].
