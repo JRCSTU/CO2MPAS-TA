@@ -71,7 +71,9 @@ class DiceSpec(baseapp.Spec):
 
     def __init__(self, **kwds):
         self._register_validator(DiceSpec._is_not_empty,
-                                 ['user_name', 'user_email'])
+                                 ['user_name'])
+        self._register_validator(DiceSpec.is_pure_email_address,
+                                 ['user_email'])
         super().__init__(**kwds)
 
 

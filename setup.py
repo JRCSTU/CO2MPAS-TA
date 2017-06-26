@@ -196,6 +196,7 @@ setup(
         'transitions >= 0.5.0',     # prepare/finally cbs
         'PySocks >= 1.6.7',         # more proxy-error messages (#7)
         'parsedatetime',
+        'validate_email',           # dice: distinguish EWS fields
     ],
     packages=find_packages(exclude=[
         'tests', 'tests.*',

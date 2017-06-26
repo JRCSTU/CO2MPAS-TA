@@ -348,8 +348,18 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
         value = proposal.value
         if not value:
             myname = type(self).__name__
-            raise trt.TraitError('%s.%s must not be empty!'
+            raise trt.TraitError("`%s.%s` must not be empty!"
                                  % (myname, proposal.trait.name))
+        return value
+
+    def is_pure_email_address(self, proposal):
+        from validate_email import validate_email
+
+        value = proposal.value
+        if not value or not validate_email(value):
+            myname = type(self).__name__
+            raise trt.TraitError("`%s.%s` needs a proper email-address, got: %s"
+                                 % (myname, proposal.trait.name, value))
         return value
 
     def _warn_deprecated(self, proposal):

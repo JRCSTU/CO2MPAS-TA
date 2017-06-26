@@ -320,6 +320,9 @@ class TstampSender(TstampSpec):
             TstampSender._is_not_empty,
             ['host', 'subject_prefix'])
         self._register_validator(
+            TstampSender.is_pure_email_address,
+            ['tstamper_address'])
+        self._register_validator(
             TstampSender._warn_deprecated,
             ['x_recipients', 'timestamping_addresses', 'subject'])
         self._register_validator(
