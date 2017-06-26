@@ -232,11 +232,15 @@ class TstampSpec(dice.DiceSpec):
             self.log.info("Connected to %s: %s@%s, ok? %s", srv_name,
                           self.user_account_resolved, srv_sock, ok)
 
+    _socks_patched_modules = set()
+
     def monkeypatch_socks_module(self, module):
         """
         If :attr:`socks_host` is defined, wrap module to use PySocks-proxy(:mod:`socks`).
         """
-        if self.socks_host and self.socks_type != 'disabled':
+        if (self.socks_host and
+                self.socks_type != 'disabled' and
+                module not in self._socks_patched_modules):
             import socks
 
             if self.socks_type is None:
@@ -255,6 +259,7 @@ class TstampSpec(dice.DiceSpec):
                                     username=self.socks_user,
                                     password=self.decipher('socks_pswd'))
             socks.wrapmodule(module)
+            self._socks_patched_modules.add(module)
 
 
 class TstampSender(TstampSpec):
