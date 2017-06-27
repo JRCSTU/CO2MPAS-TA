@@ -1945,6 +1945,7 @@ class TrecvCmd(TparseCmd):
         self.cmd_aliases.update({
             'before': 'TstampReceiver.before_date',
             'after': 'TstampReceiver.after_date',
+            'on': 'TstampReceiver.on_date',
         })
         self.cmd_flags.update({
             ('n', 'dry-run'): (
