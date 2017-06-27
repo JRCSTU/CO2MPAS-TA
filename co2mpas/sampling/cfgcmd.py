@@ -120,8 +120,27 @@ class ConfigCmd(baseapp.Cmd):
     """
     Commands to manage configuration-options loaded from filesystem, cmd-line or defaults.
 
-    Read also the help message for `--config-paths` generic option.
+    Some of the environment-variables affecting configurations:
+    
+        HOME, USERPROFILE,          : where DICE projects are stored
+              HOMEDRIVE/HOMEPATH      (1st one defined wins)
+        CO2DICE_CONFIG_PATHS        : where to read configuration-files.
+        GNUPGHOME                   : where GPG-keys are stored 
+                                      (works only if `gpgconf.ctl` is deleted,
+                                       see https://goo.gl/j5mwo4) 
     """
+
+    examples = trt.Unicode("""
+        Ask help on parameters affecting the source of the configurations:
+            %(cmd_chain)s desc config_paths persist_path
+            
+        Show config-param values in files or params containing word "mail":
+            %(cmd_chain)s show -s file
+            %(cmd_chain)s show email
+            
+        Show configuration paths:
+            %(cmd_chain)s paths
+        """)
 
     def __init__(self, **kwds):
             super().__init__(

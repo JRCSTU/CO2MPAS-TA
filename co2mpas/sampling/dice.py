@@ -87,11 +87,6 @@ class Co2diceCmd(Cmd):
 
     This is the root command for co2mpas "dice"; use subcommands or preferably GUI to accomplish sampling.
 
-    TIP:
-      If you bump into blocking errors, please use the `co2dice project backup` command and
-      send the generated archive-file back to "CO2MPAS-Team <JRC-CO2MPAS@ec.europa.eu>",
-      for examination.
-
     NOTE:
       Do not run concurrently multiple instances!
     """
@@ -102,8 +97,9 @@ class Co2diceCmd(Cmd):
         Try the `project` sub-command:
             %(cmd_chain)s  project
 
-        To check where is your configuration path, use:
-            %(cmd_chain)s  config  show
+        To learn more about command-line options and configurations, 
+        use this command:
+            %(cmd_chain)s  config
 
     """)
 
