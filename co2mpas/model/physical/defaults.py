@@ -293,32 +293,32 @@ class Functions(co2_utl.Constants):
             ('compression', True): 4
         }
 
-    class calibrate_co2_params(co2_utl.Constants):
+    class identify_co2_emissions(co2_utl.Constants):
+        #: Number of perturbations to identify the co2_emissions [-].
+        n_perturbations = 100
+
         #: Enable first step in the co2_params calibration? [-]
         enable_first_step = True
 
         #: Enable second step in the co2_params calibration? [-]
         enable_second_step = True
 
-        #: Enable third step in the co2_params calibration? [-]
-        enable_third_step = True
+        #: Enable third step co2_params calibration in perturbation loop? [-]
+        enable_third_step = False
 
-    class identify_co2_emissions(co2_utl.Constants):
-        #: Number of perturbations to identify the co2_emissions [-].
-        n_perturbations = 100
+        #: Absolute error in k_refactor between iterations that is acceptable
+        #: for convergence in perturbation loop [-].
+        xatol = 1e-4
 
+    class calibrate_co2_params(co2_utl.Constants):
         #: Enable first step in the co2_params calibration? [-]
         enable_first_step = False
 
         #: Enable second step in the co2_params calibration? [-]
         enable_second_step = False
 
-        #: Enable third step co2_params calibration in perturbation loop? [-]
+        #: Enable third step in the co2_params calibration? [-]
         enable_third_step = True
-
-        #: Absolute error in k_refactor between iterations that is acceptable
-        #: for convergence in perturbation loop [-].
-        xatol = 1e-4
 
     class Alternator_status_model(co2_utl.Constants):
         #: Minimum delta time to consider valid a charging state to fit charges
