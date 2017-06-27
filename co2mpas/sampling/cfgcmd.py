@@ -7,12 +7,16 @@
 #
 """Dice traitlets sub-commands for manipulating configurations"""
 
+from collections import OrderedDict
+import os
+from typing import Sequence, Text, List, Tuple  # @UnusedImport
+
+from toolz import dicttoolz as dtz
+
+import os.path as osp
+
 from . import baseapp, CmdException
 from .._vendor import traitlets as trt
-from collections import OrderedDict
-from toolz import dicttoolz as dtz
-from typing import Sequence, Text, List, Tuple    # @UnusedImport
-import os.path as osp
 
 
 def prepare_matcher(terms, is_regex):
@@ -119,15 +123,6 @@ def prepare_help_selector(only_class_in_values, verbose):
 class ConfigCmd(baseapp.Cmd):
     """
     Commands to manage configuration-options loaded from filesystem, cmd-line or defaults.
-
-    Some of the environment-variables affecting configurations:
-    
-        HOME, USERPROFILE,          : where DICE projects are stored
-              HOMEDRIVE/HOMEPATH      (1st one defined wins)
-        CO2DICE_CONFIG_PATHS        : where to read configuration-files.
-        GNUPGHOME                   : where GPG-keys are stored 
-                                      (works only if `gpgconf.ctl` is deleted,
-                                       see https://goo.gl/j5mwo4) 
     """
 
     examples = trt.Unicode("""
@@ -183,9 +178,17 @@ class WriteCmd(baseapp.Cmd):
 
 class PathsCmd(baseapp.Cmd):
     """
-    List resolved various paths and actual config-files loaded (descending order).
+    List paths and veriables used to load configurations (descending order).
 
-    This is more accurate that `%(app_cmd)s config show` cmd.
+    Some of the environment-variables affecting configurations:
+        HOME, USERPROFILE,          : where DICE projects are stored
+              HOMEDRIVE/HOMEPATH      (1st one defined wins)
+        CO2DICE_CONFIG_PATHS        : where to read configuration-files.
+        GNUPGHOME                   : where GPG-keys are stored 
+                                      (works only if `gpgconf.ctl` is deleted,
+                                       see https://goo.gl/j5mwo4) 
+        GNUPGKEY                    : override which is the master-key
+                                      (see `desc master_key`)
     """
     def run(self, *args):
         if len(args) > 0:
@@ -212,6 +215,14 @@ class PathsCmd(baseapp.Cmd):
         gpg = crypto.GpgSpec(config=self.config)
         yield "  +--gnupgexe: %s" % gpg.gnupgexe_resolved
         yield "  +--gnupghome: %s" % gpg.gnupghome_resolved
+
+        var_names = """AIODIR HOME HOMEDRIVE HOMEPATH USERPROFILE 
+                     CO2DICE_CONFIG_PATHS 
+                     TRAITLETS_APPLICATION_RAISE_CONFIG_FILE_ERROR 
+                     GNUPGHOME GNUPGKEY GNUPGEXE"""
+        yield "ENV-VARS:"
+        for vname in var_names.split():
+            yield "  +--%s: %s" % (vname, os.environ.get(vname))
 
 
 class ShowCmd(baseapp.Cmd):
