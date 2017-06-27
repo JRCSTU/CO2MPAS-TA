@@ -778,18 +778,6 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         for l in super().emit_help_epilogue(classes):
             yield l
 
-    def emit_help_epilogue(self, classes):
-        """Yield the very bottom lines of the help message.
-
-        If classes=False (the default), print `--help-all` msg.
-        """
-        if not classes:
-            yield ("For help on specific params, "
-                   "use `%(app_cmd)s config desc <param-1> ...`." %
-                   self._my_text_interpolations())
-        for l in super().emit_help_epilogue(classes):
-            yield l
-
     ## Needed because some sub-cmd name clash and
     #  *argparse* screams about conflicts.
     #  See https://github.com/ipython/traitlets/pull/360
@@ -1245,7 +1233,6 @@ def consume_cmd(result):
     - Remember to have logging setup properly before invoking this.
     - This the 2nd half of the replacement for :meth:`Application.launch_instance()`.
     """
-    import sys
     import types
 
     any_none_bool = False
