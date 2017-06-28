@@ -178,10 +178,10 @@ class WriteCmd(baseapp.Cmd):
 
 class PathsCmd(baseapp.Cmd):
     """
-    List paths and veriables used to load configurations (descending order).
+    List paths and variables used to load configurations (descending order).
 
     Some of the environment-variables affecting configurations:
-        HOME, USERPROFILE,          : where DICE projects are stored
+        HOME, USERPROFILE,          : where configs & DICE projects are stored
               HOMEDRIVE/HOMEPATH      (1st one defined wins)
         CO2DICE_CONFIG_PATHS        : where to read configuration-files.
         GNUPGHOME                   : where GPG-keys are stored 
@@ -189,6 +189,7 @@ class PathsCmd(baseapp.Cmd):
                                        see https://goo.gl/j5mwo4) 
         GNUPGKEY                    : override which is the master-key
                                       (see `desc master_key`)
+        GIT_PYTHON_GIT_EXECUTABLE   : where `git` executable is (if not in PATH) 
     """
     def run(self, *args):
         if len(args) > 0:
@@ -219,7 +220,8 @@ class PathsCmd(baseapp.Cmd):
         var_names = """AIODIR HOME HOMEDRIVE HOMEPATH USERPROFILE 
                      CO2DICE_CONFIG_PATHS 
                      TRAITLETS_APPLICATION_RAISE_CONFIG_FILE_ERROR 
-                     GNUPGHOME GNUPGKEY GNUPGEXE"""
+                     GNUPGHOME GNUPGKEY GNUPGEXE
+                     GIT_PYTHON_GIT_EXECUTABLE GIT_PYTHON_TRACE"""
         yield "ENV-VARS:"
         for vname in var_names.split():
             yield "  +--%s: %s" % (vname, os.environ.get(vname))

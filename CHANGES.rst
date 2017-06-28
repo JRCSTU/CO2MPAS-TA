@@ -8,10 +8,12 @@ v1.6.0.dev4: Dice & model fine-tuning
 ================================================
 The Dice:
 ---------
-- refact(config): enhance ``co2dice config desc`` and ``config show`` commands
+- feat(config): enhance ``co2dice config (desc | show | paths)`` commands
   to provide help-text and configured values for specific classes & params
-  (instead of show-all ``--help`` anf ``--help-all`` options).
+  and all interesting variables affecting configurations.
+  (alternatives to the much  coarser ``--help`` and ``--help-all`` options).
 - fix(tstamp): BCC-addresses were treated as CCs.
+- feat(tstamp): add ``--subject`` and ``--on`` options on ``tstamp recv`` subcmd. 
 
 Model:
 ------
