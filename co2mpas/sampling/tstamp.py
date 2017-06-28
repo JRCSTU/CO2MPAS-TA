@@ -1310,6 +1310,9 @@ class RecvCmd(baseapp.Cmd):
         for mail in emails:
             mid = mail.get('Message-Id')
             if self.form == 'raw':
+                yield "\n\n" + '=' * 40
+                yield "Email_id: %s" % mid
+                yield '=' * 40
                 yield mail.get_payload()
             else:
                 if self.form == 'list':
