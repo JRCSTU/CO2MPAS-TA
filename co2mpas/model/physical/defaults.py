@@ -110,7 +110,7 @@ class Values(co2_utl.Constants):
     gear_box_temperature_references = (40.0, 80.0)
 
     #: Constant torque loss due to engine auxiliaries [N*m].
-    auxiliaries_torque_loss = 0.0
+    auxiliaries_torque_loss = (0.0, 0.0) # m, q
 
     #: Constant power loss due to engine auxiliaries [kW].
     auxiliaries_power_loss = 0.0
@@ -304,7 +304,7 @@ class Functions(co2_utl.Constants):
         enable_second_step = True
 
         #: Enable third step co2_params calibration in perturbation loop? [-]
-        enable_third_step = False
+        enable_third_step = True
 
         #: Absolute error in k_refactor between iterations that is acceptable
         #: for convergence in perturbation loop [-].

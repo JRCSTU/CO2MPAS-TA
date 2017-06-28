@@ -796,7 +796,8 @@ def calculate_engine_moment_inertia(engine_capacity, ignition_type):
     return (0.05 + 0.1 * engine_capacity / 1000.0) * PARAMS[ignition_type]
 
 
-def calculate_auxiliaries_torque_losses(times, auxiliaries_torque_loss):
+def calculate_auxiliaries_torque_losses(
+        times, auxiliaries_torque_loss, engine_capacity):
     """
     Calculates engine torque losses due to engine auxiliaries [N*m].
 
@@ -806,14 +807,18 @@ def calculate_auxiliaries_torque_losses(times, auxiliaries_torque_loss):
 
     :param auxiliaries_torque_loss:
         Constant torque loss due to engine auxiliaries [N*m].
-    :type auxiliaries_torque_loss: float
+    :type auxiliaries_torque_loss: (float, float)
+
+    :param engine_capacity:
+        Engine capacity [cm3].
+    :type engine_capacity: float
 
     :return:
         Engine torque losses due to engine auxiliaries [N*m].
     :rtype: numpy.array
     """
-
-    return np.ones_like(times, dtype=float) * auxiliaries_torque_loss
+    m, q = auxiliaries_torque_loss
+    return np.ones_like(times, dtype=float) * (m * engine_capacity / 1000.0 + q)
 
 
 def calculate_auxiliaries_power_losses(
@@ -1295,7 +1300,7 @@ def engine():
 
     d.add_function(
         function=calculate_auxiliaries_torque_losses,
-        inputs=['times', 'auxiliaries_torque_loss'],
+        inputs=['times', 'auxiliaries_torque_loss', 'engine_capacity'],
         outputs=['auxiliaries_torque_losses']
     )
 
