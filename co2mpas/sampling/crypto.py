@@ -518,7 +518,7 @@ class GpgSpec(baseapp.Spec):
         csig = pgp_split_sig(git_bytes)
         msg = _git_detachsig_canonical_regexb.sub(b'\n', csig['msg'])
         msg = _git_detachsig_strip_top_empty_lines_regexb.sub(b'', msg)
-        ver = self.verify_detached(csig['sigarmor'], msg)
+        ver = self.verify_detached(csig['sigarmor'], msg, keep_stderr)
 
         ver.parts = csig
 
