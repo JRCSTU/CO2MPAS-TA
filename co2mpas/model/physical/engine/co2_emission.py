@@ -1285,6 +1285,25 @@ def identify_co2_emissions_v1(co2_emissions, params_initial_guess):
     return co2_emissions, (1.0, 0, 0), params_initial_guess
 
 
+def calculate_co2_emissions(fuel_consumptions, fuel_carbon_content):
+    """
+    Calculates instantaneous CO2 emission vector [CO2g/s].
+
+    :param fuel_consumptions:
+        The instantaneous fuel consumption vector [g/s].
+    :type fuel_consumptions: numpy.array
+
+    :param fuel_carbon_content:
+        Fuel carbon content [CO2g/g].
+    :type fuel_carbon_content: float
+
+    :return:
+        CO2 instantaneous emissions vector [CO2g/s].
+    :rtype: numpy.array
+    """
+    return fuel_consumptions * fuel_carbon_content
+
+
 def define_co2_error_function_on_emissions(co2_emissions_model, co2_emissions):
     """
     Defines an error function (according to co2 emissions time series) to
@@ -1699,8 +1718,8 @@ def calibrate_co2_params(
     statuses = [(True, copy.deepcopy(p))]
 
     # Definition of the optimization function.
-    def opt(id_p, p, **kws):
-        fixp = pvary - id_p
+    def opt(p, params2optimize, **kws):
+        fixp = pvary - params2optimize
         _set_attr(p, fixp, False, 'vary')
         if pvary - fixp:
             err = co2_error_function_on_emissions
@@ -1712,11 +1731,11 @@ def calibrate_co2_params(
         return p
 
     # First step: Calibration of willans parameters using the hot phase.
-    p = opt(_1st_step and hot.any() and willans_p or set(), p, sub_values=hot)
+    p = opt(p, _1st_step and hot.any() and willans_p or set(), sub_values=hot)
 
     # Second step: Calibration of thermal parameters using the cold phase.
     if not cold.any():
-        # When the cycle is hot thermal parameters have no effect.
+        # When the cycle has not cold phases, thermal parameters have no effect.
         # The third step will modify arbitrarily this parameters.
         # Hence, to avoid erroneous results, thermal parameters are fixed to
         # zero because they cannot be identified.
@@ -1724,10 +1743,10 @@ def calibrate_co2_params(
         _set_attr(p, pvary.intersection(('t0', 'dt')), 0, 'value')
         pvary -= thermal_p
 
-    p = opt(_2nd_step and cold.any() and thermal_p or set(), p, sub_values=cold)
+    p = opt(p, _2nd_step and cold.any() and thermal_p or set(), sub_values=cold)
 
     # Third step: Calibration of all parameters.
-    p = opt(_3rd_step and pvary or set(), p)
+    p = opt(p, _3rd_step and pvary or set())
 
     return p, statuses
 
@@ -2318,46 +2337,6 @@ def define_co2_params_calibrated(params):
     return p, success
 
 
-def calibrate_co2_params_v1(
-        co2_emissions_model, fuel_consumptions, fuel_carbon_content,
-        co2_params_initial_guess):
-    """
-    Calibrates the CO2 emission model parameters (a2, b2, a, b, c, l, l2, t, trg
-    ).
-
-    :param co2_emissions_model:
-        CO2 emissions model (co2_emissions = models(params)).
-    :type co2_emissions_model: callable
-
-    :param fuel_consumptions:
-        Instantaneous fuel consumption vector [g/s].
-    :type fuel_consumptions: numpy.array
-
-    :param fuel_carbon_content:
-        Fuel carbon content [CO2g/g].
-    :type fuel_carbon_content: float
-
-    :param co2_params_initial_guess:
-        Initial guess of CO2 emission model params.
-    :type co2_params_initial_guess: Parameters:param co2_params_initial_guess:
-
-    :return:
-        Calibrated CO2 emission model parameters (a2, b2, a, b, c, l, l2, t,
-        trg) and their calibration statuses.
-    :rtype: (lmfit.Parameters, list)
-    """
-
-    co2 = fuel_consumptions * fuel_carbon_content
-    err = define_co2_error_function_on_emissions(co2_emissions_model, co2)
-    p = copy.deepcopy(co2_params_initial_guess)
-    success = [(True, copy.deepcopy(p))]
-
-    p, s = calibrate_model_params(err, p)
-    success += [(s, p), (None, None), (None, None)]
-
-    return p, success
-
-
 def calculate_phases_fuel_consumptions(
         phases_co2_emissions, fuel_carbon_content, fuel_density):
     """
@@ -2842,10 +2821,9 @@ def co2_emission():
     )
 
     d.add_function(
-        function=calibrate_co2_params_v1,
-        inputs=['co2_emissions_model', 'fuel_consumptions',
-                'fuel_carbon_content', 'co2_params_initial_guess'],
-        outputs=['co2_params_calibrated', 'calibration_status']
+        function=calculate_co2_emissions,
+        inputs=['fuel_consumptions', 'fuel_carbon_content'],
+        outputs=['co2_emissions']
     )
 
     d.add_function(
