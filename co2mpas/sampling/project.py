@@ -1946,6 +1946,7 @@ class TrecvCmd(TparseCmd):
             'before': 'TstampReceiver.before_date',
             'after': 'TstampReceiver.after_date',
             'on': 'TstampReceiver.on_date',
+            'subject': 'TstampReceiver.subject_prefix',
         })
         self.cmd_flags.update({
             ('n', 'dry-run'): (

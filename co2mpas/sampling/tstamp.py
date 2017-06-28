@@ -1296,6 +1296,7 @@ class RecvCmd(baseapp.Cmd):
             'on': 'TstampReceiver.on_date',
             'mailbox': 'TstampReceiver.mailbox',
             'search': 'TstampReceiver.email_criteria',
+            'subject': 'TstampReceiver.subject_prefix',
         })
         super().__init__(**kwds)
 
