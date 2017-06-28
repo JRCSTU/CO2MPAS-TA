@@ -648,7 +648,39 @@ class TRX(unittest.TestCase):
         crt = rcv._prepare_search_criteria(False, ['ab', 'foo', 'ab'])
         self.assertEqual(crt.count('OR'), 1)
 
-
+    def test_capture_tstamper_parts(self):
+        s= """
+########################################################\r
+#\r
+# This is a proof of posting certificate from\r
+# stamper.itconsult.co.uk certifying that a user\r
+# claiming to be:-\r
+#     ankostis@outlook.com\r
+# requested that this message be sent to:-\r
+#     anagnko@gmail.com=0A=\r
+#     kostis.anagnostopoulos@ext.ec.europa.eu=0A=\r
+#\r
+# This certificate was issued at 22:25 (GMT)\r
+# on Wednesday 28 June 2017 with reference 0967126\r
+#\r
+# CAUTION: while the message may well be from the sender\r
+#          indicated in the "From:" header, the sender\r
+#          has NOT been authenticated by this service\r
+#\r
+# For information about the Stamper service see\r
+#        http://www.itconsult.co.uk/stamper.htm\r
+#\r
+########################################################\r
+\r
+=0A=\r
+tag: dices/IP-10-AAA-2017-0012/4=0A=\r
+base32(tag): |=0A=\r
+  N5RGUZLDOQQDAMBTMY2DANTCME4GCOJSMU3TONLBHAYWKY3CGEZTSM3BHA3TOM=0A=\r
+  JNFUWQU=3D=3D=3D=\r
+"""
+        m = tstamp._stamper_banner_regex.search(s)
+        self.assertIsNotNone(m)
+        
 @ddt.ddt
 class TstampShell(unittest.TestCase):
     def test_login_smoketest(self):

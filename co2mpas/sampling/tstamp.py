@@ -456,8 +456,8 @@ class TstampSender(TstampSpec):
         return mail
 
 
-_stamper_id_regex = re.compile(r"Comment: Stamper Reference Id: (\d+)")
-_stamper_banner_regex = re.compile(r"^#{56}\r?\n(?:^#[^\n]*\n)+^#{56}\r?\n\r?\n\r?\n(.*)",
+_stamper_id_regex = re.compile(r"Comment:\s+Stamper\s+Reference\s+Id:\s+(\d+)")
+_stamper_banner_regex = re.compile(r"^#{56}\r?\n(?:^#[^\n]*\n)+^#{56}\r?\n\r?\n(.*)",
                                    re.MULTILINE | re.DOTALL)  # @UndefinedVariable
 
 
@@ -664,7 +664,7 @@ class TstampReceiver(TstampSpec):
         from . import project
 
         try:
-            cmsg = project._CommitMsg.parse_commit_msg(_to_str(tag))
+            cmsg = project._CommitMsg.parse_commit_msg(_to_str(tag).strip())
             verdict['commit_msg'] = cmsg._asdict()
             verdict['project'] = cmsg.p
             verdict['project_source'] = 'report'
@@ -724,7 +724,9 @@ class TstampReceiver(TstampSpec):
                 errlog("Failed parsing response content and/or stamper-id: %s\n%s",
                        _mydump(ts_parts), _mydump(sorted(ts_verdict.items())))
                 if not force:
-                    raise CmdException("Timestamp-response had no *stamper-id*: %s" % ts_parts['sigarmor'])
+                    raise CmdException(
+                        "Failed parsing response content and/or stamper-id: %s\n%s" %
+                        (_mydump(ts_parts), _mydump(sorted(ts_verdict.items()))))
 
                 tag_verdict = {'content_parsing': "failed"}
                 tag_verdict = {'project': None}
