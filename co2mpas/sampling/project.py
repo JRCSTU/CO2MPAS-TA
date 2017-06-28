@@ -19,7 +19,7 @@ from boltons.setutils import IndexedSet as iset
 from toolz import itertoolz as itz
 import transitions
 from transitions.core import MachineError
-import yaml
+import yaml  # TODO: Upgrade unaintained yaml to ruamel
 
 import functools as fnt
 import os.path as osp
@@ -202,8 +202,9 @@ def _find_dice_tag(repo, pname, max_dices_per_project,
 
                     return tags[tagname]
 
-    raise CmdException("Too many dices(%d) for project '%s'!"
-                       "\n  Maybe delete project and start all over?" %
+    raise CmdException("Too many dices(at least %d) for project '%s'!"
+                       "\n  Maybe delete project and start over"
+                       "(or use `max_dices_per_project`)?" %
                        (i + 1, pname))
 
 
@@ -258,7 +259,7 @@ class Project(transitions.Machine, ProjectSpec):
     ).tag(config=True)
 
     git_desc_width = trt.Int(
-        78, allow_none=False,
+        76, allow_none=False,
         help="""
         The width of the textual descriptions when committing and tagging Git objects.
 
@@ -266,6 +267,7 @@ class Project(transitions.Machine, ProjectSpec):
 
         According to RFC5322, 78 is the maximum width for textual emails;
         mails with width > 78 may be sent as HTML-encoded and/or mime-multipart.
+        So we set to 76 for cr+NL end-ofline chars
         """
     ).tag(config=True)
 
@@ -489,7 +491,7 @@ class Project(transitions.Machine, ProjectSpec):
         return env
 
     def _cb_commit_or_tag(self, event):
-        """Executed AFTER al state changes, and commits/tags into repo. """
+        """Executed AFTER all state changes, and commits/tags into repo. """
         from . import crypto
 
         state = self.state
@@ -531,12 +533,15 @@ class Project(transitions.Machine, ProjectSpec):
                 ok = False
                 try:
                     tagname = _find_dice_tag(repo, self.pname,
-                                             self.max_dices_per_project, fetch_next=True)
+                                             self.max_dices_per_project,
+                                             fetch_next=True)
                     self.log.info('Tagging %s: %s', self, tagname)
                     assert isinstance(tagname, str), tagname
 
-                    tagref = repo.create_tag(tagname, message=cmsg_txt,
-                                             sign=True, local_user=git_auth.master_key)
+                    tagref = repo.create_tag(tagname,
+                                             message=cmsg_txt,
+                                             sign=True,
+                                             local_user=git_auth.master_key)
                     self.result = _read_dice_tag(repo, tagref)
 
                     ok = True
@@ -683,7 +688,7 @@ class Project(transitions.Machine, ProjectSpec):
             if self.dry_run:
                 self.log.warning("DRY-RUN: Not actually committed the report, "
                                  "and it is not yet signed!")
-                self.result = _mydump(report)
+                self.result = _mydump(report, width=self.git_desc_width)
 
                 return
 
@@ -1814,7 +1819,13 @@ class TsendCmd(_SubCmd):
                     'Project': {'dry_run': True},
                 },
                 "Print dice-report and bump `mailed` but do not actually send tstamp-email."
-            )
+            ),
+            'b32': (
+                {
+                    'TstampSender': {'b32_msg': True},
+                },
+                pndlu.first_line(tstamp.TstampSender.b32_msg.help)
+            ),
         })
         super().__init__(**kwds)
 
@@ -1996,7 +2007,8 @@ class TrecvCmd(TparseCmd):
 
             ## Respect verbose flag for print-outs.
             infos = rcver._get_recved_email_infos(mail, verdict)
-            yield _mydump({mid: infos}, default_flow_style=default_flow_style)
+            yield _mydump({'[%s]%s' % (uid, mid): infos},
+                          default_flow_style=default_flow_style)
 
             try:
                 proj.do_storedice(verdict=verdict)

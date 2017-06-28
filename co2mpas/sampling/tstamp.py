@@ -488,8 +488,8 @@ class TstampReceiver(TstampSpec):
     email_criteria = trt.List(
         trt.Unicode(), allow_none=True,
         default_value=[
-            'From "mailer@stamper.itconsult.co.uk"',
-            'Subject "Proof of Posting Certificate"',
+            'FROM "mailer@stamper.itconsult.co.uk"',
+            'SUBJECT "Proof of Posting Certificate"',
         ],
         help="""
         RFC3501 IMAP search terms ANDed together for fetching Stamper responses.
@@ -1313,7 +1313,7 @@ class RecvCmd(baseapp.Cmd):
                 yield "\n\n" + '=' * 40
                 yield "Email_id: %s" % mid
                 yield '=' * 40
-                yield mail.get_payload()
+                yield mail.get_payload(decode=True)
             else:
                 if self.form == 'list':
                     verdict = None
