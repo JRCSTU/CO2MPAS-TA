@@ -29,3 +29,4 @@ __title__     = "co2mpas"
 __summary__   = "Vehicle simulator predicting NEDC CO2 emissions from WLTP " \
                 "time-series."
 __uri__       = "https://co2mpas.io"
+version       = __version__

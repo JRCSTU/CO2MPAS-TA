@@ -25,16 +25,14 @@ Modules:
 """
 
 import datetime
-import logging
 import pathlib
 import regex
-from co2mpas._version import version
+from .. import version
 import schedula as sh
 from . import schema, excel, dill
 import functools
 import itertools
 import collections
-log = logging.getLogger(__name__)
 
 
 def get_cache_fpath(fpath, ext=('dill',)):
