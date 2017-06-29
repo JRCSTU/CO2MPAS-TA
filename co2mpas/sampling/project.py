@@ -845,6 +845,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
         self._register_validator(DiceSpec._warn_deprecated,
                                  ['reset_git_settings'])
+        super().__init__(**kwds)
 
     ## Useless, see https://github.com/ipython/traitlets/issues/287
     # @trt.validate('repo_path')
