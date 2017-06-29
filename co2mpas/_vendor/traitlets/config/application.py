@@ -311,6 +311,9 @@ class Application(SingletonConfigurable):
         if self.subapp is not None:
             return self.subapp.start()
 
+    def print_alias_help(self):
+        print('\n'.join(self.emit_alias_help()))
+
     def emit_alias_help(self):
         """Yield the lines for alias part of the help."""
         if not self.aliases:
@@ -350,6 +353,9 @@ class Application(SingletonConfigurable):
                                alias, ex)
                 raise
 
+    def print_flag_help(self):
+        print('\n'.join(self.emit_flag_help()))
+
     def emit_flag_help(self):
         """Print the flag part of the help."""
         if not self.flags:
@@ -375,6 +381,9 @@ class Application(SingletonConfigurable):
                                flags, ex)
                 raise
 
+    def print_options(self):
+        print('\n'.join(self.emit_options_help()))
+
     def emit_options_help(self):
         """Yield the lines for the options part of the help."""
         if not self.flags and not self.aliases:
@@ -391,6 +400,9 @@ class Application(SingletonConfigurable):
         for l in self.emit_alias_help():
             yield l
         yield ''
+
+    def print_subcommands(self):
+        print('\n'.join(self.emit_subcommands_help()))
 
     def emit_subcommands_help(self):
         """Yield the lines for the subcommand part of the help."""
