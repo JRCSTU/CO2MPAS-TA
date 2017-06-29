@@ -1974,6 +1974,8 @@ class TrecvCmd(TparseCmd):
     def run(self, *args):
         from . import tstamp
 
+        projDB = self.projects_db
+
         self.log.info("Receiving emails for projects(s) %s: ...", args)
         default_flow_style = None if self.verbose else False
         warn = self.log.warning
@@ -2000,14 +2002,15 @@ class TrecvCmd(TparseCmd):
 
             if pname is None:
                 ## Must have already warn
+                self.log.error("[%s]%s: skipping unparseable email!", uid, mid)
                 continue
 
             try:
-                proj = self.proj_open(pname)
+                proj = projDB.proj_open(pname)
             except CmdException:
                 ## TODO: build_registry
-                warn("Tstamp %s from foreign project '%s' discarded.",
-                     mid, pname)
+                warn("[%s]%s: tstamp from foreign project '%s' discarded.",
+                     uid, mid, pname)
                 continue
 
             ## Respect verbose flag for print-outs.

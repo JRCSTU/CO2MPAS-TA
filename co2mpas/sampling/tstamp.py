@@ -966,13 +966,13 @@ class TstampReceiver(TstampSpec):
                 infos.update(verdict)
             else:
                 try:
-                    infos['project'] = verdict['report']['project']
-                except:
-                    pass
-                try:
                     infos['dice'] = verdict['dice']
                 except:
                     pass
+            try:
+                infos['project'] = verdict['report']['project']
+            except:
+                pass
 
         return infos
 
