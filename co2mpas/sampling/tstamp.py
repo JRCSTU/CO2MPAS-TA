@@ -318,7 +318,8 @@ class TstampSender(TstampSpec):
     ).tag(config=True)
 
     transfer_encoding_b64 = trt.Bool(
-        help="""When true, set Content-Transfer-Encoding MIME HEadewr to base64.
+        help="""When true, set Content-Transfer-Encoding MIME Header to base64.
+
         Try this to avoid strange `'=0A=0D=0E'` chars scattered in the email
         (MS Outlook Exchange servers have this problem but are immune to this switch!)"""
     ).tag(config=True)
@@ -637,6 +638,22 @@ class TstampReceiver(TstampSpec):
         """
     ).tag(config=True)
 
+    un_quote_printable = trt.Bool(
+        help="""When true, undo the QuotedPrintable Content-Transfer-Encoding
+        before parsing Tag.
+
+        It needs trials to decide whether this should be true/false.
+
+        Impl note: this transfer-encoding kicks in when sending an email with
+        non-ASCII or when Outlook servers discover a line-length > 78.
+        Timestamper DOES NOT respect (undo) this encoding, and signs
+        the QoPi-encoded Dice-tag. So we validate the *enclosing* timestamp-sig
+        on the "verbatim" received email, and un-quote the *enclosed* tag
+        before check its sig.  Unfortunately, which transfer-encoding were used
+        is not always preserved, so it's a trial and error.
+        """
+    ).tag(config=True)
+
     @trt.validate('subject_prefix', 'wait_criterio',
                   'before_date', 'after_date', 'on_date')
     def _strip_trait(self, p):
@@ -705,6 +722,12 @@ class TstampReceiver(TstampSpec):
             The tag as extracted from tstamp response by :meth:`crypto.pgp_split_clearsigned`.
         """
         ## TODO: Schedula to the rescue!
+
+
+        if self.un_quote_printable:
+            import quopri
+            ## XXX: Only when Content-Transfer-Encoding is PrintableQuoted??
+            tag_text = quopri.decodestring(tag_text).decode()
 
         stag_bytes = self._descramble_tag(tag_text)
         git_auth = crypto.get_git_auth(self.config)

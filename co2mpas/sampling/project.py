@@ -266,7 +266,8 @@ class Project(transitions.Machine, ProjectSpec):
 
         According to RFC5322, 78 is the maximum width for textual emails;
         mails with width > 78 may be sent as HTML-encoded and/or mime-multipart.
-        So we set to 76 for cr+NL end-ofline chars
+        QuotedPrintable has 76 as limit, probably to account for CR+NL 
+        end-ofline chars
         """
     ).tag(config=True)
 
