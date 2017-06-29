@@ -9,19 +9,17 @@
 It provides CO2MPAS schema parse/validator.
 """
 
-import logging
 from collections import Iterable, OrderedDict
-import numpy as np
 import datetime
-import os.path as osp
-from schema import Schema, Use, And, Or, Optional, SchemaError
-from sklearn.tree import DecisionTreeClassifier
-import pprint
-import schedula as sh
-from . import validations
-from . import excel
 import functools
-from co2mpas.model.physical.gear_box.at_gear import CMV, MVL, GSPV
+import logging
+
+from schema import Schema, Use, And, Or, Optional, SchemaError
+
+import numpy as np
+import os.path as osp
+import schedula as sh
+
 
 log = logging.getLogger(__name__)
 
@@ -74,6 +72,8 @@ def _ta_mode(data):
 
 
 def _extract_declaration_data(inputs, errors):
+    from . import validations
+
     diff = set()
     inputs = validations.select_declaration_data(inputs, diff)
     errors = validations.select_declaration_data(errors)
@@ -82,6 +82,8 @@ def _extract_declaration_data(inputs, errors):
 
 def _eng_mode_parser(
         engineering_mode, soft_validation, use_selector, inputs, errors):
+    from . import validations
+
     if not engineering_mode:
         inputs, errors, diff = _extract_declaration_data(inputs, errors)
         if diff:
@@ -104,6 +106,8 @@ def _eng_mode_parser(
 
 
 def validate_plan(plan, engineering_mode, soft_validation, use_selector):
+    from . import excel
+
     read_schema = define_data_schema(read=True)
     flag_read_schema = define_flags_schema(read=True)
     validated_plan, errors, v_data = [], {}, read_schema.validate
@@ -269,6 +273,8 @@ def _eval(s, error=None, **kwargs):
 
 # noinspection PyUnusedLocal
 def _dict(format=None, error=None, read=True, **kwargs):
+    import pprint
+
     format = And(dict, format or {int: float})
     error = error or 'should be a dict with this format {}!'.format(format)
     c = Use(lambda x: {k: v for k, v in dict(x).items() if v is not None})
@@ -280,6 +286,8 @@ def _dict(format=None, error=None, read=True, **kwargs):
 
 # noinspection PyUnusedLocal
 def _ordict(format=None, error=None, read=True, **kwargs):
+    import pprint
+
     format = format or {int: float}
     msg = 'should be a OrderedDict with this format {}!'
     error = error or msg.format(format)
@@ -367,23 +375,27 @@ def _np_array_positive(dtype=None, error=None, read=True,
 
 # noinspection PyUnusedLocal
 def _cmv(error=None, **kwargs):
+    from co2mpas.model.physical.gear_box.at_gear import CMV
     return _type(type=CMV, error=error)
 
 
 # noinspection PyUnusedLocal
 def _mvl(error=None, **kwargs):
+    from co2mpas.model.physical.gear_box.at_gear import MVL
     return _type(type=MVL, error=error)
 
 
 # noinspection PyUnusedLocal
 def _gspv(error=None, **kwargs):
+    from co2mpas.model.physical.gear_box.at_gear import GSPV
     return _type(type=GSPV, error=error)
 
 
 # noinspection PyUnusedLocal
 def _dtc(error=None, read=True, **kwargs):
+    from sklearn import tree as sk_tree
     if read:
-        return _type(type=DecisionTreeClassifier, error=error)
+        return _type(type=sk_tree.DecisionTreeClassifier, error=error)
     return And(_dtc(), Use(lambda x: sh.NONE), error=error)
 
 
