@@ -693,30 +693,42 @@ base32(tag): |=0A=\r
 """
         m = tstamp._stamper_banner_regex.search(s)
         self.assertIsNotNone(m)
-        
+
+    def test_tranfer_encoders_map(self):
+        enc_map = tstamp._make_tranfer_encoders_map()
+        self.assertEqual(len(set(enc_map)), 7, enc_map)
+        for k, v in enc_map.items():
+            if v is not None:
+                self.assertTrue(callable(v), (k, v))
+
+
 @ddt.ddt
 class TstampShell(unittest.TestCase):
+    def test_parse_txt_copied_tstamp(self):
+        ret = sbp.check_call('co2dice tstamp parse tstamp-txt_copied.txt',
+                             cwd=mydir)
+        self.assertEqual(ret, 0)
+
     def test_login_smoketest(self):
-        ret = sbp.check_call('co2dice tstamp login', env=os.environ)
+        ret = sbp.check_call('co2dice tstamp login')
         self.assertEqual(ret, 0)
 
     def test_mailbox_smoketest(self):
-        ret = sbp.check_call('co2dice tstamp mailbox', env=os.environ)
+        ret = sbp.check_call('co2dice tstamp mailbox')
         self.assertEqual(ret, 0)
 
     def test_recv_smoketest(self):
-        ret = sbp.check_call('co2dice tstamp recv', env=os.environ)
+        ret = sbp.check_call('co2dice tstamp recv')
         self.assertEqual(ret, 0)
 
-        ret = sbp.check_call('co2dice tstamp recv --raw', env=os.environ)
+        ret = sbp.check_call('co2dice tstamp recv --raw')
         self.assertEqual(ret, 0)
 
-        ret = sbp.check_call('co2dice tstamp recv --list', env=os.environ)
+        ret = sbp.check_call('co2dice tstamp recv --list')
         self.assertEqual(ret, 0)
 
     def test_send_smoketest(self):
         fpath = osp.join(mydir, '..', '..', 'setup.py')
-        ret = sbp.check_call('co2dice tstamp send %s --dry-run -f' % fpath,
-                             env=os.environ)
+        ret = sbp.check_call('co2dice tstamp send %s --dry-run -f' % fpath)
         self.assertEqual(ret, 0)
 

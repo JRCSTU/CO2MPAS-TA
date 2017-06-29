@@ -10,6 +10,7 @@ from collections import (
 import io
 import re
 import sys
+import functools as fnt
 from typing import (
     List, Sequence, Iterable, Text, Tuple, Dict, Callable, Union)  # @UnusedImport
 
@@ -263,6 +264,44 @@ class TstampSpec(dice.DiceSpec):
 SCRABLE_KEY = 'base64(tag)'
 
 
+def _make_tranfer_encoders_map():
+    """Add 2 capital/lower keys for each Content-Transfer-Encoder in :mod:`email import encoders`."""
+    from  email import encoders as enc
+
+    encoders = [enc.encode_base64, enc.encode_quopri, enc.encode_7or8bit]
+    enc_kv = [(e.__name__[len('encode_'):].upper(), e)
+              for e in encoders]
+
+    ## Add the same encoders in lower for conditionall application.
+    #
+    def apply_conditionally(msg, encoder):
+        mbytes = msg.get_payload(decode=True)
+        max_line_length = msg.policy.max_line_length
+
+        apply = not max_line_length or any(len(l.rstrip()) > max_line_length
+                                           for l in mbytes.split(b'\n'))
+        try:
+            mbytes.decode('ascii')
+        except:
+            apply = True
+
+        if apply:
+            encoder(msg)
+
+    enc_kv += [(k.lower(), fnt.partial(apply_conditionally, encoder=v))
+                for k, v in enc_kv]
+
+    ## Choice to delete Header,
+    #  let the SMTP client/server decide
+    #
+    def no_encoding(msg):
+        del msg['Content-Transfer-Encoding']
+
+    enc_kv.append(('noenc', no_encoding))
+
+    return dict(enc_kv)
+
+
 class TstampSender(TstampSpec):
     """SMTP & timestamp parameters and methods for sending dice emails."""
 
@@ -317,11 +356,22 @@ class TstampSender(TstampSpec):
         """
     ).tag(config=True)
 
-    transfer_encoding_b64 = trt.Bool(
-        help="""When true, set Content-Transfer-Encoding MIME Header to base64.
+    transfer_encoding = trt.FuzzyEnum(
+        list(_make_tranfer_encoders_map()),
+        default_value='7or8bit', allow_none=True,
+        case_sensitive=True,
+        help="""Set the Content-Transfer-Encoding MIME Header and encodes
+        appropriately the outgoing message.
 
-        Try this to avoid strange `'=0A=0D=0E'` chars scattered in the email
-        (MS Outlook Exchange servers have this problem but are immune to this switch!)"""
+        - Experiment with this to avoid strange `'=0A=0D=0E'` chars scattered in the email
+          (MS Outlook Exchange servers have this problem but seem immune to this switch!)
+        - Note that base64 encoding DOES NOT work with Tstamper, for sure.
+        - CAPITAL encodings mean "always done"; `lower` applied only if
+          non-ASCII (or long-lines?).
+        - Sending with `quopri` might work if receiving with :attr:`un_quote_printable`.
+        - `noenc` removes the header.
+        - Setting None means "default set by python".
+        """
     ).tag(config=True)
 
     scramble_tag = trt.Bool(
@@ -378,6 +428,7 @@ class TstampSender(TstampSpec):
 
     def _prepare_mail(self, msg, subject_suffix):
         from email.mime.text import MIMEText
+        from email import policy
 
         mail = MIMEText(msg, 'plain')
         mail['Subject'] = '%s %s' % (self.subject_prefix, subject_suffix)
@@ -388,10 +439,17 @@ class TstampSender(TstampSpec):
         if self.bcc_addresses:
             mail['Bcc'] = ', '.join(self.bcc_addresses)
 
-        if self.transfer_encoding_b64:
-            from  email import encoders
-            self.log.info("Setting Transfer-Encoding: %s", 'base64')
-            encoders.encode_base64(mail)
+        ## Instruct serializers to dissregard line-length.
+        mail.policy = policy.default.clone(max_line_length=0)
+
+        if self.transfer_encoding:
+            encoding = self.transfer_encoding
+            self.log.info("Setting Transfer-Encoding: %s", encoding)
+
+            enc_map = _make_tranfer_encoders_map()
+            encoder = enc_map[encoding]
+            if encoder:
+                encoder(mail)
 
         return mail
 
