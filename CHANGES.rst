@@ -17,7 +17,8 @@ The Dice:
   *Content-Transfer-Enconding* ``base64``. Try this to avoid strange `'=0A=0D=0E'` 
   chars scattered in the email (MS Outlook Exchange servers have this problem
   but are immune to this switch!).
-- feat(tstamp): add ``--subject`` and ``--on`` options on ``tstamp recv`` subcmd. 
+- feat(tstamp): add ``--subject`` and ``--on`` options to control search criteria 
+  on the ``tstamp recv`` and ``project trecv`` subcmds. 
 - feat(tstamp): add ``TstampSender.scramble_tag`` & ``TstampReceiver.un_quote_printable``
   options for dealing with non-ASCII dice-reports. 
 

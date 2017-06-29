@@ -1349,7 +1349,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         if not self.validate_project_name(pname):
             raise CmdException(
                 "Invalid name %r for a project!\n  Expected('FT-ta-WMI-yyyy-nnnn'), "
-                "where ta, yyy, nnn are numbers." % pname)
+                "where `ta`, `yyyy` and `nnn` are numbers." % pname)
 
         prefname = _pname2ref_name(pname)
         if prefname in self.repo.heads:
