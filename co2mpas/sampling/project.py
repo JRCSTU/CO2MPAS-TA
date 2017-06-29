@@ -33,7 +33,6 @@ from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  
 from .._version import __dice_report_version__
 
 
-vehicle_family_id_regex = re.compile(r'^(?:IP|RL|RM|PR)-\d{2}-\w{2,3}-\d{4}-\d{4}$')
 git_project_regex = re.compile(r'^\w[\w-]+$')
 
 _git_messaged_obj = re.compile(r'^(:?object|tag) ')
@@ -1333,9 +1332,11 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         return self._current_project
 
     def validate_project_name(self, pname: Text) -> Project:
+        from ..io import schema
+
         return pname and (self.force and
                           git_project_regex.match(pname) or
-                          vehicle_family_id_regex.match(pname))
+                          schema.vehicle_family_id_regex.match(pname))
 
     def proj_add(self, pname: Text) -> Project:
         """

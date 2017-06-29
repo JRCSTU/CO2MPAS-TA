@@ -13,6 +13,7 @@ from collections import Iterable, OrderedDict
 import datetime
 import functools
 import logging
+import re
 
 from schema import Schema, Use, And, Or, Optional, SchemaError
 
@@ -767,9 +768,9 @@ def define_data_schema(read=True):
     return Schema(schema)
 
 
-def _vehicle_family_id(error=None, **kwargs):
-    from ..sampling.project import vehicle_family_id_regex
+vehicle_family_id_regex = re.compile(r'^(?:IP|RL|RM|PR)-\d{2}-\w{2,3}-\d{4}-\d{4}$')
 
+def _vehicle_family_id(error=None, **kwargs):
     def m(s):
         return vehicle_family_id_regex.match(s)
     error = (error or "Invalid format!"
