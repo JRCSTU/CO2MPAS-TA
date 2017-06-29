@@ -1981,13 +1981,18 @@ class TrecvCmd(TparseCmd):
 
         ## IMAP & CmdException raised here.
         emails = rcver.receive_timestamped_emails(self.wait, args, read_only=False)
-        for mail in emails:
+        for uid, mail in emails:
             mid = mail.get('Message-Id')
             try:
                 verdict = rcver.parse_tstamp_response(mail.get_payload())
+            except CmdException as ex:
+                verdict = ex
+                self.log.warning("[%s]%s: parsing tstamp failed due to: %s",
+                                 uid, mid, ex)
             except Exception as ex:
                 verdict = ex
-                warn("Failed parsing %s tstamp due to: %s", mid, ex)
+                self.log.error("[%s]%s: parsing tstamp failed due to: %s",
+                                 uid, mid, ex, exc_info=1)
 
             ## Store full-verdict (verbose).
             infos = rcver._get_recved_email_infos(mail, verdict, verbose=True)

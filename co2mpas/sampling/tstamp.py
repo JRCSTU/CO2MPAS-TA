@@ -919,13 +919,13 @@ class TstampReceiver(TstampSpec):
         resp = srv.uid('FETCH', b','.join(uids), "(UID RFC822)")
         data = reject_IMAP_no_response("fetch emails", resp)
 
-        for i, d in enumerate(data):
+        for i, (uid, d) in enumerate(zip(uids, data)):
             if i % 2 == 1:
                 assert d == b')', 'Unexpected FETCH data(%i): %s' % (i, d)
                 continue
             m = email.message_from_bytes(d[1])
 
-            yield m
+            yield uid.decode(), m
 
     def _get_recved_email_infos(self, mail, verdict_or_ex, verbose=None):
         """Does not raise anything."""
@@ -1309,27 +1309,34 @@ class RecvCmd(baseapp.Cmd):
 
         emails = rcver.receive_timestamped_emails(self.wait, args,
                                                   read_only=True)
-        for mail in emails:
+        for uid, mail in emails:
             mid = mail.get('Message-Id')
+            mail_text = mail.get_payload()
+
             if self.form == 'raw':
                 yield "\n\n" + '=' * 40
                 yield "Email_id: %s" % mid
                 yield '=' * 40
-                yield mail.get_payload(decode=True)
+                yield mail_text
             else:
                 if self.form == 'list':
                     verdict = None
                 else:
                     try:
-                        verdict = rcver.parse_tstamp_response(mail.get_payload())
+                        verdict = rcver.parse_tstamp_response(mail_text)
+                    except CmdException as ex:
+                        verdict = ex
+                        self.log.warning("[%s]%s: parsing tstamp failed due to: %s",
+                                         uid, mid, ex)
                     except Exception as ex:
                         verdict = ex
-                        self.log.warning("Failed parsing %s tstamp due to: %s",
-                                         mid, ex)
+                        self.log.error("[%s]%s: parsing tstamp failed due to: %s",
+                                         uid, mid, ex, exc_info=1)
 
                 infos = rcver._get_recved_email_infos(mail, verdict)
 
-                yield _mydump({mid: infos}, default_flow_style=default_flow_style)
+                yield _mydump({'[%s]%s' % (uid, mid): infos},
+                              default_flow_style=default_flow_style)
 
 
 class ParseCmd(baseapp.Cmd):
