@@ -15,10 +15,10 @@ from typing import (
 import os.path as osp
 import pandalone.utils as pndlu
 import pandas as pd
-from .._vendor import traitlets as trt
 
 from . import baseapp, project, CmdException, PFiles
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
+from .._vendor import traitlets as trt
 
 
 ###################
@@ -31,7 +31,7 @@ def _report_tuple_2_dict(fpath, iokind, report) -> dict:
         ('iokind', iokind)])
 
     if isinstance(report, pd.DataFrame):
-        decs_rounding = 4  # Keep report below 78 chars width.
+        decs_rounding = 4  # Keep report below 76 QuotedPrintable length-limit.
 
         def fmt_row_as_pair(i, k, v):
             try:
@@ -154,7 +154,6 @@ class Report(baseapp.Spec):
                     raise CmdException(msg)
 
             yield (fpath, 'inp', OrderedDict([
-                ('report_type', 'input_report'),
                 ('vehicle_family_id', file_vfid),
             ]))
 

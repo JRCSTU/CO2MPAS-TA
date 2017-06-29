@@ -7,23 +7,22 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
+from co2mpas._vendor.traitlets import config as trtc
 from co2mpas.sampling import CmdException, report, project, crypto
 import logging
-import numpy as np
 import os
-import subprocess as sbp
 import re
-import yaml
 import shutil
 import tempfile
 import types
 import unittest
 
 import ddt
+import yaml
 
+import numpy as np
 import os.path as osp
-import pandas as pd
-from co2mpas._vendor.traitlets import config as trtc
+import subprocess as sbp
 
 from . import (test_inp_fpath, test_out_fpath, test_vfid,
                test_pgp_fingerprint, test_pgp_key, test_pgp_trust)
@@ -63,10 +62,10 @@ class TReportBase(unittest.TestCase):
         dr = k.get('report')
         if dice_report is True:
             self.assertIsInstance(dr, dict, k)
-            self.assertEqual(dr['report_type'][0], 'dice_report', k)
-            self.assertEqual(dr['vehicle_family_id'][0], vfid, k)
+
+            self.assertEqual(dr['0.vehicle_family_id'][0], vfid, k)
         elif dice_report is False:
-            self.assertIn('report_type', dr)
+            self.assertEqual(dr['vehicle_family_id'], vfid, k)
         else:
             self.assertIsNone(dr, k)
 
@@ -160,7 +159,7 @@ class TReportProject(TReportBase):
         c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
-            project.ProjectCmd.InitCmd(config=c).run('proj1')
+            project.InitCmd(config=c).run('proj1')
             cmd = report.ReportCmd(config=c)
             with self.assertRaisesRegex(
                 CmdException, re.escape(
@@ -171,9 +170,9 @@ class TReportProject(TReportBase):
         c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
-            project.ProjectCmd.InitCmd(config=c).run('proj1')
+            project.InitCmd(config=c).run('proj1')
 
-            project.ProjectCmd.AppendCmd(config=c).run('inp=%s' % test_inp_fpath)
+            project.AppendCmd(config=c).run('inp=%s' % test_inp_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
@@ -184,7 +183,7 @@ class TReportProject(TReportBase):
             self.assertTrue(f.endswith("tests\sampling\input.xlsx"), rpt)
             self.check_report_tuple(rec, test_vfid, test_inp_fpath, 'inp')
 
-            project.ProjectCmd.AppendCmd(config=c).run('out=%s' % test_out_fpath)
+            project.AppendCmd(config=c).run('out=%s' % test_out_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
@@ -203,41 +202,41 @@ class TReportProject(TReportBase):
         c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
-            project.ProjectCmd.InitCmd(config=c).run('proj1')
+            project.InitCmd(config=c).run('RL-99-BM3-2017-0001')
 
-            project.ProjectCmd.AppendCmd(config=c).run('out=%s' % test_out_fpath)
-            cmd = report.ReportCmd(config=c)
-            res = cmd.run()
+            project.AppendCmd(config=c, out=[test_out_fpath]).run()
+            res = report.ReportCmd(config=c).run()
             self.assertIsInstance(res, types.GeneratorType)
             res = list(res)
             self.assertEqual(len(res), 1)
             rpt = yaml.load('\n'.join(res))
             f, rec = next(iter(rpt.items()))
-            self.assertTrue(f.endswith("tests\sampling\output.xlsx"), rpt)
+            self.assertNotIn('input.xlsx', rpt)
+            self.assertIn("output.xlsx", rpt)
             self.check_report_tuple(rec, test_vfid, test_out_fpath, 'out', True)
 
-            project.ProjectCmd.AppendCmd(config=c).run('inp=%s' % test_inp_fpath)
-            cmd = report.ReportCmd(config=c)
-            res = cmd.run()
+            project.AppendCmd(config=c, inp=[test_inp_fpath]).run()
+            res = report.ReportCmd(config=c).run()
             self.assertIsInstance(res, types.GeneratorType)
             res = list(res)
             self.assertEqual(len(res), 2)
             rpt = yaml.load('\n'.join(res))
             for f, rec in rpt.items():
-                if f.endswith('input.xlsx'):
+                if f == 'input.xlsx':
                     path, iokind, rpt = "tests\sampling\input.xlsx", 'inp', None
-                elif f.endswith('output.xlsx'):
+                elif f == 'output.xlsx':
                     path, iokind, rpt = "tests\sampling\output.xlsx", 'out', True
-                self.assertTrue(f.endswith(path), rpt)
+                self.assertIn('output.xlsx', rpt)
+                self.assertIn('input.xlsx', rpt)
                 self.check_report_tuple(rec, test_vfid, path, iokind, rpt)
 
     def test_both(self):
         c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
-            project.ProjectCmd.InitCmd(config=c).run('proj1')
+            project.InitCmd(config=c).run('proj1')
 
-            cmd = project.ProjectCmd.AppendCmd(config=c)
+            cmd = project.AppendCmd(config=c)
             cmd.run('out=%s' % test_out_fpath, 'inp=%s' % test_inp_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
