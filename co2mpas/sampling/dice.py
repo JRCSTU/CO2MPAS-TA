@@ -184,14 +184,18 @@ def main(argv=None, log_level=None, **app_init_kwds):
         #  to facilitate debugging from log/ex messages, unless
         #  tyarkoni/transitions#179 & tyarkoni/transitions#180 merged.
         log.debug('App exited due to: %r', ex, exc_info=1)
-        log.error('%s', ex)
-        return ex  # It's string will be printed.
+        red, res = '\x1b[31m', '\x1b[0m'
+        return '%s%s%s' % (red, ex, res)  # Print str(ex) and set exit-code.
     except Exception as ex:
-        ## Shell will see any exception x2, but we have to log it anyways,
+        ## Try shell not to see exception x2, but log it anyways,
         #  in case log has been redirected to a file.
         #
-        log.error('Launch failed due to: %s', ex, exc_info=1)
-        raise ex
+        import traceback as tb
+
+        red, res = '\x1b[31m', '\x1b[0m'
+        log.debug('App failed due to: %r', ex, exc_info=1)
+        ex = tb.format_exc()
+        return '%s%s%s' % (red, ex, res)  # Print str(ex) and set exit-code.
 
 if __name__ == '__main__':
     if __package__ is None:
