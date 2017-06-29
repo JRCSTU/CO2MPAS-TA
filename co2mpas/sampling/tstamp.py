@@ -316,6 +316,12 @@ class TstampSender(TstampSpec):
         """
     ).tag(config=True)
 
+    transfer_encoding_b64 = trt.Bool(
+        help="""When true, set Content-Transfer-Encoding MIME HEadewr to base64.
+        Try this to avoid strange `'=0A=0D=0E'` chars scattered in the email 
+        (MS Outlook Exchange servers have this problem but are immune to this switch!)"""
+    ).tag(config=True)
+
     @property
     def _from_address_resolved(self):
         return self.from_address or self.user_email
@@ -371,6 +377,10 @@ class TstampSender(TstampSpec):
             mail['Cc'] = ', '.join(self.cc_addresses)
         if self.bcc_addresses:
             mail['Bcc'] = ', '.join(self.bcc_addresses)
+
+        if self.transfer_encoding_b64:
+            from  email import encoders
+            encoders.encode_base64(mail)
 
         return mail
 

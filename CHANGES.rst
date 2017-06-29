@@ -13,6 +13,10 @@ The Dice:
   and all interesting variables affecting configurations.
   (alternatives to the much  coarser ``--help`` and ``--help-all`` options).
 - fix(tstamp): BCC-addresses were treated as CCs.
+- feat(tstamp): add ``TstampSender.transfer_encoding_b64``  to send emails with
+  *Content-Transfer-Enconding* ``base64``. Try this to avoid strange `'=0A=0D=0E'` 
+  chars scattered in the email (MS Outlook Exchange servers have this problem
+  but are immune to this switch!).
 - feat(tstamp): add ``--subject`` and ``--on`` options on ``tstamp recv`` subcmd. 
 
 Model:
