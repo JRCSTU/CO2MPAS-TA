@@ -18,6 +18,8 @@ The Dice:
   chars scattered in the email (MS Outlook Exchange servers have this problem
   but are immune to this switch!).
 - feat(tstamp): add ``--subject`` and ``--on`` options on ``tstamp recv`` subcmd. 
+- feat(tstamp): add ``TstampSender.scramble_tag`` & ``TstampReceiver.un_quote_printable``
+  options for dealing with non-ASCII dice-reports. 
 
 Model:
 ------

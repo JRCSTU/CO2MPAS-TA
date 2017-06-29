@@ -19,14 +19,14 @@ from . import CmdException, baseapp, dice, crypto
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 
 
-def _to_bytes(s):
+def _to_bytes(s, encoding='ASCII', errors='surrogateescape'):
     if not isinstance(s, bytes):
-        return s.encode('ASCII', errors='surrogateescape')
+        return s.encode(encoding, errors=errors)
 
 
-def _to_str(b):
+def _to_str(b, encoding='ASCII', errors='surrogateescape'):
     if not isinstance(b, str):
-        return b.decode('ASCII', errors='surrogateescape')
+        return b.decode(encoding, errors=errors)
 
 
 ###################
@@ -179,7 +179,7 @@ class TstampSpec(dice.DiceSpec):
     #@trt.validate('subject_prefix')  # Only @sender, IMAP may search UTF-8?
     def _is_all_latin(self, proposal):
         value = proposal.value
-        if any(ord(c) >= 128 for c in value):
+        if not all(ord(c) < 128 for c in value):
             myname = type(self).__name__
             raise trt.TraitError('%s.%s must not contain non-ASCII chars: %s'
                                  % (myname, proposal.trait.name, value))
@@ -262,6 +262,10 @@ class TstampSpec(dice.DiceSpec):
             self._socks_patched_modules.add(module)
 
 
+#: The key of of the base64 blob of the report wihen it is too-wide.
+SCRABLE_KEY = 'base64(tag)'
+
+
 class TstampSender(TstampSpec):
     """SMTP & timestamp parameters and methods for sending dice emails."""
 
@@ -322,6 +326,13 @@ class TstampSender(TstampSpec):
         (MS Outlook Exchange servers have this problem but are immune to this switch!)"""
     ).tag(config=True)
 
+    scramble_tag = trt.Bool(
+        help="""Base64-encode dice-tag to mask any non-ASCII and long-lines.
+
+        That happend right before sending it it may resolve email-corruption 
+        problems, particularly when following the "manual" procedure."""
+    ).tag(config=True)
+
     @property
     def _from_address_resolved(self):
         return self.from_address or self.user_email
@@ -380,6 +391,7 @@ class TstampSender(TstampSpec):
 
         if self.transfer_encoding_b64:
             from  email import encoders
+            self.log.info("Setting Transfer-Encoding: %s", 'base64')
             encoders.encode_base64(mail)
 
         return mail
@@ -410,27 +422,69 @@ class TstampSender(TstampSpec):
             if code == 503:
                 self.log.info('Already authenticated: %s', resp)
 
+    def _scramble_tag(self, tag_text: Union[Text, bytes],
+                      header: Text):
+        """
+        If email too wide or non-latin, encode32 it, an set just the header.
+        
+        The result is this::
+        
+            tag: dices/IP-10-AAA-2017-0012/4
+            base64(tag): |
+              N5RGUZLDOQQDAMBTMY2DANTCME4GCOJSMU3TONLBHAYWKY3CGEZTSM3BHA3TOM
+              DEMU2WKM3GMUZQU5DZOBSSAY3PNVWWS5AKORQWOIDENFRWK4ZPJFIC2MJQFVAU
+              ...
+              JNFUWQU==
+            -----BEGIN PGP SIGNATURE-----
+        """
+        assert all(ord(c) < 128 for c in header), "Non-ASCII in: %s" % header
+        sep = b'\n' if isinstance(tag_text, bytes) else '\n'
+        max_line_len = max(len(l) for l in tag_text.split(sep))
+        too_wide = max_line_len > 78
+        all_latin = all(ord(c) < 128 for c in tag_text)
+        ## According to RFC5322, 78 is the maximum width for textual emails;
+        #  mails with width > 78 may be sent as HTML-encoded and/or mime-multipart.
+        #  QuotedPrintable has 76 as limit, probably to account for CR+NL
+        #  end-ofline chars
+        self.log.info("Email content: non_ASCII: %s, line_len: %s, too_wide: %s",
+                      not all_latin, max_line_len, too_wide)
+        if (self.scramble_tag):
+            import base64
+
+            wrapped_rbody = base64.b64encode(_to_bytes(tag_text, 'utf-8'))
+
+            ## Chnuk blob in lines:
+            #      -2: ident, 64: margin copied from GPG.
+            #
+            new_width = 64 - 2
+            wrapped_rbody = b'\n  '.join(
+                wrapped_rbody[pos:pos + new_width]
+                for pos
+                in range(0, len(wrapped_rbody), new_width))
+
+            tag_text = '%s: %s\n%s: |\n  %s' % ('tag', header,
+                                                  SCRABLE_KEY,
+                                                  wrapped_rbody.decode())
+
+        return tag_text
+
     def send_timestamped_email(self, msg: Union[str, bytes],
                                subject_suffix='', dry_run=False):
         ## TODO: Schedula to the rescue!
 
-        msg_bytes = msg
-        if isinstance(msg, str):
-            msg_bytes = _to_bytes(msg)
-        git_auth = crypto.get_git_auth(self.config)
-
-        ## Allow to skip report syntxa-errors/verification if --force,
+        ## Allow to skip report syntax-errors/verification if --force,
         #  but still report the kind of syntax/sig failure
         #
         try:
-            ver = git_auth.verify_git_signed(msg_bytes)
+            git_auth = crypto.get_git_auth(self.config)
+            ver = git_auth.verify_git_signed(_to_bytes(msg, 'utf-8'))
             verdict = _mydump(sorted(vars(ver).items()))
         except Exception as ex:
             err = "Failed to extract signed dice-report from tstamp!\n%s" % ex
             if self.force:
                 self.log.warning(err)
             else:
-                raise CmdException(err)
+                raise CmdException(err) from ex
         else:
             if not ver:
                 err = "Cannot verify dice-report's signature!\n%s" % verdict
@@ -442,6 +496,7 @@ class TstampSender(TstampSpec):
                 err = "The dice-report in timestamp got verified OK: %s"
                 self.log.debug(err, verdict)
 
+        msg = self._scramble_tag(msg, subject_suffix)
         msg = self._append_tstamp_recipients(msg)
         mail = self._prepare_mail(msg, subject_suffix)
 
@@ -629,6 +684,23 @@ class TstampReceiver(TstampSpec):
 
         return project
 
+    def _descramble_tag(self, tag_text: Text) -> int:
+        if SCRABLE_KEY in tag_text:
+            #
+            ## Either report were too wide, or instructed to base64-encode
+            #  the dice-report before embedding it into the tag.
+            import base64
+
+            blob_start = tag_text.index(SCRABLE_KEY)
+            blob_start += len(SCRABLE_KEY) + len(': |')
+            tag_b64 = re.sub('\\s', '', tag_text[blob_start:])
+            tag_bytes = base64.b64decode(tag_b64)
+        else:
+            tag_bytes = _to_bytes(tag_text, 'utf-8')
+            
+        return tag_bytes
+
+
     def parse_tstamped_tag(self, tag_text: Text) -> int:
         """
         :param msg_text:
@@ -636,7 +708,7 @@ class TstampReceiver(TstampSpec):
         """
         ## TODO: Schedula to the rescue!
 
-        stag_bytes = _to_bytes(tag_text)
+        stag_bytes = self._descramble_tag(tag_text)
         git_auth = crypto.get_git_auth(self.config)
 
         ## Allow parsing signed/unsigned reports when --force,
@@ -1189,7 +1261,7 @@ class SendCmd(baseapp.Cmd):
                     type(self).__name__: {'dry_run': True},
                 },
                 pndlu.first_line(type(self).dry_run.help)
-            )
+            ),
         })
         super().__init__(**kwds)
 

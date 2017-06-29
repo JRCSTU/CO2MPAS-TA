@@ -1820,12 +1820,6 @@ class TsendCmd(_SubCmd):
                 },
                 "Print dice-report and bump `mailed` but do not actually send tstamp-email."
             ),
-            'b32': (
-                {
-                    'TstampSender': {'b32_msg': True},
-                },
-                pndlu.first_line(tstamp.TstampSender.b32_msg.help)
-            ),
         })
         super().__init__(**kwds)
 

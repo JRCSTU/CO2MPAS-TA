@@ -593,6 +593,19 @@ class TRX(unittest.TestCase):
         with self.assertRaisesRegex(tstamp.CmdException, ex_msg):
             snd.send_timestamped_email("", dry_run=True)
 
+    def test_extract_base64_blob(self):
+        tag_text = """Τιριρερεμ"""
+        snd = tstamp.TstampSender(config=self.cfg)
+        snd.scramble_tag = True
+        b64_text = snd._scramble_tag(tag_text, 'Hi there')
+        self.assertTrue(all(ord(c) < 128 for c in b64_text), b64_text)
+        self.assertTrue(all(len(l) < 78 for l in b64_text.split('\n')), b64_text)
+
+        rcv = tstamp.TstampReceiver(config=self.cfg)
+        tstamp_text = 'Some\nFobar\r\n%s\r\n\n' % b64_text
+        new_tag_text = rcv._descramble_tag(tstamp_text)
+        self.assertEqual(tag_text, new_tag_text.decode('utf-8'))
+
     @ddt.data(*tstamp_responses)
     def test_scan_vfid_regex(self, case):
         rcv = tstamp.TstampReceiver(config=self.cfg)
