@@ -106,6 +106,12 @@ def default_persist_fpath(dirname=None):
 ################################################
 
 
+def as_list(value):
+    if not isinstance(value, list):
+        value = [value]
+    return value
+
+
 def get_class_logger(cls):
     """Mimic log-hierarchies also for traitlet classes."""
     return logging.getLogger('%s.%s' % (cls.__module__, cls.__name__))
@@ -352,24 +358,36 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
             myname = type(self).__name__
             raise trt.TraitError("`%s.%s` must not be empty!"
                                  % (myname, proposal.trait.name))
-        return value
+        return proposal.value
 
-    def is_pure_email_address(self, proposal):
+    def _is_pure_email_address(self, proposal):
         from validate_email import validate_email
 
         value = proposal.value
-        if not value or not validate_email(value):
-            myname = type(self).__name__
-            raise trt.TraitError("`%s.%s` needs a proper email-address, got: %s"
-                                 % (myname, proposal.trait.name, value))
-        return value
+        for value in as_list(value):
+            if value and not validate_email(value):
+                myname = type(self).__name__
+                raise trt.TraitError(
+                    "`%s.%s` needs a proper email-address, got: %s"
+                    % (myname, proposal.trait.name, value))
+        return proposal.value
+
+    def _is_all_latin(self, proposal):
+        value = proposal.value
+        for value in as_list(value):
+            if value and not all(ord(c) < 128 for c in value):
+                myname = type(self).__name__
+                raise trt.TraitError(
+                    '%s.%s must not contain non-ASCII chars: %s'
+                    % (myname, proposal.trait.name, value))
+        return proposal.value
+
 
     def _warn_deprecated(self, proposal):
         t = proposal.trait
         myname = type(self).__name__
         if proposal.value:
             self.log.warning("Trait `%s.%s`: %s" % (myname, t.name, t.help))
-
         return proposal.value
 
 ###################

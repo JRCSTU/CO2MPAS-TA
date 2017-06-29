@@ -176,15 +176,6 @@ class TstampSpec(dice.DiceSpec):
         """
     ).tag(config=True)
 
-    #@trt.validate('subject_prefix')  # Only @sender, IMAP may search UTF-8?
-    def _is_all_latin(self, proposal):
-        value = proposal.value
-        if not all(ord(c) < 128 for c in value):
-            myname = type(self).__name__
-            raise trt.TraitError('%s.%s must not contain non-ASCII chars: %s'
-                                 % (myname, proposal.trait.name, value))
-        return value
-
     @property
     def user_account_resolved(self):
         return self.user_account is not None and self.user_account or self.user_email
@@ -339,17 +330,18 @@ class TstampSender(TstampSpec):
 
     def __init__(self, *args, **kwds):
         self._register_validator(
-            TstampSender._is_not_empty,
-            ['host', 'subject_prefix'])
+            type(self)._is_not_empty,
+            ['host', 'tstamper_address', 'subject_prefix'])
         self._register_validator(
-            TstampSender.is_pure_email_address,
+            type(self)._is_pure_email_address,
             ['tstamper_address'])
         self._register_validator(
-            TstampSender._warn_deprecated,
-            ['x_recipients', 'timestamping_addresses', 'subject'])
+            ## Apply only one sender, IMAP may(?) search UTF-8.
+            type(self)._is_all_latin,
+            ['subject_prefix', 'tstamp_recipients', 'x_recipients'])
         self._register_validator(
-            TstampSender._is_all_latin,
-            ['subject_prefix'])
+            type(self)._warn_deprecated,
+            ['x_recipients', 'timestamping_addresses', 'subject'])
         super().__init__(*args, **kwds)
 
     ## TODO: delete deprecated trait
