@@ -139,12 +139,12 @@ class TPConfFiles(unittest.TestCase):
         ('b', 'a', ['b.json']),
     )
     def test_collect_static_fpaths(self, case):
+        param, var, exp = case
         with tempfile.TemporaryDirectory(prefix='co2conf-') as tdir:
             for f in ('a.py', 'b.json', 'c.py', 'c.json'):
                 io.open(osp.join(tdir, f), 'w').close()
 
             try:
-                param, var, exp = case
                 exp = [osp.join(tdir, f) for f in exp]
 
                 cmd = baseapp.Cmd()
@@ -153,7 +153,7 @@ class TPConfFiles(unittest.TestCase):
                                         for f in param
                                         for ff in f.split(os.pathsep)]
                 if var is not None:
-                    os.environ['CO2DICE_CONFIG_PATH'] = os.pathsep.join(
+                    os.environ['CO2DICE_CONFIG_PATHS'] = os.pathsep.join(
                         osp.join(tdir, ff)
                         for f in var
                         for ff in f.split(os.pathsep))
@@ -162,7 +162,7 @@ class TPConfFiles(unittest.TestCase):
                 self.assertListEqual(paths, exp)
             finally:
                 try:
-                    del os.environ['CO2DICE_CONFIG_PATH']
+                    del os.environ['CO2DICE_CONFIG_PATHS']
                 except:
                     pass
 

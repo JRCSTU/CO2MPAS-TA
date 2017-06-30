@@ -68,7 +68,7 @@ from ..__main__ import init_logging
 ################################################
 ## INFO: Modify the following variables on a different application.
 APPNAME = 'co2dice'  # TODO: Cannot use baseapp with different app-names.
-CONFIG_VAR_NAME = '%s_CONFIG_PATH' % APPNAME.upper()
+CONFIG_VAR_NAME = '%s_CONFIG_PATHS' % APPNAME.upper()
 
 try:
     _mydir = osp.dirname(__file__)
