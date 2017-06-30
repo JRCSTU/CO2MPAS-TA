@@ -58,7 +58,7 @@ class TCfgFilesRegistry(unittest.TestCase):
 
         exp = [
             ('D:\\Apps\\cygwin64\\home\\anastkn\\.co2dice', ['co2dice_config.py', 'co2dice_config.json']),
-            ('d:\\apps\\cygwin64\\home\\anastkn\\work\\compas.vinz\\co2mpas\\sampling', [])
+            ('d:\\apps\\cygwin64\\home\\anastkn\\work\\compas.vinz\\co2mpas\\sampling', []),
         ]
         print('FF\n', cons)
         self.assertListEqual(cons, exp, visited)
@@ -78,7 +78,7 @@ class TCfgFilesRegistry(unittest.TestCase):
 
         exp =   [
             ('C:\\Users\\anastkn\\.co2dice', ['co2dice_persist.json', 'co2dice_config.py']),
-            ('D:\\Work\\compas.vinz\\co2mpas\\sampling', [])
+            ('D:\\Work\\compas.vinz\\co2mpas\\sampling', []),
         ]
         #print('FF\n', cons)
         self.assertListEqual(cons, exp, visited)
@@ -270,9 +270,9 @@ class TBase(unittest.TestCase):
 
         ## Check arbitrary params preserved.
         #
-        self.assertIn('MySpec', j, j)
-        self.assertIn('MyCmd', j, j)
-        self.assertEqual(j['ANY']['a'], 1, j)
+        self.assertIn('MySpec', j, "Lost arbitrary MySpec: %s" % j)
+        self.assertIn('MyCmd', j, "Lost arbitrary MyCmd: %s" % j)
+        self.assertEqual(j['ANY']['a'], 1, "Lost arbitrary ANY{a: 1}: %s" % j)
 
         if clsname is not None:
             self.assertEqual(j[clsname][trait], value, j)

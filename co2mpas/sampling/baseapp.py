@@ -450,10 +450,22 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
 
         return consolidated
 
-    def visit_file(self, fpath, miss=False):
-        """Invoke this for every visited config-file, successful or not."""
+    def visit_file(self, fpath, miss=False, append=False):
+        """
+        Invoke this in ascending order for every visited config-file.
+        
+        :param miss:
+            Loaeded successful?
+        :param append:
+            set to true to add in descending order (file overriden by above files)
+        """
         base, fname = osp.split(fpath)
-        self.visited_files.append((base, None if miss else fname))
+        pair = (base, None if miss else fname)
+        
+        if append:
+            self._visited_tuples.append(pair)
+        else:
+            self._visited_tuples.insert(0, pair)
 
     def collect_fpaths(self, path_list: List[Text]):
         """
@@ -476,10 +488,10 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
 
                 if osp.isfile(f):
                     new_paths.add(f)
-                    self.visit_file(f)
+                    self.visit_file(f, append=True)
                     found_any = True
                 else:
-                    self.visit_file(f, True)
+                    self.visit_file(f, miss=True, append=True)
 
             return found_any
 
@@ -1055,7 +1067,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
 
         if static_screams:
             msg = "Found %d non-encrypted params in static-configs: %s" % (
-                len(static_screams), static_screams)
+                len(static_screams), list(static_screams))
             if self.raise_config_file_errors:
                 raise trt.TraitError(msg)
             else:

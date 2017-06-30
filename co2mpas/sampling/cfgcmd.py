@@ -179,7 +179,7 @@ class WriteCmd(baseapp.Cmd):
 
 class PathsCmd(baseapp.Cmd):
     """
-    List paths and variables used to load configurations (descending order).
+    List paths and variables used to load configurations (1st override those below).
 
     Some of the environment-variables affecting configurations:
         HOME, USERPROFILE,          : where configs & DICE projects are stored
