@@ -8,7 +8,6 @@
 """co2dice: prepare/sign/send/receive/validate/archive Type Approval sampling emails of *co2mpas*."""
 
 from co2mpas import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
-from co2mpas.__main__ import init_logging
 from co2mpas.sampling import baseapp, CmdException
 from co2mpas.sampling.baseapp import (APPNAME, Cmd,
                                       chain_cmds)  # @UnusedImport
@@ -97,7 +96,7 @@ class Co2diceCmd(Cmd):
         Try the `project` sub-command:
             %(cmd_chain)s  project
 
-        To learn more about command-line options and configurations, 
+        To learn more about command-line options and configurations,
         use this command:
             %(cmd_chain)s  config
 
@@ -169,6 +168,7 @@ def main(argv=None, log_level=None, **app_init_kwds):
                 str(sys.version_info))
 
     import transitions
+    from co2mpas.__main__ import init_logging, exit_with_pride
 
     init_logging(level=log_level, color=True)
     log = logging.getLogger(APPNAME)
@@ -177,25 +177,16 @@ def main(argv=None, log_level=None, **app_init_kwds):
         cmd = Co2diceCmd.make_cmd(argv, **app_init_kwds)
         return baseapp.consume_cmd(cmd.start()) and 0
     except (CmdException, trt.TraitError, transitions.MachineError) as ex:
-        ## Suppress stack-trace for "expected" errors.
-        #
-        #  Note: For *transitions*, better pip-install from:
-        #    https://github.com/ankostis/transitions@master
-        #  to facilitate debugging from log/ex messages, unless
-        #  tyarkoni/transitions#179 & tyarkoni/transitions#180 merged.
         log.debug('App exited due to: %r', ex, exc_info=1)
-        red, res = '\x1b[31m', '\x1b[0m'
-        return '%s%s%s' % (red, ex, res)  # Print str(ex) and set exit-code.
+        ## Suppress stack-trace for "expected" errors but exit-code(1).
+        return exit_with_pride(str(ex))
     except Exception as ex:
-        ## Try shell not to see exception x2, but log it anyways,
+        ## Log in DEBUG not to see exception x2, but log it anyway,
         #  in case log has been redirected to a file.
-        #
-        import traceback as tb
-
-        red, res = '\x1b[31m', '\x1b[0m'
         log.debug('App failed due to: %r', ex, exc_info=1)
-        ex = tb.format_exc()
-        return '%s%s%s' % (red, ex, res)  # Print str(ex) and set exit-code.
+        ## Print stacktrace to stderr and exit-code(-1).
+        return exit_with_pride(ex)
+
 
 if __name__ == '__main__':
     if __package__ is None:

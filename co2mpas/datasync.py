@@ -140,8 +140,8 @@ import functools as fnt
 import numpy as np
 import os.path as osp
 import pandas as pd
-from co2mpas.__main__ import CmdException, init_logging, build_version_string, \
-    parse_overrides
+from co2mpas.__main__ import (CmdException, init_logging, build_version_string,
+                              parse_overrides, exit_with_pride)
 import openpyxl
 import shutil
 import schedula as sh
@@ -714,11 +714,14 @@ def main(*args):
         return _main(*args)
     except CmdException as ex:
         log.debug('App exited due to: %r', ex, exc_info=1)
-        log.error('%s', ex)
-        return ex
+        ## Suppress stack-trace for "expected" errors but exit-code(1).
+        return exit_with_pride(str(ex))
     except Exception as ex:
-        log.error('%r', ex)
-        raise
+        ## Log in DEBUG not to see exception x2, but log it anyway,
+        #  in case log has been redirected to a file.
+        log.debug('App failed due to: %r', ex, exc_info=1)
+        ## Print stacktrace to stderr and exit-code(-1).
+        return exit_with_pride(ex)
 
 
 if __name__ == '__main__':

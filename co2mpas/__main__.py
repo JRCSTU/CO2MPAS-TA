@@ -227,6 +227,52 @@ def init_logging(level=None, frmt=None, logconf_file=None,
                                 message="^unclosed file")
 
 
+def exit_with_pride(reason=None,
+                         msg_color='\x1b[33;1m', err_color='\x1b[31;1m'):
+    """
+    Return an *exit-code* and prints colorful message for ``main()`` methods.
+
+    :param reason:
+        - If reason is None, exit-code(0) signifying OK;
+        - if exception,  print colorful (if tty) stack-trace, and exit-code(-1);
+        - otherwise, prints str(reason) colorfully (if tty) and exit-code(1),
+    :param msg_color:
+        ansi color sequence for stack-trace (default: yellow)
+    :param err_color:
+        ansi color sequence for stack-trace (default: red)
+
+    :return:
+        (0, 1 -1), for reason == (None, str, Exception) respectively.
+
+    Note that returned string from ``main()`` are printed to stderr and
+    exit-code set to bool(str) = 1, so print stderr separately and then
+    set the exit-code.
+
+    For colors use :meth:`RainbowLoggingHandler.getColor()`, defaults:
+    - '\x1b[33;1m': yellow+bold
+    - '\x1b[31;1m': red+bold
+    """
+    if reason is None:
+        return 0
+
+    if isinstance(reason, BaseException):
+        import traceback as tb
+
+        reason = tb.format_exc()
+        color = err_color
+        exit_code = -1
+    else:
+        color = msg_color
+        exit_code = 1
+
+    if sys.stdin.isatty():
+        reset = '\x1b[0m'
+        reason = '%s%s%s' % (color, reason, reset)
+
+    print(reason, file=sys.stderr)
+    return exit_code
+
+
 def build_version_string(verbose):
     v = '%s-%s' % (proj_name, proj_ver)
     if verbose:
@@ -543,11 +589,14 @@ def main(*args):
         return _main(*args)
     except CmdException as ex:
         log.debug('App exited due to: %r', ex, exc_info=1)
-        log.error('%s', ex)
-        return ex  # It's string will be printed.
+        ## Suppress stack-trace for "expected" errors but exit-code(1).
+        return exit_with_pride(str(ex))
     except Exception as ex:
-        log.error('%r', ex)
-        raise
+        ## Log in DEBUG not to see exception x2, but log it anyway,
+        #  in case log has been redirected to a file.
+        log.debug('App failed due to: %r', ex, exc_info=1)
+        ## Print stacktrace to stderr and exit-code(-1).
+        return exit_with_pride(ex)
 
 
 if __name__ == '__main__':

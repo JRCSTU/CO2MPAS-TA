@@ -2358,16 +2358,15 @@ def main(argv=None, log_level=None, **app_init_kwds):
         cmd = Co2guiCmd.make_cmd(argv, **app_init_kwds)
         return baseapp.consume_cmd(cmd.start() and 0)
     except (baseapp.CmdException, trt.TraitError) as ex:
-        ## Suppress stack-trace for "expected" errors.
         log.debug('App exited due to: %r', ex, exc_info=1)
-        log.error('%s', ex)
-        return ex
+        ## Suppress stack-trace for "expected" errors but exit-code(1).
+        return cmain.exit_with_pride(str(ex))
     except Exception as ex:
-        ## Shell will see any exception x2, but we have to log it anyways,
+        ## Log in DEBUG not to see exception x2, but log it anyway,
         #  in case log has been redirected to a file.
-        #
-        log.error('Launch failed due to: %s', ex, exc_info=1)
-        raise ex
+        log.debug('App failed due to: %r', ex, exc_info=1)
+        ## Print stacktrace to stderr and exit-code(-1).
+        return cmain.exit_with_pride(ex)
 
 
 if __name__ == '__main__':
