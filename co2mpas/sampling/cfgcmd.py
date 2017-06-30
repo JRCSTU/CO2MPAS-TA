@@ -128,11 +128,12 @@ class ConfigCmd(baseapp.Cmd):
     examples = trt.Unicode("""
         Ask help on parameters affecting the source of the configurations:
             %(cmd_chain)s desc config_paths persist_path
-            
-        Show config-param values in files or params containing word "mail":
-            %(cmd_chain)s show -s file
-            %(cmd_chain)s show email
-            
+
+        Show config-param values for all params containing word "mail":
+            %(cmd_chain)s show  --versbose  mail
+        Show values originating from files:
+            %(cmd_chain)s show  --source file
+
         Show configuration paths:
             %(cmd_chain)s paths
         """)
@@ -184,12 +185,12 @@ class PathsCmd(baseapp.Cmd):
         HOME, USERPROFILE,          : where configs & DICE projects are stored
               HOMEDRIVE/HOMEPATH      (1st one defined wins)
         CO2DICE_CONFIG_PATHS        : where to read configuration-files.
-        GNUPGHOME                   : where GPG-keys are stored 
+        GNUPGHOME                   : where GPG-keys are stored
                                       (works only if `gpgconf.ctl` is deleted,
-                                       see https://goo.gl/j5mwo4) 
+                                       see https://goo.gl/j5mwo4)
         GNUPGKEY                    : override which is the master-key
                                       (see `desc master_key`)
-        GIT_PYTHON_GIT_EXECUTABLE   : where `git` executable is (if not in PATH) 
+        GIT_PYTHON_GIT_EXECUTABLE   : where `git` executable is (if not in PATH)
     """
     def run(self, *args):
         if len(args) > 0:
@@ -217,9 +218,9 @@ class PathsCmd(baseapp.Cmd):
         yield "  +--gnupgexe: %s" % gpg.gnupgexe_resolved
         yield "  +--gnupghome: %s" % gpg.gnupghome_resolved
 
-        var_names = """AIODIR HOME HOMEDRIVE HOMEPATH USERPROFILE 
-                     CO2DICE_CONFIG_PATHS 
-                     TRAITLETS_APPLICATION_RAISE_CONFIG_FILE_ERROR 
+        var_names = """AIODIR HOME HOMEDRIVE HOMEPATH USERPROFILE
+                     CO2DICE_CONFIG_PATHS
+                     TRAITLETS_APPLICATION_RAISE_CONFIG_FILE_ERROR
                      GNUPGHOME GNUPGKEY GNUPGEXE
                      GIT_PYTHON_GIT_EXECUTABLE GIT_PYTHON_TRACE"""
         yield "ENV-VARS:"

@@ -559,12 +559,12 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         help="""
         Absolute/relative path to read/write persistent parameters on runtime.
 
-        - If path resolves to a folder, the filename `{appname}_persist.json` 
+        - If path resolves to a folder, the filename `{appname}_persist.json`
           is appended; otherwise, the file-extension is assumed to be `.json`;
         - if undefined, and `--config_paths` or `{confvar}` envvar is defined,
-          the rule above is applied on the folder of the 1st static config-file 
+          the rule above is applied on the folder of the 1st static config-file
           read;
-        - Otherwise, defaults to `{default}`. 
+        - Otherwise, defaults to `{default}`.
         - Persistent-parameters override "static" ones.
 
         Note:
@@ -1131,15 +1131,18 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         import ipython_genutils.text as tw
 
         if self.subcommands:
-            cmd_line = ' '.join(cl.name
-                                for cl in reversed(self.my_cmd_chain()))
+            cmd_chain = ' '.join(cl.name
+                                 for cl in reversed(self.my_cmd_chain()))
             examples = str.strip(tw.dedent(self.examples.strip()))
             msg = tw.dedent(
-                """Specify one of the sub-commands:
-                    %s
+                """%(cmd_chain)s: Specify one of its sub-commands:
+                    %(subcmds)s
                 or type:
-                    %s --help
-                """) % (', '.join(self.subcommands.keys()), cmd_line)
+                    %(cmd_chain)s --help
+                """) % {
+                    'cmd_chain': cmd_chain,
+                    'subcmds': ', '.join(self.subcommands.keys()),
+                }
             if examples:
                 msg = "%s\nExamples\n--------\n%s\n" % (msg, examples)
                 msg = msg.strip() % self._my_text_interpolations()
