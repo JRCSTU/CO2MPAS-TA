@@ -205,9 +205,12 @@ class PathsCmd(baseapp.Cmd):
 
         def format_tuple(path, files: List[Text]):
             endpath = sep if path[-1] != sep else ''
-            return '  +--%s%s: %s' % (path, endpath, files or '')
+            return '    +--%s%s: %s' % (path, endpath, files or '')
 
         yield "CONFIG:"
+        yield "  +--config_paths: %s" % self.config_paths_resolved
+        yield "  +--persist_path: %s" % self.persist_file_resolved
+        yield "  +--LOADED_CONFIGS:"
         yield from (format_tuple(p, f) for p, f in self.loaded_config_files)
 
         yield "PROJECTS:"

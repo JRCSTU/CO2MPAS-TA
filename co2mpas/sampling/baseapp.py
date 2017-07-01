@@ -649,14 +649,15 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
     def loaded_config_files(self):
         return self._cfgfiles_registry.config_tuples
 
-    def _collect_static_fpaths(self):
-        """Return fully-normalized paths, with ext."""
+    @property
+    def config_paths_resolved(self):
         env_paths = os.environ.get(CONFIG_VAR_NAME)
         env_paths = env_paths and [env_paths]
-        config_paths = (self.config_paths or
-                        env_paths or
-                        default_config_fpaths())
+        return (self.config_paths or env_paths or default_config_fpaths())
 
+    def _collect_static_fpaths(self):
+        """Return fully-normalized paths, with ext."""
+        config_paths = self.config_paths_resolved
         return self._cfgfiles_registry.collect_fpaths(config_paths)
 
     def _read_config_from_json_or_py(self, cfpath: Text):
@@ -718,7 +719,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         return new_config
 
     @property
-    def _resolved_persist_file(self):
+    def persist_file_resolved(self):
         """Returns the 1st value in config, env, or default-value (might contain ``.json``)."""
         persist_path = (self.persist_path or
                         os.environ.get(PERSIST_VAR_NAME))
@@ -735,7 +736,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         return persist_path
 
     def _read_config_from_persist_file(self):
-        persist_path = self._resolved_persist_file
+        persist_path = self.persist_file_resolved
         try:
             persist_path, config = self.load_pconfig(persist_path)
         except Exception as ex:
@@ -1108,7 +1109,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         finally:
             ## Ensure any encrypted traits are saved.
             #
-            persist_path = self._resolved_persist_file
+            persist_path = self.persist_file_resolved
             if ntraits_encrypted:
                 self.log.info("Updating persistent config %r with %d auto-encrypted values...",
                               persist_path, ntraits_encrypted)
@@ -1171,8 +1172,8 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
             res = self.run(*self.extra_args)
 
             try:
-                persist_path = self._resolved_persist_file
-                self.store_pconfig(self._resolved_persist_file)
+                persist_path = self.persist_file_resolved
+                self.store_pconfig(self.persist_file_resolved)
             except Exception as ex:
                 self.log.warning("Failed saving persistent config due to: %s",
                                  persist_path, ex)
