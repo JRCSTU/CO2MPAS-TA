@@ -195,7 +195,7 @@ def init_logging(level=None, frmt=None, logconf_file=None,
 
         logging.getLogger('pandalone.xleash.io').setLevel(logging.WARNING)
 
-        if color:
+        if color and sys.stderr.isatty():
             from rainbow_logging_handler import RainbowLoggingHandler
 
             color_handler = RainbowLoggingHandler(sys.stderr,
