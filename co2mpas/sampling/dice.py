@@ -137,8 +137,10 @@ def all_cmds():
 #
 def all_app_configurables() -> Tuple:
     from co2mpas.sampling import crypto, project, report, tstamp
+    ## TODO: specs maybe missing from all-config-classes.
     all_config_classes = all_cmds() + (
-        baseapp.Spec, project.ProjectsDB,  # TODO: specs maybe missing from all-config-classes.
+        baseapp.Spec,
+        project.ProjectSpec, project.Project, project.ProjectsDB,
         crypto.VaultSpec, crypto.GitAuthSpec, crypto.StamperAuthSpec,
         report.Report,
         tstamp.TstampSender,
