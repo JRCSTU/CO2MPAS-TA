@@ -718,7 +718,7 @@ class TstampReceiver(TstampSpec):
                 ## Fall-back assuming report was not signed at all.
                 tag = stag_bytes
             else:
-                raise CmdException(msg)
+                raise CmdException(msg) from ex
 
         else:
             if not ver:
@@ -743,10 +743,11 @@ class TstampReceiver(TstampSpec):
             verdict['project'] = cmsg.p
             verdict['project_source'] = 'report'
         except Exception as ex:
-            if not self.force:
-                raise
+            msg = "Cannot parse dice-report due to: %s" % ex
+            if self.force:
+                self.log.error(msg)
             else:
-                self.log.error("Cannot parse dice-report due to: %s", ex)
+                raise CmdException(msg) from ex
 
         if 'project' not in verdict:
             verdict['project'] = self.scan_for_project_name(tag_text)
