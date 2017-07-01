@@ -182,6 +182,8 @@ def init_logging(level=None, frmt=None, logconf_file=None,
                 lcfg.dictConfig(log_dict)
         else:
             lcfg.fileConfig(logconf_file)
+
+        logconf_src = logconf_file
     else:
         if level is None:
             level = logging.INFO
@@ -212,6 +214,7 @@ def init_logging(level=None, frmt=None, logconf_file=None,
             if rlog.handlers and isinstance(rlog.handlers[0], logging.StreamHandler):
                 rlog.removeHandler(rlog.handlers[0])
                 rlog.addHandler(color_handler)
+        logconf_src = 'cmd-line(level)'
 
     _set_numpy_logging()
 
@@ -226,6 +229,7 @@ def init_logging(level=None, frmt=None, logconf_file=None,
         warnings.filterwarnings(action="ignore", module="dill",
                                 message="^unclosed file")
 
+    log.debug('Logging-configurations source: %s', logconf_src)
 
 def exit_with_pride(reason=None,
                          msg_color='\x1b[33;1m', err_color='\x1b[31;1m'):
