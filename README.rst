@@ -368,7 +368,7 @@ you have installed |co2mpas| (see :ref:`install` above) and type::
 
     USAGE:
       co2mpas gui         [-v | -q | --logconf=<conf-file>]
-      co2mpas ta          [-f] [-O=<output-folder>] [<input-path>]...
+      co2mpas ta          [-f] [-v] [-O=<output-folder>] [<input-path>]...
       co2mpas batch       [-v | -q | --logconf=<conf-file>] [-f]
                           [--overwrite-cache] [-O=<output-folder>]
                           [--modelconf=<yaml-file>]
@@ -423,7 +423,7 @@ you have installed |co2mpas| (see :ref:`install` above) and type::
       -V, --version               Print version of the program, with --verbose
                                   list release-date and installation details.
       -v, --verbose               Print more verbosely messages - overridden by --logconf.
-      -q, --quite                 Print less verbosely messages (warnings) - overridden by --logconf.
+      -q, --quiet                 Print less verbosely messages (warnings) - overridden by --logconf.
       --logconf=<conf-file>       Path to a logging-configuration file, according to:
                                     https://docs.python.org/3/library/logging.config.html#configuration-file-format
                                   If the file-extension is '.yaml' or '.yml', it reads a dict-schema from YAML:
@@ -656,7 +656,7 @@ you have installed |co2mpas| and type::
       -V, --version          Print version of the program, with --verbose
                              list release-date and installation details.
       -v, --verbose          Print more verbosely messages - overridden by --logconf.
-      -q, --quite            Print less verbosely messages (warnings) - overridden by --logconf.
+      -q, --quiet            Print less verbosely messages (warnings) - overridden by --logconf.
       --logconf=<conf-file>  Path to a logging-configuration file, according to:
                              See https://docs.python.org/3/library/logging.config.html#configuration-file-format
                              Uses reads a dict-schema if file ends with '.yaml' or '.yml'.

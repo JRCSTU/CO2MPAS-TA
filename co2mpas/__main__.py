@@ -16,7 +16,7 @@ Use the `batch` sub-command to simulate a vehicle contained in an excel-file.
 
 
 USAGE:
-  co2mpas ta          [-f] [-O=<output-folder>] [<input-path>]...
+  co2mpas ta          [-f] [-v] [-O=<output-folder>] [<input-path>]...
   co2mpas batch       [-v | -q | --logconf=<conf-file>] [-f]
                       [--overwrite-cache] [-O=<output-folder>]
                       [--modelconf=<yaml-file>]
