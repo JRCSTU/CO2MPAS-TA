@@ -335,13 +335,14 @@ class ShowCmd(baseapp.Cmd):
                 yield '  +--%s' % v
 
     def _yield_configs_and_defaults(self, config, search_terms, merged: bool):
+        verbose = self.verbose
         get_classes = (self._classes_inc_parents
-                       if self.verbose else
+                       if verbose else
                        self._classes_with_config_traits)
         all_classes = list(get_classes(self.all_app_configurables()))
 
         ## Merging needs to visit all hierarchy.
-        own_traits = not (self.verbose or merged)
+        own_traits = not (verbose or merged)
         search_map = prepare_search_map(all_classes, own_traits)
         if search_terms:
             matcher = prepare_matcher(search_terms, self.regex)
@@ -359,6 +360,13 @@ class ShowCmd(baseapp.Cmd):
                 continue
 
             clsname, trtname = key.split('.')
+
+            ## Print own traits only, even when "merge" vists all.
+            #
+            sup = super(cls, cls)
+            if not verbose and getattr(sup, trtname, None) is trait:
+                continue
+            
             cls_printed = False
 
             if merged and key in config:
