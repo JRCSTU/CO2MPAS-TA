@@ -57,18 +57,20 @@ from toolz import dicttoolz as dtz, itertoolz as itz
 import itertools as itt
 import os.path as osp
 import pandalone.utils as pndlu
-from .._vendor import traitlets as trt
-from .._vendor.traitlets import config as trtc
 
 from . import CmdException
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
                 utils)
 from ..__main__ import init_logging
+from .._vendor import traitlets as trt
+from .._vendor.traitlets import config as trtc
+
 
 ################################################
 ## INFO: Modify the following variables on a different application.
 APPNAME = 'co2dice'  # TODO: Cannot use baseapp with different app-names.
 CONFIG_VAR_NAME = '%s_CONFIG_PATHS' % APPNAME.upper()
+PERSIST_VAR_NAME = '%s_PERSIST_PATH' % APPNAME.upper()
 
 try:
     _mydir = osp.dirname(__file__)
@@ -96,9 +98,10 @@ def default_config_fpaths():
             osp.join(pndlu.convpath(_mydir), default_config_fname())]
 
 
-def default_persist_fpath():
+def default_persist_fpath(dirname=None):
     """The full path of to user's persistent config-file, without extension."""
-    return osp.join(default_config_dir(), '%s_persist' % APPNAME)
+    return osp.join(dirname or default_config_dir(), '%s_persist.json' % APPNAME)
+
 #
 ################################################
 
@@ -402,19 +405,20 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
     """
 
     #: A list of 2-tuples ``(folder, fname(s))`` with loaded config-files
-    #: in descending order (1st overrides later).
-    visited_files = []
+    #: in ascending order (last overrides earlier).
+    _visited_tuples = []
 
-    def __enter__(self):
-        self.visited_files = []
-        return self
-
-    def __exit__(self, *exc):
-        self.visited_files = self._consolidate(self.visited_files)
-        return False
+    @property
+    def config_tuples(self):
+        """
+        The consolidated list of loaded 2-tuples ``(folder, fname(s))``.
+        
+        Sorted in descending order (1st overrides later).
+        """
+        return self._consolidate(self._visited_tuples)
 
     @staticmethod
-    def _consolidate(visited_files):
+    def _consolidate(visited_tuples):
         """
         Reverse and remove multiple, empty records.
 
@@ -437,7 +441,7 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
         """
         consolidated = []
         prev = None
-        for b, f in visited_files:
+        for b, f in visited_tuples:
             if not prev:            # loop start
                 prev = (b, [])
             elif prev[0] != b:      # new dir
@@ -514,10 +518,11 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
         return list(new_paths)
 
     def head_folder(self):
-        """The first folder to contain an existent config-file."""
-        for p, f in self.visited_files:
-            if f:
-                return p
+        """The *last* existing visited folder (if any), even if not containing files."""
+        for dirpath, _ in self.config_tuples:
+            if osp.exists(dirpath):
+                assert osp.isdir(dirpath), ("Expected to be a folder:", dirpath)
+                return dirpath
 
 
 class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
@@ -540,28 +545,30 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         trt.Unicode(),
         None, allow_none=True,
         help="""
-        Absolute/relative path(s) to read "static" configurable parameters from.
+        Absolute/relative folder/file path(s) to read "static" config-parameters from.
 
-        If undefined and no `{confvar}` envvar is defined, defaults to:
-            {default}
-        Multiple values may be given, and each value may be a single or multiple paths
-        separated by '{sep}'.  All paths collected are considered in descending order
-        (1st one overrides the rest).
-        For paths resolving to folders, the filename `{appname}_config.[json | py]` is appended;
-        otherwise, any file-extensions are ignored, and '.py' and/or '.json' are loaded (in this order).
+        - The source for this parameter is either the command-line or the `{confvar}`
+          envvar (in this order); since the loading of config-files depend on this parameter,
+          values specified in them are irrelevant here.
+        - If all sources above result to empty, it defaults to:
+              {default}
 
-        Tip:
-            Use `config write` sub-command to produce a skeleton of the config-file.
+        - Multiple values may be given and/or separated by '{sep}'.  All paths collected
+          are considered in descending order of priority (1st one overrides the rest).
+        - For paths resolving to existing folders, the filenames `{appname}_config(.py | .json)`
+          are appended and searched (in this order); otherwise, any file-extension
+          is ignored, and the mentioned extensions are combined and searched.
+        - The 1st *existent* path is important because the *persistent* parameters
+          are read (and written) from (and in) it; read --persist-path.
 
-        Note:
-            A value in configuration files is ignored!  Set this from command-line
-            (or in code, before invoking :meth:`Cmd.initialize()`).
-            Any command-line values take precedence over the `{confvar}` envvar.
+        Tips:
+           - Use `config paths` to view the actual paths/files loaded.
+           - Use `config write` to produce a skeleton of the config-file.
 
         Examples:
-            To read and apply, in descending order `~/my_conf`, `/tmp/conf.py`  `~/.co2dice.json`
+            To read and apply in descending order: [~/my_conf, /tmp/conf.py, ~/.co2dice.json]
             you may issue:
-                <cmd> --config-paths=~/my_conf{sep}/tmp/conf.py  --config-paths=~/.co2dice.json  ...
+                <cmd> --config-paths=~/my_conf{sep}/tmp/conf.py  --Cmd.config_paths=~/.co2dice.jso
         """.format(appname=APPNAME, confvar=CONFIG_VAR_NAME,
                    default=default_config_fpaths(), sep=osp.pathsep)
     ).tag(config=True)
@@ -569,28 +576,49 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
     persist_path = trt.Unicode(
         None, allow_none=True,
         help="""
-        Absolute/relative path to read/write persistent parameters on runtime.
+        Absolute/relative folder/file path to read/write *persistent* parameters on runtime.
 
-        - If path resolves to a folder, the filename `{appname}_persist.json`
-          is appended; otherwise, the file-extension is assumed to be `.json`;
-        - if undefined, and `--config_paths` or `{confvar}` envvar is defined,
-          the rule above is applied on the folder of the 1st static config-file
-          read;
-        - Otherwise, defaults to `{default}`.
-        - Persistent-parameters override "static" ones.
+        In practice, when both this param and `{persistvar}` envvar are empty, 
+        *persist* file follows the location of --config-paths or `{confvar}` envvar, 
+        but more precisely:
+        
+        - The source for this parameter is a) the command-line, b) the `{persistvar}`
+          envvar, or c) the 1st *existent* path collected by the rules of `Cmd.config_paths`
+          parameter (in this order); since the loading of config-files depend 
+          on this parameter, values specified in them are irrelevant here.
+        - If all sources above result to empty, it defaults to:
+               {default}
 
-        Note:
-            A value in configuration files is ignored!  Set this from command-line
-            (or in code, before invoking :meth:`Cmd.initialize()`).
-            A command-line value take precedence over the `{confvar}` envvar.
+        - A non-empty path in this parameter or in the `{persistvar}` envvar
+          gets resolved like this:
+          - if it resolves to an existent folder, the filename `{appname}_persist.json`
+            gets appended to it;
+          - otherwise, the file-extension is assumed to be `.json`; in that case,
+            parent folders of the file-path must exist.
+
+        - The 1st *existing* path of `Cmd.config_paths` gets resolved like this::
+          - if it resolves to a folder, the filename `<1st-path>/{appname}_persist.json`
+            is assumed;
+          - if it resolves to a file, the parent-folder of this file is fed into
+            the above rule.
+
+        - All *persistent* parameters take precendence over "static" ones.
+        - The *persistent* file is written in two occasions:
+          - on startup, if an un-encrypted value is met in it;
+          - on exit, if *persistent* values have changed.
+          
+        Tips:
+           - Use `config paths` to view the actual file loaded.
+           - Use `{appname} --encrypt` to encrypt all ciphered-prams in peristent file.
         """.format(appname=APPNAME, confvar=CONFIG_VAR_NAME,
+                   persistvar=PERSIST_VAR_NAME,
                    default=default_persist_fpath())
     ).tag(config=True)
 
     encrypt = trt.Bool(
         False,
         help="""
-        Encrypt ciphered-configs on app startup: True: all classes, False: current-cmd's only
+        Encrypt ciphered-prams on app startup: True: all classes, False: current-cmd's only
 
         Sample cmd to encrypt any freshly edited persistent-configs:
                %s --encrypt
@@ -601,7 +629,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
 
     @property
     def loaded_config_files(self):
-        return self._cfgfiles_registry.visited_files
+        return self._cfgfiles_registry.config_tuples
 
     def _collect_static_fpaths(self):
         """Return fully-normalized paths, with ext."""
@@ -674,14 +702,18 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
     @property
     def _resolved_persist_file(self):
         """Returns the 1st value in config, env, or default-value (might contain ``.json``)."""
-        if self.config_paths or os.environ.get(CONFIG_VAR_NAME):
-            head_folder = self._cfgfiles_registry.head_folder()
-            persist_path = (self.persist_path or
-                            head_folder and osp.join(head_folder,
-                                                     '%s_persist' % APPNAME))
+        persist_path = (self.persist_path or
+                        os.environ.get(PERSIST_VAR_NAME))
+        if persist_path:
+            persist_path = pndlu.convpath(persist_path)
         else:
-            persist_path = default_persist_fpath()
-        persist_path = pndlu.convpath(persist_path)
+            ## Default and head-folder are already absolute,
+            #  don't expand them case they are strange...
+            #
+            head_folder = self._cfgfiles_registry.head_folder()
+            ## Defaults to global default if no head-path.
+            persist_path = default_persist_fpath(head_folder)
+
         return persist_path
 
     def _read_config_from_persist_file(self):
@@ -718,10 +750,9 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         Persistent-parameters override "static" ones.
         """
         ## Code adapted from :meth:`load_config_file` & :meth:`Application._load_config_files`.
-        with self._cfgfiles_registry:
-            static_paths = self._collect_static_fpaths()
-            static_config = self._read_config_from_static_files(static_paths)
-            persist_config = self._read_config_from_persist_file()
+        static_paths = self._collect_static_fpaths()
+        static_config = self._read_config_from_static_files(static_paths)
+        persist_config = self._read_config_from_persist_file()
 
         return static_config, persist_config
 

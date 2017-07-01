@@ -183,8 +183,9 @@ class PathsCmd(baseapp.Cmd):
 
     Some of the environment-variables affecting configurations:
         HOME, USERPROFILE,          : where configs & DICE projects are stored
-              HOMEDRIVE/HOMEPATH      (1st one defined wins)
+            HOMEDRIVE/HOMEPATH        (1st one defined wins)
         CO2DICE_CONFIG_PATHS        : where to read configuration-files.
+            CO2DICE_PERSIST_PATH    :    
         GNUPGHOME                   : where GPG-keys are stored
                                       (works only if `gpgconf.ctl` is deleted,
                                        see https://goo.gl/j5mwo4)
@@ -219,7 +220,7 @@ class PathsCmd(baseapp.Cmd):
         yield "  +--gnupghome: %s" % gpg.gnupghome_resolved
 
         var_names = """AIODIR HOME HOMEDRIVE HOMEPATH USERPROFILE
-                     CO2DICE_CONFIG_PATHS
+                     CO2DICE_CONFIG_PATHS CO2DICE_PERSIST_PATH
                      TRAITLETS_APPLICATION_RAISE_CONFIG_FILE_ERROR
                      GNUPGHOME GNUPGKEY GNUPGEXE
                      GIT_PYTHON_GIT_EXECUTABLE GIT_PYTHON_TRACE"""

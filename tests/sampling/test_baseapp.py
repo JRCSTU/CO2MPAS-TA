@@ -92,7 +92,7 @@ class TCfgFilesRegistry(unittest.TestCase):
         cmd = baseapp.Cmd()
         cmd.initialize([])
         self.assertGreaterEqual(len(cmd.loaded_config_files), 1)
-        print(cmd._cfgfiles_registry.visited_files)
+        print(cmd._cfgfiles_registry.config_tuples)
 
 
 @ddt.ddt
