@@ -271,7 +271,7 @@ class Config(dict):
                 dict.__setitem__(self, key, v)
                 return v
             else:
-                raise KeyError
+                raise
 
     def __setitem__(self, key, value):
         if _is_section_key(key):
@@ -286,7 +286,7 @@ class Config(dict):
         try:
             return self.__getitem__(key)
         except KeyError as e:
-            raise AttributeError(e)
+            raise AttributeError(key) from None
 
     def __setattr__(self, key, value):
         if key.startswith('__'):
@@ -294,7 +294,7 @@ class Config(dict):
         try:
             self.__setitem__(key, value)
         except KeyError as e:
-            raise AttributeError(e)
+            raise AttributeError(key) from None
 
     def __delattr__(self, key):
         if key.startswith('__'):
@@ -302,7 +302,7 @@ class Config(dict):
         try:
             dict.__delitem__(self, key)
         except KeyError as e:
-            raise AttributeError(e)
+            raise AttributeError(key) from None
 
 
 #-----------------------------------------------------------------------------

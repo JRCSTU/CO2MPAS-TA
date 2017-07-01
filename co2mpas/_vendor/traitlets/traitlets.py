@@ -514,13 +514,13 @@ class TraitType(BaseDescriptor):
     def get(self, obj, cls=None):
         try:
             value = obj._trait_values[self.name]
-        except KeyError:
+        except KeyError as ex:
             # Check for a dynamic initializer.
             default = cls._trait_default_generators[self.name](obj)
             if default is Undefined:
                 raise TraitError("No default value found for "
                     "the '%s' trait named '%s' of %r" % (
-                    type(self).__name__, self.name, obj))
+                    type(self).__name__, self.name, obj)) from None
             value = self._validate(obj, default)
             obj._trait_values[self.name] = value
             obj.notify_change(Bunch(
@@ -533,7 +533,7 @@ class TraitType(BaseDescriptor):
         except Exception:
             # This should never be reached.
             raise TraitError('Unexpected error in TraitType: '
-                             'default value not set properly')
+                             'default value not set properly') from ex
         else:
             return value
 
@@ -1482,7 +1482,7 @@ class HasTraits(six.with_metaclass(MetaHasTraits, HasDescriptors)):
             trait = getattr(self.__class__, traitname)
         except AttributeError:
             raise TraitError("Class %s does not have a trait named %s" %
-                                (self.__class__.__name__, traitname))
+                                (self.__class__.__name__, traitname)) from None
         metadata_name = '_' + traitname + '_metadata'
         if hasattr(self, metadata_name) and key in getattr(self, metadata_name):
             return getattr(self, metadata_name).get(key, default)
