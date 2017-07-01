@@ -33,7 +33,7 @@ Model:
 IO & Data:
 ----------
 - :git:`314`: Move most demo-files to AIO archive - 2 files are left.
-
+- main: rename logging option ``--quite`` --> ``--quiet``.
 
 
 v1.5.7.b3, 14 May 2017: Dice networking features for Ispra Workshop

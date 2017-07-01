@@ -71,7 +71,7 @@ Miscellaneous:
   -V, --version               Print version of the program, with --verbose
                               list release-date and installation details.
   -v, --verbose               Print more verbosely messages - overridden by --logconf.
-  -q, --quite                 Print less verbosely messages (warnings) - overridden by --logconf.
+  -q, --quiet                 Print less verbosely messages (warnings) - overridden by --logconf.
   --logconf=<conf-file>       Path to a logging-configuration file, according to:
                                 https://docs.python.org/3/library/logging.config.html#configuration-file-format
                               If the file-extension is '.yaml' or '.yml', it reads a dict-schema from YAML:
@@ -547,7 +547,7 @@ def _main(*args):
     opts = docopt.docopt(__doc__, argv=args or sys.argv[1:])
 
     verbose = opts['--verbose']
-    quiet = opts['--quite']
+    quiet = opts['--quiet']
     assert not (verbose and quiet), "Specify one of `verbose` and `quiet` as true!"
     level = None  # Let `init_logging()` decide.
     if verbose:
