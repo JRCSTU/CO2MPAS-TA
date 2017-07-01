@@ -149,16 +149,20 @@ import yaml
 import warnings
 
 
+proj_name = 'co2mpas'
+
+log = logging.getLogger('co2mpas_main')
+
+
 class CmdException(Exception):
     """Polite user-message avoiding ``exit(msg)`` when ``main()`` invoked from python."""
     pass
 
-proj_name = 'co2mpas'
 
-log = logging.getLogger('co2mpas_main')
 #: Load  this file automatically if it exists in HOME and configure logging,
 #: unless overridden with --logconf.
 default_logconf_file = osp.expanduser(osp.join('~', '.co2_logconf.yaml'))
+
 
 def _set_numpy_logging():
     rlog = logging.getLogger()
@@ -169,7 +173,18 @@ def _set_numpy_logging():
 
 def init_logging(level=None, frmt=None, logconf_file=None,
                  color=False, default_logconf_file=default_logconf_file):
-    if logconf_file is None and osp.exists(default_logconf_file):
+    """
+    :param level:
+        tip: use :func:`is_any_log_option()` to decide if should be None
+        (only if None default HOME ``logconf.yaml`` file is NOT read).
+    :param default_logconf_file:
+        Read from HOME only if ``(level, frmt, logconf_file)`` are none.
+    """
+    ## Only read default logconf file in HOME
+    #  if no explicit arguments given.
+    #
+    no_args = all(i is None for i in [level, frmt, logconf_file])
+    if no_args and osp.exists(default_logconf_file):
         logconf_file = default_logconf_file
 
     if logconf_file:
@@ -230,6 +245,7 @@ def init_logging(level=None, frmt=None, logconf_file=None,
                                 message="^unclosed file")
 
     log.debug('Logging-configurations source: %s', logconf_src)
+
 
 def exit_with_pride(reason=None,
                          msg_color='\x1b[33;1m', err_color='\x1b[31;1m'):
