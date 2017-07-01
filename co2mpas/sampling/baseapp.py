@@ -494,8 +494,7 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
         Collects all (``.json|.py``) files present in the `path_list`, (descending order).
 
         :param path_list:
-            A list of paths (absolute, relative, dir or folders)
-            each one possibly separated by `osp.pathsep`.
+            A list of paths (absolute, relative, dir or folders).
         :return:
             fully-normalized paths, with ext
         """
@@ -529,9 +528,8 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
                 if not found:
                     try_json_and_py(osp.splitext(p)[0])
 
-        for cf1 in path_list:
-            for cf2 in cf1.split(os.pathsep):
-                _derive_config_fpaths(cf2)
+        for cf in path_list:
+            _derive_config_fpaths(cf)
 
         return list(new_paths)
 
@@ -653,7 +651,13 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
     def config_paths_resolved(self):
         env_paths = os.environ.get(CONFIG_VAR_NAME)
         env_paths = env_paths and [env_paths]
-        return (self.config_paths or env_paths or default_config_fpaths())
+        config_paths = self.config_paths or env_paths or default_config_fpaths()
+
+        if config_paths:
+            config_paths = [cf2
+                            for cf1 in config_paths
+                            for cf2 in cf1.split(os.pathsep)]
+        return config_paths
 
     def _collect_static_fpaths(self):
         """Return fully-normalized paths, with ext."""
