@@ -13,26 +13,27 @@ if [ $# -gt 1 ]; then
     rm -r ./doc/_build/
     #cmd /C co2mpas modelgraph -O doc/_build/html/_static/ co2mpas.model.model co2mpas.model.physical.wheels.wheels
     cmd /C python setup.py build_sphinx
+
+    ## Package docs
+    #
+    gitver="`git describe --tags`"
+    gitver="${gitver:1}"
+    zipfolder="co2mpas-doc-$gitver"
+    docdir="build/doc/$zipfolder"
+    mkdir -p build/doc
+
+    ## Pack docs
+    #
+    cp -lr doc/_build/html "$docdir"
+    pushd build/doc
+    #zip -r9 "../../dist/$zipfolder.zip" "$zipfolder"
+    7z a -r "../../dist/$zipfolder.7z" "$zipfolder"
+    popd
+
 fi
 
 rm -rf build/* dist/*
 python setup.py build bdist_wheel sdist
-
-## Build docs
-#
-gitver="`git describe --tags`"
-gitver="${gitver:1}"
-zipfolder="co2mpas-doc-$gitver"
-docdir="build/doc/$zipfolder"
-mkdir -p build/doc
-
-## Pack docs
-#
-cp -lr doc/_build/html "$docdir"
-pushd build/doc
-#zip -r9 "../../dist/$zipfolder.zip" "$zipfolder"
-7z a -r "../../dist/$zipfolder.7z" "$zipfolder"
-popd
 
 
 ## Check if data-files exist.
