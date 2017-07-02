@@ -313,14 +313,14 @@ class TstampSender(TstampSpec):
 
     transfer_encoding_b64 = trt.Bool(
         help="""When true, set Content-Transfer-Encoding MIME HEadewr to base64.
-        Try this to avoid strange `'=0A=0D=0E'` chars scattered in the email 
+        Try this to avoid strange `'=0A=0D=0E'` chars scattered in the email
         (MS Outlook Exchange servers have this problem but are immune to this switch!)"""
     ).tag(config=True)
 
     scramble_tag = trt.Bool(
         help="""Base64-encode dice-tag to mask any non-ASCII and long-lines.
 
-        That happend right before sending it it may resolve email-corruption 
+        That happend right before sending it it may resolve email-corruption
         problems, particularly when following the "manual" procedure."""
     ).tag(config=True)
 
@@ -418,9 +418,9 @@ class TstampSender(TstampSpec):
                       header: Text):
         """
         If email too wide or non-latin, encode32 it, an set just the header.
-        
+
         The result is this::
-        
+
             tag: dices/IP-10-AAA-2017-0012/4
             base64(tag): |
               N5RGUZLDOQQDAMBTMY2DANTCME4GCOJSMU3TONLBHAYWKY3CGEZTSM3BHA3TOM
@@ -689,7 +689,7 @@ class TstampReceiver(TstampSpec):
             tag_bytes = base64.b64decode(tag_b64)
         else:
             tag_bytes = _to_bytes(tag_text, 'utf-8')
-            
+
         return tag_bytes
 
 
@@ -1213,6 +1213,35 @@ class TstampCmd(baseapp.Cmd):
 
         Await for the response, and paste its content to this command:
             %(cmd_chain)s parse
+
+        Server Configuration Samples:
+        -----------------------------
+        - GMAIL:
+          - Instructions: https://support.google.com/mail/answer/7126229
+          - Allow SMTP/IMAP access: https://support.google.com/accounts/answer/6010255
+            and login with Browser through SOCKS and open link read from response!!
+          - app-passwords (2-factor auth): https://myaccount.google.com/apppasswords
+
+            c.DiceSpec.user_email = 'foo@gmail.com'
+            c.TstampSender.host   = 'smtp.gmail.com'
+            c.TstampReceiver.host = 'imap.gmail.com'
+
+        - OUTLOOK/OFFICE-365:
+          - Instructions: https://goo.gl/tJQvi7 & https://goo.gl/jiTVZt
+          - Allow SMTP/IMAP access: https://outlook.live.com/owa/?path=/options/popandimap
+
+            c.DiceSpec.user_email = 'foo@outlook.com'   # But not a username alone!
+            c.TstampSender.host   = 'smtp.mail.yahoo.com'  OR  'outlook.office365.com'
+            c.TstampReceiver.host = 'imap-mail.outlook.com'  OR  'smtp.office365.com'
+            #c.TstampSender.port   = 587                # Try this, if not working without it.
+
+        - YAHOO:
+          - Host/Port: https://help.yahoo.com/kb/SLN4075.html
+          - Allow SMTP/IMAP access: https://login.yahoo.com/account/security:
+
+            c.DiceSpec.user_email = 'foo@yahoo.com'     # A username alone is ok.
+            c.TstampSender.host   = 'smtp.mail.yahoo.com'
+            c.TstampReceiver.host = c.imap.mail.yahoo.com'
     """)
 
     def __init__(self, **kwds):

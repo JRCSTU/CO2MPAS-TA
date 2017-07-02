@@ -1807,7 +1807,16 @@ class TsendCmd(_SubCmd):
       copy-paste this lient and send it, formatted as 'plain-text' (not 'HTML').
     """
 
-    #examples = trt.Unicode(""" """)
+    examples = trt.Unicode("""\
+        - Send report (project must be in `taged` state):
+              %(cmd_chain)s
+
+        - Get dice-email for "manual" procedure:
+         (see https://github.com/JRCSTU/CO2MPAS-TA/wiki/8.-The-DICE.#steps-to-proceed-manually):
+              %(cmd_chain)s  --dry-run
+
+        - See `co2dice tstamp` command for server configurations.
+    """)
 
     def __init__(self, **kwds):
         from . import crypto
@@ -1851,6 +1860,17 @@ class TparseCmd(_SubCmd):
       as a "broken" tag referring to projects that might not exist in the repo,
       assuming they don't clash with pre-existing dice-reponses.
     """
+    examples = trt.Unicode("""\
+        - Parse `dice_tstamp.txt` file, as received manually from timestamper:
+              %(cmd_chain)s  dice_tstamp.txt
+
+        - Parse response copied from *clipboard*:
+              %(cmd_chain)s
+              [CTRL+Insert]
+              [CTRL+Z]
+
+        - See `co2dice tstamp` command for server configurations.
+        """)
 
     def __init__(self, **kwds):
         from . import tstamp
@@ -1912,21 +1932,23 @@ class TrecvCmd(TparseCmd):
     #- The --build-registry is for those handling "foreign" dices (i.e. TAAs),
 
     examples = trt.Unicode("""
-        To search emails in one-shot:
-            %(cmd_chain)s --after today "IP-10-AAA-2017-1003"
-            %(cmd_chain)s --after "last week"
-            %(cmd_chain)s --after "1 year ago" --before "18 March 2017"
+        - To search emails in one-shot:
+              %(cmd_chain)s --after today "IP-10-AAA-2017-1003"
+              %(cmd_chain)s --after "last week"
+              %(cmd_chain)s --after "1 year ago" --before "18 March 2017"
 
-        To wait for new mails arriving (and not to block console),
-        on Linux:
-            %(cmd_chain)s --wait &
-            ## wait...
-            kill %%1  ## Asumming this was the only job started.
+        - To wait for new mails arriving (and not to block console),
+          - on Linux:
+                %(cmd_chain)s --wait &
+                ## wait...
+                kill %%1  ## Asumming this was the only job started.
 
-        On Windows:
-            START \\B %(cmd_chain)s --wait
+          - On Windows:
+                START \\B %(cmd_chain)s --wait
 
-        and kill with `TASKLIST/TASKKILL or with "Task Manager" GUI.
+          and kill with `TASKLIST/TASKKILL` win commands or with "Task Manager" GUI.
+
+        - See `co2dice tstamp` command for server configurations.
     """)
 
     wait = trt.Bool(
