@@ -2346,6 +2346,14 @@ class Co2guiCmd(baseapp.Cmd):
 
 def main(argv=None, log_level=None, **app_init_kwds):
     """Handles some exceptions politely and returns the exit-code."""
+    ## GUI-scripts have no stdout/stderr and
+    #  RainbowLogger screams!
+    #  See https://stackoverflow.com/questions/24835155/pyw-and-pythonw-does-not-run-under-windows-7/30310192#30310192
+    if sys.executable.endswith("pythonw.exe"):
+        ## Not output, all shown in GUI-console.
+        sys.stdout = open(os.devnull, "w")
+        sys.stderr = open(os.devnull, "w")
+
     if sys.version_info < (3, 5):
         return ("Sorry, Python >= 3.5 is required, but found: %s" %
                 str(sys.version_info))
