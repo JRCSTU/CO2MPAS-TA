@@ -94,14 +94,18 @@ class Co2diceCmd(Cmd):
 
     name = trt.Unicode(APPNAME)
     version = __version__
-    examples = trt.Unicode("""
-        Try the `project` sub-command:
-            %(cmd_chain)s  project
+    examples = trt.Unicode("""\
+        - Try the `project` sub-command:
+              %(cmd_chain)s  project
 
-        To learn more about command-line options and configurations,
-        use this command:
-            %(cmd_chain)s  config
+        - To learn more about command-line options and configurations:
+              %(cmd_chain)s  config
 
+        - Read configurations also from `GMail` folder present in current-dir
+          (on top of *regular* ones in HOME dir: ~/.co2dice)
+          and view what was loaded actually:
+              %(cmd_chain)s  config paths --config-paths GMail --config-paths ~/.co2dice
+              %(cmd_chain)s  config show --source file --config-paths GMail --config-paths ~/.co2dice
     """)
 
     subcommands = OrderedDict([
