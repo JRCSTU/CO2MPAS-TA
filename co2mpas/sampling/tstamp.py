@@ -130,14 +130,20 @@ class TstampSpec(dice.DiceSpec):
         The hostname/ip of the SOCKS-proxy server for send/recv emails.
         If not set, SOCKS-proxying is disabled.
 
-        Tip:
-          Prefer a real IP and set `socks_skip_resolve=True`, or else,
-          hostnames may resolve to _unsupported_ IPv6.
+        NOTE: GMail, Yahoo (and possibly Outlook in the future) need you
+              to make first a successful login with your browser before letting
+              DICE in.
         """
     ).tag(config=True)
 
     socks_skip_resolve = trt.Bool(
-        help="""Whether to skip DNS resolve of `socks_host` value."""
+        False,
+        help="""
+        Should DNS queries be performed on the remote side of the SDOCKS tunnel?
+
+        - This has no effect with SOCKS4 servers.
+        - Set a real IP in `socks_host` when setting this to True.
+        """
     ).tag(config=True)
 
     socks_type = trt.FuzzyEnum(
