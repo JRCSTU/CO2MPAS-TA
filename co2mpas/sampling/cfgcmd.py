@@ -13,6 +13,7 @@ from typing import Sequence, Text, List, Tuple  # @UnusedImport
 
 from toolz import dicttoolz as dtz
 
+import functools as fnt
 import os.path as osp
 
 from . import baseapp, CmdException
@@ -185,7 +186,7 @@ class PathsCmd(baseapp.Cmd):
         HOME, USERPROFILE,          : where configs & DICE projects are stored
             HOMEDRIVE/HOMEPATH        (1st one defined wins)
         CO2DICE_CONFIG_PATHS        : where to read configuration-files.
-            CO2DICE_PERSIST_PATH    :    
+            CO2DICE_PERSIST_PATH    :
         GNUPGHOME                   : where GPG-keys are stored
                                       (works only if `gpgconf.ctl` is deleted,
                                        see https://goo.gl/j5mwo4)
@@ -267,8 +268,12 @@ class ShowCmd(baseapp.Cmd):
     """)
 
     source = trt.FuzzyEnum(
-        'defaults files merged'.split(), default_value='merged', allow_none=False,
-        help="""Show configuration parameters in code, stored on disk files, or merged."""
+        'defaults files merged ciphered'.split(),
+        default_value='merged',
+        allow_none=False,
+        help="""
+        Show configuration parameters in code, stored on disk files,
+        merged or merged and ciphered (encrypted), respectively."""
     ).tag(config=True)
 
     list = trt.Bool(
@@ -337,7 +342,8 @@ class ShowCmd(baseapp.Cmd):
             except:
                 yield '  +--%s' % v
 
-    def _yield_configs_and_defaults(self, config, search_terms, merged: bool):
+    def _yield_configs_and_defaults(self, config, search_terms,
+                                    merged: bool, ciphered: bool):
         verbose = self.verbose
         get_classes = (self._classes_inc_parents
                        if verbose else
@@ -346,10 +352,23 @@ class ShowCmd(baseapp.Cmd):
 
         ## Merging needs to visit all hierarchy.
         own_traits = not (verbose or merged)
+
         search_map = prepare_search_map(all_classes, own_traits)
+
+        if ciphered:
+            from . import crypto
+
+            def ciphered_filter(mapval):
+                _, trait = mapval
+                if isinstance(trait, crypto.Cipher):
+                    return mapval
+
+            search_map = dtz.valfilter(ciphered_filter, search_map)
+
         if search_terms:
             matcher = prepare_matcher(search_terms, self.regex)
             search_map = dtz.keyfilter(matcher, search_map)
+
         items = search_map.items()
         if self.sort:
             items = sorted(items)  # Sort by class-name (traits always sorted).
@@ -369,7 +388,7 @@ class ShowCmd(baseapp.Cmd):
             sup = super(cls, cls)
             if not verbose and getattr(sup, trtname, None) is trait:
                 continue
-            
+
             cls_printed = False
 
             if merged and key in config:
@@ -385,6 +404,9 @@ class ShowCmd(baseapp.Cmd):
 
     def run(self, *args):
         source = self.source.lower()
+        self.log.info("Listing '%s' values for search-terms: %s...",
+                      source, args)
+
         if source == 'files':
             if len(args) > 0:
                 raise CmdException("Cmd '%s --source files' takes no arguments, received %d: %r!"
@@ -392,11 +414,14 @@ class ShowCmd(baseapp.Cmd):
 
             func = self._yield_file_configs
         elif source == 'defaults':
-            func = lambda cfg, classes: self._yield_configs_and_defaults(
-                cfg, classes, merged=False)
+            func = fnt.partial(self._yield_configs_and_defaults,
+                               merged=False, ciphered=False)
         elif source == 'merged':
-            func = lambda cfg, classes: self._yield_configs_and_defaults(
-                cfg, classes, merged=True)
+            func = fnt.partial(self._yield_configs_and_defaults,
+                               merged=True, ciphered=False)
+        elif source == 'ciphered':
+            func = fnt.partial(self._yield_configs_and_defaults,
+                               merged=True, ciphered=True)
         else:
             raise AssertionError('Impossible enum: %s' % source)
 
