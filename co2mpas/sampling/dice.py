@@ -173,7 +173,7 @@ def main(argv=None, log_level=None, **app_init_kwds):
     """
     if sys.version_info < (3, 5):
         return ("Sorry, Python >= 3.5 is required, but found: %s" %
-                str(sys.version_info))
+                sys.version_info)
 
     import transitions
     from co2mpas.__main__ import init_logging, exit_with_pride

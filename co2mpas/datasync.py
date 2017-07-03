@@ -708,7 +708,7 @@ def main(*args):
     """Handles some exceptions politely and returns the exit-code."""
     if sys.version_info < (3, 5):
         return ("Sorry, Python >= 3.5 is required, but found: %s" %
-                str(sys.version_info))
+                sys.version_info)
 
     try:
         return _main(*args)
