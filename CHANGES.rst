@@ -29,6 +29,9 @@ The Dice:
      co2t: co2dice tstamp
      co2c: co2dice config
 
+- feat(gui): ``co2gui`` command  does not block, and stores logs in temporary-file.
+  It launches this file in a text-editor in case of failures.
+
 
 Model:
 ------

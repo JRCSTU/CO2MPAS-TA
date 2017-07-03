@@ -2344,6 +2344,11 @@ class Co2guiCmd(baseapp.Cmd):
                 pass
 
 
+def show_gui_logfile(log_fpath):
+    if osp.exists(log_fpath):
+        open_file_with_os(log_fpath)
+
+
 #: Load  this file automatically if it exists in HOME and configure logging,
 #: unless overridden with --logconf.
 #: NOTE: cannot be the same as console, because it MUST send logs
@@ -2363,10 +2368,6 @@ def main(argv=None, **app_init_kwds):
         sys.stdout = open(os.devnull, "w")
         sys.stderr = open(os.devnull, "w")
 
-    if sys.version_info < (3, 5):
-        return ("Sorry, Python >= 3.5 is required, but found: %s" %
-                sys.version_info)
-
     ## At these early stages, any log cmd-line option
     #  enable DEBUG logging ; later will be set by `baseapp` traits.
     log_level = logging.DEBUG if cmain.is_any_log_option(argv) else None
@@ -2378,6 +2379,13 @@ def main(argv=None, **app_init_kwds):
                        default_logconf_file=default_logconf_file)
     log = logging.getLogger(__name__)
 
+    if sys.version_info < (3, 5):
+        log.error("Sorry, Python >= 3.5 is required, but found: %s",
+                  sys.version_info)
+        show_gui_logfile(log_fpath)
+
+        return -1
+
     try:
         ##Co2diceCmd.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!
         cmd = Co2guiCmd.make_cmd(argv, **app_init_kwds)
@@ -2385,13 +2393,17 @@ def main(argv=None, **app_init_kwds):
     except (baseapp.CmdException, trt.TraitError) as ex:
         log.debug('App exited due to: %r', ex, exc_info=1)
         ## Suppress stack-trace for "expected" errors but exit-code(1).
-        return cmain.exit_with_pride(str(ex))
+        log.error('App exited due to: %s', ex)
+        show_gui_logfile(log_fpath)
+
+        return 1
     except Exception as ex:
         ## Log in DEBUG not to see exception x2, but log it anyway,
         #  in case log has been redirected to a file.
-        log.debug('App failed due to: %r', ex, exc_info=1)
-        ## Print stacktrace to stderr and exit-code(-1).
-        return cmain.exit_with_pride(ex)
+        log.error('App failed due to: %r', ex, exc_info=1)
+        show_gui_logfile(log_fpath)
+
+        return -1
 
 
 if __name__ == '__main__':
