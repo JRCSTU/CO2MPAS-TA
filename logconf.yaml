@@ -76,7 +76,7 @@ loggers:
 
 formatters:
     long:
-        format: \%(asctime)-15s:%(levelname)5.5s:%(name)s:%(message)s
+        format: "%(asctime)-15s:%(levelname)5.5s:%(name)s:%(message)s"
 
 handlers:
     console:
@@ -90,6 +90,7 @@ handlers:
         class: rainbow_logging_handler.RainbowLoggingHandler
         stream: ext://sys.stderr
         formatter: long
+        datefmt: "%Y-%m-%d %H:%M:x%S"
         color_message_debug:    [grey, null, false]
         color_message_info:     [blue, null, false]
         color_message_warning:  [yellow, null, true]
