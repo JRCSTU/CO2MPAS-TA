@@ -2371,7 +2371,7 @@ class Co2guiCmd(baseapp.Cmd):
 
 
 def show_gui_logfile(log_fpath):
-    if osp.exists(log_fpath):
+    if log_fpath and osp.exists(log_fpath):
         open_file_with_os(log_fpath)
 
 
@@ -2389,17 +2389,19 @@ def main(argv=None, **app_init_kwds):
     ## GUI-scripts have no stdout/stderr and
     #  RainbowLogger screams!
     #  See https://stackoverflow.com/questions/24835155/pyw-and-pythonw-does-not-run-under-windows-7/30310192#30310192
-    if sys.executable.endswith("pythonw.exe"):
+    #  Alternative check: if sys.executable.endswith("pythonw.exe"):
+    if sys.stdout is None or sys.stderr is None:
         ## Not output, all shown in GUI-console.
         sys.stdout = open(os.devnull, "w")
         sys.stderr = open(os.devnull, "w")
+        log_fpath = datetime.now().strftime('co2gui-%Y%m%d_%H%M%S.log')
+        log_fpath = osp.join(tempfile.gettempdir(), log_fpath)
+    else:
+        log_fpath = None
 
     ## At these early stages, any log cmd-line option
     #  enable DEBUG logging ; later will be set by `baseapp` traits.
     log_level = logging.DEBUG if cmain.is_any_log_option(argv) else None
-
-    log_fpath = datetime.now().strftime('co2gui-%Y%m%d_%H%M%S.log')
-    log_fpath = osp.join(tempfile.gettempdir(), log_fpath)
 
     cmain.init_logging(level=log_level, filename=log_fpath,
                        default_logconf_file=default_logconf_file)
