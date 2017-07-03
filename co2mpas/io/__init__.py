@@ -167,15 +167,17 @@ def _co2mpas_info2df(start_time, main_flags=None):
 
 
 def _freeze2df():
-    from pip.operations.freeze import freeze
-    d = dict(v.split('==') for v in freeze() if '==' in v)
-    d = {k: (v,) for k, v in d.items()}
-    d['version'] = 'version'
+    from pip.operations import freeze
     import pandas as pd
-    df = pd.DataFrame([d])
-    df.set_index(['version'], inplace=True)
-    df = df.transpose()
-    setattr(df, 'name', 'packages')
+
+    d = dict((v.key, v.version)
+             for v  # DistInfoDistribution
+             in freeze.get_installed_distributions())
+    df = pd.Series(d).to_frame()
+    df.columns = ['version']
+    df.index.name = 'package'
+    df.name = 'packages'
+
     return df
 
 
