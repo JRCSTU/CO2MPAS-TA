@@ -2353,6 +2353,8 @@ default_logconf_file = osp.expanduser(osp.join('~', '.co2gui_logconf.yaml'))
 
 def main(argv=None, **app_init_kwds):
     """Handles some exceptions politely and returns the exit-code."""
+    import tempfile
+
     ## GUI-scripts have no stdout/stderr and
     #  RainbowLogger screams!
     #  See https://stackoverflow.com/questions/24835155/pyw-and-pythonw-does-not-run-under-windows-7/30310192#30310192
@@ -2369,7 +2371,11 @@ def main(argv=None, **app_init_kwds):
     #  enable DEBUG logging ; later will be set by `baseapp` traits.
     log_level = logging.DEBUG if cmain.is_any_log_option(argv) else None
 
-    cmain.init_logging(level=log_level, default_logconf_file=default_logconf_file)
+    log_fpath = datetime.datetime.now().strftime('co2gui-%Y%m%d_%H%M%S.log')
+    log_fpath = osp.join(tempfile.gettempdir(), log_fpath)
+
+    cmain.init_logging(level=log_level, filename=log_fpath,
+                       default_logconf_file=default_logconf_file)
     log = logging.getLogger(__name__)
 
     try:

@@ -172,13 +172,17 @@ def _set_numpy_logging():
 
 
 def init_logging(level=None, frmt=None, logconf_file=None,
-                 color=False, default_logconf_file=default_logconf_file):
+                 color=False, default_logconf_file=default_logconf_file,
+                 **kwds):
     """
     :param level:
         tip: use :func:`is_any_log_option()` to decide if should be None
         (only if None default HOME ``logconf.yaml`` file is NOT read).
     :param default_logconf_file:
         Read from HOME only if ``(level, frmt, logconf_file)`` are none.
+    :param kwds:
+        Passed directly to :func:`logging.basicConfig()` (e.g. `filename`);
+        used only id default HOME ``logconf.yaml`` file is NOT read.
     """
     ## Only read default logconf file in HOME
     #  if no explicit arguments given.
@@ -204,7 +208,7 @@ def init_logging(level=None, frmt=None, logconf_file=None,
             level = logging.INFO
         if not frmt:
             frmt = "%(asctime)-15s:%(levelname)5.5s:%(name)s:%(message)s"
-        logging.basicConfig(level=level, format=frmt)
+        logging.basicConfig(level=level, format=frmt, **kwds)
         rlog = logging.getLogger()
         rlog.level = level  # because `basicConfig()` does not reconfig root-logger when re-invoked.
 
