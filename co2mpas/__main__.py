@@ -247,6 +247,19 @@ def init_logging(level=None, frmt=None, logconf_file=None,
     log.debug('Logging-configurations source: %s', logconf_src)
 
 
+def is_any_log_option(argv):
+    """
+    Return true if any -v/--verbose/--debug etc options are in `argv`
+
+    :param argv:
+        If `None`, use :data:`sys.argv`; use ``[]`` to explicitly use no-args.
+    """
+    log_opts = '-v --verbose -d --debug --vlevel'.split()
+    if argv is None:
+        argv = sys.argv
+    return argv and set(log_opts) & set(argv)
+
+
 def exit_with_pride(reason=None,
                          msg_color='\x1b[33;1m', err_color='\x1b[31;1m'):
     """

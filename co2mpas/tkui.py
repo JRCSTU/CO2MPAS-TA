@@ -2344,7 +2344,7 @@ class Co2guiCmd(baseapp.Cmd):
                 pass
 
 
-def main(argv=None, log_level=None, **app_init_kwds):
+def main(argv=None, **app_init_kwds):
     """Handles some exceptions politely and returns the exit-code."""
     ## GUI-scripts have no stdout/stderr and
     #  RainbowLogger screams!
@@ -2357,6 +2357,10 @@ def main(argv=None, log_level=None, **app_init_kwds):
     if sys.version_info < (3, 5):
         return ("Sorry, Python >= 3.5 is required, but found: %s" %
                 sys.version_info)
+
+    ## At these early stages, any log cmd-line option
+    #  enable DEBUG logging ; later will be set by `baseapp` traits.
+    log_level = logging.DEBUG if cmain.is_any_log_option(argv) else None
 
     cmain.init_logging(level=log_level)
     log = logging.getLogger(__name__)

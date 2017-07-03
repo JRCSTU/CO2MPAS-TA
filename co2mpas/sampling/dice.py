@@ -164,7 +164,7 @@ def all_app_configurables() -> Tuple:
 ####################################
 
 
-def main(argv=None, log_level=None, **app_init_kwds):
+def main(argv=None, **app_init_kwds):
     """
     Handles some exceptions politely and returns the exit-code.
 
@@ -176,9 +176,13 @@ def main(argv=None, log_level=None, **app_init_kwds):
                 sys.version_info)
 
     import transitions
-    from co2mpas.__main__ import init_logging, exit_with_pride
+    from co2mpas import __main__ as cmain
 
-    init_logging(level=log_level, color=True)
+    ## At these early stages, any log cmd-line option
+    #  enable DEBUG logging ; later will be set by `baseapp` traits.
+    log_level = logging.DEBUG if cmain.is_any_log_option(argv) else None
+
+    cmain.init_logging(level=log_level, color=True)
     log = logging.getLogger(APPNAME)
 
     try:
@@ -187,20 +191,20 @@ def main(argv=None, log_level=None, **app_init_kwds):
     except (CmdException, trt.TraitError, transitions.MachineError) as ex:
         log.debug('App exited due to: %r', ex, exc_info=1)
         ## Suppress stack-trace for "expected" errors but exit-code(1).
-        return exit_with_pride(str(ex))
+        return cmain.exit_with_pride(str(ex))
     except Exception as ex:
         ## Log in DEBUG not to see exception x2, but log it anyway,
         #  in case log has been redirected to a file.
         log.debug('App failed due to: %r', ex, exc_info=1)
         ## Print stacktrace to stderr and exit-code(-1).
-        return exit_with_pride(ex)
+        return cmain.exit_with_pride(ex)
 
 
 if __name__ == '__main__':
     if __package__ is None:
         __package__ = "co2mpas.sampling"  # @ReservedAssignment
 
-    argv = None  # Uses sys.argv.
+    sys.exit(main())  # Use sys.argv.
 
     ## DEBUG AID ARGS, remember to delete them once developed.
     #argv = ''.split()
@@ -232,9 +236,7 @@ if __name__ == '__main__':
 
     #argv = 'tstamp send'.split()
     #argv = 'tstamp login'.split()
-    # Invoked from IDEs, so enable debug-logging.
-    sys.exit(main(argv, log_level=logging.DEBUG))
-    #sys.exit(main())
+    #sys.exit(main(argv))
 
     #from traitlets.config import trtc.get_config
 
