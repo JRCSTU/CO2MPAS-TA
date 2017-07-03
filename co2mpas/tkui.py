@@ -2344,6 +2344,13 @@ class Co2guiCmd(baseapp.Cmd):
                 pass
 
 
+#: Load  this file automatically if it exists in HOME and configure logging,
+#: unless overridden with --logconf.
+#: NOTE: cannot be the same as console, because it MUST send logs
+#: to a file because GUI have no console.
+default_logconf_file = osp.expanduser(osp.join('~', '.co2gui_logconf.yaml'))
+
+
 def main(argv=None, **app_init_kwds):
     """Handles some exceptions politely and returns the exit-code."""
     ## GUI-scripts have no stdout/stderr and
@@ -2362,7 +2369,7 @@ def main(argv=None, **app_init_kwds):
     #  enable DEBUG logging ; later will be set by `baseapp` traits.
     log_level = logging.DEBUG if cmain.is_any_log_option(argv) else None
 
-    cmain.init_logging(level=log_level)
+    cmain.init_logging(level=log_level, default_logconf_file=default_logconf_file)
     log = logging.getLogger(__name__)
 
     try:
