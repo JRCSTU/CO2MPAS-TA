@@ -1,4 +1,4 @@
-#!python
+#!/usr/bin/env python
 #
 """
 Script to bump, commit and tag new versions.
@@ -97,9 +97,12 @@ def strip_ver2_commonprefix(ver1, ver2):
 
 
 def run_testcases():
-    sys.path.append(osp.normpath(osp.join(my_dir, '..')))
+    ## From loading doc-TCs.
+    sys.path.insert(0, osp.abspath(osp.normpath(osp.join(my_dir, '..'))))
+
     import unittest
     import tests.test_docs
+
     suite = unittest.TestLoader().loadTestsFromModule(tests.test_docs)
     res = unittest.TextTestRunner(failfast=True).run(suite)
 
