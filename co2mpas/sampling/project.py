@@ -84,11 +84,10 @@ class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
 
     def dump_commit_msg(self, **kwds):
         cdic = self._asdict()
-        del cdic['data']
-        clist = [cdic]
-        if self.data:
-            clist.extend(self.data)
-        msg = _mydump(clist, **kwds)
+        data = cdic.pop('data')
+        msg = _mydump([cdic], **kwds)
+        if data:
+            msg += '\n' + _mydump(data, **kwds)
 
         return msg
 
