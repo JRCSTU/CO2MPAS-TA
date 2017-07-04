@@ -51,7 +51,7 @@ from co2mpas import (__main__ as cmain, __version__,
                      __updated__, __copyright__, __license__, __uri__)  # @UnusedImport
 from co2mpas.sampling import baseapp
 from collections import Counter, OrderedDict, namedtuple, ChainMap
-import datetime
+from datetime import datetime
 import io
 import logging
 import os
@@ -343,7 +343,7 @@ def find_longest_valid_dir(path, default=None):
 def get_file_infos(fpath):
     try:
         s = os.stat(fpath)
-        mtime = datetime.datetime.fromtimestamp(s.st_mtime)  # @UndefinedVariable
+        mtime = datetime.fromtimestamp(s.st_mtime)  # @UndefinedVariable
         res = (s.st_size, mtime.isoformat())
     except:
         res = ('', '')
@@ -1068,7 +1068,7 @@ class LogPanel(ttk.Labelframe):
         self._update_title()
 
     def save_log(self):
-        now = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        now = datetime.now().strftime('%Y%m%d_%H%M%S')
         fname = 'co2dice-%s.log' % now
         fname = filedialog.SaveAs(
             parent=self,
@@ -2372,7 +2372,7 @@ def main(argv=None, **app_init_kwds):
     #  enable DEBUG logging ; later will be set by `baseapp` traits.
     log_level = logging.DEBUG if cmain.is_any_log_option(argv) else None
 
-    log_fpath = datetime.datetime.now().strftime('co2gui-%Y%m%d_%H%M%S.log')
+    log_fpath = datetime.now().strftime('co2gui-%Y%m%d_%H%M%S.log')
     log_fpath = osp.join(tempfile.gettempdir(), log_fpath)
 
     cmain.init_logging(level=log_level, filename=log_fpath,
