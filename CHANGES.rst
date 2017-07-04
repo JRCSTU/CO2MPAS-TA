@@ -41,7 +41,7 @@ Model:
 
 IO & Data:
 ----------
-- :git:`314`: Move most demo-files to AIO archive - 2 files are left.
+- :gh:`314`: Move most demo-files to AIO archive - 2 files are left.
 - main: rename logging option ``--quite`` --> ``--quiet``.
 
 
@@ -59,11 +59,11 @@ Pre-released just a new `co2mpas` python package - not a new *AIO*.
 
 The Dice:
 ---------
-- fix(crypto, :git:`382`): GPG-signing failed with non ASCII encodings, so had to
+- fix(crypto, :gh:`382`): GPG-signing failed with non ASCII encodings, so had to
   leave gpg-encoding as is (`'Latin-1'`) for STDIN/OUT streams to work in
   foreign locales; fix crash when tstamp-sig did not pass (crash apparent only
   with ``-fd`` options).
-- fix(report, :git:`370`): was always accepting dice-reports, even if TA-flags were
+- fix(report, :gh:`370`): was always accepting dice-reports, even if TA-flags were
   "engineering".
 
 - refact(tstamp): rename configuration params (old names issue deprecation warnings)::
@@ -89,7 +89,7 @@ The Dice:
   - ``config desc``: Describe config-params searched by ``'<class>.<param>'``
     (case-insensitive).
 
-- feat(tstamp, :git:`368`): Support *STARTTLS*, enhance ``DiceSpec.ssl`` config param::
+- feat(tstamp, :gh:`368`): Support *STARTTLS*, enhance ``DiceSpec.ssl`` config param::
 
       Bool/enumeration for what encryption to use when connecting to SMTP/IMAP servers:
       - 'SSL/TLS':  Connect only through TLS/SSL, fail if server supports it
@@ -101,12 +101,12 @@ The Dice:
       - False:      Do not use any encryption;  better use `skip_auth` param,
                     not to reveal credentials in plain-text.
 
-- feat(tstamp, :git:`384`): support SOCKSv4/v5 for tunneling SMTP/IMAP through firewalls.
+- feat(tstamp, :gh:`384`): support SOCKSv4/v5 for tunneling SMTP/IMAP through firewalls.
 - feat(tstamp): Add ``tstamp recv`` and ``project trecv`` commands that
   connect to *IMAP* server, search for tstamp emails, parse them and
   derive the *decisions OK/SAMPLE* flags.  Can work also in "daemon" mode,
   waiting for new emails to arrive.
-- feat(tstamp, :git:`394`): Unify the initial project sub-cmds ``init``,
+- feat(tstamp, :gh:`394`): Unify the initial project sub-cmds ``init``,
   ``append`` and ``report``, so now it's possible to run all three of them::
 
       co2dice project init --inp co2mpas_input.xlsx --out co2mpas_results.xlsx --report
@@ -116,15 +116,15 @@ The Dice:
 
 Projects:
 ~~~~~~~~~
-- fix(:git:`371`): `export` cmd produces an archive with local branches without all
+- fix(:gh:`371`): `export` cmd produces an archive with local branches without all
   dice-report tags.
 - deprecate ``--reset-git-settings``, now resetting by default (inverted
   functionality possible with ``--preserved list``).
 
 - fix(main, logconf.yml): crash `logging.config` is a module, not a  module
   attribute, (apparent only with``--logconf``).
-- fix(io.schema, :git:`379`): could not handle user-given bag-phases column.
-- feat(tkui, :git:`357`): harmonize GUI-logs colors with AIO-console's, add `Copy`
+- fix(io.schema, :gh:`379`): could not handle user-given bag-phases column.
+- feat(tkui, :gh:`357`): harmonize GUI-logs colors with AIO-console's, add `Copy`
   popup-meny item.
 - fix(baseapp): fix various logic flaws & minor bugs when autoencrypting
   ciphered config traits.
@@ -171,47 +171,47 @@ For its usage tkuidelines, visit the
 
 Model-changes
 -------------
-- :git:`325`: An additional check has been set for the input file to
+- :gh:`325`: An additional check has been set for the input file to
   prevent |co2mpas| run when the input file states `has_torque_converter = True`
   and `gear_box_type = manual`.
-- :git:`264`: |co2mpas| glossary has been completely revised and it has migrated
+- :gh:`264`: |co2mpas| glossary has been completely revised and it has migrated
   to the main `webpage <https://co2mpas.io/glossary.html>`_
   following *ReStructured Text* format.
 
 Electric model
 ~~~~~~~~~~~~~~
-- :git:`281`, :git:`329`:
+- :gh:`281`, :gh:`329`:
   Improved prediction of the *electric model* of |co2mpas|, by setting a
   `balance SOC threshold` when the alternator is always on.
 
 
 Clutch model
 ~~~~~~~~~~~~
-- :git:`330`: The *clutch model* has been updated to be fed with the
+- :gh:`330`: The *clutch model* has been updated to be fed with the
   `Torque converter model`.
 
-- :git:`330`: The *clutch model* prediction has been enhanced during gearshifts
+- :gh:`330`: The *clutch model* prediction has been enhanced during gearshifts
   by remove `clutch phases` when
   ``(gears == 0……) | (velocities <= stop_velocity)``.
 
 
 Final drive
 ~~~~~~~~~~~
-- :git:`342`: Enable an option to use more than one ``final_drive_ratios`` for
+- :gh:`342`: Enable an option to use more than one ``final_drive_ratios`` for
   vehicles equipped with dual/variable clutch.
 
 IO
 --
-- :git:`341`: Input template & demo files include now the ``vehicle_family_id``
+- :gh:`341`: Input template & demo files include now the ``vehicle_family_id``
   as a set of concatenated codes that are required to run the model in Type
   Approval mode.
-- :git:`356`: enhancements of the output and dice reports have been made.
+- :gh:`356`: enhancements of the output and dice reports have been made.
 - The *demo-files* are starting to move gradually from within |co2mpas| to the
   site.
 
 GUI
 ---
-- :git:`359`: Don't keep files that do not exist in the output list after
+- :gh:`359`: Don't keep files that do not exist in the output list after
   simulation.
 - GUI launches with ``co2tkui`` command (not with ``co2mpas gui``).
 
@@ -367,7 +367,7 @@ Model-changes
   Implementation of the type approval command, defining declaration and
   engineering data.
 
-- :git:`228`:
+- :gh:`228`:
   Add an option to bash cmd ``-D, --override`` to vary the data model from the
   cmd instead modifying the input file. Moreover with the new option
   ``--modelconf`` also the constant parameters can be modified.
@@ -470,7 +470,7 @@ Cycle model
 ~~~~~~~~~~~
 - :git:`444087b`: Add new data node ``max_time``. This allows to replicate the
   theoretical velocity profile when :math:`max_time > theoretical time`.
-- :git:`279` (:git:`8880d9d`,:git:`93b78db`): Add input vector variable
+- :gh:`279` (:git:`8880d9d`,:git:`93b78db`): Add input vector variable
   ``bag_phases`` to extract the integration times for bags phases. Move
   ``select_phases_integration_times`` from ``co2_emissions`` to ``cycle``.
 
@@ -497,7 +497,7 @@ IO
 
 Naming conventions
 ~~~~~~~~~~~~~~~~~~
-- :gh:`b8ce65f`: : If cycle is not given the defaults are ``nedc-h``,
+- :git:`b8ce65f`: : If cycle is not given the defaults are ``nedc-h``,
   ``nedc-l``, ``wltp-h`` and ``wltp-l``.
 
 Build Chores(build, site, etc)
@@ -1143,13 +1143,13 @@ Cmd-line (running CO2MPAS)
   - Support logging-configuration with a file.
   - Other minor options renames and improvements.
 
-- :gh:`5e91993c`: Add option to skip saving WLTP-prediction.
+- :git:`5e91993c`: Add option to skip saving WLTP-prediction.
 - :gh:`88`: Raise warning (console & summary-file) if incompatible ``VERSION``
   detected in input-file.
 - :gh:`102`: Remove UI pop-up boxes when running - users have to check
   the *scores* tables in the result xl-file.
 - :gh:`91`: Disallow installation and/or execution under ``python < 3.4``.
-- :gh:`5e91993c`: Add option to skip saving WLTP-prediction.
+- :ggit:`5e91993c`: Add option to skip saving WLTP-prediction.
 - :gh:`130`: Possible to plot workflow int the output folder with
   ``--plot-workflow`` option.
 
