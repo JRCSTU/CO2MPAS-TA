@@ -85,6 +85,7 @@ author = 'see AUTHORS.rst'
 
 extlinks = {
     'gh': ('https://github.com/JRCSTU/co2mpas/issues/%s', '#'),
+    'aio': ('https://github.com/JRCSTU/JRCSTU/allinone/%s', '#'),
     'git': ('https://github.com/JRCSTU/co2mpas/commit/%s', ''),
 }
 
