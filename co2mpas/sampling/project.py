@@ -266,7 +266,7 @@ class Project(transitions.Machine, ProjectSpec):
 
         According to RFC5322, 78 is the maximum width for textual emails;
         mails with width > 78 may be sent as HTML-encoded and/or mime-multipart.
-        QuotedPrintable has 76 as limit, probably to account for CR+NL 
+        QuotedPrintable has 76 as limit, probably to account for CR+NL
         end-ofline chars
         """
     ).tag(config=True)
@@ -2153,7 +2153,7 @@ class ExportCmd(_SubCmd):
 
 class ImportCmd(_SubCmd):
     """
-    Import the specified zipped project-archives into repo; reads SDIN if non specified.
+    Import the specified zipped project-archives into repo; reads STDIN if non specified.
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<zip-file-1> ...]
