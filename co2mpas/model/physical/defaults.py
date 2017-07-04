@@ -187,6 +187,10 @@ class Values(co2_utl.Constants):
 
 #: Container of internal function parameters.
 class Functions(co2_utl.Constants):
+    class _filter_temperature_samples(co2_utl.Constants):
+        #: Max abs val of temperature derivatives during the cold phase [°C/s].
+        max_abs_dt_cold = 0.7
+
     class _rescaling_matrix(co2_utl.Constants):
         #: Percentage width top base (i.e., short base) [-].
         a = 1

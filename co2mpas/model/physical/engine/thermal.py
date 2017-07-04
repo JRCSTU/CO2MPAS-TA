@@ -19,6 +19,7 @@ import schedula as sh
 import sklearn.ensemble as sk_ens
 import sklearn.feature_selection as sk_fsel
 import sklearn.pipeline as sk_pip
+from ..defaults import dfl
 
 
 def calculate_engine_temperature_derivatives(
@@ -67,10 +68,13 @@ def _build_samples(temperature_derivatives, engine_coolant_temperatures, *args):
     return np.column_stack(col)
 
 
-def _filter_samples(spl, on_engine, thermostat):
-    b = ~((np.abs(spl[:, -1]) <= 0.001) & on_engine[1:])
+def _filter_temperature_samples(spl, on_engine, thermostat):
+    adt = np.abs(spl[:, -1])
+    b = ~((adt <= 0.001) & on_engine[1:])
     b[:co2_utl.argmax(on_engine)] = False
-    b[co2_utl.argmax(thermostat < spl[:, 0]):] = True
+    i = co2_utl.argmax(thermostat < spl[:, 0])
+    b[i:] = True
+    b[:i] &= adt[:i] < dfl.functions._filter_temperature_samples.max_abs_dt_cold
     return spl[b]
 
 
@@ -177,7 +181,7 @@ class ThermalModel(object):
         spl = _build_samples(temperature_derivatives, temperatures, *args)
         self.thermostat = self._identify_thermostat(spl, idle_engine_speed)
 
-        spl = _filter_samples(spl, on_engine, self.thermostat)
+        spl = _filter_temperature_samples(spl, on_engine, self.thermostat)
         opt = {
             'random_state': 0,
             'max_depth': 2,
