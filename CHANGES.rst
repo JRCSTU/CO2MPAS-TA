@@ -29,6 +29,8 @@ The Dice:
      co2t: co2dice tstamp
      co2c: co2dice config
 
+- refact(git): compatible-bump  of dice-report format-version: ``1.0.0-->1.0.1``.
+
 
 Model:
 ------
@@ -41,7 +43,7 @@ Model:
 
 IO & Data:
 ----------
-- :gh:`314`: Move most demo-files to AIO archive - 2 files are left.
+- :gh:`314`: MOVED MOST DEMO-FILES to AIO archive - 2 files are left.
 - main: rename logging option ``--quite`` --> ``--quiet``.
 
 
@@ -51,6 +53,17 @@ GUI
   It launches this file in a text-editor in case of failures.
 - feat: remember position and size between launches.
 
+
+AIO:
+----
+- Detect 32bit Windows early, and notify user with an error-popup.
+- Switched from Cygwin-->MSYS2 for the POSIX layer, for better support in Windows
+  paths, and `pacman` update manager.
+  - feat(install):  reimplement cygwin's `mkshortcut.exe` in VBScript.
+  - fix(git): use `cygpath.exe` to convert Windows paths and respect mount-points
+  (see `GitPython#639 <https://github.com/gitpython-developers/GitPython/pull/639>`_).
+- Use ``[AIO]`` to signify the ALLINONE base-folder in the documentation; use it
+  in co2mpas to suppress excessive development warnings.
 
 
 v1.5.7.b3, 14 May 2017: Dice networking features for Ispra Workshop
