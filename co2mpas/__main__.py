@@ -517,10 +517,11 @@ def _run_batch(opts, **kwargs):
     log.info("Processing %r --> %r...", input_paths, output_folder)
     input_paths = file_finder(input_paths)
     if not input_paths:
-        raise CmdException("No <input-path> found! \n"
-                "\n  Try: co2mpas batch <fpath-1>..."
-                "\n  or : co2mpas gui"
-                "\n  or : co2mpas --help")
+        cmd = 'ta' if kwargs.get('type_approval_mode') else 'batch'
+        raise CmdException("Specify at least one <input-path>!"
+                           "\n    read: co2mpas --help"
+                           "\n  or try: co2mpas %s <input-fpath>"
+                           "\n      or: co2mpas gui" % cmd)
 
     if not osp.isdir(output_folder):
         if opts['--force']:
