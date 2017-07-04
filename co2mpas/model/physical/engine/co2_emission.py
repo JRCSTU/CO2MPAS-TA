@@ -1157,13 +1157,13 @@ def _define_rescaling_function(
 
 def _rescaling_matrix(
         phases_integration_times, times, velocities, stop_velocity):
-    d = defaults.dfl.functions._rescaling_matrix
+    d, EPS = defaults.dfl.functions._rescaling_matrix, defaults.dfl.EPS
     a, b = np.array([-1, 1]) * d.a / 2, d.b
     pit = np.array(phases_integration_times)
     mean = np.mean(pit, 1)
     points = np.zeros((len(phases_integration_times), 4), float)
     points[0, 0], points[-1, 3] = -np.inf, np.inf
-    points[1:, 0] = (pit[1:, 0] - mean[:-1]) * (1 - b) + mean[:-1]
+    points[1:, 0] = (pit[1:, 0] - mean[:-1]) * (1 - b) + mean[:-1] - EPS
     points[:, 1:3] = np.column_stack((mean,) * 2) + np.diff(pit, axis=1) * a
     points[:-1, 3] = (mean[1:] - pit[:-1, 1]) * b + pit[:-1, 1]
 
