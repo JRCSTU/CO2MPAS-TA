@@ -29,9 +29,6 @@ The Dice:
      co2t: co2dice tstamp
      co2c: co2dice config
 
-- feat(gui): ``co2gui`` command  does not block, and stores logs in temporary-file.
-  It launches this file in a text-editor in case of failures.
-
 
 Model:
 ------
@@ -41,10 +38,19 @@ Model:
 - sphinx: failing due to SVGs
 - fuel: fix tau func
 
+
 IO & Data:
 ----------
 - :git:`314`: Move most demo-files to AIO archive - 2 files are left.
 - main: rename logging option ``--quite`` --> ``--quiet``.
+
+
+GUI
+---
+- feat: ``co2gui`` command  does not block, and stores logs in temporary-file.
+  It launches this file in a text-editor in case of failures.
+- feat: remember position and size between launches.
+
 
 
 v1.5.7.b3, 14 May 2017: Dice networking features for Ispra Workshop
@@ -204,7 +210,7 @@ IO
   site.
 
 GUI
-~~~
+---
 - :git:`359`: Don't keep files that do not exist in the output list after
   simulation.
 - GUI launches with ``co2tkui`` command (not with ``co2mpas gui``).

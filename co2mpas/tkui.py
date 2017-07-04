@@ -46,10 +46,16 @@ Layout::
 ## Icons from:
 #    - http://www.iconsdb.com/
 #    - https://material.io/icons/#
+## Music: melancholic dubstep & ambient jazz
+#    - `Zeds Dead: Out for Blood <https://www.youtube.com/watch?v=2AQr06ZUlR0>`_
+#    - `Bohren & Der Club Of Gore <https://www.youtube.com/watch?v=aVnLon8TvXk>`_
+
 
 from co2mpas import (__main__ as cmain, __version__,
                      __updated__, __copyright__, __license__, __uri__)  # @UnusedImport
+from co2mpas._vendor import traitlets as trt
 from co2mpas.sampling import baseapp
+from co2mpas.sampling import crypto
 from collections import Counter, OrderedDict, namedtuple, ChainMap
 from datetime import datetime
 import io
@@ -67,7 +73,6 @@ import functools as fnt
 import os.path as osp
 import textwrap as tw
 import tkinter as tk
-from co2mpas._vendor import traitlets as trt
 
 
 APPNAME = 'co2mpas'
@@ -2049,9 +2054,14 @@ class Co2guiCmd(baseapp.Cmd):
       Do not run concurrently multiple instances!
     """
 
+    #examples = """TODO: Write cmd-line examples."""
+
     name = trt.Unicode('co2gui')
     version = trt.Unicode(__version__)
-    #examples = """TODO: Write cmd-line examples."""
+
+    root_geometry = trt.Unicode(
+        help="tkinter geometry for root window"
+    ).tag(config=True, persist=True)
 
     subcommands = {
         'config': ('co2mpas.sampling.cfgcmd.ConfigCmd',
@@ -2068,7 +2078,9 @@ class Co2guiCmd(baseapp.Cmd):
         if not root:
             root = tk.Tk()
         self.root = root
+
         root.title("%s-%s" % (APPNAME, __version__))
+        self._setup_peristent_windows_position(root)
 
         define_ttk_styles()
 
@@ -2136,6 +2148,20 @@ class Co2guiCmd(baseapp.Cmd):
 
         ## Last, or it shows the empty-root momentarily.
         self._add_window_icon(root)
+
+    def _setup_peristent_windows_position(self, root):
+        if self.root_geometry:
+            try:
+                root.geometry(self.root_geometry)
+            except Exception as ex:
+                self.log.error("Cannot restore window-position(%s) due to: %s",
+                               self.root_geometry, ex, exc_info=1)
+                self.root_geometry = ''
+
+        def save_geometry(event):
+            self.root_geometry = root.geometry()
+
+        root.bind("<Configure>", save_geometry)
 
     def start_job(self, thread, result_listener):
         from . import batch as cbatch, plan
