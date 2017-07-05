@@ -394,7 +394,7 @@ def _cmd_demo(opts):
                                  force, file_category)
     msg = (
         "Run generated demo-files with command:\n    co2mpas batch %s"
-        "\n\nYou may find more demos inside `CO2MPAS/Demos` folder of your ALLINONE."
+        "\n\nYou may find more demos inside `CO2MPAS/co2mpas-demos` folder of your AO."
     )
     log.info(msg, dst_folder)
 
