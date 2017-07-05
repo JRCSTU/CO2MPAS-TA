@@ -711,7 +711,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
                     lhs = aliases[lhs]
                 if '.' not in lhs:
                     # probably a mistyped alias, but not technically illegal
-                    self.log.warning("Unrecognized alias: '%s', it will probably have no effect.", raw)
+                    self.log.error("Unrecognized alias: '%s', it will probably have no effect.", raw)
                 try:
                     self._exec_config_str(lhs, rhs)
                 except Exception:
