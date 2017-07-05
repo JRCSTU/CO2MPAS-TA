@@ -143,7 +143,7 @@ class TstampSpec(dice.DiceSpec):
         Should DNS queries be performed on the remote side of the SDOCKS tunnel?
 
         - This has no effect with SOCKS4 servers.
-        - Set a real IP in `socks_host` when setting this to True.
+        - Prefer to set an IP in `socks_host` when setting this to True.
         """
     ).tag(config=True)
 
@@ -264,9 +264,10 @@ class TstampSpec(dice.DiceSpec):
 SCRABLE_KEY = 'base64(tag)'
 
 
+@fnt.lru_cache()
 def _make_tranfer_encoders_map():
     """Add 2 capital/lower keys for each Content-Transfer-Encoder in :mod:`email import encoders`."""
-    from  email import encoders as enc
+    from email import encoders as enc
 
     encoders = [enc.encode_base64, enc.encode_quopri, enc.encode_7or8bit]
     enc_kv = [(e.__name__[len('encode_'):].upper(), e)
@@ -289,15 +290,9 @@ def _make_tranfer_encoders_map():
             encoder(msg)
 
     enc_kv += [(k.lower(), fnt.partial(apply_conditionally, encoder=v))
-                for k, v in enc_kv]
+               for k, v in enc_kv]
 
-    ## Choice to delete Header,
-    #  let the SMTP client/server decide
-    #
-    def no_encoding(msg):
-        del msg['Content-Transfer-Encoding']
-
-    enc_kv.append(('noenc', no_encoding))
+    enc_kv.append(('noenc', None))  # Old deleted and then nothing added.
 
     return dict(enc_kv)
 
@@ -358,7 +353,7 @@ class TstampSender(TstampSpec):
 
     transfer_encoding = trt.FuzzyEnum(
         list(_make_tranfer_encoders_map()),
-        default_value='7or8bit', allow_none=True,
+        None, allow_none=True,
         case_sensitive=True,
         help="""Set the Content-Transfer-Encoding MIME Header and encodes
         appropriately the outgoing message.
@@ -426,6 +421,33 @@ class TstampSender(TstampSpec):
 
         return msg
 
+    def _apply_transfer_encoding(self, mail, encoding):
+
+        ## CAPITAL/lower names define conditional-application.
+        #
+        apply = True
+        check_if_utf8 = encoding.isupper()
+        if check_if_utf8:
+            try:
+                mail.get_payload(decode=True).decode('ascii')
+                apply = False
+            except UnicodeError:
+                apply = True
+        self.log.info("%s email Transfer-Encoding: %s",
+                      'Setting' if apply else 'Skipped (because ASCII)',
+                      encoding)
+        if not apply:
+            return
+
+        ## Delete existing or else:
+        #    ValueError: There may be at most 1 Content-Transfer-Encoding headers in a message
+        del mail['Content-Transfer-Encoding']
+
+        enc_map = _make_tranfer_encoders_map()
+        encoder = enc_map[encoding]
+        if encoder:
+            encoder(mail)
+
     def _prepare_mail(self, msg, subject_suffix):
         from email.mime.text import MIMEText
         from email import policy
@@ -442,14 +464,9 @@ class TstampSender(TstampSpec):
         ## Instruct serializers to dissregard line-length.
         mail.policy = policy.default.clone(max_line_length=0)
 
-        if self.transfer_encoding:
-            encoding = self.transfer_encoding
-            self.log.info("Setting Transfer-Encoding: %s", encoding)
-
-            enc_map = _make_tranfer_encoders_map()
-            encoder = enc_map[encoding]
-            if encoder:
-                encoder(mail)
+        encoding = self.transfer_encoding
+        if encoding:
+            self._apply_transfer_encoding(mail, encoding)
 
         return mail
 
@@ -569,10 +586,10 @@ class TstampSender(TstampSpec):
                                self.user_account_resolved,
                                self.decipher('user_pswd'))
 
-                self.log.info("Timestamping %d-char email from '%s' to %s-->%s",
+                self.log.info("Timestamping %d-char email from %s-->%s through %s",
                               len(msg), self._from_address_resolved,
-                              self._tstamper_address_resolved,
-                              self.tstamp_recipients + self.x_recipients)
+                              self.tstamp_recipients + self.x_recipients,
+                              self._tstamper_address_resolved)
                 srv.send_message(mail)
 
         return mail
