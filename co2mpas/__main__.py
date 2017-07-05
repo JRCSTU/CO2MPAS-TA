@@ -44,7 +44,7 @@ Syntax tip:
 OPTIONS:
   <input-path>                Input xlsx-file or folder. Assumes current-dir if missing.
   -O=<output-folder>          Output folder or file [default: .].
-  <excel-file-path>           Output file.
+  <excel-file-path>           Output file [default: co2mpas_template.xlsx].
   --modelconf=<yaml-file>     Path to a model-configuration file, according to YAML:
                                 https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
   --overwrite-cache           Overwrite the cached input file.
@@ -423,7 +423,7 @@ def _get_input_template_fpath():
 
 
 def _cmd_template(opts):
-    dst_fpaths = opts.get('<excel-file-path>', None)
+    dst_fpaths = opts['<excel-file-path>'] or ['co2mpas_template.xlsx']
     if not dst_fpaths:
         raise CmdException('Missing destination filepath for INPUT-TEMPLATE!')
 
