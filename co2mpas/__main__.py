@@ -22,7 +22,7 @@ USAGE:
                       [--modelconf=<yaml-file>]
                       [-D=<key=value>]... [<input-path>]...
   co2mpas demo        [-v | -q | --logconf=<conf-file>] [-f]
-                      [<output-folder>]
+                      ([<output-folder>] | --download)
   co2mpas template    [-v | -q | --logconf=<conf-file>] [-f]
                       [<excel-file-path> ...]
   co2mpas ipynb       [-v | -q | --logconf=<conf-file>] [-f] [<output-folder>]
@@ -44,6 +44,7 @@ Syntax tip:
 OPTIONS:
   <input-path>                Input xlsx-file or folder. Assumes current-dir if missing.
   -O=<output-folder>          Output folder or file [default: .].
+  --download                  Download the co2mpas demo files.
   <excel-file-path>           Output file [default: co2mpas_template.xlsx].
   --modelconf=<yaml-file>     Path to a model-configuration file, according to YAML:
                                 https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
@@ -386,19 +387,35 @@ def _generate_files_from_streams(
                 shutil.copyfileobj(stream, fd, 16 * 1024)
 
 
+def _download_demos(force=False):
+    import pkg_resources
+    import requests
+    import wget
+    try:
+        res = requests.get(
+            'https://api.github.com/repos/JRCSTU/allinone/contents/Archive/CO2MPAS/co2mpas-demos'
+        )
+        dir = pkg_resources.resource_filename(__name__, 'demos')
+        for url in [v['download_url'] for v in res.json()]:
+            fpath = osp.join(dir, osp.basename(url))
+            if force or not osp.isfile(fpath):
+                wget.download(url, fpath)
+    except requests.RequestException as ex:
+        log.warning(ex)
+        raise CmdException('Control your internet connection')
+
+
 def _cmd_demo(opts):
     dst_folder = opts['<output-folder>'] or '.'
     force = opts['--force']
-    file_category = 'INPUT-DEMO'
-    file_stream_pairs = _get_internal_file_streams('demos', r'.*\.xlsx$')
-    file_stream_pairs = sorted(file_stream_pairs.items())
-    _generate_files_from_streams(dst_folder, file_stream_pairs,
-                                 force, file_category)
-    msg = (
-        "Run generated demo-files with command:\n    co2mpas batch %s"
-        "\n\nYou may find more demos inside `CO2MPAS/co2mpas-demos` folder of your AO."
-    )
-    log.info(msg, dst_folder)
+    if opts['--download']:
+        _download_demos(force=force)
+    else:
+        file_category = 'INPUT-DEMO'
+        file_stream_pairs = _get_internal_file_streams('demos', r'.*\.xlsx$')
+        file_stream_pairs = sorted(file_stream_pairs.items())
+        _generate_files_from_streams(dst_folder, file_stream_pairs,
+                                     force, file_category)
 
 
 def _cmd_ipynb(opts):
