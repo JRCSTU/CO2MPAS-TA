@@ -14,10 +14,10 @@ The Dice:
   (alternatives to the much  coarser ``--help`` and ``--help-all`` options).
 - fix(tstamp): BCC-addresses were treated as CCs.
 - feat(tstamp): enhance email encodings:
-  - add ``TstampSender.transfer_encoding_b64``  to send emails with
-    *Content-Transfer-Enconding* ``base64``. Try this to avoid strange `'=0A=0D=0E'`
-    chars scattered in the email (MS Outlook Exchange servers have this problem
-    but are immune to this switch!).
+  - add ``TstampSender.transfer_encoding_b64`` to send non-ASCII emails with
+    different *Content-Transfer-Enconding* choices. Try this to avoid strange
+    `'=0A=0D=0E'` chars scattered in the email (MS Outlook Exchange servers
+    have this problem but are immune to this switch!).
   - add ``TstampSender.scramble_tag`` & ``TstampReceiver.un_quote_printable``
     options for dealing with non-ASCII dice-reports.
 

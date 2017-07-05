@@ -86,10 +86,11 @@ class Co2diceCmd(Cmd):
     """
     Prepare/sign/send/receive/validate & archive Type Approval sampling emails for *co2mpas*.
 
-    This is the root command for co2mpas "dice"; use subcommands or preferably GUI to accomplish sampling.
+    This is the root command for co2mpas DICE; use its sub-commands
+    to "run the dice" on the files of a co2mpas run.
 
     NOTE:
-      Do not run concurrently multiple instances!
+      Do not run concurrently multiple instances.
     """
 
     name = trt.Unicode(APPNAME)

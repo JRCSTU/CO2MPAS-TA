@@ -1756,7 +1756,12 @@ class ReportCmd(_SubCmd):
 
     """
 
-    #examples = trt.Unicode(""" """)
+    examples = trt.Unicode("""
+        Create or view existing report of the *current* project:
+            %(cmd_chain)s
+        Or the same command using `git` primitives (in Bash):
+            git -C ~/.codice/repo cat-file tag dices/RL-12-BM3-2016-000/1 | %(cmd_chain)s send
+    """)
 
     def __init__(self, **kwds):
         from . import crypto

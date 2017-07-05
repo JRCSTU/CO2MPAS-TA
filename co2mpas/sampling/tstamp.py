@@ -1296,7 +1296,7 @@ class TstampCmd(baseapp.Cmd):
     examples = trt.Unicode(
         """
         Pick an existing dice-report tag to send for timestamping:
-            git cat-object tag dices/RL-12-BM3-2016-000/1 | %(cmd_chain)s send
+            co2dice project report | %(cmd_chain)s send
 
         Await for the response, and paste its content to this command:
             %(cmd_chain)s parse
