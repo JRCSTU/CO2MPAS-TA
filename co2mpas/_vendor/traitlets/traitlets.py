@@ -611,12 +611,11 @@ class TraitType(BaseDescriptor):
 
     def error(self, obj, value):
         if obj is not None:
-            e = "The '%s' trait of %s instance must be %s, but a value of %s was specified." \
-                % (self.name, class_of(obj),
-                   self.info(), repr_type(value))
+            e = "The value of `%s.%s` trait must be %s, but was %r." \
+                % (class_of(obj), self.name, self.info(), value)
         else:
-            e = "The '%s' trait must be %s, but a value of %r was specified." \
-                % (self.name, self.info(), repr_type(value))
+            e = "The value of '%s' trait must be %s, but was %r." \
+                % (self.name, self.info(), value)
         raise TraitError(e)
 
     def get_metadata(self, key, default=None):
