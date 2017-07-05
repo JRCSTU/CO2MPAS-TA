@@ -262,7 +262,7 @@ class Configurable(HasTraits):
 
         if 'Enum' in trait.__class__.__name__:
             # include Enum choices
-            lines.append(indent('Choices: %r' % (trait.values,)))
+            lines.append(indent('Choices: %s' % trait.info()))
 
         if inst is not None:
             lines.append(indent('Current: %r' % getattr(inst, trait.name), 4))
@@ -358,7 +358,7 @@ class Configurable(HasTraits):
                     lines.append(c(trait.help))
                 if 'Enum' in type(trait).__name__:
                     # include Enum choices
-                    lines.append('#  Choices: %r' % (trait.values,))
+                    lines.append('#  Choices: %s' % trait.info())
                 lines.append('#  Default: %s' % default_repr)
             else:
                 # Trait appears multiple times and isn't defined here.
