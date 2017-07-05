@@ -386,9 +386,6 @@ def _generate_files_from_streams(
 
 def _cmd_demo(opts):
     dst_folder = opts['<output-folder>'] or '.'
-    if not dst_folder:
-        raise CmdException('Missing destination folder for INPUT-DEMO files!')
-
     force = opts['--force']
     file_category = 'INPUT-DEMO'
     file_stream_pairs = _get_internal_file_streams('demos', r'.*\.xlsx$')
@@ -404,9 +401,6 @@ def _cmd_demo(opts):
 
 def _cmd_ipynb(opts):
     dst_folder = opts['<output-folder>'] or '.'
-    if not dst_folder:
-        raise CmdException('Missing destination folder for IPYTHON NOTEBOOKS!')
-
     force = opts['--force']
     file_category = 'IPYTHON NOTEBOOK'
     file_stream_pairs = _get_internal_file_streams('ipynbs', r'.*\.ipynb$')
