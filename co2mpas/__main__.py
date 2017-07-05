@@ -247,6 +247,8 @@ def init_logging(level=None, frmt=None, logconf_file=None,
                                 message="^internal gelsd")
         warnings.filterwarnings(action="ignore", module="dill",
                                 message="^unclosed file")
+        warnings.filterwarnings(action="ignore", module="importlib",
+                                message="^can't resolve")
 
     log.debug('Logging-configurations source: %s', logconf_src)
 
