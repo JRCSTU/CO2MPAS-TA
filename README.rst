@@ -373,7 +373,7 @@ you have installed |co2mpas| (see :ref:`install` above) and type::
                           [--modelconf=<yaml-file>]
                           [-D=<key=value>]... [<input-path>]...
       co2mpas demo        [-v | -q | --logconf=<conf-file>] [-f]
-                          [<output-folder>]
+                          ([<output-folder>] | --download)
       co2mpas template    [-v | -q | --logconf=<conf-file>] [-f]
                           [<excel-file-path> ...]
       co2mpas ipynb       [-v | -q | --logconf=<conf-file>] [-f] [<output-folder>]
@@ -395,6 +395,7 @@ you have installed |co2mpas| (see :ref:`install` above) and type::
     OPTIONS:
       <input-path>                Input xlsx-file or folder. Assumes current-dir if missing.
       -O=<output-folder>          Output folder or file [default: .].
+      --download                  Download the co2mpas demo files.
       <excel-file-path>           Output file [default: co2mpas_template.xlsx].
       --modelconf=<yaml-file>     Path to a model-configuration file, according to YAML:
                                     https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
