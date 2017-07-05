@@ -385,7 +385,7 @@ def _generate_files_from_streams(
 
 
 def _cmd_demo(opts):
-    dst_folder = opts.get('<output-folder>', None)
+    dst_folder = opts['<output-folder>'] or '.'
     if not dst_folder:
         raise CmdException('Missing destination folder for INPUT-DEMO files!')
 
@@ -403,7 +403,7 @@ def _cmd_demo(opts):
 
 
 def _cmd_ipynb(opts):
-    dst_folder = opts.get('<output-folder>', None)
+    dst_folder = opts['<output-folder>'] or '.'
     if not dst_folder:
         raise CmdException('Missing destination folder for IPYTHON NOTEBOOKS!')
 
