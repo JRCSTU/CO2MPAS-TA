@@ -265,7 +265,7 @@ SCRABLE_KEY = 'base64(tag)'
 
 
 @fnt.lru_cache()
-def _make_tranfer_encoders_map():
+def _make_send_transfer_encoders_map():
     """Add 2 capital/lower keys for each Content-Transfer-Encoder in :mod:`email import encoders`."""
     from email import encoders as enc
 
@@ -351,20 +351,20 @@ class TstampSender(TstampSpec):
         """
     ).tag(config=True)
 
-    transfer_encoding = trt.FuzzyEnum(
-        list(_make_tranfer_encoders_map()),
+    send_transfer_encoding = trt.FuzzyEnum(
+        list(_make_send_transfer_encoders_map()),
         None, allow_none=True,
         case_sensitive=True,
-        help="""Set the Content-Transfer-Encoding MIME Header and encodes
-        appropriately the outgoing message.
+        help="""
+        Set the Content-Transfer-Encoding MIME Header and encodes appropriately outgoing mails.
 
+        - CAPITAL encodings mean "always applied"; `lower` applied only if
+          non-ASCII (or long-lines?).
         - Experiment with this to avoid strange `'=0A=0D=0E'` chars scattered in the email
           (MS Outlook Exchange servers have this problem but seem immune to this switch!)
         - Note that base64 encoding DOES NOT work with Tstamper, for sure.
-        - CAPITAL encodings mean "always done"; `lower` applied only if
-          non-ASCII (or long-lines?).
-        - Sending with `quopri` might work if receiving with :attr:`un_quote_printable`.
-        - `noenc` removes the header.
+        - Sending with `quopri` will work if receiving with `recv_transfer_encoding`.
+        - `noenc` removes the MIME header completely.
         - Setting None means "default set by python".
         """
     ).tag(config=True)
@@ -421,7 +421,7 @@ class TstampSender(TstampSpec):
 
         return msg
 
-    def _apply_transfer_encoding(self, mail, encoding):
+    def _apply_send_transfer_encoding(self, mail, encoding):
 
         ## CAPITAL/lower names define conditional-application.
         #
@@ -443,7 +443,7 @@ class TstampSender(TstampSpec):
         #    ValueError: There may be at most 1 Content-Transfer-Encoding headers in a message
         del mail['Content-Transfer-Encoding']
 
-        enc_map = _make_tranfer_encoders_map()
+        enc_map = _make_send_transfer_encoders_map()
         encoder = enc_map[encoding]
         if encoder:
             encoder(mail)
@@ -464,9 +464,9 @@ class TstampSender(TstampSpec):
         ## Instruct serializers to dissregard line-length.
         mail.policy = policy.default.clone(max_line_length=0)
 
-        encoding = self.transfer_encoding
+        encoding = self.send_transfer_encoding
         if encoding:
-            self._apply_transfer_encoding(mail, encoding)
+            self._apply_send_transfer_encoding(mail, encoding)
 
         return mail
 
