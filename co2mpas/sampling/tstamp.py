@@ -721,7 +721,7 @@ class TstampReceiver(TstampSpec):
 
     un_quote_printable = trt.FuzzyEnum(
         'FULL TAG full tag'.split(),
-        'full', allow_none=True,
+        'tag', allow_none=True,
         case_sensitive=True,
         help="""
         Whether un-QuotedPrintable dice-repsonse or selectively the Tag only.
