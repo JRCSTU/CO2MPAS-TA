@@ -387,17 +387,30 @@ def _generate_files_from_streams(
                 shutil.copyfileobj(stream, fd, 16 * 1024)
 
 
+def get_cache_dir(
+        *path, home_keys=('AIODIR', 'HOME', 'HOMEPATH'),
+        cache_path=('.cache', 'co2mpas'), makedirs=True):
+    """ The default path to store files. """
+    # Local cache path:
+
+    home_dir = next((os.environ[k] for k in home_keys if k in os.environ), '.')
+    cache_dir = osp.join(home_dir, *(cache_path + path))
+    if makedirs:
+        os.makedirs(cache_dir, exist_ok=True)
+    return cache_dir
+
+
 def _download_demos(force=False):
-    import pkg_resources
     import requests
     import wget
+
+    cache_dir = get_cache_dir('demos')
     try:
         res = requests.get(
             'https://api.github.com/repos/JRCSTU/allinone/contents/Archive/CO2MPAS/co2mpas-demos'
         )
-        dir = pkg_resources.resource_filename(__name__, 'demos')
         for url in [v['download_url'] for v in res.json()]:
-            fpath = osp.join(dir, osp.basename(url))
+            fpath = osp.join(cache_dir, osp.basename(url))
             if force or not osp.isfile(fpath):
                 wget.download(url, fpath)
     except requests.RequestException as ex:
@@ -412,7 +425,15 @@ def _cmd_demo(opts):
         _download_demos(force=force)
     else:
         file_category = 'INPUT-DEMO'
-        file_stream_pairs = _get_internal_file_streams('demos', r'.*\.xlsx$')
+        cache_dir = get_cache_dir('demos', makedirs=False)
+        if osp.isdir(cache_dir):
+            file_stream_pairs = {
+                osp.basename(fpath): io.open(fpath, "rb")
+                for fpath in glob.glob(osp.join(cache_dir, '*.xlsx'))
+            }
+        else:
+            file_stream_pairs = _get_internal_file_streams('demos', r'.*\.xlsx$')
+
         file_stream_pairs = sorted(file_stream_pairs.items())
         _generate_files_from_streams(dst_folder, file_stream_pairs,
                                      force, file_category)
