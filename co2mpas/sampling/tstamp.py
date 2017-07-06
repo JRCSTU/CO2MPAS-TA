@@ -369,7 +369,7 @@ class TstampSender(TstampSpec):
         - Experiment with this to avoid strange `'=0A=0D=0E'` chars scattered in the email
           (MS Outlook Exchange servers have this problem but seem immune to this switch!)
         - Note that base64 encoding DOES NOT work with Tstamper, for sure.
-        - Sending with `quopri` will work if receiving with `recv_transfer_encoding`.
+        - Modifying `recv_transfer_encoding` is not necessary.
         - `noenc` removes the MIME header completely.
         - Setting None means "default set by python".
         """

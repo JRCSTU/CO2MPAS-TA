@@ -8,26 +8,29 @@ v1.6.0.dev4: Dice & model fine-tuning
 ================================================
 The Dice:
 ---------
+- Added command-line aliases in AIO consoles::
+
+     co2p: co2dice project
+     co2t: co2dice tstamp
+     co2c: co2dice config
+
 - feat(config): enhance ``co2dice config (desc | show | paths)`` commands
   to provide help-text and configured values for specific classes & params
   and all interesting variables affecting configurations.
   (alternatives to the much  coarser ``--help`` and ``--help-all`` options).
 - fix(tstamp): BCC-addresses were treated as CCs.
 - feat(tstamp): enhance email encodings:
-  - add ``TstampSender.transfer_encoding_b64`` to send non-ASCII emails with
-    different *Content-Transfer-Enconding* choices. Try this to avoid strange
-    `'=0A=0D=0E'` chars scattered in the email (MS Outlook Exchange servers
-    have this problem but are immune to this switch!).
+  - add configurations choices for *Content-Transfer-Enconding* when sending
+    non-ASCII emails or working with Outlook (usually `'=0A=0D=0E'` chars
+    scattered in the email); read help on those parameters::
+
+        co2c desc transfer_enc  quote_printable
+
   - add ``TstampSender.scramble_tag`` & ``TstampReceiver.un_quote_printable``
     options for dealing with non-ASCII dice-reports.
 
 - feat(tstamp): add ``--subject`` and ``--on`` options to control search criteria
   on the ``tstamp recv`` and ``project trecv`` subcmds.
-- Added command-line aliases in AIO consoles::
-
-     co2p: co2dice project
-     co2t: co2dice tstamp
-     co2c: co2dice config
 
 - refact(git): compatible-bump  of dice-report format-version: ``1.0.0-->1.0.1``.
 
