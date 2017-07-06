@@ -2392,8 +2392,7 @@ def main(argv=None, **app_init_kwds):
     #  Alternative check: if sys.executable.endswith("pythonw.exe"):
     if sys.stdout is None or sys.stderr is None:
         ## Not output, all shown in GUI-console.
-        sys.stdout = open(os.devnull, "w")
-        sys.stderr = open(os.devnull, "w")
+        sys.stdout = sys.stderr = open(os.devnull, "w")
         log_fpath = datetime.now().strftime('co2gui-%Y%m%d_%H%M%S.log')
         log_fpath = osp.join(tempfile.gettempdir(), log_fpath)
     else:
