@@ -235,7 +235,7 @@ def init_logging(level=None, frmt=None, logconf_file=None,
             if rlog.handlers and isinstance(rlog.handlers[0], logging.StreamHandler):
                 rlog.removeHandler(rlog.handlers[0])
                 rlog.addHandler(color_handler)
-        logconf_src = 'cmd-line(level)'
+        logconf_src = 'explicit(level=%s)' % level
 
     _set_numpy_logging()
 
