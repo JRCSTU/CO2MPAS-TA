@@ -373,7 +373,7 @@ you have installed |co2mpas| (see :ref:`install` above) and type::
                           [--modelconf=<yaml-file>]
                           [-D=<key=value>]... [<input-path>]...
       co2mpas demo        [-v | -q | --logconf=<conf-file>] [-f]
-                          ([<output-folder>] | --download)
+                          [<output-folder>] [--download]
       co2mpas template    [-v | -q | --logconf=<conf-file>] [-f]
                           [<excel-file-path> ...]
       co2mpas ipynb       [-v | -q | --logconf=<conf-file>] [-f] [<output-folder>]

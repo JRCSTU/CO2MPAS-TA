@@ -22,7 +22,7 @@ USAGE:
                       [--modelconf=<yaml-file>]
                       [-D=<key=value>]... [<input-path>]...
   co2mpas demo        [-v | -q | --logconf=<conf-file>] [-f]
-                      ([<output-folder>] | --download)
+                      [<output-folder>] [--download]
   co2mpas template    [-v | -q | --logconf=<conf-file>] [-f]
                       [<excel-file-path> ...]
   co2mpas ipynb       [-v | -q | --logconf=<conf-file>] [-f] [<output-folder>]
@@ -218,13 +218,14 @@ def init_logging(level=None, frmt=None, logconf_file=None,
         if color and sys.stderr.isatty():
             from rainbow_logging_handler import RainbowLoggingHandler
 
-            color_handler = RainbowLoggingHandler(sys.stderr,
-                                                  color_message_debug=('grey', None, False),
-                                                  color_message_info=('blue', None, False),
-                                                  color_message_warning=('yellow', None, True),
-                                                  color_message_error=('red', None, True),
-                                                  color_message_critical=('white', 'red', True),
-                                                  )
+            color_handler = RainbowLoggingHandler(
+                sys.stderr,
+                color_message_debug=('grey', None, False),
+                color_message_info=('blue', None, False),
+                color_message_warning=('yellow', None, True),
+                color_message_error=('red', None, True),
+                color_message_critical=('white', 'red', True),
+            )
             formatter = formatter = logging.Formatter(frmt)
             color_handler.setFormatter(formatter)
 
@@ -387,32 +388,25 @@ def _generate_files_from_streams(
                 shutil.copyfileobj(stream, fd, 16 * 1024)
 
 
-def get_cache_dir(
-        *path, home_keys=('AIODIR', 'HOME', 'HOMEPATH'),
-        cache_path=('.cache', 'co2mpas'), makedirs=True):
+def get_cache_dir(*path, home_keys=('AIODIR',), cache_path=('CO2MPAS',)):
     """ The default path to store files. """
     # Local cache path:
-
-    home_dir = next((os.environ[k] for k in home_keys if k in os.environ), '.')
-    cache_dir = osp.join(home_dir, *(cache_path + path))
-    if makedirs:
-        os.makedirs(cache_dir, exist_ok=True)
-    return cache_dir
+    home_dir = next((os.environ[k] for k in home_keys if k in os.environ), None)
+    return home_dir and osp.join(home_dir, *(cache_path + path)) or None
 
 
-def _download_demos(force=False):
+def _download_demos_stream_pairs():
     import requests
-    import wget
-
-    cache_dir = get_cache_dir('demos')
+    from urllib.request import urlopen
     try:
         res = requests.get(
-            'https://api.github.com/repos/JRCSTU/allinone/contents/Archive/CO2MPAS/co2mpas-demos'
+            'https://api.github.com/repos/JRCSTU/allinone/contents/Archive/'
+            'CO2MPAS/co2mpas-demos'
         )
-        for url in [v['download_url'] for v in res.json()]:
-            fpath = osp.join(cache_dir, osp.basename(url))
-            if force or not osp.isfile(fpath):
-                wget.download(url, fpath)
+        for url in sorted(v['download_url'] for v in res.json()):
+            fname = osp.basename(url)
+            log.info('Downloading \'%s\'...' % fname)
+            yield fname, urlopen(url)
     except requests.RequestException as ex:
         log.warning(ex)
         raise CmdException('Control your internet connection')
@@ -421,22 +415,24 @@ def _download_demos(force=False):
 def _cmd_demo(opts):
     dst_folder = opts['<output-folder>'] or '.'
     force = opts['--force']
-    if opts['--download']:
-        _download_demos(force=force)
-    else:
-        file_category = 'INPUT-DEMO'
-        cache_dir = get_cache_dir('demos', makedirs=False)
-        if osp.isdir(cache_dir):
-            file_stream_pairs = {
-                osp.basename(fpath): io.open(fpath, "rb")
-                for fpath in glob.glob(osp.join(cache_dir, '*.xlsx'))
-            }
-        else:
-            file_stream_pairs = _get_internal_file_streams('demos', r'.*\.xlsx$')
 
-        file_stream_pairs = sorted(file_stream_pairs.items())
-        _generate_files_from_streams(dst_folder, file_stream_pairs,
-                                     force, file_category)
+    if opts['--download']:
+        cache_dir = get_cache_dir('co2mpas-demos')
+        if not cache_dir:
+            file_stream_pairs = _download_demos_stream_pairs()
+        else:
+            file_stream_pairs = [
+                (osp.basename(fpath), io.open(fpath, "rb"))
+                for fpath in sorted(glob.glob(osp.join(cache_dir, '*.xlsx')))
+            ]
+    else:
+        file_stream_pairs = sorted(
+            _get_internal_file_streams('demos', r'.*\.xlsx$').items()
+        )
+
+    file_category = 'INPUT-DEMO'
+    _generate_files_from_streams(dst_folder, file_stream_pairs,
+                                 force, file_category)
 
 
 def _cmd_ipynb(opts):

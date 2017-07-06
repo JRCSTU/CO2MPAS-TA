@@ -1821,6 +1821,7 @@ class TemplatesPanel(ttk.Frame):
             opts = docopt.Dict()
             opts['--force'] = True
             opts['<output-folder>'] = folder
+            opts['--download'] = True
             cmain._cmd_demo(opts)
 
         frame = self._make_download_panel(textarea, title='CO2MPAS DEMO Input-files',
