@@ -304,7 +304,7 @@ def exit_with_pride(reason=None,
         color = msg_color
         exit_code = 1
 
-    if sys.stdin.isatty():
+    if sys.stderr.isatty():
         reset = '\x1b[0m'
         reason = '%s%s%s' % (color, reason, reset)
 
