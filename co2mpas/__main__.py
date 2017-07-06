@@ -408,8 +408,9 @@ def _download_demos_stream_pairs():
             log.info('Downloading \'%s\'...' % fname)
             yield fname, urlopen(url)
     except requests.RequestException as ex:
-        log.warning(ex)
-        raise CmdException('Control your internet connection')
+        msg = "Cannot download demo files due to: %s\n" \
+              "  Check you internet connection."
+        raise CmdException(msg % ex)
 
 
 def _cmd_demo(opts):
