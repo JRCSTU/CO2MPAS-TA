@@ -20,6 +20,12 @@ from . import CmdException, baseapp, dice, crypto
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 
 
+class UnverifiedSig(CmdException):
+    def __init__(self, msg, verdict):
+        self.verdict = verdict
+        super().__init__(msg)
+
+
 def _to_bytes(s, encoding='ASCII', errors='surrogateescape'):
     if not isinstance(s, bytes):
         return s.encode(encoding, errors=errors)
@@ -713,21 +719,53 @@ class TstampReceiver(TstampSpec):
         """
     ).tag(config=True)
 
-    un_quote_printable = trt.Bool(
-        help="""When true, undo the QuotedPrintable Content-Transfer-Encoding
-        before parsing Tag.
+    un_quote_printable = trt.FuzzyEnum(
+        'FULL TAG full tag'.split(),
+        'full', allow_none=True,
+        case_sensitive=True,
+        help="""
+        Whether un-QuotedPrintable dice-repsonse or selectively the Tag only.
 
-        It needs trials to decide whether this should be true/false.
+        - CAPITAL mean "always applied"; `lower` mean "try original and fallback".
+        - 'full': unquote full dice-response email.
+        - 'tag': unquote just the enclosed tag of the dice-report.
+        - None: don't unquote anything.
 
-        Impl note: this transfer-encoding kicks in when sending an email with
-        non-ASCII or when Outlook servers discover a line-length > 78.
-        Timestamper DOES NOT respect (undo) this encoding, and signs
-        the QoPi-encoded Dice-tag. So we validate the *enclosing* timestamp-sig
-        on the "verbatim" received email, and un-quote the *enclosed* tag
-        before check its sig.  Unfortunately, which transfer-encoding were used
-        is not always preserved, so it's a trial and error.
+        Tip:
+            It needs trials to decide this; Outlook servers need this
+            set to ('FULL').
         """
     ).tag(config=True)
+
+    def try_unquoting(self, unquot_choice, txt: Text, check_func, stage):
+        """
+        Tries processing text twice, original :attr:`un_quote_printable`, unless CAPTIALS
+
+        :param check_func:
+             callable(txt) to process unquoted text and raise if invalid (e.g. sig-check).
+        :param stage:
+            'full' or 'tag', caseless
+        """
+        if not unquot_choice or stage.lower() != unquot_choice.lower():
+            return check_func(txt)
+
+        def unquote():
+            import quopri
+            self.log.info('Unquoting printable %s...', stage)
+            return quopri.decodestring(txt).decode('utf-8')
+
+        if unquot_choice.isupper():
+            return check_func(unquote())
+
+        try:
+            return check_func(txt)
+        except Exception as ex:
+            self.log.warning('1st validation of original %s failed due to: %s',
+                             stage, ex)
+            try:
+                return check_func(unquote())
+            except Exception as _:
+                raise ex from None  # Raise error from original (unquoted) text.
 
     @trt.validate('subject_prefix', 'wait_criterio',
                   'before_date', 'after_date', 'on_date')
@@ -790,6 +828,19 @@ class TstampReceiver(TstampSpec):
 
         return tag_bytes
 
+    def _verify_tag(self, tag_text: Text) -> OrderedDict:
+        """return verdict or raise if tag invalid"""
+        git_auth = crypto.get_git_auth(self.config)
+
+        stag_bytes = self._descramble_tag(tag_text)
+        ver = git_auth.verify_git_signed(stag_bytes)
+        verdict = OrderedDict(sorted(vars(ver).items()))
+        if not ver:
+            raise UnverifiedSig(
+                "Cannot verify (foreign?) dice-report's signature!\n%s" %
+                _mydump(verdict), verdict)
+
+        return verdict
 
     def parse_tstamped_tag(self, tag_text: Text) -> int:
         """
@@ -798,21 +849,18 @@ class TstampReceiver(TstampSpec):
         """
         ## TODO: Schedula to the rescue!
 
-
-        if self.un_quote_printable:
-            import quopri
-            ## XXX: Only when Content-Transfer-Encoding is PrintableQuoted??
-            tag_text = quopri.decodestring(tag_text).decode()
-
-        stag_bytes = self._descramble_tag(tag_text)
-        git_auth = crypto.get_git_auth(self.config)
-
         ## Allow parsing signed/unsigned reports when --force,
         #
-        ver = None
         try:
-            ver = git_auth.verify_git_signed(stag_bytes)
-            verdict = OrderedDict(sorted(vars(ver).items()))
+            verdict = self.try_unquoting(
+                self.un_quote_printable, tag_text,
+                self._verify_tag, 'tag')
+        except CmdException as ex:
+            ## Do not fail, it might be from an unknown sender,
+            #  but log as much as possible and crop verdict.
+            verdict = ex.verdict
+            tag = verdict['parts']['msg']
+            self.log.warning(str(ex))
         except Exception as ex:
             msg = "Failed to extract signed dice-report from tstamp!\n%s" % ex
             if self.force:
@@ -820,21 +868,12 @@ class TstampReceiver(TstampSpec):
                 verdict = OrderedDict(sig=msg)
 
                 ## Fall-back assuming report was not signed at all.
-                tag = stag_bytes
+                tag = _to_bytes(tag_text, 'utf-8')
             else:
                 raise CmdException(msg) from ex
-
         else:
-            if not ver:
-                #
-                ## Do not fail, it might be from an unknown sender.
-
-                msg = "Cannot verify dice-report's signature!\n%s"
-                self.log.warning(msg, _mydump(verdict))
-            else:
-                msg = "The dice-report in timestamp got verified OK: %s"
-                self.log.debug(msg, _mydump(verdict))
-
+            self.log.debug("The dice-report in timestamp got verified OK: %s",
+                           _mydump(verdict))
             tag = verdict['parts']['msg']
 
         ## Parse dice-report
