@@ -367,7 +367,6 @@ you have installed |co2mpas| (see :ref:`install` above) and type::
 
 
     USAGE:
-      co2mpas gui         [-v | -q | --logconf=<conf-file>]
       co2mpas ta          [-f] [-v] [-O=<output-folder>] [<input-path>]...
       co2mpas batch       [-v | -q | --logconf=<conf-file>] [-f]
                           [--overwrite-cache] [-O=<output-folder>]
@@ -396,7 +395,7 @@ you have installed |co2mpas| (see :ref:`install` above) and type::
     OPTIONS:
       <input-path>                Input xlsx-file or folder. Assumes current-dir if missing.
       -O=<output-folder>          Output folder or file [default: .].
-      <excel-file-path>           Output file.
+      <excel-file-path>           Output file [default: co2mpas_template.xlsx].
       --modelconf=<yaml-file>     Path to a model-configuration file, according to YAML:
                                     https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
       --overwrite-cache           Overwrite the cached input file.
