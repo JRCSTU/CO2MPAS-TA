@@ -223,12 +223,10 @@ setup(
             '%(p)s-autocompletions = %(p)s.__main__:print_autocompletions' % {'p': proj_name},
             'datasync = co2mpas.datasync:main',
             'co2dice = co2mpas.sampling.dice:main ',
-        ],
-        ## Note: launching gui-scripts from start-menu
-        #  still flickers console-window, so
-        #  better invoke them with a Windows shortcut "minimized.
-        #  Check also: https://github.com/pypa/setuptools/issues/410
-        'gui_scripts': [
+            ## Note: launching as gui-scripts DOES NOT WORK
+            #  and multiple console-windows flicker on each job launch.
+            #  better invoke them with a Windows shortcut "minimized.
+            #  Check also: https://github.com/pypa/setuptools/issues/410
             'co2gui = co2mpas.tkui:main'
         ],
     },
