@@ -33,7 +33,7 @@ if [ $# -gt 1 ]; then
 fi
 
 rm -rf build/* dist/*
-python setup.py build bdist_wheel sdist
+python setup.py build bdist_wheel 
 
 
 ## Check if data-files exist.
