@@ -362,6 +362,7 @@ def run_python_job(job_name, function, cmd_args, cmd_kwds, stdout=None, stderr=N
     Suitable to be run within a thread.
     """
     from .utils import stds_redirected
+    import schedula
 
     ## Numpy error-config is on per-thread basis:
     #    https://docs.scipy.org/doc/numpy/reference/ufuncs.html#error-handling
@@ -373,6 +374,10 @@ def run_python_job(job_name, function, cmd_args, cmd_kwds, stdout=None, stderr=N
     with stds_redirected(stdout, stderr) as (stdout, stderr):
         try:
             function(*cmd_args, **cmd_kwds)
+        except (cmain.CmdException, schedula.DispatcherAbort) as ex1:
+            log.debug('App exited due to: %r', ex, exc_info=1)
+            ## Suppress stack-trace for "expected" errors but exit-code(1).
+            log.warning("Job %s exited due to: %s", job_name, ex1)
         except (SystemExit, Exception) as ex1:
             log.error("Job %s failed due to: %s", job_name, ex1, exc_info=1)
             ex = ex1
