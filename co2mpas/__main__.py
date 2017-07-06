@@ -408,9 +408,9 @@ def _download_demos_stream_pairs():
             log.info('Downloading \'%s\'...' % fname)
             yield fname, urlopen(url)
     except requests.RequestException as ex:
-        msg = "Cannot download demo files due to: %s\n" \
-              "  Check you internet connection."
-        raise CmdException(msg % ex)
+        raise CmdException("Cannot download demo files due to: %s\n"
+                           "  Check you internet connection or download them "
+                           "with your browser: https://goo.gl/b9dqcY" % ex)
 
 
 def _cmd_demo(opts):
@@ -434,6 +434,9 @@ def _cmd_demo(opts):
     file_category = 'INPUT-DEMO'
     _generate_files_from_streams(dst_folder, file_stream_pairs,
                                  force, file_category)
+
+    log.info("You can always download the latest demos with your browser: "
+             "https://goo.gl/b9dqcY")
 
 
 def _cmd_ipynb(opts):
