@@ -183,9 +183,17 @@ class TstampSpec(dice.DiceSpec):
         '[co2dice.test]: ',
         allow_none=True,
         help="""
-        Prefixes project-ids when sending emails, used as search term when receiving.
+        Prefixes project-ids when sending emails, and used as search term when receiving.
 
-        If none, Receiver will not add it to its criteria; Sender will scream.
+        - The *sender* uses this value as the 1st part of the subject-line for 
+          the dice-report email that is send to the timestamper.  None/empty is not
+          allowed!
+        - The *receiver* uses this value to filter emails containing this string in 
+          their subject line. If None, no extra filter on the subject line is used.
+          Tip: 
+              set to sender's ``c.TstampSender.subject_prefix = None`` if dice cannot
+              receive the emails from your account that you know are there 
+              (assuming the other search criteria, such as dates, are correct).
         """
     ).tag(config=True)
 
