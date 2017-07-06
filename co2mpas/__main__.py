@@ -44,7 +44,7 @@ Syntax tip:
 OPTIONS:
   <input-path>                Input xlsx-file or folder. Assumes current-dir if missing.
   -O=<output-folder>          Output folder or file [default: .].
-  --download                  Download the co2mpas demo files.
+  --download                  Download all demo files from ALLINONE GitHub project.
   <excel-file-path>           Output file [default: co2mpas_template.xlsx].
   --modelconf=<yaml-file>     Path to a model-configuration file, according to YAML:
                                 https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
