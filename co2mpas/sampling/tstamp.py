@@ -898,26 +898,43 @@ class TstampReceiver(TstampSpec):
 
         return verdict
 
+    def _verify_tstamp(self, txt: Text) -> OrderedDict:
+        """return verdict or raise if tstamp invalid"""
+        stamper_auth = crypto.get_stamper_auth(self.config)
+
+        ver = stamper_auth.verify_clearsigned(txt)
+        verdict = vars(ver)
+        if not ver:
+            errmsg = "Cannot verify timestamp-response's signature due to: %s"
+            gpg_msg = ver.status or crypto.filter_gpg_stderr(ver.stderr)
+            raise UnverifiedSig(errmsg % (gpg_msg), verdict)
+
+        return verdict
+
     def parse_tstamp_response(self, mail_text: Text) -> int:
         ## TODO: Could use dispatcher to parse tstamp-response, if failback routes were working...
         import textwrap as tw
 
         force = self.force
-        stamper_auth = crypto.get_stamper_auth(self.config)
         errlog = self.log.error if self.force else self.log.debug
 
-        ts_ver = stamper_auth.verify_clearsigned(mail_text)
-        ts_verdict = vars(ts_ver)
-        if not ts_ver:
-            errmsg = "Cannot verify timestamp-response's signature due to: %s"
-            if not force or not ts_ver.signature_id:  # Need sig-id for decision.
-                self.log.debug(errmsg, _mydump(sorted(ts_verdict.items())))
-                gpg_msg = ts_ver.status or crypto.filter_gpg_stderr(ts_ver.stderr)
-                raise CmdException(errmsg % (gpg_msg))
+        try:
+            ts_verdict = self.try_unquoting(
+                self.un_quote_printable, mail_text,
+                self._verify_tstamp, 'full')
+        ## Let serious exceptions bubble up - cannot work with them.
+        except CmdException as ex:
+            ## Do not fail, it might be from an unknown sender,
+            #  but log as much as possible and crop verdict.
+            ts_verdict = ex.verdict
+            if not force or 'signature_id' not in ts_verdict:  # Need sig-id for decision.
+                self.log.debug("%s\n but got: %s", ex,
+                               _mydump(sorted(ts_verdict.items())))
+                raise CmdException(str(ex))
             else:
-                self.log.error(errmsg, _mydump(sorted(ts_verdict.items())))
+                self.log.error(str(ex))
 
-        if not ts_ver.valid:
+        if not ts_verdict.get('valid'):
             self.log.warning(
                 tw.dedent("""
                 Timestamp's signature is valid, but not *trusted*!
@@ -952,7 +969,7 @@ class TstampReceiver(TstampSpec):
             else:
                 tag_verdict = self.parse_tstamped_tag(tag)
 
-        num = self._pgp_sig2int(ts_ver.signature_id)
+        num = self._pgp_sig2int(ts_verdict['signature_id'])
         dice100 = num % 100
         decision = 'OK' if dice100 < 90 else 'SAMPLE'
 
