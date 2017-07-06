@@ -873,7 +873,8 @@ class TstampReceiver(TstampSpec):
             errmsg = "Cannot verify timestamp-response's signature due to: %s"
             if not force or not ts_ver.signature_id:  # Need sig-id for decision.
                 self.log.debug(errmsg, _mydump(sorted(ts_verdict.items())))
-                raise CmdException(errmsg % ts_ver.status)
+                gpg_msg = ts_ver.status or crypto.filter_gpg_stderr(ts_ver.stderr)
+                raise CmdException(errmsg % (gpg_msg))
             else:
                 self.log.error(errmsg, _mydump(sorted(ts_verdict.items())))
 
