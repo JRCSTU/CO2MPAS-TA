@@ -5,7 +5,7 @@ CO2MPAS Changes
 .. _changes:
 
 v1.6.0.dev4: Dice & model fine-tuning
-================================================
+=====================================
 The Dice:
 ---------
 - Added command-line aliases in AIO consoles::
@@ -19,7 +19,7 @@ The Dice:
   and all interesting variables affecting configurations.
   (alternatives to the much  coarser ``--help`` and ``--help-all`` options).
 - fix(tstamp): BCC-addresses were treated as CCs.
-- feat(tstamp): enhance email encodings:
+- feat(tstamp, :gh:`382`): enhance handling of email encodings on send/recv:
   - add configurations choices for *Content-Transfer-Enconding* when sending
     non-ASCII emails or working with Outlook (usually `'=0A=0D=0E'` chars
     scattered in the email); read help on those parameters::
@@ -29,26 +29,67 @@ The Dice:
   - add ``TstampSender.scramble_tag`` & ``TstampReceiver.un_quote_printable``
     options for dealing with non-ASCII dice-reports.
 
-- feat(tstamp): add ``--subject`` and ``--on`` options to control search criteria
+- feat(tstamp): add ``--subject`` and ``--on`` options for search criteria
   on the ``tstamp recv`` and ``project trecv`` subcmds.
+- refact(git): compatible-bump of dice-report format-version: ``1.0.0-->1.0.1``.
 
-- refact(git): compatible-bump  of dice-report format-version: ``1.0.0-->1.0.1``.
+Datasync
+--------
+- :gh:`390`: Datasync was producing 0 values in the first and/or in the last
+  cells. This has been fixed extending the given signal with the first and last
+  values.
 
+Model-changes
+-------------
+- :git:`d21b665`, :git:`5f8f58b`, :git:`33538be`: Speedup the model avoiding
+  useless identifications during the prediction phase.
 
-Model:
-------
-- datasync:fix edges
-- Rls: add extra formulas
-- clutch: remove the peaks
-- sphinx: failing due to SVGs
-- fuel: fix tau func
+Vehicle model
+~~~~~~~~~~~~~
+- :git:`d90c697`: Add road loads calculation from vehicle and tyre category.
+- :git:`952f16b`: Update the `rolling_resistance_coeff` according to table A4/1
+  of EU legislation not world wide.
+- :git:`952f16b`: Add function to calculate `aerodynamic_drag_coefficient` from
+  vehicle_body.
+
+Thermal model
+~~~~~~~~~~~~~
+- :gh:`169`: Add a filter to remove invalid temperature derivatives (i.e.,
+  `abs(DT) >= 0.7`) during the cold phase.
+
+Clutch model
+~~~~~~~~~~~~
+- :gh:`330`: Some extra RPM (peaks) has been verified before the engine's stops.
+  This problem has been resolved filtering out `clutch_delta > 0` when `acc < 0`
+  and adding a `features selection` in the calibration of the model.
+
+Engine model
+~~~~~~~~~~~~
+- :git:`4c07751`: The `auxiliaries_torque_losses` are function of
+  `engine_capacity`.
+
+CO2 model
+~~~~~~~~~
+- :gh:`350`: Complete fuel default characteristics (LHV, Carbon Content, and
+  Density).
+- :git:`2e890f0`: Fix of the bug in `tau_function` when a hot cycle is given.
+- :gh:`399`: Implement a fuzzy rescaling function to improve the
+  stability of the model when rounding the WLTP bag values.
+- :gh:`401`: Set co2_params limits to avoid unfeasible results.
+- :gh:`402`: Rewrite of `calibrate_co2_params` function.
+- :gh:`391`, :gh:`403`: Use the `identified_co2_params` as initial guess of the
+  `calibrate_co2_params`. Update co2 optimizer enabling all steps in the
+  identification and disabling the first two steps in the calibration. Optimize
+  the parameters that define the gearbox, torque, and power losses.
 
 
 IO & Data:
 ----------
 - :gh:`314`: MOVED MOST DEMO-FILES to AIO archive - 2 files are left.
 - main: rename logging option ``--quite`` --> ``--quiet``.
-
+- :gh:`380`: Add cycle scores to output template.
+- :gh:`391`: Add model scores to summary file.
+- :gh:`399`: Report `co2_rescaling_scores` to output and summary files.
 
 GUI
 ---
@@ -60,17 +101,18 @@ GUI
 AIO:
 ----
 - Detect 32bit Windows early, and notify user with an error-popup.
-- Switched from Cygwin-->MSYS2 for the POSIX layer, for better support in Windows
-  paths, and `pacman` update manager.
+- Switched from Cygwin-->MSYS2 for the POSIX layer, for better support in
+  Windows paths, and `pacman` update manager.
   - feat(install):  reimplement cygwin's `mkshortcut.exe` in VBScript.
-  - fix(git): use `cygpath.exe` to convert Windows paths and respect mount-points
-  (see `GitPython#639 <https://github.com/gitpython-developers/GitPython/pull/639>`_).
+  - fix(git): use `cygpath.exe` to convert Windows paths and respect
+    mount-points (see `GitPython#639
+    <https://github.com/gitpython-developers/GitPython/pull/639>`_).
 - Use ``[AIO]`` to signify the ALLINONE base-folder in the documentation; use it
   in co2mpas to suppress excessive development warnings.
 
 
 v1.5.7.b3, 14 May 2017: Dice networking features for Ispra Workshop
-========================================================================
+===================================================================
 Pre-released just a new `co2mpas` python package - not a new *AIO*.
 
 The Dice:
@@ -79,10 +121,11 @@ The Dice:
   leave gpg-encoding as is (`'Latin-1'`) for STDIN/OUT streams to work in
   foreign locales; fix crash when tstamp-sig did not pass (crash apparent only
   with ``-fd`` options).
-- fix(report, :gh:`370`): was always accepting dice-reports, even if TA-flags were
-  "engineering".
+- fix(report, :gh:`370`): was always accepting dice-reports, even if TA-flags
+  were "engineering".
 
-- refact(tstamp): rename configuration params (old names issue deprecation warnings)::
+- refact(tstamp): rename configuration params (old names issue deprecation
+  warnings)::
 
     x_recipients           --> tstamp_recipients
     timestamping_addresses --> tstamper_address           ## Not a list anymore!
@@ -105,19 +148,22 @@ The Dice:
   - ``config desc``: Describe config-params searched by ``'<class>.<param>'``
     (case-insensitive).
 
-- feat(tstamp, :gh:`368`): Support *STARTTLS*, enhance ``DiceSpec.ssl`` config param::
+- feat(tstamp, :gh:`368`): Support *STARTTLS*, enhance ``DiceSpec.ssl`` config
+  param::
 
-      Bool/enumeration for what encryption to use when connecting to SMTP/IMAP servers:
+      Bool/enumeration for what encryption to use when connecting to SMTP/IMAP
+      servers:
       - 'SSL/TLS':  Connect only through TLS/SSL, fail if server supports it
                     (usual ports SMTP:465 IMAP:993).
-      - 'STARTTLS': Connect plain & upgrade to TLS/SSL later, fail if server supports it
-                    (usual ports SMTP:587 IMAP:143).
+      - 'STARTTLS': Connect plain & upgrade to TLS/SSL later, fail if server
+                    supports it (usual ports SMTP:587 IMAP:143).
       - True:       enforce most secure encryption, based on server port above;
                     If port is `None`, identical to 'SSL/TLS'.
       - False:      Do not use any encryption;  better use `skip_auth` param,
                     not to reveal credentials in plain-text.
 
-- feat(tstamp, :gh:`384`): support SOCKSv4/v5 for tunneling SMTP/IMAP through firewalls.
+- feat(tstamp, :gh:`384`): support SOCKSv4/v5 for tunneling SMTP/IMAP through
+  firewalls.
 - feat(tstamp): Add ``tstamp recv`` and ``project trecv`` commands that
   connect to *IMAP* server, search for tstamp emails, parse them and
   derive the *decisions OK/SAMPLE* flags.  Can work also in "daemon" mode,
@@ -128,20 +174,21 @@ The Dice:
       co2dice project init --inp co2mpas_input.xlsx --out co2mpas_results.xlsx --report
 
   The ``project append`` supports also  the new ``--report`` option.
-- feat(tstamp): ``tstamp login`` can check *SMTP*/*IMAP* server connection selectively.
+- feat(tstamp): ``tstamp login`` can check *SMTP*/*IMAP* server connection
+  selectively.
 
 Projects:
 ~~~~~~~~~
-- fix(:gh:`371`): `export` cmd produces an archive with local branches without all
-  dice-report tags.
+- fix(:gh:`371`): `export` cmd produces an archive with local branches without
+  all dice-report tags.
 - deprecate ``--reset-git-settings``, now resetting by default (inverted
   functionality possible with ``--preserved list``).
 
 - fix(main, logconf.yml): crash `logging.config` is a module, not a  module
   attribute, (apparent only with``--logconf``).
 - fix(io.schema, :gh:`379`): could not handle user-given bag-phases column.
-- feat(tkui, :gh:`357`): harmonize GUI-logs colors with AIO-console's, add `Copy`
-  popup-meny item.
+- feat(tkui, :gh:`357`): harmonize GUI-logs colors with AIO-console's, add
+  `Copy` popup-meny item.
 - fix(baseapp): fix various logic flaws & minor bugs when autoencrypting
   ciphered config traits.
 - chore(dep): vendorize  *traitlets* lib.
