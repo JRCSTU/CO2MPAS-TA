@@ -181,7 +181,11 @@ def pgp_split_sig(git_content: bytes) -> (bytes, bytes):
 def filter_gpg_stderr(stderr: Text) -> Text:
     """return '' if nothing matched"""
     groups = re.findall('gpg: (.*)', stderr)
-    return '\n  '.join(i.strip() for i in groups) if groups else ''
+    if not groups:
+        return ''
+    return '\n  '.join(msg.strip()
+                       for msg in groups
+                       if not msg.startswith('reading options'))
 
 
 class GpgSpec(baseapp.Spec):
