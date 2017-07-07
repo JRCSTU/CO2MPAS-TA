@@ -388,7 +388,7 @@ def _generate_files_from_streams(
                 shutil.copyfileobj(stream, fd, 16 * 1024)
 
 
-def get_cache_dir(*path, home_keys=('AIODIR',), cache_path=('CO2MPAS',)):
+def get_cache_dir(*path, home_keys=('AIODIR',), cache_path=('Apps',)):
     """ The default path to store files. """
     # Local cache path:
     home_dir = next((os.environ[k] for k in home_keys if k in os.environ), None)
@@ -401,7 +401,7 @@ def _download_demos_stream_pairs():
     try:
         res = requests.get(
             'https://api.github.com/repos/JRCSTU/allinone/contents/Archive/'
-            'CO2MPAS/co2mpas-demos'
+            'Apps/.co2mpas-demos'
         )
         for url in sorted(v['download_url'] for v in res.json()):
             fname = osp.basename(url)
@@ -418,7 +418,7 @@ def _cmd_demo(opts):
     force = opts['--force']
 
     if opts['--download']:
-        cache_dir = get_cache_dir('co2mpas-demos')
+        cache_dir = get_cache_dir('.co2mpas-demos')
         if not cache_dir:
             file_stream_pairs = _download_demos_stream_pairs()
         else:
