@@ -1,0 +1,93 @@
+﻿/** Start eu-header from top */
+.wy-nav-content {
+    padding-top: 0;
+}
+
+.wy-breadcrumbs {
+  font-family: "EC Square Sans Pro", "Roboto", Verdana, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+
+#layout-header {
+    height: 145px;
+    width: 100%;
+    background-repeat: repeat-x;
+    background-position: 0 0;
+    background-image: url(../eu_title.gif);
+    position: relative;
+    z-index: 10;
+    min-height: 145px;
+    background-color: #fff;
+    line-height: 1.4;
+}
+
+.container {
+    position: relative;
+}
+
+#layout-header #banner-flag {
+    position: absolute;
+    left: 40px;
+    top: 15px;
+    z-index: 8;
+    color: #000;
+    width: 172px;
+    height: 119px;
+}
+
+#layout-header #main-title {
+    color: #0065a2;
+    text-transform: uppercase;
+    font-size: 24px !important;
+    position: absolute;
+    z-index: 10;
+    left: 245px;
+    top: 65px;
+    text-decoration: none;
+}
+
+#layout-header #sub-title {
+    color: #fff;
+    font-size: 17px !important;
+    position: absolute;
+    z-index: 10;
+    left: 245px;
+    top: 100px;
+    text-decoration: none;
+}
+
+#path {
+    font-size: 90%;
+    background-color: #074A8B; /* from JRC */
+    /* background-color: #004494;  /* EU-flag color */
+    color: #d0d0d0;
+    overflow: hidden;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+#path a, #path a:visited {
+    color: #fff;
+    text-decoration: none;
+    border: 0;
+}
+
+.contactJRC {
+    display: block;
+    position:relative;
+    top: 0px;
+    right: 15px;
+    text-align: right;
+    font-family: Verdana;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: normal;
+    color: #4677a8;
+
+}
+.contactJRC a, .contactJRC a:visited {
+    text-decoration: none;
+    color: #4677a8;
+}
