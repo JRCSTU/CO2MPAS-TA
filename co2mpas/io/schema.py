@@ -107,8 +107,15 @@ def _eng_mode_parser(
 
 
 def validate_plan(plan, engineering_mode, soft_validation, use_selector):
-    from . import excel
+    if not engineering_mode:
+        msg = 'Simulation plan cannot be executed without enabling the ' \
+              'engineering mode!\n' \
+              'If you want to execute it, add to the batch cmd ' \
+              '-D flag.engineering_mode=True'
+        log.warning(msg)
+        return sh.NONE
 
+    from . import excel
     read_schema = define_data_schema(read=True)
     flag_read_schema = define_flags_schema(read=True)
     validated_plan, errors, v_data = [], {}, read_schema.validate
