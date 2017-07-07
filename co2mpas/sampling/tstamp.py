@@ -638,7 +638,7 @@ class TstampReceiver(TstampSpec):
         """
     ).tag(config=True)
 
-    email_criteria = trt.List(
+    rfc_criteria = trt.List(
         trt.Unicode(), allow_none=True,
         default_value=[
             'FROM "mailer@stamper.itconsult.co.uk"',
@@ -1048,10 +1048,10 @@ class TstampReceiver(TstampSpec):
         dates = [self.before_date, self.after_date, self.on_date]
         waitcrt = self.wait_criterio
 
-        if not self.email_criteria:
+        if not self.rfc_criteria:
             criteria = []
         else:
-            criteria = [c and c.strip() for c in self.email_criteria]
+            criteria = [c and c.strip() for c in self.rfc_criteria]
             criteria = [c for c in criteria if c]
 
         if subj:
@@ -1491,6 +1491,18 @@ class MailboxCmd(baseapp.Cmd):
         return rcver.list_mailbox(*args)
 
 
+#: Reused also by `project trecv` cmd
+recv_cmd_aliases = {
+    'before': 'TstampReceiver.before_date',
+    'after': 'TstampReceiver.after_date',
+    'on': 'TstampReceiver.on_date',
+    'mailbox': 'TstampReceiver.mailbox',
+    'rfc_criteria': 'TstampReceiver.rfc_criteria',
+    'wait_criterio': 'TstampReceiver.wait_criterio',
+    'subject': 'TstampReceiver.subject_prefix',
+}
+
+
 class RecvCmd(baseapp.Cmd):
     """
     Fetch tstamps from IMAP server and derive *decisions* OK/SAMPLE flags.
@@ -1565,14 +1577,7 @@ class RecvCmd(baseapp.Cmd):
                 "Just print matched email content(s)."
             ),
         })
-        kwds.setdefault('cmd_aliases', {
-            'before': 'TstampReceiver.before_date',
-            'after': 'TstampReceiver.after_date',
-            'on': 'TstampReceiver.on_date',
-            'mailbox': 'TstampReceiver.mailbox',
-            'search': 'TstampReceiver.email_criteria',
-            'subject': 'TstampReceiver.subject_prefix',
-        })
+        kwds.setdefault('cmd_aliases', recv_cmd_aliases)
         super().__init__(**kwds)
 
     def run(self, *args):

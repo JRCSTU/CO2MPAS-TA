@@ -643,14 +643,14 @@ class TRX(unittest.TestCase):
     )
     def test_criteria_stripping(self, case):
         ecrts, one, projects = case
-        rcv = tstamp.TstampReceiver(email_criteria=ecrts,
+        rcv = tstamp.TstampReceiver(rfc_criteria=ecrts,
                                     wait_criterio=one,
                                     subject_prefix=one)
         crt = rcv._prepare_search_criteria(True, projects)
         self.assertEqual(crt, '')
 
     def test_criteria_dupe_projects(self):
-        rcv = tstamp.TstampReceiver(email_criteria=[],
+        rcv = tstamp.TstampReceiver(rfc_criteria=[],
                                     subject_prefix='')
         crt = rcv._prepare_search_criteria(False, [])  # sanity
         self.assertEqual(crt, '')
@@ -695,7 +695,7 @@ base32(tag): |=0A=\r
         self.assertIsNotNone(m)
 
     def test_tranfer_encoders_map(self):
-        enc_map = tstamp._make_tranfer_encoders_map()
+        enc_map = tstamp._make_send_transfer_encoders_map()
         self.assertEqual(len(set(enc_map)), 7, enc_map)
         for k, v in enc_map.items():
             if v is not None:

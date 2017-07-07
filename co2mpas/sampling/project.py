@@ -1976,12 +1976,7 @@ class TrecvCmd(TparseCmd):
         self.conf_classes.extend([
             tstamp.TstampSender, tstamp.TstampReceiver,
             crypto.GitAuthSpec, crypto.StamperAuthSpec])
-        self.cmd_aliases.update({
-            'before': 'TstampReceiver.before_date',
-            'after': 'TstampReceiver.after_date',
-            'on': 'TstampReceiver.on_date',
-            'subject': 'TstampReceiver.subject_prefix',
-        })
+        self.cmd_aliases.update(tstamp.recv_cmd_aliases)
         self.cmd_flags.update({
             ('n', 'dry-run'): (
                 {'Project': {'dry_run': True}},
