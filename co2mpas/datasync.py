@@ -433,10 +433,11 @@ class Tables(object):
             values.dropna(how='all', inplace=True)
             values.dropna(axis=1, how='any', inplace=True)
             if values.empty:
-                raise CmdException(
+                log.warning(
                     "Empty table of sheet(%r) in book (%r)!" %
                     (lasso.sheet._sheet.name, lasso.sheet.book_fname))
-            self.tables.append(values)
+            else:
+                self.tables.append(values)
 
         return lasso
 
@@ -502,7 +503,7 @@ def _ensure_out_file(out_path, inp_path, force, out_frmt):
     out_file = osp.abspath(osp.expanduser(osp.expandvars(out_file)))
     if osp.isfile(out_file):
         if force:
-            log.info('Overwritting datasync-file: %r...', out_file)
+            log.info('Overwriting datasync-file: %r...', out_file)
         else:
             raise CmdException("Output file exists! \n"
                                "\n To overwrite add '-f' option!")
@@ -571,7 +572,10 @@ def do_datasync(x_label, y_label, ref_xlref, *sync_xlrefs,
         # noinspection PyUnresolvedReferences
         df.to_excel(writer, tables.ref_sh_name, header=False, index=False)
         writer.save()
-
+        log.info(
+            'Data are synchronized and written into the sheet (%r) of xl-file '
+            '(%r) !\n', tables.ref_sh_name, out_file
+        )
     return out_file
 
 
