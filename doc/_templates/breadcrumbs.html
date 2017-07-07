@@ -1,0 +1,28 @@
+{% extends "!breadcrumbs.html" %}
+
+{% block breadcrumbs %}
+<div class="contactJRC">
+  <a href="https://ec.europa.eu/info/legal-notice_en" target="_blank">Legal notice</a> |
+  <a href="http://ec.europa.eu/cookies/index_en.htm" target="_blank">Cookies</a> |
+  <a href="mailto:JRC-CO2MPAS@ec.europa.eu">Contact</a> |
+  <a href="http://ec.europa.eu/geninfo/query/index.do" target="_blank">Search</a>
+</div>
+
+<div id="layout-header">
+  <div class="container">
+    <img alt="European Commission logo" id="banner-flag" src="{{ pathto('_static/eu_logo.png', 1) }}">
+    <div id="main-title">JOINT RESEARCH CENTRE</div>
+    <div id="sub-title" class="hidden-xs">The European Commission's science and knowledge service</div>
+  </div>
+</div>
+
+<div id="path">
+  <li><a href="http://ec.europa.eu/index_en.htm">European Commission</a>&Rang;</li>
+    <li><a href="https://ec.europa.eu/jrc">JRC</a>&Rang;</li>
+    <li><a href="{{ pathto(master_doc) }}">{{ project }}</a>&Rang;</li>
+    {% for doc in parents %}
+      <li><a href="{{ doc.link|e }}">{{ doc.title }}</a>&Rang;</li>
+    {% endfor %}
+    <li>{{ title }}</li>
+</div>
+{% endblock %}
