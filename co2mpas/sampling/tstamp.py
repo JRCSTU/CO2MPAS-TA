@@ -185,15 +185,16 @@ class TstampSpec(dice.DiceSpec):
         help="""
         Prefixes project-ids when sending emails, and used as search term when receiving.
 
-        - The *sender* uses this value as the 1st part of the subject-line for 
+        - The *sender* uses this value as the 1st part of the subject-line for
           the dice-report email that is send to the timestamper.  None/empty is not
           allowed!
-        - The *receiver* uses this value to filter emails containing this string in 
+        - The *receiver* uses this value to filter emails containing this string in
           their subject line. If None, no extra filter on the subject line is used.
-          Tip: 
+          Tip:
               set to sender's ``c.TstampSender.subject_prefix = None`` if dice cannot
-              receive the emails from your account that you know are there 
+              receive the emails from your account that you know are there
               (assuming the other search criteria, such as dates, are correct).
+              Yahoo needs this!
         """
     ).tag(config=True)
 
@@ -647,32 +648,43 @@ class TstampReceiver(TstampSpec):
         help="""
         RFC3501 IMAP search terms ANDed together for fetching Stamper responses.
 
-        - Note that elements are not just strings - to combine NOT, AND & OR
-          with the following criteria, all parenthesized:
+        - Note that list-elements are combinations of criteria like those below,
+          grouped with NOT, AND & OR keywords, all parenthesized:
             SUBJECT | BODY | "foo bar"
             TEXT "foo bar"        # Search subject & body
             FROM  | TO | CC | BCC "foo@bar"
-            SENTON "15-May-2017"
 
           or just those 'special" flags:
-            (UN)ANSWERED | (UN)FLAGGED | (UN)SEEN | RECENT | NEW | OLD
+            [UN]ANSWERED | [UN]FLAGGED | [UN]SEEN | RECENT | NEW | OLD | DRAFT
+            [UN]KEYWORD <flag>
+            HEADER <field-name> <string>
+            CHARSET UTF-8         # Applies for all strings given.
 
-        - A single delimiter-space between and double-quoting of  strings
-          are both compulsory;
-        - see https://tools.ietf.org/html/rfc3501#page-49 for more.
+          where `NEW` means `AND(RECENT UNSEEN)`.
+          Any date-related fields also given with --on, --before and --after
+          disregard time & timezone:
+            BEFORE | SINCE | SENTBEFORE | SENTSINCE | SENTON "15-May-2017"
+
+        - A single space -delimiter and double-quoted strings are both compulsory;
+        - When multiple terms are given, they are ANDed rtogether.
         - More criteria are appended on runtime, ie `TstampSpec.subject_prefix`,
           `wait_criterio` if --wait, and any args to `recv` command as ORed
           and searched as subject terms (i.e. the (projects-ids").
         - If you want to fetch tstamps sent to `tstamp_recipients`,
-          either leave this empty, or set it to email-address of the sender:
-
-            ['From "tstamp-sender@foo.com"']
+          either leave this empty, or set it to email-address of the sender
+          (bash syntax):
+            --rfc-criteria='From "tstamp-sender@foo.com"'
+        - See https://tools.ietf.org/html/rfc3501#section-6.4.4
         """
     ).tag(config=True)
 
     wait_criterio = trt.Unicode(
         'NEW', allow_none=True,
-        help="""The RFC3501 IMAP search criteria for when IDLE-waiting, usually RECENT+UNSEEN messages."""
+        help="""
+        The RFC3501 IMAP search criteria for when IDLE-waiting;
+
+        See `co2c desc rfc_criteria` for examples.
+        """
     ).tag(config=True)
 
     poll_delay = trt.Int(
@@ -701,7 +713,8 @@ class TstampReceiver(TstampSpec):
           - two days after eom   ## 2 days after end-of-moth
           - Jan                  ## NOTE: after Feb, refers to NEXT January!
         - For available locales, see `date_locale` param
-        - see https://github.com/bear/parsedatetime/blob/master/parsedatetime/pdt_locales/base.py)
+        - See https://github.com/bear/parsedatetime/blob/master/parsedatetime/pdt_locales/base.py)
+        - See also `co2c desc rfc_criteria`.
         """
     ).tag(config=True)
 
@@ -728,20 +741,20 @@ class TstampReceiver(TstampSpec):
     ).tag(config=True)
 
     un_quote_printable = trt.FuzzyEnum(
-        'FULL TAG full tag'.split(),
+        'TAG FULL tag full'.split(),
         'tag', allow_none=True,
         case_sensitive=True,
         help="""
-        Whether un-QuotedPrintable dice-repsonse or selectively the Tag only.
+        Whether to undo quoted-printable encoding of dice-repsonse or selectively the Tag only.
 
-        - CAPITAL mean "always applied"; `lower` mean "try original and fallback".
-        - 'full': unquote full dice-response email.
-        - 'tag': unquote just the enclosed tag of the dice-report.
+        - TAG: unquote just the enclosed tag of the dice-report.
+        - FUL: unquote full dice-response email.
+        - "lower" values": try with verbatim text and then fallback".
         - None: don't unquote anything.
 
         Tip:
-            It needs trials to decide this; Outlook servers need this
-            set to ('FULL').
+            Trials may be needed to decide, e.g. Outlook servers need 'TAG', but
+            a more resilient choice is 'tag'.
         """
     ).tag(config=True)
 
@@ -1411,6 +1424,7 @@ class TstampCmd(baseapp.Cmd):
             c.DiceSpec.user_email = 'foo@yahoo.com'     # A username alone is ok.
             c.TstampSender.host   = 'smtp.mail.yahoo.com'
             c.TstampReceiver.host = c.imap.mail.yahoo.com'
+            c.TstampReceiver.subject_prefix = None      # Cannot parse [] chars
     """)
 
     def __init__(self, **kwds):
