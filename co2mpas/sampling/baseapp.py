@@ -430,7 +430,7 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
     def config_tuples(self):
         """
         The consolidated list of loaded 2-tuples ``(folder, fname(s))``.
-        
+
         Sorted in descending order (1st overrides later).
         """
         return self._consolidate(self._visited_tuples)
@@ -475,7 +475,7 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
     def visit_file(self, fpath, miss=False, append=False):
         """
         Invoke this in ascending order for every visited config-file.
-        
+
         :param miss:
             Loaeded successful?
         :param append:
@@ -483,7 +483,7 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
         """
         base, fname = osp.split(fpath)
         pair = (base, None if miss else fname)
-        
+
         if append:
             self._visited_tuples.append(pair)
         else:
@@ -594,13 +594,13 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         help="""
         Absolute/relative folder/file path to read/write *persistent* parameters on runtime.
 
-        In practice, when both this param and `{persistvar}` envvar are empty, 
-        *persist* file follows the location of --config-paths or `{confvar}` envvar, 
+        In practice, when both this param and `{persistvar}` envvar are empty,
+        *persist* file follows the location of --config-paths or `{confvar}` envvar,
         but more precisely:
-        
+
         - The source for this parameter is a) the command-line, b) the `{persistvar}`
           envvar, or c) the 1st *existent* path collected by the rules of `Cmd.config_paths`
-          parameter (in this order); since the loading of config-files depend 
+          parameter (in this order); since the loading of config-files depend
           on this parameter, values specified in them are irrelevant here.
         - If all sources above result to empty, it defaults to:
                {default}
@@ -622,7 +622,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         - The *persistent* file is written in two occasions:
           - on startup, if an un-encrypted value is met in it;
           - on exit, if *persistent* values have changed.
-          
+
         Tips:
            - Use `config paths` to view the actual file loaded.
            - Use `{appname} --encrypt` to encrypt all ciphered-prams in peristent file.
@@ -662,7 +662,14 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
     def _collect_static_fpaths(self):
         """Return fully-normalized paths, with ext."""
         config_paths = self.config_paths_resolved
-        return self._cfgfiles_registry.collect_fpaths(config_paths)
+        fpaths = self._cfgfiles_registry.collect_fpaths(config_paths)
+
+        ## NOTE: CO2MPAS-only logic where configs must exist!
+        #
+        if not fpaths:
+            raise CmdException("No configurations found!\n"
+                               "  Ask JRC for configs, or copy from your old AIO.")
+        return fpaths
 
     def _read_config_from_json_or_py(self, cfpath: Text):
         """
