@@ -269,9 +269,9 @@ def is_any_log_option(argv):
 
 
 def exit_with_pride(reason=None,
-                         msg_color='\x1b[33;1m', err_color='\x1b[31;1m'):
+                    msg_color='\x1b[33;1m', err_color='\x1b[31;1m'):
     """
-    Return an *exit-code* and prints colorful message for ``main()`` methods.
+    Return an *exit-code* and logs error/fatal message for ``main()`` methods.
 
     :param reason:
         - If reason is None, exit-code(0) signifying OK;
@@ -292,6 +292,8 @@ def exit_with_pride(reason=None,
     For colors use :meth:`RainbowLoggingHandler.getColor()`, defaults:
     - '\x1b[33;1m': yellow+bold
     - '\x1b[31;1m': red+bold
+
+    Note: it's better to have initialized logging.
     """
     if reason is None:
         return 0
@@ -302,15 +304,17 @@ def exit_with_pride(reason=None,
         reason = tb.format_exc()
         color = err_color
         exit_code = -1
+        logmeth = log.fatal
     else:
         color = msg_color
         exit_code = 1
+        logmeth = log.error
 
     if sys.stderr.isatty():
         reset = '\x1b[0m'
         reason = '%s%s%s' % (color, reason, reset)
 
-    print(reason, file=sys.stderr)
+    logmeth(reason)
     return exit_code
 
 
