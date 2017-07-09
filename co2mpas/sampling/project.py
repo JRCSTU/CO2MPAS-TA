@@ -5,6 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 #
+from co2mpas._vendor.traitlets.traitlets import TraitError
 """A *project* stores all CO2MPAS files for a single vehicle, and tracks its sampling procedure. """
 from collections import (defaultdict, OrderedDict, namedtuple)  # @UnusedImport
 import copy
@@ -1303,8 +1304,10 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         """
         Returns the current :class:`Project`, or raises a help-msg if none exists yet.
 
-        The project returned is appropriately configured according to its recorded state.
-        The git-repo is not touched.
+        - Trait exceptions pass through (e.g. test-key).
+        - The project returned is appropriately configured according to its
+          recorded state.
+        - The git-repo is not touched.
         """
         if not self._current_project:
             try:
@@ -1316,6 +1319,8 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                     p.set_state(cmsg.s)
 
                     self._current_project = p
+            except TraitError:
+                raise
             except Exception as ex:
                 self.log.warning("Failure while getting current-project: %s",
                                  ex, exc_info=1)
