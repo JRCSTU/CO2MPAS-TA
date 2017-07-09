@@ -14,7 +14,6 @@ from typing import (
 
 import os.path as osp
 import pandalone.utils as pndlu
-import pandas as pd
 
 from . import baseapp, project, CmdException, PFiles
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
@@ -26,6 +25,8 @@ from .._vendor import traitlets as trt
 ###################
 def _report_tuple_2_dict(fpath, iokind, report) -> dict:
     """Converts tuples produced by :meth:`_yield_report_tuples_from_iofiles()` into stuff YAML-able. """
+    import pandas as pd
+
     d = OrderedDict([
         ('file', osp.basename(fpath)),
         ('iokind', iokind)])
@@ -80,7 +81,9 @@ class Report(baseapp.Spec):
     ).tag(config=True)
 
     def _extract_vfid_from_input(self, fpath):
+        import pandas as pd
         from pandalone import xleash
+
         df = xleash.lasso(self.input_head_xlref, url_file=fpath)
         assert isinstance(df, pd.DataFrame), (
             "The *inputs* xlref(%s) must resolve to a DataFrame, not type(%r): %s" %
@@ -89,7 +92,9 @@ class Report(baseapp.Spec):
         return df.at[self.input_vfid_coords]
 
     def _extract_dice_report_from_output(self, fpath):
+        import pandas as pd
         from pandalone import xleash
+
         df = xleash.lasso(self.dice_report_xlref, url_file=fpath)
         assert isinstance(df, pd.DataFrame), (
             "The *dice_report* xlref(%s) must resolve to a DataFrame, not type(%r): %s" %
