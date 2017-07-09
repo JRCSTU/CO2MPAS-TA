@@ -8,6 +8,16 @@ v1.6.0.dev4: Dice & model fine-tuning
 =====================================
 The Dice:
 ---------
+- Stop accepting test-key (``'CBBB52FF'``); you would receive this error message::
+
+      After July 27 2017 you cannot use test-key for official runs!
+
+      If you still want to run an experiment, set `GpgSpec.allow_test_key` to True.
+
+  You have to modify your configs and put in ``GpgSpec.master_key`` your
+  generated key.
+- Dice commands won't start without config-file; remember to transfer your configs
+  from your old AIO (and make any needed updates).
 - Added command-line aliases in AIO consoles::
 
      co2p: co2dice project
@@ -32,6 +42,7 @@ The Dice:
 - feat(tstamp): add ``--subject`` and ``--on`` options for search criteria
   on the ``tstamp recv`` and ``project trecv`` subcmds.
 - refact(git): compatible-bump of dice-report format-version: ``1.0.0-->1.0.1``.
+
 
 Datasync
 --------
