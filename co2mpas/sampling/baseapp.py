@@ -1212,15 +1212,20 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         assert self.subcommands, "Override run() method in cmd subclasses."
 
         examples = '\n'.join(self.emit_examples()) if self.examples else ''
+        if args:
+            subcmd_msg = "unknown sub-command `%s`; try one of" % args[0]
+        else:
+            subcmd_msg = "specify one of its sub-commands"
         msg = tw.dedent(
             """
-            %(cmd_chain)s: Specify one of its sub-commands:
+            %(cmd_chain)s: %(subcmd_msg)s:
                 %(subcmds)s
             or type:
                 %(cmd_chain)s --help
 
             %(examples)s
             %(epilogue)s""") % {
+                'subcmd_msg': subcmd_msg,
                 'cmd_chain': cmd_line_chain(self),
                 'subcmds': ', '.join(self.subcommands.keys()),
                 'examples': examples,
