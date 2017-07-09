@@ -94,8 +94,7 @@ def default_config_dir():
 
 def default_config_fpaths():
     """The full path of to user's config-file, without extension."""
-    return [osp.join(default_config_dir(), default_config_fname()),
-            osp.join(pndlu.convpath(_mydir), default_config_fname())]
+    return [osp.join(default_config_dir(), default_config_fname())]
 
 
 def default_persist_fpath(dirname=None):
