@@ -36,6 +36,7 @@ def _abspath(fname):
 def _file_url(fname):
     return ('file://' + _abspath(fname)).replace('\\', '/')
 
+
 _shfact = xleash.SheetsFactory()
 
 
@@ -48,29 +49,29 @@ class TTables(unittest.TestCase):
         os.chdir(mydir)
 
     @ddt.data(
-            (('datasync.xlsx#Sheet1!', ),
-                    ('datasync.xlsx#Sheet1!', 'datasync.xlsx#Sheet2!', 'datasync.xlsx#Sheet3!')),
-            (('datasync.xlsx', ),
-                    ('datasync.xlsx#Sheet1!', 'datasync.xlsx#Sheet2!', 'datasync.xlsx#Sheet3!')),
-            (('datasync.xlsx#0!', ),
-                    ('datasync.xlsx#Sheet1!', 'datasync.xlsx#Sheet2!', 'datasync.xlsx#Sheet3!')),
-            (('datasync.xlsx#:', ),
-                    ('datasync.xlsx#Sheet1!', 'datasync.xlsx#Sheet2!', 'datasync.xlsx#Sheet3!')),
-            (('datasync.xlsx', '1', ),
-                    ('datasync.xlsx#Sheet1!', 'datasync.xlsx#Sheet2!')),
+        (('datasync.xlsx#Sheet1!', ),
+         ('datasync.xlsx#Sheet1!', 'datasync.xlsx#Sheet2!', 'datasync.xlsx#Sheet3!')),
+        (('datasync.xlsx', ),
+         ('datasync.xlsx#Sheet1!', 'datasync.xlsx#Sheet2!', 'datasync.xlsx#Sheet3!')),
+        (('datasync.xlsx#0!', ),
+         ('datasync.xlsx#Sheet1!', 'datasync.xlsx#Sheet2!', 'datasync.xlsx#Sheet3!')),
+        (('datasync.xlsx#:', ),
+         ('datasync.xlsx#Sheet1!', 'datasync.xlsx#Sheet2!', 'datasync.xlsx#Sheet3!')),
+        (('datasync.xlsx', '1', ),
+         ('datasync.xlsx#Sheet1!', 'datasync.xlsx#Sheet2!')),
 
-            (('datasync.xlsx', 'datasync2.xlsx#:'),
-                    ('datasync.xlsx#Sheet1!', 'datasync2.xlsx#Sheet1!')),
-            (('datasync.xlsx', 'datasync2.xlsx#Sheet2!', 'Sheet1'),
-                    ('datasync.xlsx#Sheet1!', 'datasync2.xlsx#Sheet2!', 'datasync2.xlsx#Sheet1!')),
-            (('datasync.xlsx', 'datasync2.xlsx#Sheet2!', '0', '2'),
-                    ('datasync.xlsx#Sheet1!', 'datasync2.xlsx#Sheet2!', 'datasync2.xlsx#Sheet1!', 'datasync2.xlsx#Sheet3!')),
-            (('datasync.xlsx', 'datasync2.xlsx#1!'),
-                    ('datasync.xlsx#Sheet1!', 'datasync2.xlsx#Sheet2!')),
+        (('datasync.xlsx', 'datasync2.xlsx#:'),
+         ('datasync.xlsx#Sheet1!', 'datasync2.xlsx#Sheet1!')),
+        (('datasync.xlsx', 'datasync2.xlsx#Sheet2!', 'Sheet1'),
+         ('datasync.xlsx#Sheet1!', 'datasync2.xlsx#Sheet2!', 'datasync2.xlsx#Sheet1!')),
+        (('datasync.xlsx', 'datasync2.xlsx#Sheet2!', '0', '2'),
+         ('datasync.xlsx#Sheet1!', 'datasync2.xlsx#Sheet2!', 'datasync2.xlsx#Sheet1!', 'datasync2.xlsx#Sheet3!')),
+        (('datasync.xlsx', 'datasync2.xlsx#1!'),
+         ('datasync.xlsx#Sheet1!', 'datasync2.xlsx#Sheet2!')),
 
-#             (('datasync.xlsx', 'Sheet2', 'datasync2.xlsx', 'Sheet2'),
-#                     ('datasync.xlsx#Sheet1!', 'datasync.xlsx#Sheet2!', 'datasync2.xlsx#Sheet1!', 'datasync2.xlsx#Sheet2!')),
-            )
+        #             (('datasync.xlsx', 'Sheet2', 'datasync2.xlsx', 'Sheet2'),
+        #                     ('datasync.xlsx#Sheet1!', 'datasync.xlsx#Sheet2!', 'datasync2.xlsx#Sheet1!', 'datasync2.xlsx#Sheet2!')),
+    )
     def test_collect_tables(self, case):
         exp_ref_path, exp_ref_sheet = 'datasync.xlsx', 'Sheet1'
         (ref_xlref, *sync_xlrefs), exp_xlrefs = case
@@ -82,7 +83,7 @@ class TTables(unittest.TestCase):
         self.assertEquals(len(tables.tables), len(exp_xlrefs))
         self.assertEquals(len(tables.headers), len(exp_xlrefs))
         for d, xlref, in zip(tables.tables, exp_xlrefs):
-            df = xleash.lasso('%s:"df"'%xlref, sheets_factory=_shfact)
+            df = xleash.lasso('%s:"df"' % xlref, sheets_factory=_shfact)
             npt.assert_array_almost_equal(d, df.values, err_msg=xlref)
 
 
@@ -93,6 +94,8 @@ _synced_values = """
 16,2,32,2,32,64,2,32,64\n17,3,34,3,34,68,3,34,68\n18,2,36,2,36,72,2,36,72\n19,1,38,1,38,76,1,38,76\n20,0,40,0,40,80,0,40,80
 21,0,42,0,42,84,0,42,84\n22,1,44,1,44,88,1,44,88\n23,2,46,2,46,92,2,46,92\n24,3,48,3,48,96,3,48,96\n25,4,50,4,50,100,4,50,100
 26,3,52,3,52,104,3,52,104\n27,2,54,2,54,108,2,54,108\n28,1,56,1,56,112,1,56,112\n29,0,58,0,58,116,0,58,116"""
+
+
 def _read_expected(prefix_columns):
     txtio = io.StringIO(_synced_values)
     df = pd.read_csv(txtio, header=None)
@@ -119,6 +122,7 @@ def _check_synced(tc, fpath, sheet, prefix_columns=False):
 _def_file = 'DEFILE'
 _def_ref = 'A1(RD):._:RD'
 
+
 @ddt.ddt
 class HighSync(unittest.TestCase):
     """High-level TCs for datasync."""
@@ -127,86 +131,83 @@ class HighSync(unittest.TestCase):
     def setUpClass(cls):
         os.chdir(mydir)
 
-
     @ddt.data(
-            (_sync_fname, "Sheet1", ["Sheet2", "Sheet3", "Sheet4"]),
-            (_sync_fname, "Sheet1", None),
-            (_abspath(_sync_fname), "Sheet1", ["Sheet2", "Sheet3"]),
-            (_abspath(_sync_fname), "Sheet1", []),
-            (_file_url(_sync_fname), "Sheet1", []),  ## FAILS due to clone-excel!
-            )
+        (_sync_fname, "Sheet1", ["Sheet2", "Sheet3", "Sheet4"]),
+        (_sync_fname, "Sheet1", None),
+        (_abspath(_sync_fname), "Sheet1", ["Sheet2", "Sheet3"]),
+        (_abspath(_sync_fname), "Sheet1", []),
+        (_file_url(_sync_fname), "Sheet1", []),  # FAILS due to clone-excel!
+    )
     def test_main_smoke_test(self, case):
         inp_path, ref_sheet, sync_sheets = case
         ref_xlref = '%s#%s!' % (inp_path, ref_sheet)
         sync_sheets = ' '.join(sync_sheets) if sync_sheets else ''
-        with tempfile.TemporaryDirectory(prefix='co2mpas_%s_'%__name__) as d:
+        with tempfile.TemporaryDirectory(prefix='co2mpas_%s_' % __name__) as d:
             cmd = '-v -O %s x y1 %s %s' % (
-                    d, ref_xlref, sync_sheets)
+                d, ref_xlref, sync_sheets)
             datasync.main(*cmd.split())
             _check_synced(self, osp.join(d, _synced_fname), 'Sheet1')
 
-
     @ddt.data(
-            (_sync_fname, "Sheet1", ["Sheet2", "Sheet3", "Sheet4"]),
-            (_sync_fname, "Sheet1", []),
-            (_sync_fname, "Sheet1", ()),
-            (_abspath(_sync_fname), "Sheet1", ["Sheet2", "Sheet3"]),
-            (_abspath(_sync_fname), "Sheet1", []),
-            (_file_url(_sync_fname), "Sheet1", []), ## FAILS due to clone-excel!
-            )
+        (_sync_fname, "Sheet1", ["Sheet2", "Sheet3", "Sheet4"]),
+        (_sync_fname, "Sheet1", []),
+        (_sync_fname, "Sheet1", ()),
+        (_abspath(_sync_fname), "Sheet1", ["Sheet2", "Sheet3"]),
+        (_abspath(_sync_fname), "Sheet1", []),
+        (_file_url(_sync_fname), "Sheet1", []),  # FAILS due to clone-excel!
+    )
     def test_api_smoke_test(self, case):
         inp_path, ref_sheet, sync_sheets = case
-        with tempfile.TemporaryDirectory(prefix='co2mpas_%s_'%__name__) as d:
+        with tempfile.TemporaryDirectory(prefix='co2mpas_%s_' % __name__) as d:
             datasync.do_datasync('x', 'y1',
-                    '%s#%s!' % (inp_path, ref_sheet),
-                    *sync_sheets,
-                    out_path=osp.join(d, _synced_fname)
-                    )
+                                 '%s#%s!' % (inp_path, ref_sheet),
+                                 *sync_sheets,
+                                 out_path=osp.join(d, _synced_fname)
+                                 )
             _check_synced(self, osp.join(d, _synced_fname), 'Sheet1', )
 
     @ddt.data(
-            (_sync_fname, "Sheet1", ["Sheet2", "Sheet3", "Sheet4"]),
-            (_sync_fname, "Sheet1", []),
-            )
+        (_sync_fname, "Sheet1", ["Sheet2", "Sheet3", "Sheet4"]),
+        (_sync_fname, "Sheet1", []),
+    )
     def test_empty_sheet(self, case):
         inp_path, ref_sheet, sync_sheets = case
-        with tempfile.TemporaryDirectory(prefix='co2mpas_%s_'%__name__) as d:
+        with tempfile.TemporaryDirectory(prefix='co2mpas_%s_' % __name__) as d:
             datasync.do_datasync('x', 'y1',
-                    '%s#%s!' % (inp_path, ref_sheet),
-                    *sync_sheets,
-                    out_path=osp.join(d, _synced_fname)
-                    )
+                                 '%s#%s!' % (inp_path, ref_sheet),
+                                 *sync_sheets,
+                                 out_path=osp.join(d, _synced_fname)
+                                 )
             _check_synced(self, osp.join(d, _synced_fname), 'Sheet1')
-
 
     @ddt.data(False, True)
     def test_prefix_columns(self, prefix_columns):
-        with tempfile.TemporaryDirectory(prefix='co2mpas_%s_'%__name__) as d:
+        with tempfile.TemporaryDirectory(prefix='co2mpas_%s_' % __name__) as d:
             datasync.do_datasync('x', 'y1',
-                    '%s#Sheet1!' % _sync_fname,
-                    out_path=osp.join(d, _synced_fname),
-                    prefix_cols=prefix_columns,
-                    )
+                                 '%s#Sheet1!' % _sync_fname,
+                                 out_path=osp.join(d, _synced_fname),
+                                 prefix_cols=prefix_columns,
+                                 )
             _check_synced(self, osp.join(d, _synced_fname), 'Sheet1', prefix_columns)
 
-
     @ddt.data(
-            ('bad_x', 'y1'),
-            ('x', 'bad_y1'),
-            ('bad_x', 'bad_y'),
-            )
+        ('bad_x', 'y1'),
+        ('x', 'bad_y1'),
+        ('bad_x', 'bad_y'),
+    )
     def test_bad_columns(self, case):
-        from tests import _tutils as tutils # XXX import chaos if outside!
+        from tests import _tutils as tutils  # XXX import chaos if outside!
         x, y = case
-        with tempfile.TemporaryDirectory(prefix='co2mpas_%s_'%__name__) as d:
+        with tempfile.TemporaryDirectory(prefix='co2mpas_%s_' % __name__) as d:
             with tutils.assertRaisesRegex(self, cmain.CmdException,
-                "Cannot read sync-sheet\([^\)]*\) due to: Columns \([^\)]*\) "
-                "not found in table of sheet\([^\)]*\) in book\([^\)]*\)!"):
+                                          "Cannot read sync-sheet\([^\)]*\) due to: Columns \([^\)]*\) "
+                                          "not found in table of sheet\([^\)]*\) in book\([^\)]*\)!"):
                 datasync.do_datasync(x, y,
-                        '%s#Sheet1!' % _sync_fname,
-                        'Sheet2',
-                        out_path=osp.join(d, _synced_fname),
-                        )
+                                     '%s#Sheet1!' % _sync_fname,
+                                     'Sheet2',
+                                     out_path=osp.join(d, _synced_fname),
+                                     )
+
 
 class TestReSampling(unittest.TestCase):
     def test_integral(self):

@@ -257,7 +257,6 @@ def _yield_synched_tables(ref, *data, x_label='times', y_label='velocities',
             {k: _get_interp_method(v) for k, v in interpolation_methods.items()}
         )
 
-
     dx = float(np.median(np.diff(ref[x_label])) / 10)
     m, M = min(ref[x_label]), max(ref[x_label])
 
@@ -333,7 +332,7 @@ def synchronize(headers, tables, x_label, y_label, prefix_cols,
     res = _yield_synched_tables(*tables, x_label=x_label, y_label=y_label,
                                 interpolation_method=interpolation_method,
                                 interpolation_methods=interpolation_methods)
-    res =list(res)
+    res = list(res)
 
     if prefix_cols:
         ix = set()
