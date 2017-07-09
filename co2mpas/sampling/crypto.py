@@ -24,6 +24,8 @@ from .._vendor import traitlets as trt
 from .._vendor.traitlets import config as trtc
 
 
+#: Used for DICE experiments before the legislative enactment 27 Jul 2017.
+_TEST_KEY_ID = 'CBBB52FF'
 _pgp_regex = re.compile(r'^\s*-----[A-Z ]*PGP[A-Z ]*-----.+-----[A-Z ]*PGP[A-Z ]*-----\s*$', re.DOTALL)
 
 
@@ -257,6 +259,14 @@ class GpgSpec(baseapp.Spec):
         """ % os.environ.get('GNUPGKEY')
     ).tag(config=True)
 
+    allow_test_key = trt.Bool(
+        help="""
+        After July 27 2017 you cannot use test-key for official runs!
+
+        If you still want to run an experiment, set `GpgSpec.allow_test_key` to True.
+        """
+    ).tag(config=True)
+
     keys_to_import = trt.List(
         trt.Unicode(
             None, allow_none=True,
@@ -393,6 +403,13 @@ class GpgSpec(baseapp.Spec):
                 self._import_keys_and_trust(GPG)
 
         return GPG
+
+    def __init__(self, **kwds):
+        super().__init__(**kwds)
+        if (not self.allow_test_key and
+                self.master_key and _TEST_KEY_ID in self.master_key):
+            raise baseapp.CmdException(GpgSpec.allow_test_key.help)
+
 
     def encryptobj(self, pswdid: Text, plainobj) -> Text:
         """

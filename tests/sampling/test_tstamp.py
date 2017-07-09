@@ -559,6 +559,7 @@ class TRX(unittest.TestCase):
         c.GpgSpec.keys_to_import = test_pgp_key
         c.GpgSpec.trust_to_import = test_pgp_trust
         c.GpgSpec.master_key = test_pgp_fingerprint
+        c.GpgSpec.allow_test_key = True
         crypto.GpgSpec(config=c)
 
         ## Clean memories from past tests
