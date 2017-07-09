@@ -96,7 +96,7 @@ def catch_config_error(method, app, *args, **kwargs):
         epilogue = '\n'.join(app.emit_help_epilogue(classes=None))
         sys.exit(cmain.exit_with_pride(
             "%s: encountered invalid configs: %s\n\n%s" %
-            (cmd_chain, e, epilogue)))
+            (cmd_chain, e, epilogue), logger=app.log))
 
 
 class ApplicationError(Exception):

@@ -269,7 +269,8 @@ def is_any_log_option(argv):
 
 
 def exit_with_pride(reason=None,
-                    msg_color='\x1b[33;1m', err_color='\x1b[31;1m'):
+                    msg_color='\x1b[33;1m', err_color='\x1b[31;1m',
+                    logger=None):
     """
     Return an *exit-code* and logs error/fatal message for ``main()`` methods.
 
@@ -281,6 +282,8 @@ def exit_with_pride(reason=None,
         ansi color sequence for stack-trace (default: yellow)
     :param err_color:
         ansi color sequence for stack-trace (default: red)
+    :param logger:
+        which logger to use to log reason (must support info and fatal).
 
     :return:
         (0, 1 -1), for reason == (None, str, Exception) respectively.
@@ -297,6 +300,8 @@ def exit_with_pride(reason=None,
     """
     if reason is None:
         return 0
+    if not logger:
+        logger = log
 
     if isinstance(reason, BaseException):
         import traceback as tb
@@ -304,11 +309,11 @@ def exit_with_pride(reason=None,
         reason = tb.format_exc()
         color = err_color
         exit_code = -1
-        logmeth = log.fatal
+        logmeth = logger.fatal
     else:
         color = msg_color
         exit_code = 1
-        logmeth = log.error
+        logmeth = logger.error
 
     if sys.stderr.isatty():
         reset = '\x1b[0m'

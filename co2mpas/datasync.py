@@ -712,20 +712,21 @@ def main(*args):
     """Handles some exceptions politely and returns the exit-code."""
     if sys.version_info < (3, 5):
         return exit_with_pride(
-            "Sorry, Python >= 3.5 is required, found: %s" % sys.version_info)
+            "Sorry, Python >= 3.5 is required, found: %s" % sys.version_info,
+            logger=log)
 
     try:
         return _main(*args)
     except CmdException as ex:
         log.debug('App exited due to: %r', ex, exc_info=1)
         ## Suppress stack-trace for "expected" errors but exit-code(1).
-        return exit_with_pride(str(ex))
+        return exit_with_pride(str(ex), logger=log)
     except Exception as ex:
         ## Log in DEBUG not to see exception x2, but log it anyway,
         #  in case log has been redirected to a file.
         log.debug('App failed due to: %r', ex, exc_info=1)
         ## Print stacktrace to stderr and exit-code(-1).
-        return exit_with_pride(ex)
+        return exit_with_pride(ex, logger=log)
 
 
 if __name__ == '__main__':

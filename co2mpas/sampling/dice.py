@@ -174,9 +174,12 @@ def main(argv=None, **app_init_kwds):
     """
     from co2mpas import __main__ as cmain
 
+    log = logging.getLogger(APPNAME)
+
     if sys.version_info < (3, 5):
         return cmain.exit_with_pride(
-            "Sorry, Python >= 3.5 is required, found: %s" % sys.version_info)
+            "Sorry, Python >= 3.5 is required, found: %s" % sys.version_info,
+            logger=log)
 
     import transitions
 
@@ -193,13 +196,13 @@ def main(argv=None, **app_init_kwds):
     except (CmdException, trt.TraitError, transitions.MachineError) as ex:
         log.debug('App exited due to: %r', ex, exc_info=1)
         ## Suppress stack-trace for "expected" errors but exit-code(1).
-        return cmain.exit_with_pride(str(ex))
+        return cmain.exit_with_pride(str(ex), logger=log)
     except Exception as ex:
         ## Log in DEBUG not to see exception x2, but log it anyway,
         #  in case log has been redirected to a file.
         log.debug('App failed due to: %r', ex, exc_info=1)
         ## Print stacktrace to stderr and exit-code(-1).
-        return cmain.exit_with_pride(ex)
+        return cmain.exit_with_pride(ex, logger=log)
 
 
 if __name__ == '__main__':
