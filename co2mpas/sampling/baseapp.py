@@ -846,7 +846,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
             yield trtc.indent(trtc.dedent(txt))
             yield ''
 
-    def emit_help_epilogue(self, classes):
+    def emit_help_epilogue(self, classes=None):
         """Yield the very bottom lines of the help message.
 
         If classes=False (the default), print `--help-all` msg.
@@ -1209,22 +1209,24 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         """
         import ipython_genutils.text as tw
 
-        if self.subcommands:
-            examples = str.strip(tw.dedent(self.examples.strip()))
-            msg = tw.dedent(
-                """%(cmd_chain)s: Specify one of its sub-commands:
-                    %(subcmds)s
-                or type:
-                    %(cmd_chain)s --help
-                """) % {
-                    'cmd_chain': cmd_line_chain(self),
-                    'subcmds': ', '.join(self.subcommands.keys()),
-                }
-            if examples:
-                msg = "%s\nExamples\n--------\n%s\n" % (msg, examples)
-                msg = msg.strip() % self._my_text_interpolations()
-            raise CmdException(msg)
-        assert False, "Override run() method in cmd subclasses."
+        assert self.subcommands, "Override run() method in cmd subclasses."
+
+        examples = '\n'.join(self.emit_examples()) if self.examples else ''
+        msg = tw.dedent(
+            """
+            %(cmd_chain)s: Specify one of its sub-commands:
+                %(subcmds)s
+            or type:
+                %(cmd_chain)s --help
+
+            %(examples)s
+            %(epilogue)s""") % {
+                'cmd_chain': cmd_line_chain(self),
+                'subcmds': ', '.join(self.subcommands.keys()),
+                'examples': examples,
+                'epilogue': '\n'.join(self.emit_help_epilogue()),
+        }
+        raise CmdException(msg)
 
     @classmethod
     def make_cmd(cls, argv=None, **kwargs):
