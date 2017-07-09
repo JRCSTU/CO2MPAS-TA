@@ -852,11 +852,13 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         If classes=False (the default), print `--help-all` msg.
         """
         if not classes:
-            yield ("For help on specific params, "
-                   "use `%(app_cmd)s config desc <param-1> ...`." %
-                   self._my_text_interpolations())
-        for l in super().emit_help_epilogue(classes):
-            yield l
+            interps = self._my_text_interpolations()
+            yield "--------"
+            yield ("- For all available params, use:\n    %(cmd_chain)s --help-all\n"
+                   % interps)
+            yield ("- For help on specific classes/params, use:\n    "
+                   "%(app_cmd)s config desc [-v] [-c] <class-or-param-1> ...\n"
+                   % interps)
 
     ## Needed because some sub-cmd name clash and
     #  *argparse* screams about conflicts.
