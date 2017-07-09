@@ -654,8 +654,8 @@ def main(*args):
     """Handles some exceptions politely and returns the exit-code."""
 
     if sys.version_info < (3, 5):
-        return ("Sorry, Python >= 3.5 is required, but found: %s" %
-                sys.version_info)
+        return exit_with_pride(
+            "Sorry, Python >= 3.5 is required, found: %s" % sys.version_info)
 
     try:
         return _main(*args)

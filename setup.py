@@ -15,7 +15,7 @@ from setuptools import setup, find_packages
 
 
 if sys.version_info < (3, 5):
-    sys.exit("Sorry, Python >= 3.5 is required, but found: %s" %
+    sys.exit("Sorry, Python >= 3.5 is required, found: %s" %
              str(sys.version_info))
 
 

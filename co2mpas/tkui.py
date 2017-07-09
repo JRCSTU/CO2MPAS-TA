@@ -2413,8 +2413,9 @@ def main(argv=None, **app_init_kwds):
     log = logging.getLogger(__name__)
 
     if sys.version_info < (3, 5):
-        log.error("Sorry, Python >= 3.5 is required, but found: %s",
-                  sys.version_info)
+        log.error(
+            "Sorry, Python >= 3.5 is required, found: %s" % sys.version_info)
+        ## TODO: Move show_gui_logfile() in exit_with_pride().
         show_gui_logfile(log_fpath)
 
         return -1
@@ -2427,6 +2428,7 @@ def main(argv=None, **app_init_kwds):
         log.debug('App exited due to: %r', ex, exc_info=1)
         ## Suppress stack-trace for "expected" errors but exit-code(1).
         log.error('App exited due to: %s', ex)
+        ## TODO: Move show_gui_logfile() in exit_with_pride().
         show_gui_logfile(log_fpath)
 
         return 1
@@ -2434,6 +2436,7 @@ def main(argv=None, **app_init_kwds):
         ## Log in DEBUG not to see exception x2, but log it anyway,
         #  in case log has been redirected to a file.
         log.error('App failed due to: %r', ex, exc_info=1)
+        ## TODO: Move show_gui_logfile() in exit_with_pride().
         show_gui_logfile(log_fpath)
 
         return -1

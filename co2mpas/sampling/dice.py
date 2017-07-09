@@ -172,12 +172,13 @@ def main(argv=None, **app_init_kwds):
     :param argv:
         If `None`, use :data:`sys.argv`; use ``[]`` to explicitly use no-args.
     """
+    from co2mpas import __main__ as cmain
+
     if sys.version_info < (3, 5):
-        return ("Sorry, Python >= 3.5 is required, but found: %s" %
-                sys.version_info)
+        return cmain.exit_with_pride(
+            "Sorry, Python >= 3.5 is required, found: %s" % sys.version_info)
 
     import transitions
-    from co2mpas import __main__ as cmain
 
     ## At these early stages, any log cmd-line option
     #  enable DEBUG logging ; later will be set by `baseapp` traits.
