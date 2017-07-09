@@ -84,7 +84,7 @@ utils.setup_yaml_ordered()
 
 def default_config_fname():
     """The config-file's basename (no path or extension) to search when not explicitly specified."""
-    return '%s_config' % APPNAME
+    return '%s_config.py' % APPNAME
 
 
 def default_config_dir():
