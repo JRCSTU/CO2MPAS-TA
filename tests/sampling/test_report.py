@@ -28,11 +28,12 @@ from . import (test_inp_fpath, test_out_fpath, test_vfid,
                test_pgp_fingerprint, test_pgp_key, test_pgp_trust)
 
 
-init_logging(level=logging.DEBUG)
-
-log = logging.getLogger(__name__)
 
 mydir = osp.dirname(__file__)
+init_logging(level=logging.DEBUG)
+log = logging.getLogger(__name__)
+
+proj1 = 'IP-12-WMI-1234-5678'
 
 
 @ddt.ddt
@@ -77,7 +78,7 @@ class TReportArgs(TReportBase):
         c = trtc.get_config()
         c.ReportCmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c)
-        res = cmd.run('inp=%s' % test_inp_fpath)
+        res = cmd.run('-i=%s' % test_inp_fpath)
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
         self.assertEqual(len(res), 1)
@@ -90,7 +91,7 @@ class TReportArgs(TReportBase):
         c = trtc.get_config()
         c.ReportCmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c)
-        res = cmd.run('out=%s' % test_out_fpath)
+        res = cmd.run('-o=%s' % test_out_fpath)
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
         self.assertEqual(len(res), 1)
@@ -103,7 +104,7 @@ class TReportArgs(TReportBase):
         c = trtc.get_config()
         c.ReportCmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c)
-        res = cmd.run('inp=%s' % test_inp_fpath, 'out=%s' % test_out_fpath)
+        res = cmd.run('-i=%s' % test_inp_fpath, '-o=%s' % test_out_fpath)
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
         self.assertEqual(len(res), 2)
@@ -126,6 +127,7 @@ class TReportProject(TReportBase):
         c.GpgSpec.keys_to_import = test_pgp_key
         c.GpgSpec.trust_to_import = test_pgp_trust
         c.GpgSpec.master_key = test_pgp_fingerprint
+        c.GpgSpec.allow_test_key = True
         c.ReportCmd.raise_config_file_errors = True
         c.ReportCmd.project = True
         c.DiceSpec.user_name = "Test Vase"
@@ -159,7 +161,7 @@ class TReportProject(TReportBase):
         c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
-            project.InitCmd(config=c).run('proj1')
+            project.InitCmd(config=c).run(proj1)
             cmd = report.ReportCmd(config=c)
             with self.assertRaisesRegex(
                 CmdException, re.escape(
@@ -170,9 +172,9 @@ class TReportProject(TReportBase):
         c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
-            project.InitCmd(config=c).run('proj1')
+            project.InitCmd(config=c).run(proj1)
 
-            project.AppendCmd(config=c).run('inp=%s' % test_inp_fpath)
+            project.AppendCmd(config=c).run('-i=%s' % test_inp_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
@@ -183,7 +185,7 @@ class TReportProject(TReportBase):
             self.assertTrue(f.endswith("tests\sampling\input.xlsx"), rpt)
             self.check_report_tuple(rec, test_vfid, test_inp_fpath, 'inp')
 
-            project.AppendCmd(config=c).run('out=%s' % test_out_fpath)
+            project.AppendCmd(config=c).run('-o=%s' % test_out_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
@@ -234,10 +236,10 @@ class TReportProject(TReportBase):
         c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
-            project.InitCmd(config=c).run('proj1')
+            project.InitCmd(config=c).run(proj1)
 
             cmd = project.AppendCmd(config=c)
-            cmd.run('out=%s' % test_out_fpath, 'inp=%s' % test_inp_fpath)
+            cmd.run('-o=%s' % test_out_fpath, '-i=%s' % test_inp_fpath)
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)

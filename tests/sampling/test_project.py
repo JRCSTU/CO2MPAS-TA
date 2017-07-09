@@ -26,31 +26,33 @@ import pandas as pd
 from co2mpas._vendor.traitlets import config as trtc
 
 
+mydir = osp.dirname(__file__)
 init_logging(level=logging.DEBUG)
-
 log = logging.getLogger(__name__)
 
-mydir = osp.dirname(__file__)
+proj1 = 'IP-12-WMI-1234-5678'
+proj2 = 'IP-12-WMI-1111-2222'
+
 
 
 @ddt.ddt
 class TApp(unittest.TestCase):
 
     @ddt.data(*list(itt.product((
-        dice.Co2dice.document_config_options,
-        dice.Co2dice.print_alias_help,
-        dice.Co2dice.print_flag_help,
-        dice.Co2dice.print_options,
-        dice.Co2dice.print_subcommands,
-        dice.Co2dice.print_examples,
-        dice.Co2dice.print_help,
+        dice.Co2diceCmd.document_config_options,
+        dice.Co2diceCmd.print_alias_help,
+        dice.Co2diceCmd.print_flag_help,
+        dice.Co2diceCmd.print_options,
+        dice.Co2diceCmd.print_subcommands,
+        dice.Co2diceCmd.print_examples,
+        dice.Co2diceCmd.print_help,
     ),
         project.all_subcmds))
     )
     def test_app(self, case):
         meth, cmd_cls = case
         c = trtc.get_config()
-        c.Co2dice.raise_config_file_errors = True
+        c.Co2diceCmd.raise_config_file_errors = True
         cmd = cmd_cls(config=c)
         meth(cmd)
 
@@ -128,12 +130,13 @@ class TProjectsDBStory(unittest.TestCase):
         cls._project_repo = tempfile.TemporaryDirectory()
         log.debug('Temp-repo: %s', cls._project_repo)
 
-        cls.cfg = c = trtc.trtc.get_config()
+        cls.cfg = c = trtc.get_config()
 
         c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         c.GpgSpec.keys_to_import = test_pgp_key
         c.GpgSpec.trust_to_import = test_pgp_trust
         c.GpgSpec.master_key = test_pgp_fingerprint
+        c.GpgSpec.allow_test_key = True
         c.DiceSpec.user_name = "Test Vase"
         c.DiceSpec.user_email = "test@vase.com"
 
@@ -338,12 +341,13 @@ class TStraightStory(unittest.TestCase):
         cls._project_repo = tempfile.TemporaryDirectory()
         log.debug('Temp-repo: %s', cls._project_repo)
 
-        cls.cfg = c = trtc.trtc.get_config()
+        cls.cfg = c = trtc.get_config()
 
         c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         c.GpgSpec.keys_to_import = test_pgp_key
         c.GpgSpec.trust_to_import = test_pgp_trust
         c.GpgSpec.master_key = test_pgp_fingerprint
+        c.GpgSpec.allow_test_key = True
         c.DiceSpec.user_name = "Test Vase"
         c.DiceSpec.user_email = "test@vase.com"
         c.DiceSpec.user_email = "test@vase.com"
@@ -502,20 +506,21 @@ class TInitCmd(unittest.TestCase):
         self.assertEqual(len(list(pdb.repo.head.commit.tree.traverse())), 5, list(pdb.repo.head.commit.tree.traverse()))
 
     def test_init_does_in_new_project(self):
-        self.make_new_project('foobar')
-        self.make_new_project('barfoo')
+        self.make_new_project(proj1)
+        self.make_new_project(proj2)
 
 
 class TBackupCmd(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.cfg = c = trtc.trtc.get_config()
+        cls.cfg = c = trtc.get_config()
 
         c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         c.GpgSpec.keys_to_import = test_pgp_key
         c.GpgSpec.trust_to_import = test_pgp_trust
         c.GpgSpec.master_key = test_pgp_fingerprint
+        c.GpgSpec.allow_test_key = True
         c.DiceSpec.user_name = "Test Vase"
         c.DiceSpec.user_email = "test@vase.com"
 
@@ -546,7 +551,7 @@ class TBackupCmd(unittest.TestCase):
         return c
 
     def test_backup_cwd(self):
-        project.InitCmd(config=self._config).run('foobar')
+        project.InitCmd(config=self._config).run(proj1)
         cmd = project.BackupCmd(config=self._config)
         with tempfile.TemporaryDirectory() as td:
             with chdir(td):
@@ -556,7 +561,7 @@ class TBackupCmd(unittest.TestCase):
                 self.assertTrue(osp.isfile(res), (res, os.listdir(osp.split(res)[0])))
 
     def test_backup_fullpath(self):
-        project.InitCmd(config=self._config).run('foobar')
+        project.InitCmd(config=self._config).run(proj1)
         cmd = project.BackupCmd(config=self._config)
         with tempfile.TemporaryDirectory() as td:
             archive_fpath = osp.join(td, 'foo')
@@ -567,7 +572,7 @@ class TBackupCmd(unittest.TestCase):
             self.assertTrue(osp.isfile(res), (res, os.listdir(osp.split(res)[0])))
 
     def test_backup_folder_only(self):
-        project.InitCmd(config=self._config).run('barfoo')
+        project.InitCmd(config=self._config).run(proj2)
         cmd = project.BackupCmd(config=self._config)
         with tempfile.TemporaryDirectory() as td:
             archive_fpath = td + '\\'
@@ -577,7 +582,7 @@ class TBackupCmd(unittest.TestCase):
             self.assertTrue(osp.isfile(res), (res, os.listdir(osp.split(res)[0])))
 
     def test_backup_no_dir(self):
-        project.InitCmd(config=self._config).run('foobar')
+        project.InitCmd(config=self._config).run(proj1)
         cmd = project.BackupCmd(config=self._config)
         with tempfile.TemporaryDirectory() as td:
             with self.assertRaisesRegex(baseapp.CmdException,
