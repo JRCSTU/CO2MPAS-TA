@@ -372,7 +372,7 @@ class TPTraits(TBase):
             bad_ptrait = trt.Bool().tag(persist=True, **tags)
 
         c = MyCmd()
-        with self.assertLogs(c.log, logging.FATAL) as cm:
+        with self.assertLogs(c.log, logging.ERROR) as cm:
             try:
                 c.initialize([])
             except SystemExit:

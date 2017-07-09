@@ -85,10 +85,14 @@ def catch_config_error(method, app, *args, **kwargs):
     try:
         return method(app, *args, **kwargs)
     except (TraitError, ArgumentError) as e:
-        app.print_help()
-        app.log.fatal("Bad config encountered during initialization: %s", e)
-        app.log.debug("Config at the time: %s", app.config)
-        app.exit(1)
+        ## NOTE: CO2MPAS -specific code HERE!
+        from .... import __main__ as cmain
+
+        log = app.log
+        #log.info('\n'.join(app.emit_help()))
+        log.debug("Config at app-exit time: %s", app.config)
+        sys.exit(cmain.exit_with_pride(
+            "Command `%s` encountered invalid configs: %s" % (app.name, e)))
 
 
 class ApplicationError(Exception):
