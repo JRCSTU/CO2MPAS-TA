@@ -562,6 +562,11 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
     def _log_default(self):
         return get_class_logger(type(self))
 
+    #: Whether to raise if configs not found
+    #: GUI don't need such validation, dice commands do.
+    #: NOTE: HACK to fail early on first AIO launch.
+    configs_required = False
+
     config_paths = trt.List(
         trt.Unicode(),
         None, allow_none=True,
@@ -671,7 +676,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
 
         ## NOTE: CO2MPAS-only logic where configs must exist!
         #
-        if not fpaths:
+        if self.configs_required and not fpaths:
             raise CmdException("No DICE-configurations found!\n"
                                "  Ask JRC for configs, or copy from your old AIO.")
         return fpaths
