@@ -541,6 +541,11 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
                 return dirpath
 
 
+def cmd_line_chain(cmd):
+    """Utility returning the cmd-line(str) that launched a :class:`Cmd`."""
+    return ' '.join(c.name for c in reversed(cmd.my_cmd_chain()))
+
+
 class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
     """Common machinery for all (sub-)commands. """
     ## INFO: Do not use it directly; inherit it.
@@ -819,9 +824,8 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
             fp.write(config_text)
 
     def _my_text_interpolations(self):
-        cmd_chain = reversed(self.my_cmd_chain())
         return {'app_cmd': APPNAME,
-                'cmd_chain': ' '.join(c.name for c in cmd_chain)}
+                'cmd_chain': cmd_line_chain(self)}
 
     def emit_description(self):
         ## Overridden for interpolating app-name.
@@ -1204,8 +1208,6 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         import ipython_genutils.text as tw
 
         if self.subcommands:
-            cmd_chain = ' '.join(cl.name
-                                 for cl in reversed(self.my_cmd_chain()))
             examples = str.strip(tw.dedent(self.examples.strip()))
             msg = tw.dedent(
                 """%(cmd_chain)s: Specify one of its sub-commands:
@@ -1213,7 +1215,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                 or type:
                     %(cmd_chain)s --help
                 """) % {
-                    'cmd_chain': cmd_chain,
+                    'cmd_chain': cmd_line_chain(self),
                     'subcmds': ', '.join(self.subcommands.keys()),
                 }
             if examples:
