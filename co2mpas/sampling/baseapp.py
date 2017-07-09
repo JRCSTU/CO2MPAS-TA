@@ -192,7 +192,7 @@ class PeristentMixin:
         return fpath, cfg
 
     @classmethod
-    def store_pconfig(cls, fpath: Text):
+    def store_pconfig(cls, fpath: Text, log=None):
         """
         Stores ptrait-values from the global :attr:`_pconfig`into `fpath` as JSON.
 
@@ -204,6 +204,16 @@ class PeristentMixin:
             import json
 
             fpath = pndlu.ensure_file_ext(fpath, '.json')
+
+            if log:
+                if osp.exists(fpath):
+                    action = 'Updat'
+                    logmeth = log.debug
+                else:
+                    action = 'Creat'
+                    logmeth = log.info
+
+                logmeth("%sing persistent configs %r...", action, fpath)
             with io.open(fpath, 'wt', encoding='utf-8') as fout:
                 json.dump(cfg, fout, indent=2)
 
@@ -1137,7 +1147,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
             if ntraits_encrypted:
                 self.log.info("Updating persistent config %r with %d auto-encrypted values...",
                               persist_path, ntraits_encrypted)
-                self.store_pconfig(persist_path)
+                self.store_pconfig(persist_path, self.log)
 
         if static_screams:
             msg = "Found %d non-encrypted params in static-configs: %s" % (
@@ -1197,7 +1207,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
 
             try:
                 persist_path = self.persist_file_resolved
-                self.store_pconfig(self.persist_file_resolved)
+                self.store_pconfig(self.persist_file_resolved, self.log)
             except Exception as ex:
                 self.log.warning("Failed saving persistent config due to: %s",
                                  persist_path, ex)
