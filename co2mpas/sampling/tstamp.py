@@ -1623,7 +1623,7 @@ class RecvCmd(baseapp.Cmd):
                     except Exception as ex:
                         verdict = ex
                         self.log.error("[%s]%s: parsing tstamp failed due to: %s",
-                                         uid, mid, ex, exc_info=1)
+                                       uid, mid, ex, exc_info=1)
 
                 infos = rcver._get_recved_email_infos(mail, verdict)
 

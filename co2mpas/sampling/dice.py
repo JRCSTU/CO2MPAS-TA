@@ -102,8 +102,7 @@ class Co2diceCmd(Cmd):
         - To learn more about command-line options and configurations:
               %(cmd_chain)s  config
 
-        - Read configurations also from `GMail` folder present in current-dir
-          (on top of *regular* ones in HOME dir: ~/.co2dice)
+        - Read configurations also from a `GMail` folder present in current-dir
           and view what was loaded actually:
               %(cmd_chain)s  config paths --config-paths GMail --config-paths ~/.co2dice
               %(cmd_chain)s  config show --source file --config-paths GMail --config-paths ~/.co2dice
