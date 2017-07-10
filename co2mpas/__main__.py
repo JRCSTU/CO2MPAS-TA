@@ -308,7 +308,7 @@ def exit_with_pride(reason=None,
 
         color = err_color
         exit_code = -1
-        logmeth = fnt.partial(logger.fatal, stack_info=True)
+        logmeth = fnt.partial(logger.fatal, exc_info=True)
     else:
         color = msg_color
         exit_code = 1
