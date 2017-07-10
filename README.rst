@@ -369,7 +369,7 @@ you have installed |co2mpas| (see :ref:`install` above) and type::
     USAGE:
       co2mpas ta          [-f] [-v] [-O=<output-folder>] [<input-path>]...
       co2mpas batch       [-v | -q | --logconf=<conf-file>] [-f]
-                          [--overwrite-cache] [-O=<output-folder>]
+                          [--use-cache] [-O=<output-folder>]
                           [--modelconf=<yaml-file>]
                           [-D=<key=value>]... [<input-path>]...
       co2mpas demo        [-v | -q | --logconf=<conf-file>] [-f]
@@ -399,7 +399,7 @@ you have installed |co2mpas| (see :ref:`install` above) and type::
       <excel-file-path>           Output file [default: co2mpas_template.xlsx].
       --modelconf=<yaml-file>     Path to a model-configuration file, according to YAML:
                                     https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
-      --overwrite-cache           Overwrite the cached input file.
+      --use-cache                 Use the cached input file.
       --override, -D=<key=value>  Input data overrides (e.g., `-D fuel_type=diesel`,
                                   `-D prediction.nedc_h.vehicle_mass=1000`).
       -l, --list                  List available models.

@@ -18,7 +18,7 @@ Use the `batch` sub-command to simulate a vehicle contained in an excel-file.
 USAGE:
   co2mpas ta          [-f] [-v] [-O=<output-folder>] [<input-path>]...
   co2mpas batch       [-v | -q | --logconf=<conf-file>] [-f]
-                      [--overwrite-cache] [-O=<output-folder>]
+                      [--use-cache] [-O=<output-folder>]
                       [--modelconf=<yaml-file>]
                       [-D=<key=value>]... [<input-path>]...
   co2mpas demo        [-v | -q | --logconf=<conf-file>] [-f]
@@ -48,7 +48,7 @@ OPTIONS:
   <excel-file-path>           Output file [default: co2mpas_template.xlsx].
   --modelconf=<yaml-file>     Path to a model-configuration file, according to YAML:
                                 https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
-  --overwrite-cache           Overwrite the cached input file.
+  --use-cache                 Use the cached input file.
   --override, -D=<key=value>  Input data overrides (e.g., `-D fuel_type=diesel`,
                               `-D prediction.nedc_h.vehicle_mass=1000`).
   -l, --list                  List available models.
@@ -581,7 +581,7 @@ def _run_batch(opts, **kwargs):
 
     kw = {
         'variation': parse_overrides(opts['--override']),
-        'overwrite_cache': opts['--overwrite-cache'],
+        'overwrite_cache': not opts['--use-cache'],
         'modelconf': opts['--modelconf']
     }
     kw.update(kwargs)
@@ -620,8 +620,15 @@ def _cmd_gui(opts):
 
 def _main(*args):
     """Throws any exception or (optionally) return an exit-code."""
-
-    opts = docopt.docopt(__doc__, argv=args or sys.argv[1:])
+    argv = args or sys.argv[1:]
+    warns = []
+    if '--overwrite-cache' in argv:
+        argv = [v for v in argv if '--overwrite-cache' != v]
+        warns.append(
+            '\n`--overwrite-cache` is deprecated and non-functional! '
+            'Replaced by `--use-cache`.'
+        )
+    opts = docopt.docopt(__doc__, argv=argv)
 
     verbose = opts['--verbose']
     quiet = opts['--quiet']
@@ -633,6 +640,10 @@ def _main(*args):
         level = logging.WARNING
     init_logging(level=level, logconf_file=opts.get('--logconf'), color=True)
 
+    if warns:
+        for w in warns:
+            log.warning(w)
+
     if opts['--version']:
         v = build_version_string(verbose)
         # noinspection PyBroadException
@@ -640,23 +651,22 @@ def _main(*args):
             sys.stdout.buffer.write(v.encode() + b'\n')
         except:
             print(v)
+    elif opts['template']:
+        _cmd_template(opts)
+    elif opts['demo']:
+        _cmd_demo(opts)
+    elif opts['ipynb']:
+        _cmd_ipynb(opts)
+    elif opts['modelgraph']:
+        _cmd_modelgraph(opts)
+    elif opts['modelconf']:
+        _cmd_modelconf(opts)
+    elif opts['gui']:
+        _cmd_gui(opts)
+    elif opts['ta']:
+        _run_batch(opts, type_approval_mode=True, overwrite_cache=True)
     else:
-        if opts['template']:
-            _cmd_template(opts)
-        elif opts['demo']:
-            _cmd_demo(opts)
-        elif opts['ipynb']:
-            _cmd_ipynb(opts)
-        elif opts['modelgraph']:
-            _cmd_modelgraph(opts)
-        elif opts['modelconf']:
-            _cmd_modelconf(opts)
-        elif opts['gui']:
-            _cmd_gui(opts)
-        elif opts['ta']:
-            _run_batch(opts, type_approval_mode=True, overwrite_cache=True)
-        else:
-            _run_batch(opts)
+        _run_batch(opts)
 
 
 def main(*args):
