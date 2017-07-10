@@ -1665,9 +1665,18 @@ class ParseCmd(baseapp.Cmd):
                 with io.open(file, 'rt') as fin:
                     mail_text = fin.read()
 
-            res = rcver.parse_tstamp_response(mail_text)
-
-            yield _mydump(res, default_flow_style=default_flow_style)
+            try:
+                verdict = rcver.parse_tstamp_response(mail_text)
+            except CmdException as ex:
+                verdict = ex
+                self.log.warning("%s: parsing tstamp failed due to: %s",
+                                 file, ex)
+            except Exception as ex:
+                verdict = ex
+                self.log.error("%s: parsing tstamp failed due to: %s",
+                               file, ex, exc_info=1)
+            else:
+                yield _mydump(verdict, default_flow_style=default_flow_style)
 
 
 class LoginCmd(baseapp.Cmd):
