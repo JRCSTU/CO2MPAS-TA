@@ -194,6 +194,24 @@ class PathsCmd(baseapp.Cmd):
                                       (see `desc master_key`)
         GIT_PYTHON_GIT_EXECUTABLE   : where `git` executable is (if not in PATH)
     """
+
+    def _collect_gpg_paths(self, gpgexe):
+        import subprocess as sbp
+
+        gpgconf = osp.join(osp.dirname(gpgexe), 'gpgconf')
+        options = '--list-dirs --list-components --list-config'.split()
+        res = []
+        for option in options:
+            try:
+                lines = sbp.check_output([gpgconf, option],
+                                         universal_newlines=True)
+                lines = lines.strip()
+                lines = lines.split('\n') if lines else []
+                res.append((option, lines))
+            except Exception as ex:
+                self.log.warning("Failed executing `gpgconf` due to: %s", ex)
+        return res
+
     def run(self, *args):
         if len(args) > 0:
             raise CmdException('Cmd %r takes no arguments, received %d: %r!'
@@ -220,8 +238,13 @@ class PathsCmd(baseapp.Cmd):
 
         yield "GnuPG:"
         gpg = crypto.GpgSpec(config=self.config)
-        yield "  +--gnupgexe: %s" % gpg.gnupgexe_resolved
+        gnupgexe = gpg.gnupgexe_resolved
+        yield "  +--gnupgexe: %s" % gnupgexe
         yield "  +--gnupghome: %s" % gpg.gnupghome_resolved
+        for cmd, lines in self._collect_gpg_paths(gnupgexe):
+            yield "  +--gpgconf %s:" % cmd
+            for line in lines:
+                yield "    +--%s" % line
 
         var_names = """AIODIR HOME HOMEDRIVE HOMEPATH USERPROFILE
                      CO2DICE_CONFIG_PATHS CO2DICE_PERSIST_PATH
