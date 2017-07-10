@@ -112,6 +112,7 @@ GUI
 AIO:
 ----
 - Detect 32bit Windows early, and notify user with an error-popup.
+- Possible to extract archive into path with SPACES (not recommended though).
 - Switched from Cygwin-->MSYS2 for the POSIX layer, for better support in
   Windows paths, and `pacman` update manager.
   - feat(install):  reimplement cygwin's `mkshortcut.exe` in VBScript.
