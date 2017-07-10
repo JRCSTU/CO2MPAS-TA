@@ -58,16 +58,16 @@ Options:
   --no-clone             Do not clone excel-sheets contained in <ref-table>
                          workbook into output.
   --interp=<method>      Interpolation method used in the resampling for all
-                         signals [default: linear]: 'linear', 'nearest', 'zero',
-                         'slinear', 'quadratic', 'cubic', 'barycentric',
-                         'polynomial', 'spline' is passed to
-                         scipy.interpolate.interp1d. Both 'polynomial' and
-                         'spline' require that you also specify an order (int),
-                         e.g. df.interpolate(--interp=polynomial4).
-                         'krogh', 'piecewise_polynomial', 'pchip' and 'akima'
-                         are all wrappers around the scipy interpolation methods
-                         of similar names.
-                         'integral' is respect the signal integral.
+                         signals [default: linear]: 
+                         'linear', 'nearest', 'zero', 'slinear', 'quadratic', 
+                         'cubic' are passed to `scipy.interpolate.interp1d`. 
+                         'spline' and 'polynomial' require also to specify an 
+                         order (int), e.g. `--interp=spline4`.
+                         'krogh', 'piecewise_polynomial', 'barycentric', 'pchip' 
+                         and 'akima' are all wrappers around the scipy 
+                         interpolation methods of similar names.
+                         'integral' is respecting the signal integral.
+                         
   -i=<label=interp>      Interpolation method used in the resampling for a
                          signal with a specific label
                          (e.g., `-i alternator_currents=integral`).
@@ -189,14 +189,21 @@ _re_interpolation_method = regex.compile(
     """, regex.IGNORECASE | regex.X | regex.DOTALL)
 
 
+def polynomial_interpolation(x, xp, fp, order=1):
+    return np.poly1d(np.polyfit(xp, fp, order))(x)
+
+
 @functools.lru_cache(None)
 def _interpolation_methods():
-    methods = ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic',
-               'spline', 'polynomial', 'barycentric')
+    methods = ('linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic')
     kw = dict(fill_value=(), copy=False, bounds_error=False)
     methods = {k: fnt.partial(_interp_wrapper, sci_itp.interp1d, kind=k, **kw)
                for k in methods}
-
+    methods['spline'] = fnt.partial(_interp_wrapper, sci_itp.interp1d, **kw)
+    methods['polynomial'] = polynomial_interpolation
+    methods['barycentric'] = fnt.partial(
+        _interp_wrapper, sci_itp.BarycentricInterpolator
+    )
     methods['krogh'] = fnt.partial(_interp_wrapper, sci_itp.KroghInterpolator)
     fr_dev = fnt.partial(_interp_wrapper, sci_itp.BPoly.from_derivatives)
     methods['piecewise_polynomial'] = methods['from_derivatives'] = fr_dev
@@ -215,7 +222,10 @@ def _get_interp_method(interpolation_method):
             kw = {k: v for k, v in kw.groupdict().items() if v is not None}
             if 'order' in kw:
                 kw['order'] = int(kw['order'])
-            return fnt.partial(methods[kw.pop('kind').lower()], **kw)
+            kind = kw.pop('kind').lower()
+            if kind == 'spline':
+                kw['kind'] = kw.pop('order')
+            return fnt.partial(methods[kind], **kw)
         else:
             raise KeyError
     except KeyError:
