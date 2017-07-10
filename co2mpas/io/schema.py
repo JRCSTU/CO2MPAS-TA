@@ -14,7 +14,7 @@ import datetime
 import functools
 import logging
 import re
-
+import pprint
 from schema import Schema, Use, And, Or, Optional, SchemaError
 
 import numpy as np
@@ -275,21 +275,20 @@ def _eval(s, error=None, **kwargs):
             TorqueConverter
         from co2mpas.model.physical.engine.start_stop import StartStopModel
         from co2mpas.model.physical.engine.thermal import ThermalModel
+        from co2mpas.model.physical.gear_box.at_gear import CMV, MVL, GSPV
         return eval(x)
     return Or(And(str, Use(_eval), s), s, error=error)
 
 
 # noinspection PyUnusedLocal
-def _dict(format=None, error=None, read=True, **kwargs):
-    import pprint
-
+def _dict(format=None, error=None, read=True, pformat=pprint.pformat, **kwargs):
     format = And(dict, format or {int: float})
     error = error or 'should be a dict with this format {}!'.format(format)
     c = Use(lambda x: {k: v for k, v in dict(x).items() if v is not None})
     if read:
         return _eval(Or(Empty(), And(c, Or(Empty(), format))), error=error)
     else:
-        return And(_dict(format=format, error=error), Use(pprint.pformat))
+        return And(_dict(format=format, error=error), Use(pformat))
 
 
 # noinspection PyUnusedLocal
@@ -421,6 +420,7 @@ def _str2parameters(data):
         return p
     return data
 
+
 def _parameters(error=None, read=True):
     if read:
         from lmfit import Parameters
@@ -496,6 +496,11 @@ def is_sorted(iterable, key=lambda a, b: a <= b):
     return all(key(a, b) for a, b in sh.pairwise(iterable))
 
 
+def pformat_d_cmv(adict):
+    it = sorted(adict.items())
+    return '{%s}' % ', '.join("'%s': %s" % (k, v.__repr__()) for k, v in it)
+
+
 # noinspection PyUnresolvedReferences
 @functools.lru_cache(None)
 def define_data_schema(read=True):
@@ -548,14 +553,14 @@ def define_data_schema(read=True):
         _compare_str('CVT'): function,
         _compare_str('CMV'): cmv,
         _compare_str('CMV_Cold_Hot'): _dict(format={'hot': cmv, 'cold': cmv},
-                                            read=read),
+                                            read=read, pformat=pformat_d_cmv),
         _compare_str('DT_VA'): dtc,
         _compare_str('DT_VAP'): dtc,
         _compare_str('DT_VAT'): dtc,
         _compare_str('DT_VATP'): dtc,
         _compare_str('GSPV'): gspv,
         _compare_str('GSPV_Cold_Hot'): _dict(format={'hot': gspv, 'cold': gspv},
-                                             read=read),
+                                             read=read, pformat=pformat_d_cmv),
         _compare_str('MVL'): _mvl(read=read),
 
         'lock_up_tc_limits': tuplefloat2,

@@ -484,10 +484,11 @@ class CMV(collections.OrderedDict):
         self.velocity_speed_ratios = velocity_speed_ratios or {}
 
     def __repr__(self):
-        name, _inf, sinf = self.__class__.__name__, float('inf'), "float('inf')"
-        items = [(k, v if v != _inf else sinf)for k, v in self.items()]
+        name = self.__class__.__name__
+        items = [(k, v) for k, v in self.items()]
         vsr = pprint.pformat(self.velocity_speed_ratios)
-        return '{}({}, velocity_speed_ratios={})'.format(name, items, vsr)
+        s = '{}({}, velocity_speed_ratios={})'.format(name, items, vsr)
+        return s.replace('inf', "float('inf')")
 
     def fit(self, correct_gear, gears, engine_speeds_out, velocities,
             accelerations, velocity_speed_ratios, stop_velocity):
@@ -852,7 +853,8 @@ class GSPV(CMV):
     def __repr__(self):
         s = 'GSPV(cloud={}, velocity_speed_ratios={})'
         vsr = pprint.pformat(self.velocity_speed_ratios)
-        return s.format(pprint.pformat(self.cloud), vsr)
+        s = s.format(pprint.pformat(self.cloud), vsr)
+        return s.replace('inf', "float('inf')")
 
     # noinspection PyMethodOverriding
     def fit(self, gears, velocities, wheel_powers, velocity_speed_ratios,
