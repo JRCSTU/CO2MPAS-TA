@@ -34,7 +34,7 @@ def _abspath(fname):
 
 
 def _file_url(fname):
-    return ('file://' + _abspath(fname)).replace('\\', '/')
+    return ('file:///' + _abspath(fname)).replace('\\', '/')
 
 
 _shfact = xleash.SheetsFactory()
@@ -136,7 +136,7 @@ class HighSync(unittest.TestCase):
         (_sync_fname, "Sheet1", None),
         (_abspath(_sync_fname), "Sheet1", ["Sheet2", "Sheet3"]),
         (_abspath(_sync_fname), "Sheet1", []),
-        (_file_url(_sync_fname), "Sheet1", []),  # FAILS due to clone-excel!
+        (_file_url(_sync_fname), "Sheet1", []),
     )
     def test_main_smoke_test(self, case):
         inp_path, ref_sheet, sync_sheets = case
@@ -154,7 +154,7 @@ class HighSync(unittest.TestCase):
         (_sync_fname, "Sheet1", ()),
         (_abspath(_sync_fname), "Sheet1", ["Sheet2", "Sheet3"]),
         (_abspath(_sync_fname), "Sheet1", []),
-        (_file_url(_sync_fname), "Sheet1", []),  # FAILS due to clone-excel!
+        (_file_url(_sync_fname), "Sheet1", []),
     )
     def test_api_smoke_test(self, case):
         inp_path, ref_sheet, sync_sheets = case

@@ -440,7 +440,14 @@ def write_to_excel(data, output_file_name, template_file_name):
 
 
 def clone_excel(file_name, output_file_name):
-    shutil.copy(file_name, output_file_name)
+    from urllib.error import URLError
+    try:
+        from urllib.request import urlopen
+        file = urlopen(file_name)
+        with open(output_file_name, 'wb') as fd:
+            shutil.copyfileobj(file, fd)
+    except (ValueError, URLError):
+        shutil.copy(file_name, output_file_name)
     import pandas as pd
     import openpyxl
     book = openpyxl.load_workbook(output_file_name)
