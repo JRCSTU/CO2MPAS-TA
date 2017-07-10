@@ -479,7 +479,7 @@ you have installed |co2mpas| (see :ref:`install` above) and type::
         co2mpas  batch  input/co2mpas_demo-0.xlsx  -O output
 
         # or launch the co2mpas GUI:
-        co2mpas  gui
+        co2gui
 
         # View all model defaults in yaml format:
         co2maps modelconf -O output

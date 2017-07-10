@@ -128,7 +128,7 @@ EXAMPLES::
     co2mpas  batch  input/co2mpas_demo-0.xlsx  -O output
 
     # or launch the co2mpas GUI:
-    co2mpas  gui
+    co2gui
 
     # View all model defaults in yaml format:
     co2maps modelconf -O output
@@ -304,12 +304,11 @@ def exit_with_pride(reason=None,
         logger = log
 
     if isinstance(reason, BaseException):
-        import traceback as tb
+        import functools as fnt
 
-        reason = tb.format_exc()
         color = err_color
         exit_code = -1
-        logmeth = logger.fatal
+        logmeth = fnt.partial(logger.fatal, stack_info=True)
     else:
         color = msg_color
         exit_code = 1
@@ -419,7 +418,7 @@ def _download_demos_stream_pairs():
     except requests.RequestException as ex:
         raise CmdException("Cannot download demo files due to: %s\n"
                            "  Check you internet connection or download them "
-                           "with your browser: https://goo.gl/b9dqcY" % ex)
+                           "with your browser: https://goo.gl/irbcBj" % ex)
 
 
 def _cmd_demo(opts):
@@ -445,7 +444,7 @@ def _cmd_demo(opts):
                                  force, file_category)
 
     log.info("You can always download the latest demos with your browser: "
-             "https://goo.gl/b9dqcY")
+             "https://goo.gl/irbcBj")
 
 
 def _cmd_ipynb(opts):
