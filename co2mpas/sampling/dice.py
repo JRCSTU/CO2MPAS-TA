@@ -186,7 +186,7 @@ def main(argv=None, **app_init_kwds):
     #  enable DEBUG logging ; later will be set by `baseapp` traits.
     log_level = logging.DEBUG if cmain.is_any_log_option(argv) else None
 
-    cmain.init_logging(level=log_level, color=True)
+    cmain.init_logging(level=log_level, color=True, not_using_numpy=True)
     log = logging.getLogger(APPNAME)
 
     try:

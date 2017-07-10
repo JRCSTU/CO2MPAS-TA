@@ -174,7 +174,7 @@ def _set_numpy_logging():
 
 def init_logging(level=None, frmt=None, logconf_file=None,
                  color=False, default_logconf_file=default_logconf_file,
-                 **kwds):
+                 not_using_numpy=False, **kwds):
     """
     :param level:
         tip: use :func:`is_any_log_option()` to decide if should be None
@@ -237,7 +237,8 @@ def init_logging(level=None, frmt=None, logconf_file=None,
                 rlog.addHandler(color_handler)
         logconf_src = 'explicit(level=%s)' % level
 
-    _set_numpy_logging()
+    if not not_using_numpy:
+        _set_numpy_logging()
 
     logging.captureWarnings(True)
 
