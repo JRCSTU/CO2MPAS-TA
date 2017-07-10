@@ -1667,6 +1667,8 @@ class ParseCmd(baseapp.Cmd):
 
             try:
                 verdict = rcver.parse_tstamp_response(mail_text)
+                if file != '-':
+                    verdict['fpath'] = file
             except CmdException as ex:
                 verdict = ex
                 self.log.warning("%s: parsing tstamp failed due to: %s",
