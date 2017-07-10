@@ -138,8 +138,8 @@ class TstampSpec(dice.DiceSpec):
         If not set, SOCKS-proxying is disabled.
 
         NOTE: GMail, Yahoo (and possibly Outlook in the future) need you
-              to make first a successful login with your browser before letting
-              DICE in.
+              to make first a successful login with your browser THROUGH PROXY,
+              before letting DICE to login.  Search: https://goo.gl/vb4wAi
         """
     ).tag(config=True)
 

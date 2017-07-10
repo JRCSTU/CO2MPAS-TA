@@ -804,10 +804,10 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
     It handles checkouts but delegates index modifications to `Project` spec.
 
-        ### Git Command Debugging and Customization:
+    ### Git Command Debugging and Customization:
 
-        - :envvar:`GIT_PYTHON_TRACE`: If set to non-0,
-          all executed git commands will be shown as they happen
+    - :envvar:`GIT_PYTHON_TRACE`: If set to non-0,
+      all executed git commands will be shown as they happen
       If set to full, the executed git command _and_ its entire output on stdout and stderr
       will be shown as they happen
 
@@ -2051,7 +2051,7 @@ class TrecvCmd(TparseCmd):
 
 class ExportCmd(_SubCmd):
     """
-    Archives projects.
+    Archives given project or all if none given.
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<project-1>] ...
