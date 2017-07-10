@@ -43,7 +43,7 @@ Of course you can mix'n match.
 
 .. [#] http://traitlets.readthedocs.io/
 """
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import contextlib
 import copy
 import io
@@ -53,14 +53,14 @@ from typing import Sequence, Text, Any, Tuple, List  # @UnusedImport
 
 from boltons.setutils import IndexedSet as iset
 from toolz import dicttoolz as dtz, itertoolz as itz
+import yaml
 
 import itertools as itt
 import os.path as osp
 import pandalone.utils as pndlu
 
 from . import CmdException
-from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
-                utils)
+from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 from ..__main__ import init_logging
 from .._vendor import traitlets as trt
 from .._vendor.traitlets import config as trtc
@@ -76,10 +76,6 @@ try:
     _mydir = osp.dirname(__file__)
 except:
     _mydir = '.'
-
-## Dice better have ordered reports
-#  so put it here to be invoked only once.
-utils.setup_yaml_ordered()
 
 
 def default_config_fname():
@@ -114,6 +110,59 @@ def as_list(value):
 def get_class_logger(cls):
     """Mimic log-hierarchies also for traitlet classes."""
     return logging.getLogger('%s.%s' % (cls.__module__, cls.__name__))
+
+
+##############################
+## Maintain ordered YAML
+#  from http://stackoverflow.com/a/21912744
+#
+_MAPTAG = yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG
+
+
+def _construct_ordered_dict(loader, node):
+    loader.flatten_mapping(node)
+    return OrderedDict(loader.construct_pairs(node))
+
+
+def _ordered_dict_representer(dumper, data):
+    return dumper.represent_mapping(
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+        data.items())
+
+
+def yaml_load(stream, Loader=yaml.SafeLoader):
+    class OrderedLoader(Loader):
+        pass
+
+    OrderedLoader.add_constructor(_MAPTAG, _construct_ordered_dict)
+    return yaml.load(stream, OrderedLoader)
+
+
+def yaml_dump(data, stream=None, Dumper=yaml.SafeDumper, **kwds):
+    class OrderedDumper(Dumper):
+        pass
+
+    OrderedDumper.add_representer(OrderedDict, _ordered_dict_representer)
+    return yaml.dump(data, stream, OrderedDumper, **kwds)
+
+
+def setup_yaml_ordered():
+    """
+    Invoke it once it to enable app-wide ordered yaml.
+
+    From http://stackoverflow.com/a/8661021 """
+
+    yaml.add_representer(OrderedDict, _ordered_dict_representer)
+    yaml.add_representer(defaultdict, _ordered_dict_representer)
+    yaml.add_representer(tuple, yaml.SafeDumper.represent_list)
+    yaml.add_constructor(_MAPTAG, _construct_ordered_dict)
+
+
+## Dice better have ordered reports
+#  so put it here to be invoked only once.
+setup_yaml_ordered()
+#
+##############################
 
 
 class PeristentMixin:
@@ -390,7 +439,6 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
                     '%s.%s must not contain non-ASCII chars: %s'
                     % (myname, proposal.trait.name, value))
         return proposal.value
-
 
     def _warn_deprecated(self, proposal):
         t = proposal.trait

@@ -13,7 +13,6 @@ numerical operations.
 """
 
 
-from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
 import inspect
 import io
@@ -372,47 +371,3 @@ def fromiter(gen, dtype, keys=None, count=-1):
         return sh.selector(keys or _keys, a, output_type='list')
     return a
 
-
-##############################
-## Maintain ordered YAML
-#  from http://stackoverflow.com/a/21912744
-#
-_MAPTAG = yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG
-
-
-def _construct_ordered_dict(loader, node):
-    loader.flatten_mapping(node)
-    return OrderedDict(loader.construct_pairs(node))
-
-
-def _ordered_dict_representer(dumper, data):
-    return dumper.represent_mapping(
-        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-        data.items())
-
-
-def yaml_load(stream, Loader=yaml.SafeLoader):
-    class OrderedLoader(Loader):
-        pass
-
-    OrderedLoader.add_constructor(_MAPTAG, _construct_ordered_dict)
-    return yaml.load(stream, OrderedLoader)
-
-
-def yaml_dump(data, stream=None, Dumper=yaml.SafeDumper, **kwds):
-    class OrderedDumper(Dumper):
-        pass
-
-    OrderedDumper.add_representer(OrderedDict, _ordered_dict_representer)
-    return yaml.dump(data, stream, OrderedDumper, **kwds)
-
-
-def setup_yaml_ordered():
-    """
-    Invoke it once it to enable app-wide ordered yaml.
-
-    From http://stackoverflow.com/a/8661021 """
-    yaml.add_representer(OrderedDict, _ordered_dict_representer)
-    yaml.add_representer(defaultdict, _ordered_dict_representer)
-    yaml.add_representer(tuple, yaml.SafeDumper.represent_list)
-    yaml.add_constructor(_MAPTAG, _construct_ordered_dict)
