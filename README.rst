@@ -14,7 +14,7 @@
 :pypi-repo:     https://pypi.org/project/co2mpas/
 :docs:          http://docs.co2mpas.io/ (build-date: |today|)
 :wiki:          https://github.com/JRCSTU/CO2MPAS-TA/wiki/
-:download:      AIO(https://github.com/JRCSTU/co2mpas/releases/tag/v1.6.1)
+:download:      AIO(https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v1.6.1)
 :keywords:      CO2, fuel-consumption, WLTP, NEDC, vehicle, automotive,
                 EU, JRC, IET, STU, correlation, back-translation, policy,
                 monitoring, M1, N1, simulator, engineering, scientific
