@@ -15,11 +15,11 @@
     :caption: Table of Contents
     :name: mastertoc
 
+    changes
     install
     explanation
     usage
     developers
-    changes
     reference
     glossary
 
