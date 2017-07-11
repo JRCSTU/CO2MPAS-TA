@@ -173,7 +173,7 @@ setup(
         'lmfit>=0.9.5',
         'matplotlib',
         'networkx',
-        'dill',
+        'dill<=0.2.6',
         'graphviz',
         'docopt',
         'six',
@@ -189,7 +189,7 @@ setup(
         'openpyxl>=2.4.0',
         'Pillow',           # for tkui
         'toolz',
-        'schedula>=0.1.12',
+        'schedula>=0.1.14',
         'formulas>=0.0.5',
         'python-gnupg',
         'gitpython >= 2.1.0',       # Win+Cygwin support
