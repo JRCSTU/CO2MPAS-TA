@@ -8,17 +8,24 @@ v1.6.0.dev4: Dice & model fine-tuning
 =====================================
 The Dice:
 ---------
-- Stop accepting test-key (``'CBBB52FF'``); you would receive this error message::
+- feat(config): stop accepting test-key (``'CBBB52FF'``); you would receive this
+  error message::
 
       After July 27 2017 you cannot use test-key for official runs!
 
       If you still want to run an experiment, set `GpgSpec.allow_test_key` to True.
 
-  You have to modify your configs and put in ``GpgSpec.master_key`` your
+  You have to modify your configurations and set ``GpgSpec.master_key`` to your
   generated key.
-- Dice commands won't start without config-file; remember to transfer your configs
-  from your old AIO (and make any needed updates).
-- Added command-line aliases in AIO consoles::
+- feat(config): dice commands won't start without config-file(s); remember to transfer your
+  configurations from your old AIO (with all changes needed).
+- feat(AIO): prepare for installing AIO in *multi-user/shared* environments;
+  the important environment variable is ``HOME`` (read ``[AIO]/.co2mpad_env.bat``
+  file and run ``co2dice config paths`` command).  Enhanced ``Cmd.config_paths``
+  parameter to properly work with *persistent* JSON file even if a list of
+  "overlayed" files/folders is given.
+- feat(cmdline): Added the following command-line aliases in AIO consoles
+  (using ``doskey`` Windows facility)::
 
      co2p: co2dice project
      co2t: co2dice tstamp
@@ -28,11 +35,11 @@ The Dice:
   to provide help-text and configured values for specific classes & params
   and all interesting variables affecting configurations.
   (alternatives to the much  coarser ``--help`` and ``--help-all`` options).
-- fix(tstamp): BCC-addresses were treated as CCs.
 - feat(tstamp, :gh:`382`): enhance handling of email encodings on send/recv:
+
   - add configurations choices for *Content-Transfer-Enconding* when sending
     non-ASCII emails or working with Outlook (usually `'=0A=0D=0E'` chars
-    scattered in the email); read help on those parameters::
+    scattered in the email); read help on those parameters, with this command::
 
         co2c desc transfer_enc  quote_printable
 
@@ -40,8 +47,26 @@ The Dice:
     options for dealing with non-ASCII dice-reports.
 
 - feat(tstamp): add ``--subject`` and ``--on`` options for search criteria
-  on the ``tstamp recv`` and ``project trecv`` subcmds.
+  on the ``tstamp recv`` and ``project trecv`` subcmds, renamed
+  ``email_criteria-->rfc_criteria``, enhancing their syntax.
+- fix(tstamp): BCC-addresses were treated as CCs; ``--raw`` STDOUT was corrupted;
+  emails received
 - refact(git): compatible-bump of dice-report format-version: ``1.0.0-->1.0.1``.
+- feat(log): possible to modify selectively logging output with ``~/logconf.yaml``
+  file;  generally improve error handling and logging of commands.
+
+Known Limitations
+~~~~~~~~~~~~~~~~~
+- Microsoft Outlook Servers are known to corrupt the dice-emails; depending
+  on the version and the configurations, most of the times they can be fixed.
+  If not, as a last resort, another email-account may be used, either to
+  receive the tstamps (added in the ``tstamp_recipient`` param), or to send
+  the dice-email in the first place.
+
+  A permanent solution to the problem is will be provided when the
+  the *Exchange Web Services (EWS)* protocol is implemented in *co2mpas*.
+- On *Yahoo* servers, the ``TstampReceiver.subject_prefix`` param must not
+  contain any brackets (``[]``).
 
 
 Datasync
@@ -49,6 +74,8 @@ Datasync
 - :gh:`390`: Datasync was producing 0 values in the first and/or in the last
   cells. This has been fixed extending the given signal with the first and last
   values.
+- :gh:`424`: remove buggy interpolation methods.
+
 
 Model-changes
 -------------
@@ -101,12 +128,15 @@ IO & Data:
 - :gh:`380`: Add cycle scores to output template.
 - :gh:`391`: Add model scores to summary file.
 - :gh:`399`: Report `co2_rescaling_scores` to output and summary files.
+- :gh:`407`: Disable input-file caching by default (renamed option
+  ``--override-cache --> use-cache``.
 
 GUI
 ---
 - feat: ``co2gui`` command  does not block, and stores logs in temporary-file.
   It launches this file in a text-editor in case of failures.
-- feat: remember position and size between launches.
+- feat: remember position and size between launches (stored in *persistent* JSON
+  file).
 
 
 AIO:
@@ -121,6 +151,7 @@ AIO:
     <https://github.com/gitpython-developers/GitPython/pull/639>`_).
 - Use ``[AIO]`` to signify the ALLINONE base-folder in the documentation; use it
   in co2mpas to suppress excessive development warnings.
+
 
 
 v1.5.7.b3, 14 May 2017: Dice networking features for Ispra Workshop

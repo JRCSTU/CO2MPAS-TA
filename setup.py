@@ -189,7 +189,7 @@ setup(
         'openpyxl>=2.4.0',
         'Pillow',           # for tkui
         'toolz',
-        'schedula>=0.1.14',
+        'schedula>=0.1.14',         # Fix str(AbortDispatcher) not to print model
         'formulas>=0.0.5',
         'python-gnupg',
         'gitpython >= 2.1.0',       # Win+Cygwin support
