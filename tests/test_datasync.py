@@ -149,6 +149,16 @@ class HighSync(unittest.TestCase):
             _check_synced(self, osp.join(d, _synced_fname), 'Sheet1')
 
     @ddt.data(
+        'linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'spline2',
+        'polynomial2', 'polynomial3', 'spline4', 'pchip', 'integral',
+    )
+    def test_main_methods(self, method):
+        with tempfile.TemporaryDirectory(prefix='co2mpas_%s_' % __name__) as d:
+            cmd = '-v -O %s x y1 %s#Sheet1! --interp=%s' % (
+                d, _sync_fname, method)
+            self.assertEqual(None, datasync.main(*cmd.split()))
+
+    @ddt.data(
         (_sync_fname, "Sheet1", ["Sheet2", "Sheet3", "Sheet4"]),
         (_sync_fname, "Sheet1", []),
         (_sync_fname, "Sheet1", ()),

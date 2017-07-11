@@ -63,8 +63,7 @@ Options:
                          'cubic' are passed to `scipy.interpolate.interp1d`. 
                          'spline' and 'polynomial' require also to specify an 
                          order (int), e.g. `--interp=spline4`.
-                         'krogh', 'piecewise_polynomial', 'barycentric', 'pchip' 
-                         and 'akima' are all wrappers around the scipy 
+                         'pchip' and 'akima' are wrappers around the scipy 
                          interpolation methods of similar names.
                          'integral' is respecting the signal integral.
                          
@@ -201,12 +200,6 @@ def _interpolation_methods():
                for k in methods}
     methods['spline'] = fnt.partial(_interp_wrapper, sci_itp.interp1d, **kw)
     methods['polynomial'] = polynomial_interpolation
-    methods['barycentric'] = fnt.partial(
-        _interp_wrapper, sci_itp.BarycentricInterpolator
-    )
-    methods['krogh'] = fnt.partial(_interp_wrapper, sci_itp.KroghInterpolator)
-    fr_dev = fnt.partial(_interp_wrapper, sci_itp.BPoly.from_derivatives)
-    methods['piecewise_polynomial'] = methods['from_derivatives'] = fr_dev
     methods['pchip'] = fnt.partial(_interp_wrapper, sci_itp.PchipInterpolator)
     methods['akima'] = fnt.partial(_interp_wrapper, sci_itp.Akima1DInterpolator)
     methods['integral'] = integral_interpolation
@@ -229,9 +222,10 @@ def _get_interp_method(interpolation_method):
         else:
             raise KeyError
     except KeyError:
-        raise ValueError('%s is not implemented as re-sampling method!\n'
-                         'Please choose one of: \n '
-                         '%s', interpolation_method, ', '.join(sorted(methods)))
+        msg = '`%s` is not implemented as re-sampling method!\n' \
+              'Please choose one of: \n %s'
+        msg %= interpolation_method, ', '.join(sorted(methods))
+        raise CmdException(msg)
 
 
 def _yield_synched_tables(ref, *data, x_label='times', y_label='velocities',
