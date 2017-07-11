@@ -110,10 +110,10 @@ class Values(co2_utl.Constants):
     gear_box_temperature_references = (40.0, 80.0)
 
     #: Constant torque loss due to engine auxiliaries [N*m].
-    auxiliaries_torque_loss = (0.0, 0.0) # m, q
+    auxiliaries_torque_loss = (0.0291, 0.4496) # m, q
 
     #: Constant power loss due to engine auxiliaries [kW].
-    auxiliaries_power_loss = 0.0
+    auxiliaries_power_loss = 0.0257
 
     #: If the engine is equipped with any kind of charging.
     engine_is_turbo = True
@@ -193,10 +193,10 @@ class Functions(co2_utl.Constants):
 
     class _rescaling_matrix(co2_utl.Constants):
         #: Percentage width top base (i.e., short base) [-].
-        a = 1
+        a = 0.396
         #: Percentage to define the bottom base (i.e., long base) from the phase
         #: corner [-].
-        b = 0.2
+        b = 0.2007
 
     class calculate_aerodynamic_drag_coefficient_v1(co2_utl.Constants):
         #: Aerodynamic drag coefficients function of vehicle body [-].
@@ -490,16 +490,16 @@ class Functions(co2_utl.Constants):
         #: Vehicle gear box efficiency constants (gbp00, gbp10, and gbp01).
         PARAMS = {
             True: {
-                'gbp00': {'m': -0.0034, 'q': {'hot': -0.3, 'cold': -0.7}},
-                'gbp10': {'m': -0.0034 / 2000, 'q': {'hot': -0.3 / 2000,
-                                                     'cold': -1 / 2000}},
-                'gbp01': {'q': {'hot': 0.965, 'cold': 0.955}},
+                'gbp00': {'m': -0.00392496, 'q': {'hot': -0.32907, 'cold': -0.76783}},
+                'gbp10': {'m': -0.000002, 'q': {'hot': -0.000129,
+                                                     'cold': -0.000431}},
+                'gbp01': {'q': {'hot': 1.0160485, 'cold': 1.0055195}},
             },
             False: {
-                'gbp00': {'m': -0.0034, 'q': {'hot': -0.3, 'cold': -0.7}},
-                'gbp10': {'m': -0.0034 / 2000, 'q': {'hot': -0.1 / 2000,
-                                                     'cold': -0.25 / 2000}},
-                'gbp01': {'q': {'hot': 0.975, 'cold': 0.965}},
+                'gbp00': {'m': -0.00392496, 'q': {'hot': -0.32907, 'cold': -0.76783}},
+                'gbp10': {'m': -0.000002, 'q': {'hot': -0.000043,
+                                                     'cold': -0.000108}},
+                'gbp01': {'q': {'hot': 1.0265775, 'cold': 1.0160485}},
             }
         }
 
