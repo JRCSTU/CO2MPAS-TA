@@ -184,7 +184,7 @@ class PathsCmd(baseapp.Cmd):
 
     Some of the environment-variables affecting configurations:
         HOME, USERPROFILE,          : where configs & DICE projects are stored
-            HOMEDRIVE/HOMEPATH        (1st one defined wins)
+                                      (1st one defined wins)
         CO2DICE_CONFIG_PATHS        : where to read configuration-files.
             CO2DICE_PERSIST_PATH    :
         GNUPGHOME                   : where GPG-keys are stored
