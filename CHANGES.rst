@@ -4,8 +4,10 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
-v1.6.0.dev4: Dice & model fine-tuning
-=====================================
+v1.6.1, 11 July 2017: "Thermal" Release
+===============================================
+Dice & model fine-tuning.
+
 The Dice:
 ---------
 - feat(config): stop accepting test-key (``'CBBB52FF'``); you would receive this
