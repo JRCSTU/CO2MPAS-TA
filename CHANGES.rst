@@ -145,6 +145,7 @@ AIO:
 - Possible to extract archive into path with SPACES (not recommended though).
 - Switched from Cygwin-->MSYS2 for the POSIX layer, for better support in
   Windows paths, and `pacman` update manager.
+  Size increased from ~350MB --> ~530MB.
   - feat(install):  reimplement cygwin's `mkshortcut.exe` in VBScript.
   - fix(git): use `cygpath.exe` to convert Windows paths and respect
     mount-points (see `GitPython#639
