@@ -10,7 +10,7 @@ version: 1
 disable_existing_loggers: false
 
 root:
-    level: INFO
+    level: INFO  # one of: DEBUG INFO WARNING ERROR FATAL
     #handlers: [console]
     handlers: [colored]
 
@@ -90,7 +90,7 @@ handlers:
         class: rainbow_logging_handler.RainbowLoggingHandler
         stream: ext://sys.stderr
         formatter: long
-        datefmt: "%Y-%m-%d %H:%M:x%S"
+        datefmt: '%Y-%m-%d %H:%M:%S'
         color_message_debug:    [grey, null, false]
         color_message_info:     [blue, null, false]
         color_message_warning:  [yellow, null, true]
