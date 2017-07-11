@@ -1609,7 +1609,9 @@ class RecvCmd(baseapp.Cmd):
                 yield "\n\n" + '=' * 40
                 yield "Email_id: %s" % mid
                 yield '=' * 40
-                yield mail_text
+                ## In PY3 stdout duplicates \n as \r\n, hence \r\n --> \r\r\n.
+                #  and signed text always has \r\n EOL.
+                yield mail_text.replace('\r\n', '\n')
             else:
                 if self.form == 'list':
                     verdict = None
