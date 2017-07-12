@@ -548,9 +548,9 @@ have the following characteristics:
    4    X                 X           X                  X
    5           X                      X      X
    6    X      X                 X           X
-   7    X      X                 X    X      X
+   7    X      X                 X    X      X                       -5.51 (> 4%)
    8           X          X                  X           X
-   9    X      X                 X    X      X                       -5.21 (> 4%)
+   9    X      X                 X    X      X                       
 simplan        X                             X                   X
 ======= == ========== ========== === ==== ========== ========== ==== ================
 
