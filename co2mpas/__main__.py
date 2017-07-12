@@ -137,6 +137,7 @@ EXAMPLES::
 from co2mpas import (__version__ as proj_ver, __file__ as proj_file,
                      __updated__ as proj_date)
 import collections
+import functools as fnt
 import glob
 import io
 import logging
@@ -305,8 +306,6 @@ def exit_with_pride(reason=None,
         logger = log
 
     if isinstance(reason, BaseException):
-        import functools as fnt
-
         color = err_color
         exit_code = -1
         logmeth = fnt.partial(logger.fatal, exc_info=True)
@@ -385,7 +384,7 @@ def _generate_files_from_streams(
         raise CmdException(
             "Destination '%s' is not a <output-folder>!" % dst_folder)
 
-    for src_fname, stream in file_stream_pairs:
+    for src_fname, stream_factory in file_stream_pairs:
         dst_fpath = osp.join(dst_folder, src_fname)
         if osp.exists(dst_fpath) and not force:
             msg = "Creating %s file '%s' skipped, already exists! \n  " \
@@ -394,7 +393,7 @@ def _generate_files_from_streams(
         else:
             log.info("Creating %s file '%s'...", file_category, dst_fpath)
             with open(dst_fpath, 'wb') as fd:
-                shutil.copyfileobj(stream, fd, 16 * 1024)
+                shutil.copyfileobj(stream_factory(), fd, 16 * 1024)
 
 
 def _download_demos_stream_pairs():
@@ -408,7 +407,7 @@ def _download_demos_stream_pairs():
         for url in sorted(v['download_url'] for v in res.json()):
             fname = osp.basename(url)
             log.info('Downloading \'%s\'...' % fname)
-            yield fname, urlopen(url)
+            yield fname, fnt.partial(urlopen, url)
     except requests.RequestException as ex:
         raise CmdException("Cannot download demo files due to: %s\n"
                            "  Check you internet connection or download them "
@@ -426,7 +425,7 @@ def _cmd_demo(opts):
         cache_dir = aio_dir and osp.join(aio_dir, 'Apps', '.co2mpas-demos')
         if cache_dir:
             file_stream_pairs = [
-                (osp.basename(fpath), io.open(fpath, "rb"))
+                (osp.basename(fpath), fnt.partial(io.open, fpath, "rb"))
                 for fpath in sorted(glob.glob(osp.join(cache_dir, '*.xlsx')))
             ]
         else:
@@ -497,7 +496,7 @@ def _get_internal_file_streams(internal_folder, incl_regex=None):
                                              internal_folder)
     if incl_regex:
         incl_regex = re.compile(incl_regex)
-    return {f: pkg_resources.resource_stream(# @UndefinedVariable
+    return {f: fnt.partial(pkg_resources.resource_stream,  # @UndefinedVariable
             __name__,
             osp.join(internal_folder, f))
             for f in samples
