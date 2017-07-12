@@ -395,7 +395,7 @@ you have installed |co2mpas| (see :ref:`install` above) and type::
     OPTIONS:
       <input-path>                Input xlsx-file or folder. Assumes current-dir if missing.
       -O=<output-folder>          Output folder or file [default: .].
-      --download                  Download all demo files from ALLINONE GitHub project.
+      --download                  Download latest demo files from ALLINONE GitHub project.
       <excel-file-path>           Output file [default: co2mpas_template.xlsx].
       --modelconf=<yaml-file>     Path to a model-configuration file, according to YAML:
                                     https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
@@ -447,7 +447,7 @@ you have installed |co2mpas| (see :ref:`install` above) and type::
                         `engineering_mode` have to be set to True.
                         Read this for explanations of the param names:
                           http://co2mpas.io/explanation.html#excel-input-data-naming-conventions
-        demo            Generate demo input-files for the `batch` cmd inside <output-folder>.
+        demo            Generate demo input-files for co2mpas inside <output-folder>.
         template        Generate "empty" input-file for the `batch` cmd as <excel-file-path>.
         ipynb           Generate IPython notebooks inside <output-folder>; view them with cmd:
                           jupyter --notebook-dir=<output-folder>

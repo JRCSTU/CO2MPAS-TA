@@ -44,7 +44,7 @@ Syntax tip:
 OPTIONS:
   <input-path>                Input xlsx-file or folder. Assumes current-dir if missing.
   -O=<output-folder>          Output folder or file [default: .].
-  --download                  Download all demo files from ALLINONE GitHub project.
+  --download                  Download latest demo files from ALLINONE GitHub project.
   <excel-file-path>           Output file [default: co2mpas_template.xlsx].
   --modelconf=<yaml-file>     Path to a model-configuration file, according to YAML:
                                 https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
@@ -96,7 +96,7 @@ SUB-COMMANDS:
                     `engineering_mode` have to be set to True.
                     Read this for explanations of the param names:
                       http://co2mpas.io/explanation.html#excel-input-data-naming-conventions
-    demo            Generate demo input-files for the `batch` cmd inside <output-folder>.
+    demo            Generate demo input-files for co2mpas inside <output-folder>.
     template        Generate "empty" input-file for the `batch` cmd as <excel-file-path>.
     ipynb           Generate IPython notebooks inside <output-folder>; view them with cmd:
                       jupyter --notebook-dir=<output-folder>
@@ -397,13 +397,6 @@ def _generate_files_from_streams(
                 shutil.copyfileobj(stream, fd, 16 * 1024)
 
 
-def get_cache_dir(*path, home_keys=('AIODIR',), cache_path=('Apps',)):
-    """ The default path to store files. """
-    # Local cache path:
-    home_dir = next((os.environ[k] for k in home_keys if k in os.environ), None)
-    return home_dir and osp.join(home_dir, *(cache_path + path)) or None
-
-
 def _download_demos_stream_pairs():
     import requests
     from urllib.request import urlopen
@@ -427,22 +420,22 @@ def _cmd_demo(opts):
     force = opts['--force']
 
     if opts['--download']:
-        cache_dir = get_cache_dir('.co2mpas-demos')
-        if not cache_dir:
-            file_stream_pairs = _download_demos_stream_pairs()
-        else:
+        file_stream_pairs = _download_demos_stream_pairs()
+    else:
+        aio_dir = os.environ.get('AIODIR')
+        cache_dir = aio_dir and osp.join(aio_dir, 'Apps', '.co2mpas-demos')
+        if cache_dir:
             file_stream_pairs = [
                 (osp.basename(fpath), io.open(fpath, "rb"))
                 for fpath in sorted(glob.glob(osp.join(cache_dir, '*.xlsx')))
             ]
-    else:
-        file_stream_pairs = sorted(
-            _get_internal_file_streams('demos', r'.*\.xlsx$').items()
-        )
+        else:
+            file_stream_pairs = sorted(
+                _get_internal_file_streams('demos', r'.*\.xlsx$').items()
+            )
 
-    file_category = 'INPUT-DEMO'
     _generate_files_from_streams(dst_folder, file_stream_pairs,
-                                 force, file_category)
+                                 force, file_category='INPUT-DEMO')
 
     log.info("You can always download the latest demos with your browser: "
              "https://goo.gl/irbcBj")
