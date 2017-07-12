@@ -125,7 +125,11 @@ CO2 model
 
 IO & Data:
 ----------
-- :gh:`314`: MOVED MOST DEMO-FILES to AIO archive - 2 files are left.
+- fix(xlsx, :gh:`426`): excel validation formulas on input-template & demos did not 
+  accept *vehicle-family-id* with single-digit TA-ids.
+- :gh:`314`, gh:`410`: MOVED MOST DEMO-FILES to AIO archive - 2 files are left.  Updated 
+  ``co2mpas demo`` command to use them if found; add ``--download`` option to get 
+  the very latest from Internet.
 - main: rename logging option ``--quite`` --> ``--quiet``.
 - :gh:`380`: Add cycle scores to output template.
 - :gh:`391`: Add model scores to summary file.
