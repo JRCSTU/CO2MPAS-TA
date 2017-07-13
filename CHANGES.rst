@@ -4,7 +4,7 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
-v1.6.1, 11 July 2017: "Thermal" Release
+v1.6.1.post0, 13 July 2017: "Thermal" Release
 ===============================================
 Dice & model fine-tuning.
 
@@ -69,6 +69,13 @@ Known Limitations
   the *Exchange Web Services (EWS)* protocol is implemented in *co2mpas*.
 - On *Yahoo* servers, the ``TstampReceiver.subject_prefix`` param must not
   contain any brackets (``[]``).
+- Using GMail accounts to sent Dice may not(!) receive the reply-back "Proof of Posting"
+  reply (or it may delay up to 4 hours).  It is recommended to have a 2nd email address
+  in the ``tstamp_recipients`` to receive the dice-tstamp email within minutes.
+  
+  Additionally, Google's security provisions for some countries may be too strict to 
+  allow SMTP/IMAP.  In all cases, you need to enable allow `less secure apps 
+  <https://support.google.com/accounts/answer/6010255>`_ to access your account.
 
 
 Datasync
@@ -136,6 +143,12 @@ IO & Data:
 - :gh:`399`: Report `co2_rescaling_scores` to output and summary files.
 - :gh:`407`: Disable input-file caching by default (renamed option
   ``--override-cache --> use-cache``.
+
+Known Limitations
+~~~~~~~~~~~~~~~~~
+- The ``co2mpas modelgraph`` command cannot plot flow-diagrams if Internet Explorer  
+  (IE) is the default browser.
+
 
 GUI
 ---
