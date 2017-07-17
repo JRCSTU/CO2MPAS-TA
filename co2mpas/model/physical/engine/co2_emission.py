@@ -1518,7 +1518,7 @@ def define_initial_co2_emission_model_params_guess(
 
     bounds = bounds or {}
     par = defaults.dfl.functions.define_initial_co2_emission_model_params_guess
-    default = copy.deepcopy(par.CO2_PARAMS)[engine_type]
+    default = copy.deepcopy(par.CO2_PARAMS[engine_type])
     default['trg'] = {
         'value': engine_normalization_temperature,
         'min': engine_thermostat_temperature_window[0],
@@ -1527,13 +1527,13 @@ def define_initial_co2_emission_model_params_guess(
     }
 
     if is_cycle_hot:
-        default['t0'].update({'value': 0.0, 'vary': False})
+        default['t1'].update({'value': 0.0, 'vary': False})
         default['dt'].update({'value': 0.0, 'vary': False})
 
     p = lmfit.Parameters()
     from ..defaults import dfl
     EPS = dfl.EPS
-    for k, kw in sorted(default.items()):
+    for k, kw in default.items():
         kw['name'] = k
 
         kw['value'] = params.get(k, kw.get('value', None))
@@ -1740,7 +1740,7 @@ def calibrate_co2_params(
         # Hence, to avoid erroneous results, thermal parameters are fixed to
         # zero because they cannot be identified.
         _set_attr(p, thermal_p, False, 'vary')
-        _set_attr(p, pvary.intersection(('t0', 'dt')), 0, 'value')
+        _set_attr(p, pvary.intersection(('t1', 'dt')), 0, 'value')
         pvary -= thermal_p
 
     p = opt(p, _2nd_step and cold.any() and thermal_p or set(), sub_values=cold)
