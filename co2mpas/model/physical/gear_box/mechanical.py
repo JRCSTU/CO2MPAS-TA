@@ -15,7 +15,6 @@ import scipy.interpolate as sci_itp
 import scipy.optimize as sci_opt
 import scipy.stats as sci_sta
 import sklearn.cluster as sk_clu
-import sklearn.metrics as sk_met
 import schedula as sh
 import co2mpas.utils as co2_utl
 import numpy as np
@@ -153,7 +152,7 @@ def _correct_gear_shifts(
 
     def err(v, r):
         v = int(v)
-        return sk_met.mean_absolute_error(ratios[slice(v - 1, v + 1, 1)], r)
+        return np.float32(np.mean(np.abs(ratios[slice(v - 1, v + 1, 1)] - r)))
 
     k = 0
     new_gears = np.zeros_like(gears)
@@ -239,7 +238,7 @@ def calculate_gear_box_speeds_from_engine_speeds(
         std = sci_sta.binned_statistic(ratio, ratio, np.std, bins)[0]
         w = sci_sta.binned_statistic(ratio, ratio, 'count', bins)[0]
 
-        return sum(std * w)
+        return np.float32(sum(std * w))
 
     dt = shift_window / 2
     shift = sci_opt.brute(error_fun, ranges=(slice(-dt, dt, 0.1),))

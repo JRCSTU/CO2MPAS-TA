@@ -516,7 +516,7 @@ class CMV(collections.OrderedDict):
             speed_pred = calculate_gear_box_speeds_in(
                 g_pre, velocities, velocity_speed_ratios, stop_velocity)
 
-            return np.mean(np.abs(speed_pred - engine_speeds_out))
+            return np.float32(np.mean(np.abs(speed_pred - engine_speeds_out)))
 
         x0 = [self[0][1]].__add__(list(itertools.chain(*velocity_limits))[:-1])
 

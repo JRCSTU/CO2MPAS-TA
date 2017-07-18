@@ -1788,7 +1788,7 @@ def calibrate_model_params(
     min_e_and_p = [np.inf, copy.deepcopy(params)]
 
     def error_func(params, *args, **kwargs):
-        res = error_f(params, *args, **kwargs)
+        res = np.float32(error_f(params, *args, **kwargs))
 
         if res < min_e_and_p[0]:
             min_e_and_p[0], min_e_and_p[1] = (res, copy.deepcopy(params))
