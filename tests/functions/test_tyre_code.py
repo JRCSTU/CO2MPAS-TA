@@ -57,6 +57,10 @@ class TyreCode(unittest.TestCase):
             'code': 'iso', 'carcass': 'R',
             'nominal_section_width': 265.0, 'use': 'LT',
             'load_range': 'D', 'rim_diameter': 15.0, 'aspect_ratio': 75.0}),
+        ('315/70R22.5', {
+            'code': 'iso', 'carcass': 'R',
+            'nominal_section_width': 315.0,
+            'rim_diameter': 22.5, 'aspect_ratio': 70.0}),
         ('LT245/75R16 120/116S E', {
             'nominal_section_width': 245.0, 'use': 'LT', 'aspect_ratio': 75.0,
             'code': 'iso', 'load_index': '120/116', 'carcass': 'R',

@@ -377,7 +377,7 @@ _re_tyre_code_iso = regex.compile(
     \/\s*
     (?P<aspect_ratio>(\d){2,3})?
     ((\s*(?P<carcass>[a-z])\s*)|\s+)
-    (?P<rim_diameter>(\d){1,2})
+    (?P<rim_diameter>(\d){1,2}(.(\d){1,2})?)
     (\s+(?P<use>C))?
     (\s+(?P<load_index>(\d){2,3}(/(\d){2,3})?)\s*
      (?P<speed_rating>(\([a-z]\)|[a-z]\d?)))?\s*
