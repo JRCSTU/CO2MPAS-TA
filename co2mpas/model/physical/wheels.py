@@ -377,7 +377,7 @@ _re_tyre_code_iso = regex.compile(
     \/\s*
     (?P<aspect_ratio>(\d){2,3})?
     ((\s*(?P<carcass>[a-z])\s*)|\s+)
-    (?P<rim_diameter>(\d){1,2}(.(\d){1,2})?)
+    (?P<rim_diameter>(\d){1,2}(\.(\d){1,2})?)
     (\s+(?P<use>C))?
     (\s+(?P<load_index>(\d){2,3}(/(\d){2,3})?)\s*
      (?P<speed_rating>(\([a-z]\)|[a-z]\d?)))?\s*
@@ -388,9 +388,9 @@ _re_tyre_code_iso = regex.compile(
 _re_tyre_code_numeric = regex.compile(
     r"""
     ^((?P<diameter>(\d){2})\s*x\s*)?
-    (?P<nominal_section_width>(\d){1,2}(.(\d){1,2})?)\s*
+    (?P<nominal_section_width>(\d){1,2}(\.(\d){1,2})?)\s*
     ((\s*(?P<carcass>([a-z]|-))\s*)|\s+)
-    (?P<rim_diameter>(\d){2}(.(\d){1,2})?)\s*
+    (?P<rim_diameter>(\d){2}(\.(\d){1,2})?)\s*
     (?P<use>(LT|C))\s*
     ((?P<load_index>(\d){2,3}(/(\d){2,3})?)\s*
      (?P<speed_rating>(\([a-z]\)|[a-z]\d?)))?\s*
