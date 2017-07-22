@@ -4,9 +4,10 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
-v1.6.1.post0, 13 July 2017: "Thermal" Release
+v1.6.2, 25 July 2017: "Thermic" Release
 ===============================================
 Dice & model fine-tuning.
+Includes changes also from **RETRACTED** ``v1.6.1.post0``, 13 July 2017,"T-bone" release.
 
 The Dice:
 ---------
@@ -69,12 +70,12 @@ Known Limitations
   the *Exchange Web Services (EWS)* protocol is implemented in *co2mpas*.
 - On *Yahoo* servers, the ``TstampReceiver.subject_prefix`` param must not
   contain any brackets (``[]``).
-- Using GMail accounts to sent Dice may not(!) receive the reply-back "Proof of Posting"
+- Using GMail accounts to send Dice may not(!) receive the reply-back "Proof of Posting"
   reply (or it may delay up to 4 hours).  It is recommended to have a 2nd email address
   in the ``tstamp_recipients`` to receive the dice-tstamp email within minutes.
   
   Additionally, Google's security provisions for some countries may be too strict to 
-  allow SMTP/IMAP.  In all cases, you need to enable allow `less secure apps 
+  allow SMTP/IMAP access.  In all cases, you need to enable allow `less secure apps 
   <https://support.google.com/accounts/answer/6010255>`_ to access your account.
 
 
