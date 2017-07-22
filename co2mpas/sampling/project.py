@@ -2103,9 +2103,10 @@ class ExportCmd(_SubCmd):
                         if pp not in repo.heads:
                             self.log.info("Ignoring branch(%s), not a co2mpas project.", p)
                             continue
+                        tags = list(_yield_dices_tags(repo, p))
 
-                        ## FIXME: Either ALL TAGS (--tags) or NONE without it!
-                        fetch_infos = rem.fetch(pp, tag=True)
+                        ## Note: Cannot use --tags, ALL TAGS fetched!
+                        fetch_infos = rem.fetch([pp] + tags)
 
                         ## Create local branches in exrepo
                         #
