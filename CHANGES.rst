@@ -54,6 +54,8 @@ The Dice:
   ``email_criteria-->rfc_criteria``, enhancing their syntax.
 - fix(tstamp): BCC-addresses were treated as CCs; ``--raw`` STDOUT was corrupted;
   emails received
+- fix(project, :ghp:`18`): fix ``co2p export`` command not to include dices from all
+  projects.
 - refact(git): compatible-bump of dice-report format-version: ``1.0.0-->1.0.1``.
 - feat(log): possible to modify selectively logging output with ``~/logconf.yaml``
   file;  generally improve error handling and logging of commands.
@@ -73,9 +75,9 @@ Known Limitations
 - Using GMail accounts to send Dice may not(!) receive the reply-back "Proof of Posting"
   reply (or it may delay up to 4 hours).  It is recommended to have a 2nd email address
   in the ``tstamp_recipients`` to receive the dice-tstamp email within minutes.
-  
-  Additionally, Google's security provisions for some countries may be too strict to 
-  allow SMTP/IMAP access.  In all cases, you need to enable allow `less secure apps 
+
+  Additionally, Google's security provisions for some countries may be too strict to
+  allow SMTP/IMAP access.  In all cases, you need to enable allow `less secure apps
   <https://support.google.com/accounts/answer/6010255>`_ to access your account.
 
 
@@ -133,10 +135,10 @@ CO2 model
 
 IO & Data:
 ----------
-- fix(xlsx, :gh:`426`): excel validation formulas on input-template & demos did not 
+- fix(xlsx, :gh:`426`): excel validation formulas on input-template & demos did not
   accept *vehicle-family-id* with single-digit TA-ids.
-- :gh:`314`, gh:`410`: MOVED MOST DEMO-FILES to AIO archive - 2 files are left.  Updated 
-  ``co2mpas demo`` command to use them if found; add ``--download`` option to get 
+- :gh:`314`, gh:`410`: MOVED MOST DEMO-FILES to AIO archive - 2 files are left.  Updated
+  ``co2mpas demo`` command to use them if found; add ``--download`` option to get
   the very latest from Internet.
 - main: rename logging option ``--quite`` --> ``--quiet``.
 - :gh:`380`: Add cycle scores to output template.
@@ -147,7 +149,7 @@ IO & Data:
 
 Known Limitations
 ~~~~~~~~~~~~~~~~~
-- The ``co2mpas modelgraph`` command cannot plot flow-diagrams if Internet Explorer  
+- The ``co2mpas modelgraph`` command cannot plot flow-diagrams if Internet Explorer
   (IE) is the default browser.
 
 
