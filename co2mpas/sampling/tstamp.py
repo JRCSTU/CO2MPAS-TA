@@ -640,7 +640,7 @@ class TstampReceiver(TstampSpec):
     ).tag(config=True)
 
     rfc_criteria = trt.List(
-        trt.Unicode(), allow_none=True,
+        trt.Unicode(allow_none=True), allow_none=True,
         default_value=[
             'FROM "mailer@stamper.itconsult.co.uk"',
             'SUBJECT "Proof of Posting Certificate"',
@@ -665,7 +665,7 @@ class TstampReceiver(TstampSpec):
           disregard time & timezone:
             BEFORE | SINCE | SENTBEFORE | SENTSINCE | SENTON "15-May-2017"
 
-        - A single space -delimiter and double-quoted strings are both compulsory;
+        - A single space-delimiter and double-quoted strings are both compulsory;
         - When multiple terms are given, they are ANDed rtogether.
         - More criteria are appended on runtime, ie `TstampSpec.subject_prefix`,
           `wait_criterio` if --wait, and any args to `recv` command as ORed
