@@ -49,9 +49,9 @@ The Dice:
   - add ``TstampSender.scramble_tag`` & ``TstampReceiver.un_quote_printable``
     options for dealing with non-ASCII dice-reports.
 
-- feat(tstamp): add ``--subject`` and ``--on`` options for search criteria
-  on the ``tstamp recv`` and ``project trecv`` subcmds, renamed
-  ``email_criteria-->rfc_criteria``, enhancing their syntax.
+- feat(tstamp): add ``--subject``, ``--on`` and ``--wiat-criteria`` options for
+  search criteria on the ``tstamp recv`` and ``project trecv`` subcmds, renamed
+  ``email_criteria-->rfc-criteria``, enhancing their syntax.
 - fix(tstamp): BCC-addresses were treated as CCs; ``--raw`` STDOUT was corrupted;
   emails received
 - fix(project, :ghp:`18`): fix ``co2p export`` command not to include dices from all

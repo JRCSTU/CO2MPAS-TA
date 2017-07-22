@@ -1511,8 +1511,8 @@ recv_cmd_aliases = {
     'after': 'TstampReceiver.after_date',
     'on': 'TstampReceiver.on_date',
     'mailbox': 'TstampReceiver.mailbox',
-    'rfc_criteria': 'TstampReceiver.rfc_criteria',
-    'wait_criterio': 'TstampReceiver.wait_criterio',
+    'rfc-criteria': 'TstampReceiver.rfc_criteria',
+    'wait-criterio': 'TstampReceiver.wait_criterio',
     'subject': 'TstampReceiver.subject_prefix',
 }
 
