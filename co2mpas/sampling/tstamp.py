@@ -20,6 +20,9 @@ from . import CmdException, baseapp, dice, crypto
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 
 
+_undefined = object()
+
+
 class UnverifiedSig(CmdException):
     def __init__(self, msg, verdict):
         self.verdict = verdict
@@ -1186,18 +1189,21 @@ class TstampReceiver(TstampSpec):
 
             yield uid.decode(), m
 
-    def get_recved_email_infos(self, mail, verdict_or_ex=None, verbose=None):
+    def get_recved_email_infos(self, mail, verdict_or_ex=None,
+                               verbose=None, email_infos=_undefined) -> OrderedDict:
         """
         Decide email-fields to include based on :attr:`email_infos`.
 
         :param verbose:
             Override :attr:`verbose` and if true, updates result with verdict.
+        :param email_infos:
+            override :attr:`email_infos`
         :return:
             Results contain `project` & `dice` if possible.
         :raise: never
         """
         verbose = self.verbose if verbose is None else verbose
-        email_infos = self.email_infos
+        email_infos = self.email_infos if email_infos is _undefined else email_infos
 
         ## Any None signifies include all.
         is_all = email_infos is None or any(i is None for i in email_infos)

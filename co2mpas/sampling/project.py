@@ -2023,7 +2023,8 @@ class TrecvCmd(TparseCmd):
                                  uid, mid, ex, exc_info=1)
 
             ## Store full-verdict (verbose).
-            infos = rcver.get_recved_email_infos(mail, verdict, verbose=True)
+            infos = rcver.get_recved_email_infos(mail, verdict,
+                                                 verbose=True, email_infos=None)
             pname = infos.get('project')
 
             if pname is None:
@@ -2039,7 +2040,7 @@ class TrecvCmd(TparseCmd):
                      uid, mid, pname)
                 continue
 
-            ## Respect verbose flag for print-outs.
+            ## Respect --verbose and --email-infos for print-outs.
             infos = rcver.get_recved_email_infos(mail, verdict)
             yield _mydump({'[%s]%s' % (uid, mid): infos},
                           default_flow_style=default_flow_style)
