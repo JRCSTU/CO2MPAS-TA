@@ -732,11 +732,13 @@ class TstampReceiver(TstampSpec):
         trt.Unicode(allow_none=True),
         default_value=['From', 'To', 'Subject', 'Date'], allow_none=True,
         help="""
-        The email items to fetch for each matched email, all if None or contains a None.
+        The email items to print for each matched email; all if None or contains a None.
 
-        Usually one of case-insensitive:
-            Delivered-To, Received, From, To, Subject, Date, Body
-            Message-Id (always printed)
+        - case-insensitive
+        - The Message-Id is always printed.
+        - Other standard fields: Received, Delivered-To
+        - Set it to `None` to see all available fields for a specific email-provider.
+        - Use "special" item `Body` to include email-payload (not fetched if None).
         """
     ).tag(config=True)
 
@@ -1185,22 +1187,31 @@ class TstampReceiver(TstampSpec):
             yield uid.decode(), m
 
     def get_recved_email_infos(self, mail, verdict_or_ex, verbose=None):
-        """Does not raise anything."""
-        verbose = verbose is None and self.verbose or verbose
+        """
+        Decide email-fields to include based on :attr:`email_infos`.
+
+        :param verbose:
+            Override :attr:`verbose` and if true, updates result with verdict.
+        :return:
+            Results contain `project` & `dice` if possible.
+        :raise: never
+        """
+        verbose = self.verbose if verbose is None else verbose
         email_infos = self.email_infos
 
-        ## Decide fields to include in the reasults.
-        #
-        include_body = 'body' in [i.lower() for i in email_infos if i]
-        if any(i is None for i in email_infos):
-            ## Any None signifies include all.
-            infos = OrderedDict(mail.items())
-            include_body = True
+        ## Any None signifies include all.
+        is_all = email_infos is None or any(i is None for i in email_infos)
+        if is_all:
+            infos = OrderedDict((k.title(), '\n'.join(mail.get_all(k)))
+                                 for k in mail)
         else:
-            infos = OrderedDict((i, mail.get(i))
-                                for i in email_infos
-                                if i in mail)
-        if include_body:  # Body last one, for console.
+            infos = OrderedDict((k.title(), '\n'.join(mail.get_all(k)))
+                                for k in email_infos
+                                if k in mail)
+        ## Body last one, for console.
+        #  (mind that `email_infos` may be or contain None)
+        #
+        if email_infos and 'body' in [i.lower() for i in email_infos if i]:
             infos['Body'] = mail.get_payload()
 
         if verdict_or_ex is None:
