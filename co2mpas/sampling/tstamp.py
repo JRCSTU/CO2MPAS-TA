@@ -730,7 +730,7 @@ class TstampReceiver(TstampSpec):
 
     email_infos = trt.List(
         trt.Unicode(allow_none=True),
-        default_value=['To', 'Subject', 'Date'], allow_none=True,
+        default_value=['From', 'To', 'Subject', 'Date'], allow_none=True,
         help="""
         The email items to fetch for each matched email, all if None or contains a None.
 
