@@ -1525,6 +1525,7 @@ recv_cmd_aliases = {
     'rfc-criteria': 'TstampReceiver.rfc_criteria',
     'wait-criterio': 'TstampReceiver.wait_criterio',
     'subject': 'TstampReceiver.subject_prefix',
+    'email-infos': 'TstampReceiver.email_infos',
 }
 
 
