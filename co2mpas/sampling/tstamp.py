@@ -1184,7 +1184,7 @@ class TstampReceiver(TstampSpec):
 
             yield uid.decode(), m
 
-    def _get_recved_email_infos(self, mail, verdict_or_ex, verbose=None):
+    def get_recved_email_infos(self, mail, verdict_or_ex, verbose=None):
         """Does not raise anything."""
         verbose = verbose is None and self.verbose or verbose
         email_infos = self.email_infos
@@ -1627,7 +1627,7 @@ class RecvCmd(baseapp.Cmd):
                         self.log.error("[%s]%s: parsing tstamp failed due to: %s",
                                        uid, mid, ex, exc_info=1)
 
-                infos = rcver._get_recved_email_infos(mail, verdict)
+                infos = rcver.get_recved_email_infos(mail, verdict)
 
                 yield _mydump({'[%s]%s' % (uid, mid): infos},
                               default_flow_style=default_flow_style)
