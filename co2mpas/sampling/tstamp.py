@@ -1186,7 +1186,7 @@ class TstampReceiver(TstampSpec):
 
             yield uid.decode(), m
 
-    def get_recved_email_infos(self, mail, verdict_or_ex, verbose=None):
+    def get_recved_email_infos(self, mail, verdict_or_ex=None, verbose=None):
         """
         Decide email-fields to include based on :attr:`email_infos`.
 
@@ -1619,6 +1619,8 @@ class RecvCmd(baseapp.Cmd):
             if self.form == 'raw':
                 yield "\n\n" + '=' * 40
                 yield "Email_id: %s" % mid
+                for k, v in rcver.get_recved_email_infos(mail).items():
+                    yield "%s: %s" % (k, v)
                 yield '=' * 40
                 ## In PY3 stdout duplicates \n as \r\n, hence \r\n --> \r\r\n.
                 #  and signed text always has \r\n EOL.
