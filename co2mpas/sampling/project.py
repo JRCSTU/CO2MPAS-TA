@@ -5,8 +5,8 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 #
-from co2mpas._vendor.traitlets.traitlets import TraitError
 """A *project* stores all CO2MPAS files for a single vehicle, and tracks its sampling procedure. """
+from co2mpas._vendor.traitlets.traitlets import TraitError
 from collections import (defaultdict, OrderedDict, namedtuple)  # @UnusedImport
 import copy
 import io
@@ -1858,7 +1858,7 @@ class TsendCmd(_SubCmd):
 
 class TparseCmd(_SubCmd):
     """
-    Derives *decision* OK/SAMPLE flag from tstamped-response, and store it (or compare with existing).
+    Derives *decision* OK/SAMPLE flag from tstamped-response, and store it in current-project.
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<tstamped-file-1> ...]
@@ -1869,6 +1869,7 @@ class TparseCmd(_SubCmd):
       With this option, tstamp-response get, it extracts the dice-repot and adds it
       as a "broken" tag referring to projects that might not exist in the repo,
       assuming they don't clash with pre-existing dice-reponses.
+    - Fails if dice refers to different project.
     """
     examples = trt.Unicode("""\
         - Parse `dice_tstamp.txt` file, as received manually from timestamper:
@@ -1893,7 +1894,7 @@ class TparseCmd(_SubCmd):
                 {
                     'Project': {'dry_run': True},
                 },
-                "Pase the tstamped response without storing it in the project."
+                "Parse the tstamped response without storing it in the project."
             ),
         })
         super().__init__(**kwds)
@@ -1997,11 +1998,14 @@ class TrecvCmd(TparseCmd):
     def run(self, *args):
         from . import tstamp
 
-        projDB = self.projects_db
-
-        self.log.info("Receiving emails for projects(s) %s: ...", args)
-        default_flow_style = None if self.verbose else False
         warn = self.log.warning
+        info = self.log.info
+        error = self.log.error
+
+        info("Receiving emails for projects(s) %s: ...", args)
+
+        projDB = self.projects_db
+        default_flow_style = None if self.verbose else False
         rcver = tstamp.TstampReceiver(config=self.config)
 
         ## IMAP & CmdException raised here.
@@ -2012,11 +2016,10 @@ class TrecvCmd(TparseCmd):
                 verdict = rcver.parse_tstamp_response(mail.get_payload())
             except CmdException as ex:
                 verdict = ex
-                self.log.warning("[%s]%s: parsing tstamp failed due to: %s",
-                                 uid, mid, ex)
+                warn("[%s]%s: parsing tstamp stopped due to: %s", uid, mid, ex)
             except Exception as ex:
                 verdict = ex
-                self.log.error("[%s]%s: parsing tstamp failed due to: %s",
+                error("[%s]%s: parsing tstamp failed due to: %s",
                                  uid, mid, ex, exc_info=1)
 
             ## Store full-verdict (verbose).
@@ -2024,8 +2027,8 @@ class TrecvCmd(TparseCmd):
             pname = infos.get('project')
 
             if pname is None:
-                ## Must have already warn
-                self.log.error("[%s]%s: skipping unparseable email!", uid, mid)
+                ## Must have already warn.
+                error("[%s]%s: skipping unparseable email!", uid, mid)
                 continue
 
             try:
@@ -2045,8 +2048,7 @@ class TrecvCmd(TparseCmd):
                 proj.do_storedice(verdict=verdict)
                 #report = proj.result  # Not needed, we already have verdict.
             except Exception as ex:
-                self.log.error('Failed storing %s email, due to: %s',
-                               mid, ex)
+                error('[%s]%s: Failed storing email, due to: %s', uid, mid, ex)
 
 
 class ExportCmd(_SubCmd):
