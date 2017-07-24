@@ -5,9 +5,10 @@ CO2MPAS Changes
 .. _changes:
 
 v1.6.2, 25 July 2017: "Thermic" Release
-===============================================
+=======================================
 Dice & model fine-tuning.
-Includes changes also from **RETRACTED** ``v1.6.1.post0``, 13 July 2017,"T-bone" release.
+Includes changes also from **RETRACTED** ``v1.6.1.post0``, 13 July 2017,"T-bone"
+release.
 
 The Dice:
 ---------
@@ -16,12 +17,13 @@ The Dice:
 
       After July 27 2017 you cannot use test-key for official runs!
 
-      If you still want to run an experiment, set `GpgSpec.allow_test_key` to True.
+      If you still want to run an experiment, set `GpgSpec.allow_test_key` to
+      True.
 
   You have to modify your configurations and set ``GpgSpec.master_key`` to your
   generated key.
-- feat(config): dice commands won't start without config-file(s); remember to transfer your
-  configurations from your old AIO (with all changes needed).
+- feat(config): dice commands won't start without config-file(s); remember to
+  transfer your configurations from your old AIO (with all changes needed).
 - feat(AIO): prepare for installing AIO in *multi-user/shared* environments;
   the important environment variable is ``HOME`` (read ``[AIO]/.co2mpad_env.bat``
   file and run ``co2dice config paths`` command).  Enhanced ``Cmd.config_paths``
@@ -54,11 +56,12 @@ The Dice:
   ``email_criteria-->rfc-criteria``, enhancing their syntax.
 - fix(tstamp): BCC-addresses were treated as CCs; ``--raw`` STDOUT was corrupted;
   emails received
-- fix(project, :ghp:`18`): fix ``co2p export`` command not to include dices from all
-  projects.
+- fix(project, :ghp:`18`): fix ``co2p export`` command not to include dices from
+  all projects.
 - refact(git): compatible-bump of dice-report format-version: ``1.0.0-->1.0.1``.
-- feat(log): possible to modify selectively logging output with ``~/logconf.yaml``
-  file;  generally improve error handling and logging of commands.
+- feat(log): possible to modify selectively logging output with
+  ``~/logconf.yaml`` file;  generally improve error handling and logging of
+  commands.
 
 Known Limitations
 ~~~~~~~~~~~~~~~~~
@@ -72,13 +75,15 @@ Known Limitations
   the *Exchange Web Services (EWS)* protocol is implemented in *co2mpas*.
 - On *Yahoo* servers, the ``TstampReceiver.subject_prefix`` param must not
   contain any brackets (``[]``).
-- Using GMail accounts to send Dice may not(!) receive the reply-back "Proof of Posting"
-  reply (or it may delay up to 4 hours).  It is recommended to have a 2nd email address
-  in the ``tstamp_recipients`` to receive the dice-tstamp email within minutes.
+- Using GMail accounts to send Dice may not(!) receive the reply-back "Proof of
+  Posting" reply (or it may delay up to 4 hours).  It is recommended to have a
+  2nd email address in the ``tstamp_recipients`` to receive the dice-tstamp
+  email within minutes.
 
-  Additionally, Google's security provisions for some countries may be too strict to
-  allow SMTP/IMAP access.  In all cases, you need to enable allow `less secure apps
-  <https://support.google.com/accounts/answer/6010255>`_ to access your account.
+  Additionally, Google's security provisions for some countries may be too
+  strict to allow SMTP/IMAP access.  In all cases, you need to enable allow
+  `less secure apps <https://support.google.com/accounts/answer/6010255>`_ to
+  access your account.
 
 
 Datasync
@@ -135,11 +140,11 @@ CO2 model
 
 IO & Data:
 ----------
-- fix(xlsx, :gh:`426`): excel validation formulas on input-template & demos did not
-  accept *vehicle-family-id* with single-digit TA-ids.
-- :gh:`314`, gh:`410`: MOVED MOST DEMO-FILES to AIO archive - 2 files are left.  Updated
-  ``co2mpas demo`` command to use them if found; add ``--download`` option to get
-  the very latest from Internet.
+- fix(xlsx, :gh:`426`): excel validation formulas on input-template & demos did
+  not accept *vehicle-family-id* with single-digit TA-ids.
+- :gh:`314`, gh:`410`: MOVED MOST DEMO-FILES to AIO archive - 2 files are left.
+  Updated ``co2mpas demo`` command to use them if found; add ``--download``
+  option to get the very latest from Internet.
 - main: rename logging option ``--quite`` --> ``--quiet``.
 - :gh:`380`: Add cycle scores to output template.
 - :gh:`391`: Add model scores to summary file.
@@ -149,8 +154,8 @@ IO & Data:
 
 Known Limitations
 ~~~~~~~~~~~~~~~~~
-- The ``co2mpas modelgraph`` command cannot plot flow-diagrams if Internet Explorer
-  (IE) is the default browser.
+- The ``co2mpas modelgraph`` command cannot plot flow-diagrams if Internet
+  Explorer (IE) is the default browser.
 
 
 GUI
