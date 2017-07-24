@@ -30,7 +30,7 @@ pykalman
 wltp
 openpyxl>=2.4.0
 schedula>=0.1.14
-formulas>=0.0.5
+formulas>=0.0.7
 
 ## Dice
 python-gnupg

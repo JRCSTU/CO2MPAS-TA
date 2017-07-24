@@ -190,7 +190,7 @@ setup(
         'Pillow',           # for tkui
         'toolz',
         'schedula>=0.1.14',         # Fix str(AbortDispatcher) not to print model
-        'formulas>=0.0.5',
+        'formulas>=0.0.7',
         'python-gnupg',
         'gitpython >= 2.1.0',       # Win+Cygwin support
         'transitions >= 0.5.0',     # prepare/finally cbs
