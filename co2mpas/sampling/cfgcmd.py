@@ -267,11 +267,11 @@ class ShowCmd(baseapp.Cmd):
     - Search-terms are matched case-insensitively against '<class>.<param>'.
     - Use --verbose to view values for config-params as they apply in the
       whole hierarchy (not
-    - Defaults/merged might not be always accurate!
-      TIP: you may also add `--show-config` global option on any command
-      to view configured values accurately on runtime.
     - Results are sorted in "application order" (later configurations override
       previous ones); use --sort for alphabetical order.
+    - Warning: Defaults/merged might not be always accurate!
+    - Tip: you may also add `--show-config` global option on any command
+      to view configured values accurately on runtime.
     """
 
     examples = trt.Unicode("""
@@ -396,6 +396,7 @@ class ShowCmd(baseapp.Cmd):
         if self.sort:
             items = sorted(items)  # Sort by class-name (traits always sorted).
 
+        classes_printed = set()
         for key, (cls, trait) in items:
             if self.list:
                 yield key
@@ -412,17 +413,15 @@ class ShowCmd(baseapp.Cmd):
             if not verbose and getattr(sup, trtname, None) is trait:
                 continue
 
-            cls_printed = False
-
             if merged and key in config:
                 val = config[clsname][trtname]
             else:
                 val = repr(trait.default())
 
-            if not cls_printed:
+            if cls not in classes_printed:
                 base_classes = ', '.join(p.__name__ for p in cls.__bases__)
                 yield '%s(%s)' % (clsname, base_classes)
-                cls_printed = True
+                classes_printed.add(cls)
             yield '  +--%s = %s' % (trtname, val)
 
     def run(self, *args):
