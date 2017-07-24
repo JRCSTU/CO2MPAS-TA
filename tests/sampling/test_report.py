@@ -77,43 +77,43 @@ class TReportArgs(TReportBase):
     def test_extract_input(self):
         c = trtc.get_config()
         c.ReportCmd.raise_config_file_errors = True
-        cmd = report.ReportCmd(config=c)
-        res = cmd.run('-i=%s' % test_inp_fpath)
+        cmd = report.ReportCmd(config=c, inp=[test_inp_fpath])
+        res = cmd.run()
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
         self.assertEqual(len(res), 1)
         rpt = yaml.load('\n'.join(res))
         f, rec = next(iter(rpt.items()))
-        self.assertTrue(f.endswith("tests\sampling\input.xlsx"), rpt)
+        self.assertTrue(f.endswith("input.xlsx"), rpt)
         self.check_report_tuple(rec, test_vfid, test_inp_fpath, 'inp', False)
 
     def test_extract_output(self):
         c = trtc.get_config()
         c.ReportCmd.raise_config_file_errors = True
-        cmd = report.ReportCmd(config=c)
-        res = cmd.run('-o=%s' % test_out_fpath)
+        cmd = report.ReportCmd(config=c, out=[test_out_fpath])
+        res = cmd.run()
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
         self.assertEqual(len(res), 1)
         rpt = yaml.load('\n'.join(res))
         f, rec = next(iter(rpt.items()))
-        self.assertTrue(f.endswith("tests\sampling\output.xlsx"), rpt)
+        self.assertTrue(f.endswith("output.xlsx"), rpt)
         self.check_report_tuple(rec, test_vfid, test_out_fpath, 'out', True)
 
     def test_extract_both(self):
         c = trtc.get_config()
         c.ReportCmd.raise_config_file_errors = True
-        cmd = report.ReportCmd(config=c)
-        res = cmd.run('-i=%s' % test_inp_fpath, '-o=%s' % test_out_fpath)
+        cmd = report.ReportCmd(config=c, inp=[test_inp_fpath], out=[test_out_fpath])
+        res = cmd.run()
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
         self.assertEqual(len(res), 2)
         rpt = yaml.load('\n'.join(res))
         for f, rec in rpt.items():
             if f.endswith('input.xlsx'):
-                path, iokind, exp_rpt = "tests\sampling\input.xlsx", 'inp', False
+                path, iokind, exp_rpt = "input.xlsx", 'inp', False
             elif f.endswith('output.xlsx'):
-                path, iokind, exp_rpt = "tests\sampling\output.xlsx", 'out', True
+                path, iokind, exp_rpt = "output.xlsx", 'out', True
             self.assertTrue(f.endswith(path), rpt)
             self.check_report_tuple(rec, test_vfid, path, iokind, exp_rpt)
 
@@ -238,8 +238,8 @@ class TReportProject(TReportBase):
             c.ProjectsDB.repo_path = td
             project.InitCmd(config=c).run(proj1)
 
-            cmd = project.AppendCmd(config=c)
-            cmd.run('-o=%s' % test_out_fpath, '-i=%s' % test_inp_fpath)
+            cmd = project.AppendCmd(config=c, inp=[test_inp_fpath], out=[test_out_fpath])
+            cmd.run()
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
@@ -248,9 +248,9 @@ class TReportProject(TReportBase):
             rpt = yaml.load('\n'.join(res))
             for f, rec in rpt.items():
                 if f.endswith('input.xlsx'):
-                    path, iokind, rpt = "tests\sampling\input.xlsx", 'inp', None
+                    path, iokind, rpt = "input.xlsx", 'inp', None
                 elif f.endswith('output.xlsx'):
-                    path, iokind, rpt = "tests\sampling\output.xlsx", 'out', True
+                    path, iokind, rpt = "output.xlsx", 'out', True
                 self.assertTrue(f.endswith(path), rpt)
                 self.check_report_tuple(rec, test_vfid, path, iokind, rpt)
 
