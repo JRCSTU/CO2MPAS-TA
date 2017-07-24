@@ -217,9 +217,9 @@ class TstampSpec(dice.DiceSpec):
         srv_cls = self.choose_server_class()
         _, is_startssl = self._ssl_resolved
 
-        self.log.info("Connecting to %s%s: %s@%s(%s)...", srv_cls.__name__,
+        self.log.info("Connecting to %s%s: %s(%s:%s)%s...", srv_cls.__name__,
                       '(STARTTLS)' if is_startssl else '',
-                      self.user_account_resolved, host, srv_kwds or '')
+                      self.user_account_resolved, host, port, srv_kwds)
         srv = srv_cls(host, **srv_kwds)
 
         return srv
@@ -937,7 +937,15 @@ class TstampReceiver(TstampSpec):
 
         return verdict
 
-    def parse_tstamp_response(self, mail_text: Text) -> int:
+    def parse_tstamp_subject(self, subject: str) -> str:
+        try:
+            return re.search(r' dices/[^/]+/\d+', subject).group().strip()
+        except Exception as ex:
+            self.log.warning(
+                "Failed extracting tag-name from Subject-line '%s' due to: %s",
+                             subject, ex, exc_info=1)
+
+    def parse_tstamp_response(self, mail_text: Text, tag_name: str=None) -> int:
         ## TODO: Could use dispatcher to parse tstamp-response, if failback routes were working...
         import textwrap as tw
 
@@ -1000,14 +1008,17 @@ class TstampReceiver(TstampSpec):
         decision = 'OK' if dice100 < 90 else 'SAMPLE'
 
         #self.log.info("Timestamp sig did not verify: %s", _mydump(tag_verdict))
+        dice_results = [
+            ('hexnum', '%X' % num),
+            ('percent', dice100),
+            ('decision', decision),
+        ]
+        if tag_name:
+            dice_results.insert(0, ('tag', tag_name))
         return OrderedDict([
             ('tstamp', ts_verdict),
             ('report', tag_verdict),
-            ('dice', {
-                'hexnum': '%X' % num,
-                'percent': dice100,
-                'decision': decision,
-            }),
+            ('dice', OrderedDict(dice_results)),
         ])
 
     def choose_server_class(self):
@@ -1637,7 +1648,8 @@ class RecvCmd(baseapp.Cmd):
                     verdict = None
                 else:
                     try:
-                        verdict = rcver.parse_tstamp_response(mail_text)
+                        tag_name = rcver.parse_tstamp_subject(mail['Subject'])
+                        verdict = rcver.parse_tstamp_response(mail_text, tag_name)
                     except CmdException as ex:
                         verdict = ex
                         self.log.warning("[%s]%s: parsing tstamp failed due to: %s",

@@ -1393,7 +1393,44 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         self._current_project = None
         return self.current_project()
 
+    def append_foreign_dice(self, infos: dict):
+        import gitdb
+        from git.refs import tag
+
+        tag_body = infos['report']['parts']['whole']
+        assert isinstance(tag_body, bytes), infos
+        ## Git stores tags without `\r`, and starting/ending with `\n`.
+        tag_body = b'\n%s\n' % tag_body.strip().replace(b'\r', b'')
+        tag_name = infos['dice']['tag']
+        repo = self.repo
+
+        ## Create tag onject.
+        #
+        ins = gitdb.IStream('tag', len(tag_body), io.BytesIO(tag_body))
+        odb = repo.odb  # type: gitdb.ObjectDBW
+        odb.store(ins)
+        new_hexsha = ins.hexsha.decode()
+
+        ## Create tag reference (if not already-there).
+        #
+        tag_path = osp.join(repo.git_dir, tag.TagReference._common_path_default, tag_name)
+        if osp.exists(tag_path):
+            with io.open(tag_path, 'rt') as tag_fp:
+                old_hexsha = tag_fp.read()
+            if old_hexsha == new_hexsha:
+                self.log.info("Dice '%s-->%s' already stored.", tag_name, new_hexsha)
+            else:
+                ## TODO: print more Tag-collission infos.
+                raise CmdException(
+                    "Different dice '%s-->%s' already exists, cannot overwrite with '%s'!" %
+                    (tag_name, old_hexsha, new_hexsha)) from None
+        else:
+            os.makedirs(osp.dirname(tag_path), exist_ok=True)
+            with io.open(tag_path, 'wt') as tag_fp:
+                tag_fp.write(new_hexsha)
+
     def proj_parse_stamped_and_assign_project(self, mail_text: Text):
+        ## TODO: Delete old proj-registry method, replaced by `append_foreign_dice()`.
         from . import tstamp
 
         recv = tstamp.TstampReceiver(config=self.config)
@@ -2013,43 +2050,59 @@ class TrecvCmd(TparseCmd):
         for uid, mail in emails:
             mid = mail.get('Message-Id')
             try:
-                verdict = rcver.parse_tstamp_response(mail.get_payload())
+                tag_name = rcver.parse_tstamp_subject(mail['Subject'])
+                verdict = rcver.parse_tstamp_response(mail.get_payload(), tag_name)
             except CmdException as ex:
                 verdict = ex
-                warn("[%s]%s: parsing tstamp stopped due to: %s", uid, mid, ex)
+                warn("[%s]%s: parsing tstamp-email stopped due to: %s", uid, mid, ex)
             except Exception as ex:
                 verdict = ex
-                error("[%s]%s: parsing tstamp failed due to: %s",
+                error("[%s]%s: parsing tstamp-email failed due to: %s",
                                  uid, mid, ex, exc_info=1)
 
             ## Store full-verdict (verbose).
-            infos = rcver.get_recved_email_infos(mail, verdict,
+            all_infos = rcver.get_recved_email_infos(mail, verdict,
                                                  verbose=True, email_infos=None)
-            pname = infos.get('project')
+            pname = all_infos.get('project')
 
             if pname is None:
                 ## Must have already warn.
-                error("[%s]%s: skipping unparseable email!", uid, mid)
+                error("[%s]%s: skipping unparseable tstamp-email!", uid, mid)
                 continue
 
             try:
                 proj = projDB.proj_open(pname)
+                is_foreign = False
             except CmdException:
-                ## TODO: build_registry
-                warn("[%s]%s: tstamp from foreign project '%s' discarded.",
+                ## Build registry.
+                info("[%s]%s: tstamp-email from foreign project '%s'.",
                      uid, mid, pname)
-                continue
-
-            ## Respect --verbose and --email-infos for print-outs.
-            infos = rcver.get_recved_email_infos(mail, verdict)
-            yield _mydump({'[%s]%s' % (uid, mid): infos},
-                          default_flow_style=default_flow_style)
+                is_foreign = True
 
             try:
-                proj.do_storedice(verdict=verdict)
-                #report = proj.result  # Not needed, we already have verdict.
+                if is_foreign:
+                    projDB.append_foreign_dice(all_infos)
+                else:
+                    proj.do_storedice(verdict=verdict)
+
+                ## Respect --verbose and --email-infos for print-outs.
+                infos = rcver.get_recved_email_infos(mail, verdict)
+                yield _mydump({'[%s]%s' % (uid, mid): infos},
+                              default_flow_style=default_flow_style)
+
+            except CmdException as ex:
+                email_dump = _mydump({'[%s]%s' % (uid, mid): all_infos},
+                                    default_flow_style=default_flow_style)
+                warn('[%s]%s: Cannot store %ststamp due to: %s\n  email: \n%s',
+                      uid, mid, "foreign " if is_foreign else '', ex,
+                      tw.indent(email_dump, '    '))
+
             except Exception as ex:
-                error('[%s]%s: Failed storing email, due to: %s', uid, mid, ex)
+                email_dump = _mydump({'[%s]%s' % (uid, mid): all_infos},
+                                    default_flow_style=default_flow_style)
+                error('[%s]%s: storing %ststamp failed due to: %r\n  email: \n%s',
+                      uid, mid, "foreign " if is_foreign else '', ex,
+                      tw.indent(email_dump, '    '), exc_info=1)
 
 
 class ExportCmd(_SubCmd):
