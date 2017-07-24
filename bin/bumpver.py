@@ -10,11 +10,14 @@ OPTIONS:
   -a, --amend       Amend current commit for setting the "chore(ver): ..." msg.
   -f, --force       Bump (and optionally) commit/tag if version exists/is same.
   -n, --dry-run     Do not write files - just pretend.
-  -c, --commit      Commit afterwards.
+  -c, --commit      Commit afterwardswith a commit-message describing version bump.
   -t, --tag=<msg>   Adds a signed tag with the given message (commit implied).
 
 Without <new-ver> prints version extracted from current file.
 
+EXAMPLE:
+
+  bumpver -t 'Mostly model changes' 1.6.2b0
 """
 
 import os.path as osp
