@@ -263,6 +263,7 @@ class PeristentMixin:
                     logmeth = log.info
 
                 logmeth("%sing persistent configs %r...", action, fpath)
+            os.makedirs(osp.dirname(fpath), exist_ok=True)
             with io.open(fpath, 'wt', encoding='utf-8') as fout:
                 json.dump(cfg, fout, indent=2)
 
