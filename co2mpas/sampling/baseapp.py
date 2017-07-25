@@ -1258,8 +1258,8 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                 persist_path = self.persist_file_resolved
                 self.store_pconfig(self.persist_file_resolved, self.log)
             except Exception as ex:
-                self.log.warning("Failed saving persistent config due to: %s",
-                                 persist_path, ex)
+                self.log.warning("Failed saving persistent config '%s' due to: %s",
+                                 persist_path, ex, exc_info=1)
 
             return res
 
