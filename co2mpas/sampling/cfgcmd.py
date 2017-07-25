@@ -396,7 +396,7 @@ class ShowCmd(baseapp.Cmd):
         if self.sort:
             items = sorted(items)  # Sort by class-name (traits always sorted).
 
-        classes_printed = set()
+        classes_configured = {}
         for key, (cls, trait) in items:
             if self.list:
                 yield key
@@ -407,21 +407,39 @@ class ShowCmd(baseapp.Cmd):
 
             clsname, trtname = key.split('.')
 
-            ## Print own traits only, even when "merge" vists all.
+            ## Print own traits only, even when "merge" visits all.
             #
             sup = super(cls, cls)
             if not verbose and getattr(sup, trtname, None) is trait:
                 continue
 
-            if merged and key in config:
-                val = config[clsname][trtname]
-            else:
-                val = repr(trait.default())
+            ## Instanciate classes once, to merge values.
+            #
+            obj = classes_configured.get(cls)
+            if obj is None:
+                try:
+                    obj = cls(config=config)
+                except Exception as ex:
+                    self.log.warning("Falied initializing class '%s' due to: %r",
+                                     clsname, ex)
+                    ## Assign config-values as dummy-object's attributes.
+                    #  Note: no merging of values now!
+                    #
+                    class C:
+                        pass
+                    obj = C()
+                    obj.__dict__ = dict(config[clsname])
+                classes_configured[cls] = obj
 
-            if cls not in classes_printed:
+                ## Print 1 class-line for all its traits.
+                #
                 base_classes = ', '.join(p.__name__ for p in cls.__bases__)
                 yield '%s(%s)' % (clsname, base_classes)
-                classes_printed.add(cls)
+
+            if merged:
+                val = getattr(obj, trtname, '??')
+            else:
+                val = repr(trait.default())
             yield '  +--%s = %s' % (trtname, val)
 
     def run(self, *args):
