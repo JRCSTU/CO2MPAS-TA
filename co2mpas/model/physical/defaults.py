@@ -110,10 +110,10 @@ class Values(co2_utl.Constants):
     gear_box_temperature_references = (40.0, 80.0)
 
     #: Constant torque loss due to engine auxiliaries [N*m].
-    auxiliaries_torque_loss = (0.0291, 0.4496) # m, q
+    auxiliaries_torque_loss = (0.175, 0.2021) # m, q
 
     #: Constant power loss due to engine auxiliaries [kW].
-    auxiliaries_power_loss = 0.0257
+    auxiliaries_power_loss = 0.0213
 
     #: If the engine is equipped with any kind of charging.
     engine_is_turbo = True
@@ -193,10 +193,10 @@ class Functions(co2_utl.Constants):
 
     class _rescaling_matrix(co2_utl.Constants):
         #: Percentage width top base (i.e., short base) [-].
-        a = 0.396
+        a = 0.9902
         #: Percentage to define the bottom base (i.e., long base) from the phase
         #: corner [-].
-        b = 0.2007
+        b = 0.1699
 
     class calculate_aerodynamic_drag_coefficient_v1(co2_utl.Constants):
         #: Aerodynamic drag coefficients function of vehicle body [-].
@@ -490,18 +490,24 @@ class Functions(co2_utl.Constants):
         #: Vehicle gear box efficiency constants (gbp00, gbp10, and gbp01).
         PARAMS = {
             True: {
-                'gbp00': {'m': -0.00392496, 'q': {'hot': -0.32907,
-                                                  'cold': -0.76783}},
-                'gbp10': {'m': -0.000002, 'q': {'hot': -0.000129,
-                                                'cold': -0.000431}},
-                'gbp01': {'q': {'hot': 0.965, 'cold': 0.955}},
+                'gbp00': {'m': -0.0043233434399999994,
+                          'q': {'hot': -0.29823614099999995,
+                                'cold': -0.695884329}},
+                'gbp10': {'m': -2.4525999999999996e-06,
+                          'q': {'hot': -0.0001547871,
+                                'cold': -0.0005171569}},
+                'gbp01': {'q': {'hot': 0.9793688500000001,
+                                'cold': 0.96921995}},
             },
             False: {
-                'gbp00': {'m': -0.00392496, 'q': {'hot': -0.32907,
-                                                  'cold': -0.76783}},
-                'gbp10': {'m': -0.000002, 'q': {'hot': -0.000043,
-                                                'cold': -0.000108}},
-                'gbp01': {'q': {'hot': 0.975, 'cold': 0.965}},
+                'gbp00': {'m': -0.0043233434399999994,
+                          'q': {'hot': -0.29823614099999995,
+                                'cold': -0.695884329}},
+                'gbp10': {'m': -2.4525999999999996e-06,
+                          'q': {'hot': -5.15957e-05,
+                                'cold': -0.00012958919999999998}},
+                'gbp01': {'q': {'hot': 0.9895177500000001,
+                                'cold': 0.9793688500000001}},
             }
         }
 
