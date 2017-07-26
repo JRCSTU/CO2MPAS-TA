@@ -855,20 +855,27 @@ def calculate_auxiliaries_power_losses(
     return p
 
 
-def check_vehicle_has_sufficient_power(missing_powers):
+def check_vehicle_has_sufficient_power(times, missing_powers):
     """
     Checks if the vehicle has sufficient power.
 
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+    
     :param missing_powers:
         Missing powers [kW].
     :type missing_powers: numpy.array
 
     :return:
-        If the vehicle has sufficient power.
-    :rtype: bool
+        The cycle's percentage in which the vehicle has sufficient power [%].
+    :rtype: float
     """
-
-    return not missing_powers.any()
+    w = np.zeros_like(times, dtype=float)
+    t = (times[:-1] + times[1:]) / 2
+    # noinspection PyUnresolvedReferences
+    w[0], w[1:-1], w[-1] = t[0] - times[0], np.diff(t), times[-1] - t[-1]
+    return 1 - np.average(missing_powers != 0, weights=w)
 
 
 def default_ignition_type_v1(fuel_type):
@@ -1261,7 +1268,7 @@ def engine():
 
     d.add_function(
         function=check_vehicle_has_sufficient_power,
-        inputs=['missing_powers'],
+        inputs=['times', 'missing_powers'],
         outputs=['has_sufficient_power']
     )
 

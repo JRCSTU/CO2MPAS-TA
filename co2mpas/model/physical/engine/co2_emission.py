@@ -2167,7 +2167,7 @@ def calculate_willans_factors(
     f = {
         'av_velocities': av(velocities, weights=w),  # [km/h]
         'av_slope': av(angle_slopes, weights=w),
-        'has_sufficient_power': not missing_powers.any(),
+        'has_sufficient_power': 1 - av(missing_powers != 0, weights=w),
         'max_power_required': max(engine_powers_out + missing_powers)
     }
 
