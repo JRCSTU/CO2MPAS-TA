@@ -944,18 +944,16 @@ class TstampReceiver(TstampSpec):
 
     def extract_dice_tag_name(self, subject: str, msg: str) -> str:
         """Extract `dices/IP-12-WMI-1234/0` strings either from Subject or Body. """
-        try:
-            return self.dicetag_regex.search(subject).group()
-        except Exception as ex:
-            self.log.warning(
-                "Failed extracting tag-name from Subject-line '%s' due to: %r",
-                subject, ex, exc_info=self.verbose)
-        try:
-            return self.dicetag_regex.search(msg).group()
-        except Exception as ex:
-            self.log.warning(
-                "Failed extracting tag-name from %s-char message due to: %r",
-                len(msg), ex, exc_info=self.verbose)
+        for place, txt in [('Subject-line', subject), ('email-Body', msg)]:
+            try:
+                tag_name = self.dicetag_regex.search(txt).group()
+                self.log.debug("Extracted tag-name '%s' from %s.",
+                               tag_name, place)
+                return tag_name
+            except Exception as ex:
+                self.log.warning(
+                    "Failed extracting tag-name from Subject-line '%s' due to: %r",
+                    subject, ex, exc_info=self.verbose)
 
     def parse_tstamp_response(self, mail_text: Text, tag_name: str=None) -> int:
         ## TODO: Could use dispatcher to parse tstamp-response, if failback routes were working...
