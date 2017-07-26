@@ -241,6 +241,7 @@ class PathsCmd(baseapp.Cmd):
         gnupgexe = gpg.gnupgexe_resolved
         yield "  +--gnupgexe: %s" % gnupgexe
         yield "  +--gnupghome: %s" % gpg.gnupghome_resolved
+        yield "  +--master_key: %s" % gpg.master_key_resolved
         for cmd, lines in self._collect_gpg_paths(gnupgexe):
             yield "  +--gpgconf %s:" % cmd
             for line in lines:
