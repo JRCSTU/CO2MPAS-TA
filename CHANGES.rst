@@ -36,6 +36,10 @@ The Dice:
      co2t: co2dice tstamp
      co2c: co2dice config
 
+  .. Note:
+    Aliases are not working in *Windows 10* due to:
+    https://github.com/mridgers/clink/issues/451
+
 - feat(config): enhance ``co2dice config (desc | show | paths)`` commands
   to provide help-text and configured values for specific classes & params
   and all interesting variables affecting configurations.
