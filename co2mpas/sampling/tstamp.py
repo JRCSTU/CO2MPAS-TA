@@ -942,13 +942,20 @@ class TstampReceiver(TstampSpec):
 
         return verdict
 
-    def parse_tstamp_subject(self, subject: str) -> str:
+    def extract_dice_tag_name(self, subject: str, msg: str) -> str:
+        """Extract `dices/IP-12-WMI-1234/0` strings either from Subject or Body. """
         try:
             return self.dicetag_regex.search(subject).group()
         except Exception as ex:
             self.log.warning(
-                "Failed extracting tag-name from Subject-line '%s' due to: %s",
-                             subject, ex, exc_info=1)
+                "Failed extracting tag-name from Subject-line '%s' due to: %r",
+                subject, ex, exc_info=self.verbose)
+        try:
+            return self.dicetag_regex.search(msg).group()
+        except Exception as ex:
+            self.log.warning(
+                "Failed extracting tag-name from %s-char message due to: %r",
+                len(msg), ex, exc_info=self.verbose)
 
     def parse_tstamp_response(self, mail_text: Text, tag_name: str=None) -> int:
         ## TODO: Could use dispatcher to parse tstamp-response, if failback routes were working...
@@ -1653,7 +1660,7 @@ class RecvCmd(baseapp.Cmd):
                     verdict = None
                 else:
                     try:
-                        tag_name = rcver.parse_tstamp_subject(mail['Subject'])
+                        tag_name = rcver.extract_dice_tag_name(mail['Subject'], mail_text)
                         verdict = rcver.parse_tstamp_response(mail_text, tag_name)
                     except CmdException as ex:
                         verdict = ex

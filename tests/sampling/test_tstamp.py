@@ -614,6 +614,17 @@ class TRX(unittest.TestCase):
         exp_vfid = (case[4]['project'], case[4].get('vehicle_family_id'))
         self.assertIn(vfid, exp_vfid)
 
+    @ddt.data(
+        ('project:  dices/IP-10-AAA-2017-1003/1\n', '', 'dices/IP-10-AAA-2017-1003/1'),
+        ('', '\ntag dices/IP-10-AAA-2017-0012/12\r\n', 'dices/IP-10-AAA-2017-0012/12'),
+        ('sdfd dsfsd', '0trpe Γρεεκ', None),
+    )
+    def test_extract_tag_name(self, case):
+        subject, msg, tag = case
+        rcv = tstamp.TstampReceiver(config=self.cfg)
+        tag_name = rcv.extract_dice_tag_name(subject, msg)
+        self.assertEqual(tag_name, tag)
+
     def test_parse_timestamp_bad(self):
         rcv = tstamp.TstampReceiver(config=self.cfg)
         ex_msg = r"Cannot verify timestamp-response's signature due to: incorrect passphrase"

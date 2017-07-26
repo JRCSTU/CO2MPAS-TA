@@ -2049,9 +2049,10 @@ class TrecvCmd(TparseCmd):
         emails = rcver.receive_timestamped_emails(self.wait, args, read_only=False)
         for uid, mail in emails:
             mid = mail.get('Message-Id')
+            mail_text = mail.get_payload()
             try:
-                tag_name = rcver.parse_tstamp_subject(mail['Subject'])
-                verdict = rcver.parse_tstamp_response(mail.get_payload(), tag_name)
+                tag_name = rcver.extract_dice_tag_name(mail['Subject'], mail_text)
+                verdict = rcver.parse_tstamp_response(mail_text, tag_name)
             except CmdException as ex:
                 verdict = ex
                 warn("[%s]%s: parsing tstamp-email stopped due to: %s", uid, mid, ex)
