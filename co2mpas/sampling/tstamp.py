@@ -631,6 +631,11 @@ class TstampReceiver(TstampSpec):
         help="""An approximate way to get the project if timestamp parsing has failed. """
     ).tag(config=True)
 
+    dicetag_regex = trt.CRegExp(
+        r'dices/%s/\d+' % vehicle_family_id_pattern,
+        help="""Tag-name to search on Subject and Body of tstamp response emails. """
+    ).tag(config=True)
+
     mailbox = trt.Unicode(
         b'INBOX',
         help="""
@@ -939,7 +944,7 @@ class TstampReceiver(TstampSpec):
 
     def parse_tstamp_subject(self, subject: str) -> str:
         try:
-            return re.search(r' dices/[^/]+/\d+', subject).group().strip()
+            return self.dicetag_regex.search(subject).group()
         except Exception as ex:
             self.log.warning(
                 "Failed extracting tag-name from Subject-line '%s' due to: %s",
