@@ -30,3 +30,8 @@ __summary__   = "Vehicle simulator predicting NEDC CO2 emissions from WLTP " \
                 "time-series."
 __uri__       = "https://co2mpas.io"
 version       = __version__
+
+#: Define VehicleFamilyId (aka ProjectId) pattern here not to import the world on use.
+#: Note: referenced by :data:`io.schema.vehicle_family_id_regex` and
+#: :meth:`.sampling.tstamp.TstampReceiver.parse_tstamp_subject()`.
+vehicle_family_id_pattern = r'(IP|RL|RM|PR)-(\d{2})-(\w{2,3})-(\d{4})-(\d{4})'

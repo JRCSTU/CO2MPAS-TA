@@ -13,13 +13,16 @@ from collections import Iterable, OrderedDict
 import datetime
 import functools
 import logging
-import re
 import pprint
+import re
+
 from schema import Schema, Use, And, Or, Optional, SchemaError
 
 import numpy as np
 import os.path as osp
 import schedula as sh
+
+from .. import vehicle_family_id_pattern
 
 
 log = logging.getLogger(__name__)
@@ -779,7 +782,8 @@ def define_data_schema(read=True):
     return Schema(schema)
 
 
-vehicle_family_id_regex = re.compile(r'^(?:IP|RL|RM|PR)-\d{2}-\w{2,3}-\d{4}-\d{4}$')
+#: Aka "ProjectId", referenced also by :mod:`.sampling.project`.
+vehicle_family_id_regex = re.compile(r'^%s$' % vehicle_family_id_pattern)
 
 def _vehicle_family_id(error=None, **kwargs):
     def m(s):

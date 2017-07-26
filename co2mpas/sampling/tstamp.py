@@ -17,8 +17,8 @@ from typing import (
 from .._vendor import traitlets as trt
 
 from . import CmdException, baseapp, dice, crypto
-from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
-
+from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
+                vehicle_family_id_pattern)
 
 _undefined = object()
 
@@ -627,7 +627,7 @@ class TstampReceiver(TstampSpec):
     ).tag(config=True)
 
     vfid_extraction_regex = trt.CRegExp(
-        r"vehicle_family_id[^\n]+((?:IP|RL|RM|PR)-\d{2}-\w{2,3}-\d{4}-\d{4})",  # See also co2mpas.io.schema!
+        r'vehicle_family_id[^\n]+(%s)' % vehicle_family_id_pattern,
         help="""An approximate way to get the project if timestamp parsing has failed. """
     ).tag(config=True)
 
@@ -832,8 +832,8 @@ class TstampReceiver(TstampSpec):
         project = None
         all_vfids = self.vfid_extraction_regex.findall(mail_text)
         if all_vfids:
-            project = all_vfids[0]
-            if not all(i == project for i in all_vfids):
+            project = all_vfids[0][0]
+            if not all(i[0] == project for i in all_vfids):
                 project = None
 
         return project
