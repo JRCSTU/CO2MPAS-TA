@@ -1383,6 +1383,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         """
         repo = self.repo
         if pname == '.':
+            ## FIXME: fails if no project open; `repo.head.ref` might work.
             pname = _ref2pname(repo.head.name)
 
         prefname = _pname2ref_name(pname)
