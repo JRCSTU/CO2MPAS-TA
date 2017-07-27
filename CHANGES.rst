@@ -5,7 +5,7 @@ CO2MPAS Changes
 .. _changes:
 
 v1.6.2, 27 July 2017: "T-REA" Release
-=======================================
+=====================================
 - Dice & model fine-tuning.
 - Includes changes also from **RETRACTED** ``v1.6.1.post0``, 13 July 2017,"T-bone"
   release.
