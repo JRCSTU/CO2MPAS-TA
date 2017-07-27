@@ -830,7 +830,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         else:
             self.log.debug("Loading persist-file: %s", persist_path)
             self._cfgfiles_registry.visit_file(persist_path, miss=not bool(config))
-            if not config:
+            if config is None:
                 self.log.warning("Missing persist-file: %s", persist_path)
             return config
 
