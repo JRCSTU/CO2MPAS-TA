@@ -489,8 +489,9 @@ class GpgSpec(baseapp.Spec):
 
         if not signed.data:
             self.log.debug("Signing stderr: %s", signed.stderr)
-            raise ValueError("No signed due to: %s!" %
-                             getattr(signed, 'status', '??'))
+            raise ValueError(
+                "No signed due to: %s!"
+                % getattr(signed, 'status', filter_gpg_stderr(signed.stderr)))
 
         return str(signed)
 
@@ -501,6 +502,10 @@ class GpgSpec(baseapp.Spec):
         keep_stderr = keep_stderr is None and not bool(ver)
         if not keep_stderr:
             ver.stderr = ''
+        ## TODO: sign.verify failures into exceptions.
+        #  see https://bitbucket.org/vinay.sajip/python-gnupg/issues/62/use-proper-pythonic-exceptions
+        #else:
+        #    ver.stderr = filter_gpg_stderr(ver.stderr)
 
         return ver
 
