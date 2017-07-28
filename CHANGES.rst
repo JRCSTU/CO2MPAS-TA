@@ -88,6 +88,16 @@ Known Limitations
   strict to allow SMTP/IMAP access.  In all cases, you need to enable allow
   `less secure apps <https://support.google.com/accounts/answer/6010255>`_ to
   access your account.
+- Some combinations of outbound & inbound accounts for dice reports and timsestamps
+  may not work due to `DMARC restrictions <https://en.wikipedia.org/wiki/DMARC>`_.
+  JRC will offer more alternative "paths" for running Dices.
+- :gh:`423`: The `co2dice project export` may silently fail under certain circumstances
+  (still under investigation) - in these case you will receive the following warning::
+
+      WARNI:git.remote:Error lines received while fetching: error: pthread_join failed
+      From /c/Apps/co2mpas_AIO-1.6.3/CO2MPAS/.co2dice/repo/
+
+  In that case, use ``co2dice project backup`` alternative.
 
 
 Datasync
