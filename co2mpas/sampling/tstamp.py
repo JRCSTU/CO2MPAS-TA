@@ -359,6 +359,19 @@ class TstampSender(TstampSpec):
         """
     ).tag(config=True)
 
+    other_headers = trt.Dict(
+        key_trait=trt.Unicode(), value_trait=trt.Unicode(),
+        default_value=None, allow_none=True,
+        help="""
+        List of more (IMAP or EWS) email headers, given in this format:
+            <header-name>=<string-value>
+
+        Examples:
+            (cmd_chain)s --TstampSender.other_headers Reply-To=mymail@foo.com \
+                         --TstampSender.other_headers=Thread-Topic=Bar
+        """
+    ).tag(config=True)
+
     subject = trt.Unicode(
         allow_none=True,
         help="""Deprecated, and NON functional.
@@ -478,6 +491,10 @@ class TstampSender(TstampSpec):
             mail['Cc'] = ', '.join(self.cc_addresses)
         if self.bcc_addresses:
             mail['Bcc'] = ', '.join(self.bcc_addresses)
+
+        if self.other_headers is not None:
+            for k, v in self.other_headers.items():
+                mail[k] = v
 
         ## Instruct serializers to dissregard line-length.
         mail.policy = policy.default.clone(max_line_length=0)
