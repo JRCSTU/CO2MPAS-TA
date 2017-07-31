@@ -308,7 +308,7 @@ class Functions(co2_utl.Constants):
         enable_second_step = True
 
         #: Enable third step co2_params calibration in perturbation loop? [-]
-        enable_third_step = True
+        enable_third_step = False
 
         #: Absolute error in k_refactor between iterations that is acceptable
         #: for convergence in perturbation loop [-].
