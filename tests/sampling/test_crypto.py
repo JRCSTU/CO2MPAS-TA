@@ -7,7 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
-from co2mpas.sampling import crypto
+from co2mpas.sampling import crypto, CmdException
 import contextlib
 import io
 import logging
@@ -35,6 +35,7 @@ myproj = osp.join(mydir, '..', '..')
 _texts = ('', ' ', 'a' * 2048, '123', 'asdfasd|*(KJ|KL97GDk;')
 _objs = ('', ' ', None, 'a' * 2048, 1244, b'\x22', {1: 'a', '2': {3, b'\x04'}})
 
+test_pgp_key_id = 'CBBB52FF'
 test_pgp_key = [tw.dedent(
     """
     -----BEGIN PGP PRIVATE KEY BLOCK-----
@@ -61,6 +62,7 @@ test_pgp_key = [tw.dedent(
 ]
 test_pgp_trust = tw.dedent("""\
     8922372A2983334307D7DA90FFBEC4A18C008403:4:
+    5464E04EE547D1FEDCAC4342B124C999CBBB52FF:6:
     """)
 
 # class TestDoctest(unittest.TestCase):
@@ -559,6 +561,56 @@ class TVaultSpec(unittest.TestCase):
                     vault.decryptobj('enc_test', chiphered)
         finally:
             vault.GPG.delete_keys(key.fingerprint, secret=0)
+
+class TestKey(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.cfg = cfg = trtc.get_config()
+        cfg.VaultSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        cfg.VaultSpec.keys_to_import = test_pgp_key
+        cfg.GpgSpec.trust_to_import = test_pgp_trust
+
+        ## Clean memories from past tests
+        #
+        crypto.VaultSpec.clear_instance()
+        vault = crypto.VaultSpec.instance(config=cfg)
+
+        cls.ok_key = gpg_gen_key(
+            vault.GPG,
+            key_length=1024,
+            name_real='test user',
+            name_email='test@test.com')
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.cfg.VaultSpec.gnupghome)
+
+    def test_dencrypt(self):
+        pswdid, obj = 'fooid', 'bar'
+        vault = crypto.VaultSpec.instance()
+
+        vault.master_key = self.ok_key.fingerprint
+        ciphertext = vault.encryptobj('enc_test', obj)
+        msg = (obj, ciphertext)
+        self.assertTrue(crypto.is_pgp_encrypted(ciphertext), msg)
+
+        vault.master_key = test_pgp_key_id
+        with self.assertRaisesRegex(CmdException, "After July 27 2017"):
+            ciphertext = vault.encryptobj('enc_test', obj)
+
+        vault.allow_test_key = True
+        ciphertext = vault.encryptobj('enc_test', obj)
+        msg = (obj, ciphertext)
+        self.assertTrue(crypto.is_pgp_encrypted(ciphertext), msg)
+
+        vault.allow_test_key = False
+        with self.assertRaisesRegex(CmdException, "After July 27 2017"):
+            vault.decryptobj(pswdid, ciphertext)
+
+        vault.allow_test_key = True
+        plainbytes2 = vault.decryptobj(pswdid, ciphertext)
+        self.assertEqual(obj, plainbytes2, msg)
 
 
 class TCipherTrait(unittest.TestCase):
