@@ -37,25 +37,26 @@ _objs = ('', ' ', None, 'a' * 2048, 1244, b'\x22', {1: 'a', '2': {3, b'\x04'}})
 
 test_pgp_key = [tw.dedent(
     """
-        -----BEGIN PGP PRIVATE KEY BLOCK-----
+    -----BEGIN PGP PRIVATE KEY BLOCK-----
+    Version: GnuPG v2
 
-        lQHYBFiJ7q0BBAC7SXZw+XbnbT9QuB7mQUlMaw9NPtqj8iRRvJZOejV0PSY0F1Ub
-        jNhLlmrBX+m4zoPtreEmjeGOa5uPDoqqiD1ft9kWf9Byr1Uq3L++NtDwIcetZzl1
-        hHiG/wtY7kaWDZRgHXKMbf5TPjsFKyXS8lnyIRlD6nuU4xvMTzmiCdp4FQARAQAB
-        AAP9Erl8SDzEvMwRG7igzDwEQEnm4H3zfZcotuxQKb3xqLKxZl1b0rKQ8HO0Liuw
-        8hthmMp8224teh/7kECvr++JlSN8+EiXZ+DTffFdMRZKfAkB6uktfRNIuY98qH0h
-        AUgRS0StXQEPgm3SzguzA+1TYTa2Khay8wVjIXCBU0M6EbkCAMO+T94VICGNlUXm
-        mC/R1VdzO8o9XVFWhfGVUvVR0U4tzb5+izLSf4aau74OnICGqHnIQaEmU1DVit22
-        ALQlgGkCAPTwvDKRkSfDAKhvOu5Flb7k0AsC5wdQMQrfs0m5lwXDhuojB2XB77zG
-        ODwkhWIT46qGZZlvmcKPSQcOXnkpBM0B/ii7PsEWw7SNgVnRjOGeKpu/drpluUwa
-        uT0B9x6sy+Fyx/IVZuNRsbG4Xetay7MeC+m7MaLAwe+ZezmgxVT4kn2gq7QwQ08y
-        TVBBUyBUZXN0IDxzYW1wbGluZ0BjbzJtcGFzLmpyYy5lYy5ldXJvcGEuZXU+iL8E
-        EwEIACkFAliJ7q0CGy8FCQDtTgAHCwkIBwMCAQYVCAIJCgsEFgIDAQIeAQIXgAAK
-        CRCxJMmZy7tS/53UA/9G+m7bmn/HCKSRsH4fIkveq4jZRVmq1NEPmXm4pXCwROGK
-        fRAw0pl/l+eGW3adMctTOxaX3lI/nz+g2QTEURgDHxLGaghDEGuy1VyjFFt0WXef
-        2l5xTONpi4gs/G4M1+TY/MantEDRUJPh3EMgoEuT0H6gffhxsejI/YD1BH0RGQ==
-        =AFgK
-        -----END PGP PRIVATE KEY BLOCK-----
+    lQHYBFiJ7q0BBAC7SXZw+XbnbT9QuB7mQUlMaw9NPtqj8iRRvJZOejV0PSY0F1Ub
+    jNhLlmrBX+m4zoPtreEmjeGOa5uPDoqqiD1ft9kWf9Byr1Uq3L++NtDwIcetZzl1
+    hHiG/wtY7kaWDZRgHXKMbf5TPjsFKyXS8lnyIRlD6nuU4xvMTzmiCdp4FQARAQAB
+    AAP9Erl8SDzEvMwRG7igzDwEQEnm4H3zfZcotuxQKb3xqLKxZl1b0rKQ8HO0Liuw
+    8hthmMp8224teh/7kECvr++JlSN8+EiXZ+DTffFdMRZKfAkB6uktfRNIuY98qH0h
+    AUgRS0StXQEPgm3SzguzA+1TYTa2Khay8wVjIXCBU0M6EbkCAMO+T94VICGNlUXm
+    mC/R1VdzO8o9XVFWhfGVUvVR0U4tzb5+izLSf4aau74OnICGqHnIQaEmU1DVit22
+    ALQlgGkCAPTwvDKRkSfDAKhvOu5Flb7k0AsC5wdQMQrfs0m5lwXDhuojB2XB77zG
+    ODwkhWIT46qGZZlvmcKPSQcOXnkpBM0B/ii7PsEWw7SNgVnRjOGeKpu/drpluUwa
+    uT0B9x6sy+Fyx/IVZuNRsbG4Xetay7MeC+m7MaLAwe+ZezmgxVT4kn2gq7QwQ08y
+    TVBBUyBUZXN0IDxzYW1wbGluZ0BjbzJtcGFzLmpyYy5lYy5ldXJvcGEuZXU+iLkE
+    EwEIACMCGy8HCwkIBwMCAQYVCAIJCgsEFgIDAQIeAQIXgAUCWYInUgAKCRCxJMmZ
+    y7tS/z5zA/9OyMzGC/gcFeJr7xksNR3NE081ZVaBjxuO0zH8AJP7qMhC6do2VWxT
+    n0AcUDeXgqRbUlJwQWECEBNWu5oH2feg5wx3oeObU8Cw1NqibB29zqKjg6fhkAJ+
+    FnYGV13QcP/cGJZmoNqgxCtgjT5YYciXdBCda9QqanijJErGB8PWzw==
+    =aWq9
+    -----END PGP PRIVATE KEY BLOCK-----
     """)
 ]
 test_pgp_trust = tw.dedent("""\
