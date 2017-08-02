@@ -488,7 +488,7 @@ class DescCmd(baseapp.Cmd):
       previous ones); use --sort for alphabetical order.
     """
 
-    examples = trt.Unicode("""
+    examples = trt.Unicode(r"""
     LIST:
         %(cmd_chain)s --list         # List configurable parameters.
         %(cmd_chain)s -l --class     # List configurable classes.
