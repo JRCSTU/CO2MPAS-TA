@@ -143,6 +143,7 @@ def all_cmds():
 #
 def all_app_configurables() -> Tuple:
     from co2mpas.sampling import crypto, project, report, tstamp
+    from co2mpas import tkui
     ## TODO: specs maybe missing from all-config-classes.
     all_config_classes = all_cmds() + (
         baseapp.Spec,
@@ -151,6 +152,7 @@ def all_app_configurables() -> Tuple:
         report.Report,
         tstamp.TstampSender,
         tstamp.TstampReceiver,
+        tkui.Co2guiCmd,
     )
 
     # ## TODO: Enable when `project TstampCmd` dropped, and `report` renamed.
