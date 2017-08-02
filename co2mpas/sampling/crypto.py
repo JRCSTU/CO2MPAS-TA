@@ -263,7 +263,9 @@ class GpgSpec(baseapp.Spec):
         help="""
         After July 27 2017 you cannot use test-key for official runs!
 
-        If you still want to run an experiment, set `GpgSpec.allow_test_key` to True.
+        Generate a new key, and remember to re-encrypt your passwords with it.
+        If you still want to run an experiment, add `--GpgSpec.allow_test_key=True`
+        command-line option.
         """
     ).tag(config=True)
 
@@ -404,12 +406,13 @@ class GpgSpec(baseapp.Spec):
 
         return GPG
 
-    def __init__(self, **kwds):
-        super().__init__(**kwds)
-        if (not self.allow_test_key and
-                self.master_key and _TEST_KEY_ID in self.master_key):
+    def _check_test_key_missused(self, keyid):
+        if not self.allow_test_key and keyid and _TEST_KEY_ID in keyid:
             raise baseapp.CmdException(GpgSpec.allow_test_key.help)
 
+    def __init__(self, **kwds):
+        super().__init__(**kwds)
+        self._check_test_key_missused(self.master_key)
 
     def encryptobj(self, pswdid: Text, plainobj) -> Text:
         """
@@ -426,6 +429,8 @@ class GpgSpec(baseapp.Spec):
         """
         import pickle
 
+        enc_key = self.master_key_resolved
+        self._check_test_key_missused(enc_key)
         assert not is_pgp_encrypted(plainobj), "PswdId('%s'): already encrypted!" % pswdid
 
         try:
@@ -433,7 +438,7 @@ class GpgSpec(baseapp.Spec):
         except Exception as ex:
                 raise ValueError("PswdId('%s'): encryption failed due to: %s" % (pswdid, ex))
 
-        cipher = self.GPG.encrypt(plainbytes, self.master_key_resolved, armor=True)
+        cipher = self.GPG.encrypt(plainbytes, enc_key, armor=True)
         if not cipher.ok:
             ## When failing due to untrusted-key, status is '',
             #  and only stderr show infos
@@ -475,6 +480,8 @@ class GpgSpec(baseapp.Spec):
             raise ValueError(
                 "PswdId('%s'): %s\n  %s" %
                 (pswdid, plain.status, filter_gpg_stderr(stderr)))
+        else:
+            self._check_test_key_missused(plain.key_id)
 
         plainobj = pickle.loads(plain.data)
 
