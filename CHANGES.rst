@@ -29,16 +29,6 @@ The Dice:
   file and run ``co2dice config paths`` command).  Enhanced ``Cmd.config_paths``
   parameter to properly work with *persistent* JSON file even if a list of
   "overlayed" files/folders is given.
-- feat(cmdline): Added the following command-line aliases in AIO consoles
-  (using ``doskey`` Windows facility)::
-
-     co2p: co2dice project
-     co2t: co2dice tstamp
-     co2c: co2dice config
-
-  .. Note:
-    Aliases are not working in *Windows 10* due to:
-    https://github.com/mridgers/clink/issues/451
 
 - feat(config): enhance ``co2dice config (desc | show | paths)`` commands
   to provide help-text and configured values for specific classes & params
@@ -50,7 +40,7 @@ The Dice:
     non-ASCII emails or working with Outlook (usually `'=0A=0D=0E'` chars
     scattered in the email); read help on those parameters, with this command::
 
-        co2c desc transfer_enc  quote_printable
+        co2dice config desc transfer_enc  quote_printable
 
   - add ``TstampSender.scramble_tag`` & ``TstampReceiver.un_quote_printable``
     options for dealing with non-ASCII dice-reports.
@@ -60,8 +50,8 @@ The Dice:
   ``email_criteria-->rfc-criteria``, enhancing their syntax.
 - fix(tstamp): BCC-addresses were treated as CCs; ``--raw`` STDOUT was corrupted;
   emails received
-- fix(project, :ghp:`18`): fix ``co2p export`` command not to include dices from
-  all projects.
+- fix(project, :ghp:`18`): fix ``co2dice project export`` command not to include
+  dices from all projects.
 - refact(git): compatible-bump of dice-report format-version: ``1.0.0-->1.0.1``.
 - feat(log): possible to modify selectively logging output with
   ``~/logconf.yaml`` file;  generally improve error handling and logging of

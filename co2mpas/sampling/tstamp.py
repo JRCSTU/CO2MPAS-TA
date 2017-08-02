@@ -708,7 +708,7 @@ class TstampReceiver(TstampSpec):
         help="""
         The RFC3501 IMAP search criteria for when IDLE-waiting;
 
-        See `co2c desc rfc_criteria` for examples.
+        See `co2dice config desc rfc_criteria` for examples.
         """
     ).tag(config=True)
 
@@ -739,7 +739,7 @@ class TstampReceiver(TstampSpec):
           - Jan                  ## NOTE: after Feb, refers to NEXT January!
         - For available locales, see `date_locale` param
         - See https://github.com/bear/parsedatetime/blob/master/parsedatetime/pdt_locales/base.py)
-        - See also `co2c desc rfc_criteria`.
+        - See also `co2dice config desc rfc_criteria`.
         """
     ).tag(config=True)
 
