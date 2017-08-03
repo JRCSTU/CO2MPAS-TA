@@ -427,7 +427,13 @@ class ShowCmd(baseapp.Cmd):
             obj = classes_configured.get(cls)
             if obj is None:
                 try:
-                    obj = cls(config=config)
+                    ## Exceptional rule for Project-zygote.
+                    #  TODO: delete when project rule is gone.
+                    #
+                    if cls.__name__ == 'Project':
+                        cls.new_instance('test', None, config)
+                    else:
+                        obj = cls(config=config)
                 except Exception as ex:
                     self.log.warning("Falied initializing class '%s' due to: %r",
                                      clsname, ex)
