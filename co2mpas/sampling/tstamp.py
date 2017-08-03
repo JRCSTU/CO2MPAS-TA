@@ -59,6 +59,7 @@ class TstampSpec(dice.DiceSpec):
     ).tag(config=True)
 
     user_pswd = crypto.Cipher(
+        None, allow_none=True,
         help="""
         The SMTP/IMAP server's password matching `user_account`/`user_email` param.
 
