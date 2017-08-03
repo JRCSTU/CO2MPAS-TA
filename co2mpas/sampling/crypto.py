@@ -190,6 +190,15 @@ def filter_gpg_stderr(stderr: Text) -> Text:
                        if not msg.startswith('reading options'))
 
 
+def convert_kwds_to_cmd_opts(**kwds):
+    args = []
+    for k, v in kwds.items():
+        args.append('--%s' % k.replace('_', '-'))
+        args.append(str(v))
+
+    return args
+
+
 class GpgSpec(baseapp.Spec):
     """
     Configurable parameters for instantiating a GnuPG instance
@@ -487,10 +496,12 @@ class GpgSpec(baseapp.Spec):
 
         return plainobj
 
-    def clearsign_text(self, text: Text) -> Text:
+    def clearsign_text(self, text: Text, **kwds) -> Text:
         """Clear-signs a textual-message with :attr:`master_key`."""
+        extra_args = convert_kwds_to_cmd_opts(**kwds)
         try:
-            signed = self.GPG.sign(text, keyid=self.master_key_resolved)
+            signed = self.GPG.sign(text, keyid=self.master_key_resolved,
+                                   extra_args=extra_args)
         except Exception as ex:
             raise ValueError("Signing failed due to: %s" % ex)
 
