@@ -15,8 +15,7 @@ test_out_fpath = osp.join(mydir, 'output.xlsx')
 test_vfid = 'RL-99-BM3-2017-0001'
 
 test_pgp_fingerprint = 'B124C999CBBB52FF'
-test_pgp_key = [
-""" #@IgnorePep8
+test_pgp_keys = [""" #@IgnorePep8
 ## Key for running TCs::
 #
 #    pub   1024R/B124C999CBBB52FF 2017-01-26 [expires: 2017-07-25]
@@ -24,6 +23,7 @@ test_pgp_key = [
 #    sig 3        B124C999CBBB52FF 2017-01-26  CO2MPAS Test <sampling@co2mpas.jrc.ec.europa.eu>
 #
 -----BEGIN PGP PRIVATE KEY BLOCK-----
+Version: GnuPG v2
 
 lQHYBFiJ7q0BBAC7SXZw+XbnbT9QuB7mQUlMaw9NPtqj8iRRvJZOejV0PSY0F1Ub
 jNhLlmrBX+m4zoPtreEmjeGOa5uPDoqqiD1ft9kWf9Byr1Uq3L++NtDwIcetZzl1
@@ -35,12 +35,12 @@ mC/R1VdzO8o9XVFWhfGVUvVR0U4tzb5+izLSf4aau74OnICGqHnIQaEmU1DVit22
 ALQlgGkCAPTwvDKRkSfDAKhvOu5Flb7k0AsC5wdQMQrfs0m5lwXDhuojB2XB77zG
 ODwkhWIT46qGZZlvmcKPSQcOXnkpBM0B/ii7PsEWw7SNgVnRjOGeKpu/drpluUwa
 uT0B9x6sy+Fyx/IVZuNRsbG4Xetay7MeC+m7MaLAwe+ZezmgxVT4kn2gq7QwQ08y
-TVBBUyBUZXN0IDxzYW1wbGluZ0BjbzJtcGFzLmpyYy5lYy5ldXJvcGEuZXU+iL8E
-EwEIACkFAliJ7q0CGy8FCQDtTgAHCwkIBwMCAQYVCAIJCgsEFgIDAQIeAQIXgAAK
-CRCxJMmZy7tS/53UA/9G+m7bmn/HCKSRsH4fIkveq4jZRVmq1NEPmXm4pXCwROGK
-fRAw0pl/l+eGW3adMctTOxaX3lI/nz+g2QTEURgDHxLGaghDEGuy1VyjFFt0WXef
-2l5xTONpi4gs/G4M1+TY/MantEDRUJPh3EMgoEuT0H6gffhxsejI/YD1BH0RGQ==
-=AFgK
+TVBBUyBUZXN0IDxzYW1wbGluZ0BjbzJtcGFzLmpyYy5lYy5ldXJvcGEuZXU+iLkE
+EwEIACMCGy8HCwkIBwMCAQYVCAIJCgsEFgIDAQIeAQIXgAUCWYInUgAKCRCxJMmZ
+y7tS/z5zA/9OyMzGC/gcFeJr7xksNR3NE081ZVaBjxuO0zH8AJP7qMhC6do2VWxT
+n0AcUDeXgqRbUlJwQWECEBNWu5oH2feg5wx3oeObU8Cw1NqibB29zqKjg6fhkAJ+
+FnYGV13QcP/cGJZmoNqgxCtgjT5YYciXdBCda9QqanijJErGB8PWzw==
+=aWq9
 -----END PGP PRIVATE KEY BLOCK-----
 """,
 """ #@IgnorePep8
@@ -123,9 +123,10 @@ El4C5af/8COxQcDn608=
 =TF9x
 -----END PGP PUBLIC KEY BLOCK-----
 """,
-]
+]  # @IgnorePep8
 
-test_pgp_trust = """\
-## CO2MPAS test-key
-5464E04EE547D1FEDCAC4342B124C999CBBB52FF:6:
-"""
+
+test_pgp_trust = tw.dedent("""\
+    8922372A2983334307D7DA90FFBEC4A18C008403:4:
+    5464E04EE547D1FEDCAC4342B124C999CBBB52FF:6:
+    """)

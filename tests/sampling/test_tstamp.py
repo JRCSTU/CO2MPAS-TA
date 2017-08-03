@@ -21,7 +21,7 @@ import ddt
 import os.path as osp
 from co2mpas._vendor.traitlets import config as trtc
 
-from . import test_pgp_fingerprint, test_pgp_key, test_pgp_trust
+from . import test_pgp_fingerprint, test_pgp_keys, test_pgp_trust
 from collections import Counter
 
 
@@ -557,7 +557,7 @@ class TRX(unittest.TestCase):
         cls.cfg = c = trtc.get_config()
 
         c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
-        c.GpgSpec.keys_to_import = test_pgp_key
+        c.GpgSpec.keys_to_import = test_pgp_keys
         c.GpgSpec.trust_to_import = test_pgp_trust
         c.GpgSpec.master_key = test_pgp_fingerprint
         c.GpgSpec.allow_test_key = True

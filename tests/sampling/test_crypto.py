@@ -6,8 +6,6 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
-from co2mpas.__main__ import init_logging
-from co2mpas.sampling import crypto, CmdException
 import contextlib
 import io
 import logging
@@ -17,12 +15,16 @@ import shutil
 import tempfile
 import unittest
 
+from co2mpas.__main__ import init_logging
+from co2mpas._vendor.traitlets import config as trtc
+from co2mpas.sampling import crypto, CmdException
 import ddt
 
 import itertools as itt
 import os.path as osp
 import textwrap as tw
-from co2mpas._vendor.traitlets import config as trtc
+
+from tests.sampling import test_pgp_keys, test_pgp_trust
 
 
 init_logging(level=logging.DEBUG)
@@ -36,34 +38,7 @@ _texts = ('', ' ', 'a' * 2048, '123', 'asdfasd|*(KJ|KL97GDk;')
 _objs = ('', ' ', None, 'a' * 2048, 1244, b'\x22', {1: 'a', '2': {3, b'\x04'}})
 
 test_pgp_key_id = 'CBBB52FF'
-test_pgp_key = [tw.dedent(
-    """
-    -----BEGIN PGP PRIVATE KEY BLOCK-----
-    Version: GnuPG v2
-
-    lQHYBFiJ7q0BBAC7SXZw+XbnbT9QuB7mQUlMaw9NPtqj8iRRvJZOejV0PSY0F1Ub
-    jNhLlmrBX+m4zoPtreEmjeGOa5uPDoqqiD1ft9kWf9Byr1Uq3L++NtDwIcetZzl1
-    hHiG/wtY7kaWDZRgHXKMbf5TPjsFKyXS8lnyIRlD6nuU4xvMTzmiCdp4FQARAQAB
-    AAP9Erl8SDzEvMwRG7igzDwEQEnm4H3zfZcotuxQKb3xqLKxZl1b0rKQ8HO0Liuw
-    8hthmMp8224teh/7kECvr++JlSN8+EiXZ+DTffFdMRZKfAkB6uktfRNIuY98qH0h
-    AUgRS0StXQEPgm3SzguzA+1TYTa2Khay8wVjIXCBU0M6EbkCAMO+T94VICGNlUXm
-    mC/R1VdzO8o9XVFWhfGVUvVR0U4tzb5+izLSf4aau74OnICGqHnIQaEmU1DVit22
-    ALQlgGkCAPTwvDKRkSfDAKhvOu5Flb7k0AsC5wdQMQrfs0m5lwXDhuojB2XB77zG
-    ODwkhWIT46qGZZlvmcKPSQcOXnkpBM0B/ii7PsEWw7SNgVnRjOGeKpu/drpluUwa
-    uT0B9x6sy+Fyx/IVZuNRsbG4Xetay7MeC+m7MaLAwe+ZezmgxVT4kn2gq7QwQ08y
-    TVBBUyBUZXN0IDxzYW1wbGluZ0BjbzJtcGFzLmpyYy5lYy5ldXJvcGEuZXU+iLkE
-    EwEIACMCGy8HCwkIBwMCAQYVCAIJCgsEFgIDAQIeAQIXgAUCWYInUgAKCRCxJMmZ
-    y7tS/z5zA/9OyMzGC/gcFeJr7xksNR3NE081ZVaBjxuO0zH8AJP7qMhC6do2VWxT
-    n0AcUDeXgqRbUlJwQWECEBNWu5oH2feg5wx3oeObU8Cw1NqibB29zqKjg6fhkAJ+
-    FnYGV13QcP/cGJZmoNqgxCtgjT5YYciXdBCda9QqanijJErGB8PWzw==
-    =aWq9
-    -----END PGP PRIVATE KEY BLOCK-----
-    """)
-]
-test_pgp_trust = tw.dedent("""\
-    8922372A2983334307D7DA90FFBEC4A18C008403:4:
-    5464E04EE547D1FEDCAC4342B124C999CBBB52FF:6:
-    """)
+test_pgp_key = test_pgp_keys[0]
 
 # class TestDoctest(unittest.TestCase):
 #     def runTest(self):
@@ -297,7 +272,7 @@ class TGpgSpec(unittest.TestCase):
     def setUpClass(cls):
         cls.cfg = cfg = trtc.get_config()
         cfg.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
-        cfg.GpgSpec.keys_to_import = test_pgp_key
+        cfg.GpgSpec.keys_to_import = [test_pgp_key]
         cfg.GpgSpec.trust_to_import = test_pgp_trust
         gpg_spec = crypto.GpgSpec(config=cfg)
 
@@ -568,7 +543,7 @@ class TestKey(unittest.TestCase):
     def setUpClass(cls):
         cls.cfg = cfg = trtc.get_config()
         cfg.VaultSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
-        cfg.VaultSpec.keys_to_import = test_pgp_key
+        cfg.VaultSpec.keys_to_import = [test_pgp_key]
         cfg.GpgSpec.trust_to_import = test_pgp_trust
 
         ## Clean memories from past tests

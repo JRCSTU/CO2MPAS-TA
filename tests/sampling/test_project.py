@@ -15,7 +15,7 @@ import shutil
 import tempfile
 from tests._tutils import chdir
 from tests.sampling import (test_inp_fpath, test_out_fpath,
-                            test_pgp_fingerprint, test_pgp_key, test_pgp_trust)
+                            test_pgp_fingerprint, test_pgp_keys, test_pgp_trust)
 import unittest
 
 import ddt
@@ -133,7 +133,7 @@ class TProjectsDBStory(unittest.TestCase):
         cls.cfg = c = trtc.get_config()
 
         c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
-        c.GpgSpec.keys_to_import = test_pgp_key
+        c.GpgSpec.keys_to_import = test_pgp_keys
         c.GpgSpec.trust_to_import = test_pgp_trust
         c.GpgSpec.master_key = test_pgp_fingerprint
         c.GpgSpec.allow_test_key = True
@@ -344,7 +344,7 @@ class TStraightStory(unittest.TestCase):
         cls.cfg = c = trtc.get_config()
 
         c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
-        c.GpgSpec.keys_to_import = test_pgp_key
+        c.GpgSpec.keys_to_import = test_pgp_keys
         c.GpgSpec.trust_to_import = test_pgp_trust
         c.GpgSpec.master_key = test_pgp_fingerprint
         c.GpgSpec.allow_test_key = True
@@ -517,7 +517,7 @@ class TBackupCmd(unittest.TestCase):
         cls.cfg = c = trtc.get_config()
 
         c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
-        c.GpgSpec.keys_to_import = test_pgp_key
+        c.GpgSpec.keys_to_import = test_pgp_keys
         c.GpgSpec.trust_to_import = test_pgp_trust
         c.GpgSpec.master_key = test_pgp_fingerprint
         c.GpgSpec.allow_test_key = True
