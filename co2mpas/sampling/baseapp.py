@@ -735,10 +735,10 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         ## NOTE: CO2MPAS-only logic where configs must exist!
         #
         if self.configs_required and not fpaths:
-            raise CmdException(
+            self.log.error(
                 "No DICE-configurations found in %s!\n"
-                "  Ask JRC for configs, or copy/adapt them from your old AIO."
-                % config_paths)
+                "  Ask JRC for configs, or copy/adapt them from your old AIO.",
+                config_paths)
 
         return fpaths
 
