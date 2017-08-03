@@ -728,9 +728,11 @@ class Project(transitions.Machine, ProjectSpec):
                 DRY-RUN: Now you must send the email your self!
                 ==========================================================================
                   - Copy from the 1st line starting with 'X-Stamper-To:', below;
-                  - set 'Subject' and 'To' exactly as shown (you may also set Cc & Bcc);
+                  - set 'Subject', 'To' and 'Cc' exactly as shown (you may also set 'Bcc');
                   - remember to set the email as 'plain-text' (not 'HTML'!) right before
                     clicking `send`!
+                  - Read instructions:
+                    https://github.com/JRCSTU/CO2MPAS-TA/wiki/8.-The-DICE.#steps-to-dice-manually
                 ==========================================================================
                 """))
             self.result = str(dice_mail_mime)
