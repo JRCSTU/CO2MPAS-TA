@@ -30,8 +30,8 @@ from .._vendor import traitlets as trt
 from .._vendor.traitlets import config as trtc
 
 from . import baseapp, dice, CmdException, PFiles
-from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
-from .._version import __dice_report_version__
+from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
+                __dice_report_version__)
 
 
 git_project_regex = re.compile(r'^\w[\w-]+$')

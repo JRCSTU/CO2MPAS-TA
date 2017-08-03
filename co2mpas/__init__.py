@@ -21,7 +21,9 @@
     ~report
 """
 
-from ._version import (__version__, __updated__, __file_version__, __input_file_version__)
+from ._version import (__version__, __updated__, __file_version__,
+                       __input_file_version__,
+                       __dice_report_version__)
 
 __copyright__ = "Copyright (C) 2015-2017 European Commission (JRC)"
 __license__   = "EUPL 1.1+"
