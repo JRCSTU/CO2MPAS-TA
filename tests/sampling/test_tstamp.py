@@ -22,6 +22,7 @@ import os.path as osp
 from co2mpas._vendor.traitlets import config as trtc
 
 from . import test_pgp_fingerprint, test_pgp_key, test_pgp_trust
+from collections import Counter
 
 
 init_logging(level=logging.DEBUG)
@@ -712,6 +713,36 @@ base32(tag): |=0A=\r
         for k, v in enc_map.items():
             if v is not None:
                 self.assertTrue(callable(v), (k, v))
+
+    def test_num_to_decision(self):
+        import random
+
+        pgp_sig_id_nbytes = 20
+        max_sig_id = 2 ** (8 * pgp_sig_id_nbytes) - 1
+        tr = tstamp.TstampReceiver()
+
+        sig_ids = [random.randint(0, max_sig_id)
+                   for _ in range(1000_000)]
+        old_stats = Counter(tr._num_to_dice100(sig_id, False)[1]
+                            for sig_id in sig_ids)
+        new_stats = Counter(tr._num_to_dice100(sig_id, True)[1]
+                            for sig_id in sig_ids)
+        self.assertNotEquals(old_stats, new_stats)
+
+        print('\n    %10s <--> %-10s' % ('OLD_DICE100', 'NEW_DICE100'))
+        for k in set(old_stats) | set(new_stats):
+            print('%2s: %10s <--> %-10s' % (k, old_stats[k], new_stats[k]))
+
+        def make_prcnt(counter, bottom=90):
+            ge_limit = sum(v
+                           for k, v in counter.items()
+                           if k >= bottom)
+            return ge_limit / sum(counter.values())
+
+        old_pcrnt, new_pcrnt = make_prcnt(old_stats), make_prcnt(new_stats)
+        print('old%%: %.6f, new%%: %.6f' % (old_pcrnt, new_pcrnt))
+        self.assertAlmostEqual(0.1, old_pcrnt, 2)
+        self.assertAlmostEqual(0.1, new_pcrnt, 2)
 
 
 @ddt.ddt

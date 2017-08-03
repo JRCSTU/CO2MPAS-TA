@@ -8,6 +8,7 @@
 from collections import (
     defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
 import io
+import random
 import re
 import sys
 import functools as fnt
@@ -633,6 +634,7 @@ class TstampSender(TstampSpec):
 _stamper_id_regex = re.compile(r"Comment:\s+Stamper\s+Reference\s+Id:\s+(\d+)")
 _stamper_banner_regex = re.compile(r"^#{56}\r?\n(?:^#[^\n]*\n)+^#{56}\r?\n\r?\n(.*)",
                                    re.MULTILINE | re.DOTALL)  # @UndefinedVariable
+_stamp_version_regex = re.compile(r"\bstamp-version: (\d+.\d+.\d)\r*\n")
 
 
 class TstampReceiver(TstampSpec):
@@ -832,18 +834,45 @@ class TstampReceiver(TstampSpec):
 
         return stamper_id, msg
 
-    def _pgp_sig2int(self, sig_id: str) -> int:
+    def _is_stamp_version_says_randomize_sig_id(self, stamp_ver: Text) -> int:
+        """
+        :param stamp_ver:
+            A possibly none string, formated as ``<major>.<minor><micro>``.
+        :return:
+            True if `stamp_ver` defined, meaning sig-id should be randomized,
+            None otherwise.
+        """
+        if stamp_ver:
+            return True
+
+    def _num_to_dice100(self, num: int, is_randomize: bool) -> (int, int):
+        """
+        :return:
+            ``(num, dice100)``
+        """
+        if is_randomize:
+            dice100 = random.Random(num).randint(0, 99)
+        else:
+            ## Cancel the effect of trailing zeros, but is biased,
+            #  see #422
+            num = int(str(num).strip('0'))
+            dice100 = num % 100
+
+        return num, dice100
+
+    def _pgp_sig_to_dice100(self, sig_id: Text, stamp_ver: Text) -> int:
+        """
+        :return:
+            ``(sig-id-as-20-bytes-number, dice100)``
+        """
         import base64
         import binascii
 
         sig_bytes = base64.b64decode(sig_id + '==')
         num = int(binascii.b2a_hex(sig_bytes), 16)
+        is_randomize = self._is_stamp_version_says_randomize_sig_id(stamp_ver)
 
-        ## Cancel the effect of trailing zeros.
-
-        num = int(str(num).strip('0'))
-
-        return num
+        return self._num_to_dice100(num, is_randomize)
 
     def scan_for_project_name(self, mail_text: Text) -> int:
         """
@@ -946,12 +975,49 @@ class TstampReceiver(TstampSpec):
 
         return verdict
 
-    def _verify_tstamp(self, txt: Text) -> OrderedDict:
+    def _validate_stamp_version(self, stamp_ver: Text) -> int:
+        """
+        :param stamp_ver:
+            A possibly none string, formated as ``<major>.<minor><micro>``.
+        :raise:
+            CmdException if `stamp_ver` defined but unsupported number:
+            either diff major OR greater minor.
+        """
+        if stamp_ver:
+            from .. import __dice_stamp_version__
+
+            prog_ver = __dice_stamp_version__.split('.')
+            major, minor, _ = stamp_ver.split('.')
+            if int(major) != int(prog_ver[0]) or int(minor) > int(prog_ver[1]):
+                ## No force can overcome this.
+                raise CmdException(
+                    "incompatible stamp-version '%s', expected <= '%s.%s.x'" %
+                    (stamp_ver, prog_ver[0], prog_ver[1]))
+
+    def _extract_any_stamp_version_line(self, mail_text: Text) -> (Text, Text):
+        """
+        :return
+            ``(stamp_ver, text_without_ver_line)`` where `stamp_ver`
+            possibly None
+        """
+        stamp_ver = None
+        m = _stamp_version_regex.search(mail_text)
+        if m:
+            stamp_ver = m.group(0)
+            self._validate_stamp_version(stamp_ver)
+            mail_text = _stamp_version_regex.sub('', mail_text)
+
+        return mail_text, stamp_ver
+
+    def _verify_tstamp(self, mail_text: Text) -> OrderedDict:
         """return verdict or raise if tstamp invalid"""
         stamper_auth = crypto.get_stamper_auth(self.config)
 
-        ver = stamper_auth.verify_clearsigned(txt)
+        mail_text, stamp_ver = self._extract_any_stamp_version_line(mail_text)
+
+        ver = stamper_auth.verify_clearsigned(mail_text)
         verdict = vars(ver)
+        verdict['stamp_ver'] = stamp_ver
         if not ver:
             errmsg = "Cannot verify timestamp-response's signature due to: %s"
             gpg_msg = ver.status or crypto.filter_gpg_stderr(ver.stderr)
@@ -1030,8 +1096,8 @@ class TstampReceiver(TstampSpec):
             else:
                 tag_verdict = self.parse_tstamped_tag(tag)
 
-        num = self._pgp_sig2int(ts_verdict['signature_id'])
-        dice100 = num % 100
+        num, dice100 = self._pgp_sig_to_dice100(ts_verdict['signature_id'],
+                                                ts_verdict.get('stamp_ver'))
         decision = 'OK' if dice100 < 90 else 'SAMPLE'
 
         #self.log.info("Timestamp sig did not verify: %s", _mydump(tag_verdict))
