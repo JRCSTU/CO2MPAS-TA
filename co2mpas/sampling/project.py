@@ -605,7 +605,7 @@ class Project(transitions.Machine, ProjectSpec):
                 msg += "  BUT FORCED to import them!"
                 self.log.warning(msg, pfiles, ex, exc_info=1)
             else:
-                raise CmdException(msg % (pfiles, ex))
+                raise CmdException(msg % (pfiles, ex)) from ex
 
         if self.dry_run:
             self.log.warning('DRY-RUN: Not actually committed %d files.',
