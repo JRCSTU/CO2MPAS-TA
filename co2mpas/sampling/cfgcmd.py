@@ -217,6 +217,8 @@ class PathsCmd(baseapp.Cmd):
             raise CmdException('Cmd %r takes no arguments, received %d: %r!'
                                % (self.name, len(args), args))
 
+        from .. import (__version__, __updated__,
+                        __dice_report_version__, __dice_stamp_version__)
         from . import project
         from . import crypto
 
@@ -225,6 +227,12 @@ class PathsCmd(baseapp.Cmd):
         def format_tuple(path, files: List[Text]):
             endpath = sep if path[-1] != sep else ''
             return '    +--%s%s: %s' % (path, endpath, files or '')
+
+        yield "VERSIONS:"
+        yield "  +--version: %s" % __version__
+        yield "  +--updated: %s" % __updated__
+        yield "  +--report_ver: %s" % __dice_report_version__
+        yield "  +--stamp_ver: %s" % __dice_stamp_version__
 
         yield "CONFIG:"
         yield "  +--config_paths: %s" % self.config_paths_resolved
