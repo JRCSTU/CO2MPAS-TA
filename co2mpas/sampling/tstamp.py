@@ -301,7 +301,7 @@ def _make_send_transfer_encoders_map():
                                            for l in mbytes.split(b'\n'))
         try:
             mbytes.decode('ascii')
-        except:
+        except:  # @IgnorePep8
             apply = True
 
         if apply:
@@ -572,8 +572,8 @@ class TstampSender(TstampSpec):
                 in range(0, len(wrapped_rbody), new_width))
 
             tag_text = '%s: %s\n%s: |\n  %s' % ('tag', header,
-                                                  SCRABLE_KEY,
-                                                  wrapped_rbody.decode())
+                                                SCRABLE_KEY,
+                                                wrapped_rbody.decode())
 
         return tag_text
 
@@ -1120,9 +1120,9 @@ class TstampReceiver(TstampSpec):
             import parsedatetime as pdt
 
             kw_date_pairs = [(kw, dt)
-                          for kw, dt
-                          in zip(['SENTBEFORE', 'SINCE', 'ON'], dates)
-                          if dt]
+                             for kw, dt
+                             in zip(['SENTBEFORE', 'SINCE', 'ON'], dates)
+                             if dt]
             c = self.dates_locale and pdt.Constants(self.dates_locale)
             cal = pdt.Calendar(c)
 
@@ -1247,7 +1247,7 @@ class TstampReceiver(TstampSpec):
         is_all = email_infos is None or any(i is None for i in email_infos)
         if is_all:
             infos = OrderedDict((k.title(), '\n'.join(mail.get_all(k)))
-                                 for k in mail)
+                                for k in mail)
         else:
             infos = OrderedDict((k.title(), '\n'.join(mail.get_all(k)))
                                 for k in email_infos
@@ -1269,11 +1269,11 @@ class TstampReceiver(TstampSpec):
             else:
                 try:
                     infos['dice'] = verdict['dice']
-                except:
+                except:  # @IgnorePep8
                     pass
             try:
                 infos['project'] = verdict['report']['project']
-            except:
+            except:  # @IgnorePep8
                 pass
 
         return infos
@@ -1387,7 +1387,7 @@ def monkeypatch_imaplib_noop_debug_26543(imaplib):
             while n:
                 try:
                     self._mesg(*self._cmd_log[i])
-                except:
+                except:  # @IgnorePep8
                     pass
                 i += 1
                 if i >= self._cmd_log_len:
