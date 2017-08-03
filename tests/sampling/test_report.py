@@ -34,7 +34,7 @@ init_logging(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 proj1 = 'IP-12-WMI-1234-5678'
-
+proj2 = 'RL-99-BM3-2017-0001'
 
 @ddt.ddt
 class TApp(unittest.TestCase):
@@ -204,7 +204,7 @@ class TReportProject(TReportBase):
         c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
-            project.InitCmd(config=c).run('RL-99-BM3-2017-0001')
+            project.InitCmd(config=c).run(proj1)
 
             project.AppendCmd(config=c, out=[test_out_fpath]).run()
             res = report.ReportCmd(config=c).run()
@@ -236,7 +236,7 @@ class TReportProject(TReportBase):
         c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
-            project.InitCmd(config=c).run(proj1)
+            project.InitCmd(config=c).run(proj2)
 
             cmd = project.AppendCmd(config=c, inp=[test_inp_fpath], out=[test_out_fpath])
             cmd.run()
