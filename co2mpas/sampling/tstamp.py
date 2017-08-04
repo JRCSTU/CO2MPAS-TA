@@ -1453,6 +1453,78 @@ class TstampReceiver(TstampSpec):
         return infos
 
 
+class TstampSigner(TstampReceiver):
+
+    stamper_name = trt.Unicode('JRC-stamper')
+    sender = trt.Unicode()
+
+    recipients = trt.List(
+        trt.Unicode(),
+        default_value=["JRC-CO2MPAS@ec.europa.eu",
+                       "CLIMA-LDV-CO2-CORRELATION@ec.europa.eu"],
+        allow_none=True)
+
+    signed_opening = trt.CRegExp(
+        R"""
+        ^-{5}BEGIN\ PGP\ SIGNED\ MESSAGE-{5}\r?\n
+        (?:^Hash:\ [^\r\n]+\r?\n)*                   ## 'Hash:'-header(s)
+        ^\r?\n                                       ## blank-line
+        """,
+        re.DOTALL | re.VERBOSE | re.MULTILINE)
+
+    def _append_decision(self, signed_text: Text) -> Text:
+        from toolz import dicttoolz as dtz
+
+        verdict = self.parse_tstamp_response(signed_text, None)
+        dice = _mydump(dtz.keyfilter(lambda k: k == 'dice', verdict),
+                       default_flow_style=False)
+
+        return '%s\n\n%s' % (signed_text, dice)
+
+    def sign_content_as_tstamper(self, mail_text: Text, sender: Text=None):
+        from datetime import datetime
+        import pprint as pp
+        import textwrap as tw
+
+        tverdict = self.parse_signed_tag(mail_text)
+        if not tverdict['valid']:
+            self.log.info('Signing failed due to %r:\n%s',
+                         tw.indent(pp.pformat(tverdict), '  '))
+            raise CmdException(tverdict['status'])
+        if not sender:
+            sender = tverdict['username']
+
+        stamper_name = self.stamper_name
+        stamper_auth = crypto.get_stamper_auth(self.config)
+        recipients = '\n#     '.join(self.recipients)
+        issue_date = datetime.now().isoformat()
+        stamp_id = 2
+        parent_stamp = 'wettryioulmngvf'
+        tstamp_text = f"""\
+########################################################
+#
+# Proof of posting certificate from {stamper_name}
+# certifying that:-
+#   {sender}
+# requested that this message be sent to:-
+#   {recipients}
+#
+# certificate_date: {issue_date}
+# reference: {stamp_id:07}
+# parent_stamp: {parent_stamp}
+#
+########################################################
+
+
+{mail_text}
+"""
+        stamper_comment = f"Stamper Reference Id: {stamp_id:07}"
+        signed_text = stamper_auth.clearsign_text(
+            tstamp_text, extra_args=['--comment', stamper_comment])
+
+        return self._append_decision(signed_text)
+
+
 def _mydump(obj, indent=2, **kwds):
     import yaml
 
@@ -1995,6 +2067,43 @@ class ParseCmd(baseapp.Cmd):
                 yield _mydump(verdict, default_flow_style=default_flow_style)
 
 
+class SignCmd(baseapp.Cmd):
+    """Private stamper service."""
+
+    def __init__(self, **kwds):
+        kwds.setdefault('conf_classes', [TstampSigner,
+                                         crypto.GitAuthSpec, crypto.StamperAuthSpec])
+        super().__init__(**kwds)
+
+    def run(self, *args):
+        from boltons.setutils import IndexedSet as iset
+        from pandalone import utils as pndlu
+
+        files = iset(args) or ['-']
+        self.log.info("Signining '%s'...", tuple(files))
+
+        signer = TstampSigner(config=self.config)
+        for file in files:
+            if file == '-':
+                self.log.info("Reading STDIN; paste message verbatim!")
+                mail_text = sys.stdin.read()
+            else:
+                self.log.debug("Reading '%s'...", pndlu.convpath(file))
+                with io.open(file, 'rt') as fin:
+                    mail_text = fin.read()
+
+            try:
+                signed_text = signer.sign_content_as_tstamper(mail_text)
+
+                ## In PY3 stdout duplicates \n as \r\n, hence \r\n --> \r\r\n.
+                #  and signed text always has \r\n EOL.
+                yield signed_text.replace('\r\n', '\n')
+            except Exception as ex:
+                self.log.error("%s: signig %i-char message failed due to: %s",
+                               file, len(mail_text), ex, exc_info=1)
+
+
+
 class LoginCmd(baseapp.Cmd):
     """Attempts to login into SMTP server. """
 
@@ -2046,5 +2155,6 @@ all_subcmds = (
     SendCmd,
     RecvCmd,
     MailboxCmd,
-    ParseCmd
+    ParseCmd,
+    SignCmd,
 )

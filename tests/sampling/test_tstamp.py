@@ -7,22 +7,22 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
+from co2mpas._vendor.traitlets import config as trtc
 from co2mpas.sampling import tstamp, crypto
+from co2mpas.sampling.baseapp import collect_cmd, Cmd
+from collections import Counter
 import logging
 from pprint import pformat as pf
 import shutil
-import subprocess as sbp
 import tempfile
 import unittest
 
 import ddt
 
 import os.path as osp
-from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling.baseapp import collect_cmd, Cmd
+import subprocess as sbp
 
 from . import test_pgp_fingerprint, test_pgp_keys, test_pgp_trust
-from collections import Counter
 
 
 init_logging(level=logging.DEBUG)
@@ -870,6 +870,11 @@ base32(tag): |=0A=\r
             exp = slice(*exp)
         self.assertEqual(page, exp, inp)
 
+    def test_TstampSigner(self):
+        signer = tstamp.TstampSigner(config=self.cfg)
+        stamp = signer.sign_content_as_tstamper(signed_tag)
+        exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
+        self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
 
 @ddt.ddt
 class TstampShell(unittest.TestCase):
