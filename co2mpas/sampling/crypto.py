@@ -416,7 +416,7 @@ class GpgSpec(baseapp.Spec):
         return GPG
 
     def _check_test_key_missused(self, keyid):
-        if not self.allow_test_key and keyid and _TEST_KEY_ID in keyid:
+        if not self.allow_test_key and keyid and _TEST_KEY_ID in keyid.upper():
             raise baseapp.CmdException(GpgSpec.allow_test_key.help)
 
     def __init__(self, **kwds):
