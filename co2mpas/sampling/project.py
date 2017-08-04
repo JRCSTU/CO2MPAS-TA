@@ -965,7 +965,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                         continue
 
                     diff_value = [old_val, val]
-                except:
+                except:  # @IgnorePep8
                     diff_value = ['<missing>', val]
 
                 is_preserved = any(r.match(key) for r in preserved_git_settings)
@@ -1840,7 +1840,7 @@ class TstampCmd(_SubCmd):
     """Deprecated: renamed as `tsend`!"""
     def run(self, *args):
         raise CmdException("Cmd %r has been renamed to %r!"
-                               % (self.name, 'tsend'))
+                           % (self.name, 'tsend'))
 
 
 class TsendCmd(_SubCmd):
@@ -2063,11 +2063,11 @@ class TrecvCmd(TparseCmd):
             except Exception as ex:
                 verdict = ex
                 error("[%s]%s: parsing tstamp-email failed due to: %s",
-                                 uid, mid, ex, exc_info=1)
+                      uid, mid, ex, exc_info=1)
 
             ## Store full-verdict (verbose).
-            all_infos = rcver.get_recved_email_infos(mail, verdict,
-                                                 verbose=True, email_infos=None)
+            all_infos = rcver.get_recved_email_infos(
+                mail, verdict, verbose=True, email_infos=None)
             pname = all_infos.get('project')
 
             if pname is None:
@@ -2097,14 +2097,14 @@ class TrecvCmd(TparseCmd):
 
             except CmdException as ex:
                 email_dump = _mydump({'[%s]%s' % (uid, mid): all_infos},
-                                    default_flow_style=default_flow_style)
+                                     default_flow_style=default_flow_style)
                 warn('[%s]%s: Cannot store %ststamp due to: %s\n  email: \n%s',
-                      uid, mid, "foreign " if is_foreign else '', ex,
-                      tw.indent(email_dump, '    '))
+                     uid, mid, "foreign " if is_foreign else '', ex,
+                     tw.indent(email_dump, '    '))
 
             except Exception as ex:
                 email_dump = _mydump({'[%s]%s' % (uid, mid): all_infos},
-                                    default_flow_style=default_flow_style)
+                                     default_flow_style=default_flow_style)
                 error('[%s]%s: storing %ststamp failed due to: %r\n  email: \n%s',
                       uid, mid, "foreign " if is_foreign else '', ex,
                       tw.indent(email_dump, '    '), exc_info=1)
@@ -2301,7 +2301,7 @@ class BackupCmd(_SubCmd):
 
 all_subcmds = (LsCmd, InitCmd, OpenCmd,
                AppendCmd, ReportCmd,
-               TstampCmd,  ## TODO: delete deprecated `projext tsend` cmd
+               TstampCmd,  # TODO: delete deprecated `projext tsend` cmd
                TsendCmd,
                TrecvCmd, TparseCmd,
                StatusCmd,
