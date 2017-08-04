@@ -11,15 +11,18 @@ import io
 import random
 import re
 import sys
-import functools as fnt
 from typing import (
     List, Sequence, Iterable, Text, Tuple, Dict, Callable, Union)  # @UnusedImport
 
-from .._vendor import traitlets as trt
+from pandalone import utils as pndlu
+
+import functools as fnt
 
 from . import CmdException, baseapp, dice, crypto
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
                 vehicle_family_id_pattern)
+from .._vendor import traitlets as trt
+
 
 _undefined = object()
 
@@ -928,7 +931,7 @@ class TstampReceiver(TstampSpec):
 
         return verdict
 
-    def parse_tstamped_tag(self, tag_text: Text) -> int:
+    def parse_signed_tag(self, tag_text: Text) -> int:
         """
         :param msg_text:
             The tag as extracted from tstamp response by :meth:`crypto.pgp_split_clearsigned`.
@@ -1103,7 +1106,7 @@ class TstampReceiver(TstampSpec):
                 tag_verdict = {'content_parsing': "failed"}
                 tag_verdict = {'project': None}
             else:
-                tag_verdict = self.parse_tstamped_tag(tag)
+                tag_verdict = self.parse_signed_tag(tag)
 
         num, dice100 = self._pgp_sig_to_dice100(ts_verdict['signature_id'],
                                                 ts_verdict.get('stamp_ver'))
@@ -1587,8 +1590,6 @@ class SendCmd(baseapp.Cmd):
     ).tag(config=True)
 
     def __init__(self, **kwds):
-        from pandalone import utils as pndlu
-
         kwds.setdefault('conf_classes', [TstampSender, crypto.GitAuthSpec])
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
@@ -1602,7 +1603,6 @@ class SendCmd(baseapp.Cmd):
 
     def run(self, *args):
         from boltons.setutils import IndexedSet as iset
-        from pandalone import utils as pndlu
 
         files = iset(args) or ['-']
         self.log.info("Timestamping '%s'...", tuple(files))
@@ -1703,8 +1703,6 @@ class RecvCmd(baseapp.Cmd):
     ).tag(config=True)
 
     def __init__(self, **kwds):
-        from pandalone import utils as pndlu
-
         kwds.setdefault('conf_classes', [
             TstampSender, TstampReceiver,
             crypto.GitAuthSpec, crypto.StamperAuthSpec])
@@ -1785,7 +1783,6 @@ class ParseCmd(baseapp.Cmd):
 
     def run(self, *args):
         from boltons.setutils import IndexedSet as iset
-        from pandalone import utils as pndlu
 
         default_flow_style = None if self.verbose else False
         files = iset(args) or ['-']
@@ -1830,8 +1827,6 @@ class LoginCmd(baseapp.Cmd):
     ).tag(config=True)
 
     def __init__(self, **kwds):
-        from pandalone import utils as pndlu
-
         kwds.setdefault('conf_classes', [TstampSender, TstampReceiver])
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
