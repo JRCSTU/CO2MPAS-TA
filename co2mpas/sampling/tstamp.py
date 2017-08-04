@@ -1605,15 +1605,14 @@ class SendCmd(baseapp.Cmd):
         from boltons.setutils import IndexedSet as iset
 
         files = iset(args) or ['-']
-        self.log.info("Timestamping '%s'...", tuple(files))
 
         sender = TstampSender(config=self.config)
         for file in files:
             if file == '-':
-                self.log.info("Reading STDIN; paste message verbatim!")
+                self.log.info("Timestamping STDIN; paste message verbatim!")
                 mail_text = sys.stdin.read()
             else:
-                self.log.debug("Reading '%s'...", pndlu.convpath(file))
+                self.log.info("Timestamping '%s'...", pndlu.convpath(file))
                 with io.open(file, 'rt') as fin:
                     mail_text = fin.read()
 
@@ -1786,15 +1785,15 @@ class ParseCmd(baseapp.Cmd):
 
         default_flow_style = None if self.verbose else False
         files = iset(args) or ['-']
-        self.log.info("Parsing '%s'...", tuple(files))
+        self.log.info("Parsing %s...", tuple(files))
 
         rcver = TstampReceiver(config=self.config)
         for file in files:
             if file == '-':
-                self.log.info("Reading STDIN; paste message verbatim!")
+                self.log.info("Parsing STDIN; paste message verbatim!")
                 mail_text = sys.stdin.read()
             else:
-                self.log.debug("Reading '%s'...", pndlu.convpath(file))
+                self.log.info("Parsing '%s'...", pndlu.convpath(file))
                 with io.open(file, 'rt') as fin:
                     mail_text = fin.read()
 
