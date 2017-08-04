@@ -40,6 +40,32 @@ def _to_str(b, encoding='ASCII', errors='surrogateescape'):
         return b.decode(encoding, errors=errors)
 
 
+def pgp_sig_to_sig_id_num(sig_id: Text) -> int:
+    import base64
+    import binascii
+
+    sig_bytes = base64.b64decode(sig_id + '==')
+    num = int(binascii.b2a_hex(sig_bytes), 16)
+
+    return num
+
+
+def num_to_dice100(num: int, is_randomize: bool) -> (int, int):
+    """
+    :return:
+        ``(num, dice100)``
+    """
+    if is_randomize:
+        dice100 = random.Random(num).randint(0, 99)
+    else:
+        ## Cancel the effect of trailing zeros, but is biased,
+        #  see #422
+        num = int(str(num).strip('0'))
+        dice100 = num % 100
+
+    return num, dice100
+
+
 ###################
 ##     Specs     ##
 ###################
@@ -846,34 +872,16 @@ class TstampReceiver(TstampSpec):
         if stamp_ver:
             return True
 
-    def _num_to_dice100(self, num: int, is_randomize: bool) -> (int, int):
-        """
-        :return:
-            ``(num, dice100)``
-        """
-        if is_randomize:
-            dice100 = random.Random(num).randint(0, 99)
-        else:
-            ## Cancel the effect of trailing zeros, but is biased,
-            #  see #422
-            num = int(str(num).strip('0'))
-            dice100 = num % 100
-
-        return num, dice100
-
     def _pgp_sig_to_dice100(self, sig_id: Text, stamp_ver: Text) -> int:
         """
         :return:
             ``(sig-id-as-20-bytes-number, dice100)``
         """
-        import base64
-        import binascii
-
-        sig_bytes = base64.b64decode(sig_id + '==')
-        num = int(binascii.b2a_hex(sig_bytes), 16)
+        num = pgp_sig_to_sig_id_num(sig_id)
         is_randomize = self._is_stamp_version_says_randomize_sig_id(stamp_ver)
+        num, dice100 = num_to_dice100(num, is_randomize)
 
-        return self._num_to_dice100(num, is_randomize)
+        return num, dice100
 
     def scan_for_project_name(self, mail_text: Text) -> int:
         """

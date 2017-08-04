@@ -719,13 +719,12 @@ base32(tag): |=0A=\r
 
         pgp_sig_id_nbytes = 20
         max_sig_id = 2 ** (8 * pgp_sig_id_nbytes) - 1
-        tr = tstamp.TstampReceiver()
 
         sig_ids = [random.randint(0, max_sig_id)
                    for _ in range(1000_000)]
-        old_stats = Counter(tr._num_to_dice100(sig_id, False)[1]
+        old_stats = Counter(tstamp.num_to_dice100(sig_id, False)[1]
                             for sig_id in sig_ids)
-        new_stats = Counter(tr._num_to_dice100(sig_id, True)[1]
+        new_stats = Counter(tstamp.num_to_dice100(sig_id, True)[1]
                             for sig_id in sig_ids)
         self.assertNotEquals(old_stats, new_stats)
 
