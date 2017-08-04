@@ -253,7 +253,7 @@ class GpgSpec(baseapp.Spec):
         help="""A list of additional cmd-line options to pass to the GPG binary."""
     ).tag(config=True)
 
-    master_key = trt.Unicode(
+    master_key = trt.CUnicode(
         os.environ.get('GNUPGKEY'), allow_none=True,
         help="""
         The key-id (or recipient) of a *secret* PGP key to use for various crytpo operations.
