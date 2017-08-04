@@ -1850,11 +1850,12 @@ class TsendCmd(_SubCmd):
     SYNTAX
         %(cmd_chain)s [OPTIONS]
 
-    - THIS COMMAND IS IIREVOCABLE!
+    - THIS COMMAND IS IREVOCABLE!
     - Use --dry-run if you want to send the email yourself.
-      Remember to use the appropriate 'Subject'.
+      Remember to set the 'To', 'Subject' & 'Cc` fields.
     - The --dry-run option prints the email as it would have been sent; you may
       copy-paste this lient and send it, formatted as 'plain-text' (not 'HTML').
+    - Stage transitions: tagged --> mailed
     """
 
     examples = trt.Unicode("""\
