@@ -1775,17 +1775,40 @@ class ParseCmd(baseapp.Cmd):
     """
     examples = trt.Unicode("""cat <mail> | %(cmd_chain)s""")
 
+    parse_as_tag = trt.Bool(
+        default_value=None, allow_none=True,
+        help="""
+        true: tag given, false: stamp given, None: guess based on '"' chars.
+        """
+    ).tag(config=True)
+
     def __init__(self, **kwds):
         kwds.setdefault('conf_classes', [TstampReceiver,
                                          crypto.GitAuthSpec, crypto.StamperAuthSpec])
+        kwds.setdefault('cmd_flags', {
+            'tag': (
+                {type(self).__name__: {'parse_as_tag': True}},
+                "Parse input as tag."
+            ),
+            'stamp': (
+                {type(self).__name__: {'parse_as_tag': False}},
+                "Parse input as stamp."
+            ),
+        })
         super().__init__(**kwds)
+
+    def _is_parse_tag(self, mail_text):
+        if self.parse_as_tag is None:
+            ## tstamper produces 57 x '*'.
+            return ('#' * 50) not in mail_text
+        else:
+            return bool(self.parse_as_tag)
 
     def run(self, *args):
         from boltons.setutils import IndexedSet as iset
 
         default_flow_style = None if self.verbose else False
         files = iset(args) or ['-']
-        self.log.info("Parsing %s...", tuple(files))
 
         rcver = TstampReceiver(config=self.config)
         for file in files:
@@ -1797,8 +1820,16 @@ class ParseCmd(baseapp.Cmd):
                 with io.open(file, 'rt') as fin:
                     mail_text = fin.read()
 
+            is_parse_tag = self._is_parse_tag(mail_text)
+            self.log.info("Parsing input as %s...",
+                          'TAG' if is_parse_tag else 'STAMP')
+
             try:
-                verdict = rcver.parse_tstamp_response(mail_text)
+                if is_parse_tag:
+                    verdict = rcver.parse_signed_tag(mail_text)
+                else:
+                    verdict = rcver.parse_tstamp_response(mail_text)
+
                 if file != '-':
                     verdict['fpath'] = file
             except CmdException as ex:
