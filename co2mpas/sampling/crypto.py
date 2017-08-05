@@ -190,15 +190,6 @@ def filter_gpg_stderr(stderr: Text) -> Text:
                        if not msg.startswith('reading options'))
 
 
-def convert_kwds_to_cmd_opts(**kwds):
-    args = []
-    for k, v in kwds.items():
-        args.append('--%s' % k.replace('_', '-'))
-        args.append(str(v))
-
-    return args
-
-
 class GpgSpec(baseapp.Spec):
     """
     Configurable parameters for instantiating a GnuPG instance
@@ -430,7 +421,7 @@ class GpgSpec(baseapp.Spec):
         key = master_keys[0]
         return '%s: %s' % (key['keyid'], key['uids'][0])
 
-    def encryptobj(self, pswdid: Text, plainobj) -> Text:
+    def encryptobj(self, pswdid: Text, plainobj, extra_args=None) -> Text:
         """
         Encrypt `plainobj` in PGP-armor format, suitable to be stored in a file.
 
@@ -454,7 +445,8 @@ class GpgSpec(baseapp.Spec):
         except Exception as ex:
                 raise ValueError("PswdId('%s'): encryption failed due to: %s" % (pswdid, ex))
 
-        cipher = self.GPG.encrypt(plainbytes, enc_key, armor=True)
+        cipher = self.GPG.encrypt(plainbytes, enc_key, armor=True,
+                                  extra_args=extra_args)
         if not cipher.ok:
             ## When failing due to untrusted-key, status is '',
             #  and only stderr show infos
@@ -465,7 +457,7 @@ class GpgSpec(baseapp.Spec):
 
         return str(cipher)
 
-    def decryptobj(self, pswdid: Text, armor_text: Text):
+    def decryptobj(self, pswdid: Text, armor_text: Text, extra_args=None):
         """
         PGP-decrypt `armor_text` encrypted with :func:`pgp_encrypt()`.
 
@@ -486,7 +478,7 @@ class GpgSpec(baseapp.Spec):
             raise ValueError("PswdId('%s'): cannot encrypt!  Not in pgp-armor format!" % pswdid)
 
         try:
-            plain = self.GPG.decrypt(armor_text)
+            plain = self.GPG.decrypt(armor_text, extra_args=extra_args)
         except Exception as ex:
             raise ValueError("PswdId('%s'): decryption failed due to: %s" % (pswdid, ex))
 
@@ -503,9 +495,8 @@ class GpgSpec(baseapp.Spec):
 
         return plainobj
 
-    def clearsign_text(self, text: Text, **kwds) -> Text:
+    def clearsign_text(self, text: Text, extra_args=None) -> Text:
         """Clear-signs a textual-message with :attr:`master_key`."""
-        extra_args = convert_kwds_to_cmd_opts(**kwds)
         try:
             signed = self.GPG.sign(text, keyid=self.master_key_resolved,
                                    extra_args=extra_args)
@@ -534,11 +525,14 @@ class GpgSpec(baseapp.Spec):
 
         return ver
 
-    def verify_clearsigned(self, text: Text, keep_stderr: bool=None) -> bool:
+    def verify_clearsigned(self, text: Text, keep_stderr: bool=None,
+                           extra_args=None) -> bool:
         """Verifies a clear-signed textual-message."""
-        return self._proc_verfication(self.GPG.verify(text), keep_stderr)
+        return self._proc_verfication(
+            self.GPG.verify(text, extra_args=extra_args), keep_stderr)
 
-    def verify_detached(self, sig: bytes, data: bytes, keep_stderr=None):
+    def verify_detached(self, sig: bytes, data: bytes, keep_stderr=None,
+                        extra_args=None):
         """Verify binary `sig` on the `data`."""
         import gnupg
         import tempfile
@@ -553,13 +547,16 @@ class GpgSpec(baseapp.Spec):
 
             GPG = self.GPG
             args = ['--verify', gnupg.no_quote(sig_fn), '-']
+            if extra_args:
+                args.extend(extra_args)
             result = GPG.result_map['verify'](GPG)
             data_stream = io.BytesIO(data)
             GPG._handle_io(args, data_stream, result, binary=True)
 
         return self._proc_verfication(result, keep_stderr)
 
-    def verify_git_signed(self, git_bytes: bytes, keep_stderr: bool=None):
+    def verify_git_signed(self, git_bytes: bytes, keep_stderr: bool=None,
+                          extra_args=None):
         """
         Splits and verify the normalized top-part against the bottom armored-sig.
 
@@ -569,7 +566,7 @@ class GpgSpec(baseapp.Spec):
         csig = pgp_split_sig(git_bytes)
         msg = _git_detachsig_canonical_regexb.sub(b'\n', csig['msg'])
         msg = _git_detachsig_strip_top_empty_lines_regexb.sub(b'', msg)
-        ver = self.verify_detached(csig['sigarmor'], msg, keep_stderr)
+        ver = self.verify_detached(csig['sigarmor'], msg, keep_stderr, extra_args)
 
         ver.parts = csig
 
