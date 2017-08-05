@@ -20,6 +20,12 @@ from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  
 from .._vendor import traitlets as trt
 
 
+def clip(s, fname_clip_len=64):
+    if len(s) > fname_clip_len:
+        s = s[:fname_clip_len - 3] + '...'
+    return s
+
+
 ###################
 ##     Specs     ##
 ###################
@@ -28,7 +34,7 @@ def _report_tuple_2_dict(fpath, iokind, report) -> dict:
     import pandas as pd
 
     d = OrderedDict([
-        ('file', osp.basename(fpath)),
+        ('file', clip(osp.basename(fpath))),
         ('iokind', iokind)])
 
     if isinstance(report, pd.DataFrame):
@@ -133,7 +139,7 @@ class Report(baseapp.Spec):
             if expected_vfid is None:
                 expected_vfid = file_vfid
             elif expected_vfid != file_vfid:
-                return ("mismatch `vehicle_family_id` between this file the rest: "
+                return ("mismatch `vehicle_family_id` between this file and the rest: "
                         "'%s' != expected('%s')'" %
                         (file_vfid, expected_vfid))
 
@@ -157,7 +163,6 @@ class Report(baseapp.Spec):
                     self.log.warning(msg)
                 else:
                     raise CmdException(msg)
-
             yield (fpath, 'inp', OrderedDict([
                 ('vehicle_family_id', file_vfid),
             ]))
