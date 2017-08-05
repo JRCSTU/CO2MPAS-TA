@@ -1415,7 +1415,7 @@ def consume_cmd(result):
     if result is not None:
         if isinstance(result, types.GeneratorType):
             for i in result:
-                print(i)
+                emit(i)
         elif isinstance(result, (tuple, list)):
             for i in result:
                 emit(i)
