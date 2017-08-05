@@ -452,7 +452,11 @@ class ShowCmd(baseapp.Cmd):
                 yield '%s(%s)' % (clsname, base_classes)
 
             if merged:
-                val = getattr(obj, trtname, '??')
+                try:
+                    val = getattr(obj, trtname, '??')
+                except trt.TraitError as ex:
+                    self.log.warning("Cannot merge '%s' due to: %r", trtname, ex)
+                    val = "<invalid due to: %s>" % ex
             else:
                 val = repr(trait.default())
             yield '  +--%s = %s' % (trtname, val)
