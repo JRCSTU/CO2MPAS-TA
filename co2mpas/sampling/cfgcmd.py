@@ -218,6 +218,7 @@ class PathsCmd(baseapp.Cmd):
             raise CmdException('Cmd %r takes no arguments, received %d: %r!'
                                % (self.name, len(args), args))
 
+        import sys
         from .. import (__version__, __updated__,
                         __dice_report_version__, __dice_stamp_version__)
         from . import project
@@ -229,41 +230,46 @@ class PathsCmd(baseapp.Cmd):
             endpath = sep if path[-1] != sep else ''
             return '    +--%s%s: %s' % (path, endpath, files or '')
 
+        yield "PATHS:"
+        yield "  co2dice_path: %s" % osp.dirname(__file__)
+        yield "  python_path: %s" % sys.prefix
+
         yield "VERSIONS:"
-        yield "  +--version: %s" % __version__
-        yield "  +--updated: %s" % __updated__
-        yield "  +--report_ver: %s" % __dice_report_version__
-        yield "  +--stamp_ver: %s" % __dice_stamp_version__
+        yield "  co2dice_release: %s" % __version__
+        yield "  co2dice_updated: %s" % __updated__
+        yield "  dice_report_ver: %s" % __dice_report_version__
+        yield "  dice_stamp_ver: %s" % __dice_stamp_version__
+        yield "  python_version: %s" % sys.version
 
         yield "CONFIG:"
-        yield "  +--config_paths: %s" % self.config_paths_resolved
-        yield "  +--persist_path: %s" % self.persist_file_resolved
-        yield "  +--LOADED_CONFIGS:"
+        yield "  config_paths: %s" % self.config_paths_resolved
+        yield "  persist_path: %s" % self.persist_file_resolved
+        yield "  LOADED_CONFIGS:"
         yield from (format_tuple(p, f) for p, f in self.loaded_config_files)
 
         yield "PROJECTS:"
         repo = project.ProjectsDB.instance(config=self.config)
-        yield "  +--repopath: %s" % repo.repopath_resolved
+        yield "  repopath: %s" % repo.repopath_resolved
 
-        yield "GnuPG:"
+        yield "GPG:"
         gpg = crypto.GpgSpec(config=self.config)
         gnupgexe = gpg.gnupgexe_resolved
-        yield "  +--gnupgexe: %s" % gnupgexe
-        yield "  +--gnupghome: %s" % gpg.gnupghome_resolved
-        yield "  +--master_key: %s" % gpg.master_key_resolved
+        yield "  gnupgexe: %s" % gnupgexe
+        yield "  gnupghome: %s" % gpg.gnupghome_resolved
+        yield "  master_key: %s" % gpg.master_key_resolved
         for cmd, lines in self._collect_gpg_paths(gnupgexe):
-            yield "  +--gpgconf %s:" % cmd
+            yield "  gpgconf %s:" % cmd
             for line in lines:
-                yield "    +--%s" % line
+                yield "    %s" % line
 
         var_names = """AIODIR HOME HOMEDRIVE HOMEPATH USERPROFILE
                      CO2DICE_CONFIG_PATHS CO2DICE_PERSIST_PATH
                      TRAITLETS_APPLICATION_RAISE_CONFIG_FILE_ERROR
                      GNUPGHOME GNUPGKEY GNUPGEXE
-                     GIT_PYTHON_GIT_EXECUTABLE GIT_PYTHON_TRACE"""
-        yield "ENV-VARS:"
+                     GIT_PYTHON_GIT_EXECUTABLE GIT_PYTHON_TRACE GIT_TRACE"""
+        yield "ENV_VARS:"
         for vname in var_names.split():
-            yield "  +--%s: %s" % (vname, os.environ.get(vname))
+            yield "  %s: %s" % (vname, os.environ.get(vname))
 
 
 class ShowCmd(baseapp.Cmd):
