@@ -1716,7 +1716,7 @@ class RecvCmd(baseapp.Cmd):
         kwds.setdefault('cmd_flags', {
             'wait': (
                 {type(self).__name__: {'wait': True}},
-                pndlu.first_line(type(self).wait.help)
+                type(self).wait.help
             ),
             'list': (
                 {type(self).__name__: {'form': 'list'}},

@@ -329,21 +329,21 @@ class ShowCmd(baseapp.Cmd):
 
         kwds.setdefault('cmd_aliases', {
             ('s', 'source'): ('ShowCmd.source',
-                              pndlu.first_line(ShowCmd.source.help))
+                              ShowCmd.source.help)
         })
         kwds.setdefault(
             'cmd_flags', {
                 ('l', 'list'): (
                     {type(self).__name__: {'list': True}},
-                    pndlu.first_line(type(self).list.help)
+                    type(self).list.help
                 ),
                 ('e', 'regex'): (
                     {type(self).__name__: {'regex': True}},
-                    pndlu.first_line(type(self).regex.help)
+                    type(self).regex.help
                 ),
                 ('t', 'sort'): (
                     {type(self).__name__: {'sort': True}},
-                    pndlu.first_line(type(self).sort.help)
+                    type(self).sort.help
                 ),
             }
         )
@@ -565,19 +565,19 @@ class DescCmd(baseapp.Cmd):
             'cmd_flags', {
                 ('l', 'list'): (
                     {type(self).__name__: {'list': True}},
-                    pndlu.first_line(type(self).list.help)
+                    type(self).list.help
                 ),
                 ('e', 'regex'): (
                     {type(self).__name__: {'regex': True}},
-                    pndlu.first_line(type(self).regex.help)
+                    type(self).regex.help
                 ),
                 ('c', 'class'): (
                     {type(self).__name__: {'clazz': True}},
-                    pndlu.first_line(type(self).clazz.help)
+                    type(self).clazz.help
                 ),
                 ('t', 'sort'): (
                     {type(self).__name__: {'sort': True}},
-                    pndlu.first_line(type(self).sort.help)
+                    type(self).sort.help
                 ),
             }
         )

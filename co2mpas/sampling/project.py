@@ -1686,8 +1686,8 @@ class AppendCmd(_SubCmd):
 
     def __init__(self, **kwds):
         kwds.setdefault('cmd_aliases', {
-            ('i', 'inp'): ('AppendCmd.inp', pndlu.first_line(AppendCmd.inp.help)),
-            ('o', 'out'): ('AppendCmd.out', pndlu.first_line(AppendCmd.out.help)),
+            ('i', 'inp'): ('AppendCmd.inp', AppendCmd.inp.help),
+            ('o', 'out'): ('AppendCmd.out', AppendCmd.out.help),
         })
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
@@ -1696,7 +1696,7 @@ class AppendCmd(_SubCmd):
             ),
             'report': (
                 {AppendCmd.__name__: {'report': True}},
-                pndlu.first_line(AppendCmd.report.help)
+                AppendCmd.report.help
             ),
         })
         super().__init__(**kwds)
@@ -2049,7 +2049,7 @@ class TrecvCmd(TparseCmd):
             ),
             'wait': (
                 {type(self).__name__: {'wait': True}},
-                pndlu.first_line(type(self).wait.help)
+                type(self).wait.help
             ),
         })
         super().__init__(**kwds)

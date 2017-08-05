@@ -260,16 +260,16 @@ class ReportCmd(baseapp.Cmd):
         dkwds = {
             'conf_classes': [project.ProjectsDB, project.Project, Report],
             'cmd_aliases': {
-                ('i', 'inp'): ('ReportCmd.inp', pndlu.first_line(type(self).inp.help)),
-                ('o', 'out'): ('ReportCmd.out', pndlu.first_line(type(self).out.help)),
+                ('i', 'inp'): ('ReportCmd.inp', type(self).inp.help),
+                ('o', 'out'): ('ReportCmd.out', type(self).out.help),
             },
             'cmd_flags': {
                 'project': ({
                     'ReportCmd': {'project': True},
-                }, pndlu.first_line(ReportCmd.project.help)),
+                }, ReportCmd.project.help),
                 'vfids': ({
                     'ReportCmd': {'vfids_only': True},
-                }, pndlu.first_line(ReportCmd.vfids_only.help)),
+                }, ReportCmd.vfids_only.help),
             }
         }
         dkwds.update(kwds)
