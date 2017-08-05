@@ -839,25 +839,13 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
     ).tag(config=True)
 
     preserved_git_settings = trt.List(
-        trt.Unicode(),
+        trt.CRegExp(),
         help="""
-        On app start up, re-write git's all config-settings except those mathcing this list of regexes.
+        On start up, all git-repo's settings are overwritten except those mathcing this list of regexes.
+
         Git settings include user-name and email address, so this option might be usefull
-        when the regular owner running the app has changed.
+        when the regular owner running the app has changed but old-user should be preserved.
         """).tag(config=True)
-
-    ## TODO: Delete `reset_git_settings` in next big release after 1.5.5.
-    reset_git_settings = trt.Bool(
-        False,
-        help="Deprecated and non-functional!  Replaced by `--ProjectsDB.preserved_git_settings` list."
-    ).tag(config=True)
-
-    def __init__(self, *args, **kwds):
-        from .dice import DiceSpec
-
-        self._register_validator(DiceSpec._warn_deprecated,
-                                 ['reset_git_settings'])
-        super().__init__(**kwds)
 
     ## Useless, see https://github.com/ipython/traitlets/issues/287
     # @trt.validate('repo_path')
@@ -1580,13 +1568,6 @@ class ProjectCmd(_SubCmd):
     def __init__(self, **kwds):
         dkwds = {
             'conf_classes': [ProjectsDB, Project],
-            'cmd_flags': {
-                'reset-git-settings': (
-                    {
-                        'ProjectsDB': {'reset_git_settings': True},
-                    }, pndlu.first_line(ProjectsDB.reset_git_settings.help)
-                )
-            },
             'subcommands': baseapp.build_sub_cmds(*all_subcmds),
         }
         dkwds.update(kwds)
