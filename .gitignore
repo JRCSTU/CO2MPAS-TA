@@ -45,7 +45,6 @@ coverage.xml
 *,cover
 
 # Translations
-*.mo
 *.pot
 
 # Django stuff:
@@ -79,3 +78,4 @@ tests/dispatcher/docs
 doc/_static/CO2MPAS model/
 doc/_static/Wheel model/
 /tests/load_inputs
+*scratch*
