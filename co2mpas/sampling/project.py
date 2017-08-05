@@ -249,6 +249,15 @@ class ProjectSpec(dice.DiceSpec):
         help="""Number of dice-attempts allowed to be forced for a project."""
     ).tag(config=True)
 
+    def extract_uid_from_report(self, report: Text) -> Text:
+        from . import crypto
+
+        git_auth = crypto.get_git_auth(self.config)
+        verdict = git_auth.verify_git_signed(report.encode())
+        assert verdict, _mydump(vars(verdict))
+
+        return '%s: %s' % (verdict.key_id, verdict.username)
+
 
 class Project(transitions.Machine, ProjectSpec):
     """The Finite State Machine for the currently checked-out project."""
@@ -1703,19 +1712,22 @@ class AppendCmd(_SubCmd):
         pfiles.check_files_exist(self.name)
         self.log.info("Importing report files...\n  %s", pfiles)
 
-        return self.append_and_report(pfiles)
+        yield from self.append_and_report(pfiles)
 
     def append_and_report(self, pfiles):
         proj = self.current_project
         ok = proj.do_addfiles(pfiles=pfiles)
 
         if not self.report:
-            return self._format_result(ok, proj.result)
+            yield self._format_result(ok, proj.result)
 
         ok = proj.do_report()
 
         assert isinstance(proj.result, str)
-        return ok and proj.result or ok
+        yield ok and proj.result or ok
+
+        key_uid = proj.extract_uid_from_report(proj.result)
+        self.log.info("Report has been signed by '%s'.", key_uid)
 
 
 class InitCmd(AppendCmd):
@@ -1759,7 +1771,7 @@ class InitCmd(AppendCmd):
                 % (self.name, args, pfiles))
 
         if len(args) == 1:
-            return self.projects_db.proj_add(args[0])
+            yield self.projects_db.proj_add(args[0])
         else:
             pfiles.check_files_exist(self.name)
 
@@ -1779,7 +1791,7 @@ class InitCmd(AppendCmd):
 
             self.projects_db.proj_add(project)
 
-        return self.append_and_report(pfiles)
+        yield from self.append_and_report(pfiles)
 
 
 class ReportCmd(_SubCmd):
@@ -1823,15 +1835,6 @@ class ReportCmd(_SubCmd):
         })
         super().__init__(**kwds)
 
-    def _extract_uid_from_report(self, report: Text) -> Text:
-        from . import crypto
-
-        git_auth = crypto.get_git_auth(self.config)
-        verdict = git_auth.verify_git_signed(report.encode())
-        assert verdict, _mydump(vars(verdict))
-
-        return '%s: %s' % (verdict.key_id, verdict.username)
-
     def run(self, *args):
         self.log.info('Tagging project %r...', args)
         if len(args) > 0:
@@ -1845,7 +1848,7 @@ class ReportCmd(_SubCmd):
 
         yield ok and proj.result or ok
 
-        key_uid = self._extract_uid_from_report(proj.result)
+        key_uid = proj.extract_uid_from_report(proj.result)
         self.log.info("Report has been signed by '%s'.", key_uid)
 
 
