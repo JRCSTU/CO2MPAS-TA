@@ -197,6 +197,7 @@ setup(
         'PySocks >= 1.6.7',         # more proxy-error messages (#7)
         'parsedatetime',
         'validate_email',           # dice: distinguish EWS fields
+        'Unidecode',                # dice: convert non-ASCII for tstamper.
     ],
     packages=find_packages(exclude=[
         'tests', 'tests.*',

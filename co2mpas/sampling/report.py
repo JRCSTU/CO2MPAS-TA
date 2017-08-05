@@ -20,10 +20,12 @@ from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  
 from .._vendor import traitlets as trt
 
 
-def clip(s, fname_clip_len=64):
+def clip_and_asciify(s, fname_clip_len=64):
+    import unidecode
+
     if len(s) > fname_clip_len:
         s = s[:fname_clip_len - 3] + '...'
-    return s
+    return unidecode.unidecode(s)
 
 
 ###################
@@ -34,7 +36,7 @@ def _report_tuple_2_dict(fpath, iokind, report) -> dict:
     import pandas as pd
 
     d = OrderedDict([
-        ('file', clip(osp.basename(fpath))),
+        ('file', clip_and_asciify(osp.basename(fpath))),
         ('iokind', iokind)])
 
     if isinstance(report, pd.DataFrame):
