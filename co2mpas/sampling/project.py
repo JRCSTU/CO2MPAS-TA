@@ -1700,14 +1700,14 @@ class AppendCmd(_SubCmd):
 
         if not self.report:
             yield self._format_result(ok, proj.result)
+        else:
+            ok = proj.do_report()
 
-        ok = proj.do_report()
+            assert isinstance(proj.result, str)
+            yield ok and proj.result or ok
 
-        assert isinstance(proj.result, str)
-        yield ok and proj.result or ok
-
-        key_uid = proj.extract_uid_from_report(proj.result)
-        self.log.info("Report has been signed by '%s'.", key_uid)
+            key_uid = proj.extract_uid_from_report(proj.result)
+            self.log.info("Report has been signed by '%s'.", key_uid)
 
 
 class InitCmd(AppendCmd):
@@ -1769,7 +1769,7 @@ class InitCmd(AppendCmd):
 
             self.projects_db.proj_add(project)
 
-        yield from self.append_and_report(pfiles)
+            yield from self.append_and_report(pfiles)
 
 
 class ReportCmd(_SubCmd):
