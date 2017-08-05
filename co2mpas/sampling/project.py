@@ -26,12 +26,12 @@ import functools as fnt
 import os.path as osp
 import pandalone.utils as pndlu
 import textwrap as tw
-from .._vendor import traitlets as trt
-from .._vendor.traitlets import config as trtc
 
 from . import baseapp, dice, CmdException, PFiles
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
                 __dice_report_version__)
+from .._vendor import traitlets as trt
+from .._vendor.traitlets import config as trtc
 
 
 git_project_regex = re.compile(r'^\w[\w-]+$')
@@ -2117,14 +2117,23 @@ class ExportCmd(_SubCmd):
         %(cmd_chain)s [OPTIONS] [<project-1>] ...
 
     - The archive created is named `CO2MPAS_projects-<timestamp>`.
-    - If the `--ExportCmd.erase_afterwards` flag  is given on the *current-project*,
+    - If the `--erase-afterwards` is given on the *current-project*,
       you must then select another one, with `project open` command.
-      For that, f '.' is given, it deletes the *current*, and if f no args given,
+      For that, f '.' is given, it deletes the *current*, and if no args given,
       it DELETES ALL projects.
     """
     erase_afterwards = trt.Bool(
         help="Will erase all archived projects from repo."
     ).tag(config=True)
+
+    def __init__(self, **kwds):
+        self.cmd_flags.update({
+            'erase-afterwards': (
+                {type(self).__name__: {'erase_afterwards': True}},
+                type(self).erase_afterwards.help
+            ),
+        })
+        super().__init__(**kwds)
 
     def run(self, *args):
         ## TODO: Move Export/Import code to a Spec.
