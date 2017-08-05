@@ -207,7 +207,7 @@ def _find_dice_tag(repo, pname, max_dices_per_project,
                        (i + 1, pname))
 
 
-def _read_dice_tag(repo, tag: Union[Text, 'git.TagReference']):
+def _read_dice_tag(repo, tag: Union[Text, 'git.TagReference']) -> Text:
     ## TODO: Attempt parsing dice-report when reading tag.
     if isinstance(tag, str):
         tag = repo.tags[tag]
@@ -1823,6 +1823,15 @@ class ReportCmd(_SubCmd):
         })
         super().__init__(**kwds)
 
+    def _extract_uid_from_report(self, report: Text) -> Text:
+        from . import crypto
+
+        git_auth = crypto.get_git_auth(self.config)
+        verdict = git_auth.verify_git_signed(report.encode())
+        assert verdict, _mydump(vars(verdict))
+
+        return '%s: %s' % (verdict.key_id, verdict.username)
+
     def run(self, *args):
         self.log.info('Tagging project %r...', args)
         if len(args) > 0:
@@ -1833,7 +1842,11 @@ class ReportCmd(_SubCmd):
         ok = proj.do_report()
 
         assert isinstance(proj.result, str)
-        return ok and proj.result or ok
+
+        yield ok and proj.result or ok
+
+        key_uid = self._extract_uid_from_report(proj.result)
+        self.log.info("Report has been signed by '%s'.", key_uid)
 
 
 class TstampCmd(_SubCmd):

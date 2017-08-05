@@ -423,6 +423,13 @@ class GpgSpec(baseapp.Spec):
         super().__init__(**kwds)
         self._check_test_key_missused(self.master_key)
 
+    def master_key_userid(self):
+        """the 1st uid of the resolved `master_key`."""
+        master_keys = self.GPG.list_keys(keys=self.master_key_resolved)
+        assert len(master_keys) == 1, master_keys
+        key = master_keys[0]
+        return '%s: %s' % (key['keyid'], key['uids'][0])
+
     def encryptobj(self, pswdid: Text, plainobj) -> Text:
         """
         Encrypt `plainobj` in PGP-armor format, suitable to be stored in a file.
