@@ -737,7 +737,8 @@ class Project(transitions.Machine, ProjectSpec):
                 DRY-RUN: Now you must send the email your self!
                 ==========================================================================
                   - Copy from the 1st line starting with 'X-Stamper-To:', below;
-                  - set 'Subject', 'To' and 'Cc' exactly as shown (you may also set 'Bcc');
+                  - set the following email-fields as shown: TO, SUBJECT, CC
+                    (you may also set 'Bcc'):
                   - remember to set the email as 'plain-text' (not 'HTML'!) right before
                     clicking `send`!
                   - Read instructions:
@@ -1552,29 +1553,29 @@ class ProjectCmd(_SubCmd):
     """
 
     examples = trt.Unicode("""
-        To list all existing projects, try:
-            %(cmd_chain)s  ls
+        - To list all existing projects, try::
+              %(cmd_chain)s  ls
 
-        To make a new project, type:
-            %(cmd_chain)s  init RL-77-AAA-2016-0000
+        - To make a new project, type::
+              %(cmd_chain)s  init RL-77-AAA-2016-0000
 
-        or to open an existing one (to become the *current* one):
-            %(cmd_chain)s  open IP-10-AAA-2017-1006
+        - or to open an existing one (to become the *current* one)::
+              %(cmd_chain)s  open IP-10-AAA-2017-1006
 
-        To see more infos about the current project, use:
-            %(cmd_chain)s  ls . -v
+        - To see more infos about the current project, use::
+              %(cmd_chain)s  ls . -v
 
-        A typical workflow is this:
-            %(cmd_chain)s  init RL-12-BM3-2016-0000
-            %(cmd_chain)s  append  --inp input.xlsx  --out output.xlsx   summary.xlsx  co2mpas.log
-            %(cmd_chain)s  report
-            %(cmd_chain)s  tstamp
-            cat <tstamp-response-text> | %(cmd_chain)s  tparse
-            %(cmd_chain)s  export
+        - A typical workflow is this::
+              %(cmd_chain)s  init RL-12-BM3-2016-0000
+              %(cmd_chain)s  append  --inp input.xlsx  --out output.xlsx   summary.xlsx  co2mpas.log
+              %(cmd_chain)s  report
+              %(cmd_chain)s  tstamp
+              cat <tstamp-response-text> | %(cmd_chain)s  tparse
+              %(cmd_chain)s  export
 
-        You may enquiry the status the projects database:
-            %(cmd_chain)s  status --vlevel 2
-        """)
+        - You may enquiry the status the projects database::
+              %(cmd_chain)s  status --vlevel 2
+    """)
 
     def __init__(self, **kwds):
         dkwds = {
@@ -1663,14 +1664,12 @@ class AppendCmd(_SubCmd):
     """
 
     examples = trt.Unicode("""
-        To import an INPUT co2mpas file, try:
+        - To import an INPUT co2mpas file, try::
+              %(cmd_chain)s --inp co2mpas_input.xlsx
 
-            %(cmd_chain)s --inp co2mpas_input.xlsx
-
-        To import both INPUT and OUTPUT files, and overwrite any already imported try:
-
-            %(cmd_chain)s --force --inp co2mpas_input.xlsx --out co2mpas_results.xlsx
-        """)
+        - To import both INPUT and OUTPUT files, and overwrite any already imported try::
+              %(cmd_chain)s --force --inp co2mpas_input.xlsx --out co2mpas_results.xlsx
+    """)
 
     inp = trt.List(
         trt.Unicode(),
@@ -1740,20 +1739,18 @@ class InitCmd(AppendCmd):
                                 [<any-other-file>] ...
 
     - The 1st form, the project-id is given explicetely.
-    - The 2nd form, the project-id gets derrived from the files, and must be identical.
+    - The 2nd form, the project-id gets derrived from the files, and
+      it must be identical.
+    - If both files given, use `--report` to advance immediately to `tagged` state.
     """
 
     examples = trt.Unicode("""
-        In the simplest case, just create a new project like this:
+        - In the simplest case, just create a new project like this::
+              %(cmd_chain)s XX-12-YYY-2017-0000
 
-            %(cmd_chain)s XX-12-YYY-2017-0000
-
-        To import both INPUT and OUTPUT files and generate report:
-
-            %(cmd_chain)s --inp co2mpas_input.xlsx --out co2mpas_results.xlsx --report
-
-        Notice that in this case the project-name gets derived from the files.
-        """)
+        - To import both INPUT and OUTPUT files and generate report::
+              %(cmd_chain)s --inp co2mpas_input.xlsx --out co2mpas_results.xlsx --report
+    """)
 
     def run(self, *args):
         pfiles = PFiles(inp=self.inp, out=self.out, other=args)
@@ -1814,10 +1811,11 @@ class ReportCmd(_SubCmd):
     """
 
     examples = trt.Unicode("""
-        Create or view existing report of the *current* project:
-            %(cmd_chain)s
-        Or the same command using `git` primitives (in Bash):
-            git -C ~/.codice/repo cat-file tag dices/RL-12-BM3-2016-000/1 | %(cmd_chain)s send
+        - Create or view existing report of the *current* project::
+              %(cmd_chain)s
+
+        - Or the same command using `git` primitives (in Bash)::
+              git -C ~/.codice/repo cat-file tag dices/RL-12-BM3-2016-000/1 | %(cmd_chain)s send
     """)
 
     def __init__(self, **kwds):
@@ -1875,12 +1873,13 @@ class TsendCmd(_SubCmd):
     """
 
     examples = trt.Unicode("""\
-        - Send report (project must be in `taged` state):
+        - Send report (project must be in `taged` state)::
               %(cmd_chain)s
 
-        - Get dice-email for "manual" procedure:
-         (see https://github.com/JRCSTU/CO2MPAS-TA/wiki/8.-The-DICE.#steps-to-proceed-manually):
+        - Get dice-email for "manual" procedure::
               %(cmd_chain)s  --dry-run
+
+         see https://github.com/JRCSTU/CO2MPAS-TA/wiki/8.-The-DICE.#steps-to-proceed-manually
 
         - See `co2dice tstamp` command for server configurations.
     """)
@@ -1929,16 +1928,16 @@ class TparseCmd(_SubCmd):
     - Fails if dice refers to different project.
     """
     examples = trt.Unicode("""\
-        - Parse `dice_tstamp.txt` file, as received manually from timestamper:
+        - Parse `dice_tstamp.txt` file, as received manually from timestamper::
               %(cmd_chain)s  dice_tstamp.txt
 
-        - Parse response copied from *clipboard*:
+        - Parse response copied from *clipboard*::
               %(cmd_chain)s
               [CTRL+Insert]
               [CTRL+Z]
 
         - See `co2dice tstamp` command for server configurations.
-        """)
+    """)
 
     def __init__(self, **kwds):
         from . import tstamp
@@ -2000,21 +1999,24 @@ class TrecvCmd(TparseCmd):
     #- The --build-registry is for those handling "foreign" dices (i.e. TAAs),
 
     examples = trt.Unicode("""
-        - To search emails in one-shot:
+        - To search emails in one-shot::
               %(cmd_chain)s --after today "IP-10-AAA-2017-1003"
               %(cmd_chain)s --after "last week"
               %(cmd_chain)s --after "1 year ago" --before "18 March 2017"
 
         - To wait for new mails arriving (and not to block console),
-          - on Linux:
+          - on Linux::
                 %(cmd_chain)s --wait &
                 ## wait...
                 kill %%1  ## Asumming this was the only job started.
 
-          - On Windows:
+          - On Windows::
                 START \\B %(cmd_chain)s --wait
 
-          and kill with `TASKLIST/TASKKILL` win commands or with "Task Manager" GUI.
+            and kill with one of:
+              - `[Ctrl+Beak]` or `[Ctrl+Pause]` keystrokes,
+              - `TASKLIST/TASKKILL` console commands, or
+              - with the "Task Manager" GUI.
 
         - See `co2dice tstamp` command for server configurations.
     """)

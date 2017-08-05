@@ -89,21 +89,21 @@ class Co2diceCmd(Cmd):
     This is the root command for co2mpas DICE; use its sub-commands
     to "run the dice" on the files of a co2mpas run.
 
-    NOTE:
+    Note:
       Do not run concurrently multiple instances.
     """
 
     name = trt.Unicode(APPNAME)
     version = __version__
     examples = trt.Unicode("""\
-        - Try the `project` sub-command:
+        - Try the `project` sub-command::
               %(cmd_chain)s  project
 
-        - To learn more about command-line options and configurations:
+        - To learn more about command-line options and configurations::
               %(cmd_chain)s  config
 
         - Read configurations also from a `GMail` folder present in current-dir
-          and view what was loaded actually:
+          and view what was loaded actually::
               %(cmd_chain)s  config paths --config-paths GMail --config-paths ~/.co2dice
               %(cmd_chain)s  config show --source file --config-paths GMail --config-paths ~/.co2dice
     """)

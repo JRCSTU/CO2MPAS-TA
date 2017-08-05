@@ -620,6 +620,15 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
     def _log_default(self):
         return get_class_logger(type(self))
 
+    option_description = trt.Unicode("""
+    Options are convenience aliases to configurable class-params,
+    as listed in the "Equivalent to" description-line of the aliases.
+    To see all configurable class-params for some <cmd>, use::
+        <cmd> --help-all
+    or view help for specific parameter using::
+        %s config desc <class>.<param>
+    """.strip() % APPNAME)
+
     #: Whether to raise if configs not found
     #: GUI don't need such validation, dice commands do.
     #: NOTE: HACK to fail early on first AIO launch.
@@ -646,13 +655,13 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
           are read (and written) from (and in) it; read --persist-path.
 
         Tips:
-           - Use `config paths` to view the actual paths/files loaded.
-           - Use `config write` to produce a skeleton of the config-file.
+          - Use `config paths` to view the actual paths/files loaded.
+          - Use `config write` to produce a skeleton of the config-file.
 
         Examples:
-            To read and apply in descending order: [~/my_conf, /tmp/conf.py, ~/.co2dice.json]
-            you may issue:
-                <cmd> --config-paths=~/my_conf{sep}/tmp/conf.py  --Cmd.config_paths=~/.co2dice.jso
+          To read and apply in descending order: [~/my_conf, /tmp/conf.py, ~/.co2dice.json]
+          you may issue:
+              <cmd> --config-paths=~/my_conf{sep}/tmp/conf.py  --Cmd.config_paths=~/.co2dice.jso
         """.format(appname=APPNAME, confvar=CONFIG_VAR_NAME,
                    default=default_config_fpaths(), sep=osp.pathsep)
     ).tag(config=True)
@@ -705,7 +714,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         Encrypt ciphered-prams on app startup: True: all classes, False: current-cmd's only
 
         Sample cmd to encrypt any freshly edited persistent-configs:
-               %s --encrypt
+            %s --encrypt
         """ % APPNAME
     ).tag(config=True)
 

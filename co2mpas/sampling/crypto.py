@@ -195,10 +195,9 @@ class GpgSpec(baseapp.Spec):
     Configurable parameters for instantiating a GnuPG instance
 
     Class-parameters override values the following environment variables (if exist):
-    - :attr:`GpgSpec.gnupgexe`   --> `GNUPGEXE`
-    - :attr:`GpgSpec.gnupghome`  --> `GNUPGHOME`
-    - :attr:`GpgSpec.master_key` --> `GNUPGKEY`
-
+      - :attr:`GpgSpec.gnupgexe`   --> `GNUPGEXE`
+      - :attr:`GpgSpec.gnupghome`  --> `GNUPGHOME`
+      - :attr:`GpgSpec.master_key` --> `GNUPGKEY`
     """
 
     gnupgexe = trt.Unicode(
@@ -276,7 +275,7 @@ class GpgSpec(baseapp.Spec):
         help="""
         Armored text of keys (pub/sec) to import.
 
-        Use and one of these commands:
+        Use and one of these commands::
             gpg --export-secret-keys <key-id-1> ..
             gpg --export-keys <key-id-1> ..
         """

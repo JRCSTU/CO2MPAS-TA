@@ -123,11 +123,9 @@ class TstampSpec(dice.DiceSpec):
         - False:      Do not use any encryption;  better use `no_auth` param,
                       not to reveal credentials in plain-text.
 
-        Tip:
-          Microsoft Outlook/Yahoo servers use STARTTLS.
         See also:
-         - https://www.fastmail.com/help/technical/ssltlsstarttls.html
-         - http://forums.mozillazine.org/viewtopic.php?t=2730845
+          - https://www.fastmail.com/help/technical/ssltlsstarttls.html
+          - http://forums.mozillazine.org/viewtopic.php?t=2730845
         """
     ).tag(config=True)
 
@@ -171,9 +169,10 @@ class TstampSpec(dice.DiceSpec):
         The hostname/ip of the SOCKS-proxy server for send/recv emails.
         If not set, SOCKS-proxying is disabled.
 
-        NOTE: GMail, Yahoo (and possibly Outlook in the future) need you
-              to make first a successful login with your browser THROUGH PROXY,
-              before letting DICE to login.  Search: https://goo.gl/vb4wAi
+        Note:
+          GMail, Yahoo (and possibly Outlook in the future) need you
+          to make first a successful login with your browser THROUGH PROXY,
+          before letting DICE to login.  Search: https://goo.gl/vb4wAi
         """
     ).tag(config=True)
 
@@ -182,8 +181,8 @@ class TstampSpec(dice.DiceSpec):
         help="""
         Should DNS queries be performed on the remote side of the SDOCKS tunnel?
 
-        - This has no effect with SOCKS4 servers.
-        - Prefer to set an IP in `socks_host` when setting this to True.
+          - This has no effect with SOCKS4 servers.
+          - Prefer to set an IP in `socks_host` when setting this to True.
         """
     ).tag(config=True)
 
@@ -224,11 +223,12 @@ class TstampSpec(dice.DiceSpec):
           allowed!
         - The *receiver* uses this value to filter emails containing this string in
           their subject line. If None, no extra filter on the subject line is used.
-          Tip:
-              set to sender's ``c.TstampSender.subject_prefix = None`` if dice cannot
-              receive the emails from your account that you know are there
-              (assuming the other search criteria, such as dates, are correct).
-              Yahoo needs this!
+
+        Tip:
+          set to sender's ``c.TstampSender.subject_prefix = None`` if dice cannot
+          receive the emails from your account that you know are there
+          (assuming the other search criteria, such as dates, are correct).
+          Yahoo needs this!
         """
     ).tag(config=True)
 
@@ -690,9 +690,9 @@ class TstampReceiver(TstampSpec):
         help="""
         The mailbox folder name (case-sensitive except "INBOX") to search for tstamp responses in.
 
-        - Use `mailbox` subcmd to list all mailboxes.
-        - Tip: Although Gmail is not recommended, use "[Gmail]/All Mail"
-          to search in all its folders.
+          - Use `mailbox` subcmd to list all mailboxes.
+          - Tip: Although Gmail is not recommended, use "[Gmail]/All Mail"
+            to search in all its folders.
         """
     ).tag(config=True)
 
@@ -763,15 +763,16 @@ class TstampReceiver(TstampSpec):
         help="""
         Search messages sent before the specified day, in human readable form.
 
-        - eg:
+          - Read docs: https://dateparser.readthedocs.io
+          - For available locales, see `date_locale` param
+          - See also `co2dice config desc rfc_criteria`.
+
+        Examples:
           - yesterday, last year, previous Wednesday
           - 18/3/53              ## order depending on your locale
           - 10 days ago
           - two days after eom   ## 2 days after end-of-moth
-          - Jan                  ## NOTE: after Feb, refers to NEXT January!
-        - For available locales, see `date_locale` param
-        - See https://github.com/bear/parsedatetime/blob/master/parsedatetime/pdt_locales/base.py)
-        - See also `co2dice config desc rfc_criteria`.
+          - Jan                  ## NOTE: If January, refers to NEXT year's January!
         """
     ).tag(config=True)
 
@@ -791,11 +792,12 @@ class TstampReceiver(TstampSpec):
         help="""
         The email items to print for each matched email; all if None or contains a None.
 
-        - case-insensitive
+        - Might be case-insensitive!
         - The Message-Id is always printed.
         - Other standard fields: Received, Delivered-To
         - Set it to `None` to see all available fields for a specific email-provider.
-        - Use "special" item `Body` to include email-payload (not fetched if None).
+        - Use "special" item `Body` to include email-payload
+          (not fetched if None).
         """
     ).tag(config=True)
 
@@ -804,16 +806,16 @@ class TstampReceiver(TstampSpec):
         'tag', allow_none=True,
         case_sensitive=True,
         help="""
-        Whether to undo quoted-printable encoding of dice-repsonse or selectively the Tag only.
+        Whether to un-quote-printable Stamp or selectively the containing Tag only.
 
-        - TAG: unquote just the enclosed tag of the dice-report.
-        - FUL: unquote full dice-response email.
-        - "lower" values": try with verbatim text and then fallback".
-        - None: don't unquote anything.
+          - TAG: unquote just the enclosed tag of the dice-report.
+          - FULL: unquote full dice-response email.
+          - "lower" case values: try verbatim text first, fallback unoquoting later".
+          - None: don't unquote anything.
 
         Tip:
-            Trials may be needed to decide, e.g. Outlook servers need 'TAG', but
-            a more resilient choice is 'tag'.
+          Trials may be needed to decide, e.g. Outlook servers need 'TAG', but
+          a more resilient choice is 'tag'.
         """
     ).tag(config=True)
 
@@ -1521,13 +1523,12 @@ class TstampCmd(baseapp.Cmd):
     From its response the *sampling decision* is be deduced.
     """
 
-    examples = trt.Unicode(
-        """
-        Pick an existing dice-report tag to send for timestamping:
-            co2dice project report | %(cmd_chain)s send
+    examples = trt.Unicode("""
+        - Pick an existing dice-report tag to send for timestamping::
+              co2dice project report | %(cmd_chain)s send
 
-        Await for the response, and paste its content to this command:
-            %(cmd_chain)s parse
+        - Await for the response, and paste its content to this command::
+              %(cmd_chain)s parse
 
         Server Configuration Samples:
         -----------------------------
@@ -1536,28 +1537,28 @@ class TstampCmd(baseapp.Cmd):
           - Allow SMTP/IMAP access: https://support.google.com/accounts/answer/6010255
             and login with Browser through SOCKS and open link read from response!!
           - app-passwords (2-factor auth): https://myaccount.google.com/apppasswords
-
-            c.DiceSpec.user_email = 'foo@gmail.com'
-            c.TstampSender.host   = 'smtp.gmail.com'
-            c.TstampReceiver.host = 'imap.gmail.com'
+            ::
+                c.DiceSpec.user_email = 'foo@gmail.com'
+                c.TstampSender.host   = 'smtp.gmail.com'
+                c.TstampReceiver.host = 'imap.gmail.com'
 
         - OUTLOOK/OFFICE-365:
           - Instructions: https://goo.gl/tJQvi7 & https://goo.gl/jiTVZt
           - Allow SMTP/IMAP access: https://outlook.live.com/owa/?path=/options/popandimap
-
-            c.DiceSpec.user_email = 'foo@outlook.com'   # But not a username alone!
-            c.TstampSender.host   = 'smtp.mail.yahoo.com'  OR  'outlook.office365.com'
-            c.TstampReceiver.host = 'imap-mail.outlook.com'  OR  'smtp.office365.com'
-            #c.TstampSender.port   = 587                # Try this, if not working without it.
+            ::
+                c.DiceSpec.user_email = 'foo@outlook.com'   # But not a username alone!
+                c.TstampSender.host   = 'smtp.mail.yahoo.com'  OR  'outlook.office365.com'
+                c.TstampReceiver.host = 'imap-mail.outlook.com'  OR  'smtp.office365.com'
+                #c.TstampSender.port   = 587                # Try this, if not working without it.
 
         - YAHOO:
           - Host/Port: https://help.yahoo.com/kb/SLN4075.html
-          - Allow SMTP/IMAP access: https://login.yahoo.com/account/security:
-
-            c.DiceSpec.user_email = 'foo@yahoo.com'     # A username alone is ok.
-            c.TstampSender.host   = 'smtp.mail.yahoo.com'
-            c.TstampReceiver.host = c.imap.mail.yahoo.com'
-            c.TstampReceiver.subject_prefix = None      # Cannot parse [] chars
+          - Allow SMTP/IMAP access: https://login.yahoo.com/account/security
+            ::
+                c.DiceSpec.user_email = 'foo@yahoo.com'     # A username alone is ok.
+                c.TstampSender.host   = 'smtp.mail.yahoo.com'
+                c.TstampReceiver.host = c.imap.mail.yahoo.com'
+                c.TstampReceiver.subject_prefix = None      # Cannot parse [] chars
     """)
 
     def __init__(self, **kwds):
@@ -1580,10 +1581,9 @@ class SendCmd(baseapp.Cmd):
     """
 
     examples = trt.Unicode("""
-        To send a dice-report for a prepared project you have to know the `vehicle_family_id`:
-
-            git  cat-file  tag  tstamps/RL-12-BM3-2017-0001/1 | %(cmd_chain)s
-        """)
+        - To send a dice-report for a prepared project you have to know the `vehicle_family_id`::
+              git  cat-file  tag  tstamps/RL-12-BM3-2017-0001/1 | %(cmd_chain)s
+    """)
 
     dry_run = trt.Bool(
         help="Verify dice-report and login to SMTP-server but do not actually send email to timestamp-service."
@@ -1661,37 +1661,45 @@ class RecvCmd(baseapp.Cmd):
     """
 
     examples = trt.Unicode("""
-        Search today's emails:
-            %(cmd_chain)s --after today "IP-10-AAA-2017-1003"
+        - Search today's emails::
+              %(cmd_chain)s --after today "IP-10-AAA-2017-1003"
 
-        Just view (not validate) emails on some date:
-            %(cmd_chain)s --on "28 Feb 2018"  --raw
+        - Just view (not validate) emails on some date::
+              %(cmd_chain)s --on "28 Feb 2018"  --raw
 
-        Other search formats:
-            %(cmd_chain)s --after "1 year ago" --before "18 March 2017"
-            %(cmd_chain)s --after "yesterday" --search 'From "foo@bar.com"'
+        - Other search formats::
+              %(cmd_chain)s --after "1 year ago" --before "18 March 2017"
+              %(cmd_chain)s --after "yesterday" --search 'From "foo@bar.com"'
 
-        Wait for new mails to arrive (and not to block console),
-        on Linux:
-            %(cmd_chain)s --wait &
-            ## wait...
-            kill %%1  ## Asumming this was the only job started.
+        - Wait for new mails to arrive (and not to block console),
+          - on Linux::
+                %(cmd_chain)s --wait &
+                ## wait...
+                kill %%1  ## Asumming this was the only job started.
 
-        On Windows:
-            START \\B %(cmd_chain)s --wait
+          - on Windows::
+                START \\B %(cmd_chain)s --wait
 
-        and kill with `TASKLIST/TASKKILL or with "Task Manager" GUI.
+            and kill with one of:
+              - `[Ctrl+Beak]` or `[Ctrl+Pause]` keystrokes,
+              - `TASKLIST/TASKKILL` console commands, or
+              - with the "Task Manager" GUI.
     """)
 
     wait = trt.Bool(
         False,
         help="""
-        Whether to wait reading IMAP for any email(s) satisfying the criteria and report them.
+            Whether to wait reading IMAP for any email(s) satisfying the criteria and report them.
 
-        WARN:
-          Process must be killed afterwards, so start it in the background (see examples).
-        NOTE:
-          Development flag, use `co2dice project trecv` cmd for type-aprooval.
+            WARN:
+              Process must be killed afterwards, so start it in the background (see examples).
+              On Windows try:
+                - `[Ctrl+Beak]` or `[Ctrl+Pause]` keystrokes,
+                - `TASKLIST/TASKKILL` console commands, or
+                - with the "Task Manager" GUI.
+
+            Note:
+              Development flag, use `co2dice project trecv` cmd for type-aprooval.
         """
     ).tag(config=True)
 

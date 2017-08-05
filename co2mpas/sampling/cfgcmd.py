@@ -127,17 +127,18 @@ class ConfigCmd(baseapp.Cmd):
     """
 
     examples = trt.Unicode("""
-        Ask help on parameters affecting the source of the configurations:
-            %(cmd_chain)s desc config_paths persist_path
+        - Ask help on parameters affecting the source of the configurations::
+              %(cmd_chain)s desc config_paths persist_path
 
-        Show config-param values for all params containing word "mail":
-            %(cmd_chain)s show  --versbose  mail
-        Show values originating from files:
-            %(cmd_chain)s show  --source file
+        - Show config-param values for all params containing word "mail"::
+              %(cmd_chain)s show  --versbose  mail
 
-        Show configuration paths:
-            %(cmd_chain)s paths
-        """)
+        - Show values originating from files::
+              %(cmd_chain)s show  --source file
+
+        - Show configuration paths::
+              %(cmd_chain)s paths
+    """)
 
     def __init__(self, **kwds):
             super().__init__(
@@ -162,12 +163,12 @@ class WriteCmd(baseapp.Cmd):
         appname=baseapp.APPNAME))
 
     examples = trt.Unicode("""
-        Generate a config-file at your home folder:
-            %(cmd_chain)s ~/my_conf
+        - Generate a config-file at your home folder::
+              %(cmd_chain)s ~/my_conf
 
-        To re-use the generated custom config-file alone, use the option
-            --config-paths=~/my_conf  ...
-        """)
+        - To re-use the generated custom config-file alone, use the option::
+              --config-paths=~/my_conf  ...
+    """)
 
     def run(self, *args):
         ## Prefer to modify `classes` after `initialize()`, or else,
@@ -284,19 +285,19 @@ class ShowCmd(baseapp.Cmd):
     """
 
     examples = trt.Unicode("""
-        View all "merged" configuration values:
-            %(cmd_chain)s
+        - View all "merged" configuration values::
+              %(cmd_chain)s
 
-        View all "default" or "in file" configuration values, respectively:
-            %(cmd_chain)s --source defaults
-            %(cmd_chain)s --s f
+        - View all "default" or "in file" configuration values, respectively::
+              %(cmd_chain)s --source defaults
+              %(cmd_chain)s --s f
 
-        View help on specific parameters:
-            %(cmd_chain)s tstamp
-            %(cmd_chain)s -e 'rec.+wait'
+        - View help on specific parameters::
+              %(cmd_chain)s tstamp
+              %(cmd_chain)s -e 'rec.+wait'
 
-        List classes matching a regex:
-            %(cmd_chain)s -ecl 'rec.*cmd'
+        - List classes matching a regex::
+              %(cmd_chain)s -ecl 'rec.*cmd'
     """)
 
     source = trt.FuzzyEnum(
@@ -507,28 +508,28 @@ class DescCmd(baseapp.Cmd):
     """
 
     examples = trt.Unicode(r"""
-    LIST:
-        %(cmd_chain)s --list         # List configurable parameters.
-        %(cmd_chain)s -l --class     # List configurable classes.
-        %(cmd_chain)s -l --verbose   # List config params in all hierarchy.
+        - Just List::
+              %(cmd_chain)s --list         # List configurable parameters.
+              %(cmd_chain)s -l --class     # List configurable classes.
+              %(cmd_chain)s -l --verbose   # List config params in all hierarchy.
 
-     Exploit the fact that <class>.<param> are separated with a dot('.):
-        %(cmd_chain)s -l Cmd.        # List commands and their own params.
-        %(cmd_chain)s -lv Cmd.       # List commands including inherited params.
-        %(cmd_chain)s -l ceiver.     # List params of TStampReceiver spec class.
-        %(cmd_chain)s -l .user       # List parameters starting with 'user' prefix.
+        -  Exploit the fact that <class>.<param> are separated with a dot('.)::
+              %(cmd_chain)s -l Cmd.        # List commands and their own params.
+              %(cmd_chain)s -lv Cmd.       # List commands including inherited params.
+              %(cmd_chain)s -l ceiver.     # List params of TStampReceiver spec class.
+              %(cmd_chain)s -l .user       # List parameters starting with 'user' prefix.
 
-     Use regular expressions (--regex):
-        %(cmd_chain)s -le  ^t.+cmd   # List params for cmds starting with 't'.
-        %(cmd_chain)s -le  date$     # List params ending with 'date'.
-        %(cmd_chain)s -le  mail.*\.  # Search 'mail' anywhere in class-names.
-        %(cmd_chain)s -le  \..*mail  # Search 'mail' anywhere in param-names.
+        -  Use regular expressions (--regex)::
+              %(cmd_chain)s -le  ^t.+cmd   # List params for cmds starting with 't'.
+              %(cmd_chain)s -le  date$     # List params ending with 'date'.
+              %(cmd_chain)s -le  mail.*\.  # Search 'mail' anywhere in class-names.
+              %(cmd_chain)s -le  \..*mail  # Search 'mail' anywhere in param-names.
 
-    HELP:
-    Do all of the above and remove -l.
-    For instance:
-        %(cmd_chain)s -c DescCmd    # View help for this cmd without its parameters.
-        %(cmd_chain)s -t Spec.      # View help sorted alphabetically
+        Tip:
+          Do all of the above and remove -l.
+          For instance::
+              %(cmd_chain)s -c DescCmd    # View help for this cmd without its parameters.
+              %(cmd_chain)s -t Spec.      # View help sorted alphabetically
     """)
 
     list = trt.Bool(

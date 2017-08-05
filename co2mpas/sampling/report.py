@@ -219,18 +219,15 @@ class ReportCmd(baseapp.Cmd):
     """
 
     examples = trt.Unicode("""
-        To extract the report-parameters from an INPUT co2mpas file, try:
+        - To extract the report-parameters from an INPUT co2mpas file, try::
+              %(cmd_chain)s --inp co2mpas_input.xlsx
 
-            %(cmd_chain)s --inp co2mpas_input.xlsx
+        - To extract the report from both INPUT and OUTPUT files, try::
+              %(cmd_chain)s --inp co2mpas_input.xlsx --out co2mpas_results.xlsx
 
-        To extract the report from both INPUT and OUTPUT files, try:
-
-            %(cmd_chain)s --inp co2mpas_input.xlsx --out co2mpas_results.xlsx
-
-        To view the report of the *current-project*, try:
-
-            %(cmd_chain)s --project
-        """)
+        - To view the report of the *current-project*, try::
+              %(cmd_chain)s --project
+    """)
 
     inp = trt.List(
         trt.Unicode(),
