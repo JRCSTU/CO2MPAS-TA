@@ -546,6 +546,101 @@ ac22O9+e8ELvVv/XfVhHcU6ginw6oBWnkzHs59+pPBXK+mOVodo2H6TzVRNFF84Y
 ct0p7ZWQqb7xn2Q3IFuU/vOiUTc5XZTnrpUr5QkHV00IMOnPnvSnag==
 =QXAM
 -----END PGP SIGNATURE-----
+"""), (
+    None,
+    942924, {
+        'hexnum': 'B006192C9D64D265F59A58C29A7C95E71BC80324',
+        'percent': 0,
+        'decision': 'OK',
+    }, {
+        'trust_text': 'TRUST_FULLY',
+    }, {
+        'trust_text': 'TRUST_ULTIMATE',
+        'project': 'FT-12-ABC-2016-0001',
+        'project_source': 'report',
+        'vehicle_family_id': 'RL-99-BM3-2017-0001',
+    },
+""" #@IgnorePep8
+-----BEGIN PGP SIGNED MESSAGE-----
+
+########################################################
+_stamp_version: 1.0.0
+#
+# This is a proof of posting certificate from
+# stamper.itconsult.co.uk certifying that a user
+# claiming to be:-
+#     ankostis@gmail.com
+# requested that this message be sent to:-
+#     kostis.anagnostopoulos@ext.ec.europa.eu
+#     ankostis@gmail.com
+#
+# This certificate was issued at 18:55 (GMT)
+# on Saturday 04 February 2017 with reference 0942924
+#
+# CAUTION: while the message may well be from the sender
+#          indicated in the "From:" header, the sender
+#          has NOT been authenticated by this service
+#
+# For information about the Stamper service see
+#        http://www.itconsult.co.uk/stamper.htm
+#
+########################################################
+
+
+object a1875e2a105c594da67e3e899ca153a1a1d38924
+type commit
+tag dices/FT-12-ABC-2016-0001/8
+tagger Kostis <ankostis@gmail.com> 1486234422 +0100
+
+- - {v: 1.0.0, a: drep 2 files, p: FT-12-ABC-2016-0001, s: tagged}
+- - {file: input.xlsx, iokind: inp, project: RL-99-BM3-2017-0001}
+- - file: output-longer_than-usual-file-012325336475546776.xlsx
+  iokind: out
+  project: RL-99-BM3-2017-0001
+  content_type: dice_report
+  content:
+    vehicle_family_id: [RL-99-BM3-2017-0001, null]
+    CO2MPAS_version: [1.5.0.dev1, null]
+    datetime: ['2017/01/29-23:42:41', null]
+    TA_mode: [true, null]
+    CO2MPAS_deviation: [-4.14, null]
+    Vehicle: [vehicle-H, vehicle-L]
+    fuel_type: [diesel, diesel]
+    engine_capacity: [997, 997]
+    gear_box_type: [automatic, automatic]
+    engine_is_turbo: [true, true]
+    Model_scores: [vehicle-H, vehicle-L]
+    alternator_model: [4.56, null]
+    at_model: [-0.95, null]
+    clutch_torque_converter_model: [4.71, null]
+    co2_params: [0, null]
+    engine_cold_start_speed_model: [18.74, null]
+    engine_coolant_temperature_model: [0.59, null]
+    engine_speed_model: [0.02, 91.36]
+    start_stop_model: [-0.99, null]
+- -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iJwEAAEIAAYFAliWIzYACgkQsSTJmcu7Uv+apgQAlos9dvBlBrBxPaAfyoc5W0E3
+I+Xnk2pyJRtlWLdxM91JP8FuhAh6jaIE9BQUznMv5u+GSJ7zZ+6x9XnI56jxSi1R
+DIfPzigZsstD4v2X7ltu7DXkXHlwbfOKH+CjzmyZm+WKVh/jlX9jN6c444iqKlhe
+/yYUReezAO9BlbOw/xU=
+=nI2k
+- -----END PGP SIGNATURE-----
+
+-----BEGIN PGP SIGNATURE-----
+Version: 2.6.3i
+Charset: noconv
+Comment: Stamper Reference Id: 0942924
+
+iQEVAgUBWJYjhYGVnbVwth+BAQH8uAf9FEVu6OxDsmlfGtI1H3CdWpn90Z61hFjD
+4wwhXu4ULCEZ8ZU+13vhEKSa3YvsmMzrVFMB0dE2JieFllraOs4P+0aenD76XFPg
+zY30ZtlzW62nGaJYXMuBWI/yz+WGGwGEF0qY+wJpV88rStQHaTej/XFGufHRnOoF
+VuyNXVCEQ7Ml719QBKjuYmCdD/kH2fPp7xwouuMmevuEv/zFzp7nPdt2mxOXT/VL
+ac22O9+e8ELvVv/XfVhHcU6ginw6oBWnkzHs59+pPBXK+mOVodo2H6TzVRNFF84Y
+ct0p7ZWQqb7xn2Q3IFuU/vOiUTc5XZTnrpUr5QkHV00IMOnPnvSnag==
+=QXAM
+-----END PGP SIGNATURE-----
 """),
 ]
 

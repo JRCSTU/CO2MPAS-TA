@@ -1039,6 +1039,7 @@ class TstampReceiver(TstampSpec):
         ver = stamper_auth.verify_clearsigned(mail_text)
         verdict = vars(ver)
         verdict['stamp_ver'] = stamp_ver
+        verdict['mail_text'] = mail_text
         if not ver:
             errmsg = "Cannot verify timestamp-response's signature due to: %s"
             gpg_msg = ver.status or crypto.filter_gpg_stderr(ver.stderr)
@@ -1081,6 +1082,8 @@ class TstampReceiver(TstampSpec):
                 raise CmdException(str(ex))
             else:
                 self.log.error(str(ex))
+
+        mail_text = ts_verdict['mail_text']
 
         if not ts_verdict.get('valid'):
             self.log.warning(
