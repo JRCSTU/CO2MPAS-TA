@@ -664,7 +664,29 @@ class TstampSender(TstampSpec):
 _stamper_id_regex = re.compile(r"Comment:\s+Stamper\s+Reference\s+Id:\s+(\d+)")
 _stamper_banner_regex = re.compile(r"^#{56}\r?\n(?:^#[^\n]*\n)+^#{56}\r?\n\r?\n(.*)",
                                    re.MULTILINE | re.DOTALL)  # @UndefinedVariable
-_stamp_version_regex = re.compile(r"\bstamp-version: (\d+.\d+.\d)\r*\n")
+
+#: If it exists in some tstamp, it signifies new "randomized" dice routine.
+#: If it start with undescore(_), the full line must be removed prior verification.
+_stamp_version_regex = re.compile(r"\b(_)?stamp_version: (\d+\.\d+\.\d+)[ \t\r]*\n")
+
+
+def _should_extract_stamp_version_line(match: 're.Match') -> bool:
+    return bool(match.group(1))
+
+def extract_any_stamp_version_line(mail_text: Text) -> (Text, Text):
+    """
+    :return
+        ``(stamp_ver, text_without_ver_line)`` where `stamp_ver`
+        possibly None
+    """
+    stamp_ver = None
+    m = _stamp_version_regex.search(mail_text)
+    if m:
+        stamp_ver = m.group(2)
+        if _should_extract_stamp_version_line(m):
+            mail_text = _stamp_version_regex.sub('', mail_text)
+
+    return mail_text, stamp_ver
 
 
 class TstampReceiver(TstampSpec):
@@ -1008,26 +1030,11 @@ class TstampReceiver(TstampSpec):
                     "incompatible stamp-version '%s', expected <= '%s.%s.x'" %
                     (stamp_ver, prog_ver[0], prog_ver[1]))
 
-    def _extract_any_stamp_version_line(self, mail_text: Text) -> (Text, Text):
-        """
-        :return
-            ``(stamp_ver, text_without_ver_line)`` where `stamp_ver`
-            possibly None
-        """
-        stamp_ver = None
-        m = _stamp_version_regex.search(mail_text)
-        if m:
-            stamp_ver = m.group(0)
-            self._validate_stamp_version(stamp_ver)
-            mail_text = _stamp_version_regex.sub('', mail_text)
-
-        return mail_text, stamp_ver
-
     def _verify_tstamp(self, mail_text: Text) -> OrderedDict:
         """return verdict or raise if tstamp invalid"""
         stamper_auth = crypto.get_stamper_auth(self.config)
 
-        mail_text, stamp_ver = self._extract_any_stamp_version_line(mail_text)
+        mail_text, stamp_ver = extract_any_stamp_version_line(mail_text)
 
         ver = stamper_auth.verify_clearsigned(mail_text)
         verdict = vars(ver)
