@@ -253,7 +253,7 @@ class ReportCmd(baseapp.Cmd):
     @property
     def projects_db(self):
         p = project.ProjectsDB.instance(config=self.config)
-        p.config = self.config
+        p.update_config(self.config)
         return p
 
     def __init__(self, **kwds):

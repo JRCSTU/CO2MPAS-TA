@@ -1513,12 +1513,16 @@ class _SubCmd(baseapp.Cmd):
     @property
     def projects_db(self) -> ProjectsDB:
         p = ProjectsDB.instance(config=self.config)
-        p.config = self.config
+        p.update_config(self.config)  # Above is not enough, if already inited.
+
         return p
 
     @property
     def current_project(self) -> Project:
-        return self.projects_db.current_project()
+        p = self.projects_db.current_project()
+        p.update_config(self.config)  # TODO: drop when project de-zygotized.
+
+        return p
 
     def _format_result(self, concise, long, *, is_verbose=None):
         is_verbose = self.verbose if is_verbose is None else is_verbose
