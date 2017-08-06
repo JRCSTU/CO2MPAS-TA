@@ -190,6 +190,13 @@ def filter_gpg_stderr(stderr: Text) -> Text:
                        if not msg.startswith('reading options'))
 
 
+def gpg_timestamp(ts: Union[Text, int]) -> Text:
+    from datetime import datetime
+
+    if isinstance(ts, str):
+        ts = int(ts)
+    return datetime.fromtimestamp(ts).isoformat()
+
 class GpgSpec(baseapp.Spec):
     """
     Configurable parameters for instantiating a GnuPG instance

@@ -1038,6 +1038,7 @@ class TstampReceiver(TstampSpec):
 
         ver = stamper_auth.verify_clearsigned(mail_text)
         verdict = vars(ver)
+        ## Note: not `stamp_version` not to kick mail-detection routine.
         verdict['stamp_ver'] = stamp_ver
         verdict['mail_text'] = mail_text
         if not ver:
@@ -1126,12 +1127,26 @@ class TstampReceiver(TstampSpec):
 
         #self.log.info("Timestamp sig did not verify: %s", _mydump(tag_verdict))
         dice_results = [
+            ('stamp_ver', ts_verdict.get('stamp_ver') or '0.0.0')
+        ]
+        if tag_name:
+            dice_results.appenf(('tag', tag_name))
+        else:
+            dice_results.append(('project', tag_verdict.get('project')))
+        if 'username' in tag_verdict:
+            dice_results.append(('issuer', tag_verdict['username']))
+        if 'timestamp' in tag_verdict:
+            dice_results.append(('issue_date',
+                                 crypto.gpg_timestamp(tag_verdict['timestamp'])))
+        if 'timestamp' in ts_verdict:
+            dice_results.append(('dice_date',
+                                 crypto.gpg_timestamp(ts_verdict['timestamp'])))
+        dice_results.extend([
             ('hexnum', '%X' % num),
             ('percent', dice100),
             ('decision', decision),
-        ]
-        if tag_name:
-            dice_results.insert(0, ('tag', tag_name))
+        ])
+
         return OrderedDict([
             ('tstamp', ts_verdict),
             ('report', tag_verdict),
