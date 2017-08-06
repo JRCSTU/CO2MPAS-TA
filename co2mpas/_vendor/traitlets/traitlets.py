@@ -612,7 +612,7 @@ class TraitType(BaseDescriptor):
     def error(self, obj, value):
         if obj is not None:
             e = "The value of `%s.%s` trait must be %s, but was %r." \
-                % (class_of(obj), self.name, self.info(), value)
+                % (type(obj).__name__, self.name, self.info(), value)
         else:
             e = "The value of '%s' trait must be %s, but was %r." \
                 % (self.name, self.info(), value)
@@ -1553,11 +1553,10 @@ class ClassBasedTraitType(TraitType):
             msg = '%s (i.e. %s)' % ( str( kind )[1:-1], repr( value ) )
 
         if obj is not None:
-            e = "The '%s' trait of %s instance must be %s, but a value of %s was specified." \
-                % (self.name, class_of(obj),
-                   self.info(), msg)
+            e = "The '%s.%s' trait must be %s, but a value of %s was specified." \
+                % (type(obj).__name__, self.name, self.info(), msg)
         else:
-            e = "The '%s' trait must be %s, but a value of %r was specified." \
+            e = "The '%s' trait must be %s, but a value of %s was specified." \
                 % (self.name, self.info(), msg)
 
         raise TraitError(e)
