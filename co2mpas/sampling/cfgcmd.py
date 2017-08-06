@@ -225,11 +225,19 @@ class PathsCmd(baseapp.Cmd):
         from . import crypto
 
         sep = osp.sep
+        l2_yaml_list_sep = '\n    - '
+
+        def sterilize(func, fallback=None):
+            try:
+                return func()
+            except Exception as ex:
+                return "<%s due to: %r>" % (fallback or 'invalid', ex)
 
         def format_tuple(path, files: List[Text]):
             endpath = sep if path[-1] != sep else ''
-            return '    +--%s%s: %s' % (path, endpath, files or '')
+            return '    - %s%s: %s' % (path, endpath, files or '')
 
+        # TODO: paths not valid YAML!  ...and renable TC.
         yield "PATHS:"
         yield "  co2dice_path: %s" % osp.dirname(__file__)
         yield "  python_path: %s" % sys.prefix
@@ -242,10 +250,16 @@ class PathsCmd(baseapp.Cmd):
         yield "  python_version: %s" % sys.version
 
         yield "CONFIG:"
-        yield "  config_paths: %s" % self.config_paths_resolved
+        config_paths = l2_yaml_list_sep.join([''] + self.config_paths_resolved)
+        yield "  config_paths:%s" % (config_paths or 'null')
         yield "  persist_path: %s" % self.persist_file_resolved
-        yield "  LOADED_CONFIGS:"
-        yield from (format_tuple(p, f) for p, f in self.loaded_config_files)
+
+        loaded_cfgs = self.loaded_config_files
+        if loaded_cfgs:
+            yield "  LOADED_CONFIGS:"
+            yield from (format_tuple(p, f) for p, f in self.loaded_config_files)
+        else:
+            yield "  LOADED_CONFIGS: null"
 
         yield "PROJECTS:"
         repo = project.ProjectsDB.instance(config=self.config)
@@ -256,9 +270,10 @@ class PathsCmd(baseapp.Cmd):
         gnupgexe = gpg.gnupgexe_resolved
         yield "  gnupgexe: %s" % gnupgexe
         yield "  gnupghome: %s" % gpg.gnupghome_resolved
-        yield "  master_key: %s" % gpg.master_key_resolved
+        master_key = sterilize(lambda: gpg.master_key_resolved)
+        yield "  master_key: %s" % master_key
         for cmd, lines in self._collect_gpg_paths(gnupgexe):
-            yield "  gpgconf %s:" % cmd
+            yield ("  gpgconf%s: |" % cmd[1:]).replace('-', '_')
             for line in lines:
                 yield "    %s" % line
 

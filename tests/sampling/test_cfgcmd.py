@@ -7,20 +7,33 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
+from co2mpas.sampling import cfgcmd
+from co2mpas.sampling.baseapp import pump_cmd, collect_cmd
 import logging
 import os
-import subprocess as sbp
 import unittest
 
 import ddt
 
 import os.path as osp
+import subprocess as sbp
+
 
 init_logging(level=logging.DEBUG)
 
 log = logging.getLogger(__name__)
 
 mydir = osp.dirname(__file__)
+
+class T(unittest.TestCase):
+
+    @unittest.expectedFailure
+    def test_paths_valid_yaml(self):
+        import yaml
+        res = collect_cmd(cfgcmd.PathsCmd().run())
+        ystr = '\n'.join(res)
+
+        yaml.load(ystr)
 
 
 @ddt.ddt
