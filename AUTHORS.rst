@@ -6,4 +6,5 @@
     - Victor Valverde <victor.valverde-morales@ec.europa.eu>
     - Jelica Pavlovic <jelica.pavlovic@ec.europa.eu>
     - Dimitrios Komnos <dimitrios.komnos@ext.ec.europa.eu>
+    - Ignacio Iker Prado Rujas <Ignacio-Iker.Prado-Rujas@ext.ec.europa.eu>
     - Kostis Anagnostopoulos <kostis.anagnostopoulos@ext.ec.europa.eu>
