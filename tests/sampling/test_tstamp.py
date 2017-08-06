@@ -791,6 +791,32 @@ base32(tag): |=0A=\r
                 self.assertEqual(ntext, text, case)
             self.assertEqual(nver, ver, case)
 
+    def test_num_to_decision(self):
+        import random
+
+        rnd = random.Random(0)
+        pgp_sig_id_nbytes = 20
+        max_sig_id = 2 ** (8 * pgp_sig_id_nbytes) - 1
+
+        sig_ids = [rnd.randint(0, max_sig_id)
+                   for _ in range(10_000)]
+        stats = Counter(tstamp.num_to_dice100(sig_id, True)[1]
+                            for sig_id in sig_ids)
+
+        print('\n    %10s' % 'NEW_DICE100')
+        print('\n'.join('%2s: %10s' % p for p in stats.items()))
+
+        limit = 90
+        def make_prcnt(counter):
+            ge_limit = sum(v
+                           for k, v in counter.items()
+                           if k >= limit)
+            return ge_limit / sum(counter.values())
+
+        pcrnt = make_prcnt(stats)
+        print('%s-prcnt: %.6f' % (limit, pcrnt))
+        self.assertAlmostEqual(0.1, pcrnt, 2)
+
     def test_tranfer_encoders_map(self):
         enc_map = tstamp._make_send_transfer_encoders_map()
         self.assertEqual(len(set(enc_map)), 7, enc_map)
