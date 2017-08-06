@@ -55,6 +55,9 @@ The Dice:
   - renamed ``email_criteria-->rfc-criteria``, enhancing their syntax help;
   - ``tstamp parse`` can guess if a "naked" dice-reports tags is given
     (specify ``--tag`` to be explicit).
+  - improve ``(t)parse`` command's ``dice`` printout to include project/issuer/dates &
+    stampver
+
 - fix(tstamp): BCC-addresses were treated as CCs; ``--raw`` STDOUT was corrupted;
   emails received
 - fix(project, :ghp:`18`): fix ``co2dice project export`` command not to include
