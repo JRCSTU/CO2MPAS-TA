@@ -1126,21 +1126,28 @@ class TstampReceiver(TstampSpec):
         decision = 'OK' if dice100 < 90 else 'SAMPLE'
 
         #self.log.info("Timestamp sig did not verify: %s", _mydump(tag_verdict))
-        dice_results = [
-            ('stamp_ver', ts_verdict.get('stamp_ver') or '0.0.0')
-        ]
+        dice_results = []
+
+        stamp_ver = ts_verdict.get('stamp_ver')
+        if stamp_ver:
+            dice_results.append(('stamp_ver', stamp_ver))
+
         if tag_name:
-            dice_results.appenf(('tag', tag_name))
+            dice_results.append(('tag', tag_name))
         else:
             dice_results.append(('project', tag_verdict.get('project')))
+
         if 'username' in tag_verdict:
             dice_results.append(('issuer', tag_verdict['username']))
+
         if 'timestamp' in tag_verdict:
             dice_results.append(('issue_date',
                                  crypto.gpg_timestamp(tag_verdict['timestamp'])))
+
         if 'timestamp' in ts_verdict:
             dice_results.append(('dice_date',
                                  crypto.gpg_timestamp(ts_verdict['timestamp'])))
+
         dice_results.extend([
             ('hexnum', '%X' % num),
             ('percent', dice100),
