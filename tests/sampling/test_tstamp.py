@@ -772,8 +772,12 @@ base32(tag): |=0A=\r
 class TstampShell(unittest.TestCase):
     """Set ``CO2DICE_CONFIG_PATHS`` and optionally HOME env appropriately! to run"""
 
-    def test_parse_txt_copied_tstamp(self):
-        ret = sbp.check_call('co2dice tstamp parse tstamp-txt_copied.txt',
+    def test_parse_tstamp_file(self):
+        ret = sbp.check_call('co2dice tstamp parse tstamp.txt',
+                             cwd=mydir)
+
+    def test_parse_tag_file(self):
+        ret = sbp.check_call('co2dice tstamp parse tag.txt',
                              cwd=mydir)
         self.assertEqual(ret, 0)
 
