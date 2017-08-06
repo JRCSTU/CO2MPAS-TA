@@ -9,7 +9,6 @@
 from co2mpas.__main__ import init_logging
 from co2mpas.sampling import tstamp, crypto
 import logging
-import os
 from pprint import pformat as pf
 import shutil
 import subprocess as sbp
@@ -20,6 +19,7 @@ import ddt
 
 import os.path as osp
 from co2mpas._vendor.traitlets import config as trtc
+from co2mpas.sampling.baseapp import collect_cmd
 
 from . import test_pgp_fingerprint, test_pgp_keys, test_pgp_trust
 from collections import Counter
@@ -918,6 +918,26 @@ base32(tag): |=0A=\r
         for k, v in enc_map.items():
             if v is not None:
                 self.assertTrue(callable(v), (k, v))
+
+    @ddt.data(
+        ('tstamp.txt', 0),
+        ('tstamp-new.txt', 0),
+        ('tag.txt', 1),
+    )
+    def test_parse_out(self, case):
+        fname, keys_indx = case
+        cmd = tstamp.ParseCmd(config=self.cfg)
+        res = collect_cmd(cmd.run(osp.join(mydir, fname)))
+
+        substrings = [
+            ['tag', 'issuer', 'issue_date', 'dice_date',
+             'hexnum', 'percent', 'decision'],
+            ['project', 'project_source']
+       ]
+        print(res, 'L')
+        for k in substrings[keys_indx]:
+            tail = res[-500:]
+            self.assertIn('%s: ' % k, tail, (k, tail))
 
 
 @ddt.ddt

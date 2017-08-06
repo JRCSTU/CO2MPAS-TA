@@ -1051,6 +1051,8 @@ class TstampReceiver(TstampSpec):
     def extract_dice_tag_name(self, subject: str, msg: str) -> str:
         """Extract `dices/IP-12-WMI-1234/0` strings either from Subject or Body. """
         for place, txt in [('Subject-line', subject), ('email-Body', msg)]:
+            if not txt:
+                continue
             try:
                 tag_name = self.dicetag_regex.search(txt).group()
                 self.log.debug("Extracted tag-name '%s' from %s.",
@@ -1058,8 +1060,8 @@ class TstampReceiver(TstampSpec):
                 return tag_name
             except Exception as ex:
                 self.log.warning(
-                    "Failed extracting tag-name from Subject-line '%s' due to: %r",
-                    subject, ex, exc_info=self.verbose)
+                    "Failed extracting tag-name from %s due to: %r",
+                    place, ex, exc_info=self.verbose)
 
     def parse_tstamp_response(self, mail_text: Text, tag_name: str=None) -> int:
         ## TODO: Could use dispatcher to parse tstamp-response, if failback routes were working...
@@ -1132,6 +1134,8 @@ class TstampReceiver(TstampSpec):
         if stamp_ver:
             dice_results.append(('stamp_ver', stamp_ver))
 
+        if not tag_name:
+            tag_name = self.extract_dice_tag_name(None, mail_text)
         if tag_name:
             dice_results.append(('tag', tag_name))
         else:
