@@ -17,13 +17,16 @@ The Dice:
 
       After July 27 2017 you cannot use test-key for official runs!
 
-      If you still want to run an experiment, set `GpgSpec.allow_test_key` to
-      True.
+      Generate a new key, and remember to re-encrypt your passwords with it.
+      If you still want to run an experiment, add `--GpgSpec.allow_test_key=True`
+      command-line option.
 
   You have to modify your configurations and set ``GpgSpec.master_key`` to your
-  generated key.
-- feat(config): dice commands won't start without config-file(s); remember to
+  newly-generated key, and **re-encrypt your passowords in persist file.**
+
+- feat(config): dice commands would complain if config-file(s) missing; remember to
   transfer your configurations from your old AIO (with all changes needed).
+
 - feat(AIO): prepare for installing AIO in *multi-user/shared* environments;
   the important environment variable is ``HOME`` (read ``[AIO]/.co2mpad_env.bat``
   file and run ``co2dice config paths`` command).  Enhanced ``Cmd.config_paths``
@@ -45,9 +48,13 @@ The Dice:
   - add ``TstampSender.scramble_tag`` & ``TstampReceiver.un_quote_printable``
     options for dealing with non-ASCII dice-reports.
 
-- feat(tstamp): add ``--subject``, ``--on`` and ``--wiat-criteria`` options for
-  search criteria on the ``tstamp recv`` and ``project trecv`` subcmds, renamed
-  ``email_criteria-->rfc-criteria``, enhancing their syntax.
+- feat(report): print out the key used to sign dice-report.
+- feat(tstamp):
+  - add ``--subject``, ``--on`` and ``--wait-criteria`` options for
+  search criteria on the ``tstamp recv`` and ``project trecv`` subcmds;
+  - renamed ``email_criteria-->rfc-criteria``, enhancing their syntax help;
+  - ``tstamp parse`` can guess if a "naked" dice-reports tags is given
+    (specify ``--tag`` to be explicit).
 - fix(tstamp): BCC-addresses were treated as CCs; ``--raw`` STDOUT was corrupted;
   emails received
 - fix(project, :ghp:`18`): fix ``co2dice project export`` command not to include
