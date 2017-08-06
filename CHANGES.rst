@@ -59,6 +59,7 @@ The Dice:
   emails received
 - fix(project, :ghp:`18`): fix ``co2dice project export`` command not to include
   dices from all projects.
+- feat(project): store verbatim tstamp-email along with verdict.
 - refact(git): compatible-bump of dice-report format-version: ``1.0.0-->1.0.1``.
 - feat(log): possible to modify selectively logging output with
   ``~/logconf.yaml`` file;  generally improve error handling and logging of

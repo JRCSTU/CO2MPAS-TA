@@ -766,10 +766,8 @@ class Project(transitions.Machine, ProjectSpec):
         """
         from . import tstamp
 
+        tstamp_txt = _evarg(event, 'tstamp_txt', str)
         verdict = _evarg(event, 'verdict', dict, missing_ok=True)
-        tstamp_txt = _evarg(event, 'tstamp_txt', str, missing_ok=True)
-        # TODO: assert for future, when single prep/ trans.
-        ##assert (verdict is None) ^ (tstamp_txt is None), (verdict, tstamp_txt)
 
         if verdict is None:
             recv = tstamp.TstampReceiver(config=self.config)
@@ -786,11 +784,13 @@ class Project(transitions.Machine, ProjectSpec):
         ## TODO: **On commit, set arbitrary files to store (where? name?)**.
         repo = self.repo
         index = repo.index
-        tstamp_fpath = osp.join(repo.working_tree_dir, 'tstamp.txt')
-        with io.open(tstamp_fpath, 'wt') as fp:
-            res = _mydump(verdict)
-            fp.write(res)
-        index.add([tstamp_fpath])
+        new_files = [('tstamp.txt', tstamp_txt),
+                     ('verdict.txt', _mydump(verdict))]
+        for new_path, text in new_files:
+            new_fpath = osp.join(repo.working_tree_dir, new_path)
+            with io.open(new_fpath, 'wt') as fp:
+                fp.write(text)
+            index.add([new_fpath])
 
         event.kwargs['report'] = list(verdict.get('dice', {}).items())
 
@@ -1448,7 +1448,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         if refname in repo.refs:
             ## TODO: Check if dice moved!!
             proj = self.proj_open(pname)
-            return proj.do_storedice(verdict=verdict)
+            return proj.do_storedice(tstamp_txt=mail_text, verdict=verdict)
         else:
             ## TODO: build_registry
             self.log.warning("Foreign dice-reports are discarded.")
@@ -2090,7 +2090,7 @@ class TrecvCmd(TparseCmd):
                 if is_foreign:
                     projDB.append_foreign_dice(all_infos)
                 else:
-                    proj.do_storedice(verdict=verdict)
+                    proj.do_storedice(tstamp_txt=mail_text, verdict=verdict)
 
                 ## Respect --verbose and --email-infos for print-outs.
                 infos = rcver.get_recved_email_infos(mail, verdict)
