@@ -1481,26 +1481,25 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             else:
                 fields = ['is_current', 'msg.s']
 
-        pnames = iset(self.current_project().pname if p == '.' else p
+        cpname = self.current_project().pname
+        pnames = iset(cpname if p == '.' else p
                       for p in pnames)
         for ref in _yield_project_refs(repo, *pnames):
             pname = _ref2pname(ref)
             if not as_text and not verbose:
-                yield pname
-
-            infos = self._scan_infos(pname=pname, fields=fields, inv_value='<invalid>')
-            if verbose:
-                infos = OrderedDict(infos)
-                to_yield = {pname: infos}
-                if as_text:
-                    to_yield = _mydump(to_yield, default_flow_style=False)
+                to_yield = pname
             else:
-                if as_text:
+                infos = self._scan_infos(pname=pname, fields=fields,
+                                         inv_value='<invalid>')
+                if verbose:
+                    infos = OrderedDict(infos)
+                    to_yield = {pname: infos}
+                    if as_text:
+                        to_yield = _mydump(to_yield, default_flow_style=False)
+                else:
                     i = dict(infos)
                     to_yield = '%s %s: %s' % (i['is_current'] and '*' or ' ',
                                               pname, i['msg.s'])
-                else:
-                    to_yield = pname
 
             yield to_yield
 
