@@ -1277,7 +1277,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
     def repo_status(self, verbose=None, as_text=False):
         """
-        Examine infos bout the projects-db.
+        Examine infos about the projects-db.
 
         :retun: text message with infos.
         """

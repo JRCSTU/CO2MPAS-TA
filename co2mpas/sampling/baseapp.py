@@ -973,6 +973,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
 
         return cmd_chain
 
+    # TODO: drop most of cmd-chain inheritance logic - class one is enough.
     @trt.observe('parent', 'conf_classes', 'cmd_aliases', 'cmd_flags', 'subapp')
     def _inherit_parent_cmd(self, change):
         """ Inherit config-related stuff from up the cmd-chain. """
