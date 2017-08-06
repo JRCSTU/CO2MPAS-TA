@@ -8,13 +8,14 @@
 
 from co2mpas.__main__ import init_logging
 from co2mpas.sampling import baseapp, crypto, dice, project, PFiles
+from co2mpas.sampling.baseapp import pump_cmd, collect_cmd
 
 import logging
 import os
 import shutil
 import tempfile
 from tests._tutils import chdir
-from tests.sampling import (test_inp_fpath, test_out_fpath,
+from tests.sampling import (test_inp_fpath, test_out_fpath, test_vfid,
                             test_pgp_fingerprint, test_pgp_keys, test_pgp_trust)
 import unittest
 
@@ -139,6 +140,7 @@ class TProjectsDBStory(unittest.TestCase):
         c.GpgSpec.allow_test_key = True
         c.DiceSpec.user_name = "Test Vase"
         c.DiceSpec.user_email = "test@vase.com"
+        c.Project.force = True
 
         crypto.GpgSpec(config=c)
 
@@ -160,171 +162,164 @@ class TProjectsDBStory(unittest.TestCase):
         c.Spec.verbose = c.ProjectsDB.verbose = 0
         return c
 
-    def _check_infos_shapes(self, proj, pname=None):
-        res = proj.repo_status(pname=pname, verbose=0)
-        self.assertEqual(len(res), 7, res)
+    def _check_infos_shapes(self, proj):
+        res = proj.repo_status(verbose=0)
+        self.assertEqual(len(res), 12, res)
 
-        res = proj.repo_status(pname=pname, verbose=1)
-        self.assertEqual(len(res), 14, res)
+        res = proj.repo_status(verbose=1)
+        self.assertEqual(len(res), 19, res)
 
-        res = proj.repo_status(pname=pname, verbose=2)
-        self.assertEqual(len(res), 33, res)
+        res = proj.repo_status(verbose=2)
+        self.assertEqual(len(res), 39, res)
 
     def test_1a_empty_list(self):
-        cmd = project.LsCmd(config=self._config)
-        res = cmd.run()
-        self.assertIsNone(res)
+        cfg = self._config
+        cmd = project.LsCmd(config=cfg)
+        with self.assertRaisesRegex(baseapp.CmdException,
+                                    r"No current-project exists yet!"):
+            pump_cmd(cmd.run())
         self.assertIsNone(cmd.projects_db._current_project)
 
-        pdb = project.ProjectsDB.instance(config=self._config)
-        pdb.update_config(self._config)
+        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb.update_config(cfg)
 
-        res = pdb.proj_list(verbose=1)
-        self.assertIsNone(res)
+        with self.assertRaisesRegex(baseapp.CmdException,
+                                    r"No current-project exists yet!"):
+            pump_cmd(pdb.proj_list(verbose=1))
         self.assertIsNone(pdb._current_project)
 
-        res = pdb.proj_list(verbose=2)
-        self.assertIsNone(res)
+        with self.assertRaisesRegex(baseapp.CmdException,
+                                    r"No current-project exists yet!"):
+            pump_cmd(pdb.proj_list(verbose=2))
         self.assertIsNone(pdb._current_project)
 
     def test_1b_empty_infos(self):
-        cmd = project.StatusCmd(config=self._config)
-        res = cmd.run()
+        cfg = self._config
+        cmd = project.StatusCmd(config=cfg)
+        res = collect_cmd(cmd.run())
         self.assertIsNotNone(res)
         self.assertIsNone(cmd.projects_db._current_project)
 
-        pdb = project.ProjectsDB.instance(config=self._config)
-        pdb.update_config(self._config)
+        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb.update_config(cfg)
         self._check_infos_shapes(pdb)
         self.assertIsNone(pdb._current_project)
 
-    def test_1c_empty_cwp(self):
-        cmd = project.LsCmd(config=self._config)
-        with self.assertRaisesRegex(baseapp.CmdException, r"No current-project exists yet!"):
-            cmd.run()
-        self.assertIsNone(cmd.projects_db._current_project)
-
     def test_2a_add_project(self):
-        cmd = project.InitCmd(config=self._config)
-        pname = 'foo'
-        res = cmd.run(pname)
+        cfg = self._config
+        cmd = project.InitCmd(config=cfg)
+        pname = proj1
+        res = collect_cmd(cmd.run(pname))
         self.assertIsInstance(res, project.Project)
         self.assertEqual(res.pname, pname)
         self.assertEqual(res.state, 'empty')
 
-        cmd = project.LsCmd(config=self._config)
-        res = cmd.run()
-        self.assertEqual(str(res), '* foo: empty')
+        cmd = project.LsCmd(config=cfg)
+        res = collect_cmd(cmd.run())
+        self.assertEqual(str(res), '* %s: empty' % proj1)
 
     def test_2b_list(self):
-        cmd = project.LsCmd(config=self._config)
-        res = cmd.run()
-        self.assertEqual(res, ['* foo'])
+        cfg = self._config
+        cmd = project.LsCmd(config=cfg)
+        res = collect_cmd(cmd.run())
+        self.assertEqual(res, '* %s: empty' % proj1)
 
-        pdb = project.ProjectsDB.instance(config=self._config)
-        pdb.update_config(self._config)
+        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb.update_config(cfg)
 
-        res = pdb.proj_list(verbose=1)
-        self.assertIsInstance(res, pd.DataFrame)
-        self.assertEqual(res.shape, (1, 7), res)
-        self.assertIn('* foo', str(res))
+        res = collect_cmd(pdb.proj_list(verbose=1))
+        self.assertIsInstance(res, dict)
+        self.assertIn(proj1, res)
+        self.assertEqual(len(next(iter(res.values()))), 13, res)
 
-        res = pdb.proj_list(verbose=2)
-        self.assertIsInstance(res, pd.DataFrame)
-        self.assertEqual(res.shape, (1, 7), res)
-        self.assertIn('* foo', str(res))
+        res = collect_cmd(pdb.proj_list(verbose=2))
+        self.assertIsInstance(res, dict)
+        self.assertIn(proj1, res)
+        self.assertEqual(len(next(iter(res.values()))), 17, res)
 
     def test_2c_default_infos(self):
-        cmd = project.StatusCmd(config=self._config)
-        res = cmd.run()
-        self.assertRegex(res, 'msg.project += foo')
+        cfg = self._config
+        cmd = project.StatusCmd(config=cfg)
+        res = collect_cmd(cmd.run())
+        self.assertIn(proj1, res)
 
-        pdb = project.ProjectsDB.instance(config=self._config)
-        pdb.update_config(self._config)
+        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb.update_config(cfg)
         self._check_infos_shapes(pdb)
 
     def test_3a_add_same_project__fail(self):
-        cmd = project.InitCmd(config=self._config)
-        with self.assertRaisesRegex(baseapp.CmdException, r"Project 'foo' already exists!"):
-            cmd.run('foo')
+        cfg = self._config
+        cmd = project.InitCmd(config=cfg)
+        with self.assertRaisesRegex(baseapp.CmdException,
+                                    r"Project '%s' already exists!" % proj1):
+            pump_cmd(cmd.run(proj1))
 
-        cmd = project.LsCmd(config=self._config)
+        cmd = project.LsCmd(config=cfg)
         res = list(cmd.run('.'))
-        self.assertEqual(res, ['* foo'])
-
-    @ddt.data('sp ace', '%fg', '1ffg&', 'kung@fu')
-    def test_3b_add_bad_project__fail(self, pname):
-        cmd = project.InitCmd(config=self._config)
-        with self.assertRaisesRegex(baseapp.CmdException, "Invalid name '%s' for a project!" % pname):
-            cmd.run(pname)
-
-        cmd = project.LsCmd(config=self._config)
-        res = list(cmd.run('.'))
-        self.assertEqual(res, ['  foo'])
+        self.assertEqual(res, ['* %s: empty' % proj1])
 
     def test_4a_add_another_project(self):
-        pname = 'bar'
-        cmd = project.InitCmd(config=self._config)
-        res = cmd.run(pname)
+        cfg = self._config
+        pname = proj2
+        cmd = project.InitCmd(config=cfg)
+        res = collect_cmd(cmd.run(pname))
         self.assertIsInstance(res, project.Project)
         self.assertEqual(res.pname, pname)
         self.assertEqual(res.state, 'empty')
 
-        cmd = project.LsCmd(config=self._config)
-        res = cmd.run('.')
-        self.assertEqual(str(res), '* %s: empty' % pname)
+        cmd = project.LsCmd(config=cfg)
+        res = collect_cmd(cmd.run('.'))
+        self.assertEqual(res, '* %s: empty' % pname)
 
     def test_4b_list_projects(self):
-        cmd = project.LsCmd(config=self._config)
-        res = cmd.run('.')
-        self.assertSequenceEqual(res, ['* bar', '  foo'])
+        cfg = self._config
+        cmd = project.LsCmd(config=cfg)
+        res = collect_cmd(cmd.run('.'))
+        self.assertEqual(res, '* %s: empty' % proj2)
 
-        pdb = project.ProjectsDB.instance(config=self._config)
-        pdb.update_config(self._config)
+        cmd = project.LsCmd(config=cfg)
+        res = collect_cmd(cmd.run())
+        self.assertSequenceEqual(res, [
+            '* %s: empty' % proj2,
+            '  %s: empty' % proj1])
 
-        res = pdb.proj_list(verbose=1)
-        self.assertIsInstance(res, pd.DataFrame)
-        self.assertEqual(res.shape, (2, 7), res)
-        self.assertIn('* bar', str(res))
+        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb.update_config(cfg)
 
-        res = pdb.proj_list(verbose=2)
-        self.assertIsInstance(res, pd.DataFrame)
-        self.assertEqual(res.shape, (2, 7), res)
-        self.assertIn('* bar', str(res))
+        res = collect_cmd(pdb.proj_list(verbose=1))
+        for ires in res:
+            self.assertIsInstance(ires, dict)
+            self.assertTrue(proj1 in ires or proj2 in ires, ires)
+            self.assertEqual(len(next(iter(ires.values()))), 13, ires)
 
-    def test_4c_default_infos(self):
-        cmd = project.StatusCmd(config=self._config)
-        res = cmd.run()
-        self.assertRegex(res, 'msg.project += bar')
-
-        pdb = project.ProjectsDB.instance(config=self._config)
-        pdb.update_config(self._config)
-        self._check_infos_shapes(pdb)
-
-    def test_4d_forced_infos(self):
-        cmd = project.StatusCmd(config=self._config)
-        res = cmd.run('foo')
-        self.assertRegex(res, 'msg.project += bar')
-
-        pdb = project.ProjectsDB.instance(config=self._config)
-        pdb.update_config(self._config)
-        self._check_infos_shapes(pdb, 'foo')
+        res = collect_cmd(pdb.proj_list(verbose=2))
+        for ires in res:
+            self.assertIsInstance(ires, dict)
+            self.assertTrue(proj1 in ires or proj2 in ires, ires)
+            self.assertEqual(len(next(iter(ires.values()))), 17, ires)
 
     def test_5_open_other(self):
-        pname = 'foo'
+        cfg = self._config
+        pname = proj1
+
         cmd = project.OpenCmd(config=self._config)
-        res = cmd.run(pname)
+        res = collect_cmd(cmd.run(pname))
         self.assertIsInstance(res, project.Project)
         self.assertEqual(res.pname, pname)
         self.assertEqual(res.state, 'empty')
 
-        cmd = project.LsCmd(config=self._config)
-        res = cmd.run('.')
+        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb.update_config(cfg)
+        res = collect_cmd(pdb.proj_list(pname))
+        self.assertEqual(res, pname)
+
+        cmd = project.LsCmd(config=cfg)
+        res = collect_cmd(cmd.run('.'))
         self.assertEqual(str(res), '* %s: empty' % pname)
 
-        pdb = project.ProjectsDB.instance(config=self._config)
-        pdb.update_config(self._config)
-        self._check_infos_shapes(pdb, pname)
+        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb.update_config(cfg)
+        self._check_infos_shapes(pdb)
 
     def test_6_open_non_existing(self):
         cmd = project.OpenCmd(config=self._config)
@@ -350,7 +345,8 @@ class TStraightStory(unittest.TestCase):
         c.GpgSpec.allow_test_key = True
         c.DiceSpec.user_name = "Test Vase"
         c.DiceSpec.user_email = "test@vase.com"
-        c.DiceSpec.user_email = "test@vase.com"
+        c.TstampSender.tstamper_address = 'bar@foo.com'
+        c.TstampSender.tstamp_recipients = ['foo@bar.com']
 
         crypto.GpgSpec(config=c)
 
@@ -373,39 +369,38 @@ class TStraightStory(unittest.TestCase):
         c.Spec.verbose = c.ProjectsDB.verbose = 0
         return c
 
-    def _check_infos_shapes(self, proj, pname=None):
-        res = proj.repo_status(pname=pname, verbose=0)
-        self.assertEqual(len(res), 7, res)
-
-        res = proj.repo_status(pname=pname, verbose=1)
-        self.assertEqual(len(res), 14, res)
-
-        res = proj.repo_status(pname=pname, verbose=2)
-        self.assertEqual(len(res), 33, res)
+    def test_0_show_paths(self):
+        from co2mpas.sampling import cfgcmd
+        cmd = cfgcmd.PathsCmd(config=self._config)
+        pump_cmd(cmd.run())
 
     def test_1_add_project(self):
         cmd = project.InitCmd(config=self._config)
-        pname = 'foo'
-        res = cmd.run(pname)
+        pname = test_vfid
+        res = collect_cmd(cmd.run(pname))
         self.assertIsInstance(res, project.Project)
         self.assertEqual(res.pname, pname)
         self.assertEqual(res.state, 'empty')
 
     def test_2a_import_io(self):
-        pdb = project.ProjectsDB.instance(config=self._config)
-        pdb.update_config(self._config)
+        cfg = self._config
+        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb.update_config(cfg)
         p = pdb.current_project()
 
-        cmd = project.AppendCmd(config=self._config)
-        res = cmd.run('inp=%s' % test_inp_fpath, 'out=%s' % test_out_fpath)
+        cmd = project.AppendCmd(config=cfg,
+                                inp=[test_inp_fpath],
+                                out=[test_out_fpath])
+        res = collect_cmd(cmd.run())
         self.assertTrue(res)
 
         p2 = pdb.current_project()
         self.assertIs(p, p2)
 
     def test_3_list_iofiles(self):
-        pdb = project.ProjectsDB.instance(config=self._config)
-        pdb.update_config(self._config)
+        cfg = self._config
+        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb.update_config(cfg)
         p = pdb.current_project()
 
         iof = p.list_pfiles()
@@ -416,11 +411,12 @@ class TStraightStory(unittest.TestCase):
 
     def test_4_tag(self):
         ## FIXME: Del tmp-repo denied with old pythingit.
-        pdb = project.ProjectsDB.instance(config=self._config)
-        pdb.update_config(self._config)
+        cfg = self._config
+        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb.update_config(cfg)
         p = pdb.current_project()
 
-        res = p.do_tagreport()
+        res = p.do_report()
         self.assertTrue(res)
         self.assertEqual(p.state, 'tagged')
 
@@ -428,14 +424,17 @@ class TStraightStory(unittest.TestCase):
         self.assertIs(p, p2)
 
     def test_5_send_email(self):
-        c = self._config.copy()
+        cfg = self._config
 
         persist_path = os.environ.get('TEST_TSTAMP_CONFIG_FPATH')
+        cfg.Project.dry_run = not bool(persist_path)
         if persist_path:
-            c.Cmd.persist_path = persist_path
-        pdb = project.ProjectsDB.instance(config=self._config)
-        pdb.update_config(self._config)
+            cfg.Cmd.persist_path = persist_path
+
+        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb.update_config(cfg)
         p = pdb.current_project()
+        p.update_config(cfg)
 
         pretend = not bool(persist_path)
         res = p.do_sendmail(pretend=pretend)
@@ -452,21 +451,26 @@ class TStraightStory(unittest.TestCase):
     def test_6_receive_email(self):
         from . import test_tstamp
 
-        pdb = project.ProjectsDB.instance(config=self._config)
-        pdb.update_config(self._config)
+        cfg = self._config
+        cfg.Project.dry_run = False  # modifed by prev TC.
+        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb.update_config(cfg)
         p = pdb.current_project()
+        p.update_config(cfg)
 
-        res = p.do_mailrecv(mail=test_tstamp.tstamp_responses[-1][-1])
+        res = p.do_storedice(tstamp_txt=test_tstamp.tstamp_responses[-1][-1])
         self.assertTrue(res)
-        self.assertEqual(p.state, 'dice_no')
+        self.assertEqual(p.state, 'nosample')
 
         p2 = pdb.current_project()
         self.assertIs(p, p2)
 
     def test_7_add_nedc_files(self):
-        pdb = project.ProjectsDB.instance(config=self._config)
-        pdb.update_config(self._config)
+        cfg = self._config
+        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb.update_config(cfg)
         p = pdb.current_project()
+        p.update_config(cfg)
 
         pfiles = PFiles(other=[__file__])
         res = p.do_addfiles(pfiles=pfiles)
@@ -491,23 +495,40 @@ class TInitCmd(unittest.TestCase):
         c = trtc.get_config()
         c.ProjectsDB.repo_path = self._project_repo.name
         c.Spec.verbose = c.ProjectsDB.verbose = 0
+        c.GpgSpec.master_key = 'ali baba'
+        c.DiceSpec.user_name = 'ali baba'
+        c.DiceSpec.user_email = 'ali@baba.com'
         return c
 
-    def make_new_project(self, proj):
-        cmd = project.InitCmd(config=self._config)
-        cmd.run(proj)
-
-        pdb = project.ProjectsDB.instance(config=self._config)
-        pdb.update_config(self._config)
+    def get_cwp(self):
+        cfg = self._config
+        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb.update_config(cfg)
         p = pdb.current_project()
+
+        return pdb, p
+
+    def test_init_without_files(self):
+        cmd = project.InitCmd(config=self._config)
+        pump_cmd(cmd.run(test_vfid))
+
+        pdb, p = self.get_cwp()
+
         self.assertEqual(len(list(pdb.repo.head.commit.tree.traverse())), 1, list(pdb.repo.head.commit.tree.traverse()))
 
         p.do_addfiles(pfiles=PFiles(inp=[test_inp_fpath], out=[test_out_fpath]))
-        self.assertEqual(len(list(pdb.repo.head.commit.tree.traverse())), 5, list(pdb.repo.head.commit.tree.traverse()))
+        self.assertEqual(len(list(pdb.repo.head.commit.tree.traverse())), 5,
+                         list(pdb.repo.head.commit.tree.traverse()))
 
-    def test_init_does_in_new_project(self):
-        self.make_new_project(proj1)
-        self.make_new_project(proj2)
+    def test_init_with_files(self):
+        cmd = project.InitCmd(config=self._config,
+                              inp=[test_inp_fpath], out=[test_out_fpath])
+        pump_cmd(cmd.run())
+
+        pdb, _ = self.get_cwp()
+
+        self.assertEqual(len(list(pdb.repo.head.commit.tree.traverse())), 5,
+                         list(pdb.repo.head.commit.tree.traverse()))
 
 
 class TBackupCmd(unittest.TestCase):
@@ -551,40 +572,44 @@ class TBackupCmd(unittest.TestCase):
         return c
 
     def test_backup_cwd(self):
-        project.InitCmd(config=self._config).run(proj1)
-        cmd = project.BackupCmd(config=self._config)
+        cfg = self._config
+        pump_cmd(project.InitCmd(config=cfg).run(proj1))
+        cmd = project.BackupCmd(config=cfg)
         with tempfile.TemporaryDirectory() as td:
             with chdir(td):
-                res = cmd.run()
+                res = collect_cmd(cmd.run())
                 self.assertIn(td, res)
                 self.assertIn(os.getcwd(), res)
                 self.assertTrue(osp.isfile(res), (res, os.listdir(osp.split(res)[0])))
 
     def test_backup_fullpath(self):
-        project.InitCmd(config=self._config).run(proj1)
-        cmd = project.BackupCmd(config=self._config)
+        cfg = self._config
+        pump_cmd(project.InitCmd(config=cfg).run(proj1))
+        cmd = project.BackupCmd(config=cfg)
         with tempfile.TemporaryDirectory() as td:
             archive_fpath = osp.join(td, 'foo')
-            res = cmd.run(archive_fpath)
+            res = collect_cmd(cmd.run(archive_fpath))
             self.assertIn(td, res)
             self.assertIn('foo.txz', res)
             self.assertNotIn('co2mpas', res)
             self.assertTrue(osp.isfile(res), (res, os.listdir(osp.split(res)[0])))
 
     def test_backup_folder_only(self):
-        project.InitCmd(config=self._config).run(proj2)
-        cmd = project.BackupCmd(config=self._config)
+        cfg = self._config
+        pump_cmd(project.InitCmd(config=cfg).run(proj2))
+        cmd = project.BackupCmd(config=cfg)
         with tempfile.TemporaryDirectory() as td:
             archive_fpath = td + '\\'
-            res = cmd.run(archive_fpath)
+            res = collect_cmd(cmd.run(archive_fpath))
             self.assertIn(archive_fpath, res)
             self.assertIn('co2mpas', res)
             self.assertTrue(osp.isfile(res), (res, os.listdir(osp.split(res)[0])))
 
     def test_backup_no_dir(self):
-        project.InitCmd(config=self._config).run(proj1)
-        cmd = project.BackupCmd(config=self._config)
+        cfg = self._config
+        pump_cmd(project.InitCmd(config=cfg).run(proj1))
+        cmd = project.BackupCmd(config=cfg)
         with tempfile.TemporaryDirectory() as td:
             with self.assertRaisesRegex(baseapp.CmdException,
                                         r"Folder '.+__BAD_FOLDER' to store archive does not exist!"):
-                cmd.run(osp.join(td, '__BAD_FOLDER', 'foo'))
+                pump_cmd(cmd.run(osp.join(td, '__BAD_FOLDER', 'foo')))

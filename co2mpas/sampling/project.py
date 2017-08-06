@@ -1630,7 +1630,7 @@ class OpenCmd(_SubCmd):
         projDB = self.projects_db
         proj = projDB.proj_open(args[0])
 
-        return projDB.proj_list(proj.pname, as_text=True) if self.verbose else str(proj)
+        return projDB.proj_list(proj.pname, as_text=True) if self.verbose else proj
 
 
 class AppendCmd(_SubCmd):

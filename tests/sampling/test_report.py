@@ -9,6 +9,7 @@
 from co2mpas.__main__ import init_logging
 from co2mpas._vendor.traitlets import config as trtc
 from co2mpas.sampling import CmdException, report, project, crypto
+from co2mpas.sampling.baseapp import collect_cmd, pump_cmd
 import logging
 import os
 import re
@@ -144,6 +145,11 @@ class TReportProject(TReportBase):
     def tearDownClass(cls):
         shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
 
+    def test_0_show_paths(self):
+        from co2mpas.sampling import cfgcmd
+        cmd = cfgcmd.PathsCmd(config=self.cfg)
+        pump_cmd(cmd.run())
+
     def test_fails_with_args(self):
         c = self.cfg
         with self.assertRaisesRegex(CmdException, "--project' takes no arguments, received"):
@@ -155,26 +161,28 @@ class TReportProject(TReportBase):
             c.ProjectsDB.repo_path = td
             cmd = report.ReportCmd(config=c)
             with self.assertRaisesRegex(CmdException, r"No current-project exists yet!"):
-                list(cmd.run())
+                pump_cmd(cmd.run())
 
     def test_fails_when_empty(self):
         c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
-            project.InitCmd(config=c).run(proj1)
+            pump_cmd(project.InitCmd(config=c).run(proj1))
             cmd = report.ReportCmd(config=c)
             with self.assertRaisesRegex(
                 CmdException, re.escape(
-                    r"Current Project(proj1: empty) contains no input/output files!")):
-                list(cmd.run())
+                    r"Current Project(%s: empty) contains no input/output files!"
+                    % proj1)):
+                pump_cmd(cmd.run())
 
     def test_input_output(self):
         c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
-            project.InitCmd(config=c).run(proj1)
+            pump_cmd(project.InitCmd(config=c).run(test_vfid))
 
-            project.AppendCmd(config=c).run('-i=%s' % test_inp_fpath)
+            pump_cmd(project.AppendCmd(config=c,
+                                       inp=[test_inp_fpath]).run())
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
@@ -182,21 +190,24 @@ class TReportProject(TReportBase):
             self.assertEqual(len(res), 1)
             rpt = yaml.load('\n'.join(res))
             f, rec = next(iter(rpt.items()))
-            self.assertTrue(f.endswith("tests\sampling\input.xlsx"), rpt)
-            self.check_report_tuple(rec, test_vfid, test_inp_fpath, 'inp')
+            self.assertNotIn('output.xlsx', rpt)
+            self.assertIn("input.xlsx", rpt)
+            self.check_report_tuple(rec, test_vfid, test_inp_fpath, 'inp', False)
 
-            project.AppendCmd(config=c).run('-o=%s' % test_out_fpath)
+            pump_cmd(project.AppendCmd(config=c, out=[test_out_fpath]).run())
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
             res = list(res)
             self.assertEqual(len(res), 2)
             rpt = yaml.load('\n'.join(res))
+            self.assertIn('output.xlsx', rpt)
+            self.assertIn('input.xlsx', rpt)
             for f, rec in rpt.items():
                 if f.endswith('input.xlsx'):
-                    path, iokind, rpt = "tests\sampling\input.xlsx", 'inp', None
+                    path, iokind, rpt = "input.xlsx", 'inp', False
                 elif f.endswith('output.xlsx'):
-                    path, iokind, rpt = "tests\sampling\output.xlsx", 'out', True
+                    path, iokind, rpt = "output.xlsx", 'out', True
                 self.assertTrue(f.endswith(path), rpt)
                 self.check_report_tuple(rec, test_vfid, path, iokind, rpt)
 
@@ -204,9 +215,9 @@ class TReportProject(TReportBase):
         c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
-            project.InitCmd(config=c).run(proj1)
+            pump_cmd(project.InitCmd(config=c).run(test_vfid))
 
-            project.AppendCmd(config=c, out=[test_out_fpath]).run()
+            pump_cmd(project.AppendCmd(config=c, out=[test_out_fpath]).run())
             res = report.ReportCmd(config=c).run()
             self.assertIsInstance(res, types.GeneratorType)
             res = list(res)
@@ -217,38 +228,40 @@ class TReportProject(TReportBase):
             self.assertIn("output.xlsx", rpt)
             self.check_report_tuple(rec, test_vfid, test_out_fpath, 'out', True)
 
-            project.AppendCmd(config=c, inp=[test_inp_fpath]).run()
+            pump_cmd(project.AppendCmd(config=c, inp=[test_inp_fpath]).run())
             res = report.ReportCmd(config=c).run()
             self.assertIsInstance(res, types.GeneratorType)
             res = list(res)
             self.assertEqual(len(res), 2)
             rpt = yaml.load('\n'.join(res))
+            self.assertIn('output.xlsx', rpt)
+            self.assertIn('input.xlsx', rpt)
             for f, rec in rpt.items():
                 if f == 'input.xlsx':
-                    path, iokind, rpt = "tests\sampling\input.xlsx", 'inp', None
+                    path, iokind, rpt = "tests\sampling\input.xlsx", 'inp', False
                 elif f == 'output.xlsx':
                     path, iokind, rpt = "tests\sampling\output.xlsx", 'out', True
-                self.assertIn('output.xlsx', rpt)
-                self.assertIn('input.xlsx', rpt)
                 self.check_report_tuple(rec, test_vfid, path, iokind, rpt)
 
     def test_both(self):
         c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
-            project.InitCmd(config=c).run(proj2)
+            pump_cmd(project.InitCmd(config=c).run(proj2))
 
             cmd = project.AppendCmd(config=c, inp=[test_inp_fpath], out=[test_out_fpath])
-            cmd.run()
+            pump_cmd(cmd.run())
             cmd = report.ReportCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
             res = list(res)
             self.assertEqual(len(res), 2)
             rpt = yaml.load('\n'.join(res))
+            self.assertIn('output.xlsx', rpt)
+            self.assertIn('input.xlsx', rpt)
             for f, rec in rpt.items():
                 if f.endswith('input.xlsx'):
-                    path, iokind, rpt = "input.xlsx", 'inp', None
+                    path, iokind, rpt = "input.xlsx", 'inp', False
                 elif f.endswith('output.xlsx'):
                     path, iokind, rpt = "output.xlsx", 'out', True
                 self.assertTrue(f.endswith(path), rpt)

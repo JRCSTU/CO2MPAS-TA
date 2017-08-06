@@ -195,7 +195,7 @@ def main(argv=None, **app_init_kwds):
         ## NOTE: HACK to fail early on first AIO launch.
         Cmd.configs_required = True
         cmd = Co2diceCmd.make_cmd(argv, **app_init_kwds)
-        return baseapp.consume_cmd(cmd.start()) and 0
+        return baseapp.pump_cmd(cmd.start()) and 0
     except (CmdException, trt.TraitError, transitions.MachineError) as ex:
         log.debug('App exited due to: %r', ex, exc_info=1)
         ## Suppress stack-trace for "expected" errors but exit-code(1).
@@ -252,4 +252,4 @@ if __name__ == '__main__':
     #c.Application.log_level=0
     #c.Spec.log_level='ERROR'
     #cmd = chain_cmds([Co2diceCmd, ProjectCmd, InitCmd], argv=['project_foo'])
-    # sys.exit(baseapp.consume_cmd(cmd.start()) and 0)
+    # sys.exit(baseapp.pump_cmd(cmd.start()) and 0)
