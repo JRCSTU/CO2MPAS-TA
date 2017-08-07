@@ -550,9 +550,11 @@ class TstampSender(TstampSpec):
         _, is_starttls = self._ssl_resolved
         if is_starttls:
             self.log.debug('STARTTLS...')
+            srv.ehlo()
             srv.starttls(keyfile=self.mail_kwds.get('keyfile'),
                          certfile=self.mail_kwds.get('certfile'),
                          context=None)
+            srv.ehlo()
 
         srv.noop()
 
