@@ -1129,8 +1129,6 @@ class TstampReceiver(TstampSpec):
             else:
                 self.log.error(str(ex))
 
-        mail_text = ts_verdict['mail_text']
-
         if not ts_verdict.get('valid'):
             self.log.warning(
                 tw.dedent("""
@@ -1140,7 +1138,9 @@ class TstampReceiver(TstampSpec):
                     %s
                 """), _mydump(sorted(ts_verdict.items())))
 
-        ts_parts = crypto.pgp_split_clearsigned(mail_text)
+        ## NOTE: Text may have changed if `stamp-ver` line has been deleted.
+        #  but still return the original stamp.
+        ts_parts = crypto.pgp_split_clearsigned(ts_verdict['mail_text'])
         ts_verdict['parts'] = ts_parts
         if not ts_parts:
             errlog("Cannot parse timestamp-response:"
