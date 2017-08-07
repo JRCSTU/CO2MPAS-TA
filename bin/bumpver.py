@@ -213,6 +213,9 @@ def bumpver(new_ver, dry_run=False, force=False, amend=False,
 def main(*args):
     opts = docopt.docopt(__doc__, argv=args)
 
+    new_ver = opts['<new-ver>']
+    assert new_ver[0] != 'v', "Version '%s' must NOT start with `v`!" % new_ver
+
     commit = opts['--commit']
     tag = opts['--tag']
     if tag:
@@ -223,7 +226,7 @@ def main(*args):
         tag_after_commit = None
 
     try:
-        for i in bumpver(opts['<new-ver>'],
+        for i in bumpver(new_ver,
                          opts['--dry-run'],
                          opts['--force'],
                          opts['--amend'],
