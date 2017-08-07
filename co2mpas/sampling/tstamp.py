@@ -1065,6 +1065,47 @@ class TstampReceiver(TstampSpec):
                     "Failed extracting tag-name from %s due to: %r",
                     place, ex, exc_info=self.verbose)
 
+    def _make_dice_results(self, ts_verdict, tag_verdict, tag_name):
+        num, dice100 = self._pgp_sig_to_dice100(ts_verdict['signature_id'],
+                                                ts_verdict.get('stamp_ver'))
+        decision = 'OK' if dice100 < 90 else 'SAMPLE'
+
+        #self.log.info("Timestamp sig did not verify: %s", _mydump(tag_verdict))
+        dice_results = []
+
+        stamp_ver = ts_verdict.get('stamp_ver')
+        if stamp_ver:
+            dice_results.append(('stamp_ver', stamp_ver))
+
+        if tag_name:
+            dice_results.append(('tag', tag_name))
+        else:
+            dice_results.append(('project', tag_verdict.get('project')))
+
+        issuer = crypto.uid_from_verdict(tag_verdict)
+        if issuer:
+            dice_results.append(('issuer', issuer))
+
+        if 'timestamp' in tag_verdict:
+            dice_results.append(('issue_date',
+                                 crypto.gpg_timestamp(tag_verdict['timestamp'])))
+
+        stamper = crypto.uid_from_verdict(ts_verdict)
+        if stamper:
+            dice_results.append(('stamper', stamper))
+
+        if 'timestamp' in ts_verdict:
+            dice_results.append(('dice_date',
+                                 crypto.gpg_timestamp(ts_verdict['timestamp'])))
+
+        dice_results.extend([
+            ('hexnum', '%X' % num),
+            ('percent', dice100),
+            ('decision', decision),
+        ])
+
+        return OrderedDict(dice_results)
+
     def parse_tstamp_response(self, mail_text: Text, tag_name: str=None) -> int:
         ## TODO: Could use dispatcher to parse tstamp-response, if failback routes were working...
         import textwrap as tw
@@ -1125,45 +1166,15 @@ class TstampReceiver(TstampSpec):
             else:
                 tag_verdict = self.parse_signed_tag(tag)
 
-        num, dice100 = self._pgp_sig_to_dice100(ts_verdict['signature_id'],
-                                                ts_verdict.get('stamp_ver'))
-        decision = 'OK' if dice100 < 90 else 'SAMPLE'
-
-        #self.log.info("Timestamp sig did not verify: %s", _mydump(tag_verdict))
-        dice_results = []
-
-        stamp_ver = ts_verdict.get('stamp_ver')
-        if stamp_ver:
-            dice_results.append(('stamp_ver', stamp_ver))
-
         if not tag_name:
             tag_name = self.extract_dice_tag_name(None, mail_text)
-        if tag_name:
-            dice_results.append(('tag', tag_name))
-        else:
-            dice_results.append(('project', tag_verdict.get('project')))
 
-        if 'username' in tag_verdict:
-            dice_results.append(('issuer', tag_verdict['username']))
-
-        if 'timestamp' in tag_verdict:
-            dice_results.append(('issue_date',
-                                 crypto.gpg_timestamp(tag_verdict['timestamp'])))
-
-        if 'timestamp' in ts_verdict:
-            dice_results.append(('dice_date',
-                                 crypto.gpg_timestamp(ts_verdict['timestamp'])))
-
-        dice_results.extend([
-            ('hexnum', '%X' % num),
-            ('percent', dice100),
-            ('decision', decision),
-        ])
+        dice_results = self._make_dice_results(ts_verdict, tag_verdict, tag_name)
 
         return OrderedDict([
             ('tstamp', ts_verdict),
             ('report', tag_verdict),
-            ('dice', OrderedDict(dice_results)),
+            ('dice', dice_results),
         ])
 
     def choose_server_class(self):
@@ -1875,6 +1886,12 @@ class ParseCmd(baseapp.Cmd):
                     verdict = rcver.parse_signed_tag(mail_text)
                 else:
                     verdict = rcver.parse_tstamp_response(mail_text)
+
+                if not self.verbose:
+                    from toolz import dicttoolz as dtz
+
+                    verdict = dtz.keyfilter(lambda k: k == 'dice',
+                                            verdict)
 
                 if file != '-':
                     verdict['fpath'] = file
