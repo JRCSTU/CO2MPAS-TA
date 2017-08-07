@@ -238,7 +238,7 @@ class PathsCmd(baseapp.Cmd):
             return '    - %s%s: %s' % (path, endpath, files or '')
 
         # TODO: paths not valid YAML!  ...and renable TC.
-        yield "PATHS:"
+        yield "APP:"
         yield "  co2dice_path: %s" % osp.dirname(__file__)
         yield "  python_path: %s" % sys.prefix
 
@@ -261,9 +261,14 @@ class PathsCmd(baseapp.Cmd):
         else:
             yield "  LOADED_CONFIGS: null"
 
-        yield "PROJECTS:"
-        repo = project.ProjectsDB.instance(config=self.config)
-        yield "  repopath: %s" % repo.repopath_resolved
+        var_names = """AIODIR HOME HOMEDRIVE HOMEPATH USERPROFILE
+                     CO2DICE_CONFIG_PATHS CO2DICE_PERSIST_PATH
+                     TRAITLETS_APPLICATION_RAISE_CONFIG_FILE_ERROR
+                     GNUPGHOME GNUPGKEY GNUPGEXE
+                     GIT_PYTHON_GIT_EXECUTABLE GIT_PYTHON_TRACE GIT_TRACE"""
+        yield "ENV_VARS:"
+        for vname in var_names.split():
+            yield "  %s: %s" % (vname, os.environ.get(vname))
 
         yield "GPG:"
         gpg = crypto.GpgSpec(config=self.config)
@@ -277,14 +282,16 @@ class PathsCmd(baseapp.Cmd):
             for line in lines:
                 yield "    %s" % line
 
-        var_names = """AIODIR HOME HOMEDRIVE HOMEPATH USERPROFILE
-                     CO2DICE_CONFIG_PATHS CO2DICE_PERSIST_PATH
-                     TRAITLETS_APPLICATION_RAISE_CONFIG_FILE_ERROR
-                     GNUPGHOME GNUPGKEY GNUPGEXE
-                     GIT_PYTHON_GIT_EXECUTABLE GIT_PYTHON_TRACE GIT_TRACE"""
-        yield "ENV_VARS:"
-        for vname in var_names.split():
-            yield "  %s: %s" % (vname, os.environ.get(vname))
+        import git
+        import shutil
+
+        yield "PROJECTS:"
+        git_exe = os.environ.get('GIT_PYTHON_GIT_EXECUTABLE', 'git')
+        git_exe = shutil.which(git_exe)
+        yield "  git_exe: %s" % git_exe
+
+        repo = project.ProjectsDB.instance(config=self.config)
+        yield "  repo_path: %s" % repo.repopath_resolved
 
 
 class ShowCmd(baseapp.Cmd):
