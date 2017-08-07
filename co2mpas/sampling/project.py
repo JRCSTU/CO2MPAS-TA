@@ -1022,8 +1022,8 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                             s = s[prefix]
                         s[sec][cname] = citem
         except Exception as ex:
-            self.log.info('Failed reading git-settings on %s.%s due to: %s',
-                          sec, cname, ex, exc_info=1)
+            self.log.error('Failed reading git-settings on %s.%s due to: %r',
+                           sec, cname, ex, exc_info=self.verbose)
             raise
         return settings
 
@@ -1064,8 +1064,8 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             try:
                 rmtree(self.repo_path)
             except Exception as ex:
-                self.log.error("Failed erasing Repo '%s'due to: %s",
-                               self.repo_path, ex, exc_info=1)
+                self.log.error("Failed erasing Repo '%s'due to: %r",
+                               self.repo_path, ex, exc_info=self.verbose)
 
         return archive_fpath
 
@@ -1322,8 +1322,8 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             except TraitError:
                 raise
             except Exception as ex:
-                self.log.warning("Failure while getting current-project: %s",
-                                 ex, exc_info=1)
+                self.log.warning("Failure while getting current-project: %r",
+                                 ex, exc_info=self.verbose)
 
         if not self._current_project:
                 raise CmdException(tw.dedent("""
@@ -2067,8 +2067,8 @@ class TrecvCmd(TparseCmd):
                 warn("[%s]%s: parsing tstamp-email stopped due to: %s", uid, mid, ex)
             except Exception as ex:
                 verdict = ex
-                error("[%s]%s: parsing tstamp-email failed due to: %s",
-                      uid, mid, ex, exc_info=1)
+                error("[%s]%s: parsing tstamp-email failed due to: %r",
+                      uid, mid, ex, exc_info=self.verbose)
 
             ## Store full-verdict (verbose).
             all_infos = rcver.get_recved_email_infos(
@@ -2110,7 +2110,7 @@ class TrecvCmd(TparseCmd):
             except Exception as ex:
                 email_dump = _mydump({'[%s]%s' % (uid, mid): all_infos},
                                      default_flow_style=default_flow_style)
-                error('[%s]%s: storing %ststamp failed due to: %r\n  email: \n%s',
+                error('[%s]%s: storing %ststamp failed due to: %s\n  email: \n%s',
                       uid, mid, "foreign " if is_foreign else '', ex,
                       tw.indent(email_dump, '    '), exc_info=1)
 
@@ -2272,8 +2272,8 @@ class ImportCmd(_SubCmd):
                         yield 'unpacked: %s' % path
 
                 except Exception as ex:
-                    self.log.error("Error while importing from '%s: %s",
-                                   ex, exc_info=1)
+                    self.log.error("Error while importing from '%s: %r",
+                                   f, ex, exc_info=self.verbose)
                 else:
                     repo.delete_remote(remname)
 

@@ -1817,8 +1817,8 @@ class RecvCmd(baseapp.Cmd):
                                          uid, mid, ex)
                     except Exception as ex:
                         verdict = ex
-                        self.log.error("[%s]%s: parsing tstamp failed due to: %s",
-                                       uid, mid, ex, exc_info=1)
+                        self.log.error("[%s]%s: parsing tstamp failed due to: %r",
+                                       uid, mid, ex, exc_info=self.verbose)
 
                 infos = rcver.get_recved_email_infos(mail, verdict)
 
@@ -1905,12 +1905,12 @@ class ParseCmd(baseapp.Cmd):
                     verdict['fpath'] = file
             except CmdException as ex:
                 verdict = ex
-                self.log.warning("%s: parsing tstamp failed due to: %s",
+                self.log.warning("Failed parsing tstamp '%s' due to: %s",
                                  file, ex)
             except Exception as ex:
                 verdict = ex
-                self.log.error("%s: parsing tstamp failed due to: %s",
-                               file, ex, exc_info=1)
+                self.log.error("Failed parsing tstamp '%s' due to: %r",
+                               file, ex, exc_info=self.verbose)
             else:
                 yield _mydump(verdict, default_flow_style=default_flow_style)
 
