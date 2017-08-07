@@ -256,7 +256,7 @@ class ProjectSpec(dice.DiceSpec):
         verdict = git_auth.verify_git_signed(report.encode())
         assert verdict, _mydump(vars(verdict))
 
-        return '%s: %s' % (verdict.key_id, verdict.username)
+        return crypto.uid_from_verdict(verdict)
 
 
 class Project(transitions.Machine, ProjectSpec):

@@ -197,6 +197,31 @@ def gpg_timestamp(ts: Union[Text, int]) -> Text:
         ts = int(ts)
     return datetime.fromtimestamp(ts).isoformat()
 
+
+def _key_or_attr(obj, key):
+    value = None
+    try:
+        value = obj[key]
+    except:  # @IgnorePep8
+        pass
+
+    if not value:
+        try:
+            value = getattr(obj, key, None)
+        except:  # @IgnorePep8
+            pass
+
+    return value
+
+
+def uid_from_verdict(verdict: Union[dict, any]) -> Text:
+    """Return ``"ABCCCDED: user name <email@dot.com>"``, partial infos or empty-str"""
+    vals = [_key_or_attr(verdict, k) for k in ('key_id', 'username')]
+    vals = [v for v in vals if v]
+
+    return ': '.join(v for v in vals if v)
+
+
 class GpgSpec(baseapp.Spec):
     """
     Configurable parameters for instantiating a GnuPG instance

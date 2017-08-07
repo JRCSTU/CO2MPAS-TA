@@ -79,6 +79,47 @@ def _temp_master_key(vault, master_key):
         vault.master_key = oldkey
 
 
+@ddt.ddt
+class TFuncs(unittest.TestCase):
+
+    @ddt.data(
+        ((None, None), ''),
+        (('', None), ''),
+        (('', ''), ''),
+        ((None, ''), ''),
+
+        (('a', None), 'a'),
+        (('a', 'b'), 'a: b'),
+        ((None, 'b'), 'b'),
+    )
+    def test_uid_from_verdict(self, case):
+        from toolz import dicttoolz as dtz
+
+        inp, out = case
+
+        class C:
+            def __init__(self, d):
+                self.__dict__ = d
+
+        def _check(verdict):
+            got = crypto.uid_from_verdict(verdict)
+            self.assertEqual(got, out)
+
+            got = crypto.uid_from_verdict(C(verdict))
+            self.assertEqual(got, out)
+
+            verdict = dtz.valfilter(lambda v: bool(v), verdict)
+
+            got = crypto.uid_from_verdict(verdict)
+            self.assertEqual(got, out)
+
+            got = crypto.uid_from_verdict(C(verdict))
+            self.assertEqual(got, out)
+
+        _check(dict(zip(['key_id', 'username'], inp)))
+        _check(dict(zip(['foo', 'key_id', 'username'], ('bar', ) + inp)))
+
+
 class TGpgSpecBinary(unittest.TestCase):
     ## Separate class for no classSetUp/ClassTearDown methods.
 
@@ -99,7 +140,7 @@ class TGpgSpecBinary(unittest.TestCase):
 
         ## Restore default.
         importlib.reload(crypto)
-#
+
 
 _clearsigned_msgs = [
     # MSG,     CLEARSIGNED
@@ -536,6 +577,7 @@ class TVaultSpec(unittest.TestCase):
                     vault.decryptobj('enc_test', chiphered)
         finally:
             vault.GPG.delete_keys(key.fingerprint, secret=0)
+
 
 class TestKey(unittest.TestCase):
 
