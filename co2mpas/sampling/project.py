@@ -1329,9 +1329,9 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                 raise CmdException(tw.dedent("""
                         No current-project exists yet!"
                         Try opening an existing project, with:
-                            co2mpas project open <project-name>
+                            co2mpas project open
                         or create a new one, with:
-                            co2mpas project init <project-name>
+                            co2mpas project init
                         """))
 
         return self._current_project
