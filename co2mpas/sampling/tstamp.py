@@ -1666,13 +1666,27 @@ class SendCmd(baseapp.Cmd):
                     self.log.error("File to timestamp '%s' not found!", file)
                     continue
 
-                self.log.info("Timestamping '%s'...", pndlu.convpath(file))
-                with io.open(file, 'rt') as fin:
-                    mail_text = fin.read()
+                try:
+                    with io.open(file, 'rt') as fin:
+                        mail_text = fin.read()
+                except Exception as ex:
+                    self.log.error(
+                        "Reading file to timestamp '%s' failed due to: %r",
+                        file, ex, exc_info=self.verbose)
+                    continue
 
-            mail = sender.send_timestamped_email(mail_text, dry_run=self.dry_run)
-            if self.verbose or self.dry_run:
-                return str(mail)
+            self.log.info("Timestamping '%s'...", pndlu.convpath(file))
+
+            try:
+                mail = sender.send_timestamped_email(mail_text, dry_run=self.dry_run)
+                if self.verbose or self.dry_run:
+                    return str(mail)
+            except CmdException as ex:
+                self.log.error("Timestamping file '%s' stopped due to: %s", 
+                               ex, file, exc_info=1)  # one-off event, must not loose ex.
+            except Exception as ex:
+                self.log.error("Timestamping file '%s' failed due to: %r", 
+                               ex, file, exc_info=1)  # one-off event, must not loose ex.
 
 
 class MailboxCmd(baseapp.Cmd):
@@ -1882,12 +1896,18 @@ class ParseCmd(baseapp.Cmd):
                     self.log.error("File to parse '%s' not found!", file)
                     continue
 
-                with io.open(file, 'rt') as fin:
-                    mail_text = fin.read()
+                try:
+                    with io.open(file, 'rt') as fin:
+                        mail_text = fin.read()
+                except Exception as ex:
+                    self.log.error(
+                        "Reading file to parse '%s' failed due to: %r",
+                        file, ex, exc_info=self.verbose)
+                    continue
 
             is_parse_tag = self._is_parse_tag(mail_text)
-            self.log.info("Parsing input as %s...",
-                          'TAG' if is_parse_tag else 'STAMP')
+            self.log.info("Parsing file '%s' as %s...",
+                          file, 'TAG' if is_parse_tag else 'STAMP')
 
             try:
                 if is_parse_tag:
