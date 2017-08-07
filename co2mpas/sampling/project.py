@@ -2130,14 +2130,24 @@ class ExportCmd(_SubCmd):
     - The archive created is named `CO2MPAS_projects-<timestamp>`.
     - If the `--erase-afterwards` is given on the *current-project*,
       you must then select another one, with `project open` command.
-      For that, f '.' is given, it deletes the *current*, and if no args given,
+      For that, if '.' is given, it deletes the *current*, and if no args given,
       it DELETES ALL projects.
     """
     erase_afterwards = trt.Bool(
         help="Will erase all archived projects from repo."
     ).tag(config=True)
 
+    out = trt.CUnicode(
+        help="""
+        The filepath of the resulting zip archive to create.
+
+        If undefined, generates one based on the current date-time like
+        `CO2MPAS_projects-<timestamp>`.  Specifying the extension is not needed.
+        """
+    ).tag(config=True)
+
     def __init__(self, **kwds):
+        self.cmd_aliases.update({('o', 'out'): 'ExportCmd.out'})
         self.cmd_flags.update({
             'erase-afterwards': (
                 {type(self).__name__: {'erase_afterwards': True}},
@@ -2168,7 +2178,7 @@ class ExportCmd(_SubCmd):
         self.log.info('Exporting %s --> %s...', args, tuple(pnames))
 
         now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
-        zip_name = '%s-%s' % ("CO2MPAS_projects", now)
+        zip_name = self.out or '%s-%s' % ("CO2MPAS_projects", now)
         with tempfile.TemporaryDirectory(prefix='co2mpas_export-') as tdir:
             exdir = osp.join(tdir, 'repo')
             exrepo = git.Repo.init(exdir, bare=True)
@@ -2185,7 +2195,7 @@ class ExportCmd(_SubCmd):
                             continue
                         tags = list(_yield_dices_tags(repo, p))
 
-                        ## Note: Cannot use --tags, ALL TAGS fetched!
+                        ## Note: Cannot use --tag, ALL TAGS fetched!
                         fetch_infos = rem.fetch([pp] + tags)
 
                         ## Create local branches in exrepo
