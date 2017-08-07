@@ -1950,7 +1950,10 @@ class TparseCmd(_SubCmd):
             self.log.info("Reading STDIN; paste message verbatim!")
             mail_text = sys.stdin.read()
         else:
-            self.log.debug("Reading '%s'...", pndlu.convpath(file))
+            if not osp.exists(file):
+                raise CmdException("File to parse '%s' not found!" % file)
+
+            self.log.info("Reading '%s'...", pndlu.convpath(file))
             with io.open(file, 'rt') as fin:
                 mail_text = fin.read()
 

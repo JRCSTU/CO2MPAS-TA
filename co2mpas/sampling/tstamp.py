@@ -8,6 +8,7 @@
 from collections import (
     defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
 import io
+import os.path as osp
 import random
 import re
 import sys
@@ -1661,6 +1662,10 @@ class SendCmd(baseapp.Cmd):
                 self.log.info("Timestamping STDIN; paste message verbatim!")
                 mail_text = sys.stdin.read()
             else:
+                if not osp.exists(file):
+                    self.log.error("File to timestamp '%s' not found!", file)
+                    continue
+
                 self.log.info("Timestamping '%s'...", pndlu.convpath(file))
                 with io.open(file, 'rt') as fin:
                     mail_text = fin.read()
@@ -1873,7 +1878,10 @@ class ParseCmd(baseapp.Cmd):
                 self.log.info("Parsing STDIN; paste message verbatim!")
                 mail_text = sys.stdin.read()
             else:
-                self.log.info("Parsing '%s'...", pndlu.convpath(file))
+                if not osp.exists(file):
+                    self.log.error("File to parse '%s' not found!", file)
+                    continue
+
                 with io.open(file, 'rt') as fin:
                     mail_text = fin.read()
 
