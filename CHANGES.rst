@@ -60,8 +60,17 @@ The Dice:
 
 - fix(tstamp): BCC-addresses were treated as CCs; ``--raw`` STDOUT was corrupted;
   emails received
-- fix(project, :ghp:`18`): fix ``co2dice project export`` command not to include
-  dices from all projects.
+- ``co2dice project export``:
+  - fix(:ghp:`18`): fix command not to include dices from all projects.
+  - feat(:gh:`423`, :gh:`435`): add ``--out`` option to set the out-fpath
+    of the archive, and the ``--erase-afterwards`` to facilitate starting a
+    project.
+
+    .. Note::
+      Do not (ab)use ``project export --erase-afterwards`` on diced projects.
+
+  - feat(:gh:`423`, :gh:`435`): add ``--out`` option to set the out-fpath.
+
 - feat(project): store verbatim tstamp-email along with verdict.
 - refact(git): compatible-bump of dice-report format-version: ``1.0.0-->1.0.1``.
 - feat(log): possible to modify selectively logging output with
@@ -92,13 +101,6 @@ Known Limitations
 - Some combinations of outbound & inbound accounts for dice reports and timsestamps
   may not work due to `DMARC restrictions <https://en.wikipedia.org/wiki/DMARC>`_.
   JRC will offer more alternative "paths" for running Dices.
-- :gh:`423`: The `co2dice project export` may silently fail under certain circumstances
-  (still under investigation) - in these case you will receive the following warning::
-
-      WARNI:git.remote:Error lines received while fetching: error: pthread_join failed
-      From /c/Apps/co2mpas_AIO-1.6.3/CO2MPAS/.co2dice/repo/
-
-  In that case, use ``co2dice project backup`` alternative.
 
 
 Datasync
