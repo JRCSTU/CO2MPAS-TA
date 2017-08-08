@@ -2163,6 +2163,7 @@ class ExportCmd(_SubCmd):
         import tempfile
         import git
         from git.util import rmtree
+        import re
 
         repo = self.projects_db.repo
         cur_pname = repo.active_branch and _ref2pname(repo.active_branch)
@@ -2179,6 +2180,7 @@ class ExportCmd(_SubCmd):
 
         now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
         zip_name = self.out or '%s-%s' % ("CO2MPAS_projects", now)
+        zip_name = re.sub('.zip$', '', zip_name, re.I)
 
         ## NOTE: Create "clone" next to projects repo,
         #  because paths for *remotes* in MSYS2 DO NOT WORK!!
