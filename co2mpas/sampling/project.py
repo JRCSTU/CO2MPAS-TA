@@ -2168,6 +2168,7 @@ class ExportCmd(_SubCmd):
         import git
         from git.util import rmtree
         import re
+        from ..utils import chdir
 
         repo = self.projects_db.repo
         cur_pname = repo.active_branch and _ref2pname(repo.active_branch)
@@ -2186,17 +2187,17 @@ class ExportCmd(_SubCmd):
         zip_name = self.out or '%s-%s' % ("CO2MPAS_projects", now)
         zip_name = re.sub('.zip$', '', zip_name, re.I)
 
-        ## NOTE: Create "clone" next to projects repo,
-        #  because paths for *remotes* in MSYS2 DO NOT WORK!!
-        arch_repo_path = osp.join(repo.working_dir, '..')
-        with tempfile.TemporaryDirectory(prefix='co2mpas_export-',
-                                         dir=arch_repo_path) as tdir:
-            exdir = osp.join(tdir, 'repo')
-            arch_repo = git.Repo.init(exdir, bare=True)
-            remname = osp.join(repo.working_dir, '.git')
+        ## NOTE: Create arch-repo clone next to project-repo,
+        #  because local-paths for *remotes* in CYGWIN/MSYS2 DO NOT WORK!!
+        arch_repo_parentdir = osp.join(repo.working_dir, '..')
+        with chdir(arch_repo_parentdir), tempfile.TemporaryDirectory(
+                prefix='co2mpas_export-', dir='.') as tdir:
+            arch_dir = osp.join(tdir, 'repo')
+            arch_repo = git.Repo.init(arch_dir, bare=True)
+            rem_url = osp.join('..', '..', osp.basename(repo.working_dir))
             any_exported = False
             try:
-                rem = arch_repo.create_remote('origin', remname)
+                rem = arch_repo.create_remote('origin', rem_url)
                 try:
                     ## `rem` pointing to my (.co2dice) repo.
 
@@ -2263,7 +2264,7 @@ class ExportCmd(_SubCmd):
             finally:
                 arch_repo.__del__()
                 del arch_repo
-                rmtree(exdir)
+                rmtree(arch_dir)
 
 
 class ImportCmd(_SubCmd):
