@@ -2216,44 +2216,46 @@ class ExportCmd(_SubCmd):
                                 arch_repo.create_head(path, fi.ref)
                             yield 'packed: %s' % path
 
-                    root_dir, base_dir = osp.split(arch_repo.working_dir)
-                    yield 'Archive: %s' % shutil.make_archive(
-                        base_name=zip_name, format='zip',
-                        base_dir=base_dir,
-                        root_dir=root_dir)
-
-                    if self.erase_afterwards:
-                        for p in pnames:
-                            tref = _tname2ref_name(p)
-                            for t in list(repo.tags):
-                                if t.name.startswith(tref):
-                                    yield "del tag: %s" % t.name
-                                    repo.delete_tag(t)
-
-                            pbr = repo.heads[_pname2ref_name(p)]
-                            yield "del branch: %s" % pbr.name
-
-                            ## Cannot del checked-out branch!
-                            #
-                            ok = False
-                            try:
-                                if pbr == repo.active_branch:
-                                    if 'tmp' not in repo.heads:
-                                        repo.create_head('tmp')
-                                    repo.heads.tmp.checkout(force=True)
-
-                                repo.delete_head(pbr, force=True)
-                                ok = True
-                            finally:
-                                if not ok:
-                                    pbr.checkout(pbr)
-
                     if not any_exported:
                         raise CmdException(
                             "Nothing exported for these arguments: %s" %
                             args)
+
                 finally:
                     arch_repo.delete_remote(rem)
+
+                root_dir, base_dir = osp.split(arch_repo.working_dir)
+                yield 'Archive: %s' % shutil.make_archive(
+                    base_name=zip_name, format='zip',
+                    base_dir=base_dir,
+                    root_dir=root_dir)
+
+                if self.erase_afterwards:
+                    for p in pnames:
+                        tref = _tname2ref_name(p)
+                        for t in list(repo.tags):
+                            if t.name.startswith(tref):
+                                yield "del tag: %s" % t.name
+                                repo.delete_tag(t)
+
+                        pbr = repo.heads[_pname2ref_name(p)]
+                        yield "del branch: %s" % pbr.name
+
+                        ## Cannot del checked-out branch!
+                        #
+                        ok = False
+                        try:
+                            if pbr == repo.active_branch:
+                                if 'tmp' not in repo.heads:
+                                    repo.create_head('tmp')
+                                repo.heads.tmp.checkout(force=True)
+
+                            repo.delete_head(pbr, force=True)
+                            ok = True
+                        finally:
+                            if not ok:
+                                pbr.checkout(pbr)
+
             finally:
                 arch_repo.__del__()
                 del arch_repo
