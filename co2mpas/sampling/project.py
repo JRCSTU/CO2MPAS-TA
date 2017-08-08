@@ -2179,7 +2179,12 @@ class ExportCmd(_SubCmd):
 
         now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
         zip_name = self.out or '%s-%s' % ("CO2MPAS_projects", now)
-        with tempfile.TemporaryDirectory(prefix='co2mpas_export-') as tdir:
+
+        ## NOTE: Create "clone" next to projects repo,
+        #  because paths for *remotes* in MSYS2 DO NOT WORK!!
+        arch_repo_path = osp.join(repo.working_dir, '..')
+        with tempfile.TemporaryDirectory(prefix='co2mpas_export-',
+                                         dir=arch_repo_path) as tdir:
             exdir = osp.join(tdir, 'repo')
             arch_repo = git.Repo.init(exdir, bare=True)
             remname = osp.join(repo.working_dir, '.git')
