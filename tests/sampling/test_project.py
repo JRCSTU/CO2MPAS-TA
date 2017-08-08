@@ -615,3 +615,32 @@ class TBackupCmd(unittest.TestCase):
             with self.assertRaisesRegex(baseapp.CmdException,
                                         r"Folder '.+__BAD_FOLDER' to store archive does not exist!"):
                 pump_cmd(cmd.run(osp.join(td, '__BAD_FOLDER', 'foo')))
+
+    def test_export_import(self):
+        import git
+        import subprocess as sbp
+
+        cfg = self._config
+        pump_cmd(project.InitCmd(config=cfg,
+                                 inp=[test_inp_fpath],
+                                 out=[test_out_fpath],
+                                 ).run())
+        r = git.Repo(cfg.ProjectsDB.repo_path)
+        r.create_tag('new_tag', message="just to be real tag")
+
+        with tempfile.TemporaryDirectory() as td:
+            archive_fpath = osp.join(td, 'proj.zip')
+
+            pump_cmd(project.ExportCmd(config=cfg, out=archive_fpath,
+                                       erase_afterwards=True).run())
+            self.assertIsNone(collect_cmd(project.LsCmd(config=cfg).run()))
+
+            file_list = sbp.check_output(['unzip', '-t', archive_fpath],
+                                         universal_newlines=True)
+            self.assertIn('refs/heads/projects/%s' % test_vfid, file_list)
+            self.assertIn('refs/tags/new_tag', file_list)
+            self.assertNotIn('refs/remotes/projects', file_list)
+
+            pump_cmd(project.ImportCmd(config=cfg).run(archive_fpath))
+            self.assertIn(test_vfid,
+                          collect_cmd(project.LsCmd(config=cfg).run()))
