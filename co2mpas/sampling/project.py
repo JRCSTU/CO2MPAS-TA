@@ -1481,7 +1481,12 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             else:
                 fields = ['is_current', 'msg.s']
 
-        cpname = self.current_project().pname
+        try:
+            cpname = self.current_project().pname
+        except CmdException as ex:
+            self.log.warning('%s', ex)
+            cpname = None
+
         pnames = iset(cpname if p == '.' else p
                       for p in pnames)
         for ref in _yield_project_refs(repo, *pnames):
