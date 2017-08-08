@@ -2181,11 +2181,11 @@ class ExportCmd(_SubCmd):
         zip_name = self.out or '%s-%s' % ("CO2MPAS_projects", now)
         with tempfile.TemporaryDirectory(prefix='co2mpas_export-') as tdir:
             exdir = osp.join(tdir, 'repo')
-            exrepo = git.Repo.init(exdir, bare=True)
+            arch_repo = git.Repo.init(exdir, bare=True)
             remname = osp.join(repo.working_dir, '.git')
             any_exported = False
             try:
-                rem = exrepo.create_remote('origin', remname)
+                rem = arch_repo.create_remote('origin', remname)
                 try:
                     ## `rem` pointing to my (.co2dice) repo.
 
@@ -2202,16 +2202,16 @@ class ExportCmd(_SubCmd):
                         tags = list(_yield_dices_tags(repo, p))
                         fetch_infos = rem.fetch([pp] + tags)
 
-                        ## Create local branches in exrepo
+                        ## Create local branches in arch_repo
                         #
                         for fi in fetch_infos:
                             path = fi.remote_ref_path
                             #if fi.flags == fi.NEW_HEAD:  ## 0 is new branch!!
                             if fi.flags == 0:
-                                exrepo.create_head(path, fi.ref)
+                                arch_repo.create_head(path, fi.ref)
                             yield 'packed: %s' % path
 
-                    root_dir, base_dir = osp.split(exrepo.working_dir)
+                    root_dir, base_dir = osp.split(arch_repo.working_dir)
                     yield 'Archive: %s' % shutil.make_archive(
                         base_name=zip_name, format='zip',
                         base_dir=base_dir,
@@ -2248,10 +2248,10 @@ class ExportCmd(_SubCmd):
                             "Nothing exported for these arguments: %s" %
                             args)
                 finally:
-                    exrepo.delete_remote(rem)
+                    arch_repo.delete_remote(rem)
             finally:
-                exrepo.__del__()
-                del exrepo
+                arch_repo.__del__()
+                del arch_repo
                 rmtree(exdir)
 
 
@@ -2265,7 +2265,6 @@ class ImportCmd(_SubCmd):
     - If '-' is given or no file at all, it reads from STDIN.
     """
     def run(self, *args):
-        ## TODO: Mve ziproject code to Spec.
         import tempfile
         import zipfile
 
