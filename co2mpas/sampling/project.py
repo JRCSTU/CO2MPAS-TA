@@ -2312,24 +2312,27 @@ class ImportCmd(_SubCmd):
                     remname, _ = osp.splitext(osp.basename(f))
                 exdir = osp.join(tdir, remname)
 
-                with zipfile.ZipFile(f, "r") as zip_ref:
-                    zip_ref.extractall(exdir)
-
                 try:
-                    rem = repo.create_remote(remname, osp.join(exdir, 'repo'))
-                    fetch_infos = rem.fetch(force=self.force, tags=True)
+                    with zipfile.ZipFile(f, "r") as zip_ref:
+                        zip_ref.extractall(exdir)
 
-                    for fi in fetch_infos:
-                        path = fi.remote_ref_path
-                        if fi.flags == fi.NEW_HEAD:
-                            repo.create_head(path, fi.ref)
-                        yield 'unpacked: %s' % path
+                    arch_remote = repo.create_remote(
+                        remname, osp.join(exdir, 'repo'))
+                    try:
+                        fetch_infos = arch_remote.fetch(force=self.force, tags=True)
+
+                        for fi in fetch_infos:
+                            path = fi.remote_ref_path
+                            if fi.flags == fi.NEW_HEAD:
+                                repo.create_head(path, fi.ref)
+                            yield 'unpacked: %s' % path
+
+                    finally:
+                        repo.delete_remote(remname)
 
                 except Exception as ex:
                     self.log.error("Error while importing from '%s: %r",
                                    f, ex, exc_info=self.verbose)
-                else:
-                    repo.delete_remote(remname)
 
 
 class BackupCmd(_SubCmd):
