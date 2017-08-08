@@ -2306,7 +2306,7 @@ class ImportCmd(_SubCmd):
         with tempfile.TemporaryDirectory(prefix='co2mpas_import-') as tdir:
             for f in files:
                 if f == '-':
-                    f = sys.stdin
+                    f = sys.stdin.buffer
                     remname = 'stdin'
                 else:
                     remname, _ = osp.splitext(osp.basename(f))
