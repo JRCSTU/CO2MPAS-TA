@@ -2216,8 +2216,8 @@ class ExportCmd(_SubCmd):
 
                     if not any_exported:
                         raise CmdException(
-                            "Nothing exported for these arguments: %s" %
-                            args)
+                            "Nothing exported for these arguments: {}"
+                            .format(args))
 
                 finally:
                     arch_repo.delete_remote(rem)
