@@ -2183,6 +2183,7 @@ class ExportCmd(_SubCmd):
             exdir = osp.join(tdir, 'repo')
             exrepo = git.Repo.init(exdir, bare=True)
             remname = osp.join(repo.working_dir, '.git')
+            any_exported = False
             try:
                 rem = exrepo.create_remote('origin', remname)
                 try:
@@ -2191,11 +2192,14 @@ class ExportCmd(_SubCmd):
                     for p in pnames:
                         pp = _pname2ref_name(p)
                         if pp not in repo.heads:
-                            self.log.info("Ignoring branch(%s), not a co2mpas project.", p)
+                            self.log.warning(
+                                "Ignoring branch(%s), not a co2mpas project.", p)
                             continue
-                        tags = list(_yield_dices_tags(repo, p))
+                        any_exported = True
 
                         ## Note: Cannot use --tag, ALL TAGS fetched!
+                        #fetch_infos = rem.fetch(pp, tag=True)
+                        tags = list(_yield_dices_tags(repo, p))
                         fetch_infos = rem.fetch([pp] + tags)
 
                         ## Create local branches in exrepo
@@ -2238,6 +2242,11 @@ class ExportCmd(_SubCmd):
                             finally:
                                 if not ok:
                                     pbr.checkout(pbr)
+
+                    if not any_exported:
+                        raise CmdException(
+                            "Nothing exported for these arguments: %s" %
+                            args)
                 finally:
                     exrepo.delete_remote(rem)
             finally:
