@@ -6,7 +6,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 r"""
-Shift and resample excel-tables; see http://co2mpas.io/usage.html#Synchronizing-time-series.
+Shift and resample excel-tables; see https://co2mpas.io/usage.html#synchronizing-time-series
 
 Usage:
   datasync template [-f] [--cycle <cycle>] <excel-file-path>...
@@ -58,15 +58,15 @@ Options:
   --no-clone             Do not clone excel-sheets contained in <ref-table>
                          workbook into output.
   --interp=<method>      Interpolation method used in the resampling for all
-                         signals [default: linear]: 
-                         'linear', 'nearest', 'zero', 'slinear', 'quadratic', 
-                         'cubic' are passed to `scipy.interpolate.interp1d`. 
-                         'spline' and 'polynomial' require also to specify an 
-                         order (int), e.g. `--interp=spline4`.
-                         'pchip' and 'akima' are wrappers around the scipy 
+                         signals [default: linear]:
+                         'linear', 'nearest', 'zero', 'slinear', 'quadratic',
+                         'cubic' are passed to `scipy.interpolate.interp1d`.
+                         'spline' and 'polynomial' require also to specify an
+                         order (int), e.g. `--interp=spline3`.
+                         'pchip' and 'akima' are wrappers around the scipy
                          interpolation methods of similar names.
                          'integral' is respecting the signal integral.
-                         
+
   -i=<label=interp>      Interpolation method used in the resampling for a
                          signal with a specific label
                          (e.g., `-i alternator_currents=integral`).

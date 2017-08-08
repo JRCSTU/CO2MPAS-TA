@@ -550,7 +550,7 @@ have the following characteristics:
    6    X      X                 X           X
    7    X      X                 X    X      X                       -5.51 (> 4%)
    8           X          X                  X           X
-   9    X      X                 X    X      X                       
+   9    X      X                 X    X      X
 simplan        X                             X                   X
 ======= == ========== ========== === ==== ========== ========== ==== ================
 
@@ -573,10 +573,8 @@ As an aid tool, you may use the ``datasync`` tool to "synchronize" and
 To get the syntax of the ``datasync`` console-command, open a console where
 you have installed |co2mpas| and type::
 
-    ## datasync help.
-    $ datasync --help
-
-    Shift and resample excel-tables; see http://co2mpas.io/usage.html#Synchronizing-time-series.
+    > datasync --help
+    Shift and resample excel-tables; see https://co2mpas.io/usage.html#synchronizing-time-series
 
     Usage:
       datasync template [-f] [--cycle <cycle>] <excel-file-path>...
@@ -628,16 +626,15 @@ you have installed |co2mpas| and type::
       --no-clone             Do not clone excel-sheets contained in <ref-table>
                              workbook into output.
       --interp=<method>      Interpolation method used in the resampling for all
-                             signals [default: linear]: 'linear', 'nearest', 'zero',
-                             'slinear', 'quadratic', 'cubic', 'barycentric',
-                             'polynomial', 'spline' is passed to
-                             scipy.interpolate.interp1d. Both 'polynomial' and
-                             'spline' require that you also specify an order (int),
-                             e.g. df.interpolate(--interp=polynomial4).
-                             'krogh', 'piecewise_polynomial', 'pchip' and 'akima'
-                             are all wrappers around the scipy interpolation methods
-                             of similar names.
-                             'integral' is respect the signal integral.
+                             signals [default: linear]:
+                             'linear', 'nearest', 'zero', 'slinear', 'quadratic',
+                             'cubic' are passed to `scipy.interpolate.interp1d`.
+                             'spline' and 'polynomial' require also to specify an
+                             order (int), e.g. `--interp=spline3`.
+                             'pchip' and 'akima' are wrappers around the scipy
+                             interpolation methods of similar names.
+                             'integral' is respecting the signal integral.
+
       -i=<label=interp>      Interpolation method used in the resampling for a
                              signal with a specific label
                              (e.g., `-i alternator_currents=integral`).
