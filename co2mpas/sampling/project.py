@@ -2186,6 +2186,25 @@ class ExportCmd(_SubCmd):
         now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
         zip_name = self.out or '%s-%s' % ("CO2MPAS_projects", now)
         zip_name = re.sub('.zip$', '', zip_name, re.I)
+        final_zip_name = '%s.zip' % zip_name
+
+        if not self.force and osp.exists(final_zip_name):
+            raise CmdException("File to export '%s' already exists!"
+                               "\n  Use force to append into it; or delete it."
+                               % final_zip_name)
+        dst_folder = osp.dirname(final_zip_name)
+        if dst_folder:
+            if not osp.exists(dst_folder):
+                if self.force:
+                    os.makedirs(dst_folder)
+                else:
+                    raise CmdException(
+                        "Archive destination folder '%s' does not exist!  "
+                        "Use --force to create it." % dst_folder)
+            elif not osp.isdir(dst_folder):
+                raise CmdException(
+                    "Archive's parent '%s' already exists "
+                    "but is not a folder!" % dst_folder)
 
         ## NOTE: Create arch-repo clone next to project-repo,
         #  because local-paths for *remotes* in CYGWIN/MSYS2 DO NOT WORK!!
