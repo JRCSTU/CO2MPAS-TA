@@ -2202,10 +2202,8 @@ class ExportCmd(_SubCmd):
                             continue
                         any_exported = True
 
-                        ## Note: Cannot use --tag, ALL TAGS fetched!
-                        #fetch_infos = rem.fetch(pp, tag=True)
-                        tags = list(_yield_dices_tags(repo, p))
-                        fetch_infos = rem.fetch([pp] + tags)
+                        ## Note: All tags pointsing to branches are fetched.
+                        fetch_infos = rem.fetch('%s:%s' % (pp, pp))
 
                         ## Create local branches in arch_repo
                         #
