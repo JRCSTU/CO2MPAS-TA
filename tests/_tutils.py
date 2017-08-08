@@ -91,13 +91,3 @@ def get_tc_data_fpath(ver_validator, subfolder=None):
         raise AssertionError("Cannot find 'VERSION.txt` in: %s!" % data_folder)
 
     return pathlib.Path(data_folder)
-
-@contextlib.contextmanager
-def chdir(path):
-    opath = os.getcwd()
-    try:
-        os.chdir(path)
-        yield
-    finally:
-        os.chdir(opath)
-

@@ -12,13 +12,15 @@ These are python-specific utilities and hacks - general data-processing or
 numerical operations.
 """
 
-
 from contextlib import contextmanager
+import contextlib
 import inspect
 import io
+import os
 import re
 import statistics
 import sys
+
 import yaml
 
 import networkx as nx
@@ -371,3 +373,12 @@ def fromiter(gen, dtype, keys=None, count=-1):
         return sh.selector(keys or _keys, a, output_type='list')
     return a
 
+
+@contextlib.contextmanager
+def chdir(path):
+    opath = os.getcwd()
+    try:
+        os.chdir(path)
+        yield
+    finally:
+        os.chdir(opath)

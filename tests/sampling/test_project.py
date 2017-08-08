@@ -9,12 +9,12 @@
 from co2mpas.__main__ import init_logging
 from co2mpas.sampling import baseapp, crypto, dice, project, PFiles
 from co2mpas.sampling.baseapp import pump_cmd, collect_cmd
+from co2mpas.utils import chdir
 
 import logging
 import os
 import shutil
 import tempfile
-from tests._tutils import chdir
 from tests.sampling import (test_inp_fpath, test_out_fpath, test_vfid,
                             test_pgp_fingerprint, test_pgp_keys, test_pgp_trust)
 import unittest
