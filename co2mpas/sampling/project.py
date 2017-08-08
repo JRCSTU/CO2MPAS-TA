@@ -697,7 +697,11 @@ class Project(transitions.Machine, ProjectSpec):
             if self.dry_run:
                 self.log.warning("DRY-RUN: Not actually committed the report, "
                                  "and it is not yet signed!")
-                self.result = _mydump(report, width=self.git_desc_width)
+                rep_lines = _mydump(report, width=self.git_desc_width).split('\n')
+                ## Insert empty line afte 1st, to respect git-msg conventions.
+                rep_lines.insert(1, '')
+
+                self.result = '\n'.join(rep_lines)
 
                 return
 
