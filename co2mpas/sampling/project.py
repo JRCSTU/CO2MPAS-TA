@@ -2298,7 +2298,7 @@ class ImportCmd(_SubCmd):
 
                 try:
                     rem = repo.create_remote(remname, osp.join(exdir, 'repo'))
-                    fetch_infos = rem.fetch(force=self.force)
+                    fetch_infos = rem.fetch(force=self.force, tags=True)
 
                     for fi in fetch_infos:
                         path = fi.remote_ref_path
