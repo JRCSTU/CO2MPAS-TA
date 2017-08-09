@@ -2170,6 +2170,7 @@ class ExportCmd(_SubCmd):
         import re
         from ..utils import chdir
 
+        arch_format = 'zip'
         repo = self.projects_db.repo
         cur_pname = repo.active_branch and _ref2pname(repo.active_branch)
 
@@ -2185,14 +2186,14 @@ class ExportCmd(_SubCmd):
 
         now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
         zip_name = self.out or '%s-%s' % ("CO2MPAS_projects", now)
-        zip_name = re.sub('.zip$', '', zip_name, re.I)
-        final_zip_name = '%s.zip' % zip_name
+        zip_name = pndlu.ensure_file_ext(zip_name, arch_format)
+        zip_name = pndlu.convpath(zip_name)
 
-        if not self.force and osp.exists(final_zip_name):
+        if not self.force and osp.exists(zip_name):
             raise CmdException("File to export '%s' already exists!"
-                               "\n  Use force to append into it; or delete it."
-                               % final_zip_name)
-        dst_folder = osp.dirname(final_zip_name)
+                               "\n  Use force to append into it."
+                               % zip_name)
+        dst_folder = osp.dirname(zip_name)
         if dst_folder:
             if not osp.exists(dst_folder):
                 if self.force:
@@ -2250,7 +2251,8 @@ class ExportCmd(_SubCmd):
 
                 root_dir, base_dir = osp.split(arch_repo.working_dir)
                 yield 'Archive: %s' % shutil.make_archive(
-                    base_name=zip_name, format='zip',
+                    base_name=osp.splitext(zip_name)[0],
+                    format=arch_format,
                     base_dir=base_dir,
                     root_dir=root_dir)
 
@@ -2299,7 +2301,8 @@ class ImportCmd(_SubCmd):
         import tempfile
         import zipfile
 
-        files = iset(args) or ['-']
+        files = iset(pndlu.convpath(pndlu.ensure_file_ext(a, 'zip'))
+                     for a in args) or ['-']
         self.log.info('Importing %s...', tuple(files))
 
         repo = self.projects_db.repo
@@ -2313,7 +2316,7 @@ class ImportCmd(_SubCmd):
                 exdir = osp.join(tdir, remname)
 
                 try:
-                    with zipfile.ZipFile(f, "r") as zip_ref:
+                    with zipfile.ZipFile(osp.splitext(f)[0], "r") as zip_ref:
                         zip_ref.extractall(exdir)
 
                     arch_remote = repo.create_remote(
