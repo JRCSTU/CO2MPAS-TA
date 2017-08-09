@@ -550,7 +550,7 @@ class Project(transitions.Machine, ProjectSpec):
                     tagref = repo.create_tag(tagname,
                                              message=cmsg_txt,
                                              sign=True,
-                                             local_user=git_auth.master_key)
+                                             local_user=git_auth.master_key_resolved)
                     self.result = _read_dice_tag(repo, tagref)
 
                     ok = True
