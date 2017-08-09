@@ -102,6 +102,11 @@ Known Limitations
   may not work due to `DMARC restrictions <https://en.wikipedia.org/wiki/DMARC>`_.
   JRC will offer more alternative "paths" for running Dices.
 
+- There is no high level command to view the stamp for some project;
+  Assuming your project is in ``sample`` or ``nosample`` state, use this cmd::
+
+      cat %HOME%/.co2dice/repo/tstamp.txt
+
 
 Datasync
 --------
