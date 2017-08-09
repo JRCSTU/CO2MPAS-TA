@@ -683,7 +683,7 @@ _dicetag_in_subj_regex = re.compile(r'dices/[^/]+/\d+')
 
 
 def _should_extract_stamp_version_line(match: 're.Match') -> bool:
-    return bool(match.group(1))
+    return False
 
 
 def extract_any_stamp_version_line(mail_text: Text) -> (Text, Text):
@@ -1042,12 +1042,12 @@ class TstampReceiver(TstampSpec):
         """return verdict or raise if tstamp invalid"""
         stamper_auth = crypto.get_stamper_auth(self.config)
 
-        mail_text, stamp_ver = extract_any_stamp_version_line(mail_text)
+        stamp_ver = extract_any_stamp_version_line(mail_text)
 
         ver = stamper_auth.verify_clearsigned(mail_text)
         verdict = vars(ver)
         ## Note: not `stamp_version` not to kick mail-detection routine.
-        verdict['stamp_ver'] = stamp_ver
+        verdict['stamp_ver'] = None
         verdict['mail_text'] = mail_text
         if not ver:
             errmsg = "Cannot verify timestamp-response's signature due to: %s"
@@ -1932,11 +1932,11 @@ class ParseCmd(baseapp.Cmd):
                 else:
                     verdict = rcver.parse_tstamp_response(mail_text)
 
-                if not self.verbose:
-                    from toolz import dicttoolz as dtz
+                    if not self.verbose:
+                        from toolz import dicttoolz as dtz
 
-                    verdict = dtz.keyfilter(lambda k: k == 'dice',
-                                            verdict)
+                        verdict = dtz.keyfilter(lambda k: k == 'dice',
+                                                verdict)
 
                 if file != '-':
                     verdict['fpath'] = file
