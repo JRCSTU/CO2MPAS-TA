@@ -756,7 +756,11 @@ class TRX(unittest.TestCase):
 
     @ddt.data(
         ('project:  dices/IP-10-AAA-2017-1003/1\n', '', 'dices/IP-10-AAA-2017-1003/1'),
-        ('', '\ntag dices/IP-10-AAA-2017-0012/12\r\n', 'dices/IP-10-AAA-2017-0012/12'),
+        (None,
+         "object 76b8bf7312770a488eaeab4424d080dea3272435\n"
+         "type commit\r\r\n"
+         "tag dices/IP-10-AAA-2017-0012/12\r\n",
+         'dices/IP-10-AAA-2017-0012/12: 76b8bf7312770a488eaeab4424d080dea3272435'),
         ('sdfd dsfsd', '0trpe Γρεεκ', None),
     )
     def test_extract_tag_name(self, case):

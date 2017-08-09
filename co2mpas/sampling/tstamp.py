@@ -672,9 +672,19 @@ _stamper_banner_regex = re.compile(r"^#{56}\r?\n(?:^#[^\n]*\n)+^#{56}\r?\n\r?\n(
 #: If it start with undescore(_), the full line must be removed prior verification.
 _stamp_version_regex = re.compile(r"\b(_)?stamp_version: (\d+\.\d+\.\d+)[ \t\r]*\n")
 
+_dicetag_in_body_regex = re.compile(
+    r'''
+    ^object\ (?P<hash>[0-9a-f]+)   \s+
+    ^type\   commit  \s+
+    ^tag\     (?P<tag>dices/[^/]+/\d+) \s*
+    ''',
+    re.VERBOSE | re.MULTILINE)
+_dicetag_in_subj_regex = re.compile(r'dices/[^/]+/\d+')
+
 
 def _should_extract_stamp_version_line(match: 're.Match') -> bool:
     return bool(match.group(1))
+
 
 def extract_any_stamp_version_line(mail_text: Text) -> (Text, Text):
     """
@@ -702,12 +712,7 @@ class TstampReceiver(TstampSpec):
 
     vfid_extraction_regex = trt.CRegExp(
         r'vehicle_family_id[^\n]+(%s)' % vehicle_family_id_pattern,
-        help="""An approximate way to get the project if timestamp parsing has failed. """
-    ).tag(config=True)
-
-    dicetag_regex = trt.CRegExp(
-        r'dices/%s/\d+' % vehicle_family_id_pattern,
-        help="""Tag-name to search on Subject and Body of tstamp response emails. """
+        help="""An approximate way to get a *well-formed* project-id if timestamp parsing has failed. """
     ).tag(config=True)
 
     mailbox = trt.Unicode(
@@ -1052,12 +1057,27 @@ class TstampReceiver(TstampSpec):
         return verdict
 
     def extract_dice_tag_name(self, subject: str, msg: str) -> str:
-        """Extract `dices/IP-12-WMI-1234/0` strings either from Subject or Body. """
-        for place, txt in [('Subject-line', subject), ('email-Body', msg)]:
+        """Extract ``dices/IP-12-WMI-1234/0`` strings either from Subject or Body. """
+        search_places = [
+            ('email-Body', msg, _dicetag_in_body_regex,
+             lambda m: '%(tag)s: %(hash)s' % m.groupdict()),
+            ('Subject-line', subject, _dicetag_in_subj_regex,
+             lambda m: m.group()),
+        ]
+
+        for place, txt, regex, make_tag in search_places:
             if not txt:
                 continue
+
+            m = regex.search(txt)
+            if not m:
+                self.log.warning("Not tag-name found in %s!", place)
+                self.log.debug("The %s searched for tag-name:\n%s",
+                               place, txt)
+                continue
+
             try:
-                tag_name = self.dicetag_regex.search(txt).group()
+                tag_name = make_tag(m)
                 self.log.debug("Extracted tag-name '%s' from %s.",
                                tag_name, place)
                 return tag_name
@@ -1167,8 +1187,7 @@ class TstampReceiver(TstampSpec):
             else:
                 tag_verdict = self.parse_signed_tag(tag)
 
-        if not tag_name:
-            tag_name = self.extract_dice_tag_name(None, mail_text)
+        tag_name = self.extract_dice_tag_name(None, mail_text) or tag_name
 
         dice_results = self._make_dice_results(ts_verdict, tag_verdict, tag_name)
 
@@ -1682,10 +1701,10 @@ class SendCmd(baseapp.Cmd):
                 if self.verbose or self.dry_run:
                     return str(mail)
             except CmdException as ex:
-                self.log.error("Timestamping file '%s' stopped due to: %s", 
+                self.log.error("Timestamping file '%s' stopped due to: %s",
                                ex, file, exc_info=1)  # one-off event, must not loose ex.
             except Exception as ex:
-                self.log.error("Timestamping file '%s' failed due to: %r", 
+                self.log.error("Timestamping file '%s' failed due to: %r",
                                ex, file, exc_info=1)  # one-off event, must not loose ex.
 
 
