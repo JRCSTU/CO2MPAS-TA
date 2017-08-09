@@ -776,13 +776,16 @@ class Project(transitions.Machine, ProjectSpec):
 
         if verdict is None:
             recv = tstamp.TstampReceiver(config=self.config)
-            verdict = recv.parse_tstamp_response(tstamp_txt)  # FIXME: Bad tstamps brake parsing in there!!!
+            verdict = recv.parse_tstamp_response(tstamp_txt)
 
         pname = verdict.get('report', {}).get('project')
-        if pname != self.pname and not self.force:
-            raise CmdException(
-                "Current project('%s') is different from tstamp('%s')!" %
-                (self.pname, pname))
+        if pname != self.pname:
+            msg = ("Current project('%s') is different from tstamp('%s')!"
+                   % (self.pname, pname))
+            if self.force:
+                self.log.error("%s  \n  But forced to accept it.", msg, stack_info=1)
+            else:
+                raise CmdException(msg)
 
         ## Store DICE-decision under email-response!
         #
