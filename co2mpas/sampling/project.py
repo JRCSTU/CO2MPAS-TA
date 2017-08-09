@@ -1541,11 +1541,11 @@ class _SubCmd(baseapp.Cmd):
 
         return p
 
-    def _format_result(self, concise, long, *, is_verbose=None):
+    def _format_result(self, concise, long, *, is_verbose=None, **kwds):
         is_verbose = self.verbose if is_verbose is None else is_verbose
         result = long if is_verbose else concise
 
-        return isinstance(result, str) and result or _mydump(result)
+        return isinstance(result, str) and result or _mydump(result, **kwds)
 
 
 class ProjectCmd(_SubCmd):
@@ -1976,12 +1976,14 @@ class TparseCmd(_SubCmd):
                 mail_text = fin.read()
 
         proj = self.current_project
-        ok = proj.do_storedice(tstamp_txt=mail_text)
+        proj.do_storedice(tstamp_txt=mail_text)  # Ignoring ok/false.
         report = proj.result
 
-        short, long = report.get('dice', ok), report
+        from toolz import dicttoolz as dtz
 
-        return self._format_result(short, long)
+        short = dtz.keyfilter(lambda k: k == 'dice', report)
+
+        return self._format_result(short, report, default_flow_style=False)
 
 
 class TrecvCmd(TparseCmd):
@@ -2111,7 +2113,7 @@ class TrecvCmd(TparseCmd):
                 if is_foreign:
                     projDB.append_foreign_dice(all_infos)
                 else:
-                    proj.do_storedice(tstamp_txt=mail_text, verdict=verdict)
+                    proj.do_storedice(tstamp_txt=mail_text, verdict=verdict)  # Ignoring ok/false.
 
                 ## Respect --verbose and --email-infos for print-outs.
                 infos = rcver.get_recved_email_infos(mail, verdict)
