@@ -1087,11 +1087,6 @@ class TstampReceiver(TstampSpec):
                     place, ex, exc_info=self.verbose)
 
     def _make_dice_results(self, ts_verdict, tag_verdict, tag_name):
-        num, dice100 = self._pgp_sig_to_dice100(ts_verdict['signature_id'],
-                                                ts_verdict.get('stamp_ver'))
-        decision = 'OK' if dice100 < 90 else 'SAMPLE'
-
-        #self.log.info("Timestamp sig did not verify: %s", _mydump(tag_verdict))
         dice_results = []
 
         stamp_ver = ts_verdict.get('stamp_ver')
@@ -1119,6 +1114,9 @@ class TstampReceiver(TstampSpec):
             dice_results.append(('dice_date',
                                  crypto.gpg_timestamp(ts_verdict['timestamp'])))
 
+        num, dice100 = self._pgp_sig_to_dice100(ts_verdict['signature_id'],
+                                                ts_verdict.get('stamp_ver'))
+        decision = 'OK' if dice100 < 90 else 'SAMPLE'
         dice_results.extend([
             ('hexnum', '%X' % num),
             ('percent', dice100),

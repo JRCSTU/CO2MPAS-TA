@@ -124,7 +124,7 @@ SjzL9Fp7gP5OsJZ1uRMtP9MzMTjvjMS1IKmNwPvVsvSe+77S3+urMgklH7ciypsT
 extra stuff
 
 """), (
-        """Failed parsing commit message due to: ValueError\("incompatible message,""",
+    """Failed parsing commit message due to: ValueError\("incompatible message,""",
     941144, {
         'hexnum': 'A6C6E3771EA412EE56B4E61A10CDE90776D53419',
         'percent': 41,
@@ -721,7 +721,8 @@ class TRX(unittest.TestCase):
         print(pf(resp))
         self.assertEqual(resp['tstamp']['stamper_id'], stamper_id, pf(resp))
         self.assertDictContainsSubset(dice, resp['dice'], pf(resp))
-        ts_verdict.update({'key_id':'81959DB570B61F81', 'pubkey_fingerprint':'4B12BCD5788511063B543190E09DF306'})
+        ts_verdict.update({'key_id': '81959DB570B61F81',
+                           'pubkey_fingerprint': '4B12BCD5788511063B543190E09DF306'})
         self.assertDictContainsSubset(ts_verdict, resp['tstamp'], pf(resp))
         tv = tag_verdict.copy()
         tv.pop('vehicle_family_id', None)  # Exist for test_scan_vfid_regex(), below.
@@ -785,8 +786,6 @@ class TRX(unittest.TestCase):
         self.check_timestamp(rcv, *verdicts)
 
     def test_parse_signed_tag(self):
-        from co2mpas.sampling import crypto
-
         rcv = tstamp.TstampReceiver(config=self.cfg)
         verdict = rcv.parse_signed_tag(signed_tag)
         self.assertTrue(verdict['valid'], verdict)
@@ -827,7 +826,7 @@ class TRX(unittest.TestCase):
         self.assertEqual(crt.count('OR'), 1)
 
     def test_capture_tstamper_parts(self):
-        s= """
+        s= """  # @IgnorePep8
 ########################################################\r
 #\r
 # This is a proof of posting certificate from\r
@@ -900,12 +899,13 @@ base32(tag): |=0A=\r
         sig_ids = [rnd.randint(0, max_sig_id)
                    for _ in range(10_000)]
         stats = Counter(tstamp.num_to_dice100(sig_id, True)[1]
-                            for sig_id in sig_ids)
+                        for sig_id in sig_ids)
 
         print('\n    %10s' % 'NEW_DICE100')
         print('\n'.join('%2s: %10s' % p for p in stats.items()))
 
         limit = 90
+
         def make_prcnt(counter):
             ge_limit = sum(v
                            for k, v in counter.items()
@@ -937,7 +937,7 @@ base32(tag): |=0A=\r
             ['tag', 'issuer', 'issue_date', 'dice_date',
              'hexnum', 'percent', 'decision'],
             ['project', 'project_source']
-       ]
+        ]
         print(res, 'L')
         for k in substrings[keys_indx]:
             tail = res[-500:]
@@ -948,9 +948,14 @@ base32(tag): |=0A=\r
 class TstampShell(unittest.TestCase):
     """Set ``CO2DICE_CONFIG_PATHS`` and optionally HOME env appropriately! to run"""
 
+    def test_config_paths(self):
+        ret = sbp.check_call('co2dice config paths')
+        self.assertEqual(ret, 0)
+
     def test_parse_tstamp_file(self):
         ret = sbp.check_call('co2dice tstamp parse tstamp.txt',
                              cwd=mydir)
+        self.assertEqual(ret, 0)
 
     def test_parse_tag_file(self):
         ret = sbp.check_call('co2dice tstamp parse tag.txt',
