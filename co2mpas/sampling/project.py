@@ -768,6 +768,7 @@ class Project(transitions.Machine, ProjectSpec):
             It needs an already verified tstamp-response because to select which project
             it belongs to, it needs to parse the dice-report contained within the response.
         """
+        from toolz import dicttoolz as dtz
         from . import tstamp
 
         tstamp_txt = _evarg(event, 'tstamp_txt', str)
@@ -782,6 +783,11 @@ class Project(transitions.Machine, ProjectSpec):
             raise CmdException(
                 "Current project('%s') is different from tstamp('%s')!" %
                 (self.pname, pname))
+
+        ## Store DICE-decision under email-response!
+        #
+        short_verdict = dtz.keyfilter(lambda k: k == 'dice', verdict)
+        tstamp_txt += '\n' + _mydump(short_verdict, default_flow_style=False)
 
         event.kwargs['verdict'] = self.result = verdict
 
