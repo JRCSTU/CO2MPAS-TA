@@ -213,6 +213,19 @@ class TstampSpec(dice.DiceSpec):
         help="""The password of the SOCKS-v5-proxy server for send/recv emails."""
     ).tag(config=True)
 
+    @property
+    def socks_type_resolved(self):
+        import socks
+        if self.socks_type is None:
+            socks_type = (
+                socks.SOCKS5
+                if self.socks_type == 'socks5' or self.socks_user is not None
+                else socks.SOCKS4)
+        else:
+            socks_type = socks.PROXY_TYPES(socks_type.upper)
+
+        return socks_type
+
     subject_prefix = trt.Unicode(
         '[co2dice.test]: ',
         allow_none=True,
@@ -237,6 +250,23 @@ class TstampSpec(dice.DiceSpec):
     def user_account_resolved(self):
         return self.user_account is not None and self.user_account or self.user_email
 
+    def _socks_str(self):
+        socks_str = ''
+
+        if self.socks_host:
+            import socks
+
+            socks_type = self.socks_type_resolved
+            socks_name = socks.PRINTABLE_PROXY_TYPES[socks_type]
+            if socks_type == socks.SOCKS4:
+                socks_str = '-->%s(%s:%s)-->' % (
+                    socks_name, self.socks_host, self.socks_port)
+            else:
+                socks_str = '-->%s(%s:xxx@%s:%s)-->' % (
+                    socks_name, self.socks_user, self.socks_host, self.socks_port)
+
+        return socks_str
+
     def choose_server_class(self):
         raise NotImplemented()
 
@@ -249,8 +279,10 @@ class TstampSpec(dice.DiceSpec):
         srv_cls = self.choose_server_class()
         _, is_startssl = self._ssl_resolved
 
-        self.log.info("Connecting to %s%s: %s(%s:%s)%s...", srv_cls.__name__,
+        self.log.info("Connecting to %s%s%s: %s(%s:%s)%s...",
+                      srv_cls.__name__,
                       '(STARTTLS)' if is_startssl else '',
+                      self._socks_str(),
                       self.user_account_resolved, host, port, srv_kwds)
         srv = srv_cls(host, **srv_kwds)
 
@@ -291,12 +323,7 @@ class TstampSpec(dice.DiceSpec):
                 module not in self._socks_patched_modules):
             import socks
 
-            if self.socks_type is None:
-                socks_type = (socks.SOCKS5
-                              if self.socks_type == 'socks5' or self.socks_user is not None
-                              else socks.SOCKS4)
-            else:
-                socks_type = socks.PROXY_TYPES(socks_type.upper)
+            socks_type = self.socks_type_resolved
             self.log.debug("Using proxy(%s)-->%s:%s",
                            socks.PRINTABLE_PROXY_TYPES[socks_type],
                            self.socks_host, self.socks_port)
