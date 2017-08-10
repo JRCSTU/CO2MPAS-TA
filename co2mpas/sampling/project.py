@@ -740,19 +740,20 @@ class Project(transitions.Machine, ProjectSpec):
             signed_dice_report, tagref.name, dry_run=dry_run)
 
         if dry_run:
-            self.log.warning(tw.dedent("""\
-                DRY-RUN: Now you must send the email your self!
-                ==========================================================================
-                  - Copy from the 1st line starting with 'X-Stamper-To:', below;
-                  - set the following email-fields as shown: TO, SUBJECT, CC
-                    (you may also set 'Bcc'):
-                  - remember to set the email as 'plain-text' (not 'HTML'!) right before
-                    clicking `send`!
-                  - Read instructions:
-                    https://github.com/JRCSTU/CO2MPAS-TA/wiki/8.-The-DICE.#steps-to-dice-manually
-                ==========================================================================
-                """))
-            self.result = str(dice_mail_mime)
+            HEADER = '\n'.join('%s: %s' % i for i in dice_mail_mime.items())
+            self.log.info("""
+DRY-RUN: Now you must send the email your self!
+==========================================================================
+- Read instructions:
+  https://github.com/JRCSTU/CO2MPAS-TA/wiki/8.-The-DICE.#steps-to-dice-manually
+- Set the email as 'PLAIN-TEXT' (not 'HTML'!) right before pasting text!
+- Set the EMAIL-FIELDS shown below (you may also set 'Bcc').
+- Copy from the 1st line starting with 'X-Stamper-To:', below;
+==========================================================================
+%s
+==========================================================================
+""", HEADER)
+            self.result = dice_mail_mime.get_payload()
 
         if event.transition.source != 'mailed':
             ## Don't repeat your self...
