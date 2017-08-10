@@ -1858,15 +1858,29 @@ class ReportCmd(_SubCmd):
             raise CmdException('Cmd %r takes no arguments, received %d: %r!'
                                % (self.name, len(args), args))
 
+        ok = None
+
+        ## TODO: move code in project and simplify `do_report()`.
+        #
         proj = self.current_project
-        ok = proj.do_report()
+        repo = proj.repo
+        tagref = _find_dice_tag(repo, proj.pname,
+                                proj.max_dices_per_project)
+        gen_report = proj.state == 'wltp_iof' or not tagref or self.force
+        if gen_report:
+            ok = proj.do_report()
+            assert isinstance(proj.result, str)
+            result = ok and proj.result or ok
+        else:
+            self.log.info("Report already generated  as '%s'.", tagref.path)
+            result = _read_dice_tag(repo, tagref)
+            ok = True
 
-        assert isinstance(proj.result, str)
+        if ok:
+            key_uid = proj.extract_uid_from_report(result)
+            self.log.info("Report has been signed by '%s'.", key_uid)
 
-        yield ok and proj.result or ok
-
-        key_uid = proj.extract_uid_from_report(proj.result)
-        self.log.info("Report has been signed by '%s'.", key_uid)
+        yield result
 
 
 class TstampCmd(_SubCmd):
