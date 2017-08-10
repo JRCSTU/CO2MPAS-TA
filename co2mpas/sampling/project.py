@@ -2039,6 +2039,8 @@ class TrecvCmd(TparseCmd):
         """
     ).tag(config=True)
 
+    email_preview_nchars = trt.Int(500).tag(config=True)
+
     def __init__(self, **kwds):
         from . import tstamp
         from . import crypto
@@ -2102,7 +2104,11 @@ class TrecvCmd(TparseCmd):
 
             if pname is None:
                 ## Must have already warn.
-                info("[%s]%s: skipping unparseable tstamp-email!", uid, mid)
+                preview = ('\n%s\n' % mail_text
+                           if self.verbose else
+                           '\n%s\n...\n' % mail_text[:self.email_preview_nchars])
+                info("[%s]%s: skipping unparseable tstamp-email.\n%s",
+                     uid, mid, preview)
                 continue
 
             try:
