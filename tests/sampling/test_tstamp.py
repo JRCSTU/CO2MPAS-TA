@@ -846,6 +846,37 @@ base32(tag): |=0A=\r
             tail = res[-500:]
             self.assertIn('%s:' % k, tail, (k, tail))
 
+    @ddt.data(
+        (None, None),
+        ('', None),
+        ('_', None),
+        ('_:_', None),
+        ('_:_:_', None),
+
+        ('l', None),
+        ('_6:_:34', None),
+        ('f:1:3', None),
+        ('3-6:1:3', None),
+        ('12:0:', None),
+        ('0:', None),
+
+        ('1', (1, None, None)),
+        ('0', (0, None, None)),
+        ('0:0', (0, 0, None)),
+        ('12:0', (12, 0, None)),
+        ('-12:0', (-12, 0, None)),
+        ('12:-013:34', (12, -13, 34)),
+        ('0:0:0', (0, 0, 0)),
+        ('-0:-0:-0', (0, 0, 0)),
+        ('12:_:34', (12, None, 34)),
+        ('-12:_:-34', (-12, None, -34)),
+        ('_:_:34', (None, None, 34)),
+    )
+    def test_parse_slice(self, case):
+        inp, exp = case
+        page = tstamp._parse_slice(inp)
+        self.assertEqual(page, exp, inp)
+
 
 @ddt.ddt
 class TstampShell(unittest.TestCase):

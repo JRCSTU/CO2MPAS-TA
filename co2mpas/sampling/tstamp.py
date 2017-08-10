@@ -680,6 +680,28 @@ _dicetag_in_body_regex = re.compile(
     ''',
     re.VERBOSE | re.MULTILINE)
 _dicetag_in_subj_regex = re.compile(r'dices/[^/]+/\d+')
+_paging_regex = re.compile(r"""
+    ^
+    (-?[\d_]+) (?:
+        : (-?[\d_]+) (?:
+            : (-?[\d_]+)
+        )?
+    )? $
+""", re.VERBOSE)
+
+
+def _parse_slice(v: Text):
+    v = v and v.strip()
+    if v:
+        m = _paging_regex.match(v)
+        if m:
+            try:
+                groups = tuple(None if i == '_' or i is None else int(i)
+                        for i in m.groups())
+                if any(i is not None for i in groups):
+                    return groups
+            except Exception as ex:
+                pass
 
 
 def _should_extract_stamp_version_line(match: 're.Match') -> bool:
@@ -815,6 +837,25 @@ class TstampReceiver(TstampSpec):
         None, allow_none=True,
         help="""Search messages for this day, in human readable form (see `before_date`)"""
     ).tag(config=True)
+
+    email_page = trt.Unicode(
+        None, allow_none=True,
+        help="""
+        How many emails to download, using "slice" syntax:
+            <start>[:<stop>[:<step>]]
+
+        - Use undesrcores to denote default values in intermediate positions.
+        """
+    ).tag(config=True)
+
+    @trt.validate('email_page')
+    def _has_slice_format(self, p):
+        v = p.value
+        if v and v.strip() and not _parse_slice(v):
+            raise trt.TraitError("Invalid slice syntax: %s"
+            "\n  Must be like ``<start>[:<stop>[:<step>]]``"
+            "where each part can be underscore(`_`)." % v)
+        return v
 
     email_infos = trt.List(
         trt.Unicode(allow_none=True),
@@ -1354,9 +1395,13 @@ class TstampReceiver(TstampSpec):
         resp = srv.uid('SEARCH', criteria.encode())
         data = reject_IMAP_no_response("search emails", resp)
 
-        uids = data[0].split()
-        self.log.info("Found %s tstamp emails: %s",
-                      len(uids), [u.decode() for u in uids])
+        all_uids = data[0].split()
+        page = _parse_slice(self.email_page)
+        uids = page and all_uids[slice(*page)] or all_uids
+
+        self.log.info("Fetching %s emails out of %s matched: %s",
+                      len(uids), len(all_uids),
+                      [u.decode() for u in uids])
 
         if not uids:
             return
@@ -1728,6 +1773,7 @@ recv_cmd_aliases = {
     'rfc-criteria': 'TstampReceiver.rfc_criteria',
     'wait-criterio': 'TstampReceiver.wait_criterio',
     'subject': 'TstampReceiver.subject_prefix',
+    'page': 'TstampReceiver.email_page',
     'email-infos': 'TstampReceiver.email_infos',
 }
 
