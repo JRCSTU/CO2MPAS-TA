@@ -2086,7 +2086,7 @@ class Co2guiCmd(baseapp.Cmd):
         self.root = root
 
         root.title("%s-%s" % (APPNAME, __version__))
-        self._setup_peristent_windows_position(root)
+        self._setup_peristent_windows_position(root, 20, 12, 960, 732)
 
         define_ttk_styles()
 
@@ -2131,8 +2131,8 @@ class Co2guiCmd(baseapp.Cmd):
                    image=img, compound='top')
             nb.dice_icon = img
 
-        frame = LogPanel(slider, self, height=-260, log_level_cb=cmain.init_logging)
-        slider.add(frame, weight=3)
+        frame = LogPanel(slider, self, height=160, log_level_cb=cmain.init_logging)
+        slider.add(frame, weight=2)
 
         root.columnconfigure(0, weight=1)
         root.columnconfigure(0, weight=2)
@@ -2155,14 +2155,20 @@ class Co2guiCmd(baseapp.Cmd):
         ## Last, or it shows the empty-root momentarily.
         self._add_window_icon(root)
 
-    def _setup_peristent_windows_position(self, root):
-        if self.root_geometry:
-            try:
-                root.geometry(self.root_geometry)
-            except Exception as ex:
-                self.log.error("Cannot restore window-position(%s) due to: %s",
-                               self.root_geometry, ex, exc_info=1)
-                self.root_geometry = ''
+    def _setup_peristent_windows_position(self, root,
+                                          init_x, init_y,
+                                          init_width, init_height):
+        if not self.root_geometry:
+            self.root_geometry = '%sx%s+%s+%s' % (
+                init_width, init_height, init_x, init_y)
+
+        try:
+            root.geometry(self.root_geometry)
+            self.log.debug('Initialized GUI size: %sx%s', init_width, init_height)
+        except Exception as ex:
+            self.log.error("Cannot restore window-position(%s) due to: %s",
+                           self.root_geometry, ex, exc_info=1)
+            self.root_geometry = ''
 
         def save_geometry(event):
             self.root_geometry = root.geometry()
