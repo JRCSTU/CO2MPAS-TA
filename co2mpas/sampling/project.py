@@ -88,6 +88,9 @@ class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
         data = cdic.pop('data')
         msg = _mydump([cdic], **kwds)
         if data:
+            if not isinstance(data, list):
+                data = [data]
+                kwds['default_flow_style'] = False
             msg += '\n' + _mydump(data, **kwds)
 
         return msg
@@ -474,7 +477,8 @@ class Project(transitions.Machine, ProjectSpec):
         raise ex
 
     def _make_commitMsg(self, action, data=None) -> Text:
-        assert data is None or isinstance(data, list), "Data not a list: %s" % data
+        assert data is None or isinstance(data, (list, dict)), (
+            "Data not a (list|dict): %s" % data)
         cmsg = _CommitMsg(__dice_report_version__, action, self.pname, self.state, data)
 
         return cmsg
@@ -521,8 +525,8 @@ class Project(transitions.Machine, ProjectSpec):
         git_auth.GPG
 
         repo = self.repo
-        report = _evarg(event, 'report', list, missing_ok=True)
-        is_tagging = state == 'tagged' and report
+        report = _evarg(event, 'report', (list, dict), missing_ok=True)
+        is_tagging = state in 'tagged sample nosample'.split() and report
         cmsg = self._make_commitMsg(action, report)
         cmsg_txt = cmsg.dump_commit_msg(width=self.git_desc_width)
 
@@ -805,7 +809,12 @@ class Project(transitions.Machine, ProjectSpec):
                 fp.write(text)
             index.add([new_fpath])
 
-        event.kwargs['report'] = list(verdict.get('dice', {}).items())
+        ## Store in new TAG the decision only;
+        #  the rest are stored in `verdict.txt` file.
+        report = dtz.keyfilter(lambda k: k not in ('tstamp', 'report'), verdict)
+
+        ## Notify to create new tag!
+        event.kwargs['report'] = report
 
     def _is_decision_sample(self, event) -> bool:
         verdict = _evarg(event, 'verdict', dict)
@@ -1978,6 +1987,10 @@ class TparseCmd(_SubCmd):
         proj = self.current_project
         proj.do_storedice(tstamp_txt=mail_text)  # Ignoring ok/false.
         report = proj.result
+
+        if isinstance(report, str):
+            ## That's parsed decision.
+            return report
 
         from toolz import dicttoolz as dtz
 
