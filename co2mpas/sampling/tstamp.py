@@ -1413,14 +1413,13 @@ class TstampReceiver(TstampSpec):
         page = _parse_slice(self.email_page)
         if page is not None:
             uids = all_uids[page]
-            self.log.info("Fetching %s email(s) '%s' out of %s matched: %s",
-                          len(uids), self.email_page, len(all_uids),
+            self.log.info("From %s matched emails '%s'-paging %s: %s",
+                          len(all_uids), self.email_page, len(uids),
                           [u.decode() for u in uids])
         else:
             uids = all_uids
             self.log.info("Fetching all %s emails matched: %s",
                           len(uids), [u.decode() for u in uids])
-
 
         if not uids:
             return
@@ -1430,10 +1429,16 @@ class TstampReceiver(TstampSpec):
         resp = srv.uid('FETCH', b','.join(uids), "(UID RFC822)")
         data = reject_IMAP_no_response("fetch emails", resp)
 
+        ## Response is x2 the len(uids),
+        #  with every 2nd containing just `b')'`.
+        #
+        bad_ends = [d for d in data[1::2] if d != b')']
+        if bad_ends:
+            self.log.warn("Unexpected FETCH data: %s"
+                          "\n  Will keep going though...", bad_ends)
+        data = data[::2]
+
         for i, (uid, d) in enumerate(zip(uids, data)):
-            if i % 2 == 1:
-                assert d == b')', 'Unexpected FETCH data(%i): %s' % (i, d)
-                continue
             m = email.message_from_bytes(d[1])
 
             yield uid.decode(), m
