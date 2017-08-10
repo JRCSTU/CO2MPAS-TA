@@ -764,6 +764,7 @@ class Project(transitions.Machine, ProjectSpec):
             It needs an already verified tstamp-response because to select which project
             it belongs to, it needs to parse the dice-report contained within the response.
         """
+        ## FIXME: executed twice for SAMPLE/NOSAMPLE!!
         from toolz import dicttoolz as dtz
         from . import tstamp
 
@@ -779,7 +780,7 @@ class Project(transitions.Machine, ProjectSpec):
             msg = ("Current project('%s') is different from tstamp('%s')!"
                    % (self.pname, pname))
             if self.force:
-                self.log.error("%s  \n  But forced to accept it.", msg, stack_info=1)
+                self.log.error("%s  \n  But forced to accept it.", msg)
             else:
                 raise CmdException(msg)
 
