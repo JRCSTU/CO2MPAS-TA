@@ -2209,7 +2209,6 @@ class ExportCmd(_SubCmd):
         import tempfile
         import git
         from git.util import rmtree
-        import re
         from ..utils import chdir
 
         arch_format = 'zip'
@@ -2224,7 +2223,6 @@ class ExportCmd(_SubCmd):
             pnames = [pn == '.' and cur_pname or pn
                       for pn in iset(args)]
         pnames = iset(pnames)
-        self.log.info('Exporting %s --> %s...', args, tuple(pnames))
 
         now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
         zip_name = self.out or '%s-%s' % ("CO2MPAS_projects", now)
@@ -2249,6 +2247,9 @@ class ExportCmd(_SubCmd):
                     "Archive's parent '%s' already exists "
                     "but is not a folder!" % dst_folder)
 
+        self.log.info("Will export %s project(s) %s --> %s...",
+                      len(pnames), tuple(pnames), zip_name)
+
         ## NOTE: Create arch-repo clone next to project-repo,
         #  because local-paths for *remotes* in CYGWIN/MSYS2 DO NOT WORK!!
         arch_repo_parentdir = osp.join(repo.working_dir, '..')
@@ -2263,7 +2264,9 @@ class ExportCmd(_SubCmd):
                 try:
                     ## `rem` pointing to my (.co2dice) repo.
 
-                    for p in pnames:
+                    for pi, p in enumerate(pnames):
+                        self.log.info("Exporting project %s: '%s' out of %s...",
+                                      pi, p, len(pnames))
                         pp = _pname2ref_name(p)
                         if pp not in repo.heads:
                             self.log.warning(
@@ -2345,7 +2348,9 @@ class ImportCmd(_SubCmd):
 
         files = iset(pndlu.convpath(pndlu.ensure_file_ext(a, '.zip'))
                      for a in args) or ['-']
-        self.log.info('Importing %s...', tuple(files))
+
+        self.log.info("Will import from %s archive(s): %s...",
+                      len(files), tuple(files))
 
         repo = self.projects_db.repo
         with tempfile.TemporaryDirectory(prefix='co2mpas_import-') as tdir:
@@ -2357,9 +2362,9 @@ class ImportCmd(_SubCmd):
                     remname, _ = osp.splitext(osp.basename(f))
                 exdir = osp.join(tdir, remname)
 
+                self.log.info("Importing '%s'...", f)
                 try:
-                    self.log.info(f)
-                    with zipfile.ZipFile(osp.splitext(f)[0], "r") as zip_ref:
+                    with zipfile.ZipFile(f, "r") as zip_ref:
                         zip_ref.extractall(exdir)
 
                     arch_remote = repo.create_remote(
@@ -2381,8 +2386,8 @@ class ImportCmd(_SubCmd):
                         self.log.warning(
                             "Imported  PARTIALLY objects from '%s: %s(%s)"
                             "'n  Does it contain \"foreign dices\"?",
-                           f, type(ex).__name__, ex,
-                           exc_info=self.verbose)
+                            f, type(ex).__name__, ex,
+                            exc_info=self.verbose)
                     else:
                         self.log.error("Error while importing from '%s': %s(%s)",
                                        f, type(ex).__name__, ex,
