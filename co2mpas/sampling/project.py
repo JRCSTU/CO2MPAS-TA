@@ -2393,6 +2393,13 @@ class ImportCmd(_SubCmd):
                                        f, type(ex).__name__, ex,
                                        exc_info=self.verbose)
 
+        plist = list(self.projects_db.proj_list())
+        if len(plist) == 1:
+            alone_project = plist[0]
+            self.log.info("Opening atomatically project '%s', "
+                          "alone in db...", alone_project)
+            self.projects_db.proj_open(alone_project)
+
 
 class BackupCmd(_SubCmd):
     """
