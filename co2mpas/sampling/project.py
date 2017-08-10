@@ -2228,7 +2228,7 @@ class ExportCmd(_SubCmd):
 
         now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
         zip_name = self.out or '%s-%s' % ("CO2MPAS_projects", now)
-        zip_name = pndlu.ensure_file_ext(zip_name, arch_format)
+        zip_name = pndlu.ensure_file_ext(zip_name, '.%s' % arch_format)
         zip_name = pndlu.convpath(zip_name)
 
         if not self.force and osp.exists(zip_name):
@@ -2343,7 +2343,7 @@ class ImportCmd(_SubCmd):
         import tempfile
         import zipfile
 
-        files = iset(pndlu.convpath(pndlu.ensure_file_ext(a, 'zip'))
+        files = iset(pndlu.convpath(pndlu.ensure_file_ext(a, '.zip'))
                      for a in args) or ['-']
         self.log.info('Importing %s...', tuple(files))
 
@@ -2358,6 +2358,7 @@ class ImportCmd(_SubCmd):
                 exdir = osp.join(tdir, remname)
 
                 try:
+                    self.log.info(f)
                     with zipfile.ZipFile(osp.splitext(f)[0], "r") as zip_ref:
                         zip_ref.extractall(exdir)
 
