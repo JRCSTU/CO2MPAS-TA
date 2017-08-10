@@ -2377,8 +2377,16 @@ class ImportCmd(_SubCmd):
                         repo.delete_remote(remname)
 
                 except Exception as ex:
-                    self.log.error("Error while importing from '%s: %r",
-                                   f, ex, exc_info=self.verbose)
+                    if 'missing object referenced by' in str(ex):
+                        self.log.warning(
+                            "Imported  PARTIALLY objects from '%s: %s(%s)"
+                            "'n  Does it contain \"foreign dices\"?",
+                           f, type(ex).__name__, ex,
+                           exc_info=self.verbose)
+                    else:
+                        self.log.error("Error while importing from '%s': %s(%s)",
+                                       f, type(ex).__name__, ex,
+                                       exc_info=self.verbose)
 
 
 class BackupCmd(_SubCmd):
