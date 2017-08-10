@@ -2071,7 +2071,7 @@ class TrecvCmd(TparseCmd):
         info("Receiving emails for projects(s) %s: ...", args)
 
         projDB = self.projects_db
-        default_flow_style = None if self.verbose else False
+        default_flow_style = False
         rcver = tstamp.TstampReceiver(config=self.config)
 
         ## IMAP & CmdException raised here.
@@ -2084,10 +2084,15 @@ class TrecvCmd(TparseCmd):
                 verdict = rcver.parse_tstamp_response(mail_text, tag_name)
             except CmdException as ex:
                 verdict = ex
-                warn("[%s]%s: parsing tstamp-email stopped due to: %s", uid, mid, ex)
+                error("[%s]%s: parsing tstamp-email stopped due to: %s"
+                      "\n  Use `--verbose ` or command `tstamp recv --raw` "
+                      "to view email.",
+                      uid, mid, ex, exc_info=self.verbose)
             except Exception as ex:
                 verdict = ex
                 error("[%s]%s: parsing tstamp-email failed due to: %r",
+                      "\n  Use `--verbose ` or command `tstamp recv --raw`"
+                      "to view email.",
                       uid, mid, ex, exc_info=self.verbose)
 
             ## Store full-verdict (verbose).
@@ -2097,7 +2102,7 @@ class TrecvCmd(TparseCmd):
 
             if pname is None:
                 ## Must have already warn.
-                error("[%s]%s: skipping unparseable tstamp-email!", uid, mid)
+                info("[%s]%s: skipping unparseable tstamp-email!", uid, mid)
                 continue
 
             try:

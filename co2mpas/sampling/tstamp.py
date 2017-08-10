@@ -873,7 +873,7 @@ class TstampReceiver(TstampSpec):
 
     email_infos = trt.List(
         trt.Unicode(allow_none=True),
-        default_value=['From', 'To', 'Subject', 'Date'], allow_none=True,
+        default_value=['From', 'To', 'Subject', 'Date', 'Cc'], allow_none=True,
         help="""
         The email items to print for each matched email; all if None or contains a None.
 
@@ -1799,7 +1799,7 @@ recv_cmd_aliases = {
 
 class RecvCmd(baseapp.Cmd):
     """
-    Fetch tstamps from IMAP server and derive *decisions* OK/SAMPLE flags.
+    Fetch tstamps (and/or dice-reports) from IMAP server and derive *decisions* OK/SAMPLE flags.
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<search-term-1> ...]
@@ -1882,7 +1882,7 @@ class RecvCmd(baseapp.Cmd):
 
     def run(self, *args):
         ## If `verbose`, too many small details, need flow.
-        default_flow_style = None if self.verbose else False
+        default_flow_style = False
         rcver = TstampReceiver(config=self.config)
 
         emails = rcver.receive_timestamped_emails(self.wait, args,
@@ -1909,8 +1909,8 @@ class RecvCmd(baseapp.Cmd):
                         verdict = rcver.parse_tstamp_response(mail_text, tag_name)
                     except CmdException as ex:
                         verdict = ex
-                        self.log.warning("[%s]%s: parsing tstamp failed due to: %s",
-                                         uid, mid, ex)
+                        self.log.error("[%s]%s: parsing tstamp failed due to: %s",
+                                       uid, mid, ex)
                     except Exception as ex:
                         verdict = ex
                         self.log.error("[%s]%s: parsing tstamp failed due to: %r",
