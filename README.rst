@@ -7,14 +7,15 @@
 |co2mpas|: Vehicle simulator predicting NEDC |CO2| emissions from WLTP
 ######################################################################
 
-:release:       1.7.3b1
-:date:          2017-08-10 22:48:46
+:official:      `AIO-1.5.5` + `co2mpas-1.5.7.b3` (until 1-Nov-2017)
+:latest:        `1.7.3b1`
+:rel_date:      `2017-08-10 23:17:18`
+:render_date:   |today|
 :home:          http://co2mpas.io/
+:wiki:          https://github.com/JRCSTU/CO2MPAS-TA/wiki/
 :repository:    https://github.com/JRCSTU/CO2MPAS-TA
 :pypi-repo:     https://pypi.org/project/co2mpas/
-:docs:          http://docs.co2mpas.io/ (build-date: |today|)
-:wiki:          https://github.com/JRCSTU/CO2MPAS-TA/wiki/
-:download:      AIO(https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v1.7.3b1)
+:download:      AIO(https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v1.7.3)
 :keywords:      CO2, fuel-consumption, WLTP, NEDC, vehicle, automotive,
                 EU, JRC, IET, STU, correlation, back-translation, policy,
                 monitoring, M1, N1, simulator, engineering, scientific
