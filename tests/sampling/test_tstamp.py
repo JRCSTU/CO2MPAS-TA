@@ -849,32 +849,56 @@ base32(tag): |=0A=\r
     @ddt.data(
         (None, None),
         ('', None),
-        ('_', None),
-        ('_:_', None),
-        ('_:_:_', None),
+        (' ', None),
 
-        ('l', None),
-        ('_6:_:34', None),
-        ('f:1:3', None),
-        ('3-6:1:3', None),
-        ('12:0:', None),
-        ('0:', None),
+        ('_', False),
+        ('_:_:_', False),
+        ('l', False),
+        ('-', False),
+        ('_6::34', False),
+        ('f:1:3', False),
+        ('3-6:1:3', False),
+        ('- 33', False),
+        (':- 33', False),
 
-        ('1', (1, None, None)),
-        ('0', (0, None, None)),
-        ('0:0', (0, 0, None)),
-        ('12:0', (12, 0, None)),
-        ('-12:0', (-12, 0, None)),
+        (': :', (None, None, None)),
+        (':', (None, None, None)),
+
+        ('0', (0, 1, None)),
+        ('1', (1, 2, None)),
+        ('-0100', (-100, -99, None)),
+        ('0:', (0, None, None)),
+        ('0: :', (0, None, None)),
+        ('0: 0', (0, 0, None)),
+        (' : 0 ', (None, 0, None)),
+        (':0:0', (None, 0, 0)),
+        (' :1:0', (None, 1, 0)),
+        ('0:0:0 ', (0, 0, 0)),
+        ('::0', (None, None, 0)),
+        ('12 :0', (12, 0, None)),
+        ('12:0 :', (12, 0, None)),
+        ('-12: 0', (-12, 0, None)),
         ('12:-013:34', (12, -13, 34)),
-        ('0:0:0', (0, 0, 0)),
-        ('-0:-0:-0', (0, 0, 0)),
-        ('12:_:34', (12, None, 34)),
-        ('-12:_:-34', (-12, None, -34)),
-        ('_:_:34', (None, None, 34)),
+        (' -0: -0 :-0', (0, 0, 0)),
+        ('12: :34', (12, None, 34)),
+        ('-12::-34', (-12, None, -34)),
+        ('::34', (None, None, 34)),
     )
     def test_parse_slice(self, case):
+        import co2mpas._vendor.traitlets as trt
         inp, exp = case
+
+        if exp is False:
+            with self.assertRaisesRegex(trt.TraitError,
+                                        'Syntax-error',
+                                        msg=str(inp)):
+                tstamp._parse_slice(inp)
+            return
+
         page = tstamp._parse_slice(inp)
+
+        if isinstance(exp, tuple):
+            exp = slice(*exp)
         self.assertEqual(page, exp, inp)
 
 
@@ -906,6 +930,12 @@ class TstampShell(unittest.TestCase):
 
     def test_recv_smoketest(self):
         ret = sbp.check_call('co2dice tstamp recv')
+        self.assertEqual(ret, 0)
+
+        ret = sbp.check_call('co2dice tstamp recv --page=10')
+        self.assertEqual(ret, 0)
+
+        ret = sbp.check_call('co2dice tstamp recv --page=-2:')
         self.assertEqual(ret, 0)
 
         ret = sbp.check_call('co2dice tstamp recv --raw')

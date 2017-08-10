@@ -680,28 +680,38 @@ _dicetag_in_body_regex = re.compile(
     ''',
     re.VERBOSE | re.MULTILINE)
 _dicetag_in_subj_regex = re.compile(r'dices/[^/]+/\d+')
-_paging_regex = re.compile(r"""
-    ^
-    (-?[\d_]+) (?:
-        : (-?[\d_]+) (?:
-            : (-?[\d_]+)
-        )?
-    )? $
-""", re.VERBOSE)
 
 
 def _parse_slice(v: Text):
+    """
+    Parses text like python "slice" expression (ie ``-10::2``).
+
+    :param v:
+        the slice expression or a lone integer
+    :return:
+        - None if input is None/empty
+        - a ``slice()`` instance (even if input a lone numbrt)
+    :raise ValueError:
+        input non-empty but invalid syntax
+    """
+    orig_v = v
     v = v and v.strip()
-    if v:
-        m = _paging_regex.match(v)
-        if m:
-            try:
-                groups = tuple(None if i == '_' or i is None else int(i)
-                        for i in m.groups())
-                if any(i is not None for i in groups):
-                    return groups
-            except Exception as ex:
-                pass
+    if not v:
+        return
+
+    try:
+        if ':' not in v:
+            ## A lone number given.
+            v = int(v)
+            return slice(v, v + 1)
+
+        ## From: https://stackoverflow.com/questions/680826/python-create-slice-object-from-string#comment3188450_681949
+        return slice(*map(lambda x: int(x.strip()) if x.strip() else None,
+                          v.split(':')))
+    except Exception:
+        pass
+
+    raise trt.TraitError("Syntax-error in '%s' slice!" % orig_v)
 
 
 def _should_extract_stamp_version_line(match: 're.Match') -> bool:
@@ -838,23 +848,27 @@ class TstampReceiver(TstampSpec):
         help="""Search messages for this day, in human readable form (see `before_date`)"""
     ).tag(config=True)
 
-    email_page = trt.Unicode(
+    email_page = trt.CUnicode(
         None, allow_none=True,
         help="""
-        How many emails to download, using "slice" syntax:
+        Which email(s) to download, "slicing" through the list of old-to-newer emails:
             <start>[:<stop>[:<step>]]
 
-        - Use undesrcores to denote default values in intermediate positions.
+        - If a lone number, it is the index of a single email to fetch.
+
+        Example::
+            -1       # fetch the most recent email
+            -5:      # fetch the 5 most recent emails
+            10:      # Skip the first 10 oldest emails
+            10:-5    # Skip first 10 olds and last 5 recents
+            ::10    # fetch every 10th email
         """
     ).tag(config=True)
 
     @trt.validate('email_page')
     def _has_slice_format(self, p):
-        v = p.value
-        if v and v.strip() and not _parse_slice(v):
-            raise trt.TraitError("Invalid slice syntax: %s"
-            "\n  Must be like ``<start>[:<stop>[:<step>]]``"
-            "where each part can be underscore(`_`)." % v)
+        v = p.value and p.value.strip()
+        _parse_slice(v)  # Will scream with trait-error if invalid.
         return v
 
     email_infos = trt.List(
@@ -1397,11 +1411,16 @@ class TstampReceiver(TstampSpec):
 
         all_uids = data[0].split()
         page = _parse_slice(self.email_page)
-        uids = page and all_uids[slice(*page)] or all_uids
+        if page is not None:
+            uids = all_uids[page]
+            self.log.info("Fetching %s email(s) '%s' out of %s matched: %s",
+                          len(uids), self.email_page, len(all_uids),
+                          [u.decode() for u in uids])
+        else:
+            uids = all_uids
+            self.log.info("Fetching all %s emails matched: %s",
+                          len(uids), [u.decode() for u in uids])
 
-        self.log.info("Fetching %s emails out of %s matched: %s",
-                      len(uids), len(all_uids),
-                      [u.decode() for u in uids])
 
         if not uids:
             return
