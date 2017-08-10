@@ -114,9 +114,12 @@ class _CommitMsg(namedtuple('_CommitMsg', 'v a p s data')):
 
             return cmsg
         except Exception as ex:
-            raise CmdException(
-                "Failed parsing commit message due to: %r\nmsg:\n%s" %
-                (ex, tw.indent(cmsg_txt, "  ")))
+            import logging
+
+            msg = "Failed parsing commit message due to: %r\nmsg:\n%s" % (
+                ex, tw.indent(cmsg_txt, "  "))
+            logging.getLogger(cls.__name__).debug(msg, exc_info=1)
+            raise CmdException(msg)
 
 
 _PROJECTS_PREFIX = 'projects/'
