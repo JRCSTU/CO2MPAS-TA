@@ -246,7 +246,7 @@ if __name__ == '__main__':
     #argv = 'tstamp login'.split()
     #sys.exit(main(argv))
 
-    #from traitlets.config import trtc.get_config
+    #from co2mpas._vendor.traitlets.config import trtc.get_config
 
     #c = trtc.get_config()
     #c.Application.log_level=0

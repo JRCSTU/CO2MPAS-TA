@@ -4,8 +4,8 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
-v1.6.3, 1 August 2017: "T-REA" Release
-======================================
+v1.7.3, 10 August 2017: "T-REA" Release
+=======================================
 - Dice & model fine-tuning.
 - Includes changes also from **RETRACTED** ``v1.6.1.post0``, 13 July 2017,
   "T-bone" release.
@@ -37,45 +37,45 @@ The Dice:
   to provide help-text and configured values for specific classes & params
   and all interesting variables affecting configurations.
   (alternatives to the much  coarser ``--help`` and ``--help-all`` options).
-- feat(tstamp, :gh:`382`): enhance handling of email encodings on send/recv:
 
-  - add configurations choices for *Content-Transfer-Enconding* when sending
-    non-ASCII emails or working with Outlook (usually `'=0A=0D=0E'` chars
-    scattered in the email); read help on those parameters, with this command::
+- Tstamping & networking:
+  - feat(:gh:`382`): enhance handling of email encodings on send/recv:
+    - add configurations choices for *Content-Transfer-Enconding* when sending
+      non-ASCII emails or working with Outlook (usually `'=0A=0D=0E'` chars
+      scattered in the email); read help on those parameters, with this command::
 
-        co2dice config desc transfer_enc  quote_printable
+          co2dice config desc transfer_enc  quote_printable
 
-  - add ``TstampSender.scramble_tag`` & ``TstampReceiver.un_quote_printable``
-    options for dealing with non-ASCII dice-reports.
+    - add ``TstampSender.scramble_tag`` & ``TstampReceiver.un_quote_printable``
+      options for dealing with non-ASCII dice-reports.
 
-- feat(report): print out the key used to sign dice-report.
-- feat(tstamp):
-  - add ``--subject``, ``--on`` and ``--wait-criteria`` options for
-  search criteria on the ``tstamp recv`` and ``project trecv`` subcmds;
-  - renamed ``email_criteria-->rfc-criteria``, enhancing their syntax help;
-  - ``tstamp parse`` can guess if a "naked" dice-reports tags is given
+  - ``(t)recv`` cmds: add ``--subject``, ``--on`` and ``--wait-criteria`` options for
+    search criteria on the ``tstamp recv`` and ``project trecv`` subcmds;
+  - ``(t)recv`` cmds: renamed ``email_criteria-->rfc-criteria``, enhancing their
+    syntax help;
+  - ``(t)parse`` can guess if a "naked" dice-reports tags is given
     (specify ``--tag`` to be explicit).
-  - improve ``(t)parse`` command's ``dice`` printout to include project/issuer/dates &
-    stampver
+  - ``(t)recv`` cmd: added ``--page`` option to download a "slice" of from the server.
+  - improve ``(t)parse`` command's ``dice`` printout to include project/issuer/dates.
+  - ``(t)recv``: BCC-addresses were treated as CCs; ``--raw`` STDOUT was corrupted;
+    emails received
+  - feat(report): print out the key used to sign dice-report.
 
-- fix(tstamp): BCC-addresses were treated as CCs; ``--raw`` STDOUT was corrupted;
-  emails received
-- ``co2dice project export``:
-  - fix(:ghp:`18`): fix command not to include dices from all projects.
-  - feat(:gh:`423`, :gh:`435`): add ``--out`` option to set the out-fpath
-    of the archive, and the ``--erase-afterwards`` to facilitate starting a
-    project.
+- Projecst DB:
+  - feat(project): store tstamp-email verbatim, and sign 2nd HASH report.
+  - refact(git): compatible-bump of dice-report format-version: ``1.0.0-->1.0.1``.
+  - feat(log): possible to modify selectively logging output with
+    ``~/logconf.yaml`` file;  generally improve error handling and logging of
+    commands.
+  - ``co2dice project export``:
+    - fix(:ghp:`18`): fix command not to include dices from all projects.
+    - feat(:gh:`423`, :gh:`435`): add ``--out`` option to set the out-fpath
+      of the archive, and the ``--erase-afterwards`` to facilitate starting a
+      project.
 
-    .. Note::
-      Do not (ab)use ``project export --erase-afterwards`` on diced projects.
+      .. Note::
+        Do not (ab)use ``project export --erase-afterwards`` on diced projects.
 
-  - feat(:gh:`423`, :gh:`435`): add ``--out`` option to set the out-fpath.
-
-- feat(project): store verbatim tstamp-email along with verdict.
-- refact(git): compatible-bump of dice-report format-version: ``1.0.0-->1.0.1``.
-- feat(log): possible to modify selectively logging output with
-  ``~/logconf.yaml`` file;  generally improve error handling and logging of
-  commands.
 
 Known Limitations
 ~~~~~~~~~~~~~~~~~
@@ -87,8 +87,10 @@ Known Limitations
 
   A permanent solution to the problem is will be provided when the
   the *Exchange Web Services (EWS)* protocol is implemented in *co2mpas*.
+
 - On *Yahoo* servers, the ``TstampReceiver.subject_prefix`` param must not
   contain any brackets (``[]``).
+
 - Using GMail accounts to send Dice may not(!) receive the reply-back "Proof of
   Posting" reply (or it may delay up to 4 hours).  It is recommended to have a
   2nd email address in the ``tstamp_recipients`` to receive the dice-tstamp
@@ -98,6 +100,7 @@ Known Limitations
   strict to allow SMTP/IMAP access.  In all cases, you need to enable allow
   `less secure apps <https://support.google.com/accounts/answer/6010255>`_ to
   access your account.
+
 - Some combinations of outbound & inbound accounts for dice reports and timsestamps
   may not work due to `DMARC restrictions <https://en.wikipedia.org/wiki/DMARC>`_.
   JRC will offer more alternative "paths" for running Dices.
