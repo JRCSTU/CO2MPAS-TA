@@ -1436,21 +1436,28 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
         ## Create tag reference (if not already-there).
         #
-        tag_path = osp.join(repo.git_dir, tag.TagReference._common_path_default, tag_name)
+        tag_path = re.match('^[^:]+', tag_name).group()
+        tag_path = osp.join(repo.git_dir,
+                            tag.TagReference._common_path_default,
+                            tag_path)
         if osp.exists(tag_path):
             with io.open(tag_path, 'rt') as tag_fp:
                 old_hexsha = tag_fp.read()
             if old_hexsha == new_hexsha:
-                self.log.info("Dice '%s-->%s' already stored.", tag_name, new_hexsha)
+                self.log.info("Dice '%s' --> '%s' already stored.",
+                              tag_name, new_hexsha)
             else:
                 ## TODO: print more Tag-collission infos.
                 raise CmdException(
-                    "Different dice '%s-->%s' already exists, cannot overwrite with '%s'!" %
+                    "Different dice '%s' --> '%s' already exists, "
+                    "cannot overwrite with '%s'!" %
                     (tag_name, old_hexsha, new_hexsha)) from None
         else:
             os.makedirs(osp.dirname(tag_path), exist_ok=True)
             with io.open(tag_path, 'wt') as tag_fp:
                 tag_fp.write(new_hexsha)
+
+            self.log.info("Created foreign project tag: %s", tag_name)
 
     def proj_parse_stamped_and_assign_project(self, mail_text: Text):
         ## TODO: Delete old proj-registry method, replaced by `append_foreign_dice()`.
