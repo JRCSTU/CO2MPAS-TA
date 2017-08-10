@@ -231,7 +231,8 @@ class PathsCmd(baseapp.Cmd):
             try:
                 return func()
             except Exception as ex:
-                return "<%s due to: %r>" % (fallback or 'invalid', ex)
+                return "<%s due to: %s(%s)>" % (
+                    fallback or 'invalid', type(ex).__name__, ex)
 
         def format_tuple(path, files: List[Text]):
             endpath = sep if path[-1] != sep else ''
