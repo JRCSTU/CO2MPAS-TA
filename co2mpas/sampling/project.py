@@ -1409,13 +1409,21 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         except Exception as ex:
             p.do_invalidate(error=ex)
 
-    def proj_open(self, pname: Text) -> Project:
+    def proj_open(self, pname: Text=None) -> Project:
         """
         :param pname:
-            the project name (without prefix)
+            the project name (without prefix); auto-deduced if missing and
+            a single project exists.
         :return:
             the current :class:`Project`
         """
+        if not pname:
+            plist = list(self.proj_list())
+            if len(plist) != 1:
+                raise CmdException(
+                    'Cannot deduce which project to open from: %s', plist)
+            pname = plist[0]
+
         repo = self.repo
         if pname == '.':
             ## FIXME: fails if no project open; `repo.head.ref` might work.
@@ -1640,17 +1648,20 @@ class OpenCmd(_SubCmd):
     Make an existing project as *current*.
 
     SYNTAX
-        %(cmd_chain)s [OPTIONS] <project>
+        %(cmd_chain)s [OPTIONS] [<project>]
+
+    - Auto-deduced, if no <project> is given, but there is only one
+      in the database.
     """
     def run(self, *args):
-        if len(args) != 1:
+        if len(args) > 1:
             raise CmdException(
-                "Cmd %r takes exactly one argument as the project-name, received %r!"
+                "Cmd %r takes one optional argument as project-name, received %r!"
                 % (self.name, args))
         self.log.info('Opening project %r...', args)
 
         projDB = self.projects_db
-        proj = projDB.proj_open(args[0])
+        proj = projDB.proj_open(args and args[0] or None)
 
         return projDB.proj_list(proj.pname, as_text=True) if self.verbose else proj
 
