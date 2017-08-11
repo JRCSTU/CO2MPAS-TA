@@ -2427,6 +2427,15 @@ class BackupCmd(_SubCmd):
         help="Will erase the whole repository and ALL PROJECTS contained fter backing them up."
     ).tag(config=True)
 
+    def __init__(self, **kwds):
+        self.cmd_flags.update({
+            'erase-afterwards': (
+                {type(self).__name__: {'erase_afterwards': True}},
+                type(self).erase_afterwards.help
+            ),
+        })
+        super().__init__(**kwds)
+
     def run(self, *args):
         if len(args) > 1:
             raise CmdException('Cmd %r takes one optional filepath, received %d: %r!'
