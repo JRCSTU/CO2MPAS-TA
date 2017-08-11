@@ -747,19 +747,20 @@ class Project(transitions.Machine, ProjectSpec):
             signed_dice_report, tagref.name, dry_run=dry_run)
 
         if dry_run:
-            HEADER = '\n'.join('%s: %s' % i for i in dice_mail_mime.items())
+            HEADER = '\n'.join('%7s: %s' % (k, dice_mail_mime.get(k))
+                               for k in ('Subject To Cc').split())
             self.log.info("""
 DRY-RUN: Now you must send the email your self!
-==========================================================================
-- Read instructions:
-  https://github.com/JRCSTU/CO2MPAS-TA/wiki/8.-The-DICE.#steps-to-dice-manually
-- Set the email as 'PLAIN-TEXT' (not 'HTML'!) right before pasting text!
-- Set the EMAIL-FIELDS shown below (you may also set 'Bcc').
-- Copy from the 1st line starting with 'X-Stamper-To:', below;
-==========================================================================
+================================================================================
+- Start a new email and set EMAIL-DELIVERY option  as 'plain-text'  before(!)
+  pasting text (visit ://goo.gl/jwR5Hz for examples on popular email-clients)
+- set EMAIL-FIELDS as shown below (you may also set 'Bcc').
 %s
-==========================================================================
-""", HEADER)
+- copy all text from the 1st line below starting with 'X-Stamper-To:', and
+  paste it in the email body;
+- send the email, and wait for "Proof of Posting" reply-back to `tparse` it.
+================================================================================
+""", tw.indent(HEADER, '  - '))
             self.result = dice_mail_mime.get_payload()
 
         if event.transition.source != 'mailed':
