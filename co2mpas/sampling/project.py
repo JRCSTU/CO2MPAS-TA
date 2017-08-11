@@ -2429,8 +2429,8 @@ class ImportCmd(_SubCmd):
         plist = list(self.projects_db.proj_list())
         if len(plist) == 1:
             alone_project = plist[0]
-            self.log.info("Opening atomatically project '%s', "
-                          "alone in db...", alone_project)
+            self.log.info("Projects-db now contains a single project '%s'; "
+                          "auto-opening it...", alone_project)
             self.projects_db.proj_open(alone_project)
 
 
