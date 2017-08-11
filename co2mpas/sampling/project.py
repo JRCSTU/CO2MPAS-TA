@@ -1523,11 +1523,10 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             else:
                 fields = ['is_current', 'msg.s']
 
-        try:
-            cpname = self.current_project().pname
-        except CmdException as ex:
-            self.log.warning('%s', ex)
-            cpname = None
+        ## ΝΟΤΕ: Using `current_project()`  would print
+        #  annoying "no-project" warning; let other cmds do that
+        # when actually use the method.
+        cpname = getattr(self._current_project, 'pname', None)
 
         pnames = iset(cpname if p == '.' else p
                       for p in pnames)

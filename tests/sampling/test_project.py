@@ -177,22 +177,20 @@ class TProjectsDBStory(unittest.TestCase):
         exp_log_msg = r"No current-project exists yet!"
 
         cmd = project.LsCmd(config=cfg)
-        with self.assertLogs(level=logging.WARNING) as log_rec:
+        self.assertEqual(collect_cmd(cmd.run()), None)
+
+        cmd = project.ReportCmd(config=cfg)
+        with self.assertRaisesRegex(baseapp.CmdException, exp_log_msg):
             pump_cmd(cmd.run())
-        self.assertIn(exp_log_msg, str(log_rec.output))
         self.assertIsNone(cmd.projects_db._current_project)
 
         pdb = project.ProjectsDB.instance(config=cfg)
         pdb.update_config(cfg)
 
-        with self.assertLogs(level=logging.WARNING) as log_rec:
-            pump_cmd(pdb.proj_list(verbose=1))
-        self.assertIn(exp_log_msg, str(log_rec.output))
+        pump_cmd(pdb.proj_list(verbose=1))
         self.assertIsNone(pdb._current_project)
 
-        with self.assertLogs(level=logging.WARNING) as log_rec:
-            pump_cmd(pdb.proj_list(verbose=2))
-        self.assertIn(exp_log_msg, str(log_rec.output))
+        pump_cmd(pdb.proj_list(verbose=2))
         self.assertIsNone(pdb._current_project)
 
     def test_1b_empty_infos(self):
