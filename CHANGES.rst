@@ -39,6 +39,7 @@ The Dice:
   (alternatives to the much  coarser ``--help`` and ``--help-all`` options).
 
 - Tstamping & networking:
+
   - feat(:gh:`382`): enhance handling of email encodings on send/recv:
     - add configurations choices for *Content-Transfer-Enconding* when sending
       non-ASCII emails or working with Outlook (usually `'=0A=0D=0E'` chars
@@ -61,7 +62,8 @@ The Dice:
     emails received
   - feat(report): print out the key used to sign dice-report.
 
-- Projecst:
+- Projects:
+
   - feat(project): store tstamp-email verbatim, and sign 2nd HASH report.
   - refact(git): compatible-bump of dice-report format-version: ``1.0.0-->1.0.1``.
   - feat(log): possible to modify selectively logging output with
@@ -82,36 +84,37 @@ The Dice:
 
 Known Limitations
 ~~~~~~~~~~~~~~~~~
-- Microsoft Outlook Servers are known to corrupt the dice-emails; depending
-  on the version and the configurations, most of the times they can be fixed.
-  If not, as a last resort, another email-account may be used, either to
-  receive the tstamps (added in the ``tstamp_recipient`` param), or to send
-  the dice-email in the first place.
+  - Microsoft Outlook Servers are known to corrupt the dice-emails; depending
+    on the version and the configurations, most of the times they can be fixed.
+    If not, as a last resort, another email-account may be used.
 
-  A permanent solution to the problem is will be provided when the
-  the *Exchange Web Services (EWS)* protocol is implemented in *co2mpas*.
+    A permanent solution to the problem is will be provided when the
+    the *Exchange Web Services (EWS)* protocol is implemented in *co2mpas*.
 
-- On *Yahoo* servers, the ``TstampReceiver.subject_prefix`` param must not
-  contain any brackets (``[]``).
+  - On *Yahoo* servers, the ``TstampReceiver.subject_prefix`` param must not
+    contain any brackets (``[]``).  The are included by default, so you have to
+    modify that in your configs.
 
-- Using GMail accounts to send Dice may not(!) receive the reply-back "Proof of
-  Posting" reply (or it may delay up to 4 hours).  It is recommended to have a
-  2nd email address in the ``tstamp_recipients`` to receive the dice-tstamp
-  email within minutes.
+  - Using GMail accounts to send Dice may not(!) receive the reply-back "Proof of
+    Posting" reply (or it may delay up to days).  Please perform tests to discover that,
+    and use another email-provided if that's the case.
 
-  Additionally, Google's security provisions for some countries may be too
-  strict to allow SMTP/IMAP access.  In all cases, you need to enable allow
-  `less secure apps <https://support.google.com/accounts/answer/6010255>`_ to
-  access your account.
+    Additionally, Google's security provisions for some countries may be too
+    strict to allow SMTP/IMAP access.  In all cases, you need to enable allow
+    `less secure apps <https://support.google.com/accounts/answer/6010255>`_ to
+    access your account.
 
-- Some combinations of outbound & inbound accounts for dice reports and timsestamps
-  may not work due to `DMARC restrictions <https://en.wikipedia.org/wiki/DMARC>`_.
-  JRC will offer more alternative "paths" for running Dices.
+  - Some combinations of outbound & inbound accounts for dice reports and timsestamps
+    may not work due to `DMARC restrictions <https://en.wikipedia.org/wiki/DMARC>`_.
+    JRC will offer more alternative "paths" for running Dices.  All major providers
+    (Google, Yahoo, Microsoft) will not allow your dice-report to be stamped and forwarded
+    to ``TstampSender.stamp_recipients`` other than the Comission; you may (or may not)
+    receive "bounce" emails explaining that.
 
-- There is no high level command to view the stamp for some project;
-  Assuming your project is in ``sample`` or ``nosample`` state, use this cmd::
+  - There is no high level command to view the stamp for some project;
+    Assuming your project is in ``sample`` or ``nosample`` state, use this cmd::
 
-      cat %HOME%/.co2dice/repo/tstamp.txt
+        cat %HOME%/.co2dice/repo/tstamp.txt
 
 
 Datasync
