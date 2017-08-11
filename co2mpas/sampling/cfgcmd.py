@@ -219,8 +219,7 @@ class PathsCmd(baseapp.Cmd):
                                % (self.name, len(args), args))
 
         import sys
-        from .. import (__version__, __updated__,
-                        __dice_report_version__, __dice_stamp_version__)
+        from .. import __version__, __updated__, __dice_report_version__
         from . import project
         from . import crypto
 
@@ -247,7 +246,6 @@ class PathsCmd(baseapp.Cmd):
         yield "  co2dice_release: %s" % __version__
         yield "  co2dice_updated: %s" % __updated__
         yield "  dice_report_ver: %s" % __dice_report_version__
-        yield "  dice_stamp_ver: %s" % __dice_stamp_version__
         yield "  python_version: %s" % sys.version
 
         yield "CONFIG:"

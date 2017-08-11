@@ -763,37 +763,6 @@ base32(tag): |=0A=\r
         m = tstamp._stamper_banner_regex.search(s)
         self.assertIsNotNone(m)
 
-    @ddt.data(
-        ("""""", None, None),
-        ("""something without version""", None, None),
-        ("""foo_stamp_version: 0.0.0""", None, None),
-        ("""foo stamp_version: 0.0.0 """, None, None),
-        ("""foo _stamp_version: 0.0.0 """, None, None),
-        ("""foo _stamp_version: 0.0.0\r""", None, None),
-        ("""foo _stamp_version: 0.0.0\r\r""", None, None),
-        ("""foo stamp_version: 0d0.0\n""", None, None),
-
-        ("""foo\n_stamp_version: 011123.22.33\n""", True, '011123.22.33'),
-        ("""foo._stamp_version: 0.2.1\r\n""", True, '0.2.1'),
-        ("""foo/_stamp_version: 0.2.1\n""", True, '0.2.1'),
-        ("""foo _stamp_version: 0.2.1\r\r\n  more text""", True, '0.2.1'),
-
-        ("""foo\nstamp_version: 0.2.1\n\r""", False, '0.2.1'),
-        ("""foo.stamp_version: 0.2.1   \n""", False, '0.2.1'),
-    )
-    def test_stamp_version_detection(self, case):
-        text, must_extract, ver = case
-        ntext, nver = tstamp.extract_any_stamp_version_line(text)
-        if not nver:
-            self.assertIsNone(must_extract, case)
-        else:
-            assert isinstance(must_extract, bool)
-            if must_extract:
-                self.assertNotEqual(ntext, case)
-            else:
-                self.assertEqual(ntext, text, case)
-            self.assertEqual(nver, ver, case)
-
     def test_num_to_decision(self):
         import random
 

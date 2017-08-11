@@ -695,10 +695,6 @@ _stamper_id_regex = re.compile(r"Comment:\s+Stamper\s+Reference\s+Id:\s+(\d+)")
 _stamper_banner_regex = re.compile(r"^#{56}\r?\n(?:^#[^\n]*\n)+^#{56}\r?\n\r?\n(.*)",
                                    re.MULTILINE | re.DOTALL)  # @UndefinedVariable
 
-#: If it exists in some tstamp, it signifies new "randomized" dice routine.
-#: If it start with undescore(_), the full line must be removed prior verification.
-_stamp_version_regex = re.compile(r"\b(_)?stamp_version: (\d+\.\d+\.\d+)[ \t\r]*\n")
-
 _dicetag_in_body_regex = re.compile(
     r'''
     ^object\ (?P<hash>[0-9a-f]+)   \s+
@@ -739,26 +735,6 @@ def _parse_slice(v: Text):
         pass
 
     raise trt.TraitError("Syntax-error in '%s' slice!" % orig_v)
-
-
-def _should_extract_stamp_version_line(match: 're.Match') -> bool:
-    return False
-
-
-def extract_any_stamp_version_line(mail_text: Text) -> (Text, Text):
-    """
-    :return
-        ``(stamp_ver, text_without_ver_line)`` where `stamp_ver`
-        possibly None
-    """
-    stamp_ver = None
-    m = _stamp_version_regex.search(mail_text)
-    if m:
-        stamp_ver = m.group(2)
-        if _should_extract_stamp_version_line(m):
-            mail_text = _stamp_version_regex.sub('', mail_text)
-
-    return mail_text, stamp_ver
 
 
 class TstampReceiver(TstampSpec):
@@ -978,25 +954,13 @@ class TstampReceiver(TstampSpec):
 
         return stamper_id, msg
 
-    def _is_stamp_version_says_randomize_sig_id(self, stamp_ver: Text) -> int:
-        """
-        :param stamp_ver:
-            A possibly none string, formated as ``<major>.<minor><micro>``.
-        :return:
-            True if `stamp_ver` defined, meaning sig-id should be randomized,
-            None otherwise.
-        """
-        if stamp_ver:
-            return True
-
-    def _pgp_sig_to_dice100(self, sig_id: Text, stamp_ver: Text) -> int:
+    def _pgp_sig_to_dice100(self, sig_id: Text) -> int:
         """
         :return:
             ``(sig-id-as-20-bytes-number, dice100)``
         """
         num = pgp_sig_to_sig_id_num(sig_id)
-        is_randomize = self._is_stamp_version_says_randomize_sig_id(stamp_ver)
-        num, dice100 = num_to_dice100(num, is_randomize)
+        num, dice100 = num_to_dice100(num, is_randomize=False)
 
         return num, dice100
 
@@ -1101,35 +1065,12 @@ class TstampReceiver(TstampSpec):
 
         return verdict
 
-    def _validate_stamp_version(self, stamp_ver: Text) -> int:
-        """
-        :param stamp_ver:
-            A possibly none string, formated as ``<major>.<minor><micro>``.
-        :raise:
-            CmdException if `stamp_ver` defined but unsupported number:
-            either diff major OR greater minor.
-        """
-        if stamp_ver:
-            from .. import __dice_stamp_version__
-
-            prog_ver = __dice_stamp_version__.split('.')
-            major, minor, _ = stamp_ver.split('.')
-            if int(major) != int(prog_ver[0]) or int(minor) > int(prog_ver[1]):
-                ## No force can overcome this.
-                raise CmdException(
-                    "incompatible stamp-version '%s', expected <= '%s.%s.x'" %
-                    (stamp_ver, prog_ver[0], prog_ver[1]))
-
     def _verify_tstamp(self, mail_text: Text) -> OrderedDict:
         """return verdict or raise if tstamp invalid"""
         stamper_auth = crypto.get_stamper_auth(self.config)
 
-        stamp_ver = extract_any_stamp_version_line(mail_text)
-
         ver = stamper_auth.verify_clearsigned(mail_text)
         verdict = vars(ver)
-        ## Note: not `stamp_version` not to kick mail-detection routine.
-        verdict['stamp_ver'] = None
         verdict['mail_text'] = mail_text
         if not ver:
             errmsg = "Cannot verify timestamp-response's signature due to: %s"
@@ -1171,10 +1112,6 @@ class TstampReceiver(TstampSpec):
     def _make_dice_results(self, ts_verdict, tag_verdict, tag_name):
         dice_results = []
 
-        stamp_ver = ts_verdict.get('stamp_ver')
-        if stamp_ver:
-            dice_results.append(('stamp_ver', stamp_ver))
-
         if tag_name:
             dice_results.append(('tag', tag_name))
         else:
@@ -1196,8 +1133,7 @@ class TstampReceiver(TstampSpec):
             dice_results.append(('dice_date',
                                  crypto.gpg_timestamp(ts_verdict['timestamp'])))
 
-        num, dice100 = self._pgp_sig_to_dice100(ts_verdict['signature_id'],
-                                                ts_verdict.get('stamp_ver'))
+        num, dice100 = self._pgp_sig_to_dice100(ts_verdict['signature_id'])
         decision = 'OK' if dice100 < 90 else 'SAMPLE'
         dice_results.extend([
             ('hexnum', '%X' % num),
@@ -1239,7 +1175,7 @@ class TstampReceiver(TstampSpec):
                     %s
                 """), _mydump(sorted(ts_verdict.items())))
 
-        ## NOTE: Text may have changed if `stamp-ver` line has been deleted.
+        ## NOTE: Text may have changed, due to encodings,
         #  but still return the original stamp.
         ts_parts = crypto.pgp_split_clearsigned(ts_verdict['mail_text'])
         ts_verdict['parts'] = ts_parts
