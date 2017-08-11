@@ -1472,30 +1472,6 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
             self.log.info("Created foreign project tag: %s", tag_name)
 
-    def proj_parse_stamped_and_assign_project(self, mail_text: Text):
-        ## TODO: Delete old proj-registry method, replaced by `append_foreign_dice()`.
-        from . import tstamp
-
-        recv = tstamp.TstampReceiver(config=self.config)
-        verdict = recv.parse_tstamp_response(mail_text)
-        report = verdict.get('report', {})
-        pname = report.get('project')
-        if not pname:
-            raise CmdException(
-                'Cannot identify which project tstamped-response belongs to!\n%s',
-                _mydump(verdict))
-
-        repo = self.repo
-        refname = _pname2ref_name(pname)
-        if refname in repo.refs:
-            ## TODO: Check if dice moved!!
-            proj = self.proj_open(pname)
-            return proj.do_storedice(tstamp_txt=mail_text, verdict=verdict)
-        else:
-            ## TODO: build_registry
-            self.log.warning("Foreign dice-reports are discarded.")
-            return verdict
-
     def proj_list(self, *pnames: Text, verbose=None,
                   as_text=False, fields=None):
         """
