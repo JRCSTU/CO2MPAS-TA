@@ -886,6 +886,10 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
     #     repo_path = pndlu.convpath(repo_path)
     # return repo_path
 
+    allow_foreign_dice = trt.Bool(
+        help="Storing \"foreign\ dices\" is an advanced operation, "
+        "corrupting git.")
+
     __repo = None
 
     def __del__(self):
@@ -2164,7 +2168,13 @@ class TrecvCmd(TparseCmd):
 
             try:
                 if is_foreign:
-                    projDB.append_foreign_dice(all_infos)
+                    if projDB.allow_foreign_dice:
+                        projDB.append_foreign_dice(all_infos)
+                    else:
+                        self.log.warning(
+                            "Storing a dice from \"foreign\" project '%s'"
+                            "is an advanced operation, which is not enabled.",
+                            pname)
                 else:
                     proj.do_storedice(tstamp_txt=mail_text, verdict=verdict)  # Ignoring ok/false.
 
