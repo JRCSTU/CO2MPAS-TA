@@ -820,7 +820,7 @@ DRY-RUN: Now you must send the email your self!
 
         ## Store in new TAG the decision only;
         #  the rest are stored in `verdict.txt` file.
-        report = dtz.keyfilter(lambda k: k not in ('tstamp', 'report'), verdict)
+        report = dtz.keyfilter(lambda k: k not in ('tstamp', ), verdict)
 
         ## Notify to create new tag!
         event.kwargs['report'] = report
@@ -2005,6 +2005,8 @@ class TparseCmd(_SubCmd):
                                % (self.name, len(args), args))
 
         file = '-' if not args else args[0]
+        ## Fail early if cur-project not open.
+        proj = self.current_project
 
         if file == '-':
             self.log.info("Reading STDIN; paste message verbatim!")
@@ -2017,7 +2019,6 @@ class TparseCmd(_SubCmd):
             with io.open(file, 'rt') as fin:
                 mail_text = fin.read()
 
-        proj = self.current_project
         proj.do_storedice(tstamp_txt=mail_text)  # Ignoring ok/false.
         report = proj.result
 
