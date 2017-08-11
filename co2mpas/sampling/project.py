@@ -732,7 +732,14 @@ class Project(transitions.Machine, ProjectSpec):
 
         tagref = _find_dice_tag(repo, self.pname,
                                 self.max_dices_per_project)
-        assert tagref
+        assert tagref, (tw.dedent("""\
+            Project corrupted, cannot find any dice-report tag!
+              Try the following:
+              - re-run `project report` command;
+              - run `export --erase-afterwards` and restart project;
+              - run `project backup --erase-afterwards` to delete you projects-DB
+                and restart project.
+        """))
         signed_dice_report = _read_dice_tag(repo, tagref)
         assert signed_dice_report
 
@@ -2399,8 +2406,9 @@ class ImportCmd(_SubCmd):
                 except Exception as ex:
                     if 'missing object referenced by' in str(ex):
                         self.log.warning(
-                            "Imported  PARTIALLY objects from '%s: %s(%s)"
-                            "'n  Does it contain \"foreign dices\"?",
+                            "Imported only PARTIALLY objects from '%s: %s(%s)"
+                            "'n  Note: importing archives with \"foreign dices\" "
+                            "is not supported yet!",
                             f, type(ex).__name__, ex,
                             exc_info=self.verbose)
                     else:
