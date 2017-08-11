@@ -61,7 +61,7 @@ The Dice:
     emails received
   - feat(report): print out the key used to sign dice-report.
 
-- Projecst DB:
+- Projecst:
   - feat(project): store tstamp-email verbatim, and sign 2nd HASH report.
   - refact(git): compatible-bump of dice-report format-version: ``1.0.0-->1.0.1``.
   - feat(log): possible to modify selectively logging output with
@@ -76,6 +76,9 @@ The Dice:
       .. Note::
         Do not (ab)use ``project export --erase-afterwards`` on diced projects.
 
+
+  - ``co2dice project open``: auto-deduce project to open if only one exists.
+  - ``co2dice project backup``: add ``--erase-afterwards`` option.
 
 Known Limitations
 ~~~~~~~~~~~~~~~~~
