@@ -8,7 +8,7 @@
 ######################################################################
 
 :official:      `AIO-1.5.5` + `co2mpas-1.5.7.b3` (until 1-Nov-2017)
-:latest:        `1.7.3b1`
+:latest:        `1.7.3`
 :rel_date:      `2017-08-10 23:17:18`
 :render_date:   |today|
 :home:          http://co2mpas.io/
@@ -347,7 +347,7 @@ Alternatively, open the CONSOLE and type the following command:
 
     ## Check co2mpas version.
     $ co2mpas -V
-    co2mpas-1.7.3b1
+    co2mpas-1.7.3
 
 
 |co2mpas| command syntax
@@ -1346,7 +1346,7 @@ Install |co2mpas| package
         Downloading http://pypi.co2mpas.io/packages/co2mpas-...
         ...
         Installing collected packages: co2mpas
-        Successfully installed co2mpas-1.7.3b1
+        Successfully installed co2mpas-1.7.3
 
    .. Warning::
         **Installation failures:**
@@ -1366,8 +1366,8 @@ Install |co2mpas| package
    .. code-block:: console
 
        > co2mpas -vV
-       co2mpas_version: 1.7.3b1
-       co2mpas_rel_date: 2017-08-10 22:48:46
+       co2mpas_version: 1.7.3
+       co2mpas_rel_date: 2017-08-11 13:55:36
        co2mpas_path: d:\co2mpas_ALLINONE-64bit-v1.4.1\Apps\WinPython\python-3.4.3\lib\site-packages\co2mpas
        python_path: D:\co2mpas_ALLINONE-64bit-v1.4.1\WinPython\python-3.4.3
        python_version: 3.4.3 (v3.4.3:9b73f1c3e601, Feb 24 2015, 22:44:40) [MSC v.1600 XXX]
