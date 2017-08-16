@@ -116,6 +116,10 @@ Known Limitations
 
         cat %HOME%/.co2dice/repo/tstamp.txt
 
+- The decision-number generated never includes the nmumbers 10, 20, ...90.
+  This does not change the odds for ``SAMPLE``/``NOSAMPLE`` but it does affect
+  the odds for double-testing *Low* vs *High* vehicles (4 vs 5).
+
 
 Datasync
 --------
@@ -208,6 +212,7 @@ AIO:
   - fix(git): use `cygpath.exe` to convert Windows paths and respect
     mount-points (see `GitPython#639
     <https://github.com/gitpython-developers/GitPython/pull/639>`_).
+
 - Use ``[AIO]`` to signify the ALLINONE base-folder in the documentation; use it
   in co2mpas to suppress excessive development warnings.
 
