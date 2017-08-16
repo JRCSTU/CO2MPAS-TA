@@ -1401,7 +1401,7 @@ class TstampReceiver(TstampSpec):
                           "\n  Will keep going though...", bad_ends)
         data = data[::2]
 
-        for i, (uid, d) in enumerate(zip(uids, data)):
+        for uid, d in zip(uids, data):
             m = email.message_from_bytes(d[1])
 
             yield uid.decode(), m
