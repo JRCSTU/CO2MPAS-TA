@@ -125,21 +125,41 @@ class TGpgSpecBinary(unittest.TestCase):
 
     def test_GPG_EXECUTABLE(self):
         from unittest.mock import patch
-        import importlib
 
-        with patch.dict('os.environ', {'GNUPGEXE': '/bad_path'}):  # @UndefinedVariable
-            ## No-dynamic trait-defaults are loaded on import time...
-            importlib.reload(crypto)
-
+        with patch.dict('os.environ',  # @UndefinedVariable
+                        {'GNUPGEXE': '/bad_path'}):
             with self.assertRaisesRegex(OSError, 'Unable to run gpg - it may not be available.'):
                 crypto.GpgSpec().GPG
 
             cfg = trtc.get_config()
             cfg.GpgSpec.gnupgexe = 'gpg'
-            crypto.GpgSpec(config=cfg).GPG
+            with self.assertRaisesRegex(OSError, 'Unable to run gpg - it may not be available.'):
+                crypto.GpgSpec(config=cfg).GPG
 
-        ## Restore default.
-        importlib.reload(crypto)
+        crypto.GpgSpec().GPG  # Ok.
+
+    def test_GPGHOME(self):
+        from unittest.mock import patch
+
+        env_val = 'env_path'
+        cfg_val = 'cfg_path'
+        cfg = trtc.get_config()
+        cfg.GpgSpec.gnupghome = cfg_val
+        with patch.dict('os.environ',  # @UndefinedVariable
+                        {'GNUPGHOME': env_val}):
+            self.assertEqual(crypto.GpgSpec().gnupghome, env_val)
+            self.assertEqual(crypto.GpgSpec().gnupghome_resolved, env_val)
+
+            cfg.GpgSpec.gnupghome = cfg_val
+            self.assertEqual(crypto.GpgSpec(config=cfg).gnupghome,
+                             env_val)
+            self.assertEqual(crypto.GpgSpec(config=cfg).gnupghome_resolved,
+                             env_val)
+
+        with patch.dict('os.environ',  # @UndefinedVariable
+                        clear=True):
+            self.assertEqual(crypto.GpgSpec(config=cfg).gnupghome, cfg_val)
+            self.assertEqual(crypto.GpgSpec(config=cfg).gnupghome_resolved, cfg_val)
 
 
 _clearsigned_msgs = [
@@ -398,6 +418,8 @@ class TGpgSpec(unittest.TestCase):
                 crypto.pgp_split_clearsigned(clearsigned)
 
     def test_parse_git_tag_unknown_pubkey(self):
+        import os
+        from unittest.mock import patch
         import git
 
         repo = git.Repo(myproj)
@@ -413,8 +435,12 @@ class TGpgSpec(unittest.TestCase):
 
         tag_csig = crypto.pgp_split_sig(tag_bytes)
 
-        gpg_spec = crypto.GpgSpec(config=self.cfg)
-        ver = gpg_spec.verify_detached(tag_csig['sigarmor'], tag_csig['msg'])
+        env = os.environ.copy()
+        del env['GNUPGHOME']
+        with patch.dict('os.environ',  # @UndefinedVariable
+                        env, clear=True):  # Exclude any test-user's keys.
+            gpg_spec = crypto.GpgSpec(config=self.cfg)
+            ver = gpg_spec.verify_detached(tag_csig['sigarmor'], tag_csig['msg'])
         verdict = vars(ver)
         pp(verdict)
         self.assertDictContainsSubset(
@@ -528,7 +554,25 @@ class TVaultSpec(unittest.TestCase):
         self.assertEqual(obj, plainbytes2, msg)
 
     def test_2_many_master_keys(self):
+        from unittest.mock import patch
+
+        ## Check GNUPGKEY/master_key interaction.
+        #
+        env_val = 'some_value'
+        cfg_val = 'some_value'
+        cfg = trtc.get_config()
+        cfg.VaultSpec.master_key = cfg_val
+        with patch.dict('os.environ',  # @UndefinedVariable
+                        {'GNUPGKEY': env_val}):
+            self.assertEqual(crypto.VaultSpec().master_key_resolved,
+                             env_val)
+            self.assertEqual(crypto.VaultSpec(config=cfg).master_key_resolved,
+                             env_val)
+        self.assertEqual(crypto.VaultSpec(config=cfg).master_key_resolved,
+                         cfg_val)
+
         vault = crypto.VaultSpec.instance()
+
         key = gpg_gen_key(
             vault.GPG,
             key_length=1024,
@@ -545,8 +589,27 @@ class TVaultSpec(unittest.TestCase):
             gpg_del_key(vault.GPG, key.fingerprint)
 
     def test_3_no_master_key(self):
+        from unittest.mock import patch
+
         vault = crypto.VaultSpec.instance()
         gpg_del_key(vault.GPG, vault.master_key)
+
+        ## Check GNUPGKEY/master_key interaction.
+        #
+        env_val = 'some_value'
+        cfg_val = 'some_value'
+        cfg = trtc.get_config()
+        cfg.VaultSpec.master_key = cfg_val
+        with patch.dict('os.environ',  # @UndefinedVariable
+                        {'GNUPGKEY': env_val}):
+            self.assertEqual(crypto.VaultSpec().master_key_resolved,
+                             env_val)
+            self.assertEqual(crypto.VaultSpec(config=cfg).master_key_resolved,
+                             env_val)
+        self.assertEqual(crypto.VaultSpec(config=cfg).master_key_resolved,
+                         cfg_val)
+
+
         try:
             with _temp_master_key(vault, None):
                 with self.assertRaisesRegex(

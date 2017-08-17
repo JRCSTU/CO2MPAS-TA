@@ -226,31 +226,30 @@ class GpgSpec(baseapp.Spec):
     """
     Configurable parameters for instantiating a GnuPG instance
 
-    Class-parameters override values the following environment variables (if exist):
-      - :attr:`GpgSpec.gnupgexe`   --> `GNUPGEXE`
-      - :attr:`GpgSpec.gnupghome`  --> `GNUPGHOME`
-      - :attr:`GpgSpec.master_key` --> `GNUPGKEY`
+    Class-parameters overriden by the following environment variables (if exist):
+      - `GNUPGEXE` --> :attr:`GpgSpec.gnupgexe`
+      - `GNUPGHOME`--> :attr:`GpgSpec.gnupghome`
+      - `GNUPGKEY` --> :attr:`GpgSpec.master_key`
     """
 
     gnupgexe = trt.Unicode(
-        os.environ.get('GNUPGEXE', 'gpg2'), allow_none=True,
-        help="The path to GnuPG-v2 executable; read from `GNUPGEXE`(%s) env-variable or 'gpg'."
-        % os.environ.get('GNUPGEXE')
-    ).tag(config=True)
+        'gpg', allow_none=True,
+        help="The path to GnuPG-v2 executable."
+    ).tag(config=True, envvar='GNUPGEXE')
 
     gnupghome = trt.Unicode(
-        os.environ.get('GNUPGHOME'), allow_none=True,
+        None, allow_none=True,
         help="""
         The full pathname to the folder containing the public and private PGP-keyrings.
 
-        If None, the executable decides:
+        - If it is undefined, the executable decides:
           - POSIX:   %s/.gpg
-          - Windows: %s\\GnuPG,
-        unless the `GNUPGHOME`(%s) env-variable is set.
-        """ % (os.environ.get('HOME', '~'),
-               os.environ.get('APPDATA', '%APPDATA%'),
-               os.environ.get('GNUPGHOME'))
-    ).tag(config=True)
+          - Windows: %s\\GnuPG
+        """ % (
+            os.environ.get('HOME', '~'),
+            os.environ.get('APPDATA', '%APPDATA%'),
+        )
+    ).tag(config=True, envvar='GNUPGHOME')
 
     keyring = trt.Unicode(
         None, allow_none=True,
@@ -276,19 +275,21 @@ class GpgSpec(baseapp.Spec):
     ).tag(config=True)
 
     master_key = trt.CUnicode(
-        os.environ.get('GNUPGKEY'), allow_none=True,
+        None, allow_none=True,
         help="""
-        The key-id (or recipient) of a *secret* PGP key to use for various crytpo operations.
+        The *secret* PGP key-id (or recipient name) for crytpo operations.
 
-        Usage in subclasses:
-          - VaultSpec:         dencrypt 3rdp passwords
-          - TstampSenderSpec:  sign email to timestamp service
+        - Usage in subclasses:
+          - VaultSpec:         (d)encrypt 3rdp passwords;
+          - TstampSenderSpec:  key to sign emails send to timestamp service;
+          - GitAuthSpec:       key to stamp emails with.
 
-        You MUST set either this configurable option or `GNUPGKEY`(%s) env-variable, if you have
-        If you have more than one private keys in your PGP-keyring, or else
-        the application will fail to start when any of the usages above is initiated.
-        """ % os.environ.get('GNUPGKEY')
-    ).tag(config=True)
+        Note:
+          You MUST set this option (or `GNUPGKEY` env-var), if you have
+          more than a single private key in your PGP keyring, or else,
+          the application will fail to start.
+        """
+    ).tag(config=True, envvar='GNUPGKEY')
 
     allow_test_key = trt.Bool(
         help="""
@@ -352,13 +353,16 @@ class GpgSpec(baseapp.Spec):
         import shutil
 
         gnupgexe = self.gnupgexe
-        gnupgexe = shutil.which(gnupgexe) or gnupgexe
+        gnupgexe_matched = shutil.which(gnupgexe) or gnupgexe
 
-        if not re.search(r'gpg2(:?.exe)?$', gnupgexe, re.I) or osp.isdir(gnupgexe):
+        if (not gnupgexe_matched or
+                not re.search(r'gpg2?(:?.exe)?$', gnupgexe_matched, re.I) or
+                osp.isdir(gnupgexe_matched)):
             self.log.warning(
-                "The path `%s.gnupgexe = '%s'` may point to a FOLDER(!) or GPG-v1.x, "
-                "\n  instead of pointing to a `gpg2` executable!",
-                type(self).__name__, gnupgexe)
+                "The `%s.gnupgexe = '%s'` resolves to a FOLDER(!) or "
+                "to an unknown executable,"
+                "\n  instead of pointing to a GPG-v2.x executable!",
+                type(self).__name__, gnupgexe_matched)
 
         return gnupgexe
 
@@ -422,9 +426,8 @@ class GpgSpec(baseapp.Spec):
         GPG = self._GPG
         if not GPG:
             self.gnupgexe_resolved  # Just to wearn user...
-            gnupgexe = self.gnupgexe
             GPG = self._GPG = gnupg.GPG(
-                gpgbinary=gnupgexe,
+                gpgbinary=self.gnupgexe,
                 gnupghome=self.gnupghome,
                 verbose=self.verbose,
                 use_agent=True,
