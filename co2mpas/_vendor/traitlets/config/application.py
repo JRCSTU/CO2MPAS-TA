@@ -639,7 +639,7 @@ class Application(SingletonConfigurable):
         classes = tuple(self._classes_with_config_traits())
         loader = self._create_loader(argv, aliases, flags, classes=classes)
         self.cli_config = deepcopy(loader.load_config())
-        self.update_config(self.cli_config)
+        self.update_config_with_env(self.cli_config, skip_env=True)
         # store unparsed args in extra_args
         self.extra_args = loader.extra_args
 
@@ -692,17 +692,23 @@ class Application(SingletonConfigurable):
                     filenames.append(loader.full_filename)
 
     @catch_config_error
-    def load_config_file(self, filename, path=None):
-        """Load config files by filename and path."""
+    def load_config_file(self, filename, path=None, skip_env=False):
+        """
+        Load config files by filename and path.
+
+        :param skip_env:
+            see :meth:`Configurable.update_config_with_env()`
+        """
         filename, ext = os.path.splitext(filename)
         new_config = Config()
-        for config in self._load_config_files(filename, path=path, log=self.log,
+        for config in self._load_config_files(
+            filename, path=path, log=self.log,
             raise_config_file_errors=self.raise_config_file_errors,
         ):
             new_config.merge(config)
         # add self.cli_config to preserve CLI config priority
         new_config.merge(self.cli_config)
-        self.update_config(new_config)
+        self.update_config_with_env(new_config, skip_env=skip_env)
 
     def _classes_with_config_traits(self, classes=None):
         """
