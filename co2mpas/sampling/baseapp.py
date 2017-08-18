@@ -1208,8 +1208,9 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                 self.store_pconfig(persist_path, self.log)
 
         if static_screams:
-            msg = "Found %d non-encrypted params in static-configs: %s" % (
-                len(static_screams), list(static_screams))
+            msg = ("Found %d non-encrypted params in static-configs: %s"
+                   "\n  Please move them into the \"persistent\" JSON file."
+                   % (len(static_screams), list(static_screams)))
             if self.raise_config_file_errors:
                 raise trt.TraitError(msg)
             else:
