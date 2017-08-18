@@ -733,13 +733,13 @@ class Project(transitions.Machine, ProjectSpec):
         tagref = _find_dice_tag(repo, self.pname,
                                 self.max_dices_per_project)
         assert tagref, (tw.dedent("""\
-            Project corrupted, cannot find any dice-report tag!
+            Project corrupted! state is `%s` but cannot find any dice-report tag!
               Try the following:
               - re-run `project report` command;
               - run `export --erase-afterwards` and restart project;
               - run `project backup --erase-afterwards` to delete you projects-DB
                 and restart project.
-        """))
+        """ % self.state))
         signed_dice_report = _read_dice_tag(repo, tagref)
         assert signed_dice_report
 
