@@ -706,7 +706,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         """.format(appname=APPNAME, confvar=CONFIG_VAR_NAME,
                    persistvar=PERSIST_VAR_NAME,
                    default=default_persist_fpath())
-    ).tag(config=True)
+    ).tag(config=True, envvar=PERSIST_VAR_NAME)
 
     encrypt = trt.Bool(
         False,
@@ -812,8 +812,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
     @property
     def persist_file_resolved(self):
         """Returns the 1st value in config, env, or default-value (might contain ``.json``)."""
-        persist_path = (self.persist_path or
-                        os.environ.get(PERSIST_VAR_NAME))
+        persist_path = self.persist_path
         if persist_path:
             persist_path = pndlu.convpath(persist_path)
         else:
