@@ -7,20 +7,19 @@
 #
 """co2dice: prepare/sign/send/receive/validate/archive Type Approval sampling emails of *co2mpas*."""
 
-from co2mpas import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
-from co2mpas.sampling import baseapp, CmdException
-from co2mpas.sampling.baseapp import (APPNAME, Cmd,
-                                      chain_cmds)  # @UnusedImport
 from collections import OrderedDict
 import logging
-import os
-import re
 import sys
 from typing import Sequence, Text, List, Tuple  # @UnusedImport
 
+from co2mpas import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
+from co2mpas._vendor import traitlets as trt
+from co2mpas.sampling import baseapp, CmdException
+from co2mpas.sampling.baseapp import (APPNAME, Cmd,
+                                      chain_cmds)  # @UnusedImport
+
 import os.path as osp
 import pandalone.utils as pndlu
-from co2mpas._vendor import traitlets as trt
 
 
 __title__ = APPNAME
@@ -29,7 +28,7 @@ __summary__ = pndlu.first_line(__doc__)
 
 try:
     _mydir = osp.dirname(__file__)
-except:
+except:  # @IgnorePep8
     _mydir = '.'
 
 

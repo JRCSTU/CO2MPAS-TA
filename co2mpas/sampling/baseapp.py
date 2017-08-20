@@ -74,7 +74,7 @@ PERSIST_VAR_NAME = '%s_PERSIST_PATH' % APPNAME.upper()
 
 try:
     _mydir = osp.dirname(__file__)
-except:
+except:  # @IgnorePep8
     _mydir = '.'
 
 
