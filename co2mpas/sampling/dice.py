@@ -33,30 +33,6 @@ except:
     _mydir = '.'
 
 
-def get_home_dir():
-    """Get the real path of the home directory"""
-    homedir = osp.expanduser('~')
-    # Next line will make things work even when /home/ is a symlink to
-    # /usr/home as it is on FreeBSD, for example
-    homedir = osp.realpath(homedir)
-    return homedir
-
-
-def app_config_dir():
-    """Get the config directory for this platform and user.
-
-    Returns CO2DICE_CONFIG_DIR if defined, else ~/.co2dice
-    """
-
-    env = os.environ
-    home_dir = get_home_dir()
-
-    if env.get('CO2DICE_CONFIG_DIR'):
-        return env['CO2DICE_CONFIG_DIR']
-
-    return osp.abspath(osp.join(home_dir, '.co2dice'))
-
-
 class DiceSpec(baseapp.Spec):
     """Common parameters dice functionality."""
 
