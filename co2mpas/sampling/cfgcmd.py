@@ -213,6 +213,16 @@ class PathsCmd(baseapp.Cmd):
                 self.log.warning("Failed executing `gpgconf` due to: %s", ex)
         return res
 
+    def _collect_env_vars(self, classes):
+        classes = (cls
+                   for cls
+                   in self._classes_inc_parents(classes))
+        return [trait.metadata['envvar']
+                for cls in classes
+                for trait
+                in cls.class_own_traits(envvar=(lambda ev: bool(ev))).values()]
+
+
     def run(self, *args):
         if len(args) > 0:
             raise CmdException('Cmd %r takes no arguments, received %d: %r!'
@@ -266,7 +276,8 @@ class PathsCmd(baseapp.Cmd):
                      GNUPGHOME GNUPGKEY GNUPGEXE
                      GIT_PYTHON_GIT_EXECUTABLE GIT_PYTHON_TRACE GIT_TRACE"""
         yield "ENV_VARS:"
-        for vname in var_names.split():
+        trait_envvars = self._collect_env_vars(self.all_app_configurables())
+        for vname in sorted(set(var_names.split() + trait_envvars)):
             yield "  %s: %s" % (vname, os.environ.get(vname))
 
         yield "GPG:"
