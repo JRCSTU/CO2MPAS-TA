@@ -271,9 +271,8 @@ class PathsCmd(baseapp.Cmd):
             yield "  LOADED_CONFIGS: null"
 
         var_names = """AIODIR HOME HOMEDRIVE HOMEPATH USERPROFILE
-                     CO2DICE_CONFIG_PATHS CO2DICE_PERSIST_PATH
+                     CO2DICE_CONFIG_PATHS
                      TRAITLETS_APPLICATION_RAISE_CONFIG_FILE_ERROR
-                     GNUPGHOME GNUPGKEY GNUPGEXE
                      GIT_PYTHON_GIT_EXECUTABLE GIT_PYTHON_TRACE GIT_TRACE"""
         yield "ENV_VARS:"
         trait_envvars = self._collect_env_vars(self.all_app_configurables())
