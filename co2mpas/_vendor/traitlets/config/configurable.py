@@ -136,7 +136,7 @@ class Configurable(HasTraits):
                     my_config.merge(c[sname])
         return my_config
 
-    def _load_config(self, cfg, section_names=None, traits=None, skip_env=False):
+    def _load_config(self, cfg, section_names=None, traits=None):
         """load traits from a Config object"""
 
         if traits is None:
@@ -152,8 +152,9 @@ class Configurable(HasTraits):
                 trait = traits.get(name)
                 if trait:
                     env_value = trait.get_env_value()
-                    if not skip_env and env_value is not None:
-                        ## Env-vars take precendance over config-params.
+                    ## priority: file-conf < env-vars < cli-options
+                    #  See :data:`application.ENV_RANK`
+                    if env_value is not None and my_config.rank_of(name) < 10:
                         setattr(self, name, env_value)
                         continue
 
@@ -201,38 +202,20 @@ class Configurable(HasTraits):
         self._load_config(change.new, traits=traits, section_names=section_names)
 
     def update_config(self, config):
-        """
-        Update config, load trait-values from `config` and overwrite any env-vars
+        """Update traits and merge prioritized any `config` values into :attr:`config`"""
+        diffs = self.config.substract(config)
+        self._load_config(diffs)
 
-        - Simply delegates to :meth:`update_config_with_env()`.
-        - Use this method instead, if you don't want any env-vars to apply.
-        """
-        ## Had to split in 2 methods to preserve BW-compatibility for new `skip_env`.
-        self.update_config_with_env(config)
-
-    def update_config_with_env(self, config, skip_env=False):
-        """
-        Update config, apply `config` to traits and overwrite any env-vars
-
-        :param skip_env:
-            (relevant only for traits with `envvar` in metadata)
-            if true, config-values will NOT be overwriten by env-vars; note that
-            traits missing from `config`, will resolve to env-vars values,
-            regardless of this flag.
-
-        Note: merged configs in :attr:`config` will NOT contain env-var values.
-        """
         # traitlets prior to 4.2 created a copy of self.config in order to trigger change events.
         # Some projects (IPython < 5) relied upon one side effect of this,
         # that self.config prior to update_config was not modified in-place.
         # For backward-compatibility, we must ensure that self.config
         # is a new object and not modified in-place,
         # but config consumers should not rely on this behavior.
-        self.config = deepcopy(self.config)
         # load config
-        self._load_config(config, skip_env=skip_env)
         # merge it into self.config
-        self.config.merge(config)
+        self.config = deepcopy(self.config)
+        self.config.merge(diffs)
         # TODO: trigger change event if/when dict-update change events take place
         # DO NOT trigger full trait-change
 
@@ -391,9 +374,6 @@ class Configurable(HasTraits):
 
                 env_var = trait.metadata.get('envvar')
                 if env_var:
-
-
-
                     lines.append('#  Environment variable: %s' % env_var)
 
                 if 'Enum' in type(trait).__name__:
