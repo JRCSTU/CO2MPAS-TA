@@ -40,6 +40,7 @@ Inheritance diagram:
 # Adapted from enthought.traits, Copyright (c) Enthought, Inc.,
 # also under the terms of the Modified BSD License.
 
+from ast import literal_eval
 import contextlib
 import inspect
 import os
@@ -177,6 +178,18 @@ def repr_type(obj):
     msg = '%r %r' % (obj, the_type)
     return msg
 
+
+def _safe_literal_eval(s):
+    """Safely evaluate an expression
+
+    Returns original string if eval fails.
+
+    Use only where types are ambiguous.
+    """
+    try:
+        return literal_eval(s)
+    except (NameError, SyntaxError, ValueError):
+        return s
 
 def is_trait(t):
     """ Returns whether the given value is an instance or subclass of TraitType.
@@ -478,6 +491,18 @@ class TraitType(BaseDescriptor):
         if help is not None:
             self.metadata['help'] = help
 
+    def from_string(self, s):
+        """Get a value from a config string
+
+        such as an environment variable or CLI arguments.
+
+        Traits can override this method to define their own
+        parsing of config strings.
+
+        .. versionadded:: 5.0
+        """
+        return s
+
     def default(self, obj=None):
         """The default generator for this trait
 
@@ -774,8 +799,6 @@ class MetaHasTraits(MetaHasDescriptors):
             if hasattr(c, "_trait_default_generators"):
                 new.update(c._trait_default_generators)
         cls._trait_default_generators = new
-
-
 
 
 def observe(*names, **kwargs):
@@ -1756,6 +1779,9 @@ class Instance(ClassBasedTraitType):
     def default_value_repr(self):
         return repr(self.make_dynamic_default())
 
+    def from_string(self, s):
+        return _safe_literal_eval(s)
+
 
 class ForwardDeclaredMixin(object):
     """
@@ -2029,6 +2055,9 @@ class Float(TraitType):
             self.error(obj, value)
         return _validate_bounds(self, obj, value)
 
+    def from_string(self, s):
+        return float(s)
+
 
 class CFloat(Float):
     """A casting version of the float trait."""
@@ -2054,6 +2083,9 @@ class Complex(TraitType):
             return complex(value)
         self.error(obj, value)
 
+    def from_string(self, s):
+        return complex(s)
+
 
 class CComplex(Complex):
     """A casting version of the complex number trait."""
@@ -2077,6 +2109,9 @@ class Bytes(TraitType):
         if isinstance(value, bytes):
             return value
         self.error(obj, value)
+
+    def from_string(self, s):
+        return s.encode('utf8')
 
 
 class CBytes(Bytes):
@@ -2143,6 +2178,9 @@ class ObjectName(TraitType):
             return value
         self.error(obj, value)
 
+    def from_string(self, s):
+        return s
+
 class DottedObjectName(ObjectName):
     """A string holding a valid dotted object name in Python, such as A.b3._c"""
     def validate(self, obj, value):
@@ -2163,7 +2201,21 @@ class Bool(TraitType):
     def validate(self, obj, value):
         if isinstance(value, bool):
             return value
+        elif isinstance(value, int):
+            if value == 1:
+                return True
+            elif value == 0:
+                return False
         self.error(obj, value)
+
+    def from_string(self, s):
+        s = s.lower()
+        if s in {'true', '1'}:
+            return True
+        elif s in {'false', '0'}:
+            return False
+        else:
+            raise ValueError("%r is not 1, 0, true, or false")
 
 
 class CBool(Bool):
@@ -2196,6 +2248,12 @@ class Enum(TraitType):
         if self.allow_none:
             return result + ' or None'
         return result
+
+    def from_string(self, s):
+        try:
+            return self.validate(None, s)
+        except TraitError:
+            return _safe_literal_eval(s)
 
 
 class CaselessStrEnum(Enum):
@@ -2766,6 +2824,14 @@ class TCPAddress(TraitType):
                         return value
         self.error(obj, value)
 
+    def from_string(self, s):
+        if ':' not in s:
+            raise ValueError('Require `ip:port`, got %r' % s)
+        ip, port = s.split(':', 1)
+        port = int(port)
+        return (ip, port)
+
+
 class CRegExp(TraitType):
     """A casting compiled regular expression trait.
 
@@ -2864,6 +2930,7 @@ class UseEnum(TraitType):
         if self.allow_none:
             return result + " or None"
         return result
+
 
 class Callable(TraitType):
     """A trait which is callable.
