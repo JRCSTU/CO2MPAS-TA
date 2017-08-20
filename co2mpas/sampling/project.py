@@ -867,7 +867,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         The path to the Git repository to store TA files (signed and exchanged).
         If relative, it joined against default config-dir: '{confdir}'
         """.format(confdir=baseapp.default_config_dir())
-    ).tag(config=True)
+    ).tag(config=True, envvar='CO2DICE_REPO_PATH')
 
     preserved_git_settings = trt.List(
         trt.CRegExp(),
