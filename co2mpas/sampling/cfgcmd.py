@@ -259,7 +259,7 @@ class PathsCmd(baseapp.Cmd):
         yield "  python_version: %s" % sys.version
 
         yield "CONFIG:"
-        config_paths = l2_yaml_list_sep.join([''] + self.config_paths_resolved)
+        config_paths = l2_yaml_list_sep.join([''] + self.config_paths)
         yield "  config_paths:%s" % (config_paths or 'null')
         yield "  persist_path: %s" % self.persist_file_resolved
 
@@ -271,7 +271,6 @@ class PathsCmd(baseapp.Cmd):
             yield "  LOADED_CONFIGS: null"
 
         var_names = """AIODIR HOME HOMEDRIVE HOMEPATH USERPROFILE
-                     CO2DICE_CONFIG_PATHS
                      TRAITLETS_APPLICATION_RAISE_CONFIG_FILE_ERROR
                      GIT_PYTHON_GIT_EXECUTABLE GIT_PYTHON_TRACE GIT_TRACE"""
         yield "ENV_VARS:"

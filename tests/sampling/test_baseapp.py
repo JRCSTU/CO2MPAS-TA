@@ -251,8 +251,8 @@ class TPConfFiles(unittest.TestCase):
             with self.assertLogs(cmd.log, 'ERROR') as cm:
                 cmd.initialize([])
             self.assertNotEqual(cmd.enc, "BAD_ENC")
-            logmsg = "Found 1 non-encrypted params in static-configs: ['MyCmd.enc']"
-            self.assertIn(logmsg, [r.message for r in cm.records], cm.records)
+            logmsg = "Found 1 non-encrypted params in static-configs:"
+            self.assertIn(logmsg, str(cm.output), cm.records)
 
             ## But if persist-config, autoencrypted
             cmd = MyCmd()

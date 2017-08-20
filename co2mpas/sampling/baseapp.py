@@ -165,6 +165,25 @@ setup_yaml_ordered()
 ##############################
 
 
+class PathList(trt.List):
+    """split unicode strings on `os.pathsep` to form a the list of paths"""
+    def __init__(self, *args, **kwargs):
+        return super().__init__(*args, trait=trt.Unicode(), **kwargs)
+
+    def validate(self, obj, value):
+        """break all elements also into `os.pathsep` segments"""
+        value = super().validate(obj, value)
+        value = [cf2
+                 for cf1 in value
+                 for cf2 in cf1.split(os.pathsep)]
+        return value
+
+    def from_string(self, s):
+        if s:
+            s = s.split(osp.pathsep)
+        return s
+
+
 class PeristentMixin:
     """
     A *cmd* and *spec* mixin to support storing of *persistent* traits into external file.
@@ -557,6 +576,7 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
             fully-normalized paths, with ext
         """
         new_paths = iset()
+        default_cfg = default_config_fname()
 
         def try_json_and_py(basepath):
             found_any = False
@@ -579,7 +599,7 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
 
             p = pndlu.convpath(path)
             if osp.isdir(p):
-                try_json_and_py(osp.join(p, default_config_fname()))
+                try_json_and_py(osp.join(p, default_cfg))
             else:
                 found = try_json_and_py(p)
                 ## Do not strip ext if has matched WITH ext.
@@ -634,25 +654,20 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
     #: NOTE: HACK to fail early on first AIO launch.
     configs_required = False
 
-    config_paths = trt.List(
-        trt.Unicode(),
-        None, allow_none=True,
+    config_paths = PathList(
+        default_value=default_config_fpaths(),
         help="""
         Absolute/relative folder/file path(s) to read "static" config-parameters from.
 
-        - The source for this parameter is either the command-line or the `{confvar}`
-          envvar (in this order); since the loading of config-files depend on this parameter,
-          values specified in them are irrelevant here.
-        - If all sources above result to empty, it defaults to:
-              {default}
-
-        - Multiple values may be given and/or separated by '{sep}'.  All paths collected
-          are considered in descending order of priority (1st one overrides the rest).
+        - Sources for this parameter can either be CLI or ENV-VAR; since the loading
+          of config-files depend on this parameter, values specified there are ignored.
+        - Multiple values may be given and each one may be separated by '{sep}'.
+          Priority is descending, i.e. config-params from the 1st one overrides the rest.
         - For paths resolving to existing folders, the filenames `{appname}_config(.py | .json)`
           are appended and searched (in this order); otherwise, any file-extension
           is ignored, and the mentioned extensions are combined and searched.
         - The 1st *existent* path is important because the *persistent* parameters
-          are read (and written) from (and in) it; read --persist-path.
+          are read (and written) from (and in) it; read `--persist-path`.
 
         Tips:
           - Use `config paths` to view the actual paths/files loaded.
@@ -662,28 +677,25 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
           To read and apply in descending order: [~/my_conf, /tmp/conf.py, ~/.co2dice.json]
           you may issue:
               <cmd> --config-paths=~/my_conf{sep}/tmp/conf.py  --Cmd.config_paths=~/.co2dice.jso
-        """.format(appname=APPNAME, confvar=CONFIG_VAR_NAME,
-                   default=default_config_fpaths(), sep=osp.pathsep)
-    ).tag(config=True)
+        """.format(appname=APPNAME, sep=osp.pathsep)
+    ).tag(config=True, envvar=CONFIG_VAR_NAME)
 
     persist_path = trt.Unicode(
         None, allow_none=True,
         help="""
         Absolute/relative folder/file path to read/write *persistent* parameters on runtime.
 
-        In practice, when both this param and `{persistvar}` envvar are empty,
-        *persist* file follows the location of --config-paths or `{confvar}` envvar,
-        but more precisely:
+        In practice, when both CLI and ENV-VAR are empty, *persist* file follows
+        the location of --config-paths or `{confvar}` envvar, but more precisely:
 
-        - The source for this parameter is a) the command-line, b) the `{persistvar}`
-          envvar, or c) the 1st *existent* path collected by the rules of `Cmd.config_paths`
-          parameter (in this order); since the loading of config-files depend
-          on this parameter, values specified in them are irrelevant here.
+        - The source for this parameter is a) CLI, b) ENV-VAR, or c) the 1st *existent*
+          path collected by the rules of `Cmd.config_paths` parameter (in this order);
+          since the loading of config-files depend on this parameter, values specified
+          there are ignored.
         - If all sources above result to empty, it defaults to:
                {default}
 
-        - A non-empty path in this parameter or in the `{persistvar}` envvar
-          gets resolved like this:
+        - A non-empty path in this parameter gets resolved like this:
           - if it resolves to an existent folder, the filename `{appname}_persist.json`
             gets appended to it;
           - otherwise, the file-extension is assumed to be `.json`; in that case,
@@ -704,7 +716,6 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
            - Use `config paths` to view the actual file loaded.
            - Use `{appname} --encrypt` to encrypt all ciphered-prams in peristent file.
         """.format(appname=APPNAME, confvar=CONFIG_VAR_NAME,
-                   persistvar=PERSIST_VAR_NAME,
                    default=default_persist_fpath())
     ).tag(config=True, envvar=PERSIST_VAR_NAME)
 
@@ -724,21 +735,9 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
     def loaded_config_files(self):
         return self._cfgfiles_registry.config_tuples
 
-    @property
-    def config_paths_resolved(self):
-        env_paths = os.environ.get(CONFIG_VAR_NAME)
-        env_paths = env_paths and [env_paths]
-        config_paths = self.config_paths or env_paths or default_config_fpaths()
-
-        if config_paths:
-            config_paths = [cf2
-                            for cf1 in config_paths
-                            for cf2 in cf1.split(os.pathsep)]
-        return config_paths
-
     def _collect_static_fpaths(self):
         """Return fully-normalized paths, with ext."""
-        config_paths = self.config_paths_resolved
+        config_paths = self.config_paths
         fpaths = self._cfgfiles_registry.collect_fpaths(config_paths)
 
         ## NOTE: CO2MPAS-only logic where configs must exist!
