@@ -658,10 +658,10 @@ class Application(SingletonConfigurable):
             if log:
                 log.debug("Looking for %s in %s", basefilename, path or os.getcwd())
             jsonloader = cls.json_config_loader_class(basefilename+'.json', path=path, log=log)
-            config = None
             loaded = []
             filenames = []
             for loader in [pyloader, jsonloader]:
+                config = None
                 try:
                     config = loader.load_config()
                 except ConfigFileNotFound:
