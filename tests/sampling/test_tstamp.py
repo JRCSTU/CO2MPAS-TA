@@ -19,7 +19,7 @@ import ddt
 
 import os.path as osp
 from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling.baseapp import collect_cmd
+from co2mpas.sampling.baseapp import collect_cmd, Cmd
 
 from . import test_pgp_fingerprint, test_pgp_keys, test_pgp_trust
 from collections import Counter
@@ -875,6 +875,13 @@ base32(tag): |=0A=\r
 class TstampShell(unittest.TestCase):
     """Set ``CO2DICE_CONFIG_PATHS`` and optionally HOME env appropriately! to run"""
 
+    def _get_vault_gnupghome(self):
+        """Allow cipher-traits encrypted with the GPG of the user running tests."""
+        cmd = Cmd()
+        cmd.initialize([])
+        vault = crypto.VaultSpec(config=cmd.config)
+        return '--VaultSpec.gnupghome=%s' % vault.gnupghome
+
     def test_config_paths(self):
         ret = sbp.check_call('co2dice config paths')
         self.assertEqual(ret, 0)
@@ -890,31 +897,36 @@ class TstampShell(unittest.TestCase):
         self.assertEqual(ret, 0)
 
     def test_login_smoketest(self):
-        ret = sbp.check_call('co2dice tstamp login')
+        vault_cli = self._get_vault_gnupghome()
+        ret = sbp.check_call('co2dice tstamp login %s' % vault_cli)
         self.assertEqual(ret, 0)
 
     def test_mailbox_smoketest(self):
-        ret = sbp.check_call('co2dice tstamp mailbox')
+        vault_cli = self._get_vault_gnupghome()
+        ret = sbp.check_call('co2dice tstamp mailbox %s' % vault_cli)
         self.assertEqual(ret, 0)
 
     def test_recv_smoketest(self):
-        ret = sbp.check_call('co2dice tstamp recv')
+        vault_cli = self._get_vault_gnupghome()
+        ret = sbp.check_call('co2dice tstamp recv %s' % vault_cli)
         self.assertEqual(ret, 0)
 
-        ret = sbp.check_call('co2dice tstamp recv --page=10')
+        ret = sbp.check_call('co2dice tstamp recv --page=10 %s' % vault_cli)
         self.assertEqual(ret, 0)
 
-        ret = sbp.check_call('co2dice tstamp recv --page=-2:')
+        ret = sbp.check_call('co2dice tstamp recv --page=-2: %s' % vault_cli)
         self.assertEqual(ret, 0)
 
-        ret = sbp.check_call('co2dice tstamp recv --raw')
+        ret = sbp.check_call('co2dice tstamp recv --raw %s' % vault_cli)
         self.assertEqual(ret, 0)
 
-        ret = sbp.check_call('co2dice tstamp recv --list')
+        ret = sbp.check_call('co2dice tstamp recv --list %s' % vault_cli)
         self.assertEqual(ret, 0)
 
     def test_send_smoketest(self):
+        vault_cli = self._get_vault_gnupghome()
         fpath = osp.join(mydir, '..', '..', 'setup.py')
-        ret = sbp.check_call('co2dice tstamp send %s --dry-run -f' % fpath)
+        ret = sbp.check_call('co2dice tstamp send %s --dry-run -f %s'
+                             % (fpath, vault_cli))
         self.assertEqual(ret, 0)
 
