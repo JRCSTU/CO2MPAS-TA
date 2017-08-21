@@ -50,7 +50,7 @@ class TApp(unittest.TestCase):
         report.ReportCmd.print_help,
     )
     def test_app(self, meth):
-        c = trtc.get_config()
+        c = trtc.Config()
         c.ReportCmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c)
         meth(cmd)
@@ -76,7 +76,7 @@ class TReportBase(unittest.TestCase):
 class TReportArgs(TReportBase):
 
     def test_extract_input(self):
-        c = trtc.get_config()
+        c = trtc.Config()
         c.ReportCmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c, inp=[test_inp_fpath])
         res = cmd.run()
@@ -89,7 +89,7 @@ class TReportArgs(TReportBase):
         self.check_report_tuple(rec, test_vfid, test_inp_fpath, 'inp', False)
 
     def test_extract_output(self):
-        c = trtc.get_config()
+        c = trtc.Config()
         c.ReportCmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c, out=[test_out_fpath])
         res = cmd.run()
@@ -102,7 +102,7 @@ class TReportArgs(TReportBase):
         self.check_report_tuple(rec, test_vfid, test_out_fpath, 'out', True)
 
     def test_extract_both(self):
-        c = trtc.get_config()
+        c = trtc.Config()
         c.ReportCmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c, inp=[test_inp_fpath], out=[test_out_fpath])
         res = cmd.run()
@@ -122,7 +122,7 @@ class TReportArgs(TReportBase):
 class TReportProject(TReportBase):
     @classmethod
     def setUpClass(cls):
-        cls.cfg = c = trtc.get_config()
+        cls.cfg = c = trtc.Config()
 
         c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         c.GpgSpec.keys_to_import = test_pgp_keys

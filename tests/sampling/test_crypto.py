@@ -131,7 +131,7 @@ class TGpgSpecBinary(unittest.TestCase):
             with self.assertRaisesRegex(OSError, 'Unable to run gpg - it may not be available.'):
                 crypto.GpgSpec().GPG
 
-            cfg = trtc.get_config()
+            cfg = trtc.Config()
             cfg.GpgSpec.gnupgexe = 'gpg'
             with self.assertRaisesRegex(OSError, 'Unable to run gpg - it may not be available.'):
                 crypto.GpgSpec(config=cfg).GPG
@@ -143,7 +143,7 @@ class TGpgSpecBinary(unittest.TestCase):
 
         env_val = 'env_path'
         cfg_val = 'cfg_path'
-        cfg = trtc.get_config()
+        cfg = trtc.Config()
         cfg.GpgSpec.gnupghome = cfg_val
         with patch.dict('os.environ',  # @UndefinedVariable
                         {'GNUPGHOME': env_val}):
@@ -331,7 +331,7 @@ class TGpgSpec(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.cfg = cfg = trtc.get_config()
+        cls.cfg = cfg = trtc.Config()
         cfg.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         cfg.GpgSpec.keys_to_import = [test_pgp_key]
         cfg.GpgSpec.trust_to_import = test_pgp_trust
@@ -436,7 +436,7 @@ class TGpgSpec(unittest.TestCase):
         tag_csig = crypto.pgp_split_sig(tag_bytes)
 
         env = os.environ.copy()
-        del env['GNUPGHOME']
+        env.pop('GNUPGHOME', None)
         with patch.dict('os.environ',  # @UndefinedVariable
                         env, clear=True):  # Exclude any test-user's keys.
             gpg_spec = crypto.GpgSpec(config=self.cfg)
@@ -516,7 +516,7 @@ class TVaultSpec(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.cfg = cfg = trtc.get_config()
+        cls.cfg = cfg = trtc.Config()
         cfg.VaultSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
 
         ## Clean memories from past tests
@@ -560,7 +560,7 @@ class TVaultSpec(unittest.TestCase):
         #
         env_val = 'some_value'
         cfg_val = 'some_value'
-        cfg = trtc.get_config()
+        cfg = trtc.Config()
         cfg.VaultSpec.master_key = cfg_val
         with patch.dict('os.environ',  # @UndefinedVariable
                         {'GNUPGKEY': env_val}):
@@ -598,7 +598,7 @@ class TVaultSpec(unittest.TestCase):
         #
         env_val = 'some_value'
         cfg_val = 'some_value'
-        cfg = trtc.get_config()
+        cfg = trtc.Config()
         cfg.VaultSpec.master_key = cfg_val
         with patch.dict('os.environ',  # @UndefinedVariable
                         {'GNUPGKEY': env_val}):
@@ -646,7 +646,7 @@ class TestKey(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.cfg = cfg = trtc.get_config()
+        cls.cfg = cfg = trtc.Config()
         cfg.VaultSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         cfg.VaultSpec.keys_to_import = [test_pgp_key]
         cfg.GpgSpec.trust_to_import = test_pgp_trust

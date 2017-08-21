@@ -52,7 +52,7 @@ class TApp(unittest.TestCase):
     )
     def test_app(self, case):
         meth, cmd_cls = case
-        c = trtc.get_config()
+        c = trtc.Config()
         c.Co2diceCmd.raise_config_file_errors = True
         cmd = cmd_cls(config=c)
         meth(cmd)
@@ -131,7 +131,7 @@ class TProjectsDBStory(unittest.TestCase):
         cls._project_repo = tempfile.TemporaryDirectory()
         log.debug('Temp-repo: %s', cls._project_repo)
 
-        cls.cfg = c = trtc.get_config()
+        cls.cfg = c = trtc.Config()
 
         c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         c.GpgSpec.keys_to_import = test_pgp_keys
@@ -336,7 +336,7 @@ class TStraightStory(unittest.TestCase):
         cls._project_repo = tempfile.TemporaryDirectory()
         log.debug('Temp-repo: %s', cls._project_repo)
 
-        cls.cfg = c = trtc.get_config()
+        cls.cfg = c = trtc.Config()
 
         c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         c.GpgSpec.keys_to_import = test_pgp_keys
@@ -492,7 +492,7 @@ class TInitCmd(unittest.TestCase):
 
     @property
     def _config(self):
-        c = trtc.get_config()
+        c = trtc.Config()
         c.ProjectsDB.repo_path = self._project_repo.name
         c.Spec.verbose = c.ProjectsDB.verbose = 0
         c.GpgSpec.master_key = 'ali baba'
@@ -535,7 +535,7 @@ class TBackupCmd(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.cfg = c = trtc.get_config()
+        cls.cfg = c = trtc.Config()
 
         c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         c.GpgSpec.keys_to_import = test_pgp_keys

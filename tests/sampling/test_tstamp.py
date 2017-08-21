@@ -598,7 +598,7 @@ class TRX(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.cfg = c = trtc.get_config()
+        cls.cfg = c = trtc.Config()
 
         c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         c.GpgSpec.keys_to_import = test_pgp_keys

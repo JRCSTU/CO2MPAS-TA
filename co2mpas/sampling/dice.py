@@ -223,7 +223,7 @@ if __name__ == '__main__':
 
     #from co2mpas._vendor.traitlets.config import trtc.get_config
 
-    #c = trtc.get_config()
+    #c = trtc.Config()
     #c.Application.log_level=0
     #c.Spec.log_level='ERROR'
     #cmd = chain_cmds([Co2diceCmd, ProjectCmd, InitCmd], argv=['project_foo'])
