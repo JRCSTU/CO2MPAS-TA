@@ -384,8 +384,8 @@ If no input is provided, the |co2mpas| model will use the default value.
 
     SCR
     ``has_selective_catalytic_reduction``
-        On `compression ignition` vehicles, the Selective Catalytic Reduction (SCR) system uses urea
-        to reduce |NOx|  emissions.
+        On `compression ignition` vehicles, the Selective Catalytic Reduction (SCR) system uses Urea (active),
+        or Ammonia (passive) to reduce |NOx|  emissions.
         Therefore this technology is only applicable for `compression ignition` engines.
         If the vehicle is equipped with SCR set `has_selective_catalytic_reduction` to 1; otherwise, set it to 0.
         The default value is 0.
