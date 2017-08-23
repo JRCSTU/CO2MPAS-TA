@@ -41,6 +41,7 @@ Vehicle general characteristics
           8 for the Czech Republic; 9 for Spain; 11 for the United Kingdom; 12 for Austria; 13 for Luxembourg; 17 for Finland;
           18 for Denmark; 19 for Romania; 20 for Poland; 21 for Portugal; 23 for Greece; 24 for Ireland; 26 for Slovenia;
           27 for Slovakia; 29 for Estonia; 32 for Latvia; 34 for Bulgaria; 36 for Lithuania; 49 for Cyprus; 50 for Malta.
+
         - ``WMI`` (world manufacturer identifier) is a code that identifies the manufacturer
           in a unique manner and is defined in ISO 3780:2009.
           For a single manufacturers several WMI codes may be used.
@@ -50,6 +51,7 @@ Vehicle general characteristics
     ``fuel_type``
         Used to indicate the type of fuel used by the vehicle during the test.
         The user must select one among the following options:
+
         - diesel,
         - gasoline,
         - LPG,
@@ -66,8 +68,8 @@ Vehicle general characteristics
     positive ignition
     compression ignition
     ``ignition_type``
-        Indicate wether the engine of the vehicle is a spark ignition (= positive ignition) or
-        a compression ignition one.
+        Indicate wether the engine of the vehicle is a *spark ignition* (= *positive ignition*) or
+        a *compression ignition* one.
 
     ``engine_capacity``
         The total volume of all the cylinders of the engine, expressed in cubic centimeters [cc].
@@ -82,9 +84,11 @@ Vehicle general characteristics
     ``engine_idle_fuel_consumption``
         Provide the fuel consumption of the vehicle in warm conditions during idling. The idling fuel consumption
         of the vehicle, expressed in grams of fuel per second [gFuel/sec] should be measured when:
-        * velocity of the vehicle is 0
-        * the start-stop system is disengaged
-        * the battery state of charge is at balance conditions.
+
+        - velocity of the vehicle is 0
+        - the start-stop system is disengaged
+        - the battery state of charge is at balance conditions.
+
         For |co2mpas| purposes, the engine idle fuel consumption can be measured as follows: just after a WLTP physical test,
         when the engine is still warm, leave the car to idle for 3 minutes so that it stabilizes. Then make a constant
         measurement of fuel consumption for 2 minutes. Disregard the first minute, then calculate idle fuel consumption as the
@@ -99,9 +103,11 @@ Vehicle general characteristics
         Tyre code of the tyres used in the WLTP test (e.g., P195/55R16 85H\).
         |co2mpas| does not require the full tyre code to work.
         But at least provide the following information:
+
         - nominal width of the tyre, in [mm];
         - ratio of height to width [%]; and
         - the load index (e.g., 195/55R16\).
+
         In case that the front and rear wheels are equipped with tyres of different radius (tyres of different width do not
         affect |co2mpas|), then the size of the tyres fitted in the powered axle should be declared as input to |co2mpas|.
         For vehicles with different front and rear wheels tyres tested in 4x4 mode, then the size of the tyres from the wheels
