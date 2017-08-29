@@ -1169,15 +1169,6 @@ class TstampReceiver(TstampSpec):
             else:
                 self.log.error(str(ex))
 
-        if not ts_verdict.get('valid'):
-            self.log.warning(
-                tw.dedent("""
-                Timestamp's signature is valid, but not *trusted*!
-                  You may sign Timestamp-service's key(81959DB570B61F81) with a *fully* trusted secret-key,
-                  or assign *full* trust on JRC's key(TODO:JRC-keyid-here) that already has done so.
-                    %s
-                """), _mydump(sorted(ts_verdict.items())))
-
         ## NOTE: Text may have changed, due to encodings,
         #  but still return the original stamp.
         ts_parts = crypto.pgp_split_clearsigned(ts_verdict['mail_text'])
