@@ -1129,17 +1129,20 @@ class TstampReceiver(TstampSpec):
         if stamper:
             dice_results.append(('stamper', stamper))
 
-        if 'timestamp' in ts_verdict:
+        ts_date = ts_verdict.get('timestamp')
+        if ts_date:
             dice_results.append(('dice_date',
-                                 crypto.gpg_timestamp(ts_verdict['timestamp'])))
+                                 crypto.gpg_timestamp(ts_date)))
 
-        num, dice100 = self._pgp_sig_to_dice100(ts_verdict['signature_id'])
-        decision = 'OK' if dice100 < 90 else 'SAMPLE'
-        dice_results.extend([
-            ('hexnum', '%X' % num),
-            ('percent', dice100),
-            ('decision', decision),
-        ])
+        ts_sig_id = ts_verdict.get('signature_id')
+        if ts_sig_id:
+            num, dice100 = self._pgp_sig_to_dice100(ts_sig_id)
+            decision = 'OK' if dice100 < 90 else 'SAMPLE'
+            dice_results.extend([
+                ('hexnum', '%X' % num),
+                ('percent', dice100),
+                ('decision', decision),
+            ])
 
         return OrderedDict(dice_results)
 
