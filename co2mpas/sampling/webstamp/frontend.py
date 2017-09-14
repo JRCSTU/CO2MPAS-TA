@@ -21,7 +21,7 @@ frontend = Blueprint('frontend', __name__)
 nav.register_element('frontend_top', Navbar(
     View('Flask-Bootstrap', '.index'),
     View('Home', '.index'),
-    View('Forms Example', '.example_form'),
+    View('Stamp', '.stamp'),
     View('Debug-Info', 'debug.debug_root'),
     Subgroup(
         'Docs',
@@ -47,7 +47,7 @@ def index():
 
 # Shows a long signup form, demonstrating form rendering.
 @frontend.route('/example-form/', methods=('GET', 'POST'))
-def example_form():
+def stamp_form():
     form = SignupForm()
 
     if form.validate_on_submit():
@@ -62,4 +62,4 @@ def example_form():
         # In a real application, you may wish to avoid this tedious redirect.
         return redirect(url_for('.index'))
 
-    return render_template('signup.html', form=form)
+    return render_template('stamp.html', form=form)

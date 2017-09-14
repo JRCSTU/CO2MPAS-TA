@@ -12,7 +12,7 @@
 
 {# We also set a default title, usually because we might forget to set one.
    In our sample app, we will most likely just opt not to change it #}
-{% block title %}Sample App for Flask-Bootstrap{% endblock %}
+{% block title %}co2mpas-web{% endblock %}
 
 {# While we are at it, we also enable fixes for legacy browsers. First we
    import the necessary macros: #}
@@ -36,6 +36,7 @@
                     will disappear! #}
     <link rel="stylesheet" type="text/css"
           href="{{url_for('static', filename='sample-app.css')}}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='CO2MPAS.ico') }}">
 {% endblock %}
 
 {# Finally, round things out with navigation #}
