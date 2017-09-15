@@ -7,7 +7,7 @@
 
 import flask
 
-from .forms import StampForm
+from . import forms
 
 
 frontend = flask.Blueprint('frontend', __name__)
@@ -20,13 +20,20 @@ def index():
     return flask.render_template('index.html')
 
 
-@frontend.route('/stamp/', methods=('GET', 'POST'))
-def stamp():
-    form = StampForm()
+## As a method, for blueprint to access `app` & `config`.
+#  See https://stackoverflow.com/a/23037071/548792
+#
+@frontend.record
+def attach_routes(setup_state):
+    StampForm = forms.create_stamp_form_class(setup_state.app)
 
-    if form.is_submitted():
-        page = form.do_stamp()
-    else:
-        page = flask.render_template('stamp.html', form=form)
+    @frontend.route('/stamp/', methods=('GET', 'POST'))
+    def stamp():
+        form = StampForm()
 
-    return page
+        if form.is_submitted():
+            page = form.do_stamp()
+        else:
+            page = flask.render_template('stamp.html', form=form)
+
+        return page

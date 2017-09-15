@@ -12,12 +12,7 @@ import wtforms.fields as wtff
 import wtforms.validators as wtfl
 
 
-min_dreport_size = 1000
-mailist_widget_nrows = 2
-dreport_widget_nrows = 17
-
-
-def validate_email_list(form, field):
+def _validate_email_list(form, field):
     text = field.data
     check_mx = os.name != 'nt'
 
@@ -32,65 +27,75 @@ def validate_email_list(form, field):
     return mails
 
 
-class StampForm(FlaskForm):
+def create_stamp_form_class(app):
+    config = app.config
 
-    dreport_cc = wtff.TextAreaField(
-        label='Dice-report CC Recipients:',
-        description="(separate email-addresses by <kbd>,</kbd>, <kbd>;</kbd>, "
-        "<kbd>[Space]</kbd>, <kbd>[Enter]</kbd>, <kbd>[Tab]</kbd> characters)",
-        validators=[wtfl.InputRequired(), validate_email_list],
-        render_kw={'rows': mailist_widget_nrows})
+    class StampForm(FlaskForm):
 
-    stamp_recipients = wtff.TextAreaField(
-        label='Stamp Recipients:',
-        description="(add HERE your own email-address)",
-        validators=[wtfl.InputRequired(), validate_email_list],
-        render_kw={'rows': mailist_widget_nrows})
+        dreport_recipients = wtff.TextAreaField(
+            label='Dice-report CC Recipients:',
+            description="(separate email-addresses by <kbd>,</kbd>, <kbd>;</kbd>, "
+            "<kbd>[Space]</kbd>, <kbd>[Enter]</kbd>, <kbd>[Tab]</kbd> characters)",
+            validators=[wtfl.InputRequired(), _validate_email_list],
+            default=config.get('DREPORT_CC_DEFAULT'),
+            render_kw={'rows': config['MAILIST_WIDGET_NROWS']})
 
-    dice_report = wtff.TextAreaField(
-        label='Dice report:',
-        description="(copy-->paste the dice-report above)",
-        render_kw={'rows': dreport_widget_nrows})
+        stamp_recipients = wtff.TextAreaField(
+            label='Stamp Recipients:',
+            description="(add HERE your own email-address)",
+            validators=[wtfl.InputRequired(), _validate_email_list],
+            default=config.get('STAMP_RECIPIENTS_DEFAULT'),
+            render_kw={'rows': config['MAILIST_WIDGET_NROWS']})
 
-    submit = wtff.SubmitField('Stamp!', description=" This action is irreversible!")
+        dice_report = wtff.TextAreaField(
+            label='Dice report:',
+            description="(copy-->paste the dice-report above)",
+            render_kw={'rows': config['DREPORT_WIDGET_NROWS']})
 
-    def validate_dice_report(self, field):
-        data = field.data and field.data.strip()
-        if not data:
-            raise wtforms.ValidationError("Dice-report is required.")
-        if len(data) < min_dreport_size:
-            raise wtforms.ValidationError(
-                "Dice-report is too short (less than %s char)." % min_dreport_size)
+        submit = wtff.SubmitField(
+            'Stamp!',
+            description=" This action is irreversible!")
 
-        return data
+        def _validate_dice_report(self, field):
+            min_dreport_size = config['MIN_DREPORT_SIZE']
+            data = field.data and field.data.strip()
+            if not data:
+                raise wtforms.ValidationError("Dice-report is required.")
+            if len(data) < min_dreport_size:
+                raise wtforms.ValidationError(
+                    "Dice-report is too short (less than %s char)." %
+                    min_dreport_size)
 
-    def do_stamp(self):
-        if self.validate():
-            stamp_recipients = validate_email_list(self, self.stamp_recipients)
-            dreport_recipients = validate_email_list(self, self.dreport_cc)
-            stamp = self.validate_dice_report(self.dice_report)
+            return data
 
-            # Note that the default flashed messages rendering allows HTML, so
-            # we need to escape things if we input user values:
-            msgs = [
-                Markup("""
-                <ul>
-                  <li><em>Dice-report</em> CC-ed to %i recipient(s): %s</li>
-                  <li><em>Stamp</em> sent to %i recipient(s): %s</li>
-                  <li>Select the <em>stamp</em> below and copy it into clipboard:
-                      <pre>\n%s\n</pre>
-                  </li>
-                </ul>
-                """ % (
-                    len(stamp_recipients), '; '.join(stamp_recipients),
-                    len(dreport_recipients), '; '.join(dreport_recipients),
-                    escape(stamp)))
-            ]
-            for msg in msgs:
-                print(msg)
-                flask.flash(msg)
-        else:
-            print(pformat(self.errors), vars(self))
+        def do_stamp(self):
+            if self.validate():
+                stamp_recipients = _validate_email_list(self, self.stamp_recipients)
+                dreport_recipients = _validate_email_list(self, self.dreport_recipients)
+                stamp = self._validate_dice_report(self.dice_report)
 
-        #return flask.redirect(flask.url_for('.index'))
-        return flask.render_template('stamp.html', form=self)
+                # Note that the default flashed messages rendering allows HTML, so
+                # we need to escape things if we input user values:
+                msgs = [
+                    Markup("""
+                    <ul>
+                      <li><em>Dice-report</em> CC-ed to %i recipient(s): %s</li>
+                      <li><em>Stamp</em> sent to %i recipient(s): %s</li>
+                      <li>Select the <em>stamp</em> below and copy it into clipboard:
+                          <pre>\n%s\n</pre>
+                      </li>
+                    </ul>
+                    """ % (
+                        len(stamp_recipients), '; '.join(stamp_recipients),
+                        len(dreport_recipients), '; '.join(dreport_recipients),
+                        escape(stamp)))
+                ]
+                for msg in msgs:
+                    flask.flash(msg)
+            else:
+                print(pformat(self.errors), vars(self))
+
+            #return flask.redirect(flask.url_for('.index'))
+            return flask.render_template('stamp.html', form=self)
+
+    return StampForm
