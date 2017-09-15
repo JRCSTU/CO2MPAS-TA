@@ -38,8 +38,3 @@
           href="{{url_for('static', filename='sample-app.css')}}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='CO2MPAS.ico') }}">
 {% endblock %}
-
-{# Finally, round things out with navigation #}
-{% block navbar %}
-{{nav.frontend_top.render()}}
-{% endblock %}
