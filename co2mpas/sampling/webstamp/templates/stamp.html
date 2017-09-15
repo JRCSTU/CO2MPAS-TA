@@ -1,23 +1,21 @@
-{% import "bootstrap/wtf.html" as wtf %}
-
 {%- extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap/utils.html" as utils %}
 
 {% block title %}co2mpas-stamper{% endblock %}
-
 
 {% block content %}
    <div class="container">
       <div class="jumbotron">
         <h1>co2mpas web stamper</h1>
-        <p class="bg-info">Note: <em>Dice-reports</em> from
+        <p class="bg-info">Note: Stamping <em>Dice-reports</em> from
            <abbr title="Communicate your PGP Public Key with JRC.">known public-keys</abbr>
-           are only stamped.</p>
+           only.</p>
+        <p class="bg-warning">Under construction, as of 12-Sept-2017.</p>
       </div>
    <div class="col-md-12">
-     {% if request.args.get('legacy') -%}
-       {{wtf.quick_form(form, novalidate=True)}}
-     {%- else -%}
-       {{form|render_form()}}
-     {%- endif %}
+     {{wtf.quick_form(form, novalidate=True, enctype="multipart/form-data")}}
    </div>
+
+  {{utils.flashed_messages(messages)}}
 {%- endblock %}
