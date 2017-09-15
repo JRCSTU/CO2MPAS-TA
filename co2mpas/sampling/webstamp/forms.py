@@ -4,7 +4,6 @@ import re
 
 import flask
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField
 from markupsafe import escape, Markup
 from validate_email import validate_email
 import wtforms
@@ -33,37 +32,6 @@ def validate_email_list(form, field):
     return mails
 
 
-def validate_dice_report(dice_report_form, _=None):
-    data = [dice_report_form.dice_report.data,
-            dice_report_form.dice_report_file.data]
-    data = [s and s.strip() for s in data]
-    data = list(filter(None, data))
-    if len(data) < 1:
-        raise wtforms.ValidationError(
-            "No dice-report given (file or pasted).")
-    if len(data) > 1:
-        raise wtforms.ValidationError(
-            "Dice-report must be given either as file or pasted; not both.")
-    data = data[0]
-    if len(data) < min_dreport_size:
-        raise wtforms.ValidationError(
-            "Dice-report is too short (less than %s char)." % min_dreport_size)
-
-    return data
-
-
-## Enclosed form NOT inheritting FlaskForm, to avoid extra CSRF token.
-class DiceReportForm(wtforms.Form):
-    dice_report_file = FileField(
-        '...either upload it as file:',
-        validators=[validate_dice_report])
-
-    dice_report = wtff.TextAreaField(
-        '...OR paste it below:',
-        validators=[validate_dice_report],
-        render_kw={'rows': dreport_widget_nrows})
-
-
 class StampForm(FlaskForm):
 
     dreport_cc = wtff.TextAreaField(
@@ -79,15 +47,28 @@ class StampForm(FlaskForm):
         validators=[wtfl.InputRequired(), validate_email_list],
         render_kw={'rows': mailist_widget_nrows})
 
-    dice_report = wtff.FormField(DiceReportForm)
+    dice_report = wtff.TextAreaField(
+        label='Dice report:',
+        description="(copy-->paste the dice-report above)",
+        render_kw={'rows': dreport_widget_nrows})
 
     submit = wtff.SubmitField('Stamp!', description=" This action is irreversible!")
+
+    def validate_dice_report(self, field):
+        data = field.data and field.data.strip()
+        if not data:
+            raise wtforms.ValidationError("Dice-report is required.")
+        if len(data) < min_dreport_size:
+            raise wtforms.ValidationError(
+                "Dice-report is too short (less than %s char)." % min_dreport_size)
+
+        return data
 
     def do_stamp(self):
         if self.validate():
             stamp_recipients = validate_email_list(self, self.stamp_recipients)
             dreport_recipients = validate_email_list(self, self.dreport_cc)
-            stamp = validate_dice_report(self.dice_report)
+            stamp = self.validate_dice_report(self.dice_report)
 
             # Note that the default flashed messages rendering allows HTML, so
             # we need to escape things if we input user values:
