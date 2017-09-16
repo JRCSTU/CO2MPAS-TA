@@ -29,11 +29,4 @@ def attach_routes(setup_state):
 
     @frontend.route('/stamp/', methods=('GET', 'POST'))
     def stamp():
-        form = StampForm()
-
-        if form.is_submitted():
-            page = form.do_stamp()
-        else:
-            page = flask.render_template('stamp.html', form=form)
-
-        return page
+        return StampForm().render()
