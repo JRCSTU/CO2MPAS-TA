@@ -37,7 +37,7 @@ def create_stamp_form_class(app):
             description="(separate email-addresses by <kbd>,</kbd>, <kbd>;</kbd>, "
             "<kbd>[Space]</kbd>, <kbd>[Enter]</kbd>, <kbd>[Tab]</kbd> characters)",
             validators=[wtfl.InputRequired()],
-            default=config.get('STAMP_RECIPIENTS_DEFAULT'),
+            default=config.get('DEFAULT_STAMP_RECIPIENTS'),
             render_kw={'rows': config['MAILIST_WIDGET_NROWS']})
 
         dice_report = wtff.TextAreaField(
