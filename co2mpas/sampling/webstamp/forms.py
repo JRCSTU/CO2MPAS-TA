@@ -1,12 +1,15 @@
 from flask_wtf import FlaskForm
+import json
 import logging
 import os
 from pprint import pformat
 import re
 
-from flask import flash, session
+from flask import flash, request, session
 import flask
+from flask.ctx import after_this_request
 from markupsafe import escape, Markup
+from ruamel import yaml
 from validate_email import validate_email
 import wtforms
 
@@ -15,6 +18,8 @@ import wtforms.fields as wtff
 import wtforms.fields.html5 as wtf5
 import wtforms.validators as wtfl
 
+
+STAMPED_PROJECTS_KEY = 'stamped_projects'
 
 def create_stamp_form_class(app):
     ## Prepare various config-dependent constants
@@ -28,12 +33,51 @@ def create_stamp_form_class(app):
         client_validation_log_level = logging._nameToLevel.get(
             client_validation_log_level, logging.DEBUG)
 
-    class StampForm(FlaskForm):
-        
-        _skeys = 'dice_stamp stamp_recipients'.split()
 
-        #: Any cookies found in this dict are created on :meth:`render()`.
-        _cookies = {}
+    def get_json_item(adict, key, *, as_list):
+        json_type = list if as_list else dict
+        cookie_value = adict.get(key)
+        if cookie_value:
+            try:
+                cookie_value = json.loads(cookie_value)
+                if isinstance(cookie_value, json_type):
+                    return cookie_value
+
+                app.logger.info("Expected JSON(%s) to be %s, it was: %s"
+                                "\n  COOKIE=%s",
+                                key, json_type.__name__,
+                                type(cookie_value), cookie_value)
+            except json.JSONDecodeError as ex:
+                app.logger.info("Corrupted JSON(%s) due to: %s"
+                                "\n  \n  COOKIE==%s",
+                                key, ex, cookie_value,
+                                exc_info=1)
+
+        return json_type()
+
+
+    def get_stamped_projects(cookies):
+        return set(get_json_item(cookies, STAMPED_PROJECTS_KEY, as_list=True))
+
+
+    def is_project_stamped(cookies, project):
+        return project in get_stamped_projects(cookies)
+
+
+    def add_project_as_stamped(cookies, project):
+        stamped_projects = get_stamped_projects(cookies)
+        stamped_projects.add(project)
+        stamped_projects = list(sorted(set(stamped_projects)))
+
+        @after_this_request
+        def store_stamped_projects(response):
+            response.set_cookie(STAMPED_PROJECTS_KEY, json.dumps(stamped_projects))
+            return response
+
+
+    class StampForm(FlaskForm):
+
+        _skeys = 'dice_stamp stamp_recipients dice_decision'.split()
 
         stamp_recipients = wtff.TextAreaField(
             label='Stamp Recipients:',
@@ -44,7 +88,7 @@ def create_stamp_form_class(app):
             render_kw={'rows': config['MAILIST_WIDGET_NROWS']})
 
         dice_report = wtff.TextAreaField(
-            # label='Dice Report:',  Set in `_mark_as_stamped()`.
+            # label='Dice Report:',  Set in `_manage_session()`.
             render_kw={'rows': config['DREPORT_WIDGET_NROWS']})
 
         submit = wtff.SubmitField(
@@ -103,59 +147,86 @@ def create_stamp_form_class(app):
                     tw.indent(dreport, indent),
                     tw.indent(pformat(self.errors), indent))
 
-        def _mark_as_stamped(self, is_stamped):
-            """Update form-widgets if dreport has been stamped or clear session. """
-            form_disabled = is_stamped
-
+        def _manage_session(self, is_stamped):
+            """If `is_stamped`, disable & populate fields from session, else clear it."""
             if is_stamped:
-                dice_stamp, stamp_recipients = [session[k] for k in self._skeys]
+                dice_stamp, stamp_recipients, dice_decision = [session[k]
+                                                               for k in self._skeys]
                 self.dice_report.data = dice_stamp
                 self.stamp_recipients.data = stamp_recipients
                 dreport_label = "Dice Report <em>Stamped</em>:"
-                flash(Markup("<em>Dice-stamp</em> sent to %i recipient(s): %s" %
+                flash(Markup("<em>Dice-stamp</em> sent to %i recipient(s): %s"
+                             "<br>Decision:<pre>\n%s</pre>" %
                              (len(stamp_recipients),
-                              escape('; '.join(stamp_recipients)))))
+                              escape('; '.join(stamp_recipients)),
+                              escape(yaml.dump(dice_decision,
+                                               default_flow_style=False)))))
             else:
                 dreport_label = "Dice Report:"
                 for k in self._skeys:
                     session.pop(k, None)
 
+            form_disabled = is_stamped
             self.stamp_recipients.render_kw['readonly'] = form_disabled
             self.dice_report.render_kw['readonly'] = form_disabled
             self.submit.render_kw['disabled'] = form_disabled
             self.dice_report.label.text = dreport_label
 
+        def _sign_dreport(self, dreport):
+            # TODO: stamp!
+            from random import choices
+
+            dice_stamp = '#### STAMPED!\n%s' % dreport[:200]
+            dice_decision = dict(sender='sender-%s' % choices(range(3)),
+                           project='project-%s' % choices(range(3)))
+
+            return dice_stamp, dice_decision
+
         def _do_stamp(self):
+            from co2mpas.sampling import CmdException
+
             stamp_recipients = self.validate_email_list(self.stamp_recipients)
             dreport = self.validate_dice_report(self.dice_report)
 
-            dice_stamp = '#### STAMPED!\n%s' % dreport  # TODO: stamp!
+            try:
+                dice_stamp, dice_decision = self._sign_dreport(dreport)
+            except CmdException as ex:
+                app.logger.info("Stamp-signing denied due to: %s", ex, exc_info=1)
+                flash(str(ex), 'error')
+            except Exception as ex:
+                app.logger.info("Stamp-signing failed due to: %s", ex, exc_info=1)
+                flash(Markup("Stamp-signing failed due to: %s(%s)"
+                      "<br>  Contact JRC for help." % (type(ex).__name__, ex)),
+                      'error')
+            else:
+                project = dice_decision['project']
 
-            session.update(zip(self._skeys, [dice_stamp, stamp_recipients]))
-            flash(Markup("Import the <em>dice-stamp</em> above into your project."))
-            self._mark_as_stamped(True)
+                if is_project_stamped(request.cookies, project):
+                    flash(Markup("You have <em>diced</em> project %r before!"
+                          "<br>Repeat dice??" %
+                          project), 'error')
+                else:
+                    session.update(zip(self._skeys,
+                                       [dice_stamp, stamp_recipients, dice_decision]))
+                    flash(Markup(
+                        "Import the <em>dice-stamp</em> above into your project."))
+                    add_project_as_stamped(request.cookies, project)
+                    self._manage_session(True)
 
         def render(self):
             if not self.is_submitted():
-                self._mark_as_stamped(False)
+                ## Clear session.
+                self._manage_session(False)
             else:
                 if 'dice_stamp' in session:
-                    flash("Already diced! Click 'New Stamp...' above.", 'error')
-                    self._mark_as_stamped(True)
+                    flash("Already diced! Click 'New stamp...' above.", 'error')
+                    self._manage_session(True)
                 else:
                     if self.validate():
                         self._do_stamp()
                     else:
                         self._log_client_errors()
 
-            page = flask.render_template('stamp.html', form=self)
-
-            if self._cookies:
-                app.logger.info('Set cookies: %s', self._cookies)
-                resp = flask.make_response(page)
-                for k, v in self._cookies:
-                    resp.set_cookie(k, v)
-
-            return resp
+            return flask.render_template('stamp.html', form=self)
 
     return StampForm  # class
