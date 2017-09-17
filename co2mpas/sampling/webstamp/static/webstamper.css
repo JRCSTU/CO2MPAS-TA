@@ -1,0 +1,9 @@
+.jumbotron {
+  margin-top: 1em;
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+
+#dice_report {
+  font-size: smaller;
+}
