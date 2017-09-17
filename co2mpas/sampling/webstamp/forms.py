@@ -29,15 +29,15 @@ def create_stamp_form_class(app):
             client_validation_log_level, logging.DEBUG)
 
     class StampForm(FlaskForm):
-
-        skeys = 'dice_stamp stamp_recipients'.split()
+        
+        _skeys = 'dice_stamp stamp_recipients'.split()
 
         stamp_recipients = wtff.TextAreaField(
             label='Stamp Recipients:',
             description="(separate email-addresses by <kbd>,</kbd>, <kbd>;</kbd>, "
             "<kbd>[Space]</kbd>, <kbd>[Enter]</kbd>, <kbd>[Tab]</kbd> characters)",
             validators=[wtfl.InputRequired()],
-            default=config.get('STAMP_RECIPIENTS_DEFAULT'),
+            default=config.get('DEFAULT_STAMP_RECIPIENTS'),
             render_kw={'rows': config['MAILIST_WIDGET_NROWS']})
 
         dice_report = wtff.TextAreaField(
@@ -105,7 +105,7 @@ def create_stamp_form_class(app):
             form_disabled = is_stamped
 
             if is_stamped:
-                dice_stamp, stamp_recipients = [session[k] for k in self.skeys]
+                dice_stamp, stamp_recipients = [session[k] for k in self._skeys]
                 self.dice_report.data = dice_stamp
                 self.stamp_recipients.data = stamp_recipients
                 dreport_label = "Dice Report <em>Stamped</em>:"
@@ -114,7 +114,7 @@ def create_stamp_form_class(app):
                               escape('; '.join(stamp_recipients)))))
             else:
                 dreport_label = "Dice Report:"
-                for k in self.skeys:
+                for k in self._skeys:
                     session.pop(k, None)
 
             self.stamp_recipients.render_kw['readonly'] = form_disabled
@@ -128,7 +128,7 @@ def create_stamp_form_class(app):
 
             dice_stamp = '#### STAMPED!\n%s' % dreport  # TODO: stamp!
 
-            session.update(zip(self.skeys, [dice_stamp, stamp_recipients]))
+            session.update(zip(self._skeys, [dice_stamp, stamp_recipients]))
             flash(Markup("Import the <em>dice-stamp</em> above into your project."))
             self._mark_as_stamped(True)
 

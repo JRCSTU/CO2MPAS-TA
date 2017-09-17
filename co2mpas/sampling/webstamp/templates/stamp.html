@@ -14,7 +14,7 @@
         <p class="bg-warning">Under construction, as of 12-Sept-2017.</p>
       </div>
    <div class="col-md-12">
-     {{wtf.quick_form(form, novalidate=True, enctype="multipart/form-data")}}
+     {{wtf.quick_form(form, novalidate=True)}}
      {% if 'dice_stamp' in session %}
      <a href='.' class="btn btn-info">New stamp...</a>
      {% endif %}
