@@ -131,7 +131,7 @@ _PROJECTS_FULL_PREFIX = _HEADS_PREFIX + _PROJECTS_PREFIX
 
 
 def _is_project_ref(ref: 'git.Reference') -> bool:
-    return ref.name.startswith(_PROJECTS_PREFIX)
+    return bool(ref) and ref.name.startswith(_PROJECTS_PREFIX)
 
 
 def _ref2pname(ref: 'git.Reference') -> Text:
