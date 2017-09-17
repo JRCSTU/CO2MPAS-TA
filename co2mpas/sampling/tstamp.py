@@ -1029,7 +1029,7 @@ class TstampReceiver(TstampSpec):
             tag = verdict['parts']['msg']
             self.log.warning(str(ex))
         except Exception as ex:
-            msg = "Failed to extract signed dice-report from tstamp!\n%s" % ex
+            msg = "Failed verifying dice-report due to: %s" % ex
             if self.force:
                 self.log.warning(msg)
                 verdict = OrderedDict(sig=msg)
@@ -1039,7 +1039,7 @@ class TstampReceiver(TstampSpec):
             else:
                 raise CmdException(msg) from ex
         else:
-            self.log.debug("The dice-report in timestamp got verified OK: %s",
+            self.log.debug("The dice-report got verified OK: %s",
                            _mydump(verdict))
             tag = verdict['parts']['msg']
 
