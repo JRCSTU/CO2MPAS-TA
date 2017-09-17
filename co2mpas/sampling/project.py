@@ -1382,11 +1382,8 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
         if not self._current_project:
                 raise CmdException(tw.dedent("""
-                        No current-project exists yet!"
-                        Try opening an existing project, with:
-                            co2mpas project open
-                        or create a new one, with:
-                            co2mpas project init
+                        No current-project exists yet!
+                          Try opening one with: co2mpas project open  <project-name>
                         """))
 
         return self._current_project
@@ -1527,13 +1524,15 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             else:
                 fields = ['is_current', 'msg.s']
 
-        ## ΝΟΤΕ: Using `current_project()`  would print
-        #  annoying "no-project" warning; let other cmds do that
-        # when actually use the method.
-        cpname = getattr(self._current_project, 'pname', None)
+        def cpname():
+            try:
+                return self.current_project().pname
+            except CmdException as ex:
+                self.log.warning('%s', ex)
 
-        pnames = iset(cpname if p == '.' else p
-                      for p in pnames)
+        pnames = iset(cpname() if p == '.' else p
+                      for p in iset(pnames))
+        pnames = [p for p in pnames if p]
         for ref in _yield_project_refs(repo, *pnames):
             pname = _ref2pname(ref)
             if not as_text and not verbose:
