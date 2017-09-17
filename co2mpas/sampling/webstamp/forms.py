@@ -32,6 +32,9 @@ def create_stamp_form_class(app):
         
         _skeys = 'dice_stamp stamp_recipients'.split()
 
+        #: Any cookies found in this dict are created on :meth:`render()`.
+        _cookies = {}
+
         stamp_recipients = wtff.TextAreaField(
             label='Stamp Recipients:',
             description="(separate email-addresses by <kbd>,</kbd>, <kbd>;</kbd>, "
@@ -145,7 +148,14 @@ def create_stamp_form_class(app):
                     else:
                         self._log_client_errors()
 
-            # return flask.redirect(flask.url_for('.index'))
-            return flask.render_template('stamp.html', form=self)
+            page = flask.render_template('stamp.html', form=self)
+
+            if self._cookies:
+                app.logger.info('Set cookies: %s', self._cookies)
+                resp = flask.make_response(page)
+                for k, v in self._cookies:
+                    resp.set_cookie(k, v)
+
+            return resp
 
     return StampForm  # class
