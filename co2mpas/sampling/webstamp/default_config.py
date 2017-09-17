@@ -7,7 +7,9 @@ import logging
 ## Note: Don't *ever* do this in a real app. A secret key should not have a
 #       default, rather the app should fail if it is missing. For the sample
 #       application, one is provided for convenience.
-#SECRET_KEY = 'devkey'
+#SECRET_KEY = 'gues what'
+#RECAPTCHA_PUBLIC_KEY = 'abc'
+#RECAPTCHA_PRIVATE_KEY = 'xyz'
 #WTF_CSRF_ENABLED = True
 #BOOTSTRAP_SERVE_LOCAL = True
 

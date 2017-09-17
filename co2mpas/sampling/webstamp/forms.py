@@ -1,4 +1,4 @@
-from flask_wtf import FlaskForm
+from flask_wtf import FlaskForm, RecaptchaField
 import logging
 import os
 from pprint import pformat
@@ -43,6 +43,8 @@ def create_stamp_form_class(app):
         dice_report = wtff.TextAreaField(
             # label='Dice Report:',  Set in `_mark_as_stamped()`.
             render_kw={'rows': config['DREPORT_WIDGET_NROWS']})
+
+        recaptcha = RecaptchaField()
 
         submit = wtff.SubmitField(
             'Stamp!',
