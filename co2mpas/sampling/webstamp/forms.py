@@ -91,9 +91,12 @@ def create_stamp_form_class(app):
             # label='Dice Report:',  Set in `_manage_session()`.
             render_kw={'rows': config['DREPORT_WIDGET_NROWS']})
 
+        repeat_dice = wtff.BooleanField(
+            label="Repeat dice?",
+            render_kw={'disabled': True})
+
         submit = wtff.SubmitField(
             'Stamp!',
-            description=" This action is irreversible!",
             render_kw={})
 
         def validate_email_list(self, field):
@@ -162,6 +165,9 @@ def create_stamp_form_class(app):
                               escape(yaml.dump(dice_decision,
                                                default_flow_style=False)))))
             else:
+                ## Clear session and reset form.
+                #
+                self.repeat_dice.render_kw['disabled'] = True
                 dreport_label = "Dice Report:"
                 for k in self._skeys:
                     session.pop(k, None)
@@ -201,11 +207,17 @@ def create_stamp_form_class(app):
             else:
                 project = dice_decision['project']
 
-                if is_project_stamped(request.cookies, project):
-                    flash(Markup("You have <em>diced</em> project %r before!"
-                          "<br>Repeat dice??" %
-                          project), 'error')
+                ## Check if user has diced project another time
+                #  and present a confirmation check-box.
+                #
+                if (is_project_stamped(request.cookies, project) and
+                    not self.repeat_dice.data):
+                        self.repeat_dice.render_kw['disabled'] = False
+                        flash(Markup("You have <em>diced</em> project %r before.<br>"
+                              "Please confirm that you really want to dice it again." %
+                              project), 'error')
                 else:
+                    self.repeat_dice.render_kw['disabled'] = True
                     session.update(zip(self._skeys,
                                        [dice_stamp, stamp_recipients, dice_decision]))
                     flash(Markup(
