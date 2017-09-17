@@ -455,6 +455,7 @@ class GpgSpec(baseapp.Spec):
         key = master_keys[0]
         return '%s: %s' % (key['keyid'], key['uids'][0])
 
+    ## TODO: Add `full_ouput` kwd.
     def encryptobj(self, pswdid: Text, plainobj, extra_args=None) -> Text:
         """
         Encrypt `plainobj` in PGP-armor format, suitable to be stored in a file.
@@ -491,6 +492,7 @@ class GpgSpec(baseapp.Spec):
 
         return str(cipher)
 
+    ## TODO: Add `full_ouput` kwd.
     def decryptobj(self, pswdid: Text, armor_text: Text, extra_args=None):
         """
         PGP-decrypt `armor_text` encrypted with :func:`pgp_encrypt()`.
@@ -529,7 +531,8 @@ class GpgSpec(baseapp.Spec):
 
         return plainobj
 
-    def clearsign_text(self, text: Text, extra_args=None) -> Text:
+    def clearsign_text(self, text: Text, *,
+                       extra_args=None, full_output=False) -> Text:
         """Clear-signs a textual-message with :attr:`master_key`."""
         try:
             signed = self.GPG.sign(text, keyid=self.master_key_resolved,
@@ -543,7 +546,7 @@ class GpgSpec(baseapp.Spec):
                 "No signed due to: %s!"
                 % getattr(signed, 'status', filter_gpg_stderr(signed.stderr)))
 
-        return str(signed)
+        return signed if full_output else str(signed)
 
     def _proc_verfication(self, ver, keep_stderr: bool=None):
         """Convert *gnupg* lib's results into dict, hidding `stderr` if OK."""
