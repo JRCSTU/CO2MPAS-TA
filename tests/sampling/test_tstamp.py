@@ -872,9 +872,23 @@ base32(tag): |=0A=\r
 
     def test_TstampSigner(self):
         signer = tstamp.TstampSigner(config=self.cfg)
-        stamp = signer.sign_content_as_tstamper(signed_tag)
+
+        tag_verdict = signer.parse_signed_tag(signed_tag)
+        sender = crypto.uid_from_verdict(tag_verdict)
+
+        sign = signer.sign_content_as_tstamper(signed_tag, sender,
+                                               full_output=True)
+        stamp = str(sign)
         exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
         self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
+
+        ts_verdict = vars(sign)
+        tag = signer.extract_dice_tag_name(None, signed_tag)
+        dice_decision = signer.make_dice_results(ts_verdict, tag_verdict, tag)
+
+        stamp2 = signer.append_decision(stamp, dice_decision)
+        self.assertIn(stamp, stamp2, stamp2)
+        self.assertIn("dice:\n  tag:", stamp2, stamp2)
 
 @ddt.ddt
 class TstampShell(unittest.TestCase):

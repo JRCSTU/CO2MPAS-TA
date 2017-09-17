@@ -1109,7 +1109,7 @@ class TstampReceiver(TstampSpec):
                     "Failed extracting tag-name from %s due to: %r",
                     place, ex, exc_info=self.verbose)
 
-    def _make_dice_results(self, ts_verdict, tag_verdict, tag_name):
+    def make_dice_results(self, ts_verdict, tag_verdict, tag_name):
         dice_results = []
 
         if tag_name:
@@ -1199,14 +1199,17 @@ class TstampReceiver(TstampSpec):
                 tag_verdict = self.parse_signed_tag(tag)
 
         tag_name = self.extract_dice_tag_name(None, mail_text) or tag_name
-
-        dice_results = self._make_dice_results(ts_verdict, tag_verdict, tag_name)
+        dice_results = self.make_dice_results(ts_verdict, tag_verdict, tag_name)
 
         return OrderedDict([
             ('tstamp', ts_verdict),
             ('report', tag_verdict),
             ('dice', dice_results),
         ])
+
+    def append_decision(self, signed_text: Text, dice_decision: Mapping) -> Text:
+        dice_decision = _mydump({'dice': dice_decision}, default_flow_style=False)
+        return '%s\n\n%s' % (signed_text, dice_decision)
 
     def choose_server_class(self):
         import imaplib
@@ -1472,27 +1475,13 @@ class TstampSigner(TstampReceiver):
         """,
         re.DOTALL | re.VERBOSE | re.MULTILINE)
 
-    def _append_decision(self, signed_text: Text) -> Text:
-        from toolz import dicttoolz as dtz
-
-        verdict = self.parse_tstamp_response(signed_text, None)
-        dice = _mydump(dtz.keyfilter(lambda k: k == 'dice', verdict),
-                       default_flow_style=False)
-
-        return '%s\n\n%s' % (signed_text, dice)
-
-    def sign_content_as_tstamper(self, mail_text: Text, sender: Text=None):
+    def sign_content_as_tstamper(self, mail_text: Text, sender: Text,
+                                 full_output: bool=False):
+        """
+        :param full_output:
+            if true, return `gnupg` output object, otherwise, signed text.
+        """
         from datetime import datetime
-        import pprint as pp
-        import textwrap as tw
-
-        tverdict = self.parse_signed_tag(mail_text)
-        if not tverdict['valid']:
-            self.log.info('Signing failed due to %r:\n%s',
-                         tw.indent(pp.pformat(tverdict), '  '))
-            raise CmdException(tverdict['status'])
-        if not sender:
-            sender = tverdict['username']
 
         stamper_name = self.stamper_name
         stamper_auth = crypto.get_stamper_auth(self.config)
@@ -1506,7 +1495,7 @@ class TstampSigner(TstampReceiver):
 # Proof of posting certificate from {stamper_name}
 # certifying that:-
 #   {sender}
-# requested that this message be sent to:-
+# requested to email this message to:-
 #   {recipients}
 #
 # certificate_date: {issue_date}
@@ -1519,10 +1508,22 @@ class TstampSigner(TstampReceiver):
 {mail_text}
 """
         stamper_comment = f"Stamper Reference Id: {stamp_id:07}"
-        signed_text = stamper_auth.clearsign_text(
-            tstamp_text, extra_args=['--comment', stamper_comment])
+        sign = stamper_auth.clearsign_text(
+            tstamp_text, extra_args=['--comment', stamper_comment],
+            full_output=full_output)
 
-        return self._append_decision(signed_text)
+        if full_output:
+            #
+            ## GnuPG does not return signature-id when signing :-(
+            from toolz import dicttoolz as dtz
+
+            ## Merge gnupg-verify results
+            #
+            ts_ver = stamper_auth.verify_clearsigned(str(sign))
+            ts_ver = dtz.valfilter(bool, vars(ts_ver))
+            sign.__dict__.update(ts_ver)
+
+        return sign
 
 
 def _mydump(obj, indent=2, **kwds):
@@ -2077,7 +2078,9 @@ class SignCmd(baseapp.Cmd):
 
     def run(self, *args):
         from boltons.setutils import IndexedSet as iset
-        from pandalone import utils as pndlu
+        import pprint as pp
+        import textwrap as tw
+
 
         files = iset(args) or ['-']
         self.log.info("Signining '%s'...", tuple(files))
@@ -2093,7 +2096,27 @@ class SignCmd(baseapp.Cmd):
                     mail_text = fin.read()
 
             try:
-                signed_text = signer.sign_content_as_tstamper(mail_text)
+                tag_verdict = signer.parse_signed_tag(mail_text)
+                if not tag_verdict['valid']:
+                    err = "Invalid dice-report due to: %s \n%s" % (
+                        tag_verdict['status'], tw.indent(pp.pformat(tag_verdict), '  '))
+                    if self.force:
+                        self.log.warning(err)
+                    else:
+                        raise CmdException(err)
+
+                sender = crypto.uid_from_verdict(tag_verdict)
+                if not sender:
+                    sender = '<unknown>'
+
+                sign = signer.sign_content_as_tstamper(mail_text, sender,
+                                                       full_output=True)
+
+                stamp, ts_verdict = str(sign), vars(sign)
+                tag = signer.extract_dice_tag_name(None, mail_text)
+                dice_decision = signer.make_dice_results(ts_verdict, tag_verdict, tag)
+
+                signed_text = signer.append_decision(stamp, dice_decision)
 
                 ## In PY3 stdout duplicates \n as \r\n, hence \r\n --> \r\r\n.
                 #  and signed text always has \r\n EOL.
