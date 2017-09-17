@@ -8,7 +8,6 @@
 from collections import (
     defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
 import io
-import os.path as osp
 import random
 import re
 import sys
@@ -18,6 +17,7 @@ from typing import (
 from pandalone import utils as pndlu
 
 import functools as fnt
+import os.path as osp
 
 from . import CmdException, baseapp, dice, crypto
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
@@ -1121,9 +1121,10 @@ class TstampReceiver(TstampSpec):
         if issuer:
             dice_results.append(('issuer', issuer))
 
-        if 'timestamp' in tag_verdict:
+        tag_date = tag_verdict.get('timestamp')
+        if tag_date:
             dice_results.append(('issue_date',
-                                 crypto.gpg_timestamp(tag_verdict['timestamp'])))
+                                 crypto.gpg_timestamp(tag_date)))
 
         stamper = crypto.uid_from_verdict(ts_verdict)
         if stamper:
