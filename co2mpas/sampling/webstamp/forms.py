@@ -16,21 +16,6 @@ import wtforms.fields.html5 as wtf5
 import wtforms.validators as wtfl
 
 
-def _validate_email_list(form, field):
-    text = field.data
-    check_mx = os.name != 'nt'
-
-    mails = re.split('[\s,;]+', text)
-    mails = [s and s.strip() for s in mails]
-    mails = list(filter(None, mails))
-    for i, email in enumerate(mails, 1):
-        if not validate_email(email, check_mx=check_mx):
-            raise wtforms.ValidationError(
-                'Invalid email-address no-%i: `%s`' % (i, email))
-
-    return mails
-
-
 def create_stamp_form_class(app):
     ## Prepare various config-dependent constants
 
@@ -45,30 +30,38 @@ def create_stamp_form_class(app):
 
     class StampForm(FlaskForm):
 
-        dreport_recipients = wtff.TextAreaField(
-            label='Dice-report Recipients:',
-            description="(separate email-addresses by <kbd>,</kbd>, <kbd>;</kbd>, "
-            "<kbd>[Space]</kbd>, <kbd>[Enter]</kbd>, <kbd>[Tab]</kbd> characters)",
-            validators=[wtfl.InputRequired(), _validate_email_list],
-            default=config.get('DREPORT_CC_DEFAULT'),
-            render_kw={'rows': config['MAILIST_WIDGET_NROWS']})
+        skeys = 'dice_stamp stamp_recipients'.split()
 
         stamp_recipients = wtff.TextAreaField(
             label='Stamp Recipients:',
-            description="(add HERE your own email-address)",
-            validators=[wtfl.InputRequired(), _validate_email_list],
+            description="(separate email-addresses by <kbd>,</kbd>, <kbd>;</kbd>, "
+            "<kbd>[Space]</kbd>, <kbd>[Enter]</kbd>, <kbd>[Tab]</kbd> characters)",
+            validators=[wtfl.InputRequired()],
             default=config.get('STAMP_RECIPIENTS_DEFAULT'),
             render_kw={'rows': config['MAILIST_WIDGET_NROWS']})
 
         dice_report = wtff.TextAreaField(
             # label='Dice Report:',  Set in `_mark_as_stamped()`.
-            description="(copy-->paste the dice-report above)",
             render_kw={'rows': config['DREPORT_WIDGET_NROWS']})
 
         submit = wtff.SubmitField(
             'Stamp!',
             description=" This action is irreversible!",
             render_kw={})
+
+        def validate_email_list(self, field):
+            text = field.data
+            check_mx = os.name != 'nt'
+
+            mails = re.split('[\s,;]+', text)
+            mails = [s and s.strip() for s in mails]
+            mails = list(filter(None, mails))
+            for i, email in enumerate(mails, 1):
+                if not validate_email(email, check_mx=check_mx):
+                    raise wtforms.ValidationError(
+                        'Invalid email-address no-%i: `%s`' % (i, email))
+
+            return mails
 
         def validate_dice_report(self, field):
             min_dreport_size = config['MIN_DREPORT_SIZE']
@@ -96,8 +89,6 @@ def create_stamp_form_class(app):
                     client_validation_log_level,
                     tw.dedent("""
                         CLient validation-errors while Stamping:
-                          dreport_recipients:
-                        %s
                           stamp_recipients:
                         %s
                           dice_report:
@@ -105,60 +96,39 @@ def create_stamp_form_class(app):
                           errors:
                         %s
                     """),
-                    tw.indent(self.dreport_recipients.data, indent),
                     tw.indent(self.stamp_recipients.data, indent),
                     tw.indent(dreport, indent),
                     tw.indent(pformat(self.errors), indent))
 
         def _mark_as_stamped(self, is_stamped):
             """Update form-widgets if dreport has been stamped or clear session. """
-            skeys = 'dice_stamp dreport_recipients stamp_recipients'.split()
             form_disabled = is_stamped
 
             if is_stamped:
-                dice_stamp, dreport_recipients, stamp_recipients = [session[k]
-                                                                    for k in skeys]
+                dice_stamp, stamp_recipients = [session[k] for k in self.skeys]
                 self.dice_report.data = dice_stamp
-                self.dreport_recipients.data = dreport_recipients
                 self.stamp_recipients.data = stamp_recipients
                 dreport_label = "Dice Report <em>Stamped</em>:"
-                flash(
-                    Markup(
-                        """
-                    <ul>
-                      <li><em>Dice-report</em> CC-ed to %i recipient(s): %s</li>
-                      <li><em>Dice-stamp</em> sent to %i recipient(s): %s</li>
-                    </ul>
-                    """ % (
-                            len(stamp_recipients),
-                            escape('; '.join(stamp_recipients)),
-                            len(dreport_recipients),
-                            escape('; '.join(dreport_recipients)))))
+                flash(Markup("<em>Dice-stamp</em> sent to %i recipient(s): %s" %
+                             (len(stamp_recipients),
+                              escape('; '.join(stamp_recipients)))))
             else:
                 dreport_label = "Dice Report:"
-                for k in 'dice_stamp dreport_recipients stamp_recipients'.split():
+                for k in self.skeys:
                     session.pop(k, None)
 
-            self.dreport_recipients.render_kw['readonly'] = form_disabled
             self.stamp_recipients.render_kw['readonly'] = form_disabled
             self.dice_report.render_kw['readonly'] = form_disabled
             self.submit.render_kw['disabled'] = form_disabled
             self.dice_report.label.text = dreport_label
 
         def _do_stamp(self):
-            stamp_recipients = _validate_email_list(self,
-                                                    self.stamp_recipients)
-            dreport_recipients = _validate_email_list(self,
-                                                      self.dreport_recipients)
+            stamp_recipients = self.validate_email_list(self.stamp_recipients)
             dreport = self.validate_dice_report(self.dice_report)
 
             dice_stamp = '#### STAMPED!\n%s' % dreport  # TODO: stamp!
 
-            session.update({
-                'dice_stamp': dice_stamp,
-                'dreport_recipients': dreport_recipients,
-                'stamp_recipients': stamp_recipients
-            })
+            session.update(zip(self.skeys, [dice_stamp, stamp_recipients]))
             flash(Markup("Import the <em>dice-stamp</em> above into your project."))
             self._mark_as_stamped(True)
 
