@@ -1460,6 +1460,14 @@ class TstampSigner(TstampReceiver):
 
     stamper_name = trt.Unicode('JRC-stamper')
     sender = trt.Unicode()
+    stamps_folder = trt.Unicode(
+        help= """The folder to store all signed stamps and derive cert-chain.""",
+        config=True
+    )
+
+    @trt.default('stamps_folder')
+    def default_stamps_folder(self):
+        return osp.join(baseapp.default_config_dir(), 'MyStamper')
 
     recipients = trt.List(
         trt.Unicode(),
@@ -2105,16 +2113,21 @@ class SignCmd(baseapp.Cmd):
                     else:
                         raise CmdException(err)
 
+                ## Exclude any garbage.
+                tag = tag_verdict['parts']['msg']
                 sender = crypto.uid_from_verdict(tag_verdict)
                 if not sender:
                     sender = '<unknown>'
 
-                sign = signer.sign_content_as_tstamper(mail_text, sender,
+                sign = signer.sign_content_as_tstamper(tag,
+                                                       sender,
                                                        full_output=True)
 
                 stamp, ts_verdict = str(sign), vars(sign)
-                tag = signer.extract_dice_tag_name(None, mail_text)
-                dice_decision = signer.make_dice_results(ts_verdict, tag_verdict, tag)
+                tag_name = signer.extract_dice_tag_name(None, mail_text)
+                dice_decision = signer.make_dice_results(ts_verdict,
+                                                         tag_verdict,
+                                                         tag_name)
 
                 signed_text = signer.append_decision(stamp, dice_decision)
 
