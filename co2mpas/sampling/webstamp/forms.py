@@ -2,17 +2,17 @@ from flask_wtf import FlaskForm
 import json
 import logging
 import os
-from pprint import pformat
 import re
 
 from flask import flash, request, session
 import flask
 from flask.ctx import after_this_request
 from markupsafe import escape, Markup
-from ruamel import yaml
 from validate_email import validate_email
 import wtforms
+import yaml
 
+import pprint as pp
 import textwrap as tw
 import wtforms.fields as wtff
 import wtforms.fields.html5 as wtf5
@@ -125,7 +125,7 @@ def create_stamp_form_class(app):
 
             return data
 
-        def _log_client_errors(self):
+        def _log_client_error(self, action, error, **log_kw):
             dreport = '<hidden>'
             if client_validation_log_full_dreport:
                 dreport = self.dice_report.data
@@ -138,17 +138,18 @@ def create_stamp_form_class(app):
                 app.logger.log(
                     client_validation_log_level,
                     tw.dedent("""
-                        CLient validation-errors while Stamping:
+                        CLient validation-error while %s:
                           stamp_recipients:
                         %s
                           dice_report:
                         %s
-                          errors:
+                          error:
                         %s
-                    """),
+                    """), action,
                     tw.indent(self.stamp_recipients.data, indent),
                     tw.indent(dreport, indent),
-                    tw.indent(pformat(self.errors), indent))
+                    tw.indent(pp.pformat(error), indent),
+                    **log_kw)
 
         def _manage_session(self, is_stamped):
             """If `is_stamped`, disable & populate fields from session, else clear it."""
@@ -162,7 +163,7 @@ def create_stamp_form_class(app):
                              "<br>Decision:<pre>\n%s</pre>" %
                              (len(stamp_recipients),
                               escape('; '.join(stamp_recipients)),
-                              escape(yaml.dump(dice_decision,
+                              escape(yaml.dump({'dice': dice_decision},
                                                default_flow_style=False)))))
             else:
                 ## Clear session and reset form.
@@ -179,12 +180,28 @@ def create_stamp_form_class(app):
             self.dice_report.label.text = dreport_label
 
         def _sign_dreport(self, dreport):
-            # TODO: stamp!
-            from random import choices
+            from co2mpas._vendor.traitlets import config as traitc
+            from co2mpas.sampling import CmdException, crypto, tstamp
 
-            dice_stamp = '#### STAMPED!\n%s' % dreport[:200]
-            dice_decision = dict(sender='sender-%s' % choices(range(3)),
-                           project='project-%s' % choices(range(3)))
+            ## Convert Flask-config --> traitlets-config
+            traits_config = traitc.Config(config['TRAITLETS_CONFIG'])
+
+            signer = tstamp.TstampSigner(config=traits_config)
+
+            tag_verdict = signer.parse_signed_tag(dreport)
+            if not tag_verdict['valid']:
+                err = "Invalid dice-report due to: %s \n%s" % (
+                    tag_verdict['status'], tw.indent(pp.pformat(tag_verdict), '  '))
+                raise CmdException(err)
+            sender = crypto.uid_from_verdict(tag_verdict)
+
+            sign = signer.sign_content_as_tstamper(dreport, sender, full_output=True)
+
+            dice_stamp, ts_verdict = str(sign), vars(sign)
+            tag = signer.extract_dice_tag_name(None, dreport)
+            dice_decision = signer.make_dice_results(ts_verdict, tag_verdict, tag)
+
+            dice_stamp = signer.append_decision(dice_stamp, dice_decision)
 
             return dice_stamp, dice_decision
 
@@ -197,15 +214,15 @@ def create_stamp_form_class(app):
             try:
                 dice_stamp, dice_decision = self._sign_dreport(dreport)
             except CmdException as ex:
-                app.logger.info("Stamp-signing denied due to: %s", ex, exc_info=1)
+                self._log_client_error("Signing", ex)
                 flash(str(ex), 'error')
             except Exception as ex:
-                app.logger.info("Stamp-signing failed due to: %s", ex, exc_info=1)
+                self._log_client_error("Signing", ex, exc_info=1)
                 flash(Markup("Stamp-signing failed due to: %s(%s)"
                       "<br>  Contact JRC for help." % (type(ex).__name__, ex)),
                       'error')
             else:
-                project = dice_decision['project']
+                project = dice_decision['tag']
 
                 ## Check if user has diced project another time
                 #  and present a confirmation check-box.
@@ -237,7 +254,7 @@ def create_stamp_form_class(app):
                     if self.validate():
                         self._do_stamp()
                     else:
-                        self._log_client_errors()
+                        self._log_client_error('Stamping', self.errors)
 
             return flask.render_template('stamp.html', form=self)
 

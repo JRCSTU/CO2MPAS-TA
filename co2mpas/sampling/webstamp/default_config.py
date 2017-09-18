@@ -19,3 +19,10 @@ DREPORT_WIDGET_NROWS = 17
 ## Can be a number of head/tail lines to log, or a boolean.
 CLIENT_VALIDATION_LOG_FULL_DREPORT = 600
 CLIENT_VALIDATION_LOG_LEVEL = logging.DEBUG
+
+# TRAITLETS_CONFIG = {
+#     'StamperAuthSpec': {
+#         'master_key': ''
+#     }
+# }
+TRAITLETS_CONFIG = {}
