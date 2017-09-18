@@ -184,7 +184,13 @@ def create_stamp_form_class(app):
             from co2mpas.sampling import CmdException, crypto, tstamp
 
             ## Convert Flask-config --> traitlets-config
+            #  and respect `allow_test_key` form-param.
+            #
             traits_config = traitc.Config(config['TRAITLETS_CONFIG'])
+            allow_test_key_param = request.args.get('allow_test_key', '').strip()
+            if (allow_test_key_param and
+                    allow_test_key_param.lower() not in ['no', 'false']):
+                traits_config.GpgSpec.allow_test_key = True
 
             signer = tstamp.TstampSigner(config=traits_config)
 
