@@ -21,6 +21,7 @@ import wtforms.validators as wtfl
 
 STAMPED_PROJECTS_KEY = 'stamped_projects'
 
+
 def create_stamp_form_class(app):
     ## Prepare various config-dependent constants
 
@@ -32,7 +33,6 @@ def create_stamp_form_class(app):
     except:  # @IgnorePep8
         client_validation_log_level = logging._nameToLevel.get(
             client_validation_log_level, logging.DEBUG)
-
 
     def get_json_item(adict, key, *, as_list):
         json_type = list if as_list else dict
@@ -55,14 +55,11 @@ def create_stamp_form_class(app):
 
         return json_type()
 
-
     def get_stamped_projects(cookies):
         return set(get_json_item(cookies, STAMPED_PROJECTS_KEY, as_list=True))
 
-
     def is_project_stamped(cookies, project):
         return project in get_stamped_projects(cookies)
-
 
     def add_project_as_stamped(cookies, project):
         stamped_projects = get_stamped_projects(cookies)
@@ -73,7 +70,6 @@ def create_stamp_form_class(app):
         def store_stamped_projects(response):
             response.set_cookie(STAMPED_PROJECTS_KEY, json.dumps(stamped_projects))
             return response
-
 
     class StampForm(FlaskForm):
 
@@ -234,11 +230,13 @@ def create_stamp_form_class(app):
                 #  and present a confirmation check-box.
                 #
                 if (is_project_stamped(request.cookies, project) and
-                    not self.repeat_dice.data):
-                        self.repeat_dice.render_kw['disabled'] = False
-                        flash(Markup("You have <em>diced</em> project %r before.<br>"
-                              "Please confirm that you really want to dice it again." %
-                              project), 'error')
+                        not self.repeat_dice.data):
+                    self.repeat_dice.render_kw['disabled'] = False
+                    flash(Markup(
+                        "You have <em>diced</em> project %r before.<br>"
+                        "Please confirm that you really want to dice it again." %
+                        project), 'error')
+
                 else:
                     self.repeat_dice.render_kw['disabled'] = True
                     session.update(zip(self._skeys,
