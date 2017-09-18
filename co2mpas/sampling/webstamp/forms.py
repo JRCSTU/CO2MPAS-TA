@@ -99,7 +99,7 @@ def create_stamp_form_class(app):
             'Stamp!',
             render_kw={})
 
-        def validate_email_list(self, field):
+        def validate_stamp_recipients(self, field):
             text = field.data
             check_mx = os.name != 'nt'
 
@@ -138,7 +138,7 @@ def create_stamp_form_class(app):
                 app.logger.log(
                     client_validation_log_level,
                     tw.dedent("""
-                        CLient validation-error while %s:
+                        Client error while %s:
                           stamp_recipients:
                         %s
                           dice_report:
@@ -208,7 +208,7 @@ def create_stamp_form_class(app):
         def _do_stamp(self):
             from co2mpas.sampling import CmdException
 
-            stamp_recipients = self.validate_email_list(self.stamp_recipients)
+            stamp_recipients = self.validate_stamp_recipients(self.stamp_recipients)
             dreport = self.validate_dice_report(self.dice_report)
 
             try:
