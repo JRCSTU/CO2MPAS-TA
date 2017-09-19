@@ -949,3 +949,20 @@ class TstampShell(unittest.TestCase):
                              % (fpath, vault_cli))
         self.assertEqual(ret, 0)
 
+    def test_sign_smoketest(self):
+        fpath = osp.join(mydir, 'tag.txt')
+        stamp = sbp.check_output('co2dice tstamp sign %s' % fpath,
+                                 universal_newlines=True)
+        exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
+        self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
+
+        suffix = "Garbage"
+        with open(fpath, 'rt') as fd:
+            tag = fd.read()
+        p = sbp.Popen('co2dice tstamp sign -',
+                      universal_newlines=True,
+                      stdin=sbp.PIPE, stdout=sbp.PIPE)
+        stamp, _stderr = p.communicate(input=tag + suffix)
+        exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
+        self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
+        self.assertNotIn(suffix, stamp)
