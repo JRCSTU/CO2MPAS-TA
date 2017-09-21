@@ -23,7 +23,6 @@ CLIENT_VALIDATION_LOG_LEVEL = logging.INFO
 # TRAITLETS_CONFIG = {
 #     'TstampSigner': {
 #         'stamper_name': '',
-#         'stamper_name': '',
 #     },
 #     'StamperAuthSpec': {
 #         'master_key': ''

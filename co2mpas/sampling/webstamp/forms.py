@@ -82,6 +82,13 @@ def create_stamp_form_class(app):
             return response
 
     class StampForm(FlaskForm):
+        """
+        Form submission boolean args:
+
+        - ``allow_test_key``: allow CBBB52FF
+        - ``validate_decision``: append decision
+        - ``trim_dreport``: remove garbage suffix from dreport
+        """
 
         _skeys = 'dice_stamp stamp_recipients dice_decision'.split()
 
@@ -193,12 +200,20 @@ def create_stamp_form_class(app):
             #  and respect `allow_test_key` form-param.
             #
             traits_config = traitc.Config(config['TRAITLETS_CONFIG'])
-            if get_bool_arg('allow_test_key'):
-                traits_config.GpgSpec.allow_test_key = True
-            signer = tstamp.TstampSigner(
-                config=traits_config,
-                recipients=recipients,
-                validate_decision=get_bool_arg('validate_decision'))
+
+            flag = get_bool_arg('allow_test_key')
+            if flag is not None:
+                traits_config.GpgSpec.allow_test_key = flag
+
+            flag = get_bool_arg('validate_decision')
+            if flag is not None:
+                traits_config.TstampSigner.validate_decision = flag
+
+            flag = get_bool_arg('trim_dreport')
+            if flag is not None:
+                traits_config.TstampSigner.trim_dreport = flag
+
+            signer = tstamp.TstampSigner(config=traits_config)
 
             dice_stamp, dice_decision = signer.sign_dreport_as_tstamper(dreport, )
 

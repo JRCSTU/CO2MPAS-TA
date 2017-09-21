@@ -1487,6 +1487,10 @@ class TstampSigner(TstampReceiver):
         help="""Validate dice and append-report at the bottom of dreport.  """,
         config=True)
 
+    trim_dreport = trt.Bool(
+        help="""Remove any garbage after dreport's signature? """,
+        config=True)
+
     recipients = trt.List(
         trt.Unicode(),
         default_value=["JRC-CO2MPAS@ec.europa.eu",
@@ -1554,8 +1558,8 @@ class TstampSigner(TstampReceiver):
         tag_verdict = self.parse_signed_tag(dreport)
         tag_signer = crypto.uid_from_verdict(tag_verdict)
         if tag_verdict['valid']:
-            ## Exclude any garbage.
-            dreport = tag_verdict['parts']['msg'].decode('utf-8')
+            if self.trim_dreport:
+                dreport = tag_verdict['parts']['msg'].decode('utf-8')
         else:
             err = "Invalid dice-report due to: %s \n%s" % (
                 tag_verdict['status'], tw.indent(pp.pformat(tag_verdict), '  '))
