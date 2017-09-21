@@ -23,8 +23,13 @@ STAMPED_PROJECTS_KEY = 'stamped_projects'
 
 
 def get_bool_arg(argname):
-    param = request.args.get(argname, '').strip()
-    return bool(param) and param.lower() not in ['no', 'false']
+    """
+    True is an arg alone, or a (possibly empty) string but (`no | false | 0`).
+    """
+    args = request.args
+    if argname in args:
+        param = args[argname].strip()
+        return param.lower() not in ['no', 'false', '0']
 
 
 def create_stamp_form_class(app):
@@ -158,7 +163,7 @@ def create_stamp_form_class(app):
                 dice_stamp, stamp_recipients, dice_decision = [session[k]
                                                                for k in self._skeys]
                 self.dice_report.data = dice_stamp
-                self.stamp_recipients.data = stamp_recipients
+                self.stamp_recipients.data = '; '.join(stamp_recipients)
                 dreport_label = "Dice Report <em>Stamped</em>:"
                 flash(Markup("<em>Dice-stamp</em> sent to %i recipient(s): %s"
                              "<br>Decision:<pre>\n%s</pre>" %
