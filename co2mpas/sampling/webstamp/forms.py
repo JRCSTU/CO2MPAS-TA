@@ -22,6 +22,11 @@ import wtforms.validators as wtfl
 STAMPED_PROJECTS_KEY = 'stamped_projects'
 
 
+def get_bool_arg(argname):
+    param = request.args.get(argname, '').strip()
+    return bool(param) and param.lower() not in ['no', 'false']
+
+
 def create_stamp_form_class(app):
     ## Prepare various config-dependent constants
 
@@ -175,35 +180,22 @@ def create_stamp_form_class(app):
             self.submit.render_kw['disabled'] = form_disabled
             self.dice_report.label.text = dreport_label
 
-        def _sign_dreport(self, dreport):
+        def _sign_dreport(self, dreport, recipients):
             from co2mpas._vendor.traitlets import config as traitc
-            from co2mpas.sampling import CmdException, crypto, tstamp
+            from co2mpas.sampling import tstamp
 
             ## Convert Flask-config --> traitlets-config
             #  and respect `allow_test_key` form-param.
             #
             traits_config = traitc.Config(config['TRAITLETS_CONFIG'])
-            allow_test_key_param = request.args.get('allow_test_key', '').strip()
-            if (allow_test_key_param and
-                    allow_test_key_param.lower() not in ['no', 'false']):
+            if get_bool_arg('allow_test_key'):
                 traits_config.GpgSpec.allow_test_key = True
+            signer = tstamp.TstampSigner(
+                config=traits_config,
+                recipients=recipients,
+                validate_decision=get_bool_arg('validate_decision'))
 
-            signer = tstamp.TstampSigner(config=traits_config)
-
-            tag_verdict = signer.parse_signed_tag(dreport)
-            if not tag_verdict['valid']:
-                err = "Invalid dice-report due to: %s \n%s" % (
-                    tag_verdict['status'], tw.indent(pp.pformat(tag_verdict), '  '))
-                raise CmdException(err)
-            sender = crypto.uid_from_verdict(tag_verdict)
-
-            sign = signer.sign_content_as_tstamper(dreport, sender, full_output=True)
-
-            dice_stamp, ts_verdict = str(sign), vars(sign)
-            tag = signer.extract_dice_tag_name(None, dreport)
-            dice_decision = signer.make_dice_results(ts_verdict, tag_verdict, tag)
-
-            dice_stamp = signer.append_decision(dice_stamp, dice_decision)
+            dice_stamp, dice_decision = signer.sign_dreport_as_tstamper(dreport, )
 
             return dice_stamp, dice_decision
 
@@ -214,7 +206,8 @@ def create_stamp_form_class(app):
             dreport = self.validate_dice_report(self.dice_report)
 
             try:
-                dice_stamp, dice_decision = self._sign_dreport(dreport)
+                dice_stamp, dice_decision = self._sign_dreport(dreport,
+                                                               stamp_recipients)
             except CmdException as ex:
                 self._log_client_error("Signing", ex)
                 flash(str(ex), 'error')

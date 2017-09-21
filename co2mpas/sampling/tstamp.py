@@ -1012,7 +1012,8 @@ class TstampReceiver(TstampSpec):
     def parse_signed_tag(self, tag_text: Text) -> int:
         """
         :param msg_text:
-            The tag as extracted from tstamp response by :meth:`crypto.pgp_split_clearsigned`.
+            The tag as extracted from tstamp response by
+            :meth:`crypto.pgp_split_clearsigned`.
         """
         ## TODO: Schedula to the rescue!
 
@@ -1457,11 +1458,14 @@ class TstampReceiver(TstampSpec):
 
 
 class TstampSigner(TstampReceiver):
+    """
+    To run securely on a server see: https://wiki.gnupg.org/AgentForwarding
+    """
 
     stamper_name = trt.Unicode('JRC-stamper')
     sender = trt.Unicode()
     stamps_folder = trt.Unicode(
-        help= """The folder to store all signed stamps and derive cert-chain.""",
+        help="""The folder to store all signed stamps and derive cert-chain.""",
         config=True
     )
 
@@ -1469,22 +1473,32 @@ class TstampSigner(TstampReceiver):
     def default_stamps_folder(self):
         return osp.join(baseapp.default_config_dir(), 'MyStamper')
 
-    recipients = trt.List(
-        trt.Unicode(),
-        default_value=["JRC-CO2MPAS@ec.europa.eu",
-                       "CLIMA-LDV-CO2-CORRELATION@ec.europa.eu"],
-        allow_none=True)
-
     signed_opening = trt.CRegExp(
         R"""
         ^-{5}BEGIN\ PGP\ SIGNED\ MESSAGE-{5}\r?\n
         (?:^Hash:\ [^\r\n]+\r?\n)*                   ## 'Hash:'-header(s)
         ^\r?\n                                       ## blank-line
         """,
-        re.DOTALL | re.VERBOSE | re.MULTILINE)
+        re.DOTALL | re.VERBOSE | re.MULTILINE,
+        config=True)
 
-    def sign_content_as_tstamper(self, mail_text: Text, sender: Text,
-                                 full_output: bool=False):
+    validate_decision = trt.Bool(
+        True,
+        help="""Validate dice and append-report at the bottom of dreport.  """,
+        config=True)
+
+    recipients = trt.List(
+        trt.Unicode(),
+        default_value=["JRC-CO2MPAS@ec.europa.eu",
+                       "CLIMA-LDV-CO2-CORRELATION@ec.europa.eu"],
+        allow_none=True)
+
+    sender = trt.Unicode(
+        allow_none=True)
+
+    def sign_text_as_tstamper(self, text: Text,
+                              sender: Text=None,
+                              full_output: bool=False):
         """
         :param full_output:
             if true, return `gnupg` output object, otherwise, signed text.
@@ -1513,7 +1527,7 @@ class TstampSigner(TstampReceiver):
 ########################################################
 
 
-{mail_text}
+{text}
 """
         stamper_comment = f"Stamper Reference Id: {stamp_id:07}"
         sign = stamper_auth.clearsign_text(
@@ -1532,6 +1546,40 @@ class TstampSigner(TstampReceiver):
             sign.__dict__.update(ts_ver)
 
         return sign
+
+    def sign_dreport_as_tstamper(self, dreport: Text):
+        import pprint as pp
+        import textwrap as tw
+
+        tag_verdict = self.parse_signed_tag(dreport)
+        tag_signer = crypto.uid_from_verdict(tag_verdict)
+        if tag_verdict['valid']:
+            ## Exclude any garbage.
+            dreport = tag_verdict['parts']['msg'].decode('utf-8')
+        else:
+            err = "Invalid dice-report due to: %s \n%s" % (
+                tag_verdict['status'], tw.indent(pp.pformat(tag_verdict), '  '))
+            if self.force:
+                self.log.warning(err)
+            else:
+                raise CmdException(err)
+
+        sender = self.sender or tag_signer or '<unknown>'
+
+        sign = self.sign_text_as_tstamper(
+            dreport, sender, full_output=True)
+
+        stamp, ts_verdict = str(sign), vars(sign)
+        tag_name = self.extract_dice_tag_name(None, dreport)
+        dice_decision = self.make_dice_results(ts_verdict,
+                                               tag_verdict,
+                                               tag_name)
+        if self.validate_decision:
+            signed_text = self.append_decision(stamp, dice_decision)
+        else:
+            signed_text = stamp
+
+        return signed_text, dice_decision
 
 
 def _mydump(obj, indent=2, **kwds):
@@ -2086,9 +2134,6 @@ class SignCmd(baseapp.Cmd):
 
     def run(self, *args):
         from boltons.setutils import IndexedSet as iset
-        import pprint as pp
-        import textwrap as tw
-
 
         files = iset(args) or ['-']
         self.log.info("Signining '%s'...", tuple(files))
@@ -2104,40 +2149,14 @@ class SignCmd(baseapp.Cmd):
                     mail_text = fin.read()
 
             try:
-                tag_verdict = signer.parse_signed_tag(mail_text)
-                if not tag_verdict['valid']:
-                    err = "Invalid dice-report due to: %s \n%s" % (
-                        tag_verdict['status'], tw.indent(pp.pformat(tag_verdict), '  '))
-                    if self.force:
-                        self.log.warning(err)
-                    else:
-                        raise CmdException(err)
-
-                ## Exclude any garbage.
-                tag = tag_verdict['parts']['msg']
-                sender = crypto.uid_from_verdict(tag_verdict)
-                if not sender:
-                    sender = '<unknown>'
-
-                sign = signer.sign_content_as_tstamper(tag,
-                                                       sender,
-                                                       full_output=True)
-
-                stamp, ts_verdict = str(sign), vars(sign)
-                tag_name = signer.extract_dice_tag_name(None, mail_text)
-                dice_decision = signer.make_dice_results(ts_verdict,
-                                                         tag_verdict,
-                                                         tag_name)
-
-                signed_text = signer.append_decision(stamp, dice_decision)
+                tstamp, _decision = signer.sign_dreport_as_tstamper(mail_text)
 
                 ## In PY3 stdout duplicates \n as \r\n, hence \r\n --> \r\r\n.
                 #  and signed text always has \r\n EOL.
-                yield signed_text.replace('\r\n', '\n')
+                yield tstamp.replace('\r\n', '\n')
             except Exception as ex:
                 self.log.error("%s: signig %i-char message failed due to: %s",
                                file, len(mail_text), ex, exc_info=1)
-
 
 
 class LoginCmd(baseapp.Cmd):

@@ -876,7 +876,7 @@ base32(tag): |=0A=\r
         tag_verdict = signer.parse_signed_tag(signed_tag)
         sender = crypto.uid_from_verdict(tag_verdict)
 
-        sign = signer.sign_content_as_tstamper(signed_tag, sender,
+        sign = signer.sign_text_as_tstamper(signed_tag, sender,
                                                full_output=True)
         stamp = str(sign)
         exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
@@ -889,6 +889,7 @@ base32(tag): |=0A=\r
         stamp2 = signer.append_decision(stamp, dice_decision)
         self.assertIn(stamp, stamp2, stamp2)
         self.assertIn("dice:\n  tag:", stamp2, stamp2)
+
 
 @ddt.ddt
 class TstampShell(unittest.TestCase):
