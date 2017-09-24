@@ -8,7 +8,7 @@
 
 from co2mpas.__main__ import init_logging
 from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import tstamp, crypto
+from co2mpas.sampling import crypto, tstamp, tsign
 from co2mpas.sampling.baseapp import collect_cmd, Cmd
 from collections import Counter
 import logging
@@ -871,7 +871,7 @@ base32(tag): |=0A=\r
         self.assertEqual(page, exp, inp)
 
     def test_TstampSigner_text(self):
-        signer = tstamp.TstampSigner(config=self.cfg)
+        signer = tsign.TstampSigner(config=self.cfg)
 
         tag_verdict = signer.parse_signed_tag(signed_tag)
         sender = crypto.uid_from_verdict(tag_verdict)
@@ -891,7 +891,7 @@ base32(tag): |=0A=\r
         self.assertIn("dice:\n  tag:", stamp2, stamp2)
 
     def test_TstampSigner_dreport(self):
-        signer = tstamp.TstampSigner(config=self.cfg)
+        signer = tsign.TstampSigner(config=self.cfg)
         stamp, _decision = signer.sign_dreport_as_tstamper(signed_tag)
         exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
         self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
@@ -968,7 +968,7 @@ class TstampShell(unittest.TestCase):
 
     def test_sign_smoketest(self):
         fpath = osp.join(mydir, 'tag.txt')
-        stamp = sbp.check_output('co2dice tstamp sign %s' % fpath,
+        stamp = sbp.check_output('co2dice sign %s' % fpath,
                                  universal_newlines=True)
         exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
         self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
@@ -977,7 +977,7 @@ class TstampShell(unittest.TestCase):
         with open(fpath, 'rt') as fd:
             tag = fd.read()
 
-        p = sbp.Popen('co2dice tstamp sign -',
+        p = sbp.Popen('co2dice sign -',
                       universal_newlines=True,
                       stdin=sbp.PIPE, stdout=sbp.PIPE)
         stamp, _stderr = p.communicate(input=tag + suffix)
@@ -985,7 +985,7 @@ class TstampShell(unittest.TestCase):
         self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
         self.assertIn(suffix, stamp)
 
-        p = sbp.Popen('co2dice tstamp sign - --TstampSigner.trim_dreport=True',
+        p = sbp.Popen('co2dice sign - --TstampSigner.trim_dreport=True',
                       universal_newlines=True,
                       stdin=sbp.PIPE, stdout=sbp.PIPE)
         stamp, _stderr = p.communicate(input=tag + suffix)

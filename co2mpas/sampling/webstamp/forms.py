@@ -1,4 +1,3 @@
-from flask_wtf import FlaskForm
 import json
 import logging
 import os
@@ -7,6 +6,7 @@ import re
 from flask import flash, request, session
 import flask
 from flask.ctx import after_this_request
+from flask_wtf import FlaskForm
 from markupsafe import escape, Markup
 from validate_email import validate_email
 import wtforms
@@ -194,7 +194,7 @@ def create_stamp_form_class(app):
 
         def _sign_dreport(self, dreport, recipients):
             from co2mpas._vendor.traitlets import config as traitc
-            from co2mpas.sampling import tstamp
+            from co2mpas.sampling import tsign
 
             ## Convert Flask-config --> traitlets-config
             #  and respect `allow_test_key` form-param.
@@ -213,7 +213,7 @@ def create_stamp_form_class(app):
             if flag is not None:
                 traits_config.TstampSigner.trim_dreport = flag
 
-            signer = tstamp.TstampSigner(config=traits_config)
+            signer = tsign.TstampSigner(config=traits_config)
 
             dice_stamp, dice_decision = signer.sign_dreport_as_tstamper(dreport, )
 

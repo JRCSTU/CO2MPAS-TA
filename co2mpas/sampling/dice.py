@@ -7,16 +7,15 @@
 #
 """co2dice: prepare/sign/send/receive/validate/archive Type Approval sampling emails of *co2mpas*."""
 
-from collections import OrderedDict
-import logging
-import sys
-from typing import Sequence, Text, List, Tuple  # @UnusedImport
-
 from co2mpas import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 from co2mpas._vendor import traitlets as trt
 from co2mpas.sampling import baseapp, CmdException
 from co2mpas.sampling.baseapp import (APPNAME, Cmd,
                                       chain_cmds)  # @UnusedImport
+from collections import OrderedDict
+import logging
+import sys
+from typing import Sequence, Text, List, Tuple  # @UnusedImport
 
 import os.path as osp
 import pandalone.utils as pndlu
@@ -92,6 +91,8 @@ class Co2diceCmd(Cmd):
                     "Commands to manage the communications with the Timestamp server.")),
         ('config', ('co2mpas.sampling.cfgcmd.ConfigCmd',
                     "Commands to manage configuration-options loaded from filesystem.")),
+        ('sign', ('co2mpas.sampling.tsign.SignCmd',
+                  "A command that time-stamps dice-reports.")),
     ])
 
 
