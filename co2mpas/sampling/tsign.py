@@ -36,6 +36,7 @@ def pgp_sig_to_hex(sig_id: Text) -> int:
     sig_bytes = base64.b64decode(sig_id + '==')
     return binascii.hexlify(sig_bytes).decode()
 
+
 class TstampSigner(tstamp.TstampReceiver):
     """
     To run securely on a server see: https://wiki.gnupg.org/AgentForwarding
@@ -50,7 +51,7 @@ class TstampSigner(tstamp.TstampReceiver):
 
     @trt.default('stamps_folder')
     def default_stamps_folder(self):
-        my_folder = re.sub(r'\W','_', self.stamper_name)
+        my_folder = re.sub(r'\W', '_', self.stamper_name)
         return osp.join(baseapp.default_config_dir(), my_folder)
 
     signed_opening_regex = trt.CRegExp(
@@ -63,7 +64,7 @@ class TstampSigner(tstamp.TstampReceiver):
         config=True)
 
     parent_sig_regex = trt.CRegExp(
-        r"""# parent_stamp: (\S+)""",config=True)
+        r"""# parent_stamp: (\S+)""", config=True)
 
     validate_decision = trt.Bool(
         True,
@@ -362,6 +363,7 @@ class SignCmd(baseapp.Cmd):
         help="Print all stamp-chain stored (no other args accepted).",
         config=True
     )
+
     def __init__(self, **kwds):
         kwds.setdefault('conf_classes', [TstampSigner,
                                          crypto.GitAuthSpec, crypto.StamperAuthSpec])
