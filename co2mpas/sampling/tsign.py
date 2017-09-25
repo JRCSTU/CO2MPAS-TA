@@ -37,52 +37,8 @@ def pgp_sig_to_hex(sig_id: Text) -> int:
     return binascii.hexlify(sig_bytes).decode()
 
 
-class TstampSigner(tstamp.TstampReceiver):
-    """
-    To run securely on a server see: https://wiki.gnupg.org/AgentForwarding
-    """
-
-    stamper_name = trt.Unicode('JRC-stamper')
-    sender = trt.Unicode()
-    stamps_folder = trt.Unicode(
-        help="""The folder to store all signed stamps and derive cert-chain.""",
-        config=True
-    )
-
-    @trt.default('stamps_folder')
-    def default_stamps_folder(self):
-        my_folder = re.sub(r'\W', '_', self.stamper_name)
-        return osp.join(baseapp.default_config_dir(), my_folder)
-
-    signed_opening_regex = trt.CRegExp(
-        R"""
-        ^-{5}BEGIN\ PGP\ SIGNED\ MESSAGE-{5}\r?\n
-        (?:^Hash:\ [^\r\n]+\r?\n)*                   ## 'Hash:'-header(s)
-        ^\r?\n                                       ## blank-line
-        """,
-        re.DOTALL | re.VERBOSE | re.MULTILINE,
-        config=True)
-
-    parent_sig_regex = trt.CRegExp(
-        r"""# parent_stamp: (\S+)""", config=True)
-
-    validate_decision = trt.Bool(
-        True,
-        help="""Validate dice and append-report at the bottom of dreport.  """,
-        config=True)
-
-    trim_dreport = trt.Bool(
-        help="""Remove any garbage after dreport's signature? """,
-        config=True)
-
-    recipients = trt.List(
-        trt.Unicode(),
-        default_value=["JRC-CO2MPAS@ec.europa.eu",
-                       "CLIMA-LDV-CO2-CORRELATION@ec.europa.eu"],
-        allow_none=True)
-
-    sender = trt.Unicode(
-        allow_none=True)
+class TstamperSpec(baseapp.Spec):
+    stamper_name = trt.Unicode('JRC-stamper', config=True)
 
     __stamp_auth = None
 
@@ -91,6 +47,25 @@ class TstampSigner(tstamp.TstampReceiver):
         if not self.__stamp_auth:
             self.__stamp_auth = crypto.get_stamper_auth(config=self.config)
         return self.__stamp_auth
+
+
+class TstamperChain(TstamperSpec):
+    """
+    Manage the list of signed-tstamps stored in git-like 2-letter folders.
+    """
+
+    stamps_folder = trt.Unicode(
+        help="""The folder to store all signed stamps and derive cert-chain.""",
+        config=True
+    )
+
+    @trt.default('stamps_folder')
+    def default_stamps_folder(self):
+        service_fname = re.sub(r'\W', '_', self.stamper_name)
+        return osp.join(baseapp.default_config_dir(), service_fname)
+
+    parent_sig_regex = trt.CRegExp(
+        r"""# parent_stamp: (\S+)""", config=True)
 
     @property
     def _head_fpath(self):
@@ -264,6 +239,28 @@ class TstampSigner(tstamp.TstampReceiver):
         with locked_on_dir(self._lock_fpath):
             return self._load_or_rebuild_stamp_chain(revalidate=True)[-1]
 
+
+class TstamperService(TstamperChain, tstamp.TstampReceiver):
+    """
+    To run securely on a server see: https://wiki.gnupg.org/AgentForwarding
+    """
+
+    sender = trt.Unicode(
+        allow_none=True)
+
+    recipients = trt.List(
+        trt.Unicode(),
+        allow_none=True)
+
+    validate_decision = trt.Bool(
+        True,
+        help="""Validate dice and append-report at the bottom of dreport.  """,
+        config=True)
+
+    trim_dreport = trt.Bool(
+        help="""Remove any garbage after dreport's signature? """,
+        config=True)
+
     def sign_text_as_tstamper(self, text: Text,
                               sender: Text=None,
                               full_output: bool=False):
@@ -367,7 +364,7 @@ class SignCmd(baseapp.Cmd):
     )
 
     def __init__(self, **kwds):
-        kwds.setdefault('conf_classes', [TstampSigner,
+        kwds.setdefault('conf_classes', [TstamperService,
                                          crypto.GitAuthSpec, crypto.StamperAuthSpec])
         kwds.setdefault('cmd_flags', {
             ('l', 'list'): (
@@ -379,22 +376,21 @@ class SignCmd(baseapp.Cmd):
         })
         super().__init__(**kwds)
 
-    def run(self, *args):
-        from boltons.setutils import IndexedSet as iset
-
-        signer = TstampSigner(config=self.config)
-
-        if self.list:
-            if len(args) > 0:
-                raise CmdException(
-                    "Cmd %r takes no args with --list, received %d: %r!" %
-                    (self.name, len(args), args))
-            chain_list = signer.load_stamp_chain()
+    def _list_stamps(self, *sig_hex_prefixes):
+        chainer = TstamperChain(config=self.config)
+        if not sig_hex_prefixes:
+            chain_list = chainer.load_stamp_chain()
             yield "stamps_count: %s" % len(chain_list)
             yield from chain_list
-            return
+        else:
+            raise Exception("Not impl!")
 
-        files = iset(args) or ['-']
+    def _sign_stamps(self, *files):
+        from boltons.setutils import IndexedSet as iset
+
+        signer = TstamperService(config=self.config)
+
+        files = iset(files) or ['-']
         self.log.info("Signining '%s'...", tuple(files))
 
         for file in files:
@@ -415,3 +411,9 @@ class SignCmd(baseapp.Cmd):
             except Exception as ex:
                 self.log.error("%s: signig %i-char message failed due to: %s",
                                file, len(mail_text), ex, exc_info=1)
+
+    def run(self, *args):
+        if self.list:
+            yield from self._list_stamps(*args)
+        else:
+            yield from self._sign_stamps(*args)

@@ -871,7 +871,7 @@ base32(tag): |=0A=\r
         self.assertEqual(page, exp, inp)
 
     def test_TstampSigner_text(self):
-        signer = tsign.TstampSigner(config=self.cfg)
+        signer = tsign.TstamperService(config=self.cfg)
 
         tag_verdict = signer.parse_signed_tag(signed_tag)
         sender = crypto.uid_from_verdict(tag_verdict)
@@ -891,7 +891,7 @@ base32(tag): |=0A=\r
         self.assertIn("dice:\n  tag:", stamp2, stamp2)
 
     def test_TstampSigner_dreport(self):
-        signer = tsign.TstampSigner(config=self.cfg)
+        signer = tsign.TstamperService(config=self.cfg)
         stamp, _decision = signer.sign_dreport_as_tstamper(signed_tag)
         exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
         self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
@@ -985,7 +985,7 @@ class TstampShell(unittest.TestCase):
         self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
         self.assertIn(suffix, stamp)
 
-        p = sbp.Popen('co2dice sign - --TstampSigner.trim_dreport=True',
+        p = sbp.Popen('co2dice sign - --TstamperService.trim_dreport=True',
                       universal_newlines=True,
                       stdin=sbp.PIPE, stdout=sbp.PIPE)
         stamp, _stderr = p.communicate(input=tag + suffix)

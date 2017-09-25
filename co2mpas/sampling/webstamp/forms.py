@@ -211,13 +211,13 @@ def create_stamp_form_class(app):
 
                 flag = get_bool_arg('validate_decision')
                 if flag is not None:
-                    traits_config.TstampSigner.validate_decision = flag
+                    traits_config.TstamperService.validate_decision = flag
 
                 flag = get_bool_arg('trim_dreport')
                 if flag is not None:
-                    traits_config.TstampSigner.trim_dreport = flag
+                    traits_config.TstamperService.trim_dreport = flag
 
-                self._signer = tsign.TstampSigner(config=traits_config)
+                self._signer = tsign.TstamperService(config=traits_config)
 
             return self._signer
 
