@@ -15,6 +15,9 @@
 # Afterwards, point your browser to http://localhost:5000, then check out the
 # source.
 
+from co2mpas.__main__ import init_logging
+import logging
+
 from flask import Flask
 from flask_appconfig import AppConfig
 from flask_bootstrap import Bootstrap
@@ -34,6 +37,8 @@ def create_app(configfile=None):
     app = Flask(__name__)#, instance_relative_config=True)
 
     AppConfig(app, configfile)
+
+    init_logging(not_using_numpy=True)
 
     # Install our Bootstrap extension
     Bootstrap(app)
