@@ -29,7 +29,7 @@ def get_bool_arg(argname):
     args = request.args
     if argname in args:
         param = args[argname].strip()
-        return param.lower() not in ['no', 'false', '0']
+        return param.lower() not in ['0', 'false', 'no', 'off']
 
 
 def create_stamp_form_class(app):
