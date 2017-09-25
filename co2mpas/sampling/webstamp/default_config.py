@@ -4,6 +4,10 @@
 # Copy them below in your i.e. `local_config.py`.
 import logging
 
+## For DOS, limit requests to:
+#  ~= x2 of (~4k each dreport + x2 for session + 10k cookies)
+MAX_CONTENT_LENGTH = 50 * 1024
+
 ## Note: Don't *ever* do this in a real app. A secret key should not have a
 #       default, rather the app should fail if it is missing. For the sample
 #       application, one is provided for convenience.
@@ -13,7 +17,10 @@ import logging
 
 #DEFAULT_STAMP_RECIPIENTS = ''
 
-MIN_DREPORT_SIZE = 1000
+## Preserve CPU by avoiding sign-verification on
+#  obviously small dice-reports.
+MIN_DREPORT_SIZE = 1200
+
 MAILIST_WIDGET_NROWS = 2
 DREPORT_WIDGET_NROWS = 17
 ## Can be a number of head/tail lines to log, or a boolean.
