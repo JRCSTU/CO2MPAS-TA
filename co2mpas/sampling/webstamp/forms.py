@@ -65,14 +65,14 @@ def create_stamp_form_class(app):
 
         return json_type()
 
-    def get_stamped_projects(cookies):
+    def _get_stamped_projects(cookies):
         return set(get_json_item(cookies, STAMPED_PROJECTS_KEY, as_list=True))
 
-    def is_project_stamped(cookies, project):
-        return project in get_stamped_projects(cookies)
+    def is_project_in_stamps_cookie(cookies, project):
+        return project in _get_stamped_projects(cookies)
 
-    def add_project_as_stamped(cookies, project):
-        stamped_projects = get_stamped_projects(cookies)
+    def add_project_in_stamps_cookie(cookies, project):
+        stamped_projects = _get_stamped_projects(cookies)
         stamped_projects.add(project)
         stamped_projects = list(sorted(set(stamped_projects)))
 
@@ -254,7 +254,7 @@ def create_stamp_form_class(app):
                 flash(Markup(
                     "Import the <em>dice-stamp</em> above into your project."))
                 project = dice_decision['tag']
-                add_project_as_stamped(request.cookies, project)
+                add_project_in_stamps_cookie(request.cookies, project)
                 self._manage_session(True)
 
         def render(self):
@@ -274,7 +274,7 @@ def create_stamp_form_class(app):
                         #
                         project = self.signer.extract_dice_tag_name(
                             None, self.dice_report.data)
-                        if (is_project_stamped(request.cookies, project) and
+                        if (is_project_in_stamps_cookie(request.cookies, project) and
                                 not self.repeat_dice.data):
                             self.repeat_dice.render_kw['disabled'] = False
                             flash(Markup(
