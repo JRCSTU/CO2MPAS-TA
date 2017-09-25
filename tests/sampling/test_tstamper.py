@@ -45,6 +45,9 @@ class TStamper(unittest.TestCase):
         c.GpgSpec.allow_test_key = True
         crypto.GpgSpec(config=c)
 
+        cls.tmp_chain_folder = tempfile.mkdtemp(prefix='stampchain-')
+        c.TstamperChain.stamps_folder = cls.tmp_chain_folder
+
         ## Clean memories from past tests
         #
         crypto.StamperAuthSpec.clear_instance()
@@ -97,18 +100,33 @@ class TStamper(unittest.TestCase):
 class TstampShell(unittest.TestCase):
     """Set ``CO2DICE_CONFIG_PATHS`` and optionally HOME env appropriately! to run"""
 
-    def _get_vault_gnupghome(self):
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp_chain_folder = tempfile.mkdtemp(prefix='stampchain-')
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.tmp_chain_folder)
+
+    def _get_extra_options(self):
         """Allow cipher-traits encrypted with the GPG of the user running tests."""
+        opts = []
+
         cmd = Cmd()
         cmd.initialize([])
         vault = crypto.VaultSpec(config=cmd.config)
-        return ('--VaultSpec.gnupghome=%s' % vault.gnupghome
-                if vault.gnupghome
-                else '')
+        if vault.gnupghome:
+            opts.append('--VaultSpec.gnupghome=%s' % vault.gnupghome)
+
+        opts.append('--TstamperChain.stamps_folder=%s' % self.tmp_chain_folder)
+        opts.append('-d')
+
+        return ' '.join(opts)
 
     def test_sign_smoketest(self):
         fpath = osp.join(mydir, 'tag.txt')
-        stamp = sbp.check_output('co2dice sign %s' % fpath,
+        stamp = sbp.check_output('co2dice sign %s %s' %
+                                 (fpath, self._get_extra_options()),
                                  universal_newlines=True)
         exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
         self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
@@ -117,7 +135,7 @@ class TstampShell(unittest.TestCase):
         with open(fpath, 'rt') as fd:
             tag = fd.read()
 
-        p = sbp.Popen('co2dice sign -',
+        p = sbp.Popen('co2dice sign - %s' % self._get_extra_options(),
                       universal_newlines=True,
                       stdin=sbp.PIPE, stdout=sbp.PIPE)
         stamp, _stderr = p.communicate(input=tag + suffix)
@@ -125,7 +143,8 @@ class TstampShell(unittest.TestCase):
         self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
         self.assertIn(suffix, stamp)
 
-        p = sbp.Popen('co2dice sign - --TstamperService.trim_dreport=True',
+        p = sbp.Popen('co2dice sign - --TstamperService.trim_dreport=True'
+                      ' %s' % self._get_extra_options(),
                       universal_newlines=True,
                       stdin=sbp.PIPE, stdout=sbp.PIPE)
         stamp, _stderr = p.communicate(input=tag + suffix)
