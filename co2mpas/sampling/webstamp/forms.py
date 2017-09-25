@@ -198,7 +198,7 @@ def create_stamp_form_class(app):
         def signer(self):
             if not self._signer:
                 from co2mpas._vendor.traitlets import config as traitc
-                from co2mpas.sampling import tsign
+                from co2mpas.sampling import tsigner
 
                 ## Convert Flask-config --> traitlets-config
                 #  and respect `allow_test_key` form-param.
@@ -211,13 +211,13 @@ def create_stamp_form_class(app):
 
                 flag = get_bool_arg('validate_decision')
                 if flag is not None:
-                    traits_config.TstamperService.validate_decision = flag
+                    traits_config.TsignService.validate_decision = flag
 
                 flag = get_bool_arg('trim_dreport')
                 if flag is not None:
-                    traits_config.TstamperService.trim_dreport = flag
+                    traits_config.TsignService.trim_dreport = flag
 
-                self._signer = tsign.TstamperService(config=traits_config)
+                self._signer = tsigner.TsignService(config=traits_config)
 
             return self._signer
 

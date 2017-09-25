@@ -41,7 +41,7 @@ loggers:
     # co2mpas.sampling.project: {}
     # co2mpas.sampling.report: {}
     # co2mpas.sampling.tstamp: {}
-    # co2mpas.sampling.tsign: {}
+    # co2mpas.sampling.tsigner: {}
 
     ## DICE libs:
     #

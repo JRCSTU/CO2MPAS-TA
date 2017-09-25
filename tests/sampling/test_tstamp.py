@@ -8,7 +8,7 @@
 
 from co2mpas.__main__ import init_logging
 from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import crypto, tstamp, tsign
+from co2mpas.sampling import crypto, tstamp
 from co2mpas.sampling.baseapp import collect_cmd, Cmd
 from collections import Counter
 import logging

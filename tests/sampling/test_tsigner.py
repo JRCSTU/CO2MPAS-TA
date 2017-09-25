@@ -8,7 +8,7 @@
 
 from co2mpas.__main__ import init_logging
 from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import crypto, tsign
+from co2mpas.sampling import crypto, tsigner
 from co2mpas.sampling.baseapp import Cmd
 import logging
 import shutil
@@ -32,7 +32,7 @@ mydir = osp.dirname(__file__)
 
 
 @ddt.ddt
-class TStamper(unittest.TestCase):
+class TSS(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -46,7 +46,7 @@ class TStamper(unittest.TestCase):
         crypto.GpgSpec(config=c)
 
         cls.tmp_chain_folder = tempfile.mkdtemp(prefix='stampchain-')
-        c.TstamperChain.stamps_folder = cls.tmp_chain_folder
+        c.TsignChain.stamp_chain_dir = cls.tmp_chain_folder
 
         ## Clean memories from past tests
         #
@@ -60,7 +60,7 @@ class TStamper(unittest.TestCase):
         shutil.rmtree(cls.tmp_chain_folder)
 
     def test_stamp_text(self):
-        signer = tsign.TstamperService(config=self.cfg)
+        signer = tsigner.TsignService(config=self.cfg)
 
         tag_verdict = signer.parse_signed_tag(signed_tag)
         sender = crypto.uid_from_verdict(tag_verdict)
@@ -80,7 +80,7 @@ class TStamper(unittest.TestCase):
         self.assertIn("dice:\n  tag:", stamp2, stamp2)
 
     def test_stamp_dreport(self):
-        signer = tsign.TstamperService(config=self.cfg)
+        signer = tsigner.TsignService(config=self.cfg)
         stamp, _decision = signer.sign_dreport_as_tstamper(signed_tag)
         exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
         self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
@@ -97,7 +97,7 @@ class TStamper(unittest.TestCase):
 
 
 @ddt.ddt
-class TstampShell(unittest.TestCase):
+class TSSShell(unittest.TestCase):
     """Set ``CO2DICE_CONFIG_PATHS`` and optionally HOME env appropriately! to run"""
 
     @classmethod
@@ -118,8 +118,7 @@ class TstampShell(unittest.TestCase):
         if vault.gnupghome:
             opts.append('--VaultSpec.gnupghome=%s' % vault.gnupghome)
 
-        opts.append('--TstamperChain.stamps_folder=%s' % self.tmp_chain_folder)
-        opts.append('-d')
+        opts.append('--TsignChain.stamp_chain_dir=%s' % self.tmp_chain_folder)
 
         return ' '.join(opts)
 
@@ -143,7 +142,7 @@ class TstampShell(unittest.TestCase):
         self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
         self.assertIn(suffix, stamp)
 
-        p = sbp.Popen('co2dice sign - --TstamperService.trim_dreport=True'
+        p = sbp.Popen('co2dice sign - --TsignService.trim_dreport=True'
                       ' %s' % self._get_extra_options(),
                       universal_newlines=True,
                       stdin=sbp.PIPE, stdout=sbp.PIPE)
