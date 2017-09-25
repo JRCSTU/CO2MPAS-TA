@@ -192,32 +192,43 @@ def create_stamp_form_class(app):
             self.submit.render_kw['disabled'] = form_disabled
             self.dice_report.label.text = dreport_label
 
+        _signer = None
+
+        @property
+        def signer(self):
+            if not self._signer:
+                from co2mpas._vendor.traitlets import config as traitc
+                from co2mpas.sampling import tsign
+
+                ## Convert Flask-config --> traitlets-config
+                #  and respect `allow_test_key` form-param.
+                #
+                traits_config = traitc.Config(config['TRAITLETS_CONFIG'])
+
+                flag = get_bool_arg('allow_test_key')
+                if flag is not None:
+                    traits_config.GpgSpec.allow_test_key = flag
+
+                flag = get_bool_arg('validate_decision')
+                if flag is not None:
+                    traits_config.TstampSigner.validate_decision = flag
+
+                flag = get_bool_arg('trim_dreport')
+                if flag is not None:
+                    traits_config.TstampSigner.trim_dreport = flag
+
+                self._signer = tsign.TstampSigner(config=traits_config)
+
+            return self._signer
+
         def _sign_dreport(self, dreport, recipients):
-            from co2mpas._vendor.traitlets import config as traitc
-            from co2mpas.sampling import tsign
-
-            ## Convert Flask-config --> traitlets-config
-            #  and respect `allow_test_key` form-param.
-            #
-            traits_config = traitc.Config(config['TRAITLETS_CONFIG'])
-
-            flag = get_bool_arg('allow_test_key')
-            if flag is not None:
-                traits_config.GpgSpec.allow_test_key = flag
-
-            flag = get_bool_arg('validate_decision')
-            if flag is not None:
-                traits_config.TstampSigner.validate_decision = flag
-
-            flag = get_bool_arg('trim_dreport')
-            if flag is not None:
-                traits_config.TstampSigner.trim_dreport = flag
-
-            signer = tsign.TstampSigner(config=traits_config)
-
-            dice_stamp, dice_decision = signer.sign_dreport_as_tstamper(dreport, )
-
-            return dice_stamp, dice_decision
+            """
+            :return:
+                tuple(dice_stamp, dice_decision)
+            """
+            signer = self.signer
+            signer.recipients = recipients
+            return signer.sign_dreport_as_tstamper(dreport)
 
         def _do_stamp(self):
             from co2mpas.sampling import CmdException
@@ -237,27 +248,14 @@ def create_stamp_form_class(app):
                       "<br>  Contact JRC for help." % (type(ex).__name__, ex)),
                       'error')
             else:
+                self.repeat_dice.render_kw['disabled'] = True
+                session.update(zip(self._skeys,
+                                   [dice_stamp, stamp_recipients, dice_decision]))
+                flash(Markup(
+                    "Import the <em>dice-stamp</em> above into your project."))
                 project = dice_decision['tag']
-
-                ## Check if user has diced project another time
-                #  and present a confirmation check-box.
-                #
-                if (is_project_stamped(request.cookies, project) and
-                        not self.repeat_dice.data):
-                    self.repeat_dice.render_kw['disabled'] = False
-                    flash(Markup(
-                        "You have <em>diced</em> project %r before.<br>"
-                        "Please confirm that you really want to dice it again." %
-                        project), 'error')
-
-                else:
-                    self.repeat_dice.render_kw['disabled'] = True
-                    session.update(zip(self._skeys,
-                                       [dice_stamp, stamp_recipients, dice_decision]))
-                    flash(Markup(
-                        "Import the <em>dice-stamp</em> above into your project."))
-                    add_project_as_stamped(request.cookies, project)
-                    self._manage_session(True)
+                add_project_as_stamped(request.cookies, project)
+                self._manage_session(True)
 
         def render(self):
             if not self.is_submitted():
@@ -268,10 +266,23 @@ def create_stamp_form_class(app):
                     flash("Already diced! Click 'New stamp...' above.", 'error')
                     self._manage_session(True)
                 else:
-                    if self.validate():
-                        self._do_stamp()
-                    else:
+                    if not self.validate():
                         self._log_client_error('Stamping', self.errors)
+                    else:
+                        ## Check if user has diced project another time
+                        #  and present a confirmation check-box.
+                        #
+                        project = self.signer.extract_dice_tag_name(
+                            None, self.dice_report.data)
+                        if (is_project_stamped(request.cookies, project) and
+                                not self.repeat_dice.data):
+                            self.repeat_dice.render_kw['disabled'] = False
+                            flash(Markup(
+                                "You have <em>diced</em> project %r before.<br>"
+                                "Please confirm that you really want to dice it again." %
+                                project), 'error')
+                        else:
+                            self._do_stamp()
 
             return flask.render_template('stamp.html', form=self)
 
