@@ -17,6 +17,7 @@ import os.path as osp
 DIR_LOCK_WAIT_SEC = 2
 _dir_locks = defaultdict(Condition)  # type: Mapping[str, Condition]
 
+
 @contextlib.contextmanager
 def locked_on_dir(dpath: Text):
     dirname = osp.dirname(dpath)
