@@ -916,7 +916,9 @@ class TstampShell(unittest.TestCase):
         cmd = Cmd()
         cmd.initialize([])
         vault = crypto.VaultSpec(config=cmd.config)
-        return '--VaultSpec.gnupghome=%s' % vault.gnupghome
+        return ('--VaultSpec.gnupghome=%s' % vault.gnupghome
+                if vault.gnupghome
+                else '')
 
     def test_config_paths(self):
         ret = sbp.check_call('co2dice config paths')
