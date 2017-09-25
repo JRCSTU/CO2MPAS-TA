@@ -100,7 +100,7 @@ class Co2diceCmd(Cmd):
 ## INFO: Add all CMDs here.
 #
 def all_cmds():
-    from co2mpas.sampling import cfgcmd, project, report, tstamp
+    from co2mpas.sampling import cfgcmd, project, report, tstamp, tsigner
     from co2mpas import tkui
     return (
         (
@@ -109,6 +109,7 @@ def all_cmds():
             project.ProjectCmd,
             report.ReportCmd,
             tstamp.TstampCmd,
+            tsigner.TsignerCmd,
             cfgcmd.ConfigCmd,
             tkui.Co2guiCmd,
         ) +
@@ -120,7 +121,7 @@ def all_cmds():
 ## INFO: Add all SPECs here.
 #
 def all_app_configurables() -> Tuple:
-    from co2mpas.sampling import crypto, project, report, tstamp
+    from co2mpas.sampling import crypto, project, report, tstamp, tsigner
     ## TODO: specs maybe missing from all-config-classes.
     all_config_classes = all_cmds() + (
         baseapp.Spec,
@@ -129,6 +130,7 @@ def all_app_configurables() -> Tuple:
         report.Report,
         tstamp.TstampSender,
         tstamp.TstampReceiver,
+        tsigner.TsignerService,
     )
 
     # ## TODO: Enable when `project TstampCmd` dropped, and `report` renamed.
