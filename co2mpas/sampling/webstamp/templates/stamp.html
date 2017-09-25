@@ -5,7 +5,7 @@
 {% block title %}co2mpas-stamper{% endblock %}
 
 {% block content %}
-   <div class="container">
+  <div class="container">
       <div class="jumbotron">
         <h1>co2mpas web stamper</h1>
         <p class="bg-info">Note: Stamping <em>Dice-reports</em> from
@@ -13,12 +13,30 @@
            only.</p>
         <p class="bg-warning">Under construction, as of 12-Sept-2017.</p>
       </div>
-   <div class="col-md-12">
-     {{wtf.quick_form(form, novalidate=False, form_type="horizontal")}}
-     {% if 'dice_stamp' in session %}
-     <a href='.' class="btn btn-info">New stamp...</a>
-     {% endif %}
-   </div>
+  <div class="col-md-12">
+    <form action="" method="post" class="form form-horizontal" role="form">
+      {%- set button_map = {'submit': 'primary', 'new_stamp': 'info'}-%}
+      {%- set form_type = "basic" -%}
+
+      {{ wtf.form_field(form.stamp_recipients,
+                        form_type=form_type,
+                        button_map=button_map) }}
+      {{ wtf.form_field(form.dice_report,
+                        form_type=form_type,
+                        button_map=button_map) }}
+      {{ wtf.form_field(form.repeat_dice,
+                        form_type=form_type,
+                        button_map=button_map) }}
+
+      {{ form.hidden_tag() }}
+      {{ wtf.form_errors(form, hiddens='only') }}
+
+      {{ wtf.form_field(form.submit,
+                        form_type=form_type,
+                        button_map=button_map) }}
+      <a href='{{request.url}}' class="btn btn-info">New stamp...</a>
+    </form>
+  </div>
 
   {{utils.flashed_messages(messages)}}
 {%- endblock %}
