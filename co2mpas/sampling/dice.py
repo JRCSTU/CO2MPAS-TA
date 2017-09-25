@@ -91,8 +91,8 @@ class Co2diceCmd(Cmd):
                     "Commands to manage the communications with the Timestamp server.")),
         ('config', ('co2mpas.sampling.cfgcmd.ConfigCmd',
                     "Commands to manage configuration-options loaded from filesystem.")),
-        ('sign', ('co2mpas.sampling.tsigner.SignCmd',
-                  "A command that time-stamps dice-reports.")),
+        ('tsigner', ('co2mpas.sampling.tsigner.TsignerCmd',
+                     "A command that time-stamps dice-reports.")),
     ])
 
 

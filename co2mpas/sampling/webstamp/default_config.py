@@ -28,7 +28,7 @@ CLIENT_VALIDATION_LOG_FULL_DREPORT = 600
 CLIENT_VALIDATION_LOG_LEVEL = logging.INFO
 
 # TRAITLETS_CONFIG = {
-#     'TstampSigner': {
+#     'TsignerService': {
 #         'stamper_name': <name>,
 #         #'stamp_chain_folder': '', # Auto-default based on stamper-name.
 #     },

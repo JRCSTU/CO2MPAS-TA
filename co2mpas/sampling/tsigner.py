@@ -37,10 +37,10 @@ def pgp_sig_to_hex(sig_id: Text) -> int:
     return binascii.hexlify(sig_bytes).decode()
 
 
-class TsignSpec(baseapp.Spec):
+class TsignerSpec(baseapp.Spec):
     stamper_name = trt.Unicode(
         'JRC-stamper',
-        help="By default, that `stamp_chain_dir` is derived from this name. ",
+        help="By default, that `chain_dir` is derived from this name. ",
         config=True)
 
     __stamp_auth = None
@@ -52,17 +52,17 @@ class TsignSpec(baseapp.Spec):
         return self.__stamp_auth
 
 
-class TsignChain(TsignSpec):
+class SigChain(TsignerSpec):
     """
     Manage the list of signatures stored in git-like 2-letter folders.
     """
 
-    stamp_chain_dir = trt.Unicode(
+    chain_dir = trt.Unicode(
         help="""The folder to store all signed stamps and derive cert-chain.""",
         config=True
     )
 
-    @trt.default('stamp_chain_dir')
+    @trt.default('chain_dir')
     def _default_chain_dir(self):
         service_fname = re.sub(r'\W', '_', self.stamper_name)
         return osp.join(baseapp.default_config_dir(), service_fname)
@@ -73,17 +73,17 @@ class TsignChain(TsignSpec):
 
     @property
     def _head_fpath(self):
-        return osp.join(self.stamp_chain_dir, HEAD_FNAME)
+        return osp.join(self.chain_dir, HEAD_FNAME)
 
     @property
     def _lock_fpath(self):
-        return osp.join(self.stamp_chain_dir, LOCK_FNAME)
+        return osp.join(self.chain_dir, LOCK_FNAME)
 
-    def _write_stamp_chain_head(self, count, parent_id):
+    def _write_chain_head(self, count, parent_id):
         with open(self._head_fpath, 'wt') as fd:
             fd.write('0.0.0 %s %s' % (count, parent_id))
 
-    def _read_stamp_chain_head(self):
+    def _read_chain_head(self):
         """Called only on non-empty chain-folders. """
         head_fpath = self._head_fpath
         with open(head_fpath, 'rt') as fd:
@@ -95,7 +95,7 @@ class TsignChain(TsignSpec):
         return count, parent_id
 
     def _write_sig_file(self, text, sig_hex):
-        dpath = osp.join(self.stamp_chain_dir, sig_hex[:2])
+        dpath = osp.join(self.chain_dir, sig_hex[:2])
         fpath = osp.join(dpath, sig_hex[2:])
         os.makedirs(dpath, exist_ok=True)
         ## Write as bytes to avoid duplicating PGP ``r\n`` EOL
@@ -106,7 +106,7 @@ class TsignChain(TsignSpec):
 
     def _parse_sig_file(self, sig_hex):
         stamp_auth = self._stamp_auth
-        sig_fpath = osp.join(self.stamp_chain_dir, sig_hex[:2], sig_hex[2:])
+        sig_fpath = osp.join(self.chain_dir, sig_hex[:2], sig_hex[2:])
 
         ## Read as bytes to preserve PGP ``r\n`` EOLs
         #
@@ -125,16 +125,16 @@ class TsignChain(TsignSpec):
 
         return parent_id
 
-    def _read_stamp_chain_dict(self, stamp_chain_dir):
+    def _read_stamp_chain_dict(self, chain_dir):
         log = self.log
 
         ## { <parent-sign_id> --> <sign_id> }
         chain_dict = {}  # type: Mapping[Text, Text]
-        for fname in os.listdir(stamp_chain_dir):
+        for fname in os.listdir(chain_dir):
             if fname in (HEAD_FNAME, LOCK_FNAME):
                 continue
 
-            sig_dir = osp.join(stamp_chain_dir, fname)
+            sig_dir = osp.join(chain_dir, fname)
 
             if osp.isdir(sig_dir) and len(fname) == 2:
                 for sig_fname in os.listdir(sig_dir):
@@ -155,10 +155,10 @@ class TsignChain(TsignSpec):
                 log.warning("Skipping stamp-chain file: %s", sig_dir)
 
         if not chain_dict:
-            log.warning("No stamps found in chain folder: %s", stamp_chain_dir)
+            log.warning("No stamps found in chain folder: %s", chain_dir)
         else:
             assert ROOT_PARENT_ID in chain_dict, (
-                "No root found in chain folder!", stamp_chain_dir, chain_dict)
+                "No root found in chain folder!", chain_dir, chain_dict)
 
         return chain_dict
 
@@ -180,25 +180,25 @@ class TsignChain(TsignSpec):
 
         """
         log = self.log
-        stamp_chain_dir = self.stamp_chain_dir
-        assert osp.isdir(stamp_chain_dir), (
-            "Missing or invalid stamp-chain dir!", stamp_chain_dir)
-        stamps_folder_fnames = os.listdir(stamp_chain_dir)
+        chain_dir = self.chain_dir
+        assert osp.isdir(chain_dir), (
+            "Missing or invalid stamp-chain dir!", chain_dir)
+        stamps_folder_fnames = os.listdir(chain_dir)
 
         ## A *totally* empty stamp-chain dir (except lock-dir)
         #  means we are starting anew.
         #
         if len(stamps_folder_fnames) == 1:
             log.info("Starting in a new empty stamps-chain folder(%s).",
-                     stamp_chain_dir)
+                     chain_dir)
             count, parent_id = 0, ROOT_PARENT_ID
-            self._write_stamp_chain_head(count, parent_id)
+            self._write_chain_head(count, parent_id)
             results = count, parent_id
             if revalidate:
                 results += ([], )
             return results
         try:
-            count, parent_id = self._read_stamp_chain_head()
+            count, parent_id = self._read_chain_head()
         except Exception as ex:
             log.warning("Rebuilding stamp-chain HEAD(%s) due to: %s",
                         self._head_fpath, ex, exc_info=1)
@@ -209,7 +209,7 @@ class TsignChain(TsignSpec):
 
         # { <sign_id> --> <parent_sign_id> }
         # type: Mapping[Text, Text]
-        chain_dict = self._read_stamp_chain_dict(stamp_chain_dir)
+        chain_dict = self._read_stamp_chain_dict(chain_dir)
         chain = []
         if chain_dict:
             sig = ROOT_PARENT_ID
@@ -224,7 +224,7 @@ class TsignChain(TsignSpec):
         else:
             count, parent_id = 0, ROOT_PARENT_ID
 
-        self._write_stamp_chain_head(count, parent_id)
+        self._write_chain_head(count, parent_id)
 
         results = count, parent_id
         if revalidate:
@@ -244,7 +244,7 @@ class TsignChain(TsignSpec):
             return self._load_or_rebuild_stamp_chain(revalidate=True)[-1]
 
 
-class TsignService(TsignChain, tstamp.TstampReceiver):
+class TsignerService(SigChain, tstamp.TstampReceiver):
     """
     To run securely on a server see: https://wiki.gnupg.org/AgentForwarding
     """
@@ -280,7 +280,7 @@ class TsignService(TsignChain, tstamp.TstampReceiver):
         issue_date = datetime.now().isoformat()
 
         with locked_on_dir(self._lock_fpath):
-            osp.join(self.stamp_chain_dir, LOCK_FNAME)
+            osp.join(self.chain_dir, LOCK_FNAME)
             stamp_count, parent_stamp = self._load_stamp_chain_head()
             stamp_count += 1
             tstamp_text = f"""\
@@ -310,7 +310,7 @@ class TsignService(TsignChain, tstamp.TstampReceiver):
             ver = stamper_auth.verify_clearsigned(stamp)
             sig_hex = pgp_sig_to_hex(ver.signature_id)
             self._write_sig_file(stamp, sig_hex)
-            self._write_stamp_chain_head(stamp_count, sig_hex)
+            self._write_chain_head(stamp_count, sig_hex)
 
             if full_output:
                 #
@@ -359,7 +359,7 @@ class TsignService(TsignChain, tstamp.TstampReceiver):
         return signed_text, dice_decision
 
 
-class SignCmd(baseapp.Cmd):
+class TsignerCmd(baseapp.Cmd):
     """Private stamper service."""
 
     list = trt.Bool(
@@ -368,12 +368,13 @@ class SignCmd(baseapp.Cmd):
     )
 
     def __init__(self, **kwds):
-        kwds.setdefault('conf_classes', [TsignService,
-                                         crypto.GitAuthSpec, crypto.StamperAuthSpec])
+        kwds.setdefault('conf_classes', [TsignerService,
+                                         crypto.GitAuthSpec,
+                                         crypto.StamperAuthSpec])
         kwds.setdefault('cmd_flags', {
             ('l', 'list'): (
                 {
-                    'SignCmd': {'list': True},
+                    'TsignerCmd': {'list': True},
                 },
                 type(self).list.help
             ),
@@ -381,7 +382,7 @@ class SignCmd(baseapp.Cmd):
         super().__init__(**kwds)
 
     def _list_stamps(self, *sig_hex_prefixes):
-        chainer = TsignChain(config=self.config)
+        chainer = SigChain(config=self.config)
         if not sig_hex_prefixes:
             chain_list = chainer.load_stamp_chain()
             yield "stamps_count: %s" % len(chain_list)
@@ -392,7 +393,7 @@ class SignCmd(baseapp.Cmd):
     def _sign_stamps(self, *files):
         from boltons.setutils import IndexedSet as iset
 
-        signer = TsignService(config=self.config)
+        signer = TsignerService(config=self.config)
 
         files = iset(files) or ['-']
         self.log.info("Signining '%s'...", tuple(files))

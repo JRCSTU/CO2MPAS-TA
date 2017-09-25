@@ -32,7 +32,7 @@ mydir = osp.dirname(__file__)
 
 
 @ddt.ddt
-class TSS(unittest.TestCase):
+class TS(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -46,7 +46,7 @@ class TSS(unittest.TestCase):
         crypto.GpgSpec(config=c)
 
         cls.tmp_chain_folder = tempfile.mkdtemp(prefix='stampchain-')
-        c.TsignChain.stamp_chain_dir = cls.tmp_chain_folder
+        c.SigChain.chain_dir = cls.tmp_chain_folder
 
         ## Clean memories from past tests
         #
@@ -60,7 +60,7 @@ class TSS(unittest.TestCase):
         shutil.rmtree(cls.tmp_chain_folder)
 
     def test_stamp_text(self):
-        signer = tsigner.TsignService(config=self.cfg)
+        signer = tsigner.TsignerService(config=self.cfg)
 
         tag_verdict = signer.parse_signed_tag(signed_tag)
         sender = crypto.uid_from_verdict(tag_verdict)
@@ -80,7 +80,7 @@ class TSS(unittest.TestCase):
         self.assertIn("dice:\n  tag:", stamp2, stamp2)
 
     def test_stamp_dreport(self):
-        signer = tsigner.TsignService(config=self.cfg)
+        signer = tsigner.TsignerService(config=self.cfg)
         stamp, _decision = signer.sign_dreport_as_tstamper(signed_tag)
         exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
         self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
@@ -97,7 +97,7 @@ class TSS(unittest.TestCase):
 
 
 @ddt.ddt
-class TSSShell(unittest.TestCase):
+class TSShell(unittest.TestCase):
     """Set ``CO2DICE_CONFIG_PATHS`` and optionally HOME env appropriately! to run"""
 
     @classmethod
@@ -118,13 +118,13 @@ class TSSShell(unittest.TestCase):
         if vault.gnupghome:
             opts.append('--VaultSpec.gnupghome=%s' % vault.gnupghome)
 
-        opts.append('--TsignChain.stamp_chain_dir=%s' % self.tmp_chain_folder)
+        opts.append('--SigChain.chain_dir=%s' % self.tmp_chain_folder)
 
         return ' '.join(opts)
 
     def test_sign_smoketest(self):
         fpath = osp.join(mydir, 'tag.txt')
-        stamp = sbp.check_output('co2dice sign %s %s' %
+        stamp = sbp.check_output('co2dice tsigner %s %s' %
                                  (fpath, self._get_extra_options()),
                                  universal_newlines=True)
         exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
@@ -134,7 +134,7 @@ class TSSShell(unittest.TestCase):
         with open(fpath, 'rt') as fd:
             tag = fd.read()
 
-        p = sbp.Popen('co2dice sign - %s' % self._get_extra_options(),
+        p = sbp.Popen('co2dice tsigner - %s' % self._get_extra_options(),
                       universal_newlines=True,
                       stdin=sbp.PIPE, stdout=sbp.PIPE)
         stamp, _stderr = p.communicate(input=tag + suffix)
@@ -142,7 +142,7 @@ class TSSShell(unittest.TestCase):
         self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
         self.assertIn(suffix, stamp)
 
-        p = sbp.Popen('co2dice sign - --TsignService.trim_dreport=True'
+        p = sbp.Popen('co2dice tsigner - --TsignerService.trim_dreport=True'
                       ' %s' % self._get_extra_options(),
                       universal_newlines=True,
                       stdin=sbp.PIPE, stdout=sbp.PIPE)
