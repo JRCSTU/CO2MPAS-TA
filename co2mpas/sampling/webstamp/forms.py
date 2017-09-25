@@ -244,6 +244,8 @@ def create_stamp_form_class(app):
                 flash(str(ex), 'error')
             except Exception as ex:
                 self._log_client_error("Signing", ex, exc_info=1)
+                if app.debug:
+                    raise
                 flash(Markup("Stamp-signing failed due to: %s(%s)"
                       "<br>  Contact JRC for help." % (type(ex).__name__, ex)),
                       'error')
