@@ -13,9 +13,9 @@ import wtforms
 import yaml
 
 import pprint as pp
+import subprocess as sbp
 import textwrap as tw
 import wtforms.fields as wtff
-import wtforms.fields.html5 as wtf5
 import wtforms.validators as wtfl
 
 
@@ -90,7 +90,7 @@ def create_stamp_form_class(app):
         - ``trim_dreport``: remove garbage suffix from dreport
         """
 
-        _skeys = 'dice_stamp stamp_recipients dice_decision'.split()
+        _skeys = 'dice_stamp stamp_recipients dice_decision mail_err'.split()
 
         stamp_recipients = wtff.TextAreaField(
             label='Stamp Recipients:',
@@ -167,17 +167,20 @@ def create_stamp_form_class(app):
         def _manage_session(self, is_stamped):
             """If `is_stamped`, disable & populate fields from session, else clear it."""
             if is_stamped:
-                dice_stamp, stamp_recipients, dice_decision = [session[k]
-                                                               for k in self._skeys]
+                dice_stamp, stamp_recipients, dice_decision, mail_err = [session[k]
+                                                                         for k in
+                                                                         self._skeys]
                 self.dice_report.data = dice_stamp
                 self.stamp_recipients.data = '; '.join(stamp_recipients)
                 dreport_label = "Dice Report <em>Stamped</em>:"
-                flash(Markup("<em>Dice-stamp</em> sent to %i recipient(s): %s"
+                sent_action = mail_err or 'sent'
+                flash(Markup("<em>Dice-stamp</em> %s to %i recipient(s): %s"
                              "<br>Decision:<pre>\n%s</pre>" %
-                             (len(stamp_recipients),
+                             (sent_action, len(stamp_recipients),
                               escape('; '.join(stamp_recipients)),
                               escape(yaml.dump({'dice': dice_decision},
-                                               default_flow_style=False)))))
+                                               default_flow_style=False)))),
+                      'error' if mail_err else 'info')
             else:
                 ## Clear session and reset form.
                 #
@@ -230,15 +233,45 @@ def create_stamp_form_class(app):
             signer.recipients = recipients
             return signer.sign_dreport_as_tstamper(dreport)
 
+        def _send_mails(self, recipients, dice_stamp, dice_decision):
+            mail_err = None
+            mail_cli = config.get('MAIL_CLI_ARGS')
+            if mail_cli:
+                from co2mpas.sampling import crypto
+
+                stderr = retcode = None
+                try:
+                    is_test = crypto.is_test_key(dice_decision['issuer'])
+                    subject = '[dice%s] %s' % ('.test' if is_test else '',
+                                               dice_decision['tag'])
+
+                    mail_cli = [m.format(recipients=' '.join(recipients),
+                                         subject=subject)
+                                for m in mail_cli]
+                    p = sbp.Popen(mail_cli, stdin=sbp.PIPE,
+                                  stderr=sbp.PIPE)
+                    _stdout, _stder = p.communicate(dice_stamp.encode('utf-8'))
+                    retcode = p.returncode
+                except Exception as ex:
+                    self._log_client_error('mail', mail_err, exc_info=1)
+                    stderr = ex
+                if stderr or retcode:
+                    mail_err = 'NOT SENT (due to: %s)' % (
+                        stderr or 'retcode(%s)' % retcode)
+            else:
+                mail_err = 'NOT SENT'
+
+            return mail_err
+
         def _do_stamp(self):
             from co2mpas.sampling import CmdException
 
-            stamp_recipients = self.validate_stamp_recipients(self.stamp_recipients)
+            recipients = self.validate_stamp_recipients(self.stamp_recipients)
             dreport = self.dice_report.data
 
             try:
                 dice_stamp, dice_decision = self._sign_dreport(dreport,
-                                                               stamp_recipients)
+                                                               recipients)
             except CmdException as ex:
                 self._log_client_error("Signing", ex)
                 flash(str(ex), 'error')
@@ -250,9 +283,11 @@ def create_stamp_form_class(app):
                       "<br>  Contact JRC for help." % (type(ex).__name__, ex)),
                       'error')
             else:
+                mail_err = self._send_mails(recipients, dice_stamp, dice_decision)
+
                 self.repeat_dice.render_kw['disabled'] = True
                 session.update(zip(self._skeys,
-                                   [dice_stamp, stamp_recipients, dice_decision]))
+                                   [dice_stamp, recipients, dice_decision, mail_err]))
                 flash(Markup(
                     "Import the <em>dice-stamp</em> above into your project."))
                 project = dice_decision['tag']

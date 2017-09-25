@@ -27,6 +27,12 @@ DREPORT_WIDGET_NROWS = 12
 CLIENT_VALIDATION_LOG_FULL_DREPORT = 600
 CLIENT_VALIDATION_LOG_LEVEL = logging.INFO
 
+# MAIL_CLI_ARGS = ['mail',
+#                  '-n',  #  ignore `/etc/mail.rc`
+#                  '-v'   # verbose and/or request mail-delivery response
+#                  '-s', '{subject}',
+#                  '--',
+#                  '{recipients}']
 # TRAITLETS_CONFIG = {
 #     'TsignerService': {
 #         'stamper_name': <name>,

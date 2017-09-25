@@ -29,6 +29,10 @@ _TEST_KEY_ID = 'CBBB52FF'
 _pgp_regex = re.compile(r'^\s*-----[A-Z ]*PGP[A-Z ]*-----.+-----[A-Z ]*PGP[A-Z ]*-----\s*$', re.DOTALL)
 
 
+def is_test_key(keyid):
+    return keyid and _TEST_KEY_ID in keyid.upper()
+
+
 def is_pgp_encrypted(obj) -> bool:
     """Note that it encrypts also `None`."""
     return bool(isinstance(obj, str) and _pgp_regex.match(obj))
@@ -441,7 +445,7 @@ class GpgSpec(baseapp.Spec):
         return GPG
 
     def _check_test_key_missused(self, keyid):
-        if not self.allow_test_key and keyid and _TEST_KEY_ID in keyid.upper():
+        if not self.allow_test_key and is_test_key(keyid):
             raise baseapp.CmdException(GpgSpec.allow_test_key.help)
 
     def __init__(self, **kwds):
