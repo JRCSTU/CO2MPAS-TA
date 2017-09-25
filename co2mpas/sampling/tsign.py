@@ -125,18 +125,20 @@ class TstampSigner(tstamp.TstampReceiver):
         with open(fpath, 'wb') as fd:
             fd.write(text.encode('utf-8'))
 
-    def _parse_sig_file(self, fpath, exp_sig_hex):
+    def _parse_sig_file(self, sig_hex):
         stamp_auth = self._stamp_auth
+        sig_fpath = osp.join(self.stamps_folder, sig_hex[:2], sig_hex[2:])
+
         ## Read as bytes to preserve PGP ``r\n`` EOLs
         #
-        with open(fpath, 'rb') as fd:
+        with open(sig_fpath, 'rb') as fd:
             sig = fd.read().decode('utf-8')
         sig = sig.replace('\r\r\n', '\r\n')
         verdict = stamp_auth.verify_clearsigned(sig)
         assert verdict, ("Invalid sig!", vars(verdict))
-        sig_hex = pgp_sig_to_hex(verdict.signature_id)
-        assert exp_sig_hex == sig_hex, "Stamp-chain file(%s) mismatch sig_id(%s)" % (
-            fpath, sig_hex)
+        verified_sig_hex = pgp_sig_to_hex(verdict.signature_id)
+        assert sig_hex == verified_sig_hex, (
+            "Stamp-chain file mismatch sig_id!", sig_fpath, verified_sig_hex)
 
         msg = crypto.pgp_split_clearsigned(sig)['msg']
         m = self.parent_sig_regex.search(msg)
@@ -158,17 +160,17 @@ class TstampSigner(tstamp.TstampReceiver):
             if osp.isdir(sig_dir) and len(fname) == 2:
                 for sig_fname in os.listdir(sig_dir):
                     sig_fpath = osp.join(sig_dir, sig_fname)
-                    sig_id = fname + sig_fname
+                    sig_hex = fname + sig_fname
                     try:
-                        parent_id = self._parse_sig_file(sig_fpath, sig_id)
+                        parent_id = self._parse_sig_file(sig_hex)
                     except Exception as ex:
                         log.warning("Skipping stamp-chain file(%s) due to: %s",
                                     sig_fpath, ex, exc_info=1)
                     else:
                         assert parent_id not in chain_dict, (
                             "Forked stamp-chain history?!?",
-                            parent_id, sig_id, chain_dict[parent_id], chain_dict)
-                        chain_dict[parent_id] = sig_id
+                            parent_id, sig_hex, chain_dict[parent_id], chain_dict)
+                        chain_dict[parent_id] = sig_hex
 
             else:
                 log.warning("Skipping stamp-chain file: %s", sig_dir)
