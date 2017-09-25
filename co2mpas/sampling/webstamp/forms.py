@@ -234,7 +234,7 @@ def create_stamp_form_class(app):
             from co2mpas.sampling import CmdException
 
             stamp_recipients = self.validate_stamp_recipients(self.stamp_recipients)
-            dreport = self.validate_dice_report(self.dice_report)
+            dreport = self.dice_report.data
 
             try:
                 dice_stamp, dice_decision = self._sign_dreport(dreport,
