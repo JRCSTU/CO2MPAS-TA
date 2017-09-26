@@ -191,6 +191,8 @@ setup(
         'toolz',
         'schedula>=0.1.14',         # Fix str(AbortDispatcher) not to print model
         'formulas>=0.0.7',
+
+        'ipython_genutils',         # by vendorized `traitlets`
         'python-gnupg',
         'gitpython >= 2.1.0',       # Win+Cygwin support
         'transitions >= 0.5.0',     # prepare/finally cbs
