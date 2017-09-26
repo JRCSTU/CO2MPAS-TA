@@ -336,10 +336,7 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
         else:
             err = "Invalid dice-report due to: %s \n%s" % (
                 tag_verdict['status'], tw.indent(pp.pformat(tag_verdict), '  '))
-            if self.force:
-                self.log.warning(err)
-            else:
-                raise CmdException(err)
+            raise CmdException(err)
 
         sender = self.sender or tag_signer or '<unknown>'
 
