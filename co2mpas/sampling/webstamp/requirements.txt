@@ -4,3 +4,4 @@ flask-debug
 flask-wtf
 ruamel.yaml
 validate_email
+py3DNS; os_name != 'nt'

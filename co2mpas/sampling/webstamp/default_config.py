@@ -12,8 +12,9 @@ MAX_CONTENT_LENGTH = 50 * 1024
 #       default, rather the app should fail if it is missing. For the sample
 #       application, one is provided for convenience.
 #SECRET_KEY = 'devkey'
-#WTF_CSRF_ENABLED = True
-#BOOTSTRAP_SERVE_LOCAL = True
+
+# WTF_CSRF_ENABLED = True
+# BOOTSTRAP_SERVE_LOCAL = True
 
 #DEFAULT_STAMP_RECIPIENTS = ''
 
@@ -27,19 +28,24 @@ DREPORT_WIDGET_NROWS = 12
 CLIENT_VALIDATION_LOG_FULL_DREPORT = 600
 CLIENT_VALIDATION_LOG_LEVEL = logging.INFO
 
-# MAIL_CLI_ARGS = ['mail',
-#                  '-n',  #  ignore `/etc/mail.rc`
-#                  '-v'   # verbose and/or request mail-delivery response
-#                  '-s', '{subject}',
-#                  '--',
-#                  '{recipients}']
-# TRAITLETS_CONFIG = {
-#     'TsignerService': {
-#         'stamper_name': <name>,
-#         #'stamp_chain_folder': '', # Auto-default based on stamper-name.
-#     },
-#     'StamperAuthSpec': {
-#         'master_key': ''
-#     }
-# }
-TRAITLETS_CONFIG = {}
+## Sample cmdline for sending out emails
+#  (dice-report will be given in STDIN):
+#
+#MAIL_CLI_ARGS = ['mail',
+#                 '-n',  # ignore `/etc/mail.rc`
+#                 '-v'   # verbose and/or request mail-delivery response
+#                 '-s', '{subject}',
+#                 '--',
+#                 '{recipients}']
+
+## Sample traitlet-configs:
+#
+#TRAITLETS_CONFIG = {
+#    'TsignerService': {
+#        'stamper_name': <name>,
+#        #'stamp_chain_folder': '', # Auto-default based on stamper-name.
+#    },
+#    'StamperAuthSpec': {
+#        'master_key': '',
+#    },
+#}
