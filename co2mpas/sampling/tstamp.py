@@ -471,19 +471,28 @@ class TstampSender(TstampSpec):
         return self.from_address or self.user_email
 
     def __init__(self, *args, **kwds):
-        self._register_validator(
-            type(self)._is_not_empty,
-            ['host', 'tstamper_address', 'subject_prefix'])
-        self._register_validator(
-            type(self)._is_pure_email_address,
-            ['tstamper_address'])
-        self._register_validator(
-            ## Apply only one sender, IMAP may(?) search UTF-8.
-            type(self)._is_all_latin,
-            ['subject_prefix', 'tstamp_recipients', 'x_recipients'])
-        self._register_validator(
-            type(self)._warn_deprecated,
-            ['x_recipients', 'timestamping_addresses', 'subject'])
+        cls = type(self)
+        self.register_validators(
+            cls.host,
+            cls._is_not_empty)
+        self.register_validators(
+            cls.subject_prefix,
+            cls._is_not_empty,cls._is_all_latin)
+        self.register_validators(
+            cls.tstamper_address,
+            cls._is_not_empty, cls._is_pure_email_address)
+        self.register_validators(
+            cls.tstamp_recipients,
+            cls._is_not_empty, cls._is_all_latin, cls._is_pure_email_address)
+        self.register_validators(
+            cls.cc_addresses,
+            cls._is_not_empty, cls._is_pure_email_address)
+        self.register_validators(
+            cls.bcc_addresses,
+            cls._is_pure_email_address)
+        self.register_validators(
+            cls.x_recipients, cls.timestamping_addresses, cls.subject,
+            cls._warn_deprecated)
         super().__init__(*args, **kwds)
 
     ## TODO: delete deprecated trait

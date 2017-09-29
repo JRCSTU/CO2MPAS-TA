@@ -32,7 +32,7 @@ log = logging.getLogger(__name__)
 mydir = osp.dirname(__file__)
 
 pgp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
-header_len = 200
+header_len = 400
 default_sender = 'some body'
 default_recipients = ['aa@foo', 'devnull']
 

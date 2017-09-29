@@ -43,12 +43,13 @@ class DiceSpec(baseapp.Spec):
     ).tag(config=True)
 
     def __init__(self, **kwds):
-        self._register_validator(type(self)._is_not_empty,
-                                 ['user_name', 'user_email'])
-        self._register_validator(type(self)._is_all_latin,
-                                 ['user_name', 'user_email'])
-        self._register_validator(type(self)._is_pure_email_address,
-                                 ['user_email'])
+        cls = type(self)
+        self.register_validators(
+            cls.user_name,
+            cls._is_not_empty, cls._is_all_latin)
+        self.register_validators(
+            cls.user_email,
+            cls._is_not_empty, cls._is_all_latin, cls._is_pure_email_address)
         super().__init__(**kwds)
 
 

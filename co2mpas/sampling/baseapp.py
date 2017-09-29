@@ -424,6 +424,34 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
         super().__init__(**kwargs)
         self.observe_ptraits()
 
+    def register_validators(self, *validators_and_traits):
+        """
+        Register multiple validators on class triats
+
+        :param validators_and_traits
+            a list of validator-functions or class-traits to be validated;
+            they are separated accordingly by this method.
+            Validator signature::
+
+                def validate(cls, proposal)
+        """
+        validators = []
+        traits = []
+        for vt in validators_and_traits:
+            if isinstance(vt, trt.TraitType):
+                traits.append(vt)
+            else:
+                validators.append(vt)
+
+        def validate(inst, proposal):
+            for v in validators:
+                value = v(inst, proposal)
+                proposal.value = value
+            return value
+
+        for t in traits:
+            self._register_validator(validate, [t.name])
+
     ###############
     ## Traitlet @validators to be used by sub-classes
     #  like that::

@@ -20,6 +20,7 @@ from co2mpas.sampling.baseapp import collect_cmd, Cmd
 import ddt
 import yaml
 
+import co2mpas._vendor.traitlets as trt
 import os.path as osp
 import subprocess as sbp
 
@@ -797,6 +798,13 @@ class TRX(unittest.TestCase):
         exp_vfid = (case[4]['project'], case[4].get('vehicle_family_id'))
         self.assertIn(vfid, exp_vfid)
 
+    @ddt.data('tstamp_recipients', 'cc_addresses', 'bcc_addresses')
+    def test_email_lists_validations(self, trait_name):
+        ex_msg = "needs a proper email"
+        with self.assertRaisesRegex(trt.TraitError, "%s.+bad_email" % ex_msg):
+            ts = tstamp.TstampSender(**{trait_name: ['bad_email']})
+            print(ts.tstamp_recipients)
+
     @ddt.data(
         ('project:  dices/IP-10-AAA-2017-1003/1\n', '', 'dices/IP-10-AAA-2017-1003/1'),
         (None,
@@ -1013,7 +1021,6 @@ base32(tag): |=0A=\r
         ('::34', (None, None, 34)),
     )
     def test_parse_slice(self, case):
-        import co2mpas._vendor.traitlets as trt
         inp, exp = case
 
         if exp is False:
