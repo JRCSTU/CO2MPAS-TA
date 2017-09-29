@@ -426,7 +426,7 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
 
     def register_validators(self, *validators_and_traits):
         """
-        Register multiple validators on class triats
+        Register validator(s) on class triat(s).
 
         :param validators_and_traits
             a list of validator-functions or class-traits to be validated;
@@ -441,13 +441,25 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
             if isinstance(vt, trt.TraitType):
                 traits.append(vt)
             else:
+                assert callable(vt), vt
                 validators.append(vt)
 
-        def validate(inst, proposal):
-            for v in validators:
-                value = v(inst, proposal)
-                proposal.value = value
-            return value
+        ntrts = len(traits)
+        nvals = len(validators)
+        assert nvals and ntrts, (
+            "Both validators(%s) and traits(%s) must be given:"
+            "  traits    : %s\n"
+            "  validators: %s\n" %
+            (nvals, ntrts, traits, validators))
+
+        if nvals == 1:
+            validate = validators[0]
+        else:
+            def validate(inst, proposal):
+                for v in validators:
+                    value = v(inst, proposal)
+                    proposal.value = value
+                return value
 
         for t in traits:
             self._register_validator(validate, [t.name])
@@ -456,7 +468,7 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
     ## Traitlet @validators to be used by sub-classes
     #  like that::
     #
-    #      self._register_validator(<my_class>._warn_deprecated, ['a', ])
+    #      self.register_validators(<my_class>._warn_deprecated, ['a', ])
 
     def _is_not_empty(self, proposal):
         value = proposal.value
