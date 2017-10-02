@@ -52,7 +52,7 @@ class TsignerSpec(baseapp.Spec):
         return self.__stamp_auth
 
 
-class SigChain(TsignerSpec):
+class SigChain(TsignerSpec, baseapp.TolerableSingletonMixin):
     """
     Manage the list of signatures stored in git-like 2-letter folders.
     """
@@ -244,7 +244,7 @@ class SigChain(TsignerSpec):
             return self._load_or_rebuild_stamp_chain(revalidate=True)[-1]
 
 
-class TsignerService(SigChain, tstamp.TstampReceiver):
+class TsignerService(TsignerSpec, tstamp.TstampReceiver):
     """
     To run securely on a server see: https://wiki.gnupg.org/AgentForwarding
     """
@@ -264,6 +264,9 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
     trim_dreport = trt.Bool(
         help="""Remove any garbage after dreport's signature? """,
         config=True)
+
+    def sig_chain(self, config):
+        return SigChain.instance(config=config)
 
     def sign_text_as_tstamper(self, text: Text,
                               sender: Text=None,
@@ -379,7 +382,7 @@ class TsignerCmd(baseapp.Cmd):
         super().__init__(**kwds)
 
     def _list_stamps(self, *sig_hex_prefixes):
-        chainer = SigChain(config=self.config)
+        chainer = SigChain.instance(config=self.config)
         if not sig_hex_prefixes:
             chain_list = chainer.load_stamp_chain()
             yield "stamps_count: %s" % len(chain_list)
