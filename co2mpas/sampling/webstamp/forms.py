@@ -6,6 +6,7 @@ import re
 from co2mpas._vendor.traitlets import config as traitc
 from co2mpas.sampling import CmdException, crypto, tsigner, tstamp
 from flask import flash, request, session
+from typing import Text
 import flask
 from flask.ctx import after_this_request
 from flask_wtf import FlaskForm
@@ -241,8 +242,14 @@ def create_stamp_form_class(app):
                 tuple(dice_stamp, dice_decision)
             """
             dreport = self.dice_report.data
+            check_key_script = config.get('CHECK_SIGNING_KEY_SCRIPT')
 
             try:
+                if check_key_script:
+                    if sbp.run(check_key_script).returncode != 0:
+                        raise CmdException("Signing temporarily unavailable! "
+                                           "Please try later.")
+
                 self.sign_validator.parse_signed_tag(dreport)
             except CmdException as ex:
                 self._log_client_error("Checking", ex)

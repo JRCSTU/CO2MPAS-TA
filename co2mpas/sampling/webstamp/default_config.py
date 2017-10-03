@@ -28,6 +28,10 @@ DREPORT_WIDGET_NROWS = 12
 CLIENT_VALIDATION_LOG_FULL_DREPORT = 600
 CLIENT_VALIDATION_LOG_LEVEL = logging.INFO
 
+## An optional command that returns 0 if signing-key
+#  is in good shape.
+#CHECK_SIGNING_KEY_SCRIPT = 'check_key'
+
 ## Sample cmdline for sending out emails
 #  (dice-report will be given in STDIN):
 #
