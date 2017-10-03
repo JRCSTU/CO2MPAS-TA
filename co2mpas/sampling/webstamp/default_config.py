@@ -23,7 +23,7 @@ MAX_CONTENT_LENGTH = 50 * 1024
 MIN_DREPORT_SIZE = 1200
 
 MAILIST_WIDGET_NROWS = 2
-DREPORT_WIDGET_NROWS = 12
+DREPORT_WIDGET_NROWS = 13
 ## Can be a number of head/tail lines to log, or a boolean.
 CLIENT_VALIDATION_LOG_FULL_DREPORT = 600
 ## Wtach out: maybe ERROR is configured to send emails??
