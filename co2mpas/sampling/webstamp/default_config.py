@@ -48,12 +48,13 @@ CLIENT_VALIDATION_LOG_LEVEL = logging.INFO
 #TRAITLETS_CONFIG = {
 #    'TsignerService': {
 #        'stamper_name': <name>,
-#        #'stamp_chain_folder': '', # Auto-default based on stamper-name.
 #    },
 #    'StamperAuthSpec': {
 #        'master_key': '',
 #    },
 #    'SigChain': {
 #        'read_only_files': True,
+#        ## if not set, Auto-default based on stamper-name.
+#        #'stamp_chain_dir': '',
 #    },
 #}

@@ -41,7 +41,7 @@ def pgp_sig_to_hex(sig_id: Text) -> int:
 class TsignerSpec(baseapp.Spec):
     stamper_name = trt.Unicode(
         'JRC-stamper',
-        help="By default, that `chain_dir` is derived from this name. ",
+        help="By default, that `stamp_chain_dir` is derived from this name. ",
         config=True)
 
     __stamp_auth = None
@@ -58,12 +58,12 @@ class SigChain(TsignerSpec):
     Manage the list of signatures stored in git-like 2-letter folders.
     """
 
-    chain_dir = trt.Unicode(
+    stamp_chain_dir = trt.Unicode(
         help="""The folder to store all signed stamps and derive cert-chain.""",
         config=True
     )
 
-    @trt.default('chain_dir')
+    @trt.default('stamp_chain_dir')
     def _default_chain_dir(self):
         service_fname = re.sub(r'\W', '_', self.stamper_name)
         return osp.join(baseapp.default_config_dir(), service_fname)
@@ -82,11 +82,11 @@ class SigChain(TsignerSpec):
 
     @property
     def _head_fpath(self):
-        return osp.join(self.chain_dir, HEAD_FNAME)
+        return osp.join(self.stamp_chain_dir, HEAD_FNAME)
 
     @property
     def _lock_fpath(self):
-        return osp.join(self.chain_dir, LOCK_FNAME)
+        return osp.join(self.stamp_chain_dir, LOCK_FNAME)
 
     def _write_chain_head(self, count, parent_id):
         with open(self._head_fpath, 'wt') as fd:
@@ -104,7 +104,7 @@ class SigChain(TsignerSpec):
         return count, parent_id
 
     def _write_sig_file(self, text, sig_hex):
-        dpath = osp.join(self.chain_dir, sig_hex[:2])
+        dpath = osp.join(self.stamp_chain_dir, sig_hex[:2])
         fpath = osp.join(dpath, sig_hex[2:])
         os.makedirs(dpath, exist_ok=True)
         ## Write as bytes to avoid duplicating PGP ``r\n`` EOL
@@ -133,7 +133,7 @@ class SigChain(TsignerSpec):
 
     def _parse_sig_file(self, sig_hex):
         stamp_auth = self._stamp_auth
-        sig_fpath = osp.join(self.chain_dir, sig_hex[:2], sig_hex[2:])
+        sig_fpath = osp.join(self.stamp_chain_dir, sig_hex[:2], sig_hex[2:])
 
         ## Read as bytes to preserve PGP ``r\n`` EOLs
         #
@@ -207,7 +207,7 @@ class SigChain(TsignerSpec):
 
         """
         log = self.log
-        chain_dir = self.chain_dir
+        chain_dir = self.stamp_chain_dir
         assert osp.isdir(chain_dir), (
             "Missing or invalid stamp-chain dir!", chain_dir)
         stamps_folder_fnames = os.listdir(chain_dir)
@@ -307,7 +307,7 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
         issue_date = datetime.now().isoformat()
 
         with locked_on_dir(self._lock_fpath):
-            osp.join(self.chain_dir, LOCK_FNAME)
+            osp.join(self.stamp_chain_dir, LOCK_FNAME)
             stamp_count, parent_stamp = self._load_stamp_chain_head()
             stamp_count += 1
             tstamp_text = f"""\

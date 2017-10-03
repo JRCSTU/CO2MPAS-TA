@@ -6,15 +6,15 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
-from co2mpas.__main__ import init_logging
-from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import crypto, tsigner
-from co2mpas.sampling.baseapp import Cmd
 import logging
 import shutil
 import tempfile
 import unittest
 
+from co2mpas.__main__ import init_logging
+from co2mpas._vendor.traitlets import config as trtc
+from co2mpas.sampling import crypto, tsigner
+from co2mpas.sampling.baseapp import Cmd
 import ddt
 
 from git.util import rmtree as gutil_rmtree
@@ -47,7 +47,7 @@ class TS(unittest.TestCase):
         crypto.GpgSpec(config=c)
 
         cls.tmp_chain_folder = tempfile.mkdtemp(prefix='stampchain-')
-        c.SigChain.chain_dir = cls.tmp_chain_folder
+        c.SigChain.stamp_chain_dir = cls.tmp_chain_folder
 
         ## Clean memories from past tests
         #
@@ -119,7 +119,7 @@ class TSShell(unittest.TestCase):
         if vault.gnupghome:
             opts.append('--VaultSpec.gnupghome=%s' % vault.gnupghome)
 
-        opts.append('--SigChain.chain_dir=%s' % self.tmp_chain_folder)
+        opts.append('--SigChain.stamp_chain_dir=%s' % self.tmp_chain_folder)
 
         return ' '.join(opts)
 
