@@ -366,6 +366,11 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
                 tag_verdict['status'], tw.indent(pp.pformat(tag_verdict), '  '))
             raise CmdException(err)
 
+        ## Check if test-key still used.
+        #
+        git_auth = crypto.get_git_auth(config=self.config)
+        git_auth.check_test_key_missused(tag_verdict['key_id'])
+
         sender = self.sender or tag_signer or '<unknown>'
 
         sign = self.sign_text_as_tstamper(
