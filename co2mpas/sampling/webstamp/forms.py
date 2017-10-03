@@ -258,6 +258,12 @@ def create_stamp_form_class(app):
                     raise CmdException(
                         "Cannot validate dice-report signed with %r: %s" %
                         (uid, verdict['status']))
+
+                ## Check if test-key still used.
+                #
+                git_auth = crypto.get_git_auth(config=self.traits_config)
+                git_auth.check_test_key_missused(verdict['key_id'])
+
             except CmdException as ex:
                 self._log_client_error("Checking", ex)
                 flash(str(ex), 'error')
@@ -269,7 +275,7 @@ def create_stamp_form_class(app):
                       "<br>  Contact JRC for help." % (type(ex).__name__, ex)),
                       'error')
             else:
-                flash("Dice-report signed with %r key is OK."
+                flash("Dice-report from key %r is OK."
                       " You may proceed with stamping." % uid)
 
         _sign_validator = None
