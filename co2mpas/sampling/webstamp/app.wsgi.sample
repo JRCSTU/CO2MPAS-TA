@@ -1,0 +1,13 @@
+
+## Sample WSGI file (i.e. for Apache2)
+#
+#  NOTE: Move it to the parent of `webstamp` dir.
+
+import os.path as osp
+import sys
+
+mydir = osp.dirname(__file__)
+sys.path.insert(0, mydir)
+
+import webstamp
+application = webstamp.create_app(logconf_file=osp.join(mydir, 'logconf.yaml')
