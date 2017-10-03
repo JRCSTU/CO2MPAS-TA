@@ -444,13 +444,13 @@ class GpgSpec(baseapp.Spec):
 
         return GPG
 
-    def _check_test_key_missused(self, keyid):
+    def check_test_key_missused(self, keyid):
         if not self.allow_test_key and is_test_key(keyid):
             raise baseapp.CmdException(GpgSpec.allow_test_key.help)
 
     def __init__(self, **kwds):
         super().__init__(**kwds)
-        self._check_test_key_missused(self.master_key)
+        self.check_test_key_missused(self.master_key)
 
     def master_key_userid(self):
         """the 1st uid of the resolved `master_key`."""
@@ -476,7 +476,7 @@ class GpgSpec(baseapp.Spec):
         import pickle
 
         enc_key = self.master_key_resolved
-        self._check_test_key_missused(enc_key)
+        self.check_test_key_missused(enc_key)
         assert not is_pgp_encrypted(plainobj), "PswdId('%s'): already encrypted!" % pswdid
 
         try:
@@ -529,7 +529,7 @@ class GpgSpec(baseapp.Spec):
                 "PswdId('%s'): %s\n  %s" %
                 (pswdid, plain.status, filter_gpg_stderr(stderr)))
         else:
-            self._check_test_key_missused(plain.key_id)
+            self.check_test_key_missused(plain.key_id)
 
         plainobj = pickle.loads(plain.data)
 
@@ -538,8 +538,10 @@ class GpgSpec(baseapp.Spec):
     def clearsign_text(self, text: Text, *,
                        extra_args=None, full_output=False) -> Text:
         """Clear-signs a textual-message with :attr:`master_key`."""
+        sign_keyid = self.master_key_resolved
+        self.check_test_key_missused(sign_keyid)
         try:
-            signed = self.GPG.sign(text, keyid=self.master_key_resolved,
+            signed = self.GPG.sign(text, keyid=sign_keyid,
                                    extra_args=extra_args)
         except Exception as ex:
             raise ValueError("Signing failed due to: %s" % ex)
