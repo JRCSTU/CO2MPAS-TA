@@ -12,6 +12,7 @@ disable_existing_loggers: false
 root:
     level: INFO  # one of: DEBUG INFO WARNING ERROR FATAL
     #handlers: [console]
+    #handlers: [wsgi]
     handlers: [colored]
 
 loggers:
@@ -77,23 +78,24 @@ loggers:
 
     ## WebSttamper libs
     #
-    # webstamp
-    # flask_wtf
-    # flask_wtf.csrf
-    # werkzeug
+    # webstamp: {}
+    #     handlers: [mail]
+    # flask_wtf: {}
+    # flask_wtf.csrf: {}
+    # werkzeug: {}
 
 
 formatters:
     long:
         format: "%(asctime)-15s:%(levelname)5.5s:%(name)s:%(message)s"
 
-    ## From wstamp Flask app,
-    #  from http://flask.pocoo.org/docs/dev/logging/#injecting-request-information
-    req:
-        class: wstamp.RequestFormatter
-        format: >-
-            %(asctime)s %(remote_addr)s requested %(url)s
-            %(levelname)s in %(module)s: %(message)s
+    # ## From wstamp Flask app,
+    # #  from http://flask.pocoo.org/docs/dev/logging/#injecting-request-information
+    # req:
+    #     class: wstamp.RequestFormatter
+    #     format: >-
+    #         %(asctime)s %(remote_addr)s requested %(url)s
+    #         %(levelname)s in %(module)s: %(message)s
 
 handlers:
     console:

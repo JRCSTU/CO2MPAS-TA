@@ -15,9 +15,10 @@
 # Afterwards, point your browser to http://localhost:5000, then check out the
 # source.
 
-from co2mpas.__main__ import init_logging
 import logging
+import os
 
+from co2mpas.__main__ import init_logging
 from flask import Flask, request
 from flask_appconfig import AppConfig
 from flask_bootstrap import Bootstrap
@@ -29,12 +30,16 @@ from .frontend import frontend
 #  Use `<APPNAME>_CONFIG` envvar instead.
 #  See https://github.com/mbr/flask-appconfig/blob/master/flask_appconfig/__init__.py#L35
 #
-def create_app(configfile=None):
+def create_app(configfile=None, logconf_file=None):
     # We are using the "Application Factory"-pattern here, which is described
     # in detail inside the Flask docs:
     # http://flask.pocoo.org/docs/patterns/appfactories/
 
-    init_logging(not_using_numpy=True)
+    ## log-configuration must come before Flask-config.
+    #
+    os.environ.get('%s_LOGCONF_FILE' % __name__)
+    init_logging(logconf_file=logconf_file,
+                 not_using_numpy=True)
 
     app = Flask(__name__)#, instance_relative_config=True)
 
