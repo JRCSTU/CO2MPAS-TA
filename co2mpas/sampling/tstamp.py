@@ -1014,6 +1014,14 @@ class TstampReceiver(TstampSpec):
         :param msg_text:
             The tag as extracted from tstamp response by
             :meth:`crypto.pgp_split_clearsigned`.
+
+        :raise:
+            if not a proper GPG-signature
+
+            .. NOTE::
+                missing public-keys ARE NOT raised!
+                In that case ``verdict['valid'] == False`` and
+                ``verdict['status'] == "no public key"``.
         """
         ## TODO: Schedula to the rescue!
 
