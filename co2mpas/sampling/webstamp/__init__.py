@@ -34,11 +34,11 @@ def create_app(configfile=None):
     # in detail inside the Flask docs:
     # http://flask.pocoo.org/docs/patterns/appfactories/
 
+    init_logging(not_using_numpy=True)
+
     app = Flask(__name__)#, instance_relative_config=True)
 
     AppConfig(app, configfile)
-
-    init_logging(not_using_numpy=True)
 
     # Install our Bootstrap extension
     Bootstrap(app)
