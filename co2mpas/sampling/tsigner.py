@@ -90,7 +90,7 @@ class SigChain(TsignerSpec):
 
     def _write_chain_head(self, count, parent_id):
         with open(self._head_fpath, 'wt') as fd:
-            fd.write('0.0.0 %s %s' % (count, parent_id))
+            fd.write('0.0.0 %s %s\n' % (count, parent_id))
 
     def _read_chain_head(self):
         """Called only on non-empty chain-folders. """
