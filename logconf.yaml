@@ -89,10 +89,10 @@ formatters:
     long:
         format: "%(asctime)-15s:%(levelname)5.5s:%(name)s:%(message)s"
 
-    # ## From wstamp Flask app,
+    # ## For webstamp Flask app,
     # #  from http://flask.pocoo.org/docs/dev/logging/#injecting-request-information
     # req:
-    #     class: wstamp.RequestFormatter
+    #     class: webstamp.RequestFormatter
     #     format: >-
     #         %(asctime)s %(remote_addr)s requested %(url)s
     #         %(levelname)s in %(module)s: %(message)s
@@ -126,7 +126,7 @@ handlers:
     # ## From http://flask.pocoo.org/docs/dev/logging/#basic-configuration
     # wsgi:
     #     class: logging.StreamHandler
-    #     stream: ext://flask.logging.wsgi_errors_stream
+    #     stream: "ext://webstamp.wsgi_errors_stream()"
     #     formatter: long
 
     # ## See https://docs.python.org/3/library/logging.handlers.html#smtphandler

@@ -17,6 +17,7 @@
 
 import logging
 import os
+import sys
 
 from co2mpas.__main__ import init_logging
 from flask import Flask, request
@@ -74,3 +75,10 @@ class RequestFormatter(logging.Formatter):
         record.headers = request.headers
         record.cookies = request.cookies
         return super().format(record)
+
+
+## From latest flask-0.12.2+:
+#  https://github.com/pallets/flask/blob/master/flask/logging.py#L12
+#
+def wsgi_errors_stream():
+    return request.environ['wsgi.errors'] if request else sys.stderr
