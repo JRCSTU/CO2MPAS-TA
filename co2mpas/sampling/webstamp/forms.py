@@ -3,6 +3,8 @@ import logging
 import os
 import re
 
+from co2mpas._vendor.traitlets import config as traitc
+from co2mpas.sampling import CmdException, crypto, tsigner
 from flask import flash, request, session
 import flask
 from flask.ctx import after_this_request
@@ -195,32 +197,34 @@ def create_stamp_form_class(app):
             self.submit.render_kw['disabled'] = form_disabled
             self.dice_report.label.text = dreport_label
 
+        @property
+        def traits_config(self):
+            ## Convert Flask-config --> traitlets-config
+            #  and respect `allow_test_key` form-param.
+            #
+            traits_config = traitc.Config(config['TRAITLETS_CONFIG'])
+
+            flag = get_bool_arg('allow_test_key')
+            if flag is not None:
+                traits_config.GpgSpec.allow_test_key = flag
+
+            flag = get_bool_arg('validate_decision')
+            if flag is not None:
+                traits_config.TsignerService.validate_decision = flag
+
+            flag = get_bool_arg('trim_dreport')
+            if flag is not None:
+                traits_config.TsignerService.trim_dreport = flag
+
+            return traits_config
+
         _signer = None
 
         @property
-        def signer(self):
+        def signer(self) -> tsigner.TsignerService:
             if not self._signer:
-                from co2mpas._vendor.traitlets import config as traitc
-                from co2mpas.sampling import tsigner
-
-                ## Convert Flask-config --> traitlets-config
-                #  and respect `allow_test_key` form-param.
-                #
-                traits_config = traitc.Config(config['TRAITLETS_CONFIG'])
-
-                flag = get_bool_arg('allow_test_key')
-                if flag is not None:
-                    traits_config.GpgSpec.allow_test_key = flag
-
-                flag = get_bool_arg('validate_decision')
-                if flag is not None:
-                    traits_config.TsignerService.validate_decision = flag
-
-                flag = get_bool_arg('trim_dreport')
-                if flag is not None:
-                    traits_config.TsignerService.trim_dreport = flag
-
-                self._signer = tsigner.TsignerService(config=traits_config)
+                self._signer = tsigner.TsignerService(
+                    config=self.traits_config)
 
             return self._signer
 
@@ -237,8 +241,6 @@ def create_stamp_form_class(app):
             mail_err = None
             mail_cli = config.get('MAIL_CLI_ARGS')
             if mail_cli:
-                from co2mpas.sampling import crypto
-
                 stderr = retcode = None
                 try:
                     is_test = crypto.is_test_key(dice_decision['issuer'])
@@ -264,8 +266,6 @@ def create_stamp_form_class(app):
             return mail_err
 
         def _do_stamp(self):
-            from co2mpas.sampling import CmdException
-
             recipients = self.validate_stamp_recipients(self.stamp_recipients)
             dreport = self.dice_report.data
 
