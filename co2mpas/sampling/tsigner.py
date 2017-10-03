@@ -126,10 +126,11 @@ class SigChain(TsignerSpec):
                 win32api.SetFileAttributes(
                     fpath, win32con.FILE_ATTRIBUTE_READONLY)
 
-            elif shutil.which('chattr') is not None:
-                import subprocess as sbp
-
-                sbp.check_call(['chattr', '+i', fpath])
+            # ## TODO: chattr NEED SUDO ACCESS!
+            # elif shutil.which('chattr') is not None:
+            #     import subprocess as sbp
+            #
+            #     sbp.check_call(['chattr', '+i', fpath])
 
     def _parse_sig_file(self, sig_hex):
         stamp_auth = self._stamp_auth
