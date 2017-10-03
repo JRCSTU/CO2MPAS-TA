@@ -291,29 +291,35 @@ def create_stamp_form_class(app):
             signer.recipients = recipients
             return signer.sign_dreport_as_tstamper(dreport)
 
-        def _send_mails(self, recipients, dice_stamp, dice_decision):
+        def _sendmail(self, mail_cli, txt: Text):
+            mail_err = None
+            try:
+                p = sbp.Popen(mail_cli, stdin=sbp.PIPE,
+                              stderr=sbp.PIPE)
+                _stdout, mail_err = p.communicate(txt.encode('utf-8'))
+                retcode = p.returncode
+            except Exception as ex:
+                self._log_client_error('mail', ex, exc_info=1)
+                mail_err = ex
+
+            if mail_err or retcode:
+                mail_err = 'NOT SENT (due to: %s)' % (
+                    mail_err or 'retcode(%s)' % retcode)
+
+            return mail_err
+
+        def _send_stamp_mails(self, recipients, dice_stamp, dice_decision):
             mail_err = None
             mail_cli = config.get('MAIL_CLI_ARGS')
             if mail_cli:
-                stderr = retcode = None
-                try:
-                    is_test = crypto.is_test_key(dice_decision['issuer'])
-                    subject = '[dice%s] %s' % ('.test' if is_test else '',
-                                               dice_decision['tag'])
+                is_test = crypto.is_test_key(dice_decision['issuer'])
+                subject = '[dice%s] %s' % ('.test' if is_test else '',
+                                           dice_decision['tag'])
 
-                    mail_cli = [m.format(recipients=' '.join(recipients),
-                                         subject=subject)
-                                for m in mail_cli]
-                    p = sbp.Popen(mail_cli, stdin=sbp.PIPE,
-                                  stderr=sbp.PIPE)
-                    _stdout, _stder = p.communicate(dice_stamp.encode('utf-8'))
-                    retcode = p.returncode
-                except Exception as ex:
-                    self._log_client_error('mail', mail_err, exc_info=1)
-                    stderr = ex
-                if stderr or retcode:
-                    mail_err = 'NOT SENT (due to: %s)' % (
-                        stderr or 'retcode(%s)' % retcode)
+                mail_cli = [m.format(recipients=' '.join(recipients),
+                                     subject=subject)
+                            for m in mail_cli]
+                mail_err = self._sendmail(mail_cli, dice_stamp)
             else:
                 mail_err = 'NOT SENT'
 
@@ -337,7 +343,7 @@ def create_stamp_form_class(app):
                       "<br>  Contact JRC for help." % (type(ex).__name__, ex)),
                       'error')
             else:
-                mail_err = self._send_mails(recipients, dice_stamp, dice_decision)
+                mail_err = self._send_stamp_mails(recipients, dice_stamp, dice_decision)
 
                 self.repeat_dice.render_kw['disabled'] = True
                 session.update(zip(self._skeys,
