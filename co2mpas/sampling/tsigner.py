@@ -11,6 +11,7 @@ from collections import (
 import io
 import os
 import re
+import stat
 import sys
 from typing import (
     List, Sequence, Iterable, Text, Tuple, Dict, Callable, Union)  # @UnusedImport
@@ -67,6 +68,14 @@ class SigChain(TsignerSpec):
         service_fname = re.sub(r'\W', '_', self.stamper_name)
         return osp.join(baseapp.default_config_dir(), service_fname)
 
+    read_only_files = trt.Bool(
+        True,
+        help="""
+        If true, write chain-stamps as READ_ONLY (permission and attribute).
+        """,
+        config=True
+    )
+
     parent_sig_regex = trt.CRegExp(
         r"""# parent_stamp: (\S+)""",
         config=True)
@@ -103,6 +112,24 @@ class SigChain(TsignerSpec):
         #
         with open(fpath, 'wb') as fd:
             fd.write(text.encode('utf-8'))
+        ## Make file READ_ONLY.
+        #
+        if self.read_only_files:
+            import shutil
+
+            os.chmod(fpath, stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH)
+            if os.name == 'nt':
+                import win32api
+                import win32con
+
+                ## From https://stackoverflow.com/a/14957883/548792
+                win32api.SetFileAttributes(
+                    fpath, win32con.FILE_ATTRIBUTE_READONLY)
+
+            elif shutil.which('chattr') is not None:
+                import subprocess as sbp
+
+                sbp.check_call(['chattr', '+i', fpath])
 
     def _parse_sig_file(self, sig_hex):
         stamp_auth = self._stamp_auth

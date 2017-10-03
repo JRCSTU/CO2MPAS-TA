@@ -17,6 +17,7 @@ import unittest
 
 import ddt
 
+from git.util import rmtree as gutil_rmtree
 import os.path as osp
 import subprocess as sbp
 
@@ -57,7 +58,7 @@ class TS(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
-        shutil.rmtree(cls.tmp_chain_folder)
+        gutil_rmtree(cls.tmp_chain_folder)
 
     def test_stamp_text(self):
         signer = tsigner.TsignerService(config=self.cfg)
@@ -106,7 +107,7 @@ class TSShell(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        shutil.rmtree(cls.tmp_chain_folder)
+        gutil_rmtree(cls.tmp_chain_folder)
 
     def _get_extra_options(self):
         """Allow cipher-traits encrypted with the GPG of the user running tests."""

@@ -53,4 +53,7 @@ CLIENT_VALIDATION_LOG_LEVEL = logging.INFO
 #    'StamperAuthSpec': {
 #        'master_key': '',
 #    },
+#    'SigChain': {
+#        'read_only_files': True,
+#    },
 #}
