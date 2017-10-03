@@ -329,6 +329,7 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
         import textwrap as tw
 
         tag_verdict = self.parse_signed_tag(dreport)
+        # TODO: move sig-validation check in `crypto` module.
         tag_signer = crypto.uid_from_verdict(tag_verdict)
         if tag_verdict['valid']:
             if self.trim_dreport:

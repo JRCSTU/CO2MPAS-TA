@@ -250,7 +250,14 @@ def create_stamp_form_class(app):
                         raise CmdException("Signing temporarily unavailable! "
                                            "Please try later.")
 
-                self.sign_validator.parse_signed_tag(dreport)
+                verdict = self.sign_validator.parse_signed_tag(dreport)
+                uid = crypto.uid_from_verdict(verdict)
+
+                # TODO: move sig-validation check in `crypto` module.
+                if not verdict['valid']:
+                    raise CmdException(
+                        "Cannot validate dice-report signed with %r: %s" %
+                        (uid, verdict['status']))
             except CmdException as ex:
                 self._log_client_error("Checking", ex)
                 flash(str(ex), 'error')
@@ -262,7 +269,8 @@ def create_stamp_form_class(app):
                       "<br>  Contact JRC for help." % (type(ex).__name__, ex)),
                       'error')
             else:
-                flash("Everything seems OK, you may proceed with stamping.")
+                flash("Dice-report signed with %r key is OK."
+                      " You may proceed with stamping." % uid)
 
         _sign_validator = None
 
