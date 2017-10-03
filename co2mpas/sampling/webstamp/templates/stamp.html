@@ -15,7 +15,10 @@
       </div>
   <div class="col-md-12">
     <form action="" method="post" class="form form-horizontal" role="form">
-      {%- set button_map = {'submit': 'primary', 'new_stamp': 'info'}-%}
+      {%- set button_map = {
+        'check': 'secondary',
+        'submit': 'primary',
+        'new_stamp': 'info'}-%}
       {%- set form_type = "basic" -%}
 
       {{ wtf.form_field(form.stamp_recipients,
@@ -31,6 +34,9 @@
       {{ form.hidden_tag() }}
       {{ wtf.form_errors(form, hiddens='only') }}
 
+      {{ wtf.form_field(form.check,
+                        form_type=form_type,
+                        button_map=button_map) }}
       {{ wtf.form_field(form.submit,
                         form_type=form_type,
                         button_map=button_map) }}

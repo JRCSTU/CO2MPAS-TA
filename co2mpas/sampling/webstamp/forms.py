@@ -4,7 +4,7 @@ import os
 import re
 
 from co2mpas._vendor.traitlets import config as traitc
-from co2mpas.sampling import CmdException, crypto, tsigner
+from co2mpas.sampling import CmdException, crypto, tsigner, tstamp
 from flask import flash, request, session
 import flask
 from flask.ctx import after_this_request
@@ -110,6 +110,10 @@ def create_stamp_form_class(app):
             label="Repeat dice?",
             render_kw={'disabled': True})
 
+        check = wtff.SubmitField(
+            'Check...',
+            render_kw={})
+
         submit = wtff.SubmitField(
             'Stamp!',
             render_kw={})
@@ -192,9 +196,12 @@ def create_stamp_form_class(app):
                     session.pop(k, None)
 
             form_disabled = is_stamped
-            self.stamp_recipients.render_kw['readonly'] = form_disabled
-            self.dice_report.render_kw['readonly'] = form_disabled
-            self.submit.render_kw['disabled'] = form_disabled
+            btns = [self.repeat_dice, self.check, self.submit]
+            fields = [self.stamp_recipients, self.dice_report]
+            for i in fields:
+                i.render_kw['readonly'] = form_disabled
+            for i in btns:
+                i.render_kw['disabled'] = form_disabled
             self.dice_report.label.text = dreport_label
 
         @property
@@ -227,6 +234,38 @@ def create_stamp_form_class(app):
                     config=self.traits_config)
 
             return self._signer
+
+        def _do_check(self):
+            """
+            :return:
+                tuple(dice_stamp, dice_decision)
+            """
+            dreport = self.dice_report.data
+
+            try:
+                self.sign_validator.parse_signed_tag(dreport)
+            except CmdException as ex:
+                self._log_client_error("Checking", ex)
+                flash(str(ex), 'error')
+            except Exception as ex:
+                self._log_client_error("Checking", ex, exc_info=1)
+                if app.debug:
+                    raise
+                flash(Markup("Stamp-signing failed due to: %s(%s)"
+                      "<br>  Contact JRC for help." % (type(ex).__name__, ex)),
+                      'error')
+            else:
+                flash("Everything seems OK, you may proceed with stamping.")
+
+        _sign_validator = None
+
+        @property
+        def sign_validator(self) -> tstamp.TstampReceiver:
+            if not self._sign_validator:
+                self._sign_validator = tstamp.TstampReceiver(
+                    config=self.traits_config)
+
+            return self._sign_validator
 
         def _sign_dreport(self, dreport, recipients):
             """
@@ -319,7 +358,12 @@ def create_stamp_form_class(app):
                                 "Please confirm that you really want to dice it again." %
                                 project), 'error')
                         else:
-                            self._do_stamp()
+                            if self.check.data:
+                                self._do_check()
+                            elif self.submit.data:
+                                self._do_stamp()
+                            else:
+                                assert False, "Both submission buttons false!"
 
             return flask.render_template('stamp.html', form=self)
 
