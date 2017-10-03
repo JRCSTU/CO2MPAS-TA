@@ -6,10 +6,6 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
-from co2mpas.__main__ import init_logging
-from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import crypto, tstamp
-from co2mpas.sampling.baseapp import collect_cmd, Cmd
 from collections import Counter
 import logging
 from pprint import pformat as pf
@@ -17,7 +13,12 @@ import shutil
 import tempfile
 import unittest
 
+from co2mpas.__main__ import init_logging
+from co2mpas._vendor.traitlets import config as trtc
+from co2mpas.sampling import crypto, tstamp
+from co2mpas.sampling.baseapp import collect_cmd, Cmd
 import ddt
+import yaml
 
 import os.path as osp
 import subprocess as sbp
@@ -592,6 +593,142 @@ DIfPzigZsstD4v2X7ltu7DXkXHlwbfOKH+CjzmyZm+WKVh/jlX9jN6c444iqKlhe
 -----END PGP SIGNATURE-----
 """
 
+missing_pub_key_id = '5124D06F'
+missing_pub_key_tag = """
+object 6beb4f527ee7ed0a1b77dc62a27b12e2fb0da074
+type commit
+tag dices/RL-99-BM3-2017-0001/1
+tagger Kostis Anagnostopoulos <ankostis@gmail.com> 1507037486 +0200
+
+- {v: 1.0.2, a: drep 3 files, p: RL-99-BM3-2017-0001, s: tagged}
+
+- file: input.xlsx
+  iokind: inp
+  report: {vehicle_family_id: RL-99-BM3-2017-0001}
+- file: output.xlsx
+  iokind: out
+  report:
+    0.vehicle_family_id: [RL-99-BM3-2017-0001, null]
+    1.CO2MPAS_version: [1.5.0.dev1, null]
+    2.report_type: [dice_report, null]
+    3.datetime: ['2017/01/29-23:42:41', null]
+    4.TA_mode: [1.0, .nan]
+    5.CO2MPAS_deviation: [-4.14, .nan]
+    6.Vehicle: [vehicle-H, vehicle-L]
+    7.fuel_type: [diesel, diesel]
+    8.engine_capacity: [997.0, 997.0]
+    9.gear_box_type: [automatic, automatic]
+    10.engine_is_turbo: [1.0, 1.0]
+    11.Model_scores: [vehicle-H, vehicle-L]
+    12.alternator_model: [4.56, .nan]
+    13.at_model: [-0.95, .nan]
+    14.clutch_torque_converter_model: [4.71, .nan]
+    15.co2_params: [0.0, .nan]
+    16.engine_cold_start_speed_model: [18.74, .nan]
+    17.engine_coolant_temperature_model: [0.59, .nan]
+    18.engine_speed_model: [0.02, 91.36]
+    19.start_stop_model: [-0.99, .nan]
+- {file: LICENSE.txt, iokind: other, report: null}
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAABCAAGBQJZ05EvAAoJED4LzmdRJNBv4v4H/ionDWrPZ9Ipi3XGjKSK6TRA
+c70zv7Th02NQLYnOOhr8W4L+OUXXw9j3raR+tw1ogrCxJy4s3LWUgayd4mJN8O/t
+c2bu/FXiaNspEVzfKtBOcawoDYb9hu1HF/dS1Qhw2n009FV43dnORasMYxSpmQkW
+yG8KIYCHCUbHoznvGoflJKyAAbHmoeL7vYIQeAI/hcq8Fa8IvRibg57ForG108hK
+O0NLUdBGBHkH3wPn7zwdlaB9m6a4ZderNnbweprLkHVRVAUxs3DcjxWKkQmproRG
+DaU+3OO7CzzFmUrGIargbUWsuHok4WRCiCZKUq1l/ooDbtz3Tv+va3NdD1+/hVc=
+=1gRO
+-----END PGP SIGNATURE-----
+"""
+missing_pub_key_decision = """
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
+
+########################################################
+#
+# Proof of posting certificate from JRC-stamper
+# certifying that:-
+#   3E0BCE675124D06F: Orphan Public <orphan@public.key>
+# requested to email this message to:-
+#   dd@ee
+#
+# certificate_date: 2017-10-03T14:31:58.900537
+# reference: 0000009
+# parent_stamp: 7fdc30757850bd65d0dcc95fac70eec4887985fe
+#
+########################################################
+
+
+object 6beb4f527ee7ed0a1b77dc62a27b12e2fb0da074
+type commit
+tag dices/RL-99-BM3-2017-0001/1
+tagger Kostis Anagnostopoulos <ankostis@gmail.com> 1507037486 +0200
+
+- - {v: 1.0.2, a: drep 3 files, p: RL-99-BM3-2017-0001, s: tagged}
+
+- - file: input.xlsx
+  iokind: inp
+  report: {vehicle_family_id: RL-99-BM3-2017-0001}
+- - file: output.xlsx
+  iokind: out
+  report:
+    0.vehicle_family_id: [RL-99-BM3-2017-0001, null]
+    1.CO2MPAS_version: [1.5.0.dev1, null]
+    2.report_type: [dice_report, null]
+    3.datetime: ['2017/01/29-23:42:41', null]
+    4.TA_mode: [1.0, .nan]
+    5.CO2MPAS_deviation: [-4.14, .nan]
+    6.Vehicle: [vehicle-H, vehicle-L]
+    7.fuel_type: [diesel, diesel]
+    8.engine_capacity: [997.0, 997.0]
+    9.gear_box_type: [automatic, automatic]
+    10.engine_is_turbo: [1.0, 1.0]
+    11.Model_scores: [vehicle-H, vehicle-L]
+    12.alternator_model: [4.56, .nan]
+    13.at_model: [-0.95, .nan]
+    14.clutch_torque_converter_model: [4.71, .nan]
+    15.co2_params: [0.0, .nan]
+    16.engine_cold_start_speed_model: [18.74, .nan]
+    17.engine_coolant_temperature_model: [0.59, .nan]
+    18.engine_speed_model: [0.02, 91.36]
+    19.start_stop_model: [-0.99, .nan]
+- - {file: LICENSE.txt, iokind: other, report: null}
+- -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAABCAAGBQJZ05EvAAoJED4LzmdRJNBv4v4H/ionDWrPZ9Ipi3XGjKSK6TRA
+c70zv7Th02NQLYnOOhr8W4L+OUXXw9j3raR+tw1ogrCxJy4s3LWUgayd4mJN8O/t
+c2bu/FXiaNspEVzfKtBOcawoDYb9hu1HF/dS1Qhw2n009FV43dnORasMYxSpmQkW
+yG8KIYCHCUbHoznvGoflJKyAAbHmoeL7vYIQeAI/hcq8Fa8IvRibg57ForG108hK
+O0NLUdBGBHkH3wPn7zwdlaB9m6a4ZderNnbweprLkHVRVAUxs3DcjxWKkQmproRG
+DaU+3OO7CzzFmUrGIargbUWsuHok4WRCiCZKUq1l/ooDbtz3Tv+va3NdD1+/hVc=
+=1gRO
+- -----END PGP SIGNATURE-----
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Stamper Reference Id: 0000009
+
+iJwEAQEIAAYFAlnTkU8ACgkQsSTJmcu7Uv+ItgP/Y8vUx1rtMwiYY9Dq2U3/PiS6
+RBIiCmwcJDkm5YDkaxa+ZF5UtYFdLapKXgELpeHeaEw2nkcsCVCgls6CkvpLUN92
+ND7glj08urOjKWwR4TRl7KmrIEnyVp1zCGNWe3ILWjLswRFzvcZLTesELn3ge3FL
+etr1GmB6vyJQiIuBPwI=
+=XN7g
+-----END PGP SIGNATURE-----
+
+
+dice:
+  tag: 'dices/RL-99-BM3-2017-0001/1: 6beb4f527ee7ed0a1b77dc62a27b12e2fb0da074'
+  issuer: '3E0BCE675124D06F: Orphan Public <orphan@public.key>'
+  issue_date: '2017-10-03T14:31:27'
+  stamper: 'B124C999CBBB52FF: CO2MPAS Test <JRC-CO2MPAS@ec.europa.eu>'
+  dice_date: '2017-10-03T14:31:59'
+  hexnum: 778E8240750DEF59828E2364135D2404A72F679A
+  percent: 58
+  decision: OK
+
+"""
+
 
 @ddt.ddt
 class TRX(unittest.TestCase):
@@ -693,9 +830,31 @@ class TRX(unittest.TestCase):
     def test_parse_signed_tag(self):
         rcv = tstamp.TstampReceiver(config=self.cfg)
         verdict = rcv.parse_signed_tag(signed_tag)
-        self.assertTrue(verdict['valid'], verdict)
-        self.assertIn(crypto._TEST_KEY_ID, verdict['fingerprint'], verdict)
-        self.assertEqual(verdict['commit_msg']['p'], 'FT-12-ABC-2016-0001', verdict)
+        sverdict = yaml.dump(verdict, indent=2)
+        self.assertTrue(verdict['valid'], sverdict)
+        self.assertIn(crypto._TEST_KEY_ID, verdict['fingerprint'], sverdict)
+        self.assertEqual(verdict['commit_msg']['p'],
+                         'FT-12-ABC-2016-0001',
+                         sverdict)
+
+    def test_parse_missing_pub_key_tag(self):
+        rcv = tstamp.TstampReceiver(config=self.cfg)
+        verdict = rcv.parse_signed_tag(missing_pub_key_tag)
+        print(yaml.dump(verdict, indent=2))
+        self.assertFalse(verdict['valid'], verdict)
+        self.assertEqual(verdict['status'], 'no public key')
+        self.assertIn(missing_pub_key_id, verdict['key_id'], verdict)
+
+    def test_parse_missing_pub_key_decision(self):
+        cfg = self.cfg.copy()
+        cfg.Spec.force = True
+        rcv = tstamp.TstampReceiver(config=cfg)
+        verdict = rcv.parse_tstamp_response(missing_pub_key_decision)
+        print(yaml.dump(verdict, indent=2))
+        self.assertTrue(verdict['tstamp']['valid'])
+        self.assertFalse(verdict['report']['valid'])
+        self.assertEqual(verdict['report']['status'], 'no public key')
+        self.assertIn(missing_pub_key_id, verdict['report']['key_id'])
 
     @ddt.data(
         (None, None, []),
