@@ -18,7 +18,7 @@
 from co2mpas.__main__ import init_logging
 import logging
 
-from flask import Flask
+from flask import Flask, request
 from flask_appconfig import AppConfig
 from flask_bootstrap import Bootstrap
 
@@ -53,3 +53,19 @@ def create_app(configfile=None):
     #app.config['BOOTSTRAP_SERVE_LOCAL'] = True
 
     return app
+
+
+## From http://flask.pocoo.org/docs/dev/logging/#injecting-request-information
+#
+#  .. Warning::
+#      Assign it to a logger used only from within a Request.
+#
+class RequestFormatter(logging.Formatter):
+    def format(self, record):
+        ## Form more request-data, see:
+        #  http://flask.pocoo.org/docs/0.12/api/#incoming-request-data
+        record.url = request.url
+        record.remote_addr = request.remote_addr
+        record.headers = request.headers
+        record.cookies = request.cookies
+        return super().format(record)

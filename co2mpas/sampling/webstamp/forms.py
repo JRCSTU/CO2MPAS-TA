@@ -386,6 +386,9 @@ def create_stamp_form_class(app):
                             else:
                                 assert False, "Both submission buttons false!"
 
+            # ## NOTE: Enable this code to update `/logconf.yaml`.
+            # print('\n'.join(sorted(logging.Logger.manager.loggerDict)))
+
             return flask.render_template('stamp.html', form=self)
 
     return StampForm  # class

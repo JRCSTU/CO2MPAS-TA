@@ -26,6 +26,7 @@ MAILIST_WIDGET_NROWS = 2
 DREPORT_WIDGET_NROWS = 12
 ## Can be a number of head/tail lines to log, or a boolean.
 CLIENT_VALIDATION_LOG_FULL_DREPORT = 600
+## Wtach out: maybe ERROR is configured to send emails??
 CLIENT_VALIDATION_LOG_LEVEL = logging.INFO
 
 ## An optional command that returns 0 if signing-key
