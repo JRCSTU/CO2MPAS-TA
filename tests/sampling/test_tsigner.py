@@ -120,6 +120,7 @@ class TSShell(unittest.TestCase):
             opts.append('--VaultSpec.gnupghome=%s' % vault.gnupghome)
 
         opts.append('--SigChain.stamp_chain_dir=%s' % self.tmp_chain_folder)
+        opts.append('--GpgSpec.allow_test_key=True')
 
         return ' '.join(opts)
 
