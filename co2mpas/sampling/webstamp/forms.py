@@ -143,7 +143,7 @@ def create_stamp_form_class(app):
 
         submit = wtff.SubmitField(
             '2: Stamp!',
-            render_kw={})
+            render_kw={'disabled': True})
 
         def validate_stamp_recipients(self, field):
             """Must contain at least 1 non-standard email-address."""
@@ -243,7 +243,8 @@ def create_stamp_form_class(app):
             else:
                 ## Clear session and reset form.
                 #
-                self.repeat_dice.render_kw['disabled'] = True
+                for i in [self.repeat_dice, self.submit]:
+                    i.render_kw['disabled'] = True
                 dreport_label = "Dice Report:"
                 for k in self._skeys:
                     session.pop(k, None)
