@@ -138,11 +138,11 @@ def create_stamp_form_class(app):
             render_kw={'disabled': True})
 
         check = wtff.SubmitField(
-            'Check...',
+            '1: Check...',
             render_kw={})
 
         submit = wtff.SubmitField(
-            'Stamp!',
+            '2: Stamp!',
             render_kw={})
 
         def validate_stamp_recipients(self, field):
