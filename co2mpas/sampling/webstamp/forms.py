@@ -213,32 +213,41 @@ def create_stamp_form_class(app):
                 i.render_kw['disabled'] = form_disabled
             self.dice_report.label.text = dreport_label
 
+        _traits_config = None
+
         @property
         def traits_config(self):
-            ## Convert Flask-config --> traitlets-config
-            #  and respect `allow_test_key` form-param.
-            #
-            traits_config = traitc.Config(config['TRAITLETS_CONFIG'])
+            if self._traits_config is None:
+                ## Convert Flask-config --> traitlets-config
+                #  and respect `allow_test_key` form-param.
+                #
+                traits_config = traitc.Config(config['TRAITLETS_CONFIG'])
 
-            flag = get_bool_arg('allow_test_key')
-            if flag is not None:
-                traits_config.GpgSpec.allow_test_key = flag
+                flag = get_bool_arg('allow_test_key')
+                if flag is not None:
+                    traits_config.GpgSpec.allow_test_key = flag
 
-            flag = get_bool_arg('validate_decision')
-            if flag is not None:
-                traits_config.TsignerService.validate_decision = flag
+                flag = get_bool_arg('validate_decision')
+                if flag is not None:
+                    traits_config.TsignerService.validate_decision = flag
 
-            flag = get_bool_arg('trim_dreport')
-            if flag is not None:
-                traits_config.TsignerService.trim_dreport = flag
+                flag = get_bool_arg('trim_dreport')
+                if flag is not None:
+                    traits_config.TsignerService.trim_dreport = flag
 
-            return traits_config
+                self._traits_config = traits_config
+
+            return self._traits_config
+
+        @property
+        def allow_test_key(self):
+            return self.traits_config.GpgSpec.allow_test_key
 
         _signer = None
 
         @property
         def signer(self) -> tsigner.TsignerService:
-            if not self._signer:
+            if self._signer is None:
                 self._signer = tsigner.TsignerService(
                     config=self.traits_config)
 
@@ -294,7 +303,7 @@ def create_stamp_form_class(app):
 
         @property
         def sign_validator(self) -> tstamp.TstampReceiver:
-            if not self._sign_validator:
+            if self._sign_validator is None:
                 self._sign_validator = tstamp.TstampReceiver(
                     config=self.traits_config)
 
