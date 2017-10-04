@@ -313,17 +313,14 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
             stamp_count += 1
             tstamp_text = f"""\
 ########################################################
-#
 # Proof of posting certificate from {stamper_name}
 # certifying that:-
 #   {sender}
 # requested to email this message to:-
 #   {recipients}
-#
 # certificate_date: {issue_date}
 # reference: {stamp_count:07}
 # parent_stamp: {parent_stamp}
-#
 ########################################################
 
 
