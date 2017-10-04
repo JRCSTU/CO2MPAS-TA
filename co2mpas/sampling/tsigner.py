@@ -74,6 +74,18 @@ class SigChain(TsignerSpec):
         """,
     ).tag(config=True)
 
+    ro_file_cli = trt.List(
+        trt.Unicode(),
+        default_value=['sudo', 'chattr', '+i'],
+        help="""
+            A non-Windows cmdline list that sets IMUTABLE file attribute.
+            The file(s) to modify are appended at the end.
+
+            You may use something like this in `/etc/sudoers`::
+               STAMPER_WEB     ALL=(ALL:ALL) NOPASSWD: chattr +i *
+        """
+    ).tag(config=True)
+
     parent_sig_regex = trt.CRegExp(
         r"""# parent_stamp: (\S+)""",
     ).tag(config=True)
@@ -113,8 +125,6 @@ class SigChain(TsignerSpec):
         ## Make file READ_ONLY.
         #
         if self.read_only_files:
-            import shutil
-
             os.chmod(fpath, stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH)
             if os.name == 'nt':
                 import win32api
@@ -124,11 +134,13 @@ class SigChain(TsignerSpec):
                 win32api.SetFileAttributes(
                     fpath, win32con.FILE_ATTRIBUTE_READONLY)
 
-            # ## TODO: chattr NEED SUDO ACCESS!
-            # elif shutil.which('chattr') is not None:
-            #     import subprocess as sbp
-            #
-            #     sbp.check_call(['chattr', '+i', fpath])
+            else:
+                ro_file_cli = self.ro_file_cli
+                if ro_file_cli:
+                    import subprocess as sbp
+
+                    ro_file_cli.append(fpath)
+                    sbp.check_call(ro_file_cli)
 
     def _parse_sig_file(self, sig_hex):
         stamp_auth = self._stamp_auth
