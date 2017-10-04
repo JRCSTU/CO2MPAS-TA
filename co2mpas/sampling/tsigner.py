@@ -42,7 +42,7 @@ class TsignerSpec(baseapp.Spec):
     stamper_name = trt.Unicode(
         'JRC-stamper',
         help="By default, that `stamp_chain_dir` is derived from this name. ",
-        config=True)
+    ).tag(config=True)
 
     __stamp_auth = None
 
@@ -60,8 +60,7 @@ class SigChain(TsignerSpec):
 
     stamp_chain_dir = trt.Unicode(
         help="""The folder to store all signed stamps and derive cert-chain.""",
-        config=True
-    )
+    ).tag(config=True)
 
     @trt.default('stamp_chain_dir')
     def _default_chain_dir(self):
@@ -73,12 +72,11 @@ class SigChain(TsignerSpec):
         help="""
         If true, write chain-stamps as READ_ONLY (permission and attribute).
         """,
-        config=True
-    )
+    ).tag(config=True)
 
     parent_sig_regex = trt.CRegExp(
         r"""# parent_stamp: (\S+)""",
-        config=True)
+    ).tag(config=True)
 
     @property
     def _head_fpath(self):
@@ -272,6 +270,7 @@ class SigChain(TsignerSpec):
             return self._load_or_rebuild_stamp_chain(revalidate=True)[-1]
 
 
+## TODO: Extract non-config fields as Signable(HasTraits) class.
 class TsignerService(SigChain, tstamp.TstampReceiver):
     """
     To run securely on a server see: https://wiki.gnupg.org/AgentForwarding
@@ -287,11 +286,11 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
     validate_decision = trt.Bool(
         True,
         help="""Validate dice and append-report at the bottom of dreport.  """,
-        config=True)
+    ).tag(config=True)
 
     trim_dreport = trt.Bool(
-        help="""Remove any garbage after dreport's signature? """,
-        config=True)
+        help="""Remove any garbage after dreport's signature? """
+    ).tag(config=True)
 
     def sign_text_as_tstamper(self, text: Text,
                               sender: Text=None,
@@ -399,8 +398,7 @@ class TsignerCmd(baseapp.Cmd):
 
     list = trt.Bool(
         help="Print all stamp-chain stored (no other args accepted).",
-        config=True
-    )
+    ).tag(config=True)
 
     def __init__(self, **kwds):
         kwds.setdefault('conf_classes', [TsignerService,
