@@ -197,7 +197,7 @@ def create_stamp_form_class(app):
                     session.pop(k, None)
 
             form_disabled = is_stamped
-            btns = [self.repeat_dice, self.check, self.submit]
+            btns = [self.check, self.submit]
             fields = [self.stamp_recipients, self.dice_report]
             for i in fields:
                 i.render_kw['readonly'] = form_disabled
