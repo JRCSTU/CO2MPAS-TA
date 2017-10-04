@@ -353,6 +353,10 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
                 ts_ver = dtz.valfilter(bool, vars(ver))
                 sign.__dict__.update(ts_ver)
 
+            ## In PY3 stdout duplicates \n as \r\n, hence \r\n --> \r\r\n.
+            #  and signed text always has \r\n EOL.
+            sign.data = sign.data.replace(b'\r\n', b'\n')
+
             return sign
 
     def sign_dreport_as_tstamper(self, dreport: Text):
@@ -443,11 +447,9 @@ class TsignerCmd(baseapp.Cmd):
             try:
                 sig_text, _decision = signer.sign_dreport_as_tstamper(mail_text)
 
-                ## In PY3 stdout duplicates \n as \r\n, hence \r\n --> \r\r\n.
-                #  and signed text always has \r\n EOL.
-                yield sig_text.replace('\r\n', '\n')
+                yield sig_text
             except Exception as ex:
-                self.log.error("%s: signig %i-char message failed due to: %s",
+                self.log.error("%s: signing %i-char message failed due to: %s",
                                file, len(mail_text), ex, exc_info=1)
 
     def run(self, *args):

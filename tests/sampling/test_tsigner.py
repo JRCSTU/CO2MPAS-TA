@@ -96,6 +96,7 @@ class TS(unittest.TestCase):
                                         recipients=default_recipients)
         stamp, _decision = signer.sign_dreport_as_tstamper(who, signed_tag)
         print(stamp)
+        self.assertNotIn('\r\n', stamp)
         self.assertEqual(stamp[:len(pgp_prefix)], pgp_prefix, stamp)
         self.assertIn(who, stamp[:header_len], stamp)
         self.check_recipients(stamp)
@@ -107,6 +108,7 @@ class TS(unittest.TestCase):
         suffix = "Garbage"
         stamp, _decision = signer.sign_dreport_as_tstamper(who,
                                                            signed_tag + suffix)
+        self.assertNotIn('\r\n', stamp)
         self.assertEqual(stamp[:len(pgp_prefix)], pgp_prefix, stamp)
         self.assertIn(who, stamp[:header_len], stamp)
         self.assertIn(suffix, stamp)
@@ -115,6 +117,7 @@ class TS(unittest.TestCase):
         signer.trim_dreport = True
         stamp, _decision = signer.sign_dreport_as_tstamper(who,
                                                            signed_tag + suffix)
+        self.assertNotIn('\r\n', stamp)
         self.assertEqual(stamp[:len(pgp_prefix)], pgp_prefix, stamp)
         self.assertIn(who, stamp[:header_len], stamp)
         self.assertNotIn(suffix, stamp)
