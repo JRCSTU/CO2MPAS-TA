@@ -31,6 +31,11 @@ log = logging.getLogger(__name__)
 
 mydir = osp.dirname(__file__)
 
+pgp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
+header_len = 200
+default_sender = 'some body'
+default_recipients = ['aa@foo', 'devnull']
+
 
 @ddt.ddt
 class TS(unittest.TestCase):
@@ -60,17 +65,22 @@ class TS(unittest.TestCase):
         shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
         gutil_rmtree(cls.tmp_chain_folder)
 
+    def check_recipients(self, stamp):
+        for i in default_recipients:
+            self.assertIn(i, stamp[:header_len], stamp)
+
     def test_stamp_text(self):
         signer = tsigner.TsignerService(config=self.cfg)
 
         tag_verdict = signer.parse_signed_tag(signed_tag)
         sender = crypto.uid_from_verdict(tag_verdict)
 
-        sign = signer.sign_text_as_tstamper(signed_tag, sender,
+        sign = signer.sign_text_as_tstamper(signed_tag,
+                                            sender,
+                                            '12345',
                                             full_output=True)
         stamp = str(sign)
-        exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
-        self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
+        self.assertEqual(stamp[:len(pgp_prefix)], pgp_prefix, stamp)
 
         ts_verdict = vars(sign)
         tag = signer.extract_dice_tag_name(None, signed_tag)
@@ -81,20 +91,34 @@ class TS(unittest.TestCase):
         self.assertIn("dice:\n  tag:", stamp2, stamp2)
 
     def test_stamp_dreport(self):
-        signer = tsigner.TsignerService(config=self.cfg)
-        stamp, _decision = signer.sign_dreport_as_tstamper(signed_tag)
-        exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
-        self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
+        who = 'YummyMammy'
+        signer = tsigner.TsignerService(config=self.cfg,
+                                        recipients=default_recipients)
+        stamp, _decision = signer.sign_dreport_as_tstamper(who, signed_tag)
+        print(stamp)
+        self.assertEqual(stamp[:len(pgp_prefix)], pgp_prefix, stamp)
+        self.assertIn(who, stamp[:header_len], stamp)
+        self.check_recipients(stamp)
 
+    def test_stamp_dreport_suffix(self):
+        who = 'YummyMammy'
+        signer = tsigner.TsignerService(config=self.cfg,
+                                        recipients=default_recipients)
         suffix = "Garbage"
-        stamp, _decision = signer.sign_dreport_as_tstamper(signed_tag + suffix)
-        self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
+        stamp, _decision = signer.sign_dreport_as_tstamper(who,
+                                                           signed_tag + suffix)
+        self.assertEqual(stamp[:len(pgp_prefix)], pgp_prefix, stamp)
+        self.assertIn(who, stamp[:header_len], stamp)
         self.assertIn(suffix, stamp)
+        self.check_recipients(stamp)
 
         signer.trim_dreport = True
-        stamp, _decision = signer.sign_dreport_as_tstamper(signed_tag + suffix)
-        self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
+        stamp, _decision = signer.sign_dreport_as_tstamper(who,
+                                                           signed_tag + suffix)
+        self.assertEqual(stamp[:len(pgp_prefix)], pgp_prefix, stamp)
+        self.assertIn(who, stamp[:header_len], stamp)
         self.assertNotIn(suffix, stamp)
+        self.check_recipients(stamp)
 
 
 @ddt.ddt
@@ -119,36 +143,38 @@ class TSShell(unittest.TestCase):
         if vault.gnupghome:
             opts.append('--VaultSpec.gnupghome=%s' % vault.gnupghome)
 
-        opts.append('--SigChain.stamp_chain_dir=%s' % self.tmp_chain_folder)
-        opts.append('--GpgSpec.allow_test_key=True')
+        opts.extend(['--SigChain.stamp_chain_dir', self.tmp_chain_folder])
+        opts.extend(['--GpgSpec.allow_test_key', 'True'])
+        opts.extend(['--sender', default_sender])
 
-        return ' '.join(opts)
+        return opts
 
     def test_sign_smoketest(self):
         fpath = osp.join(mydir, 'tag.txt')
-        stamp = sbp.check_output('co2dice tsigner %s %s' %
-                                 (fpath, self._get_extra_options()),
+        stamp = sbp.check_output(['co2dice', 'tsigner', fpath] +
+                                 self._get_extra_options(),
                                  universal_newlines=True)
-        exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
-        self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
+        self.assertEqual(stamp[:len(pgp_prefix)], pgp_prefix, stamp)
 
         suffix = "Garbage"
         with open(fpath, 'rt') as fd:
             tag = fd.read()
 
-        p = sbp.Popen('co2dice tsigner - %s' % self._get_extra_options(),
+        p = sbp.Popen(['co2dice', 'tsigner', '-'] + self._get_extra_options(),
                       universal_newlines=True,
                       stdin=sbp.PIPE, stdout=sbp.PIPE)
         stamp, _stderr = p.communicate(input=tag + suffix)
-        exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
-        self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
-        self.assertIn(suffix, stamp)
+        assert p.returncode == 0
+        self.assertEqual(stamp[:len(pgp_prefix)], pgp_prefix, stamp)
+        self.assertIn(stamp[:len(pgp_prefix)], pgp_prefix, stamp)
+        self.assertIn(default_sender, stamp)
 
-        p = sbp.Popen('co2dice tsigner - --TsignerService.trim_dreport=True'
-                      ' %s' % self._get_extra_options(),
+        p = sbp.Popen(['co2dice', 'tsigner', '-',
+                       '--TsignerService.trim_dreport=True'] +
+                      self._get_extra_options(),
                       universal_newlines=True,
                       stdin=sbp.PIPE, stdout=sbp.PIPE)
         stamp, _stderr = p.communicate(input=tag + suffix)
-        exp_prefix = '-----BEGIN PGP SIGNED MESSAGE'
-        self.assertEqual(stamp[:len(exp_prefix)], exp_prefix, stamp)
+        self.assertEqual(stamp[:len(pgp_prefix)], pgp_prefix, stamp)
+        self.assertIn(default_sender, stamp)
         self.assertNotIn(suffix, stamp)
