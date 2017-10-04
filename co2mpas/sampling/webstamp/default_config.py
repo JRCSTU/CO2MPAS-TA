@@ -37,13 +37,14 @@ CLIENT_VALIDATION_LOG_LEVEL = logging.INFO
 #  - recipients will be added at the end of the list
 #  - dice-report text will be given in STDIN.
 #
-#MAIL_CLI_ARGS = ['mail',
-#                 '-n',  # ignore `/etc/mail.rc`
-#                 '-v'   # verbose and/or request mail-delivery response
-#                 '-r', 'stamper@bar',  # The `From:` address
-#                 '-s', '{subject}',
-#                 '--',
-#                 '{recipients}']
+#MAIL_CLI_ARGS = [
+#    'mail',
+#    '-n',                   # ignore `/etc/mail.rc`
+#    '-v',                   # verbose and/or request mail-delivery response
+#    '-r', 'stamper@bar',    # The `From:` address
+#    '-s', '{subject}',
+#    '--'
+#]
 
 ## Sample traitlet-configs:
 #

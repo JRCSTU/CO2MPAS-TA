@@ -2,11 +2,11 @@ import json
 import logging
 import os
 import re
+from typing import Text
 
 from co2mpas._vendor.traitlets import config as traitc
 from co2mpas.sampling import CmdException, crypto, tsigner, tstamp
 from flask import flash, request, session
-from typing import Text
 import flask
 from flask.ctx import after_this_request
 from flask_wtf import FlaskForm
@@ -18,6 +18,7 @@ import yaml
 import pprint as pp
 import subprocess as sbp
 import textwrap as tw
+import traceback as tb
 import wtforms.fields as wtff
 import wtforms.validators as wtfl
 
@@ -304,12 +305,14 @@ def create_stamp_form_class(app):
                               stderr=sbp.PIPE)
                 _stdout, mail_err = p.communicate(txt.encode('utf-8'))
                 retcode = p.returncode
+                if mail_err:
+                    mail_err = mail_err.decode('utf-8')
             except Exception as ex:
-                self._log_client_error('mail', ex, exc_info=1)
-                mail_err = ex
+                mail_err = tb.format_exc()
 
             if mail_err or retcode:
-                mail_err = 'NOT SENT (due to: %s)' % (
+                self._log_client_error('mail', mail_err, exc_info=1)
+                mail_err = 'NOT SENT due to: <pre>%s</pre>' % (
                     mail_err or 'retcode(%s)' % retcode)
 
             return mail_err
