@@ -296,7 +296,8 @@ def create_stamp_form_class(app):
             """
             signer = self.signer
             signer.recipients = recipients
-            return signer.sign_dreport_as_tstamper(dreport)
+            return signer.sign_dreport_as_tstamper(request.remote_addr,
+                                                   dreport)
 
         def _sendmail(self, mail_cli, txt: Text):
             mail_err = None

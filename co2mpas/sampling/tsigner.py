@@ -276,9 +276,6 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
     To run securely on a server see: https://wiki.gnupg.org/AgentForwarding
     """
 
-    sender = trt.Unicode(
-        allow_none=True)
-
     recipients = trt.List(
         trt.Unicode(),
         allow_none=True)
@@ -292,8 +289,10 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
         help="""Remove any garbage after dreport's signature? """
     ).tag(config=True)
 
-    def sign_text_as_tstamper(self, text: Text,
-                              sender: Text=None,
+    def sign_text_as_tstamper(self,
+                              text: Text,
+                              sender: Text,
+                              dreport_key_id: Text,
                               full_output: bool=False):
         """
         :param full_output:
@@ -319,14 +318,16 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
             stamp_count += 1
             tstamp_text = f"""\
 ########################################################
-# Proof of posting certificate from {stamper_name}
-# certifying that:-
+# {stamper_name} certifies that:-
 #   {sender}
-# requested to email this message to:-
+# requested to email to:-
 #   {recipients}
-# certificate_date: {issue_date}
-# reference: {stamp_count:07}
-# parent_stamp: {parent_stamp}
+# a report signed by:-
+#   {dreport_key_id}
+#
+# - stamp_date: {issue_date}
+# - counter: {stamp_count:07}
+# - parent_stamp: {parent_stamp}
 ########################################################
 
 
@@ -359,7 +360,7 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
 
             return sign
 
-    def sign_dreport_as_tstamper(self, dreport: Text):
+    def sign_dreport_as_tstamper(self, sender: Text, dreport: Text):
         import pprint as pp
         import textwrap as tw
 
@@ -379,10 +380,8 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
         git_auth = crypto.get_git_auth(config=self.config)
         git_auth.check_test_key_missused(tag_verdict['key_id'])
 
-        sender = self.sender or tag_signer or '<unknown>'
-
         sign = self.sign_text_as_tstamper(
-            dreport, sender, full_output=True)
+            dreport, sender, tag_signer, full_output=True)
 
         stamp, ts_verdict = str(sign), vars(sign)
         tag_name = self.extract_dice_tag_name(None, dreport)
@@ -398,7 +397,20 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
 
 
 class TsignerCmd(baseapp.Cmd):
-    """Private stamper service."""
+    """
+    Private stamper service.
+
+    SYNTAX
+        %(cmd_chain)s --sender=<name>
+                      [<dreport-file-1> ...]
+        %(cmd_chain)s --list [OPTIONS]  [<stamp-id-1> ...]
+    """
+
+    sender = trt.Unicode(
+        "<nobody>",
+        allow_none=True,
+        help="""Any name/IP/email to embed in the stamp header.""",
+    ).tag(config=True)
 
     list = trt.Bool(
         help="Print all stamp-chain stored (no other args accepted).",
@@ -415,6 +427,9 @@ class TsignerCmd(baseapp.Cmd):
                 },
                 type(self).list.help
             ),
+        })
+        kwds.setdefault('cmd_aliases', {
+            ('s', 'sender'): 'TsignerCmd.sender'
         })
         super().__init__(**kwds)
 
@@ -445,7 +460,8 @@ class TsignerCmd(baseapp.Cmd):
                     mail_text = fin.read()
 
             try:
-                sig_text, _decision = signer.sign_dreport_as_tstamper(mail_text)
+                sig_text, _decision = signer.sign_dreport_as_tstamper(
+                    self.sender, mail_text)
 
                 yield sig_text
             except Exception as ex:
