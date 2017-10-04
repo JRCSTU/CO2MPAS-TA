@@ -36,6 +36,11 @@ def get_bool_arg(argname):
         return param.lower() not in ['0', 'false', 'no', 'off']
 
 
+## TODO: ESCAPE USER-INPUT!!!!
+def recipients_str(recipients):
+    return '; '.join(recipients)
+
+
 def create_stamp_form_class(app):
     ## Prepare various config-dependent constants
 
@@ -130,7 +135,8 @@ def create_stamp_form_class(app):
             for i, email in enumerate(mails, 1):
                 if not validate_email(email, check_mx=check_mx):
                     raise wtforms.ValidationError(
-                        'Invalid email-address no-%i: `%s`' % (i, email))
+                        'Invalid email-address no-%i: `%s`' %
+                        (i, recipients_str(mails)))
 
             return mails
 
@@ -179,15 +185,16 @@ def create_stamp_form_class(app):
                                                                          for k in
                                                                          self._skeys]
                 self.dice_report.data = dice_stamp
-                self.stamp_recipients.data = '; '.join(stamp_recipients)
+                self.stamp_recipients.data = recipients_str(stamp_recipients)
                 dreport_label = "Dice Report <em>Stamped</em>:"
                 sent_action = mail_err or 'sent'
-                flash(Markup("<em>Dice-stamp</em> %s to %i recipient(s): %s"
-                             "<br>Decision:<pre>\n%s</pre>" %
-                             (sent_action, len(stamp_recipients),
-                              escape('; '.join(stamp_recipients)),
-                              escape(yaml.dump({'dice': dice_decision},
-                                               default_flow_style=False)))),
+                flash(Markup("""
+                        Dice-stamp %s to %i recipient(s): <pre>%s</pre>
+                        Decision:<pre>\n%s</pre>
+                    """ % (sent_action, len(stamp_recipients),
+                           escape(recipients_str(stamp_recipients)),
+                           escape(yaml.dump({'dice': dice_decision},
+                                            default_flow_style=False)))),
                       'error' if mail_err else 'info')
             else:
                 ## Clear session and reset form.
@@ -276,8 +283,12 @@ def create_stamp_form_class(app):
                       "<br>  Contact JRC for help." % (type(ex).__name__, ex)),
                       'error')
             else:
-                flash("Dice-report from key %r is OK."
-                      " You may proceed with stamping." % uid)
+                flash(Markup("""
+                    Dice-report signed with:
+                    <pre>%s</pre>
+                    will be stamped and mailed to %s recipient(s):
+                    <pre>%s</pre>
+                """ % (uid, len(recipients), recipients_str(recipients))))
 
         _sign_validator = None
 
@@ -308,7 +319,7 @@ def create_stamp_form_class(app):
                 retcode = p.returncode
                 if mail_err:
                     mail_err = mail_err.decode('utf-8')
-            except Exception as ex:
+            except Exception as _:
                 mail_err = tb.format_exc()
 
             if mail_err or retcode:
