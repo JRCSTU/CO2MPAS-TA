@@ -322,9 +322,8 @@ def create_stamp_form_class(app):
                 subject = '[dice%s] %s' % ('.test' if is_test else '',
                                            dice_decision['tag'])
 
-                mail_cli = [m.format(recipients=' '.join(recipients),
-                                     subject=subject)
-                            for m in mail_cli]
+                mail_cli = [m.format(subject=subject)
+                            for m in mail_cli] + recipients
                 mail_err = self._sendmail(mail_cli, dice_stamp)
             else:
                 mail_err = 'NOT SENT'

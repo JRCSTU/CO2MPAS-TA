@@ -33,12 +33,14 @@ CLIENT_VALIDATION_LOG_LEVEL = logging.INFO
 #  is in good shape.
 #CHECK_SIGNING_KEY_SCRIPT = 'check_key'
 
-## Sample cmdline for sending out emails
-#  (dice-report will be given in STDIN):
+## A cmdline as list of args for sending out emails.
+#  - recipients will be added at the end of the list
+#  - dice-report text will be given in STDIN.
 #
 #MAIL_CLI_ARGS = ['mail',
 #                 '-n',  # ignore `/etc/mail.rc`
 #                 '-v'   # verbose and/or request mail-delivery response
+#                 '-r', 'stamper@bar',  # The `From:` address
 #                 '-s', '{subject}',
 #                 '--',
 #                 '{recipients}']
