@@ -16,7 +16,7 @@ MAX_CONTENT_LENGTH = 50 * 1024
 # WTF_CSRF_ENABLED = True
 # BOOTSTRAP_SERVE_LOCAL = True
 
-#DEFAULT_STAMP_RECIPIENTS = ''
+#DEFAULT_STAMP_RECIPIENTS = []
 
 ## Preserve CPU by avoiding sign-verification on
 #  obviously small dice-reports.

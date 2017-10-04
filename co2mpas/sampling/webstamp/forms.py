@@ -14,7 +14,7 @@ from markupsafe import escape, Markup
 from validate_email import validate_email
 import wtforms
 import yaml
-
+from boltons.setutils import IndexedSet as iset
 import pprint as pp
 import subprocess as sbp
 import textwrap as tw
@@ -99,6 +99,27 @@ def create_stamp_form_class(app):
         - ``trim_dreport``: remove garbage suffix from dreport
         """
 
+        def __init__(self, *args, **kws):
+            super().__init__(*args, **kws)
+
+            if self.allow_test_key:
+                msg = """
+                    <br><strong>
+                    NOTE: with `allow_test_key` in the URL,
+                    the standard <em>CLIMA/JRC</em> recipients
+                    ARE NOT added automatically!
+                    </strong>
+                """
+            else:
+                msg = """
+                    <br><strong>
+                    NOTE: the standard <em>CLIMA/JRC</em> recipients
+                    are added automatically.
+                    </strong>
+                """
+
+            self.stamp_recipients.description += msg
+
         _skeys = 'dice_stamp stamp_recipients dice_decision mail_err'.split()
 
         stamp_recipients = wtff.TextAreaField(
@@ -106,7 +127,6 @@ def create_stamp_form_class(app):
             description="(separate email-addresses by <kbd>,</kbd>, <kbd>;</kbd>, "
             "<kbd>[Space]</kbd>, <kbd>[Enter]</kbd>, <kbd>[Tab]</kbd> characters)",
             validators=[wtfl.InputRequired()],
-            default=config.get('DEFAULT_STAMP_RECIPIENTS'),
             render_kw={'rows': config['MAILIST_WIDGET_NROWS']})
 
         dice_report = wtff.TextAreaField(
@@ -126,19 +146,43 @@ def create_stamp_form_class(app):
             render_kw={})
 
         def validate_stamp_recipients(self, field):
+            """Must contain at least 1 non-standard email-address."""
             text = field.data
             check_mx = os.name != 'nt'
+            default_recipients = iset(config.get('DEFAULT_STAMP_RECIPIENTS',
+                                                 []))
+            allow_test_key = self.allow_test_key
 
-            mails = re.split('[\s,;]+', text)
-            mails = [s and s.strip() for s in mails]
-            mails = list(filter(None, mails))
-            for i, email in enumerate(mails, 1):
+            recipients = re.split('[\s,;]+', text)
+            recipients = [s and s.strip() for s in recipients]
+            recipients = list(filter(None, recipients))
+            recipients = iset(recipients)
+
+            ## When test-key, respect exactly user-input, otherwise,
+            #  augment user-input with "hidden" default-recipients
+            #  (JRC & CLIMA?).
+            #
+            if not allow_test_key:
+                recipients.update(default_recipients)
+
+            recipients = list(recipients)
+
+            ## Note that in `allow_test_key` mode it allows a single email;
+            #  standard-emails are not added!
+            #
+            if not recipients or (
+                    not allow_test_key and len(recipients) < 3):
+                raise wtforms.ValidationError(
+                    'Specify at least 1 recipient! Got: %s' %
+                    recipients_str(recipients))
+
+            for i, email in enumerate(recipients, 1):
                 if not validate_email(email, check_mx=check_mx):
                     raise wtforms.ValidationError(
                         'Invalid email-address no-%i: `%s`' %
-                        (i, recipients_str(mails)))
+                        (i, recipients_str(recipients)))
 
-            return mails
+            return recipients
 
         def validate_dice_report(self, field):
             min_dreport_size = config['MIN_DREPORT_SIZE']
@@ -262,6 +306,7 @@ def create_stamp_form_class(app):
             check_key_script = config.get('CHECK_SIGNING_KEY_SCRIPT')
 
             try:
+                recipients = self.validate_stamp_recipients(self.stamp_recipients)
                 if check_key_script:
                     if sbp.run(check_key_script).returncode != 0:
                         raise CmdException("Signing temporarily unavailable! "

@@ -5,3 +5,4 @@ flask-wtf
 ruamel.yaml
 validate_email
 py3DNS; os_name != 'nt'
+boltons             ## for boltons.setutils.IndexedSet
