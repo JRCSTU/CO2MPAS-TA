@@ -301,10 +301,17 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
             if true, return `gnupg` output object, otherwise, signed text.
         """
         from datetime import datetime
+        import textwrap as tw
 
         stamper_name = self.stamper_name
         stamper_auth = self._stamp_auth
-        recipients = '\n#     '.join(self.recipients)
+        recipients = tw.wrap('; '.join(self.recipients),
+                             width=56,
+                             break_long_words=False,
+                             break_on_hyphens=False,
+                             subsequent_indent='#   ',
+                             )
+        recipients = '\n'.join(recipients)
         issue_date = datetime.now().isoformat()
 
         with locked_on_dir(self._lock_fpath):
