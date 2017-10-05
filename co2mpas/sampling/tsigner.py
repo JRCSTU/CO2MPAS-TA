@@ -313,6 +313,8 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
         from datetime import datetime
         import textwrap as tw
 
+        ## TODO: move stamp-version out of the file.
+        stamp_version = '0.0.2'
         stamper_name = self.stamper_name
         stamper_auth = self._stamp_auth
         recipients = tw.wrap('; '.join(self.recipients),
@@ -321,6 +323,7 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
                              break_on_hyphens=False,
                              subsequent_indent='#   ',
                              )
+        nrecipients = len(recipients)
         recipients = '\n'.join(recipients)
         issue_date = datetime.now().isoformat()
 
@@ -332,11 +335,12 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
 ########################################################
 # {stamper_name} certifies that:-
 #   {sender}
-# requested to email to:-
+# requested to email to {nrecipients} to:-
 #   {recipients}
 # a report signed by:-
 #   {dreport_key_id}
 #
+# - stamp_version: {stamp_version}
 # - stamp_date: {issue_date}
 # - counter: {stamp_count:07}
 # - parent_stamp: {parent_stamp}
