@@ -25,8 +25,16 @@ frontend = flask.Blueprint('frontend', __name__)
 #
 @frontend.record
 def attach_routes(setup_state):
+    log = setup_state.app.logger
+    log.propagate = True  # By default, `False`!!!
+
     StampForm = forms.create_stamp_form_class(setup_state.app)
 
     @frontend.route('/stamp/', methods=('GET', 'POST'))
     def stamp():
-        return StampForm().render()
+        log.info("Form-values: %s", flask.request.values)
+        try:
+            return StampForm().render()
+        except Exception as ex:
+            log.fatal('Crashed due to: %s\n  %s',
+                      ex, flask.request.values, exc_info=1)
