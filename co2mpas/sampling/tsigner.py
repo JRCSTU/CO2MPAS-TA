@@ -312,19 +312,31 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
         """
         from datetime import datetime
         import textwrap as tw
+        from unidecode import unidecode
+
+        stamper_auth = self._stamp_auth
+
+        w = tw.TextWrapper(
+            width=60,  # 70 - ( 5(#    ) - 3(=0A) - 2(safety) )
+            break_long_words=False,
+            break_on_hyphens=False,
+            subsequent_indent='#   ',
+        )
+
+        def wrap(txt):
+            return '\n'.join(w.wrap(unidecode(txt)))
 
         ## TODO: move stamp-version out of the file.
-        stamp_version = '0.0.2'
+        stamp_version = '0.0.3'
         stamper_name = self.stamper_name
-        stamper_auth = self._stamp_auth
-        recipients = tw.wrap('; '.join(self.recipients),
-                             width=56,
-                             break_long_words=False,
-                             break_on_hyphens=False,
-                             subsequent_indent='#   ',
-                             )
+
+        sender = wrap(sender)
+        dreport_key_id = wrap(dreport_key_id)
+
+        recipients = self.recipients
         nrecipients = len(recipients)
-        recipients = '\n'.join(recipients)
+
+        recipients_str = wrap('; '.join(recipients))
         issue_date = datetime.now().isoformat()
 
         with locked_on_dir(self._lock_fpath):
@@ -333,17 +345,17 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
             stamp_count += 1
             tstamp_text = f"""\
 ########################################################
-# {stamper_name} certifies that:-
-#   {sender}
-# requested to email to {nrecipients} to:-
-#   {recipients}
-# a report signed by:-
-#   {dreport_key_id}
+#- {stamper_name} certifies that:
+#    {sender}
+#- requested to email to {nrecipients} recipients:
+#    {recipients_str}
+#- a report signed by:
+#    {dreport_key_id}
 #
-# - stamp_version: {stamp_version}
-# - stamp_date: {issue_date}
-# - counter: {stamp_count:07}
-# - parent_stamp: {parent_stamp}
+#- stamp_version: {stamp_version}
+#- stamp_date: {issue_date}
+#- counter: {stamp_count:07}
+#- parent_stamp: {parent_stamp}
 ########################################################
 
 
