@@ -99,33 +99,18 @@ def create_stamp_form_class(app):
         - ``trim_dreport``: remove garbage suffix from dreport
         """
 
-        def __init__(self, *args, **kws):
-            super().__init__(*args, **kws)
-
-            if self.allow_test_key:
-                msg = """
-                    <br><strong>
-                    NOTE: with `allow_test_key` in the URL,
-                    the standard <em>CLIMA/JRC</em> recipients
-                    ARE NOT added automatically!
-                    </strong>
-                """
-            else:
-                msg = """
-                    <br><strong>
-                    NOTE: the standard <em>CLIMA/JRC</em> recipients
-                    are added automatically.
-                    </strong>
-                """
-
-            self.stamp_recipients.description += msg
-
         _skeys = 'dice_stamp stamp_recipients dice_decision mail_err'.split()
 
         stamp_recipients = wtff.TextAreaField(
             label='Stamp Recipients:',
-            description="(separate email-addresses by <kbd>,</kbd>, <kbd>;</kbd>, "
-            "<kbd>[Space]</kbd>, <kbd>[Enter]</kbd>, <kbd>[Tab]</kbd> characters)",
+            description="""
+                (separate email-addresses by <kbd>,</kbd>, <kbd>;</kbd>,
+                <kbd>[Space]</kbd>, <kbd>[Enter]</kbd>, <kbd>[Tab]</kbd> characters)
+                <br><strong>
+                    NOTE: the standard <em>CLIMA/JRC</em> recipients
+                    are appended automatically.
+                    </strong>
+            """,
             validators=[wtfl.InputRequired()],
             render_kw={'rows': config['MAILIST_WIDGET_NROWS']})
 
@@ -149,31 +134,21 @@ def create_stamp_form_class(app):
             """Must contain at least 1 non-standard email-address."""
             text = field.data
             check_mx = os.name != 'nt'
-            default_recipients = iset(config.get('DEFAULT_STAMP_RECIPIENTS',
-                                                 []))
-            allow_test_key = self.allow_test_key
 
             recipients = re.split('[\s,;]+', text)
             recipients = [s and s.strip() for s in recipients]
             recipients = list(filter(None, recipients))
-            recipients = iset(recipients)
 
-            ## When test-key, respect exactly user-input, otherwise,
-            #  augment user-input with "hidden" default-recipients
-            #  (JRC & CLIMA?).
+            ## Prepend "hidden" default-recipients. (JRC & CLIMA?).
             #
-            if not allow_test_key:
-                recipients.update(default_recipients)
+            default_recipients = config.get('DEFAULT_STAMP_RECIPIENTS', [])
+            recipients = default_recipients + recipients
 
-            recipients = list(recipients)
+            recipients = list(iset(recipients))
 
-            ## Note that in `allow_test_key` mode it allows a single email;
-            #  standard-emails are not added!
-            #
-            if not recipients or (
-                    not allow_test_key and len(recipients) < 3):
+            if len(recipients) < len(default_recipients) + 1:
                 raise wtforms.ValidationError(
-                    'Specify at least 1 recipient! Got: %s' %
+                    'Specify at least 1 extra recipient! Got: %s' %
                     recipients_str(recipients))
 
             for i, email in enumerate(recipients, 1):
