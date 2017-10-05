@@ -318,7 +318,7 @@ def create_stamp_form_class(app):
             else:
                 flash(Markup("""
                     Now click the "Stamp!" button, <br>
-                    and the the dice-report signed by the key: 
+                    and the the dice-report signed by the key:
                     <pre>%s</pre>
                     will be stamped, and mailed to %s recipient(s):
                     <pre>%s</pre>

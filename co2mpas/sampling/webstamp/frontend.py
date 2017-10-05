@@ -7,6 +7,7 @@
 
 from flask import request
 import flask
+
 from . import forms
 
 
@@ -25,18 +26,19 @@ frontend = flask.Blueprint('frontend', __name__)
 #
 @frontend.record
 def attach_routes(setup_state):
-    log = setup_state.app.logger
+    app = setup_state.app
+    log = app.logger
     log.propagate = True  # By default, `False`!!!
 
-    StampForm = forms.create_stamp_form_class(setup_state.app)
+    StampForm = forms.create_stamp_form_class(app)
 
     @frontend.route('/stamp/', methods=('GET', 'POST'))
     def stamp():
-        log.info("Stamp URL: %s\n  values: %s",
-                 request.url, request.values, )
+        log.info("WebStamp URL: %s\n  values: %s",
+                 request.url, request.values)
         try:
             return StampForm().render()
         except Exception as ex:
-            log.fatal('Crashed due to: %s\n  %s',
+            log.fatal('WebStamp crashed due to: %s\n  %s',
                       ex, request.values, exc_info=1)
             raise
