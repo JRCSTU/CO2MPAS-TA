@@ -82,6 +82,10 @@ def create_app(configfile=None, logconf_file=None):
     # the CDN support (this might become a default in later versions):
     #app.config['BOOTSTRAP_SERVE_LOCAL'] = True
 
+    @app.errorhandler(500)
+    def app_error(e):
+        return app.render_template('error.html', err_code=500), 500
+
     return app
 
 

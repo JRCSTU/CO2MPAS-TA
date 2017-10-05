@@ -1,0 +1,38 @@
+{# This simple template derives from ``base.html``. See ``base.html`` for
+   more information about template inheritance. #}
+{%- extends "base.html" %}
+
+{# Loads some of the macros included with Flask-Bootstrap. We are using the
+   utils module here to automatically render Flask's flashed messages in a
+   bootstrap friendly manner #}
+{% import "bootstrap/utils.html" as utils %}
+
+
+{# From https://github.com/alexphelps/server-error-pages/blob/gh-pages/500-error.html#}
+{% block content %}
+<div class="container">
+  <!-- Jumbotron -->
+  <div class="jumbotron">
+    <h1><span class="glyphicon glyphicon-fire red"></span> {{page.title}}</h1>
+    <p class="lead">WebStamper had an internal error for <em><span id="display-domain"></span></em>.</p>
+    <a href="javascript:document.location.reload(true);" class="btn btn-default btn-lg text-center"><span class="green">Try This Page Again</span></a>
+  </div>
+</div>
+<div class="container">
+  <div class="body-content">
+    <div class="row">
+      <div class="col-md-6">
+        <h2>What happened?</h2>
+        <p class="lead">A 500 error status implies there is a problem with the web server's software causing it to malfunction.</p>
+      </div>
+      <div class="col-md-6">
+        <h2>What can I do?</h2>
+        <p class="lead">If you're a site visitor</p>
+        <p> Nothing you can do at the moment. If you need immediate assistance, please send us an email instead. We apologize for any inconvenience.</p>
+        <p class="lead">If you're the site owner</p>
+         <p>This error can only be fixed by server admins, please contact your website provider.</p>
+     </div>
+    </div>
+  </div>
+</div>
+{%- endblock %}
