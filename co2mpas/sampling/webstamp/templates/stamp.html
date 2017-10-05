@@ -4,12 +4,11 @@
 
 {% block title %}co2mpas-stamper{% endblock %}
 
-{% block content %}
+{%- block content -%}
   <div class="container">
-      <div class="jumbotron">
-        <h1>co2mpas web stamper</h1>
-      </div>
-  <div class="col-md-12">
+    <div class="jumbotron">
+      <h1>co2mpas web stamper</h1>
+    </div>
     <form action="" method="post" class="form form-horizontal" role="form">
       {%- set button_map = {
         'check': 'primary',
@@ -17,26 +16,49 @@
       }-%}
       {%- set form_type = "basic" -%}
 
-      {{ wtf.form_field(form.stamp_recipients,
-                        form_type=form_type,
-                        button_map=button_map) }}
-      {{ wtf.form_field(form.dice_report,
-                        form_type=form_type,
-                        button_map=button_map) }}
-      {{ wtf.form_field(form.repeat_dice,
-                        form_type=form_type,
-                        button_map=button_map) }}
+      <div class="row">
+        <div class="col-md-6 col-left">
+          {{ wtf.form_field(form.sender,
+                            form_type=form_type) }}
+        </div>
+        <div class="col-md-6 col-right">
+          {{ wtf.form_field(form.stamp_recipients,
+                            form_type=form_type) }}
+        </div>
+      </div>
 
-      {{ form.hidden_tag() }}
-      {{ wtf.form_errors(form, hiddens='only') }}
+      <div class="row">
+        <div class="col-md-12">
+          {{ wtf.form_field(form.dice_report,
+                            form_type=form_type) }}
+        </div>
+      </div>
 
-      {{ wtf.form_field(form.check,
-                        form_type=form_type,
-                        button_map=button_map) }}
-      {{ wtf.form_field(form.submit,
-                        form_type=form_type,
-                        button_map=button_map) }}
-      <a href='{{request.url}}' class="btn btn-default">3: New stamp...</a>
+      <div class="row">
+        <div class="col-md-12">
+          {{ wtf.form_errors(form, hiddens='only') }}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          {{ form.hidden_tag() }}
+        </div>
+      </div>
+
+      <div class="row well well-md">
+        {{ wtf.form_field(form.repeat_dice,
+                          form_type=form_type) }}
+        <div class="btn-group">
+          {{ wtf.form_field(form.check,
+                            form_type=form_type,
+                            button_map=button_map) }}
+          {{ wtf.form_field(form.submit,
+                            form_type=form_type,
+                            button_map=button_map) }}
+          <a href='{{request.url}}' class="btn btn-default">3: New stamp...</a>
+        </div>
+      </div>
     </form>
   </div>
 

@@ -26,6 +26,8 @@ import wtforms.validators as wtfl
 STAMPED_PROJECTS_KEY = 'stamped_projects'
 
 
+logger = logging.getLogger(__name__)
+
 def get_bool_arg(argname):
     """
     True is an arg alone, or a (possibly empty) string but (`no | false | 0`).
@@ -39,6 +41,12 @@ def get_bool_arg(argname):
 ## TODO: ESCAPE USER-INPUT!!!!
 def recipients_str(recipients):
     return '; '.join(recipients)
+
+
+def ascii_validator(_form, field):
+    value = field.data
+    if not all(ord(c) < 128 for c in value):
+        raise wtfl.ValidationError("Field does not accept non-ASCII chars.")
 
 
 def create_stamp_form_class(app):
@@ -99,20 +107,33 @@ def create_stamp_form_class(app):
         - ``trim_dreport``: remove garbage suffix from dreport
         """
 
-        _skeys = 'dice_stamp stamp_recipients dice_decision mail_err'.split()
+        _skeys = ['sender', 'stamp_recipients', 'dice_stamp',
+                  'dice_decision', 'mail_err']
+
+        sender = wtff.TextField(
+            label='Sender:',
+            description="""
+                Your <em>designated-email</em> and/or your name or id
+                (free form, but only ASCII).
+            """,
+            validators=[wtfl.InputRequired(),
+                        wtfl.Length(min=3, max=60),
+                        ascii_validator],
+            render_kw={'autocomplete': 'on'})
 
         stamp_recipients = wtff.TextAreaField(
             label='Stamp Recipients:',
             description="""
+                <strong>
+                  NOTE: the standard <em>CLIMA/JRC</em> recipients
+                  are appended automatically.
+                </strong><br>
                 (separate email-addresses by <kbd>,</kbd>, <kbd>;</kbd>,
                 <kbd>[Space]</kbd>, <kbd>[Enter]</kbd>, <kbd>[Tab]</kbd> characters)
-                <br><strong>
-                    NOTE: the standard <em>CLIMA/JRC</em> recipients
-                    are appended automatically.
-                    </strong>
             """,
             validators=[wtfl.InputRequired()],
-            render_kw={'rows': config['MAILIST_WIDGET_NROWS']})
+            render_kw={'rows': config['MAILIST_WIDGET_NROWS'],
+                       'autocomplete': 'on'})
 
         dice_report = wtff.TextAreaField(
             # label='Dice Report:',  Set in `_manage_session()`.
@@ -204,21 +225,29 @@ def create_stamp_form_class(app):
         def _manage_session(self, is_stamped):
             """If `is_stamped`, disable & populate fields from session, else clear it."""
             if is_stamped:
-                dice_stamp, stamp_recipients, dice_decision, mail_err = [session[k]
-                                                                         for k in
-                                                                         self._skeys]
-                self.dice_report.data = dice_stamp
+                (sender, stamp_recipients, dice_stamp,
+                 dice_decision, mail_err) = [session[k]
+                                             for k in
+                                             self._skeys]
+                self.sender.data = sender
                 self.stamp_recipients.data = recipients_str(stamp_recipients)
+                self.dice_report.data = dice_stamp
+                self.dice_report.description = """
+                    <strong><kbd>Copy</kbd> + <kbd>Paste</kbd>
+                    this <em>stamp</em> above ^^ into your AIO.</strong>
+                """
                 dreport_label = "Dice Report <em>Stamped</em>:"
                 sent_action = mail_err or 'sent'
-                flash(Markup("""
-                        Dice-stamp %s to %i recipient(s): <pre>%s</pre>
-                        Decision:<pre>\n%s</pre>
-                    """ % (sent_action, len(stamp_recipients),
-                           escape(recipients_str(stamp_recipients)),
-                           escape(yaml.dump({'dice': dice_decision},
-                                            default_flow_style=False)))),
+                flash(Markup("Stamp %s to %i recipient(s): <pre>%s</pre>" %
+                             (sent_action, len(stamp_recipients),
+                              escape(recipients_str(stamp_recipients)))),
                       'error' if mail_err else 'info')
+                flash(Markup("Decision:<pre>\n%s</pre>" %
+                             (escape(yaml.dump({'dice': dice_decision},
+                                               default_flow_style=False)))),
+                      'error'
+                      if dice_decision['decision'] == 'SAMPLE'
+                      else 'info')
             else:
                 ## Clear session and reset form.
                 #
@@ -229,7 +258,7 @@ def create_stamp_form_class(app):
 
             form_disabled = is_stamped
             btns = [self.check, self.submit]
-            fields = [self.stamp_recipients, self.dice_report]
+            fields = [self.sender, self.stamp_recipients, self.dice_report]
             for i in fields:
                 i.render_kw['readonly'] = form_disabled
             for i in btns:
@@ -317,8 +346,8 @@ def create_stamp_form_class(app):
                       'error')
             else:
                 flash(Markup("""
-                    Now click the "Stamp!" button, <br>
-                    and the the dice-report signed by the key:
+                    OK. Now click the "Stamp!" button,
+                    and the the dice-report which is signed by the key:
                     <pre>%s</pre>
                     will be stamped, and mailed to %s recipient(s):
                     <pre>%s</pre>
@@ -341,12 +370,14 @@ def create_stamp_form_class(app):
             """
             signer = self.signer
             signer.recipients = recipients
-            return signer.sign_dreport_as_tstamper(request.remote_addr,
+            sender = '(%s) %s' % (request.remote_addr, self.sender.data)
+            return signer.sign_dreport_as_tstamper(sender,
                                                    dreport)
 
         def _sendmail(self, mail_cli, txt: Text):
             mail_err = None
             try:
+                logger.info("Executing email-CLI: %s", mail_cli)
                 p = sbp.Popen(mail_cli, stdin=sbp.PIPE,
                               stderr=sbp.PIPE)
                 _stdout, mail_err = p.communicate(txt.encode('utf-8'))
@@ -366,13 +397,15 @@ def create_stamp_form_class(app):
 
             return mail_err
 
-        def _send_stamp_mails(self, recipients, dice_stamp, dice_decision):
+        def _send_stamp_mails(self, sender, recipients,
+                              dice_stamp, dice_decision):
             mail_err = None
             mail_cli = config.get('MAIL_CLI_ARGS')
             if mail_cli:
                 is_test = crypto.is_test_key(dice_decision['issuer'])
-                subject = '[dice%s] %s' % ('.test' if is_test else '',
-                                           dice_decision['tag'])
+                tag = dice_decision['tag'][:-33]  # stop after 7 Hash-chars
+                subject = '[dice%s] %s FROM %s' % (
+                    '.test' if is_test else '', tag, sender)
 
                 mail_cli = [m.format(subject=subject)
                             for m in mail_cli] + recipients
@@ -383,6 +416,7 @@ def create_stamp_form_class(app):
             return mail_err
 
         def _do_stamp(self):
+            sender = self.sender.data
             recipients = self.validate_stamp_recipients(self.stamp_recipients)
             dreport = self.dice_report.data
 
@@ -401,13 +435,13 @@ def create_stamp_form_class(app):
                       "<br>  Contact JRC for help." % (type(ex).__name__, ex)),
                       'error')
             else:
-                mail_err = self._send_stamp_mails(recipients, dice_stamp, dice_decision)
+                mail_err = self._send_stamp_mails(sender, recipients,
+                                                  dice_stamp, dice_decision)
 
                 self.repeat_dice.render_kw['disabled'] = True
                 session.update(zip(self._skeys,
-                                   [dice_stamp, recipients, dice_decision, mail_err]))
-                flash(Markup(
-                    "Import the <em>dice-stamp</em> above into your project."))
+                                   [sender, recipients, dice_stamp,
+                                    dice_decision, mail_err]))
                 project = dice_decision['tag']
                 add_project_in_stamps_cookie(request.cookies, project)
                 self._manage_session(True)
