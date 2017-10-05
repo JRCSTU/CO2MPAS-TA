@@ -171,18 +171,22 @@ def create_stamp_form_class(app):
 
             return data
 
-        def _log_client_error(self, action, error, **log_kw):
-            dreport = '<hidden>'
-            if client_validation_log_full_dreport:
-                dreport = self.dice_report.data
-                if dreport and client_validation_log_full_dreport is not True:
-                    dreport = '%s\n...\n%s' % (
-                        dreport[:client_validation_log_full_dreport],
-                        dreport[-client_validation_log_full_dreport:])
-            if app.logger.isEnabledFor(client_validation_log_level):
+        def _log_client_error(self, action, error, *,
+                              fatal=None, **log_kw):
+            level = (logging.FATAL
+                     if fatal
+                     else client_validation_log_level)
+            if app.logger.isEnabledFor(level):
+                dreport = '<hidden>'
+                if client_validation_log_full_dreport:
+                    dreport = self.dice_report.data
+                    if dreport and client_validation_log_full_dreport is not True:
+                        dreport = '%s\n...\n%s' % (
+                            dreport[:client_validation_log_full_dreport],
+                            dreport[-client_validation_log_full_dreport:])
                 indent = ' ' * 4
                 app.logger.log(
-                    client_validation_log_level,
+                    level,
                     tw.dedent("""
                         Client error while %s:
                           stamp_recipients:
@@ -352,7 +356,10 @@ def create_stamp_form_class(app):
                 mail_err = tb.format_exc()
 
             if mail_err or retcode:
-                self._log_client_error('mail', mail_err, exc_info=1)
+                self._log_client_error('mail', mail_err,
+                                       fatal=True, exc_info=1)
+
+                ## TODO: Fail (no stamp replied!) on PRODUCTION.
                 mail_err = 'NOT SENT due to: <pre>%s</pre>' % (
                     mail_err or 'retcode(%s)' % retcode)
 
@@ -385,7 +392,8 @@ def create_stamp_form_class(app):
                 self._log_client_error("Signing", ex)
                 flash(str(ex), 'error')
             except Exception as ex:
-                self._log_client_error("Signing", ex, exc_info=1)
+                self._log_client_error("Signing", ex,
+                                       fatal=True, exc_info=1)
                 if app.debug:
                     raise
                 flash(Markup("Stamp-signing failed due to: %s(%s)"
