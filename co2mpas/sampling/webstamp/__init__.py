@@ -25,6 +25,7 @@ from flask_appconfig import AppConfig
 from flask_bootstrap import Bootstrap
 
 import os.path as osp
+from raven.contrib.flask import Sentry
 import subprocess as sbp
 
 from .frontend import frontend
@@ -64,6 +65,11 @@ def create_app(configfile=None, logconf_file=None):
 
     AppConfig(app, configfile)
     app.config['GIT_VERSION'] = _get_git_version(logging.getLogger(__name__))
+
+    if 'SENTRY_DSN' in app.config:
+        sentry = Sentry()
+        sentry.init_app(app,
+                        level=app.config.get('SENTRY_LOG_LEVEL', logging.FATAL))
 
     # Install our Bootstrap extension
     Bootstrap(app)
