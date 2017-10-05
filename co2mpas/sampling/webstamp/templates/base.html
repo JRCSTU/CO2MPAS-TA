@@ -28,6 +28,20 @@
 {{fixes.ie8()}}
 {%- endblock %}
 
+
+{#- Git-version at the bottom-right.
+ #}
+{%- if request.git_version %}
+  {% block body -%}
+  {{super()}}
+
+  <div id="git_version_box">
+    <div id="git_version">{{ config['GIT_VERSION'] }}</div>
+  </div>
+  {%- endblock %}
+{%- endif %}
+
+
 {# Adding our own CSS files is also done here. Check the documentation at
    http://pythonhosted.org/Flask-Bootstrap/basic-usage.html#available-blocks
    for an overview. #}

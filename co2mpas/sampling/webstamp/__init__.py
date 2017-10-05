@@ -24,7 +24,25 @@ from flask import Flask, request
 from flask_appconfig import AppConfig
 from flask_bootstrap import Bootstrap
 
+import os.path as osp
+import subprocess as sbp
+
 from .frontend import frontend
+
+
+def _get_git_version(log):
+    try:
+        mydir = osp.dirname(__file__)
+        cmd = ['git', '-C', mydir, 'describe']
+        v = sbp.check_output(cmd, universal_newlines=True)
+        v = v and v.strip()
+        log.info("\n%s\n## Starting Flask-app version: %r", '#' * 100, v)
+
+        if v:
+            return v
+
+    except Exception as ex:
+        log.warning("Failed to get app-version due to: %s", ex)
 
 
 ## NOTE: `configfile` DEPRECATED by `flask-appconfig` in latest dev.
@@ -45,6 +63,7 @@ def create_app(configfile=None, logconf_file=None):
     app = Flask(__name__)#, instance_relative_config=True)
 
     AppConfig(app, configfile)
+    app.config['GIT_VERSION'] = _get_git_version(logging.getLogger(__name__))
 
     # Install our Bootstrap extension
     Bootstrap(app)

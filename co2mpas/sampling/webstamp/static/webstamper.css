@@ -13,3 +13,16 @@
 .error {
   color: #a94442;
 }
+
+/*
+#git_version_box {
+    position:relative;
+}
+*/
+#git_version {
+    position: absolute;
+    bottom: 0.5em;
+    right: 1em;
+    color: lightgray;
+    font-size: small;
+}
