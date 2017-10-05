@@ -12,6 +12,8 @@ MAX_CONTENT_LENGTH = 50 * 1024
 #       default, rather the app should fail if it is missing. For the sample
 #       application, one is provided for convenience.
 #SECRET_KEY = 'devkey'
+# SENTRY_DSN = 'see https://sentry.io/'
+# SENTRY_LOG_LEVEL = logging.FATAL
 
 # WTF_CSRF_ENABLED = True
 # BOOTSTRAP_SERVE_LOCAL = True
