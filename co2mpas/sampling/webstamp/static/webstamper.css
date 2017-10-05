@@ -6,6 +6,7 @@
 
 #dice_report {
   font-size: smaller;
+  font-family: monospace;
 }
 
 /* For hidden-field errors. */
