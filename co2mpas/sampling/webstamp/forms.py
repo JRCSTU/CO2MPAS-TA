@@ -1,11 +1,19 @@
+# -*- coding: utf-8 -*-
+# !/usr/bin/env python
+#
+# Copyright 2014-2017 European Commission (JRC);
+# Licensed under the EUPL (the 'Licence');
+# You may not use this work except in compliance with the Licence.
+# You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
+from co2mpas._vendor.traitlets import config as traitc
+from co2mpas.sampling import CmdException, crypto, tsigner, tstamp
 import json
 import logging
 import os
 import re
 from typing import Text
 
-from co2mpas._vendor.traitlets import config as traitc
-from co2mpas.sampling import CmdException, crypto, tsigner, tstamp
+from boltons.setutils import IndexedSet as iset
 from flask import flash, request, session
 import flask
 from flask.ctx import after_this_request
@@ -14,7 +22,7 @@ from markupsafe import escape, Markup
 from validate_email import validate_email
 import wtforms
 import yaml
-from boltons.setutils import IndexedSet as iset
+
 import pprint as pp
 import subprocess as sbp
 import textwrap as tw

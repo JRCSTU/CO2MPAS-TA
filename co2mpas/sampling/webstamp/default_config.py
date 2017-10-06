@@ -1,7 +1,15 @@
-# The default_config module automatically gets imported by Appconfig, if it
-# exists. See https://pypi.python.org/pypi/flask-appconfig for details.
+# -*- coding: utf-8 -*-
+# !/usr/bin/env python
 #
-# Copy them below in your i.e. `local_config.py`.
+# Copyright 2014-2017 European Commission (JRC);
+# Licensed under the EUPL (the 'Licence');
+# You may not use this work except in compliance with the Licence.
+# You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
+#
+## The default_config module automatically gets imported by Appconfig, if it
+#  exists. See https://pypi.python.org/pypi/flask-appconfig for details.
+#
+#  Copy them below in your i.e. `local_config.py`.
 import logging
 
 ## For DOS, limit requests to:

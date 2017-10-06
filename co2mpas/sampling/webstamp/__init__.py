@@ -1,25 +1,33 @@
-# Welcome to the Flask-Bootstrap sample application. This will give you a
-# guided tour around creating an application using Flask-Bootstrap.
+# -*- coding: utf-8 -*-
+# !/usr/bin/env python
 #
-# 1. To run this application yourself, please install its requirements first:
+# Copyright 2014-2017 European Commission (JRC);
+# Licensed under the EUPL (the 'Licence');
+# You may not use this work except in compliance with the Licence.
+# You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 #
-#     $ pip install -r sample_app/requirements.txt
+## From Flask-Bootstrap sample application. This will give you a
+#  guided tour around creating an application using Flask-Bootstrap.
 #
-# 2. Copy and adapt `default_config.py --> local_config.py` in this package
-#    (or in some other path).
-# 3. Run the application
-#    (and optionally use an absolute path for `WEBSTAMP_CONFIG` envvar):
+#  1. To run this application yourself, please install its requirements first:
 #
-#     $ WEBSTAMP_CONFIG=local_config.py flask --app=sample_app dev
+#      $ pip install -r sample_app/requirements.txt
 #
-# Afterwards, point your browser to http://localhost:5000, then check out the
-# source.
+#  2. Copy and adapt `default_config.py --> local_config.py` in this package
+#     (or in some other path).
+#  3. Run the application
+#     (and optionally use an absolute path for `WEBSTAMP_CONFIG` envvar):
+#
+#      $ WEBSTAMP_CONFIG=local_config.py flask --app=sample_app dev
+#
+#  Afterwards, point your browser to http://localhost:5000, then check out the
+#  source.
 
+from co2mpas.__main__ import init_logging
 import logging
 import os
 import sys
 
-from co2mpas.__main__ import init_logging
 from flask import Flask, request
 from flask_appconfig import AppConfig
 from flask_bootstrap import Bootstrap
