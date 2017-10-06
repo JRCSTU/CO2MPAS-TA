@@ -403,7 +403,9 @@ def create_stamp_form_class(app):
             mail_cli = config.get('MAIL_CLI_ARGS')
             if mail_cli:
                 is_test = crypto.is_test_key(dice_decision['issuer'])
-                tag = dice_decision['tag'][:-33]  # stop after 7 Hash-chars
+                tag = dice_decision['tag']  # stop after 7 Hash-chars
+                if tag:
+                    tag = tag[6:-33]  # Skip 'dices/' and stop after 7 Hash-chars
                 subject = '[dice%s] %s FROM %s' % (
                     '.test' if is_test else '', tag, sender)
 
