@@ -13,11 +13,23 @@ OPTIONS:
   -c, --commit      Commit afterwardswith a commit-message describing version bump.
   -t, --tag=<msg>   Adds a signed tag with the given message (commit implied).
 
-Without <new-ver> prints version extracted from current file.
+- Without <new-ver> prints version extracted from current file.
+- Don't add a 'v' prefix!
+
+- Pre-releases: when working on some verion
+    X.YbN               # Beta release
+    X.YrcN  or  X.YcN   # Release Candidate
+    X.Y                 # Final release
+- Post-release:
+    X.YaN.postM         # Post-release of an alpha release
+    X.YrcN.postM        # Post-release of a release candidate
+- Dev-release:
+    X.YaN.devM          # Developmental release of an alpha release
+    X.Y.postN.devM      # Developmental release of a post-release
 
 EXAMPLE:
+    bumpver -t 'Mostly model changes' 1.6.2b0
 
-  bumpver -t 'Mostly model changes' 1.6.2b0
 """
 
 import os.path as osp
@@ -156,9 +168,9 @@ def do_tag(tag, tag_msg, dry_run, force):
 
 
 def bumpver(new_ver, dry_run=False, force=False, amend=False,
-            tag_after_commit=None):
+            tag_name_or_commit=None):
     """
-    :param tag_after_commit:
+    :param tag_name_or_commit:
         if true, do `git commit`, if string, also `git tag` with that as msg.
     """
     if amend:
@@ -202,12 +214,12 @@ def bumpver(new_ver, dry_run=False, force=False, amend=False,
         yield "...now launching DocTCs..."
         run_testcases()
 
-        if tag_after_commit is not None:
+        if tag_name_or_commit is not None:
             yield from do_commit(new_ver, old_ver, dry_run, amend, ver_files)
 
-            if isinstance(tag_after_commit, str):
+            if isinstance(tag_name_or_commit, str):
                 tag = 'v%s' % new_ver
-                yield from do_tag(tag, tag_after_commit, dry_run, force)
+                yield from do_tag(tag, tag_name_or_commit, dry_run, force)
 
 
 def main(*args):
@@ -220,18 +232,18 @@ def main(*args):
     commit = opts['--commit']
     tag = opts['--tag']
     if tag:
-        tag_after_commit = tag
+        tag_name_or_commit = tag
     elif commit:
-        tag_after_commit = True
+        tag_name_or_commit = True
     else:
-        tag_after_commit = None
+        tag_name_or_commit = None
 
     try:
         for i in bumpver(new_ver,
                          opts['--dry-run'],
                          opts['--force'],
                          opts['--amend'],
-                         tag_after_commit):
+                         tag_name_or_commit):
             print(i)
     except CmdException as ex:
         sys.exit(str(ex))
