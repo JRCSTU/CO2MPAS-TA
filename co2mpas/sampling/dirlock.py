@@ -20,7 +20,7 @@ _dir_locks = defaultdict(Condition)  # type: Mapping[str, Condition]
 
 @contextlib.contextmanager
 def locked_on_dir(dpath: Text):
-    dirname = osp.dirname(dpath)
+    dirname = osp.dirname(dpath) or '.'
     assert osp.isdir(dirname), ("Missing parent-folder!", dirname)
     dlock = _dir_locks[dpath]  # type: Condition
 
