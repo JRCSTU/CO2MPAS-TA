@@ -4,7 +4,11 @@
 Script to bump, commit and tag new versions.
 
 USAGE:
-  bumpver [-n] [-f] [-c] [-a] [-t <message>]  [<new-ver>]
+  bumpver
+  bumpver [-n] [-f] [-c] [-a] [-t <message>]  <new-ver>
+
+Without <new-ver> prints version extracted from current file.
+Don't add a 'v' prefix!
 
 OPTIONS:
   -a, --amend       Amend current commit for setting the "chore(ver): ..." msg.
@@ -13,8 +17,6 @@ OPTIONS:
   -c, --commit      Commit afterwardswith a commit-message describing version bump.
   -t, --tag=<msg>   Adds a signed tag with the given message (commit implied).
 
-- Without <new-ver> prints version extracted from current file.
-- Don't add a 'v' prefix!
 
 - Pre-releases: when working on some verion
     X.YbN               # Beta release
@@ -226,6 +228,7 @@ def main(*args):
     opts = docopt.docopt(__doc__, argv=args)
 
     new_ver = opts['<new-ver>']
+
     assert not new_ver or new_ver[0] != 'v', (
         "Version '%s' must NOT start with `v`!" % new_ver)
 
