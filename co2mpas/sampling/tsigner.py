@@ -349,7 +349,7 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
 #    {sender}
 #- requested to email to {nrecipients} recipients:
 #    {recipients_str}
-#- a report signed by:
+#- a report signed by the key:
 #    {dreport_key_id}
 #
 #- stamp_version: {stamp_version}
