@@ -214,7 +214,8 @@ def main(*args):
     opts = docopt.docopt(__doc__, argv=args)
 
     new_ver = opts['<new-ver>']
-    assert new_ver[0] != 'v', "Version '%s' must NOT start with `v`!" % new_ver
+    assert not new_ver or new_ver[0] != 'v', (
+        "Version '%s' must NOT start with `v`!" % new_ver)
 
     commit = opts['--commit']
     tag = opts['--tag']
