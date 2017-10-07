@@ -19,7 +19,7 @@ _dir_locks = defaultdict(Condition)  # type: Mapping[str, Condition]
 
 
 @contextlib.contextmanager
-def locked_on_dir(dpath: Text):
+def locked_on_dir(dpath: Text, lock_wait_sec=DIR_LOCK_WAIT_SEC):
     dirname = osp.dirname(dpath) or '.'
     assert osp.isdir(dirname), ("Missing parent-folder!", dirname)
     dlock = _dir_locks[dpath]  # type: Condition
@@ -31,7 +31,7 @@ def locked_on_dir(dpath: Text):
                     os.mkdir(dpath)
                     break
                 except FileExistsError:
-                    dlock.wait(DIR_LOCK_WAIT_SEC)
+                    dlock.wait(lock_wait_sec)
 
             yield
         finally:

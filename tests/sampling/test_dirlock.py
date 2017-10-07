@@ -34,7 +34,7 @@ duration = 2.
 
 def lock_n_sleep(tdir, label):
     log.info('Started %s', label)
-    with dirlock.locked_on_dir(tdir):
+    with dirlock.locked_on_dir(tdir, 0.2):
         time.sleep(duration)
 
 def cmd_task_factory(tdir, label):
@@ -44,7 +44,7 @@ def cmd_task_factory(tdir, label):
             import time
             from co2mpas.sampling import dirlock;
 
-            with dirlock.locked_on_dir(%r):
+            with dirlock.locked_on_dir(%r, 0.2):
                 time.sleep(%s)
         """ % (tdir, duration)))
 
