@@ -29,24 +29,26 @@ log = logging.getLogger(__name__)
 
 mydir = osp.dirname(__file__)
 
-duration = 2.
+lock_duration = 2.
 
 
-def lock_n_sleep(tdir, label):
+def lock_n_sleep(label, tdir, *,
+                 lock_duration=lock_duration, **lock_kw):
     log.info('Started %s', label)
-    with dirlock.locked_on_dir(tdir, 0.2):
-        time.sleep(duration)
+    with dirlock.locked_on_dir(tdir, 0.2, **lock_kw):
+        time.sleep(lock_duration)
 
-def cmd_task_factory(tdir, label):
+def cmd_task_factory(label, tdir, **lock_kw):
     prog_path = osp.join(osp.dirname(tdir), 'p.py')
     with open(prog_path, 'wt') as f:
         f.write(tw.dedent("""
             import time
             from co2mpas.sampling import dirlock;
 
-            with dirlock.locked_on_dir(%r, 0.2):
+            lock_kw = %r
+            with dirlock.locked_on_dir(%r, 0.2, **lock_kw):
                 time.sleep(%s)
-        """ % (tdir, duration)))
+        """ % (lock_kw, tdir, lock_duration)))
 
     def task():
         log.info('Started %s.', label)
@@ -58,16 +60,16 @@ def cmd_task_factory(tdir, label):
 
     return task
 
-def worker_factory(worker_type: "thread | proc", tdir, label):
+def worker_factory(worker_type: "thread | proc", label, tdir, **lock_kw):
     label = '%s.%s' % (worker_type, label)
     if worker_type == 'cmd':
-        worker = th.Thread(target=cmd_task_factory(tdir, label),
+        worker = th.Thread(target=cmd_task_factory(label, tdir, **lock_kw),
                            daemon=True)
     elif worker_type == 'thread':
-        worker = th.Thread(target=lock_n_sleep, args=(tdir, label),
+        worker = th.Thread(target=lock_n_sleep, args=(label, tdir), kwargs=lock_kw,
                            daemon=True)
     elif worker_type == 'proc':
-        worker = mp.Process(target=lock_n_sleep, args=(tdir, label),
+        worker = mp.Process(target=lock_n_sleep, args=(label, tdir), kwargs=lock_kw,
                             daemon=True)
     else:
         assert False, worker_type
@@ -92,15 +94,29 @@ class TDirlock(unittest.TestCase):
     )
     def test_workers(self, case):
         worker_type, nprocs = case
+        abort_sec = (nprocs+ 1) * lock_duration
         start_t = time.clock()
         with tempfile.TemporaryDirectory() as tdir:
             tdir = osp.join(tdir, 'L')
-            workers = [worker_factory(worker_type, tdir, i) for i in range(nprocs)]
+            workers = [worker_factory(worker_type, i, tdir, abort_sec=abort_sec)
+                       for i in range(nprocs)]
             for w in workers:
                 w.start()
             for w in workers:
                 w.join()
         elapsed = time.clock() - start_t
 
-        exp_duration = nprocs * duration
-        assert abs(elapsed - exp_duration) <= (duration / 3)
+        exp_total_duration = nprocs * lock_duration
+        assert abs(elapsed - exp_total_duration) <= lock_duration
+
+#     @ddt.data('thread', 'proc')
+#     def test_timeout(self, worker_type):
+#         with tempfile.TemporaryDirectory() as tdir:
+#             tdir = osp.join(tdir, 'L1')
+#             workers = [worker_factory(worker_type, i, tdir,
+#                                       lock_duration=2, abort_sec=3)
+#                        for i in range(2)]
+#             for w in workers:
+#                 w.start()
+#             for w in workers:
+#                 w.join()
