@@ -10,6 +10,7 @@ from collections import (
     defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
 import io
 import os
+import os.path as osp
 import re
 import stat
 import sys
@@ -19,7 +20,6 @@ from typing import (
 from pandalone import utils as pndlu
 
 from co2mpas.sampling.dirlock import locked_on_dir
-import os.path as osp
 
 from . import CmdException, baseapp, crypto, tstamp
 from .._vendor import traitlets as trt
@@ -76,13 +76,13 @@ class SigChain(TsignerSpec):
 
     ro_file_cli = trt.List(
         trt.Unicode(),
-        default_value=['sudo', 'chattr', '+i'],
+        default_value=['/usr/bin/sudo', '/usr/bin/chattr', '+i'],
         help="""
             A non-Windows cmdline list that sets IMUTABLE file attribute.
             The file(s) to modify are appended at the end.
 
             You may use something like this in `/etc/sudoers`::
-               STAMPER_WEB     ALL=(ALL:ALL) NOPASSWD: chattr +i *
+               STAMPER_WEB     ALL=(ALL:ALL) NOPASSWD: /usr/bin/chattr +i *
         """
     ).tag(config=True)
 
