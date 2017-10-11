@@ -45,7 +45,7 @@ def _get_git_version(log):
         cmd = ['git', '-C', mydir, 'describe']
         v = sbp.check_output(cmd, universal_newlines=True)
         v = v and v.strip()
-        log.info("\n%s\n## Starting Flask-app version: %r", '#' * 100, v)
+        log.info("\n%s\n@@ Starting Flask-app version: %r", '@' * 80, v)
 
         if v:
             return v
