@@ -72,6 +72,7 @@ def create_stamp_form_class(app):
                        client_validation_log_level, ex, exc_info=1)
         client_validation_log_level = logging._nameToLevel.get(
             client_validation_log_level, logging.DEBUG)
+    logger.info("Client-faults logged as: %s", client_validation_log_level)
 
     def get_json_item(adict, key, *, as_list):
         json_type = list if as_list else dict
@@ -220,7 +221,7 @@ def create_stamp_form_class(app):
                 indent = ' ' * 4
                 app.logger.log(
                     level,
-                    tw.dedent("""
+                    tw.dedent("""\
                         Client error while %s:
                           stamp_recipients:
                         %s
