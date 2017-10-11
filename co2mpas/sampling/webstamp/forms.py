@@ -36,14 +36,15 @@ STAMPED_PROJECTS_KEY = 'stamped_projects'
 
 logger = logging.getLogger(__name__)
 
+
 def get_bool_arg(argname):
     """
-    True is an arg alone, or a (possibly empty) string but (`no | false | 0`).
+    True is an arg alone, or any stripped string not one of: ``0|false|no|off``
     """
     args = request.args
     if argname in args:
         param = args[argname].strip()
-        return param.lower() not in ['0', 'false', 'no', 'off']
+        return param.lower() not in '0 false no off'.split()
 
 
 ## TODO: ESCAPE USER-INPUT!!!!
@@ -286,9 +287,12 @@ def create_stamp_form_class(app):
                 #
                 traits_config = traitc.Config(config['TRAITLETS_CONFIG'])
 
-                flag = get_bool_arg('allow_test_key')
-                if flag is not None:
-                    traits_config.GpgSpec.allow_test_key = flag
+                ## Allow override only if not in trait-configs.
+                #
+                if 'allow_test_key' not in traits_config.GpgSpec:
+                    flag = get_bool_arg('allow_test_key')
+                    if flag is not None:
+                        traits_config.GpgSpec.allow_test_key = flag
 
                 flag = get_bool_arg('validate_decision')
                 if flag is not None:
