@@ -8,7 +8,6 @@
 from collections import defaultdict
 import contextlib
 import os
-from threading import Condition
 import time
 from typing import Text
 
@@ -18,8 +17,7 @@ import os.path as osp
 ## Spin-loop delay before retrying `mkdir(dir)`.
 DIR_LOCK_WAIT_SEC = 2
 ## Max time to abort wit-lock.
-ABORT_SEC = 5
-_dir_locks = defaultdict(Condition)  # type: Mapping[str, Condition]
+ABORT_SEC = 7
 
 
 @contextlib.contextmanager
@@ -28,23 +26,20 @@ def locked_on_dir(dpath: Text,
                   abort_sec=ABORT_SEC):
     dirname = osp.dirname(dpath) or '.'
     assert osp.isdir(dirname), ("Missing parent-folder!", dirname)
-    dlock = _dir_locks[dpath]  # type: Condition
 
     start_t = time.clock()
-    with dlock:
-        try:
-            while True:
-                try:
-                    os.mkdir(dpath)
-                    break
-                except FileExistsError:
-                    elapsed_sec = (time.clock() - start_t)
-                    if elapsed_sec > abort_sec:
-                        raise TimeoutError(dpath)
+    try:
+        while True:
+            try:
+                os.mkdir(dpath)
+                break
+            except FileExistsError:
+                elapsed_sec = (time.clock() - start_t)
+                if elapsed_sec > abort_sec:
+                    raise TimeoutError(dpath)
+                print('dirlocking...', lock_wait_sec)
+                time.sleep(lock_wait_sec)
 
-                    dlock.wait(lock_wait_sec)
-
-            yield
-        finally:
-            os.rmdir(dpath)
-            dlock.notify()
+        yield
+    finally:
+        os.rmdir(dpath)
