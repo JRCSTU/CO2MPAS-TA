@@ -76,8 +76,8 @@ def create_app(configfile=None, logconf_file=None):
 
     if 'SENTRY_DSN' in app.config:
         sentry = Sentry()
-        sentry.init_app(app,
-                        level=app.config.get('SENTRY_LOG_LEVEL', logging.FATAL))
+        sentry.init_app(
+            app, level=app.config.get('SENTRY_LOG_LEVEL', logging.FATAL))
 
     # Install our Bootstrap extension
     Bootstrap(app)

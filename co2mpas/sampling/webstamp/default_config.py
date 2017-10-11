@@ -20,6 +20,9 @@ MAX_CONTENT_LENGTH = 50 * 1024
 #       default, rather the app should fail if it is missing. For the sample
 #       application, one is provided for convenience.
 #SECRET_KEY = 'devkey'
+
+## If DSN is missing, dont install Sentry error & log handler.
+#
 # SENTRY_DSN = 'see https://sentry.io/'
 # SENTRY_LOG_LEVEL = logging.FATAL
 
