@@ -308,15 +308,14 @@ def create_stamp_form_class(app):
         def allow_test_key(self):
             return self.traits_config.GpgSpec.allow_test_key
 
-        _signer = None
-
         @property
         def signer(self) -> tsigner.TsignerService:
-            if self._signer is None:
-                self._signer = tsigner.TsignerService(
+            signer = getattr(request, 'signer', None)
+            if signer is None:
+                request.signer = signer = tsigner.TsignerService(
                     config=self.traits_config)
 
-            return self._signer
+            return signer
 
         def _check_key_exists(self):
             """Key not hosted locally, maybe missing due to connectivity."""
@@ -375,15 +374,14 @@ def create_stamp_form_class(app):
                     <pre>%s</pre>
                 """ % (uid, len(recipients), recipients_str(recipients))))
 
-        _sign_validator = None
-
         @property
         def sign_validator(self) -> tstamp.TstampReceiver:
-            if self._sign_validator is None:
-                self._sign_validator = tstamp.TstampReceiver(
+            sign_validator = getattr(request, 'sign_validator', None)
+            if sign_validator is None:
+                request.sign_validator = sign_validator = tstamp.TstampReceiver(
                     config=self.traits_config)
 
-            return self._sign_validator
+            return sign_validator
 
         def _sign_dreport(self, dreport, recipients):
             """
