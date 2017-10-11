@@ -74,10 +74,15 @@ def create_app(configfile=None, logconf_file=None):
     AppConfig(app, configfile)
     app.config['GIT_VERSION'] = _get_git_version(logging.getLogger(__name__))
 
+    ## Automatically discover DSN key:
+    #  https://docs.sentry.io/clients/python/integrations/flask/#setup
+    #
     if 'SENTRY_DSN' in app.config:
         sentry = Sentry()
-        sentry.init_app(
-            app, level=app.config.get('SENTRY_LOG_LEVEL', logging.FATAL))
+        sentry_log_level = app.config.get('SENTRY_LOG_LEVEL')
+        sentry.init_app(app,
+                        logging=bool(sentry_log_level),
+                        level=sentry_log_level)
 
     # Install our Bootstrap extension
     Bootstrap(app)

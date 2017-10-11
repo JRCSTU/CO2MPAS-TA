@@ -22,8 +22,9 @@ MAX_CONTENT_LENGTH = 50 * 1024
 #SECRET_KEY = 'devkey'
 
 ## If DSN is missing, dont install Sentry error & log handler.
-#
 # SENTRY_DSN = 'see https://sentry.io/'
+## If set, log-records of this level create Sentry-events.
+#  if not set, logging does not trigger events.
 # SENTRY_LOG_LEVEL = logging.FATAL
 
 # WTF_CSRF_ENABLED = True
