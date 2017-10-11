@@ -278,34 +278,31 @@ def create_stamp_form_class(app):
                 i.render_kw['disabled'] = form_disabled
             self.dice_report.label.text = dreport_label
 
-        _traits_config = None
-
         @property
         def traits_config(self):
-            if self._traits_config is None:
-                ## Convert Flask-config --> traitlets-config
-                #  and respect `allow_test_key` form-param.
-                #
-                traits_config = traitc.Config(config['TRAITLETS_CONFIG'])
+            """Convert Flask-config --> trait-config, respecting URL-args. """
+            tconf = getattr(request, 'traitlets_config', None)
+            if tconf is None:
+                tconf = traitc.Config(config['TRAITLETS_CONFIG'])
 
                 ## Allow override only if not in trait-configs.
                 #
-                if 'allow_test_key' not in traits_config.GpgSpec:
+                if 'allow_test_key' not in tconf.GpgSpec:
                     flag = get_bool_arg('allow_test_key')
                     if flag is not None:
-                        traits_config.GpgSpec.allow_test_key = flag
+                        tconf.GpgSpec.allow_test_key = flag
 
                 flag = get_bool_arg('validate_decision')
                 if flag is not None:
-                    traits_config.TsignerService.validate_decision = flag
+                    tconf.TsignerService.validate_decision = flag
 
                 flag = get_bool_arg('trim_dreport')
                 if flag is not None:
-                    traits_config.TsignerService.trim_dreport = flag
+                    tconf.TsignerService.trim_dreport = flag
 
-                self._traits_config = traits_config
+                request.traitlets_config = tconf
 
-            return self._traits_config
+            return tconf
 
         @property
         def allow_test_key(self):
