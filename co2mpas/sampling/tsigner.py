@@ -320,7 +320,7 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
             width=60,  # 70 - ( 5(#    ) - 3(=0A) - 2(safety) )
             break_long_words=False,
             break_on_hyphens=False,
-            subsequent_indent='#   ',
+            subsequent_indent='#    ',
         )
 
         def wrap(txt):
