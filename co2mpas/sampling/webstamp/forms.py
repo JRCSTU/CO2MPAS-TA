@@ -302,6 +302,14 @@ def create_stamp_form_class(app):
 
                 request.traitlets_config = tconf
 
+                ## Update singletons to be used that may have been
+                #  already created from previous requests!!
+                #
+                #  NOTE: singletons were designed for CLI one-off commands.
+                #
+                crypto.GitAuthSpec.clear_instance()      # @UndefinedVariable
+                crypto.StamperAuthSpec.clear_instance()  # @UndefinedVariable
+
             return tconf
 
         @property
