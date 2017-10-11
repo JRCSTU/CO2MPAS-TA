@@ -65,7 +65,10 @@ def create_stamp_form_class(app):
     client_validation_log_level = config['CLIENT_VALIDATION_LOG_LEVEL']
     try:
         client_validation_log_level = int(client_validation_log_level)
-    except:  # @IgnorePep8
+    except Exception as ex:
+        logger.warning("Invalid config param "
+                       "`CLIENT_VALIDATION_LOG_LEVEL: %s` due to: %s",
+                       client_validation_log_level, ex, exc_info=1)
         client_validation_log_level = logging._nameToLevel.get(
             client_validation_log_level, logging.DEBUG)
 
