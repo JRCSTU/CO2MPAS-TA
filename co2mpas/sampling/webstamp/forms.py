@@ -320,20 +320,29 @@ def create_stamp_form_class(app):
 
             return self._signer
 
+        def _check_key_exists(self):
+            """Key not hosted locally, maybe missing due to connectivity."""
+            check_key_script = config.get('CHECK_SIGNING_KEY_SCRIPT')
+            if check_key_script:
+                p = sbp.run(check_key_script, stdout=sbp.PIPE, stderr=sbp.PIPE)
+                if p.returncode != 0:
+                    logger.fatal("Stamper-key missing!  retcode(%s)"
+                                 "\n  stdout: %s\n  stderr: %s",
+                                 p.returncode, p.stdout, p.stderr)
+                    raise CmdException(
+                        "Signing temporarily unavailable! "
+                        "JRC has been notified, please try again later.")
+
         def _do_check(self):
             """
             :return:
                 tuple(dice_stamp, dice_decision)
             """
             dreport = self.dice_report.data
-            check_key_script = config.get('CHECK_SIGNING_KEY_SCRIPT')
 
             try:
+                self._check_key_exists()
                 recipients = self.validate_stamp_recipients(self.stamp_recipients)
-                if check_key_script:
-                    if sbp.run(check_key_script).returncode != 0:
-                        raise CmdException("Signing temporarily unavailable! "
-                                           "Please try later.")
 
                 verdict = self.sign_validator.parse_signed_tag(dreport)
                 uid = crypto.uid_from_verdict(verdict)
@@ -438,6 +447,7 @@ def create_stamp_form_class(app):
             dreport = self.dice_report.data
 
             try:
+                self._check_key_exists()
                 dice_stamp, dice_decision = self._sign_dreport(dreport,
                                                                recipients)
             except CmdException as ex:
