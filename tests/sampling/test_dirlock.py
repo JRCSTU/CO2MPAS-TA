@@ -5,17 +5,15 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-from co2mpas.__main__ import init_logging
-from co2mpas.sampling import dirlock
 import logging
-import os
 import tempfile
 import time
 import unittest
 
+from co2mpas.__main__ import init_logging
+from co2mpas.sampling import dirlock
 import ddt
 
-import functools as fnt
 import multiprocessing as mp
 import os.path as osp
 import subprocess as sbp
@@ -37,6 +35,7 @@ def lock_n_sleep(label, tdir, *,
     log.info('Started %s', label)
     with dirlock.locked_on_dir(tdir, 0.2, **lock_kw):
         time.sleep(lock_duration)
+
 
 def cmd_task_factory(label, tdir, **lock_kw):
     prog_path = osp.join(osp.dirname(tdir), 'p.py')
@@ -60,6 +59,7 @@ def cmd_task_factory(label, tdir, **lock_kw):
 
     return task
 
+
 def worker_factory(worker_type: "thread | proc", label, tdir, **lock_kw):
     label = '%s.%s' % (worker_type, label)
     if worker_type == 'cmd':
@@ -76,6 +76,7 @@ def worker_factory(worker_type: "thread | proc", label, tdir, **lock_kw):
 
     return worker
 
+
 @ddt.ddt
 class TDirlock(unittest.TestCase):
 
@@ -84,17 +85,17 @@ class TDirlock(unittest.TestCase):
         ('thread', 2),
         ('thread', 5),
 
-        ('proc'  , 1),
-        ('proc'  , 2),
-        ('proc'  , 5),
+        ('proc', 1),
+        ('proc', 2),
+        ('proc', 5),
 
-        ('cmd'  , 1),
-        ('cmd'  , 2),
-        ('cmd'  , 5),
+        ('cmd', 1),
+        ('cmd', 2),
+        ('cmd', 5),
     )
     def test_workers(self, case):
         worker_type, nprocs = case
-        abort_sec = (nprocs+ 1) * lock_duration
+        abort_sec = (nprocs + 1) * lock_duration
         start_t = time.clock()
         with tempfile.TemporaryDirectory() as tdir:
             tdir = osp.join(tdir, 'L')
