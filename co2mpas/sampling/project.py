@@ -251,7 +251,7 @@ class ProjectSpec(dice.DiceSpec):
     """Common configurations for both ProjectsDB & ProjectFSM."""
 
     max_dices_per_project = trt.Int(
-        3,
+        5,
         help="""Number of dice-attempts allowed to be forced for a project."""
     ).tag(config=True)
 
@@ -284,6 +284,11 @@ class Project(transitions.Machine, ProjectSpec):
         QuotedPrintable has 76 as limit, probably to account for CR+NL
         end-ofline chars
         """
+    ).tag(config=True)
+
+    recertify = trt.Bool(
+        help="When true, allow to `append` files in a project "
+        "on `sampe/nosample` states."
     ).tag(config=True)
 
     @classmethod
@@ -342,6 +347,14 @@ class Project(transitions.Machine, ProjectSpec):
         accepted = event.kwargs.get('force', self.force)
         if not accepted:
             self.log.warning('Transition %s-->%s denied!\n  Use force if you must.',
+                             event.transition.source, event.transition.dest)
+        return accepted
+
+    def _is_recertify(self, event):
+        accepted = (event.kwargs.get('recertify', self.recertify))
+        if not accepted:
+            self.log.warning("Transition %s-->%s denied!\n  "
+                             "Use `--recertify` if you must.",
                              event.transition.source, event.transition.dest)
         return accepted
 
@@ -412,6 +425,13 @@ class Project(transitions.Machine, ProjectSpec):
             - [do_addfiles,  wltp_out,   wltp_iof,     _is_inp_files]
 
             - [do_addfiles,  wltp_iof,   wltp_iof,     _is_force        ]
+
+            - [do_addfiles,  [sample,
+                              nosample], wltp_iof,     [_is_inp_out_files, _is_recertify]]
+            - [do_addfiles,  [sample,
+                              nosample], wltp_inp,     [_is_inp_files, _is_recertify]]
+            - [do_addfiles,  [sample,
+                              nosample], wltp_out,     [_is_out_files, _is_recertify]]
 
             - [do_report,  wltp_iof,   tagged]
             - [do_report,  tagged,     tagged]
@@ -1677,6 +1697,8 @@ class AppendCmd(_SubCmd):
     - If an input/output are already present in the current project, use --force.
     - Note that any file argument not given with `--inp`, `--out`, will end-up as "other".
     - If `--report` given, generates report if no file is missing.
+    - Use `--recertify` to re-certify a vehicle-family
+      (when a project has reached is `sample/nosample` state).
     """
 
     examples = trt.Unicode("""
@@ -1713,6 +1735,10 @@ class AppendCmd(_SubCmd):
             'report': (
                 {AppendCmd.__name__: {'report': True}},
                 AppendCmd.report.help
+            ),
+            'recertify': (
+                {Project.__name__: {'recertify': True}},
+                Project.recertify.help
             ),
         })
         super().__init__(**kwds)
