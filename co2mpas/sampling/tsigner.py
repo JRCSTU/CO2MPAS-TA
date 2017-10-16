@@ -87,7 +87,7 @@ class SigChain(TsignerSpec):
     ).tag(config=True)
 
     parent_sig_regex = trt.CRegExp(
-        r"""# parent_stamp: (\S+)""",
+        r"""# *-? *parent_stamp: (\S+)""",
     ).tag(config=True)
 
     @property
