@@ -4,6 +4,34 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
+
+v1.7.3.post0, 16 Oct 2017
+=========================
+- feat(co2p): The new option ``--recertify`` to ``co2dice project append`` allows to extend
+  certification files for some vehile-family with new ones
+
+  .. Note::
+     The old declaration-files are ALWAYS retained in the history of "re-certified"
+     projects.  You may control whether they old files will be also visible in the
+     new Dice-report or not.
+
+     For the new dice-report to contain ALL files (and in in alphabetical-order),
+     use *different* file names - otherwise, the old-files will be overwritten.
+     In the later case, the old files will be visible only to those having access
+     to the whole project, such as the TAAs after receiving the project's exported
+     archive.
+
+- fix(co2p): ``co2dice project`` commands were raising NPE exception when iterating
+  existing dice tags, e.g. ``co2dice project export .`` to export only the current
+  project raised::
+
+      AttributeError: 'NoneType' object has no attribute 'startswith'
+
+- fix(tstamp): ``co2dice tstamp`` were raising NPE exceptions when ``-force`` used on
+  invalid signatures.
+
+
+
 v1.7.3, 11 August 2017: "T-REA" Release
 =======================================
 - Dice & model fine-tuning.
