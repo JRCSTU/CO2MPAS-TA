@@ -251,7 +251,7 @@ class ProjectSpec(dice.DiceSpec):
     """Common configurations for both ProjectsDB & ProjectFSM."""
 
     max_dices_per_project = trt.Int(
-        3,
+        5,
         help="""Number of dice-attempts allowed to be forced for a project."""
     ).tag(config=True)
 
