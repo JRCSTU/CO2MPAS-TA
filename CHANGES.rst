@@ -30,6 +30,12 @@ v1.7.3.post0, 16 Oct 2017
 - fix(tstamp): ``co2dice tstamp`` were raising NPE exceptions when ``-force`` used on
   invalid signatures.
 
+Known Limitations
+~~~~~~~~~~~~~~~~~
+co2dice: if more than one dice-report is generated for a project, it is still
+possible to parse anyone tstamp on the project - no check against the hash-1
+performed.  So practically in this case, the history of the project is corrupted.
+
 
 
 v1.7.3, 11 August 2017: "T-REA" Release
