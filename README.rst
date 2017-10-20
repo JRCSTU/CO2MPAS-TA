@@ -7,7 +7,7 @@
 |co2mpas|: Vehicle simulator predicting NEDC |CO2| emissions from WLTP
 ######################################################################
 
-:official:      `AIO-1.5.5` + `co2mpas-1.5.7.b3` (until 1-Nov-2017)
+:official:      `AIO-1.7.3` + `co2mpas-1.7.3` (obligatory after 31-Oct-2017)
 :latest:        `1.7.3.post0`
 :rel_date:      `2017-08-10 23:17:18`
 :render_date:   |today|
