@@ -412,13 +412,18 @@ Dyno configuration
 DICE
 ====
 .. glossary::
-    dice report
-    stamp response
-    decision report
     dice report sheet
         A sheet in the output file containing non-confidential results of the simulation to be communicated
         to supervision bodies through a `timestamp server`.
-
+    dice report
+        Contains the information from the dice report sheet and the PGP signature, signed with the
+        electronic key of the user.
+    stamp response
+        The response from the Timestamp Server.
+    decision report
+        In CO2MPAS versions v1.7.x or later, the `co2dice project trecv/tparse` commands generate 
+        another type of report, the `decision-report`, that is also signed with your secret-key, 
+        and which contains ``HASH-2`` at the top.
     dice email
     dice request email
         The actual email sent to be timestamped (roughly derived from Input + output files)::
