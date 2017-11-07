@@ -413,6 +413,8 @@ DICE
 ====
 .. glossary::
     dice report
+    stamp response
+    decision report
     dice report sheet
         A sheet in the output file containing non-confidential results of the simulation to be communicated
         to supervision bodies through a `timestamp server`.
