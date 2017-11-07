@@ -696,7 +696,8 @@ def calculate_last_gear_box_ratio_v1(
         Gear box ratio of the last gear [-].
     :return: float
     """
-    ratio = np.arange(4, 0, -0.01)
+
+    ratio = np.arange(2, 0.2, -0.01)
 
     speed = calculate_engine_speed_at_max_velocity(
         r_dynamic, final_drive_ratios, ratio, maximum_velocity
@@ -707,7 +708,7 @@ def calculate_last_gear_box_ratio_v1(
         engine_max_speed_at_max_power, speed
     )
 
-    return ratio[p > _calculate_req_power(road_loads, maximum_velocity)].max()
+    return ratio[p > _calculate_req_power(road_loads, maximum_velocity)][0]
 
 
 def calculate_maximum_velocity(
@@ -796,7 +797,7 @@ def calculate_maximum_velocity_v1(
         engine_max_speed_at_max_power, speed
     )
 
-    return velocity[p > _calculate_req_power(road_loads, velocity)].max()
+    return velocity[p > _calculate_req_power(road_loads, velocity)][0]
 
 
 def calculate_first_gear_box_ratio(
