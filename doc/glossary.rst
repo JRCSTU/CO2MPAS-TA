@@ -413,17 +413,25 @@ DICE
 ====
 .. glossary::
     dice report sheet
-        A sheet in the output file containing non-confidential results of the simulation to be communicated
-        to supervision bodies through a `timestamp server`.
+        A sheet in the output excel-file containing non-confidential results of the simulation
+        to be communicated to supervision bodies through a `timestamp server`.
+
     dice report
-        Contains the information from the dice report sheet and the PGP signature, signed with the
-        electronic key of the user.
+        Contains the information from the dice report sheet,
+        signed with the electronic key of the user (TS) running the type-approval.
+
     stamp response
-        The response from the Timestamp Server.
+        The response from the Timestamp email-server.
+
     decision report
-        In CO2MPAS versions v1.7.x or later, the `co2dice project trecv/tparse` commands generate 
-        another type of report, the `decision-report`, that is also signed with your secret-key, 
-        and which contains ``HASH-2`` at the top.
+        Since |co2mpas| v1.7.x, the ``co2dice project tparse/trecv`` commands
+        generate this new type of report, also signed with a `TS` secret-key,
+        containing the final `HASH-2`.
+
+    HASH-2
+        The cryptographic `hash` unequivocally identifying a completed type-aproval,
+        produced and signed by the `TS`, and send to the `TAA`.
+
     dice email
     dice request email
         The actual email sent to be timestamped (roughly derived from Input + output files)::
@@ -432,7 +440,7 @@ DICE
 
     dice stamp
     dice response email
-        The timestamped `dice email` as received from the `timestamp server`,
+        The timestamped `dice email` as received from the `timestamp mail server`,
         from which the OK/SAMPLE decision-flag is derived:
 
         := dice email + timestamp + Signature (random)
@@ -467,9 +475,18 @@ DICE
         := output Report + dice decision + Hash #2
 
     timestamp server
+        The `timestamp mail server` and the `WebStamper` services that append
+        a cryptographic signature on an "incoming" `dice report`, certifying thus
+        its existence in that specific time.
+
+    timestamp mail server
         The email service that appends a cryptographic signature on all its incoming e-mails,
         certifying thus the existence in time of those emails.  The trust on its certifications
         stems from the list of signatures published daily in its site.
+
+    WebStamper
+        The user-friendly web-application that uses a simple HTTP-form to time-stamp
+        the pasted `dice-report` and send out the `stamp` to specified recipients.
 
 
 Generic terms
@@ -480,6 +497,24 @@ Generic terms
 
     WLTP
         Worldwide harmonized Light vehicles Test Procedures
+
+    |co2mpas|
+        May refer to the application, the correlation procedure, or the simulator.
+
+    Co2mpas
+        The `WLTP` --> `NEDC` simulator
+
+    co2dice
+    Dice
+        the sampling application
+
+    Dice
+    dice command
+    dice application,
+    sampling application,
+        The |co2mpas| application or procedure responsible for producing a sampling flag that defines
+        whether a Vehicle has to undergo a physical testing under NEDC (in addition to WLTP).
+        Used also as a verb: "to dice the simulation files".
 
     repeatability
         The capability of |co2mpas| to duplicate the exact simulation results when running repeatedly
@@ -503,13 +538,6 @@ Generic terms
         exclusively on its contents; even if a single bit of the file changes,
         its hash-id is guaranteed to be totally different.
 
-    dice
-    dice command
-    dice application,
-    sampling application,
-        The |co2mpas| application responsible for producing a sampling flag that defines
-        whether a Vehicle has to undergo a physical testing under NEDC (in addition to WLTP).
-
     Git
         An open-source version control system use for software development that
         organizes files in versioned folders, stored based on their `hash`.
@@ -528,7 +556,7 @@ Generic terms
     Hash DB
     Git repo
     Git repo DB
-        The git repository maintained by the `dice` command that collects all the files and reports
+        The git repository maintained by the `dice command` that collects all the files and reports
         generated during the Type Approving process with |co2mpas|.
         It is created by the Technical Service and must be sent to the Type Approval Authority.
         Any `hash` generated in the mean time are retrieved by this repository.
@@ -541,6 +569,13 @@ Generic terms
     OEM
         Original Equipment Manufacturers, eg. a Vehicle manufacturer
 
+    TAA
+        Type Approval Authority: the national supervision body for some `WLTP` test
+
+    TS
+        Technical service: the entity running the `WLTP` on behalf of the `OEM`,
+        which reports to some `TAA`.  in some cases, the `TAA` might be also the *TS*.
+
     Capped cycles
         For vehicles that cannot follow the standard NEDC/WLTP cycles (for example, because they have not enough power to attain the acceleration and maximum speed values required in the operating cycle) it is still possible to use the |co2mpas| tool to predict the NEDC |co2| emission. For these capped cycles, the vehicle has to be operated with the accelerator control fully depressed until they once again reach the required operating curve. Thus, the operated cycle may last more than the standard duration seconds and the subphases may vary in duration. Therefore there is a need to indicate the exact duration of each subphase. This can be done by filling in, the corresponding bag_phases vector in the input file which define the phases integration time [1,1,1,...,2,2,2,...,3,3,3,...,4,4,4]. Providing this input for WLTP cycles together with the other standard vectorial inputs such as speed,engine speed, etc. allows |co2mpas| to process a "modified" WLTP and get calibrated properly. The NEDC that is predicted corresponds to the respective NEDC velocity profile and gearshifting that applies to the capped cycle, which is provided in the appropriate tab. Note that, providing NEDC velocity and gear shifting profile is not allowed for normal vehicles.
 
@@ -549,6 +584,8 @@ Generic terms
         the  wheels and vehicle components rotating with the wheels on the road while the gearbox is placed in neutral, in kg. It shall
         be measured or calculated using an appropriate technique agreed upon by the responsible authority. Alternatively, it may be
         estimated to be 3 per cent of the sum of the mass in running order and 25 kg.
+
+
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
 .. |CO2| replace:: CO\ :sub:`2`
 .. |NOx| replace:: NO\ :sub:`x`\
