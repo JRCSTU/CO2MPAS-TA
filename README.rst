@@ -26,8 +26,8 @@
 |co2mpas| is backward-looking longitudinal-dynamics |CO2| and
 fuel-consumption simulator for light-duty M1 & N1 vehicles (cars and vans), specially crafted to
 *estimate and type-approve CO2 emissions* of vehicles undergoing NEDC testing
-based on the emissions produced during WLTP tests, according to the *EU legislation*
-(see `History`_ section, below).
+based on the emissions produced during WLTP tests, according to the
+*EU legislations 1152/EUR/2017 and 1153/EUR/2017* (see `History`_ section, below).
 
 It is an open-source project(`EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_)
 developed for Python-3.5+ using |winpython|_ & |anaconda|_ under Windows 7,
@@ -99,7 +99,7 @@ History
 The *European Commission* has introduced the *WLTP* as test procedure for the type I test
 of the European type-approval of Light-duty vehicles as of September 2017.
 Its introduction has required the adaptation of |CO2| certification and monitoring procedures
-set by European regulations (443/2009 and 510/2011).
+set by European regulations (443/2009, 510/2011, 1152/EUR/2017 and 1153/EUR/2017).
 European Commission’s *Joint Research Centre* (JRC) has been assigned the development
 of this vehicle simulator to facilitate this adaptation.
 
