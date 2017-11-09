@@ -21,6 +21,34 @@ It contains a comprehensive list of all CO2MPAS software models and sub-models:
 
 import schedula as sh
 
+_prediction_data = [
+    'angle_slope', 'alternator_nominal_voltage', 'alternator_efficiency',
+    'battery_capacity', 'cycle_type', 'cycle_name', 'engine_capacity',
+    'engine_stroke', 'final_drive_efficiency', 'final_drive_ratios',
+    'frontal_area', 'final_drive_ratio', 'engine_thermostat_temperature',
+    'aerodynamic_drag_coefficient', 'fuel_type', 'ignition_type',
+    'gear_box_type', 'engine_max_power', 'engine_max_speed_at_max_power',
+    'rolling_resistance_coeff', 'time_cold_hot_transition',
+    'engine_idle_fuel_consumption', 'engine_type', 'engine_is_turbo',
+    'engine_fuel_lower_heating_value', 'has_start_stop',
+    'has_energy_recuperation', 'fuel_carbon_content_percentage',
+    'f0', 'f1', 'f2', 'vehicle_mass', 'full_load_speeds',
+    'plateau_acceleration', 'full_load_powers', 'fuel_saving_at_strategy',
+    'stand_still_torque_ratio', 'lockup_speed_ratio',
+    'change_gear_window_width', 'alternator_start_window_width',
+    'stop_velocity', 'min_time_engine_on_after_start',
+    'min_engine_on_speed', 'max_velocity_full_load_correction',
+    'is_hybrid', 'tyre_code', 'engine_has_cylinder_deactivation',
+    'active_cylinder_ratios', 'engine_has_variable_valve_actuation',
+    'has_torque_converter', 'has_gear_box_thermal_management',
+    'has_lean_burn', 'ki_factor', 'n_wheel_drive',
+    'has_periodically_regenerating_systems', 'n_dyno_axes',
+    'has_selective_catalytic_reduction', 'has_exhausted_gas_recirculation',
+    'start_stop_activation_time'
+]
+
+_prediction_data_ts = ['times', 'velocities', 'gears']
+
 
 def select_prediction_data(data, *new_data):
     """
@@ -39,35 +67,10 @@ def select_prediction_data(data, *new_data):
     :rtype: dict
     """
 
-    ids = [
-        'angle_slope', 'alternator_nominal_voltage', 'alternator_efficiency',
-        'battery_capacity', 'cycle_type', 'cycle_name', 'engine_capacity',
-        'engine_stroke', 'final_drive_efficiency', 'final_drive_ratios',
-        'frontal_area', 'final_drive_ratio', 'engine_thermostat_temperature',
-        'aerodynamic_drag_coefficient', 'fuel_type', 'ignition_type',
-        'gear_box_type', 'engine_max_power', 'engine_max_speed_at_max_power',
-        'rolling_resistance_coeff', 'time_cold_hot_transition',
-        'engine_idle_fuel_consumption', 'engine_type', 'engine_is_turbo',
-        'engine_fuel_lower_heating_value', 'has_start_stop',
-        'has_energy_recuperation', 'fuel_carbon_content_percentage',
-        'f0', 'f1', 'f2', 'vehicle_mass', 'full_load_speeds',
-        'plateau_acceleration', 'full_load_powers', 'fuel_saving_at_strategy',
-        'stand_still_torque_ratio', 'lockup_speed_ratio',
-        'change_gear_window_width', 'alternator_start_window_width',
-        'stop_velocity', 'min_time_engine_on_after_start',
-        'min_engine_on_speed', 'max_velocity_full_load_correction',
-        'is_hybrid', 'tyre_code', 'engine_has_cylinder_deactivation',
-        'active_cylinder_ratios', 'engine_has_variable_valve_actuation',
-        'has_torque_converter', 'has_gear_box_thermal_management',
-        'has_lean_burn', 'ki_factor', 'n_wheel_drive',
-        'has_periodically_regenerating_systems', 'n_dyno_axes',
-        'has_selective_catalytic_reduction', 'has_exhausted_gas_recirculation',
-        'start_stop_activation_time'
-    ]
-
+    ids = _prediction_data
     from .physical.defaults import dfl
     if not dfl.functions.select_prediction_data.theoretical:
-        ids += ['times', 'velocities', 'gears']
+        ids = ids + _prediction_data_ts
 
     data = sh.selector(ids, data, allow_miss=True)
 
