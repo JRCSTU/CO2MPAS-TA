@@ -47,8 +47,8 @@ IF you already have a full-blown *python-3 environment*
 (i.e. *Linux* or the *all-in-one* archive), AND
 IF you have familiarity with previous releases, THEN
 you can immediately start working with the following *bash* commands;
-otherwise follow the detailed instructions under sections :ref:`install` and
-:ref:`usage`.
+otherwise follow the detailed instructions under sections :ref:`co2mpas-install` and
+:ref:`co2mpas-usage`.
 
 .. code-block:: console
 
@@ -148,7 +148,7 @@ their use without our consent, beyond their intended usage, which is to run |co2
   :depth: 4
 
 
-.. _install:
+.. _co2mpas-install:
 
 Install
 =======
@@ -318,7 +318,7 @@ Generic Tips
 
   Please follow the upgrade procedure in the main documentation.
 
-.. _usage:
+.. _co2mpas-usage:
 
 
 Usage
@@ -353,7 +353,7 @@ Alternatively, open the CONSOLE and type the following command:
 |co2mpas| command syntax
 ------------------------
 To get the syntax of the |co2mpas| console-command, open a console where
-you have installed |co2mpas| (see :ref:`install` above) and type::
+you have installed |co2mpas| (see :ref:`co2mpas-install` above) and type::
 
     ## co2mpas help.
     $ co2mpas --help
@@ -955,7 +955,7 @@ installed:
 6. When you have finished, return to the console and issue twice ``Ctrl + C``
    to shutdown the *ipython-server*.
 
-.. _debug:
+.. _co2mpas-debug:
 
 Debugging and investigating results
 -----------------------------------
@@ -1294,7 +1294,7 @@ It is not update-able, and has a quasi-regular release-cycle of 3 months.
         ....
 
 
-4. Use this console and follow :ref:`install-co2mpas-package` instructions, below.
+4. Use this console and follow :ref:`co2mpas-install-package` instructions, below.
 
 
 
@@ -1327,10 +1327,10 @@ It is not update-able, and has a semi-regular release-cycle of 3 months.
         > where python
         ....
 
-4. Use this console and follow :ref:`install-co2mpas-package` instructions, below.
+4. Use this console and follow :ref:`co2mpas-install-package` instructions, below.
 
 
-.. _install-co2mpas-package:
+.. _co2mpas-install-package:
 
 Install |co2mpas| package
 -------------------------
@@ -1393,7 +1393,7 @@ you need to install the **Graphviz** visualization library  from:
 http://www.graphviz.org/.
 
 If you skip this step, the ``modelgraph`` sub-command and the ``--plot-workflow``
-option would both fail to run (see :ref:`debug`).
+option would both fail to run (see :ref:`co2mpas-debug`).
 
 
 
@@ -1564,7 +1564,7 @@ where in each one you can install a different versions of |co2mpas|.
 
 
 6. Install the |co2mpas| version you want inside the activated venv.
-   See the :ref:`install-co2mpas-package` section, above.
+   See the :ref:`co2mpas-install-package` section, above.
 
    .. Tip::
       Always store the installation logs, particularly if you install a specific version

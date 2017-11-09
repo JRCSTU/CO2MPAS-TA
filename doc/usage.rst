@@ -1,5 +1,5 @@
 .. include:: ../README.rst
-    :start-after: _usage:
+    :start-after: _co2mpas-usage:
     :end-before: _explanation:
 
 .. include:: ../README.rst
