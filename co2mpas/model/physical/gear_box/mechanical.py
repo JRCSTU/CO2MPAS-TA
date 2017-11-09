@@ -9,15 +9,15 @@
 It contains functions that model the basic mechanics of the gear box.
 """
 
-import functools
 import math
-import scipy.interpolate as sci_itp
-import scipy.optimize as sci_opt
-import scipy.stats as sci_sta
-import sklearn.cluster as sk_clu
-import schedula as sh
-import co2mpas.utils as co2_utl
+import functools
 import numpy as np
+import schedula as sh
+import scipy.stats as sci_sta
+import co2mpas.utils as co2_utl
+import scipy.optimize as sci_opt
+import sklearn.cluster as sk_clu
+import scipy.interpolate as sci_itp
 import co2mpas.model.physical.defaults as defaults
 
 
@@ -696,8 +696,8 @@ def calculate_last_gear_box_ratio_v1(
         Gear box ratio of the last gear [-].
     :return: float
     """
-
-    ratio = np.arange(2, 0.2, -0.01)
+    dfl = defaults.dfl.functions.calculate_last_gear_box_ratio_v1
+    ratio = np.arange(dfl.MAX_RATIO, dfl.MIN_RATIO, -dfl.DELTA_RATIO)
 
     speed = calculate_engine_speed_at_max_velocity(
         r_dynamic, final_drive_ratios, ratio, maximum_velocity
@@ -786,7 +786,8 @@ def calculate_maximum_velocity_v1(
         Maximum velocity [km/h].
     :return: float
     """
-    velocity = np.arange(500, 0, -1)
+    dfl = defaults.dfl.functions.calculate_maximum_velocity_v1
+    velocity = np.arange(dfl.MAX_VEL, dfl.MIN_VEL, -dfl.DELTA_VEL)
 
     speed = calculate_engine_speed_at_max_velocity(
         r_dynamic, final_drive_ratios, last_gear_box_ratio, velocity
@@ -830,10 +831,12 @@ def calculate_first_gear_box_ratio(
         Gear box ratio of the first gear [-].
     :return: float
     """
-    slope = np.arctan(0.5)
+    dfl = defaults.dfl.functions.calculate_first_gear_box_ratio
+    max_torque = engine_max_torque * dfl.MAX_TORQUE_PERCENTAGE
+    slope = np.arctan(dfl.STARTING_SLOPE)
     ratio = f0 * np.cos(slope)
     ratio += maximum_vehicle_laden_mass * 9.81 * np.sin(slope)
-    ratio /= (engine_max_torque * 0.95 * final_drive_ratios[1]) / r_dynamic
+    ratio /= (max_torque * final_drive_ratios[1]) / r_dynamic
     return ratio
 
 
@@ -857,8 +860,8 @@ def design_gear_box_ratios(n_gears, first_gear_box_ratio, last_gear_box_ratio):
         Gear box ratios [-].
     :rtype: dict
     """
-
-    f_two, f_tuning = 1.13, 1
+    dfl = defaults.dfl.functions.design_gear_box_ratios
+    f_two, f_tuning = dfl.f_two, dfl.f_tuning
     ratios = np.zeros(n_gears, float)
     ratios[0], ratios[-1] = first_gear_box_ratio, last_gear_box_ratio
 

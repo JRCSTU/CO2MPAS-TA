@@ -199,6 +199,41 @@ class Values(co2_utl.Constants):
 
 #: Container of internal function parameters.
 class Functions(co2_utl.Constants):
+    class calculate_last_gear_box_ratio_v1(co2_utl.Constants):
+        #: Maximum admissible ratio for the last gear [-].
+        MAX_RATIO = 2
+
+        #: Minimum admissible ratio for the last gear [-].
+        MIN_RATIO = 0.2
+
+        #: Delta ratio for calculating the last gear [-].
+        DELTA_RATIO = 0.1
+
+    class calculate_maximum_velocity_v1(co2_utl.Constants):
+        #: Maximum admissible velocity for the vehicle maximum velocity [km/h].
+        MAX_VEL = 500
+
+        #: Minimum admissible velocity for the vehicle maximum velocity [km/h].
+        MIN_VEL = 1
+
+        #: Delta ratio for calculating the vehicle maximum velocity [km/h].
+        DELTA_VEL = 1
+
+    class calculate_first_gear_box_ratio(co2_utl.Constants):
+        #: Starting slope [-].
+        STARTING_SLOPE = 0.5  # --> 50%
+
+        #: Percentage of maximum engine torque to calculate the first gear [-].
+        MAX_TORQUE_PERCENTAGE = 0.95
+
+    class design_gear_box_ratios(co2_utl.Constants):
+        #: Two factor to design the gear box ratios [-].
+        f_two = 1.13
+
+        #: Tuning factor to design the gear box ratios [-].
+        f_tuning = 1
+
+
     class _filter_temperature_samples(co2_utl.Constants):
         #: Max abs val of temperature derivatives during the cold phase [°C/s].
         max_abs_dt_cold = 0.7
