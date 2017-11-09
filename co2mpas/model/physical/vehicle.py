@@ -495,6 +495,113 @@ def apply_f0_correction(f0_uncorrected, correct_f0):
     return f0_uncorrected
 
 
+def calculate_passengers_mass(n_passengers, passenger_mass):
+    """
+    Calculate passengers mass including driver [kg].
+
+    :param n_passengers:
+        Number of passengers including driver [-].
+    :type n_passengers: int
+
+    :param passenger_mass:
+        Average passenger mass [kg].
+    :type passenger_mass: float
+
+    :return:
+        Passengers mass including the driver [kg].
+    :rtype: float
+    """
+
+    return passenger_mass * n_passengers
+
+
+def calculate_curb_mass(unladen_mass, fuel_mass):
+    """
+    Calculate unladen mass [kg].
+
+    :param unladen_mass:
+        Unladen mass [kg].
+    :type unladen_mass: float
+
+    :param fuel_mass:
+        Fuel mass [kg].
+    :type fuel_mass: float
+
+    :return:
+        Curb mass [kg].
+    :rtype: float
+    """
+
+    return unladen_mass - fuel_mass
+
+
+def calculate_unladen_mass(curb_mass, fuel_mass):
+    """
+    Calculate unladen mass [kg].
+
+    :param curb_mass:
+        Curb mass [kg].
+    :type curb_mass: float
+
+    :param fuel_mass:
+        Fuel mass [kg].
+    :type fuel_mass: float
+
+    :return:
+        Unladen mass [kg].
+    :rtype: float
+    """
+
+    return curb_mass + fuel_mass
+
+
+def calculate_unladen_mass_v1(vehicle_mass, passengers_mass, cargo_mass):
+    """
+    Calculate unladen mass [kg].
+
+    :param vehicle_mass:
+        Vehicle mass [kg].
+    :type vehicle_mass: float
+
+    :param passengers_mass:
+        Passengers mass including the driver [kg].
+    :type passengers_mass: float
+
+    :param cargo_mass:
+        Cargo mass [kg].
+    :type cargo_mass: float
+
+    :return:
+        Unladen mass [kg].
+    :rtype: float
+    """
+
+    return vehicle_mass - passengers_mass - cargo_mass
+
+def calculate_vehicle_mass(unladen_mass, passengers_mass, cargo_mass):
+    """
+    Calculate vehicle_mass [kg].
+
+    :param unladen_mass:
+        Unladen mass [kg].
+    :type unladen_mass: float
+
+    :param passengers_mass:
+        Passengers mass including the driver [kg].
+    :type passengers_mass: float
+
+    :param cargo_mass:
+        Cargo mass [kg].
+    :type cargo_mass: float
+
+    :return:
+        Vehicle mass [kg].
+    :rtype: float
+    """
+
+    return unladen_mass + passengers_mass + cargo_mass
+
+
 def vehicle():
     """
     Defines the vehicle model.
@@ -529,6 +636,41 @@ def vehicle():
         function=calculate_aerodynamic_resistances,
         inputs=['f2', 'velocities'],
         outputs=['aerodynamic_resistances']
+    )
+
+    d.add_data('n_passengers', dfl.values.n_passengers)
+    d.add_data('passenger_mass', dfl.values.passenger_mass)
+    d.add_data('cargo_mass', dfl.values.cargo_mass)
+    d.add_data('fuel_mass', dfl.values.fuel_mass)
+
+    d.add_function(
+        function=calculate_passengers_mass,
+        inputs=['n_passengers', 'passenger_mass'],
+        outputs=['passengers_mass']
+    )
+
+    d.add_function(
+        function=calculate_unladen_mass,
+        inputs=['curb_mass', 'fuel_mass'],
+        outputs=['unladen_mass']
+    )
+
+    d.add_function(
+        function=calculate_unladen_mass_v1,
+        inputs=['vehicle_mass', 'passengers_mass', 'cargo_mass'],
+        outputs=['unladen_mass']
+    )
+
+    d.add_function(
+        function=calculate_curb_mass,
+        inputs=['unladen_mass', 'fuel_mass'],
+        outputs=['curb_mass']
+    )
+
+    d.add_function(
+        function=calculate_vehicle_mass,
+        inputs=['unladen_mass', 'passengers_mass', 'cargo_mass'],
+        outputs=['vehicle_mass']
     )
 
     d.add_function(
@@ -645,7 +787,7 @@ def vehicle():
         inputs=['n_dyno_axes'],
         outputs=['inertial_factor']
     )
-
+    'vehicle_mass'
     d.add_function(
         function=calculate_rotational_inertia_forces,
         inputs=['vehicle_mass', 'inertial_factor', 'accelerations'],

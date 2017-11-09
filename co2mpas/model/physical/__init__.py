@@ -208,13 +208,13 @@ def physical():
         inputs=(
             'accelerations', 'bag_phases', 'climbing_force', 'cycle_type',
             'downscale_factor', 'downscale_factor_threshold',
-            'downscale_phases', 'driver_mass', 'engine_max_power',
+            'downscale_phases', 'engine_max_power',
             'engine_max_speed_at_max_power', 'full_load_curve', 'gear_box_type',
             'gears', 'idle_engine_speed', 'inertial_factor', 'k1', 'k2', 'k5',
             'max_gear', 'max_speed_velocity_ratio', 'max_time', 'max_velocity',
             'motive_powers', 'road_loads', 'speed_velocity_ratios',
-            'time_sample_frequency', 'times', 'vehicle_mass', 'velocities',
-            'wltp_base_model', 'wltp_class'),
+            'time_sample_frequency', 'times', 'unladen_mass', 'vehicle_mass',
+            'velocities', 'wltp_base_model', 'wltp_class'),
         outputs=(
             'gears', 'initial_temperature', 'phases_integration_times', 'times',
             'velocities')
@@ -227,16 +227,17 @@ def physical():
         dsp=vehicle(),
         inputs=(
             'aerodynamic_drag_coefficient', 'air_density', 'angle_slope',
-            'angle_slopes', 'correct_f0', 'cycle_type', 'f0', 'f0_uncorrected',
-            'f1', 'f2', 'frontal_area', 'has_roof_box', 'inertial_factor',
-            'n_dyno_axes', 'obd_velocities', 'road_loads',
+            'angle_slopes', 'cargo_mass', 'correct_f0', 'cycle_type',
+            'curb_mass', 'f0', 'f0_uncorrected', 'f1', 'f2', 'frontal_area',
+            'fuel_mass', 'has_roof_box', 'inertial_factor', 'n_dyno_axes',
+            'obd_velocities', 'passenger_mass', 'road_loads',
             'rolling_resistance_coeff', 'times', 'tyre_category', 'tyre_class',
-            'vehicle_body', 'vehicle_category', 'vehicle_height',
-            'vehicle_mass', 'vehicle_width', 'velocities'),
+            'unladen_mass', 'vehicle_body', 'vehicle_category',
+            'vehicle_height', 'vehicle_mass', 'vehicle_width', 'velocities'),
         outputs=(
-            'accelerations', 'angle_slopes', 'climbing_force', 'f0', 'f1', 'f2',
-            'inertial_factor', 'motive_powers', 'n_dyno_axes', 'road_loads',
-            'velocities'),
+            'accelerations', 'angle_slopes', 'climbing_force', 'curb_mass',
+            'f0', 'f1', 'f2', 'inertial_factor', 'motive_powers', 'n_dyno_axes',
+            'road_loads', 'unladen_mass', 'velocities'),
     )
 
     from .wheels import wheels

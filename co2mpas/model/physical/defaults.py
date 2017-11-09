@@ -17,6 +17,18 @@ import co2mpas.utils as co2_utl
 
 #: Container of node default values.
 class Values(co2_utl.Constants):
+    #: Number of passengers including driver [-].
+    n_passengers = 1
+
+    #: Average passenger mass [kg].
+    passenger_mass = 75
+
+    #: Cargo mass [kg].
+    cargo_mass = 0
+
+    #: Fuel mass [kg].
+    fuel_mass = 25
+
     #: Does the engine have selective catalytic reduction technology?
     has_selective_catalytic_reduction = False
 

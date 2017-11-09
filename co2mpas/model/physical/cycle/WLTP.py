@@ -22,26 +22,6 @@ logging.getLogger('wltp.experiment').setLevel(logging.WARNING)
 log = logging.getLogger(__name__)
 
 
-def calculate_unladen_mass(vehicle_mass, driver_mass):
-    """
-    Calculate unladen mass [kg].
-
-    :param vehicle_mass:
-        Vehicle mass [kg].
-    :type vehicle_mass: float
-
-    :param driver_mass:
-        Driver mass [kg].
-    :type driver_mass: float
-
-    :return:
-        Unladen mass [kg].
-    :rtype: float
-    """
-
-    return vehicle_mass - driver_mass
-
-
 def calculate_max_speed_velocity_ratio(speed_velocity_ratios):
     """
     Calculates the maximum speed velocity ratio of the gear box [h*RPM/km].
@@ -335,7 +315,7 @@ def get_dfl(wltp_base_model):
     """
 
     params = wltp_base_model['params']
-    keys = 'driver_mass', 'resistance_coeffs_regression_curves', 'wltc_data'
+    keys = 'resistance_coeffs_regression_curves', 'wltc_data'
     return sh.selector(keys, params, output_type='list')
 
 
@@ -421,7 +401,7 @@ def wltp_cycle():
             'downscale_factor': 'downscale_factor',
             'downscale_factor_threshold': 'downscale_factor_threshold',
             'vehicle_mass': 'vehicle_mass',
-            'driver_mass': 'driver_mass',
+            'unladen_mass': 'unladen_mass',
             'road_loads': 'road_loads',
             'engine_max_power': 'engine_max_power',
             'engine_max_speed_at_max_power': 'engine_max_speed_at_max_power',
@@ -469,14 +449,7 @@ def calculate_wltp_velocities():
     d.add_function(
         function=get_dfl,
         inputs=['base_model'],
-        outputs=['driver_mass', 'resistance_coeffs_regression_curves',
-                 'wltc_data']
-    )
-
-    d.add_function(
-        function=calculate_unladen_mass,
-        inputs=['vehicle_mass', 'driver_mass'],
-        outputs=['unladen_mass']
+        outputs=['resistance_coeffs_regression_curves', 'wltc_data']
     )
 
     d.add_function(
