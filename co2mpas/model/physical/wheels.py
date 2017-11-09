@@ -137,11 +137,11 @@ def identify_r_dynamic_v1(
 
     :param gear_box_ratios:
         Gear box ratios [-].
-    :type gear_box_ratios: dict
+    :type gear_box_ratios: dict[int | float]
 
     :param final_drive_ratios:
         Final drive ratios [-].
-    :type final_drive_ratios: dict
+    :type final_drive_ratios: dict[int | float]
 
     :param stop_velocity:
         Maximum velocity to consider the vehicle stopped [km/h].
@@ -197,11 +197,11 @@ def identify_r_dynamic_v2(
 
     :param gear_box_ratios:
         Gear box ratios [-].
-    :type gear_box_ratios: dict
+    :type gear_box_ratios: dict[int | float]
 
     :param final_drive_ratios:
         Final drive ratios [-].
-    :type final_drive_ratios: dict
+    :type final_drive_ratios: dict[int | float]
 
     :param idle_engine_speed:
         Engine speed idle median and std [RPM].
@@ -249,15 +249,15 @@ def identify_r_dynamic(
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict
+    :type velocity_speed_ratios: dict[int | float]
 
     :param gear_box_ratios:
         Gear box ratios [-].
-    :type gear_box_ratios: dict
+    :type gear_box_ratios: dict[int | float]
 
     :param final_drive_ratios:
-        Final drive ratio [-].
-    :type final_drive_ratios: float
+        Final drive ratios [-].
+    :type final_drive_ratios: dict[int | float]
 
     :return:
         Dynamic radius of the wheels [m].

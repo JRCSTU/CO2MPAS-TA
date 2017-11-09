@@ -196,7 +196,7 @@ def calculate_final_drive_powers_in(
     return final_drive_powers_out / final_drive_efficiencies
 
 
-def calculate_final_drive_ratios(final_drive_ratio, gear_box_ratios=(1,)):
+def calculate_final_drive_ratios(final_drive_ratio, n_gears=1):
     """
     Defines final drive ratios for each gear [-].
 
@@ -204,16 +204,16 @@ def calculate_final_drive_ratios(final_drive_ratio, gear_box_ratios=(1,)):
         Final drive ratio [-].
     :type final_drive_ratio: float
 
-    :param gear_box_ratios:
-        Gear box ratios [-].
-    :type gear_box_ratios: dict, optional
+    :param n_gears:
+        Number of gears [-].
+    :type n_gears: int, optional
 
     :return:
         Final drive ratios [-].
     :rtype: dict
     """
 
-    return dict.fromkeys(gear_box_ratios, final_drive_ratio)
+    return dict.fromkeys(range(1, n_gears + 1), final_drive_ratio)
 
 
 def calculate_final_drive_ratio_vector(final_drive_ratios, gears):
@@ -222,7 +222,7 @@ def calculate_final_drive_ratio_vector(final_drive_ratios, gears):
 
     :param final_drive_ratios:
         Final drive ratios [-].
-    :type final_drive_ratios: dict
+    :type final_drive_ratios: dict[int | float]
 
     :param gears:
         Gear vector [-].
@@ -270,13 +270,7 @@ def final_drive():
 
     d.add_function(
         function=calculate_final_drive_ratios,
-        inputs=['final_drive_ratio', 'gear_box_ratios'],
-        outputs=['final_drive_ratios']
-    )
-
-    d.add_function(
-        function=calculate_final_drive_ratios,
-        inputs=['final_drive_ratio', 'velocity_speed_ratios'],
+        inputs=['final_drive_ratio', 'n_gears'],
         outputs=['final_drive_ratios']
     )
 

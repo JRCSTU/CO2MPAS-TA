@@ -265,8 +265,9 @@ def physical():
         dsp=final_drive(),
         inputs=(
             'final_drive_efficiency', 'final_drive_ratio', 'final_drive_ratios',
-            'final_drive_torque_loss', 'gear_box_ratios', 'gear_box_type',
-            'gears', 'n_dyno_axes', 'n_wheel_drive', 'velocity_speed_ratios',
+            'final_drive_torque_loss', 'gear_box_type',
+            'gears', 'n_dyno_axes', 'n_wheel_drive',
+            'n_gears',
             {'wheel_powers': 'final_drive_powers_out',
              'wheel_speeds': 'final_drive_speeds_out',
              'wheel_torques': 'final_drive_torques_out'}),

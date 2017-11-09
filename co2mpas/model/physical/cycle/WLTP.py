@@ -48,7 +48,7 @@ def calculate_max_speed_velocity_ratio(speed_velocity_ratios):
 
     :param speed_velocity_ratios:
         Speed velocity ratios of the gear box [h*RPM/km].
-    :type speed_velocity_ratios: dict
+    :type speed_velocity_ratios: dict[int | float]
 
     :return:
         Maximum speed velocity ratio of the gear box [h*RPM/km].
@@ -256,7 +256,7 @@ def wltp_gears(
 
     :param speed_velocity_ratios:
         Speed velocity ratios of the gear box [h*RPM/km].
-    :type speed_velocity_ratios: dict
+    :type speed_velocity_ratios: dict[int | float]
 
     :param idle_engine_speed:
         Engine speed idle median and std [RPM].

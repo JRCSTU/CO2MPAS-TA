@@ -291,7 +291,7 @@ def correct_gear_box_torques_in(
 
     :param gear_box_ratios:
         Gear box ratios [-].
-    :type gear_box_ratios: dict
+    :type gear_box_ratios: dict[int | float]
 
     :return:
         Corrected Torque required vector [N*m].
@@ -465,7 +465,7 @@ def define_gear_box_loss_model(
 
     :param gear_box_ratios:
         Gear box ratios [-].
-    :type gear_box_ratios: dict, optional
+    :type gear_box_ratios: dict[int | float], optional
 
     :return:
         Gear box loss model.

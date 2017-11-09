@@ -197,7 +197,7 @@ def correct_gear_v0(
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict
+    :type velocity_speed_ratios: dict[int | float]
 
     :param mvl:
         Matrix velocity limits (upper and lower bound) [km/h].
@@ -267,7 +267,7 @@ def correct_gear_v1(
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict
+    :type velocity_speed_ratios: dict[int | float]
 
     :param mvl:
         Matrix velocity limits (upper and lower bound) [km/h].
@@ -306,7 +306,7 @@ def correct_gear_v2(
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict
+    :type velocity_speed_ratios: dict[int | float]
 
     :param engine_max_power:
         Maximum power [kW].
@@ -357,7 +357,7 @@ def correct_gear_v3(velocity_speed_ratios, idle_engine_speed):
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict
+    :type velocity_speed_ratios: dict[int | float]
 
     :param idle_engine_speed:
         Engine speed idle median and std [RPM].
@@ -688,7 +688,7 @@ def calibrate_gear_shifting_cmv(
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict
+    :type velocity_speed_ratios: dict[int | float]
 
     :param stop_velocity:
         Maximum velocity to consider the vehicle stopped [km/h].
@@ -738,7 +738,7 @@ def calibrate_gear_shifting_cmv_hot_cold(
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict
+    :type velocity_speed_ratios: dict[int | float]
 
     :param time_cold_hot_transition:
         Time at cold hot transition phase [s].
@@ -1016,7 +1016,7 @@ def calibrate_gspv(
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict
+    :type velocity_speed_ratios: dict[int | float]
 
     :param stop_velocity:
         Maximum velocity to consider the vehicle stopped [km/h].
@@ -1072,7 +1072,7 @@ def calibrate_gspv_hot_cold(
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict
+    :type velocity_speed_ratios: dict[int | float]
 
     :param stop_velocity:
         Maximum velocity to consider the vehicle stopped [km/h].
@@ -1161,7 +1161,7 @@ def prediction_gears_gsm(
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict
+    :type velocity_speed_ratios: dict[int | float]
 
     :param gsm:
         A gear shifting matrix (cmv or gspv).
@@ -1227,7 +1227,7 @@ def prediction_gears_gsm_hot_cold(
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict
+    :type velocity_speed_ratios: dict[int | float]
 
     :param gsm:
         A gear shifting matrix (cmv or gspv).
@@ -1341,7 +1341,7 @@ def calibrate_mvl(
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict
+    :type velocity_speed_ratios: dict[int | float]
 
     :param idle_engine_speed:
         Engine speed idle median and std [RPM].

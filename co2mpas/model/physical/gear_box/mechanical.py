@@ -97,7 +97,7 @@ def identify_gears(
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict
+    :type velocity_speed_ratios: dict[int | float]
 
     :param stop_velocity:
         Maximum velocity to consider the vehicle stopped [km/h].
@@ -208,7 +208,7 @@ def calculate_gear_box_speeds_from_engine_speeds(
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict
+    :type velocity_speed_ratios: dict[int | float]
 
     :param shift_window:
         Maximum dt shift [s].
@@ -264,7 +264,7 @@ def calculate_gear_box_speeds_in(
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict
+    :type velocity_speed_ratios: dict[int | float]
 
     :param stop_velocity:
         Maximum velocity to consider the vehicle stopped [km/h].
@@ -303,7 +303,7 @@ def calculate_gear_box_speeds_in_v1(
 
     :param gear_box_ratios:
         Gear box ratios [-].
-    :type gear_box_ratios: dict
+    :type gear_box_ratios: dict[int | float]
 
     :return:
         Gear box speed vector [RPM].
@@ -325,13 +325,13 @@ def identify_n_gears(gear_box_ratios):
 
     :param gear_box_ratios:
         Gear box ratios [-].
-    :type gear_box_ratios: dict
+    :type gear_box_ratios: dict[int | float]
 
     :return:
         Number of gears [-].
     :rtype: int
     """
-    return len([k for k in gear_box_ratios if k > 0])
+    return max(gear_box_ratios)
 
 
 def identify_velocity_speed_ratios(
@@ -467,11 +467,11 @@ def calculate_gear_box_ratios(
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict
+    :type velocity_speed_ratios: dict[int | float]
 
     :param final_drive_ratios:
         Final drive ratios [-].
-    :type final_drive_ratios: dict
+    :type final_drive_ratios: dict[int | float]
 
     :param r_dynamic:
         Dynamic radius of the wheels [m].
@@ -496,11 +496,11 @@ def calculate_speed_velocity_ratios(
 
     :param gear_box_ratios:
         Gear box ratios [-].
-    :type gear_box_ratios: dict
+    :type gear_box_ratios: dict[int | float]
 
     :param final_drive_ratios:
         Final drive ratios [-].
-    :type final_drive_ratios: dict
+    :type final_drive_ratios: dict[int | float]
 
     :param r_dynamic:
         Dynamic radius of the wheels [m].
@@ -528,7 +528,7 @@ def calculate_velocity_speed_ratios(speed_velocity_ratios):
     :param speed_velocity_ratios:
         Constant speed velocity (or velocity speed) ratios of the gear box
         [h*RPM/km or km/(h*RPM)].
-    :type speed_velocity_ratios: dict
+    :type speed_velocity_ratios: dict[int | float]
 
     :return:
         Constant velocity speed (or speed velocity) ratios of the gear box
@@ -553,7 +553,7 @@ def identify_max_gear(speed_velocity_ratios):
 
     :param speed_velocity_ratios:
         Speed velocity ratios of the gear box [h*RPM/km].
-    :type speed_velocity_ratios: dict
+    :type speed_velocity_ratios: dict[int | float]
 
     :return:
         Maximum gear of the gear box [-].
@@ -569,7 +569,7 @@ def identify_first_last_gear_box_ratios(gear_box_ratios):
 
     :param gear_box_ratios:
         Gear box ratios [-].
-    :type gear_box_ratios: dict
+    :type gear_box_ratios: dict[int | float]
 
     :return:
         Gear box ratio of first and last gears [-, -].
@@ -589,7 +589,7 @@ def calculate_engine_speed_at_max_velocity(
 
     :param final_drive_ratios:
         Final drive ratios [-].
-    :type final_drive_ratios: dict
+    :type final_drive_ratios: dict[int | float]
 
     :param last_gear_box_ratio:
         Gear box ratio of the last gear [-].
@@ -633,7 +633,7 @@ def calculate_last_gear_box_ratio(
 
     :param final_drive_ratios:
         Final drive ratios [-].
-    :type final_drive_ratios: dict
+    :type final_drive_ratios: dict[int | float]
 
     :param engine_speed_at_max_velocity:
         Engine speed at maximum velocity [RPM].
@@ -674,7 +674,7 @@ def calculate_last_gear_box_ratio_v1(
 
     :param final_drive_ratios:
         Final drive ratios [-].
-    :type final_drive_ratios: dict
+    :type final_drive_ratios: dict[int | float]
 
     :param engine_max_speed_at_max_power:
         Rated engine speed [RPM].
@@ -723,7 +723,7 @@ def calculate_maximum_velocity(
 
     :param final_drive_ratios:
         Final drive ratios [-].
-    :type final_drive_ratios: dict
+    :type final_drive_ratios: dict[int | float]
 
     :param engine_speed_at_max_velocity:
         Engine speed at maximum velocity [RPM].
@@ -764,7 +764,7 @@ def calculate_maximum_velocity_v1(
 
     :param final_drive_ratios:
         Final drive ratios [-].
-    :type final_drive_ratios: dict
+    :type final_drive_ratios: dict[int | float]
 
     :param engine_max_speed_at_max_power:
         Rated engine speed [RPM].
@@ -801,7 +801,7 @@ def calculate_maximum_velocity_v1(
 
 
 def calculate_first_gear_box_ratio(
-        f0, r_dynamic, engine_max_torque, max_laden_vehicle_mass,
+        f0, r_dynamic, engine_max_torque, maximum_vehicle_laden_mass,
         final_drive_ratios):
     """
     Calculates the gear box ratio of the first gear.
@@ -818,13 +818,13 @@ def calculate_first_gear_box_ratio(
         Engine Max Torque [N*m].
     :type engine_max_torque: float
 
-    :param max_laden_vehicle_mass:
+    :param maximum_vehicle_laden_mass:
         Technically permissible maximum laden mass [kg].
-    :type max_laden_vehicle_mass: float
+    :type maximum_vehicle_laden_mass: float
 
     :param final_drive_ratios:
         Final drive ratios [-].
-    :type final_drive_ratios: dict
+    :type final_drive_ratios: dict[int | float]
 
     :return:
         Gear box ratio of the first gear [-].
@@ -832,7 +832,7 @@ def calculate_first_gear_box_ratio(
     """
     slope = np.arctan(0.5)
     ratio = f0 * np.cos(slope)
-    ratio += max_laden_vehicle_mass * 9.81 * np.sin(slope)
+    ratio += maximum_vehicle_laden_mass * 9.81 * np.sin(slope)
     ratio /= (engine_max_torque * 0.95 * final_drive_ratios[1]) / r_dynamic
     return ratio
 
