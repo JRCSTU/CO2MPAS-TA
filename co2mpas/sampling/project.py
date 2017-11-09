@@ -441,16 +441,16 @@ class Project(transitions.Machine, ProjectSpec):
             - [do_sendmail,  mailed,     mailed,     _is_dry_run        ]
 
             - trigger:    do_storedice
-              source:     mailed
-              dest:       sample
-              prepare:    _parse_response
-              conditions: [_is_decision_sample, _is_not_dry_run_dicing]
-
-            - trigger:    do_storedice
-              source:     mailed
+              source:     [tagged, mailed]
               dest:       nosample
               prepare:    _parse_response
               conditions:     [_is_not_decision_sample, _is_not_dry_run_dicing]
+
+            - trigger:    do_storedice
+              source:     [tagged, mailed]
+              dest:       sample
+              prepare:    _parse_response
+              conditions: [_is_decision_sample, _is_not_dry_run_dicing]
 
             - [do_addfiles,  [diced,
                               nosample,
