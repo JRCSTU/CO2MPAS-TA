@@ -174,7 +174,7 @@ Requirements
 - Unhindered SMTP access to this email-server (no firewall on ports 25, 465, 587);
   or access through SOCKS Proxy (see diagram below);
 
-  .. image:: doc/_static/firewalls.png
+  .. image:: _static/firewalls.png
      :width: 420
 
 - Unhindered HTTP/HTTPS  web-access (no firewall on ports 80, 443);

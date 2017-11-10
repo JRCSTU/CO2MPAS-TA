@@ -31,7 +31,7 @@ v1.7.3.post0, 16 Oct 2017
   invalid signatures.
 
 Known Limitations
-~~~~~~~~~~~~~~~~~
+-----------------
 co2dice: if more than one dice-report is generated for a project, it is still
 possible to parse anyone tstamp on the project - no check against the hash-1
 performed.  So practically in this case, the history of the project is corrupted.
@@ -73,7 +73,9 @@ The Dice:
   (alternatives to the much  coarser ``--help`` and ``--help-all`` options).
 
 - Tstamping & networking:
+
   - feat(:gh:`382`): enhance handling of email encodings on send/recv:
+
     - add configurations choices for *Content-Transfer-Enconding* when sending
       non-ASCII emails or working with Outlook (usually `'=0A=0D=0E'` chars
       scattered in the email); read help on those parameters, with this command::
@@ -95,13 +97,15 @@ The Dice:
     emails received
   - feat(report): print out the key used to sign dice-report.
 
-- Projecst:
+- Projects:
+
   - feat(project): store tstamp-email verbatim, and sign 2nd HASH report.
   - refact(git): compatible-bump of dice-report format-version: ``1.0.0-->1.0.1``.
   - feat(log): possible to modify selectively logging output with
     ``~/logconf.yaml`` file;  generally improve error handling and logging of
     commands.
   - ``co2dice project export``:
+
     - fix(:ghp:`18`): fix command not to include dices from all projects.
     - feat(:gh:`423`, :gh:`435`): add ``--out`` option to set the out-fpath
       of the archive, and the ``--erase-afterwards`` to facilitate starting a
@@ -235,10 +239,12 @@ AIO:
 - Switched from Cygwin-->MSYS2 for the POSIX layer, for better support in
   Windows paths, and `pacman` update manager.
   Size increased from ~350MB --> ~530MB.
+
   - feat(install):  reimplement cygwin's `mkshortcut.exe` in VBScript.
   - fix(git): use `cygpath.exe` to convert Windows paths and respect
     mount-points (see `GitPython#639
     <https://github.com/gitpython-developers/GitPython/pull/639>`_).
+
 - Use ``[AIO]`` to signify the ALLINONE base-folder in the documentation; use it
   in co2mpas to suppress excessive development warnings.
 
@@ -341,14 +347,14 @@ v1.5.5, file-ver: 2.2.6, 10-February 2017: "Stamp" release
    :width: 480
 
 This |co2mpas| release contains few model changes; software updates;
-and the `random sampler (DICE) command-line application
+and the `random sampling (DICE) command-line application
 <https://co2mpas.io/glossary.html#term-dice-report>`_.
 
 Results validated against real vehicles, are described in the
 `validation report
-<http://jrcstu.github.io/co2mpas/v1.5.x/validation_real_cases.html>`_ ; together
-with the classic validation report for computer simulated `manual transmission
-vehicles <http://jrcstu.github.io/co2mpas/v1.5.x/validation_manual_cases.html>`_
+<http://jrcstu.github.io/co2mpas/v1.5.x/validation_real_cases.html>`_; together
+with the classic validation report for simulated `manual transmission vehicles
+<http://jrcstu.github.io/co2mpas/v1.5.x/validation_manual_cases.html>`_
 and `automatic transmission vehicles
 <http://jrcstu.github.io/co2mpas/v1.5.x/validation_automatic_cases.html>`_.
 
@@ -359,7 +365,7 @@ packs them together, send their :term:`Hash-ID` in a request to a time-stamp
 server, and decodes the response to a random number of (1/100 cases) to arrive
 to these cases:
 - **SAMPLE**, meaning "do sample, and double-test in NEDC",  or
-- **OK**, meaning *no-sample".
+- **OK**, meaning *no-sample*.
 
 For its usage tkuidelines, visit the
 `Wiki <https://github.com/JRCSTU/CO2MPAS-TA/wiki/CO2MPAS-user-tkuidelines>`.
@@ -1345,7 +1351,7 @@ Cmd-line (running CO2MPAS)
 - :gh:`102`: Remove UI pop-up boxes when running - users have to check
   the *scores* tables in the result xl-file.
 - :gh:`91`: Disallow installation and/or execution under ``python < 3.4``.
-- :ggit:`5e91993c`: Add option to skip saving WLTP-prediction.
+- :git:`5e91993c`: Add option to skip saving WLTP-prediction.
 - :gh:`130`: Possible to plot workflow int the output folder with
   ``--plot-workflow`` option.
 
