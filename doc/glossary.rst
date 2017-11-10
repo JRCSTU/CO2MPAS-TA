@@ -423,9 +423,13 @@ DICE
     sampling procedure
         The |co2mpas| application, procedure or the ``co2dice`` console command(s)
         required to produce eventually the `decision flag` defining whether a
-        `type approval` procedure needs `double testing`.
+        `type approval` procedure needs `double testing`:
 
-        Used also as a verb: "to dice the simulation files".
+        .. image:: _static/CO2MPAS-dice_overview.png
+
+        Used also as a verb:
+
+            The simulation files have been **diced** as ``NOSAMPLE``.
 
     Git DB
     Hash DB
@@ -438,22 +442,24 @@ DICE
         All `hash` occurences are generated and/or retrieved against this repository.
 
     project
+    dice project
     project id
     project archive
-        The persistent entity keeping track of the electronic artifacts of the
-        `type approval` for some vehicle family, residing in the local `hash DB`
-        of each `dice` installation.
+        The **project** is the persistent entity keeping track of the electronic
+        artifacts of the `type approval` for some vehicle family, residing in
+        the local `hash DB` of each `dice` installation.
 
-        The **project id** equates to the `vehicle_family_id`.
+          | *ID* (**project**)  :=  `vehicle_family_id`
 
-        It is created and managed by the `designated user` and must **archived** and
-        exhnaged wth the supervising `TAA` using the `dice` commands:
-        ``project export`` & ``project import``
+        It is created and managed by the `designated user` using `dice command`\s
+        to step through successive `state`\s.
+        Finally it is  **archived** and sent to the supervising `TAA`.
 
     state
     project state
+    state transitions
         A `project` undergoes certain *state transitions* during its lifetime,
-        reacting to various `dice command`\ s:
+        reacting to various `dice command`\s:
 
         .. image:: _static/CO2MPAS-states_transitions_cmds-2.png
 
@@ -475,7 +481,7 @@ DICE
         The `dice report sheet` in textual form (`YAML`) stored in the `project` and
         signed with the electronic key of the `designated user`:
 
-          | **dice report**         :=  `dice report sheet` + *SIG* (`designated user` key)
+          |        **dice report**  :=  `dice report sheet` + *SIG* (`designated user` key)
           | *ID* (**dice report**)  :=  `HASH-1`
 
         It is cryptographically signed to guarantee the authenticity of the contained
@@ -523,7 +529,7 @@ DICE
         of the `sampling procedure` containing the signed and timestamped data
         from all intermediate reports;
 
-          | **decision report**         :=  `dice stamp` + `decision` + *SIG* (`designated user` key)
+          |        **decision report**  :=  `dice stamp` + `decision` + *SIG* (`designated user` key)
           | *ID* (**decision report**)  :=  `HASH-2`
 
         It generated and stored internally in the `project`, and signed by the
@@ -571,6 +577,7 @@ DICE
 Generic terms
 =============
 .. glossary::
+
     NEDC
         New European Driving Cycle
 
