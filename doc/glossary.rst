@@ -332,6 +332,7 @@ If no input is provided, the |co2mpas| model will use the default value.
         The default is 0.
 
     ``engine_has_cylinder_deactivation``
+    ``active_cylinder_ratios``
         This technology allows the deactivation of one or more cylinders under specific conditions predefined
         in the |co2mpas| code. The implementation in |co2mpas| allows to use different deactivation ratios.
         So in the case of an 8-cylinder engine, a 50% deactivation (4 cylinders off) or
@@ -437,22 +438,32 @@ DICE
         All `hash` occurences are generated and/or retrieved against this repository.
 
     project
+    project id
     project archive
         The persistent entity keeping track of the electronic artifacts of the
         `type approval` for some vehicle family, residing in the local `hash DB`
         of each `dice` installation.
 
-        It is created and managed by the `designated user` and must *archived* and
+        The **project id** equates to the `vehicle_family_id`.
+
+        It is created and managed by the `designated user` and must **archived** and
         exhnaged wth the supervising `TAA` using the `dice` commands:
         ``project export`` & ``project import``
+
+    state
+    project state
+        A `project` undergoes certain *state transitions* during its lifetime,
+        reacting to various `dice command`\ s:
+
+        .. image:: _static/CO2MPAS-states_transitions_cmds-2.png
 
     dice report sheet
         A sheet in the output excel-file roughly derived from Input + Output files
         containing the non-confidential results of the simulation:
 
-            | **dice report sheet** := non-confidential-data(input-files + output-files + other-files)
+            | **dice report sheet** := *non_confidential_data* (input-files + output-files + other-files)
 
-        The `dice report` is derrived from it.
+        The `dice report` is derived from it.
 
     output report
     output report sheet
@@ -464,20 +475,24 @@ DICE
         The `dice report sheet` in textual form (`YAML`) stored in the `project` and
         signed with the electronic key of the `designated user`:
 
-          | **dice report**      :=  `dice report sheet` + SIG(`designated user` key)
-          | ID(**dice report**)  :=  `HASH-1`
+          | **dice report**         :=  `dice report sheet` + *SIG* (`designated user` key)
+          | *ID* (**dice report**)  :=  `HASH-1`
 
         It is cryptographically signed to guarantee the authenticity of the contained
         values.
         It sent through a `timestamp server` to prevent its repudiation, and returns
         as the `dice stamp`.
 
+    stamp
     dice stamp
     stamp response
     stamp email
         The signed `dice report` as retuned from the `timestamp server`:
 
-          | **stamp email**  :=  `dice report` + SIG(`timestamp server` key)
+          | **stamp email**  :=  `dice report` + *SIG* (`timestamp server` key)
+
+        .. image:: _static/CO2MPAS-stamp_elements.png
+           :height: 120px
 
         The `decision flag` gets derived from its signature while the `project`
         parses it and generates the `decision report`.
@@ -508,8 +523,8 @@ DICE
         of the `sampling procedure` containing the signed and timestamped data
         from all intermediate reports;
 
-          | **decision report**      :=  `dice stamp` + `decision` + SIG(`designated user` key)
-          | ID(**decision report**)  :=  `HASH-2`
+          | **decision report**         :=  `dice stamp` + `decision` + *SIG* (`designated user` key)
+          | *ID* (**decision report**)  :=  `HASH-2`
 
         It generated and stored internally in the `project`, and signed by the
         `designated user` to prevent tampering and repudiation.
@@ -549,7 +564,8 @@ DICE
 
     WebStamper
         The user-friendly JRC web-application that uses a simple HTTP-form to timestamp
-        the pasted `dice-report` and send out the `dice stamp` to specified recipients.
+        a pasted `dice report` and return a `dice stamp`, emailing it also  to any
+        specified recipients, always including from CLIMA/JRC.
 
 
 Generic terms
