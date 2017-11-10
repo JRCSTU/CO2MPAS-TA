@@ -486,16 +486,16 @@ DICE
 
         It is cryptographically signed to guarantee the authenticity of the contained
         values.
-        It sent through a `timestamp server` to prevent its repudiation, and returns
+        It sent through a `stamper` to prevent its repudiation, and returns
         as the `dice stamp`.
 
     stamp
     dice stamp
     stamp response
     stamp email
-        The signed `dice report` as retuned from the `timestamp server`:
+        The signed `dice report` as retuned from the `stamper`:
 
-          | **stamp email**  :=  `dice report` + *SIG* (`timestamp server` key)
+          | **stamp email**  :=  `dice report` + *SIG* (`stamper` key)
 
         .. image:: _static/CO2MPAS-stamp_elements.png
            :height: 120px
@@ -557,21 +557,24 @@ DICE
 
           | **TAA Report**  :=  `output report sheet` + `decision` + `HASH-2`
 
-    timestamp server
-        Either the `timestamp mail server` or the `WebStamper` services that append
-        a cryptographic signature on an "incoming" `dice report`, certifying thus
-        its existence in that specific time and preventing repudiation at a later time.
+    stamper
+    timestamper
+    timestamp service
+        Either the `mail stamper` or the `web stamper` services that append
+        a cryptographic signature on an "incoming" `dice report`, and sends it
+        with an email to recipients to prevent repudiation at a later time.
 
-    timestamp mail server
-        The email service that appends a cryptographic signature on incoming e-mails.
+    mail stamper
+        A `stamper` mail-server that stamps and forwards all incoming e-mails to
+        specified recipients.
 
         The trust on its certifications stems from the list of signatures published
         daily in its site.
 
-    WebStamper
-        The user-friendly JRC web-application that uses a simple HTTP-form to timestamp
-        a pasted `dice report` and return a `dice stamp`, emailing it also  to any
-        specified recipients, always including from CLIMA/JRC.
+    web stamper
+        JRC's user-friendly `stamper` web-application that uses a simple HTTP-form to
+        timestamp a pasted `dice report` and return a `dice stamp`, emailing it also
+        to any specified recipients, always including from CLIMA/JRC.
 
 
 Generic terms
