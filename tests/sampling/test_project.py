@@ -448,13 +448,35 @@ class TStraightStory(unittest.TestCase):
             raise unittest.SkipTest("No smtp-server credentials & tstamp config file "
                                     "found in 'TEST_TSTAMP_CONFIG_FPATH' env-var.")
 
-    def test_6_receive_email(self):
+    def test_6A_receive_email(self):
         from . import test_tstamp
 
         cfg = self._config
         cfg.Project.dry_run = False  # modifed by prev TC.
         pdb = project.ProjectsDB.instance(config=cfg)
         pdb.update_config(cfg)
+        p = pdb.current_project()
+        p.update_config(cfg)
+
+        res = p.do_storedice(tstamp_txt=test_tstamp.tstamp_responses[-1][-1])
+        self.assertTrue(res)
+        self.assertEqual(p.state, 'nosample')
+
+        p2 = pdb.current_project()
+        self.assertIs(p, p2)
+
+    def test_6B_tag_parse(self):
+        from . import test_tstamp
+
+        cfg = self._config
+        cfg.Project.dry_run = False  # modifed by prev TC.
+        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb.update_config(cfg)
+
+        ## Move back to `tagged` state.
+        pdb.repo.git.reset('HEAD~~', hard=True)
+        pdb._current_project = None
+
         p = pdb.current_project()
         p.update_config(cfg)
 
