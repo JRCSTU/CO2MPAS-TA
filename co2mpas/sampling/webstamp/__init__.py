@@ -36,8 +36,6 @@ import os.path as osp
 from raven.contrib.flask import Sentry
 import subprocess as sbp
 
-from .frontend import frontend
-
 
 def _get_git_version(log):
     try:
@@ -59,6 +57,8 @@ def _get_git_version(log):
 #  See https://github.com/mbr/flask-appconfig/blob/master/flask_appconfig/__init__.py#L35
 #
 def create_app(configfile=None, logconf_file=None):
+    from .frontend import frontend
+
     # We are using the "Application Factory"-pattern here, which is described
     # in detail inside the Flask docs:
     # http://flask.pocoo.org/docs/patterns/appfactories/
@@ -120,3 +120,14 @@ class RequestFormatter(logging.Formatter):
 #
 def wsgi_errors_stream():
     return request.environ['wsgi.errors'] if request else sys.stderr
+
+
+if __name__ == '__main__':
+    if __package__ is None:
+        __package__ = 'webstamp'  # @ReservedAssignment
+    from flask_appconfig import cli
+
+    ## Set WEBSTAMP_CONFIG=local_config.py
+    cmd = '--app=webstamp dev'.split()
+    #cli.cli(ctx, app_name, configfile, env, amend_path)
+    cli.cli(cmd)
