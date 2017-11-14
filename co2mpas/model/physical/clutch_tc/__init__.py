@@ -51,9 +51,15 @@ def define_k_factor_curve(stand_still_torque_ratio=1.0, lockup_speed_ratio=0.0):
     :rtype: callable
     """
 
-    x = [0, lockup_speed_ratio, 1]
-    y = [stand_still_torque_ratio, 1, 1]
-
+    if lockup_speed_ratio == 0:
+        x = [0, 1]
+        y = [1, 1]
+    elif lockup_speed_ratio == 1:
+        x = [0, 1]
+        y = [stand_still_torque_ratio, 1]
+    else:
+        x = [0, lockup_speed_ratio, 1]
+        y = [stand_still_torque_ratio, 1, 1]
     return sci_itp.InterpolatedUnivariateSpline(x, y, k=1)
 
 
