@@ -40,7 +40,7 @@ import subprocess as sbp
 def _get_git_version(log):
     try:
         mydir = osp.dirname(__file__)
-        cmd = ['git', '-C', mydir, 'describe']
+        cmd = ['git', '-C', mydir, 'describe', '--long']
         v = sbp.check_output(cmd, universal_newlines=True)
         v = v and v.strip()
         log.info("\n%s\n@@ Starting Flask-app version: %r", '@' * 80, v)
