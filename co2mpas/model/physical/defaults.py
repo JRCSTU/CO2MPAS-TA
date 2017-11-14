@@ -228,10 +228,10 @@ class Functions(co2_utl.Constants):
 
     class design_gear_box_ratios(co2_utl.Constants):
         #: Two factor to design the gear box ratios [-].
-        f_two = 1.13
+        f_two = np.arange(1, 1.2, 0.01)
 
         #: Tuning factor to design the gear box ratios [-].
-        f_tuning = 1
+        f_tuning = np.arange(1, 1.1, 0.01)
 
 
     class _filter_temperature_samples(co2_utl.Constants):

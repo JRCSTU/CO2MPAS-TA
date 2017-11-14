@@ -861,17 +861,40 @@ def design_gear_box_ratios(n_gears, first_gear_box_ratio, last_gear_box_ratio):
     :rtype: dict
     """
     dfl = defaults.dfl.functions.design_gear_box_ratios
-    f_two, f_tuning = dfl.f_two, dfl.f_tuning
-    ratios = np.zeros(n_gears, float)
-    ratios[0], ratios[-1] = first_gear_box_ratio, last_gear_box_ratio
+    f_two, f_tuning = np.asarray(dfl.f_two), np.asarray(dfl.f_tuning)
+
+    ix = np.indices((len(f_two), len(f_tuning)), int).reshape(2, -1).T
+    f_two, f_tuning = f_two[ix[:, 0]][:, None], f_tuning[ix[:, 1]][:, None]
+
+    ratios = np.zeros((ix.shape[0], n_gears), float)
+    ratios[:, 0], ratios[:, -1] = first_gear_box_ratio, last_gear_box_ratio
 
     n, fgbr, lgbr = n_gears - 1, first_gear_box_ratio, last_gear_box_ratio
     f_one = f_tuning * (fgbr / (f_two ** (n * (n - 1) / 2))) ** (1 / n)
 
     n = n_gears - np.arange(2, n_gears)
-    ratios[1:-1] = lgbr * (f_one ** n) * (f_two ** (n * (n - 1) / 2))
+    ratios[:, 1:-1] = lgbr * (f_one ** n) * (f_two ** (n * (n - 1) / 2))
+    dr = np.diff(ratios, axis=1)
 
-    return dict(enumerate(ratios, 1))
+    b = np.all(dr < 0, axis=1)
+    if b.any():
+        ratios, dr = ratios[b], dr[b]
+
+    b = dr[:, 0] < 2
+    if b.any():
+        ratios, dr = ratios[b], dr[b]
+
+    b = np.all(np.diff(dr, axis=1) > 0, axis=1)
+    if b.any():
+        ratios, dr = ratios[b], dr[b]
+
+    res = np.linalg.lstsq(np.vander(np.arange(n_gears - 1), 3), dr.T)[0]
+    b = res[0] < 0
+
+    if b.any():
+        ratios, dr, res = ratios[b], dr[b], res[:, b]
+
+    return dict(enumerate(ratios[np.argmin(res[0])], 1))
 
 
 def mechanical():
