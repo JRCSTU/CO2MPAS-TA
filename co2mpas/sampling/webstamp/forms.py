@@ -167,7 +167,10 @@ def create_stamp_form_class(app):
         def validate_stamp_recipients(self, field):
             """Must contain at least 1 non-standard email-address."""
             text = field.data
-            check_mx = os.name != 'nt'
+            check_mx = get_bool_arg('skip_mail_mx_check')
+            check_mx = (os.name != 'nt'
+                        if check_mx is None else
+                        check_mx)
 
             recipients = re.split('[\s,;]+', text)
             recipients = [s and s.strip() for s in recipients]
