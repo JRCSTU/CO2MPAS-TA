@@ -13,7 +13,7 @@ matplotlib
 #
 setuptools
 networkx
-dill<=0.2.6
+dill!=0.2.7
 graphviz
 docopt
 six

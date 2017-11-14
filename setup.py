@@ -173,7 +173,7 @@ setup(
         'lmfit>=0.9.5',
         'matplotlib',
         'networkx',
-        'dill<=0.2.6',
+        'dill!=0.2.7',
         'graphviz',
         'docopt',
         'six',
