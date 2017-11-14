@@ -458,7 +458,10 @@ class TStraightStory(unittest.TestCase):
         p = pdb.current_project()
         p.update_config(cfg)
 
-        res = p.do_storedice(tstamp_txt=test_tstamp.tstamp_responses[-1][-1])
+        with self.assertLogs(level=logging.ERROR) as logrec:
+            res = p.do_storedice(tstamp_txt=test_tstamp.tstamp_responses[-1][-1])
+            assert "different from current one" in logrec.output[0], logrec
+            assert "is different from last tag " in logrec.output[0], logrec
         self.assertTrue(res)
         self.assertEqual(p.state, 'nosample')
 
