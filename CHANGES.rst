@@ -5,10 +5,16 @@ CO2MPAS Changes
 .. _changes:
 
 
-v1.7.3.post1, 14 Noe 2017
+v1.7.3.post1, 14 Nov 2017
 =========================
 - feat(dice, :gh:`447`): Allow skipping ``tsend -n`` command to facilitate
   :term:`WebStamper`, and transition from ``tagged`` --> ``sample`` / ``nosample``.
+
+- fix(co2p, :gh:`448`): `tparse` checks stamp is on last-tag (unless forced).
+  Was a "Known limitation" of previous versions.
+
+- feat(model): minor utility to design generic equidistant gearbox ratios
+  based on `maximum_velocity` and `maximum_vehicle_laden_mass`.
 
 
 
@@ -39,9 +45,10 @@ v1.7.3.post0, 16 Oct 2017
 
 Known Limitations
 -----------------
-co2dice: if more than one dice-report is generated for a project, it is still
-possible to parse anyone tstamp on the project - no check against the hash-1
-performed.  So practically in this case, the history of the project is corrupted.
+co2dice(:gh:`448`): if more than one dice-report is generated for a project,
+it is still possible to parse anyone tstamp on the project - no check against
+the hash-1 performed.  So practically in this case, the history of the project
+is corrupted.
 
 
 
