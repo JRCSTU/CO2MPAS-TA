@@ -789,16 +789,15 @@ DRY-RUN: Now you must send the email your self!
 
     def _validate_stamp_verdict(self, verdict):
         err_msgs = []
-        drep = verdict.get('dice', {})
 
-        stamp_pname = drep.get('project')
+        stamp_pname = verdict.get('report', {}).get('project')
         if stamp_pname != self.pname:
             err_msgs.append("Stamp's project('%s') is different from current one('%s')!"
                    % (stamp_pname, self.pname))
 
-        stamp_tag = drep.get('tag')
+        stamp_tag = verdict.get('dice', {}).get('tag')
         tag = _find_dice_tag(self.repo, self.pname, self.max_dices_per_project)
-        last_tag = tag and '%s: %s' % (tag.name, tag.tag.hexsha)
+        last_tag = tag and '%s: %s' % (tag.name, tag.commit.hexsha)
         if stamp_tag != last_tag:
             err_msgs.append("Stamp's tag('%s') is different "
                        "from last tag on current project('%s')!"

@@ -1,0 +1,98 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+########################################################
+#- WebStamper certifies that:
+#    (139.191.4.219) komnostest 1.7.4.rc0
+#- requested to email to 4 recipients:
+#    CLIMA-LDV-CO2-CORRELATION@ec.europa.eu;
+#    JRC-CO2MPAS@ec.europa.eu; dimitris_tom@hotmail.com;
+#    dimtiriskomnos11@gmail.com
+#- a report signed by the key:
+#    B124C999CBBB52FF: CO2MPAS Test <JRC-CO2MPAS@ec.europa.eu>
+#
+#- stamp_version: 0.0.3
+#- stamp_date: 2017-11-14T10:38:11.399432
+#- counter: 0000049
+#- parent_stamp: 82c350812e2dfe2fafb630819ebe5f4968a662f6
+########################################################
+
+
+object ec86fd6986bc9ec9656a92a3c66e70eb90394461
+type commit
+tag dices/IP-10-AAA-2017-0000/0
+tagger Dimitris Komnos JRC <Dimitrios.KOMNOS@ext.europa.eu> 1510648522 +0100
+
+- - {v: 1.0.2, a: drep 2 files, p: IP-10-AAA-2017-0000, s: tagged}
+
+- - file: co2mpas_demo-0000.xlsx
+  iokind: inp
+  report: {vehicle_family_id: IP-10-AAA-2017-0000}
+- - file: 20170825_121330-co2mpas_demo-0000.xlsx
+  iokind: out
+  report:
+    0.vehicle_family_id: [IP-10-AAA-2017-0000, IP-10-AAA-2017-0000]
+    1.CO2MPAS_version: [1.7.3, 1.7.3]
+    2.report_type: [dice_report, dice_report]
+    3.datetime: ['2017/08/25-12:13:40', '2017/08/25-12:13:40']
+    4.TA_mode: ['True', 'True']
+    5.CO2MPAS_deviation: [-0.239, .nan]
+    6.Vehicle: [.nan, .nan]
+    7.fuel_type: [diesel, diesel]
+    8.engine_capacity: [1911.0, 1911.0]
+    9.gear_box_type: [manual, manual]
+    10.engine_is_turbo: [1.0, 1.0]
+    11.Model_scores WLTP-H: [.nan, .nan]
+    12.alternator_model (battery currents): [3.7073, .nan]
+    13.alternator_model (alternator currents): [3.7814, .nan]
+    14.at_model: [.nan, .nan]
+    15.clutch_torque_converter_model: [0.1081, .nan]
+    16.co2_params: [0.004, .nan]
+    17.engine_cold_start_speed_model: [0.0298, .nan]
+    18.engine_coolant_temperature_model: [0.7078, .nan]
+    19.engine_speed_model: [0.0, 87.1179]
+    20.start_stop_model (engine starts): [-1.0, .nan]
+    21.start_stop_model (on engine): [-1.0, .nan]
+    22.Model_scores WLTP-L: [.nan, .nan]
+    23.alternator_model (battery currents): [.nan, .nan]
+    24.alternator_model (alternator currents): [.nan, .nan]
+    25.at_model: [.nan, .nan]
+    26.clutch_torque_converter_model: [.nan, .nan]
+    27.co2_params: [.nan, .nan]
+    28.engine_cold_start_speed_model: [.nan, .nan]
+    29.engine_coolant_temperature_model: [.nan, .nan]
+    30.engine_speed_model: [.nan, .nan]
+    31.start_stop_model (engine starts): [.nan, .nan]
+    32.start_stop_model (on engine): [.nan, .nan]
+- -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iJwEAAEIAAYFAloKqsoACgkQsSTJmcu7Uv/TFwQAmyG9rOZjjuI4K4pxsdnzRxNL
+/WQTCVKoGMZe/eWMPJcXjPR7vBEGNtLSchDUe6tdfeyclhiukF6eL/j1snp9yXQU
+BG9ZspFTkHP3R3Mwzp+Kz0vmvbgWc9HB4oJyPIVgJ4wRyGgd98aY0ub8XJFC1HQ6
+nUXMVeuu6j1xWiGjQXM=
+=q/ZI
+- -----END PGP SIGNATURE-----
+-----BEGIN PGP SIGNATURE-----
+Comment: Stamper Reference Id: 0000049
+
+iQEzBAEBCgAdFiEE6B/ARSWK0U5q9UTtsnfoU5R3cyMFAloKq3QACgkQsnfoU5R3
+cyPd6Qf/WpgLiTg8KZu4fQuzLi3XVENBXinqV0PeY1IGw1osKvQEuWRHURQR9wtR
++lMJAPjJUEY1sRxBE6sLuwcIhWDy+CoC+eLnmVS/Ha5Jyj7rUL7TVV3/7UYT6CkZ
+6QBzP8n5zNasuCcdyblzhGB/TA/xehouaUDiM4TXQlxQ+Bp7tVwrsKkUPRXs6tWQ
+SoUOvt0qv1EAxqZh9BzaCMinnfAb1rpnbX+Xj83gcDfNVpMdELEkk3QEZmsnPYn7
+kO9IT6eHoUz8qoK2NM9Sd4xMlGhJaK+vle+VCUkxeiRi4cEELUwYfpwqTSMJh2ES
+ZlewF2LbctAlhexbA828O1q7MbpU4w==
+=f4Fh
+-----END PGP SIGNATURE-----
+
+
+dice:
+  tag: 'dices/IP-10-AAA-2017-0000/0: ec86fd6986bc9ec9656a92a3c66e70eb90394461'
+  issuer: 'B124C999CBBB52FF: CO2MPAS Test <JRC-CO2MPAS@ec.europa.eu>'
+  issue_date: '2017-11-14T10:35:22'
+  stamper: 'B277E85394777323: JRC Co2mpas Tstamper <JRC-CO2MPAS@ec.europa.eu>'
+  dice_date: '2017-11-14T10:38:12'
+  hexnum: BCB94C7E05E7A30BB2CE5D690B60C2975FE808AD
+  percent: 97
+  decision: SAMPLE
