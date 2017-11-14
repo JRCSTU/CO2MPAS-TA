@@ -5,7 +5,7 @@ CO2MPAS Changes
 .. _changes:
 
 
-v1.7.3.post1, 14 Nov 2017
+v1.7.4, 14 Nov 2017
 =========================
 - feat(dice, :gh:`447`): Allow skipping ``tsend -n`` command to facilitate
   :term:`WebStamper`, and transition from ``tagged`` --> ``sample`` / ``nosample``.
