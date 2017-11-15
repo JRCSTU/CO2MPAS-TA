@@ -5,8 +5,8 @@ CO2MPAS Changes
 .. _changes:
 
 
-v1.7.4, 14 Nov 2017
-=========================
+v1.7.4, 15 Nov 2017: "Toketos"
+==============================
 - feat(dice, :gh:`447`): Allow skipping ``tsend -n`` command to facilitate
   :term:`WebStamper`, and transition from ``tagged`` --> ``sample`` / ``nosample``.
 
