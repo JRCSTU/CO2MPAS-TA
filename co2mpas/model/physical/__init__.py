@@ -230,7 +230,7 @@ def physical():
             'angle_slopes', 'cargo_mass', 'correct_f0', 'cycle_type',
             'curb_mass', 'f0', 'f0_uncorrected', 'f1', 'f2', 'frontal_area',
             'fuel_mass', 'has_roof_box', 'inertial_factor', 'n_dyno_axes',
-            'obd_velocities', 'passenger_mass', 'road_loads',
+            'n_passengers', 'obd_velocities', 'passenger_mass', 'road_loads',
             'rolling_resistance_coeff', 'times', 'tyre_category', 'tyre_class',
             'unladen_mass', 'vehicle_body', 'vehicle_category',
             'vehicle_height', 'vehicle_mass', 'vehicle_width', 'velocities'),
