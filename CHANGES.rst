@@ -4,6 +4,16 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
+v1.dev8.0, 15 Nov 2017
+======================
+- feat(model): Add utility to design gearbox ratios if they cannot be identified
+  based on `maximum_velocity` and `maximum_vehicle_laden_mass`. This is not
+  affecting the TA mode.
+
+- feat(model): Add function to calculate the `vehicle_mass` from `curb mass`,
+  `cargo_mass`, `curb_mass`, `fuel_mass`, `passenger_mass`, and `n_passengers`.
+  This is not affecting the TA mode.
+
 
 v1.7.4.post0, 11 Dec 2017
 =========================
@@ -17,10 +27,6 @@ v1.7.4, 15 Nov 2017: "Toketos"
 
 - fix(co2p, :gh:`448`): `tparse` checks stamp is on last-tag (unless forced).
   Was a "Known limitation" of previous versions.
-
-- feat(model): minor utility to design generic equidistant gearbox ratios
-  based on `maximum_velocity` and `maximum_vehicle_laden_mass`.
-
 
 
 v1.7.3.post0, 16 Oct 2017
