@@ -860,6 +860,7 @@ def design_gear_box_ratios(n_gears, first_gear_box_ratio, last_gear_box_ratio):
         Gear box ratios [-].
     :rtype: dict
     """
+    n_gears = int(n_gears)
     dfl = defaults.dfl.functions.design_gear_box_ratios
     f_two, f_tuning = np.asarray(dfl.f_two), np.asarray(dfl.f_tuning)
 

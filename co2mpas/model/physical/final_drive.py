@@ -213,7 +213,7 @@ def calculate_final_drive_ratios(final_drive_ratio, n_gears=1):
     :rtype: dict
     """
 
-    return dict.fromkeys(range(1, n_gears + 1), final_drive_ratio)
+    return dict.fromkeys(range(1, int(n_gears + 1)), final_drive_ratio)
 
 
 def calculate_final_drive_ratio_vector(final_drive_ratios, gears):
