@@ -362,6 +362,20 @@ def default_correct_start_stop_with_gears(gear_box_type):
     return gear_box_type == 'manual'
 
 
+def default_start_stop_activation_time():
+    """
+    Returns the default start stop activation time threshold [s].
+    
+    :return:
+        Start-stop activation time threshold [s].
+    :rtype: float
+    """
+    d = defaults.dfl.functions
+    if d.ENABLE_ALL_FUNCTIONS or d.default_start_stop_activation_time.ENABLE:
+        return d.default_start_stop_activation_time.threshold
+    return sh.NONE
+
+
 def start_stop():
     """
     Defines the engine start/stop model.
@@ -393,9 +407,9 @@ def start_stop():
         outputs=['engine_starts']
     )
 
-    d.add_data(
-        data_id='start_stop_activation_time',
-        default_value=defaults.dfl.values.start_stop_activation_time
+    d.add_function(
+        function=default_start_stop_activation_time,
+        outputs=['start_stop_activation_time']
     )
 
     d.add_function(

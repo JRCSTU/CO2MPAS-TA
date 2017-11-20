@@ -36,9 +36,10 @@ def default_fuel_density(fuel_type):
         Fuel density [g/l].
     :rtype: float
     """
-    if not defaults.dfl.functions.default_fuel_density.ENABLE:
-        return sh.NONE
-    return defaults.dfl.functions.default_fuel_density.FUEL_DENSITY[fuel_type]
+    dfl = defaults.dfl.functions
+    if dfl.ENABLE_ALL_FUNCTIONS or dfl.default_fuel_density.ENABLE:
+        return dfl.default_fuel_density.FUEL_DENSITY[fuel_type]
+    return sh.NONE
 
 
 def default_fuel_carbon_content(fuel_type):
@@ -53,10 +54,10 @@ def default_fuel_carbon_content(fuel_type):
         Fuel carbon content [CO2g/g].
     :rtype: float
     """
-    if not defaults.dfl.functions.default_fuel_carbon_content.ENABLE:
-        return sh.NONE
-    CC = defaults.dfl.functions.default_fuel_carbon_content.CARBON_CONTENT
-    return CC[fuel_type]
+    dfl = defaults.dfl.functions
+    if dfl.ENABLE_ALL_FUNCTIONS or dfl.default_fuel_carbon_content.ENABLE:
+        return dfl.default_fuel_carbon_content.CARBON_CONTENT[fuel_type]
+    return sh.NONE
 
 
 def default_engine_fuel_lower_heating_value(fuel_type):
@@ -71,10 +72,10 @@ def default_engine_fuel_lower_heating_value(fuel_type):
         Fuel lower heating value [kJ/kg].
     :rtype: float
     """
-    if not defaults.dfl.functions.default_fuel_lower_heating_value.ENABLE:
-        return sh.NONE
-    LHV = defaults.dfl.functions.default_fuel_lower_heating_value.LHV
-    return LHV[fuel_type]
+    dfl = defaults.dfl.functions
+    if dfl.ENABLE_ALL_FUNCTIONS or dfl.default_fuel_lower_heating_value.ENABLE:
+        return dfl.default_fuel_lower_heating_value.LHV[fuel_type]
+    return sh.NONE
 
 
 def calculate_fuel_carbon_content(fuel_carbon_content_percentage):
@@ -253,13 +254,15 @@ def define_idle_fuel_consumption_model(
         Idle fuel consumption model.
     :rtype: IdleFuelConsumptionModel
     """
+    d = defaults.dfl.functions
+    if d.ENABLE_ALL_FUNCTIONS or d.define_idle_fuel_consumption_model.ENABLE:
+        model = IdleFuelConsumptionModel(idle_fuel_consumption).fit(
+            idle_engine_speed, engine_capacity, engine_stroke,
+            engine_fuel_lower_heating_value, fmep_model
+        )
 
-    model = IdleFuelConsumptionModel(idle_fuel_consumption).fit(
-        idle_engine_speed, engine_capacity, engine_stroke,
-        engine_fuel_lower_heating_value, fmep_model
-    )
-
-    return model
+        return model
+    return sh.NONE
 
 
 def calculate_engine_idle_fuel_consumption(
@@ -343,8 +346,8 @@ class FMEP(object):
     def egr(self, params, n_speeds, n_powers, n_temp, a=None):
         a = a or {}
         if self.has_exhausted_gas_recirculation and 'egr' not in params:
-            #b = n_speeds < self.egr_max_mean_piston_speeds
-            #b &= n_powers <= (self.fbc(n_speeds) * self.egr_fbc_percentage)
+            # b = n_speeds < self.egr_max_mean_piston_speeds
+            # b &= n_powers <= (self.fbc(n_speeds) * self.egr_fbc_percentage)
             k = self.engine_type, self.has_selective_catalytic_reduction
             egr = defaults.dfl.functions.FMEP_egr.egr_fact_map[k]
             if k[0] == 'compression':
@@ -518,7 +521,6 @@ def define_fmep_model(
     lb_mps = dfl.lb_max_mean_piston_speeds_percentage * engine_max_speed
     egr_mps = dfl.egr_max_mean_piston_speeds_percentage * engine_max_speed
 
-
     from . import calculate_mean_piston_speeds
     bmep = calculate_mean_piston_speeds
 
@@ -589,9 +591,8 @@ def _fuel_ABC(n_speeds, **kw):
 
 # noinspection PyUnusedLocal
 def _ABC(
-    n_speeds, n_powers=0, n_temperatures=1,
-    a2=0, b2=0, a=0, b=0, c=0, t=0, l=0, l2=0, acr=1, **kw):
-
+        n_speeds, n_powers=0, n_temperatures=1,
+        a2=0, b2=0, a=0, b=0, c=0, t=0, l=0, l2=0, acr=1, **kw):
     acr2 = (acr ** 2)
     A = a2 / acr2 + (b2 / acr2) * n_speeds
     B = a / acr + (b / acr + (c / acr) * n_speeds) * n_speeds
@@ -1137,7 +1138,6 @@ def calculate_phases_co2_emissions(cumulative_co2_emissions, phases_distances):
 def _define_rescaling_function(
         co2_emissions_model, cumulative_co2_emissions, phases_integration_times,
         times, rescaling_matrix):
-
     dx, it = np.append(np.diff(times), [0]), []
     for p in phases_integration_times:
         i, j = np.searchsorted(times, p)
@@ -2477,22 +2477,22 @@ def co2_emission():
     )
 
     d.add_function(
-       function=default_fuel_density,
-       inputs=['fuel_type'],
-       outputs=['fuel_density'],
+        function=default_fuel_density,
+        inputs=['fuel_type'],
+        outputs=['fuel_density'],
     )
 
     d.add_function(
-       function=default_engine_fuel_lower_heating_value,
-       inputs=['fuel_type'],
-       outputs=['engine_fuel_lower_heating_value'],
+        function=default_engine_fuel_lower_heating_value,
+        inputs=['fuel_type'],
+        outputs=['engine_fuel_lower_heating_value'],
     )
 
     d.add_function(
-       function=default_fuel_carbon_content,
-       inputs=['fuel_type'],
-       outputs=['fuel_carbon_content'],
-       weight=3
+        function=default_fuel_carbon_content,
+        inputs=['fuel_type'],
+        outputs=['fuel_carbon_content'],
+        weight=3
     )
 
     d.add_function(

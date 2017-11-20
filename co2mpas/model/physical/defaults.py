@@ -199,6 +199,19 @@ class Values(co2_utl.Constants):
 
 #: Container of internal function parameters.
 class Functions(co2_utl.Constants):
+    ENABLE_ALL_FUNCTIONS = False
+
+    class default_start_stop_activation_time(co2_utl.Constants):
+        #: Enable function?
+        ENABLE = False
+
+        #: Start-stop activation time threshold [s].
+        threshold = 30
+
+    class define_idle_fuel_consumption_model(co2_utl.Constants):
+        #: Enable function?
+        ENABLE = False
+
     class calculate_last_gear_box_ratio_v1(co2_utl.Constants):
         #: Maximum admissible ratio for the last gear [-].
         MAX_RATIO = 2
