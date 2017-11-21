@@ -237,7 +237,7 @@ def physical():
         outputs=(
             'accelerations', 'angle_slopes', 'climbing_force', 'curb_mass',
             'f0', 'f1', 'f2', 'inertial_factor', 'motive_powers', 'n_dyno_axes',
-            'road_loads', 'unladen_mass', 'velocities'),
+            'road_loads', 'unladen_mass', 'vehicle_mass', 'velocities'),
     )
 
     from .wheels import wheels
