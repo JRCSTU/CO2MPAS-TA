@@ -362,7 +362,7 @@ def default_correct_start_stop_with_gears(gear_box_type):
     return gear_box_type == 'manual'
 
 
-def default_start_stop_activation_time():
+def default_start_stop_activation_time(has_start_stop):
     """
     Returns the default start stop activation time threshold [s].
     
@@ -371,7 +371,8 @@ def default_start_stop_activation_time():
     :rtype: float
     """
     d = defaults.dfl.functions
-    if d.ENABLE_ALL_FUNCTIONS or d.default_start_stop_activation_time.ENABLE:
+    if not has_start_stop or d.ENABLE_ALL_FUNCTIONS or \
+            d.default_start_stop_activation_time.ENABLE:
         return d.default_start_stop_activation_time.threshold
     return sh.NONE
 
@@ -409,6 +410,7 @@ def start_stop():
 
     d.add_function(
         function=default_start_stop_activation_time,
+        inputs=['has_start_stop'],
         outputs=['start_stop_activation_time']
     )
 
