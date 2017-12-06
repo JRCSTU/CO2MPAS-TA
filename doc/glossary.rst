@@ -7,6 +7,9 @@ Glossary
 
 .. default-role:: term
 
+.. Tip to the authors: Use this web-app to previes this page: https://sphinxed.wltp.io/
+
+
 Input file terminology
 =========================
 Vehicle general characteristics
@@ -335,6 +338,7 @@ If no input is provided, the |co2mpas| model will use the default value.
         The default is 0.
 
     ``engine_has_cylinder_deactivation``
+    ``active_cylinder_ratios``
         This technology allows the deactivation of one or more cylinders under specific conditions predefined
         in the |co2mpas| code. The implementation in |co2mpas| allows to use different deactivation ratios.
         So in the case of an 8-cylinder engine, a 50% deactivation (4 cylinders off) or
@@ -418,67 +422,181 @@ Dyno configuration
 DICE
 ====
 .. glossary::
-    dice report
+
+    co2dice
+    dice
+    dice command
+    sampling procedure
+        The |co2mpas| application, procedure or the ``co2dice`` console command(s)
+        required to produce eventually the `decision flag` defining whether a
+        `type approval` procedure needs `double testing`:
+
+        .. image:: _static/CO2MPAS-dice_overview.png
+
+        Used also as a verb:
+
+            The simulation files have been **diced** as ``NOSAMPLE``.
+
+    Git DB
+    Hash DB
+    Git repo
+    Git repo DB
+    projects DB
+        The `Git` repository maintained by the `dice command` that manages `project`
+        instances.
+
+        All `hash` occurences are generated and/or retrieved against this repository.
+
+    project
+    dice project
+    project id
+    project archive
+        The **project** is the persistent entity keeping track of the electronic
+        artifacts of the `type approval` for some vehicle family, residing in
+        the local `hash DB` of each `dice` installation.
+
+          | *ID* (**project**)  :=  `vehicle_family_id`
+
+        It is created and managed by the `designated user` using `dice command`\s
+        to step through successive `state`\s.
+        Finally it is  **archived** and sent to the supervising `TAA`.
+
+    state
+    project state
+    state transitions
+        A `project` undergoes certain *state transitions* during its lifetime,
+        reacting to various `dice command`\s:
+
+        .. image:: _static/CO2MPAS-states_transitions_cmds-2.png
+
     dice report sheet
-        A sheet in the output file containing non-confidential results of the simulation to be communicated
-        to supervision bodies through a `timestamp server`.
+        A sheet in the output excel-file roughly derived from Input + Output files
+        containing the non-confidential results of the simulation:
 
-    dice email
-    dice request email
-        The actual email sent to be timestamped (roughly derived from Input + output files)::
+            | **dice report sheet** := *non_confidential_data* (input-files + output-files + other-files)
 
-        := dice Report + HASH #1
-
-    dice stamp
-    dice response email
-        The timestamped `dice email` as received from the `timestamp server`,
-        from which the OK/SAMPLE decision-flag is derived:
-
-        := dice email + timestamp + Signature (random)
-
-    decision flag
-    dice decision flag
-        The ``'OK'``/``'SAMPLE'`` flag derived from the `dice stamp`'s signature - it is an abstract entity,
-        not stored anywhere per se, but it combined with other data to ensure an unequivocal link with them.
-        The meaning of the flag's valuesd is the following:
-
-        - ``'SAMPLE'`` means that indipendently of the result of |co2mpas| prediction
-          the vehicle has to undergo an NEDC physical test;
-        - ``'OK'`` means that the declared NEDC value is accepted
-          (assuming |co2mpas| prediction does not deviate more than 4% of the declared NEDC value).
-
-    .. image:: _static/dice_co2mpas_dev.PNG
-
-    dice decision
-        A new file that is stored in the TAA files which contains the `dice stamp` and
-        the derived `decision flag`::
-
-        := dice stamp + decision flag
+        The `dice report` is derived from it.
 
     output report
     output report sheet
-        A sheet in the output file that contains they key results of the simulation.
+        A sheet in the output excel-file containing they major simulation results.
+
+    dice report
+    dice request
+    dice email
+        The `dice report sheet` in textual form (`YAML`) stored in the `project` and
+        signed with the electronic key of the `designated user`:
+
+          |        **dice report**  :=  `dice report sheet` + *SIG* (`designated user` key)
+          | *ID* (**dice report**)  :=  `HASH-1`
+
+        It is cryptographically signed to guarantee the authenticity of the contained
+        values.
+        It sent through a `stamper` to prevent its repudiation, and returns
+        as the `dice stamp`.
+
+    stamp
+    dice stamp
+    stamp response
+    stamp email
+        The signed `dice report` as retuned from the `stamper`:
+
+          | **stamp email**  :=  `dice report` + *SIG* (`stamper` key)
+
+        .. image:: _static/CO2MPAS-stamp_elements.png
+           :height: 120px
+
+        The `decision flag` gets derived from its signature while the `project`
+        parses it and generates the `decision report`.
+
+    decision
+    decision flag
+    decision percent
+    double testing
+        A structure containing the ``'OK'``/``'SAMPLE'`` flag and the *percent*
+        derived from the `dice stamp`'s signature (a random number), persisted in the
+        `decision report` and in the `project` as a plain file.
+
+        The meaning of the flag's values is the following:
+
+        - ``'OK'`` means that the declared `NEDC` value is accepted
+          (assuming |co2mpas| prediction does not deviate more than 4% of the
+          declared *NEDC* value).
+        - ``'SAMPLE'`` means that independently of the result of |co2mpas| prediction
+          the vehicle has to undergo an *NEDC* physical test, "double testing";
+          see *decision percent* below for which H/L vehicle to test under *NEDC*.
+
+        The meaning of the *decision percent* is explained in the following table:
+
+        .. image:: _static/dice_co2mpas_dev.PNG
+
+    decision report
+        Since |co2mpas| v1.7.x, this new textual report (`YAML`) is the final outcome
+        of the `sampling procedure` containing the signed and timestamped data
+        from all intermediate reports;
+
+          |        **decision report**  :=  `dice stamp` + `decision` + *SIG* (`designated user` key)
+          | *ID* (**decision report**)  :=  `HASH-2`
+
+        It generated and stored internally in the `project`, and signed by the
+        `designated user` to prevent tampering and repudiation.
+        The final `HASH-2` contained in it may be communicated to the supervising
+        `TAA` earlier that the `project archive`.
+
+    HASH-1
+        The cryptographic `hash` contained in the `dice report` which identifies
+        unequivocally the `type approval` procedure prior to stamping.
+
+        It is generated by the `project` while parsing the `dice report sheet`.
+
+    HASH-2
+        The cryptographic `hash` contained in the `decision report` which
+        unequivocally identifies a completed `sampling procedure`.
+
+        It is generated by the `project` while importing the `dice stamp`.
+        It may be sent to the `TAA` prior to sending them the `project archive`.
 
     TAA Report
-        A "printed" PDF file sent to TAA to generate the Certificate which is
-        unequivocally associated with all files & reports above::
+        A "printed" PDF file that the `TS` have to send to the `TAA` to generate
+        the Certificate which is unequivocally associated with all files & reports
+        above:
 
-        := output Report + dice decision + Hash #2
+          | **TAA Report**  :=  `output report sheet` + `decision` + `HASH-2`
 
-    timestamp server
-        The email service that appends a cryptographic signature on all its incoming e-mails,
-        certifying thus the existence in time of those emails.  The trust on its certifications
-        stems from the list of signatures published daily in its site.
+    stamper
+    timestamper
+    timestamp service
+        Either the `mail stamper` or the `web stamper` services that append
+        a cryptographic signature on an "incoming" `dice report`, and sends it
+        with an email to recipients to prevent repudiation at a later time.
+
+    mail stamper
+        A `stamper` mail-server that stamps and forwards all incoming e-mails to
+        specified recipients.
+
+        The trust on its certifications stems from the list of signatures published
+        daily in its site.
+
+    web stamper
+        JRC's user-friendly `stamper` web-application that uses a simple HTTP-form to
+        timestamp a pasted `dice report` and return a `dice stamp`, emailing it also
+        to any specified recipients, always including from CLIMA/JRC.
 
 
 Generic terms
 =============
 .. glossary::
+
     NEDC
         New European Driving Cycle
 
     WLTP
+    type approval
         Worldwide harmonized Light vehicles Test Procedures
+
+    |co2mpas|
+        May refer to the application, the correlation procedure, or
+        to the `WLTP` --> `NEDC` simulator.
 
     repeatability
         The capability of |co2mpas| to duplicate the exact simulation results when running repeatedly
@@ -502,13 +620,6 @@ Generic terms
         exclusively on its contents; even if a single bit of the file changes,
         its hash-id is guaranteed to be totally different.
 
-    dice
-    dice command
-    dice application,
-    sampling application,
-        The |co2mpas| application responsible for producing a sampling flag that defines
-        whether a Vehicle has to undergo a physical testing under NEDC (in addition to WLTP).
-
     Git
         An open-source version control system use for software development that
         organizes files in versioned folders, stored based on their `hash`.
@@ -516,22 +627,22 @@ Generic terms
         files and versioned folders with any other installation.
 
     SHA1
-        A fast and secure hashing algorithm with 160bit numbers (20 bytes, 40 hex digits),
-        used by `Git`.
+        A fast and hashing algorithm with 160bit numbers (20 bytes, 40 hex digits),
+        used, among others, by `Git`.
 
         Example::
 
-               SHA1(“Hi CO2MPAS”) = 911907f21baea8215a38a10396403bd7cd81bddf
+               SHA1("CO2MPAS") = c5badbe95ad77c0ca66abed422c964aa080d8c07
 
-    Git DB
-    Hash DB
-    Git repo
-    Git repo DB
-        The git repository maintained by the `dice` command that collects all the files and reports
-        generated during the Type Approving process with |co2mpas|.
-        It is created by the Technical Service and must be sent to the Type Approval Authority.
-        Any `hash` generated in the mean time are retrieved by this repository.
+    JSON
+        JavaScript Object Notation:  a lightweight human-readable data-interchange
+        data format, easy for machines to parse and generate.
+        https://en.wikipedia.org/wiki/JSON
 
+    YAML
+        Ain't Markup Language: A human-friendly data serialization language,
+        commonly used for configuration files and data exchnage.
+        https://en.wikipedia.org/wiki/YAML
 
     IO
         Input/Output; when referring to a software application, we mean the internal interfaces
@@ -539,6 +650,18 @@ Generic terms
 
     OEM
         Original Equipment Manufacturers, eg. a Vehicle manufacturer
+
+    TAA
+        Type Approval Authority: the national supervision body for a `type approval`
+        procedure
+
+    TS
+        Technical service: the entity running the `WLTP` on behalf of the `OEM`,
+        which reports to some `TAA`.  in some cases, the `TAA` might be also the *TS*.
+
+    designated user
+        Any organizational entity or person (usually a `TS`) running type-approval
+        on behalf of some `OEM` and reporting to some `TAA`.
 
     Capped cycles
         For vehicles that cannot follow the standard NEDC/WLTP cycles (for example, because they have not enough power to attain the acceleration and maximum speed values required in the operating cycle) it is still possible to use the |co2mpas| tool to predict the NEDC |co2| emission. For these capped cycles, the vehicle has to be operated with the accelerator control fully depressed until they once again reach the required operating curve. Thus, the operated cycle may last more than the standard duration seconds and the subphases may vary in duration. Therefore there is a need to indicate the exact duration of each subphase. This can be done by filling in, the corresponding bag_phases vector in the input file which define the phases integration time [1,1,1,...,2,2,2,...,3,3,3,...,4,4,4]. Providing this input for WLTP cycles together with the other standard vectorial inputs such as speed,engine speed, etc. allows |co2mpas| to process a "modified" WLTP and get calibrated properly. The NEDC that is predicted corresponds to the respective NEDC velocity profile and gearshifting that applies to the capped cycle, which is provided in the appropriate tab. Note that, providing NEDC velocity and gear shifting profile is not allowed for normal vehicles.
@@ -548,6 +671,8 @@ Generic terms
         the  wheels and vehicle components rotating with the wheels on the road while the gearbox is placed in neutral, in kg. It shall
         be measured or calculated using an appropriate technique agreed upon by the responsible authority. Alternatively, it may be
         estimated to be 3 per cent of the sum of the mass in running order and 25 kg.
+
+
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
 .. |CO2| replace:: CO\ :sub:`2`
 .. |NOx| replace:: NO\ :sub:`x`\

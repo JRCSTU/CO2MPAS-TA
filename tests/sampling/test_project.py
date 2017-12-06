@@ -448,13 +448,38 @@ class TStraightStory(unittest.TestCase):
             raise unittest.SkipTest("No smtp-server credentials & tstamp config file "
                                     "found in 'TEST_TSTAMP_CONFIG_FPATH' env-var.")
 
-    def test_6_receive_email(self):
+    def test_6A_receive_email(self):
         from . import test_tstamp
 
         cfg = self._config
         cfg.Project.dry_run = False  # modifed by prev TC.
         pdb = project.ProjectsDB.instance(config=cfg)
         pdb.update_config(cfg)
+        p = pdb.current_project()
+        p.update_config(cfg)
+
+        with self.assertLogs(level=logging.ERROR) as logrec:
+            res = p.do_storedice(tstamp_txt=test_tstamp.tstamp_responses[-1][-1])
+            assert "different from current one" in logrec.output[0], logrec
+            assert "is different from last tag " in logrec.output[0], logrec
+        self.assertTrue(res)
+        self.assertEqual(p.state, 'nosample')
+
+        p2 = pdb.current_project()
+        self.assertIs(p, p2)
+
+    def test_6B_tag_parse(self):
+        from . import test_tstamp
+
+        cfg = self._config
+        cfg.Project.dry_run = False  # modifed by prev TC.
+        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb.update_config(cfg)
+
+        ## Move back to `tagged` state.
+        pdb.repo.git.reset('HEAD~~', hard=True)
+        pdb._current_project = None
+
         p = pdb.current_project()
         p.update_config(cfg)
 
@@ -480,6 +505,65 @@ class TStraightStory(unittest.TestCase):
         p2 = pdb.current_project()
         self.assertIs(p, p2)
 
+
+class TParseCheck(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.cfg = c = trtc.get_config()
+
+        c.GpgSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        c.GpgSpec.keys_to_import = test_pgp_keys
+        c.GpgSpec.trust_to_import = test_pgp_trust
+        c.GpgSpec.master_key = test_pgp_fingerprint
+        c.GpgSpec.allow_test_key = True
+        c.DiceSpec.user_name = "Test Vase"
+        c.DiceSpec.user_email = "test@vase.com"
+
+        crypto.GpgSpec(config=c)
+
+        ## Clean memories from past tests
+        #
+        crypto.StamperAuthSpec.clear_instance()
+        crypto.GitAuthSpec.clear_instance()
+        crypto.VaultSpec.clear_instance()
+
+        cls._project_repo = tempfile.TemporaryDirectory()
+        log.debug('Temp-repo: %s', cls._project_repo)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
+        cls._project_repo.cleanup()
+
+    @property
+    def _config(self):
+        c = self.cfg.copy()
+        c.ProjectsDB.repo_path = self._project_repo.name
+        c.Spec.verbose = c.ProjectsDB.verbose = 0
+        return c
+
+    def test_tparse_checks(self):
+        cfg = self._config
+        archive_fpath = osp.join(mydir, 'project-IP-10-AAA-2017-0000.zip')
+        stamp_old_fpath = osp.join(mydir, 'stamp1-IP-10-AAA-2017-0000.txt')
+        stamp_new_fpath = osp.join(mydir, 'stamp2-IP-10-AAA-2017-0000.txt')
+        test_vfid = 'IP-10-AAA-2017-0000'
+
+        pump_cmd(project.ImportCmd(config=cfg).run(archive_fpath))
+        self.assertIn(test_vfid,
+                      collect_cmd(project.LsCmd(config=cfg).run(test_vfid)))
+        with self.assertRaisesRegex(
+                baseapp.CmdException,
+                r"Stamp's tag"
+                "\('dices/IP-10-AAA-2017-0000/0: ad5f4eb331ba5067a2e82422a1ffafdec8ea09d4'\) "
+                "is different from last tag on current project"
+                "\('dices/IP-10-AAA-2017-0000/0: ec86fd6986bc9ec9656a92a3c66e70eb90394461'\)"):
+            pump_cmd(project.TparseCmd(config=cfg).run(stamp_old_fpath))
+
+        pump_cmd(project.TparseCmd(config=cfg).run(stamp_new_fpath))
+        self.assertIn('sample',
+                      collect_cmd(project.LsCmd(config=cfg).run(test_vfid)))
 
 class TInitCmd(unittest.TestCase):
 

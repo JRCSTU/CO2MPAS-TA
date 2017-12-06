@@ -28,7 +28,7 @@ from .._vendor import traitlets as trt
 _undefined = object()
 
 
-class UnverifiedSig(CmdException):
+class UnverifiedSigException(CmdException):
     def __init__(self, msg, verdict):
         self.verdict = verdict
         super().__init__(msg)
@@ -1012,7 +1012,7 @@ class TstampReceiver(TstampSpec):
         ver = git_auth.verify_git_signed(stag_bytes)
         verdict = OrderedDict(sorted(vars(ver).items()))
         if not ver:
-            raise UnverifiedSig(
+            raise UnverifiedSigException(
                 "Cannot verify (foreign?) dice-report's signature!\n%s" %
                 _mydump(verdict), verdict)
 
@@ -1040,7 +1040,7 @@ class TstampReceiver(TstampSpec):
             verdict = self.try_unquoting(
                 self.un_quote_printable, tag_text,
                 self._verify_tag, 'tag')
-        except CmdException as ex:
+        except UnverifiedSigException as ex:
             ## Do not fail, it might be from an unknown sender,
             #  but log as much as possible and crop verdict.
             verdict = ex.verdict
@@ -1093,7 +1093,7 @@ class TstampReceiver(TstampSpec):
         if not ver:
             errmsg = "Cannot verify timestamp-response's signature due to: %s"
             gpg_msg = ver.status or crypto.filter_gpg_stderr(ver.stderr)
-            raise UnverifiedSig(errmsg % (gpg_msg), verdict)
+            raise UnverifiedSigException(errmsg % (gpg_msg), verdict)
 
         return verdict
 
@@ -1177,7 +1177,7 @@ class TstampReceiver(TstampSpec):
                 self.un_quote_printable, mail_text,
                 self._verify_tstamp, 'full')
         ## Let serious exceptions bubble up - cannot work with them.
-        except CmdException as ex:
+        except UnverifiedSigException as ex:
             ## Do not fail, it might be from an unknown sender,
             #  but log as much as possible and crop verdict.
             ts_verdict = ex.verdict

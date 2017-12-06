@@ -7,15 +7,12 @@
 |co2mpas|: Vehicle simulator predicting NEDC |CO2| emissions from WLTP
 ######################################################################
 
-:official:      `AIO-1.5.5` + `co2mpas-1.5.7.b3` (until 1-Nov-2017)
-:latest:        `1.7.4b3`
-:rel_date:      `2017-08-10 23:17:18`
-:render_date:   |today|
+:official:      `AIO-1.7.3 <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v1.7.3>`_ + `co2mpas-1.7.x` (obligatory after 31-Oct-2017)
+:latest:        `1.7.4.post0`
+:rel_date:      `2017-12-07 01:31:19`
 :home:          http://co2mpas.io/
-:wiki:          https://github.com/JRCSTU/CO2MPAS-TA/wiki/
 :repository:    https://github.com/JRCSTU/CO2MPAS-TA
 :pypi-repo:     https://pypi.org/project/co2mpas/
-:download:      AIO(https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v1.7.4b3)
 :keywords:      CO2, fuel-consumption, WLTP, NEDC, vehicle, automotive,
                 EU, JRC, IET, STU, correlation, back-translation, policy,
                 monitoring, M1, N1, simulator, engineering, scientific
@@ -26,8 +23,8 @@
 |co2mpas| is backward-looking longitudinal-dynamics |CO2| and
 fuel-consumption simulator for light-duty M1 & N1 vehicles (cars and vans), specially crafted to
 *estimate and type-approve CO2 emissions* of vehicles undergoing NEDC testing
-based on the emissions produced during WLTP tests, according to the *EU legislation*
-(see `History`_ section, below).
+based on the emissions produced during WLTP tests, according to the
+*EU legislations 1152/EUR/2017 and 1153/EUR/2017* (see `History`_ section, below).
 
 It is an open-source project(`EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_)
 developed for Python-3.5+ using |winpython|_ & |anaconda|_ under Windows 7,
@@ -47,8 +44,8 @@ IF you already have a full-blown *python-3 environment*
 (i.e. *Linux* or the *all-in-one* archive), AND
 IF you have familiarity with previous releases, THEN
 you can immediately start working with the following *bash* commands;
-otherwise follow the detailed instructions under sections :ref:`install` and
-:ref:`usage`.
+otherwise follow the detailed instructions under sections :ref:`co2mpas-install` and
+:ref:`co2mpas-usage`.
 
 .. code-block:: console
 
@@ -99,7 +96,7 @@ History
 The *European Commission* has introduced the *WLTP* as test procedure for the type I test
 of the European type-approval of Light-duty vehicles as of September 2017.
 Its introduction has required the adaptation of |CO2| certification and monitoring procedures
-set by European regulations (443/2009 and 510/2011).
+set by European regulations (443/2009, 510/2011, 1152/EUR/2017 and 1153/EUR/2017).
 European Commission’s *Joint Research Centre* (JRC) has been assigned the development
 of this vehicle simulator to facilitate this adaptation.
 
@@ -148,7 +145,7 @@ their use without our consent, beyond their intended usage, which is to run |co2
   :depth: 4
 
 
-.. _install:
+.. _co2mpas-install:
 
 Install
 =======
@@ -174,7 +171,7 @@ Requirements
 - Unhindered SMTP access to this email-server (no firewall on ports 25, 465, 587);
   or access through SOCKS Proxy (see diagram below);
 
-  .. image:: doc/_static/firewalls.png
+  .. image:: _static/firewalls.png
      :width: 420
 
 - Unhindered HTTP/HTTPS  web-access (no firewall on ports 80, 443);
@@ -318,7 +315,7 @@ Generic Tips
 
   Please follow the upgrade procedure in the main documentation.
 
-.. _usage:
+.. _co2mpas-usage:
 
 
 Usage
@@ -347,13 +344,13 @@ Alternatively, open the CONSOLE and type the following command:
 
     ## Check co2mpas version.
     $ co2mpas -V
-    co2mpas-1.7.4b3
+    co2mpas-1.7.4.post0
 
 
 |co2mpas| command syntax
 ------------------------
 To get the syntax of the |co2mpas| console-command, open a console where
-you have installed |co2mpas| (see :ref:`install` above) and type::
+you have installed |co2mpas| (see :ref:`co2mpas-install` above) and type::
 
     ## co2mpas help.
     $ co2mpas --help
@@ -955,7 +952,7 @@ installed:
 6. When you have finished, return to the console and issue twice ``Ctrl + C``
    to shutdown the *ipython-server*.
 
-.. _debug:
+.. _co2mpas-debug:
 
 Debugging and investigating results
 -----------------------------------
@@ -1294,7 +1291,7 @@ It is not update-able, and has a quasi-regular release-cycle of 3 months.
         ....
 
 
-4. Use this console and follow :ref:`install-co2mpas-package` instructions, below.
+4. Use this console and follow :ref:`co2mpas-install-package` instructions, below.
 
 
 
@@ -1327,10 +1324,10 @@ It is not update-able, and has a semi-regular release-cycle of 3 months.
         > where python
         ....
 
-4. Use this console and follow :ref:`install-co2mpas-package` instructions, below.
+4. Use this console and follow :ref:`co2mpas-install-package` instructions, below.
 
 
-.. _install-co2mpas-package:
+.. _co2mpas-install-package:
 
 Install |co2mpas| package
 -------------------------
@@ -1346,7 +1343,7 @@ Install |co2mpas| package
         Downloading http://pypi.co2mpas.io/packages/co2mpas-...
         ...
         Installing collected packages: co2mpas
-        Successfully installed co2mpas-1.7.4b3
+        Successfully installed co2mpas-1.7.4.post0
 
    .. Warning::
         **Installation failures:**
@@ -1366,8 +1363,8 @@ Install |co2mpas| package
    .. code-block:: console
 
        > co2mpas -vV
-       co2mpas_version: 1.7.4b3
-       co2mpas_rel_date: 2017-11-14 15:56:20
+       co2mpas_version: 1.7.4.post0
+       co2mpas_rel_date: 2017-12-07 01:31:19
        co2mpas_path: d:\co2mpas_ALLINONE-64bit-v1.4.1\Apps\WinPython\python-3.4.3\lib\site-packages\co2mpas
        python_path: D:\co2mpas_ALLINONE-64bit-v1.4.1\WinPython\python-3.4.3
        python_version: 3.4.3 (v3.4.3:9b73f1c3e601, Feb 24 2015, 22:44:40) [MSC v.1600 XXX]
@@ -1393,7 +1390,7 @@ you need to install the **Graphviz** visualization library  from:
 http://www.graphviz.org/.
 
 If you skip this step, the ``modelgraph`` sub-command and the ``--plot-workflow``
-option would both fail to run (see :ref:`debug`).
+option would both fail to run (see :ref:`co2mpas-debug`).
 
 
 
@@ -1564,7 +1561,7 @@ where in each one you can install a different versions of |co2mpas|.
 
 
 6. Install the |co2mpas| version you want inside the activated venv.
-   See the :ref:`install-co2mpas-package` section, above.
+   See the :ref:`co2mpas-install-package` section, above.
 
    .. Tip::
       Always store the installation logs, particularly if you install a specific version

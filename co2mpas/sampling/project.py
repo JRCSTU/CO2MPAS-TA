@@ -441,16 +441,16 @@ class Project(transitions.Machine, ProjectSpec):
             - [do_sendmail,  mailed,     mailed,     _is_dry_run        ]
 
             - trigger:    do_storedice
-              source:     mailed
-              dest:       sample
-              prepare:    _parse_response
-              conditions: [_is_decision_sample, _is_not_dry_run_dicing]
-
-            - trigger:    do_storedice
-              source:     mailed
+              source:     [tagged, mailed]
               dest:       nosample
               prepare:    _parse_response
               conditions:     [_is_not_decision_sample, _is_not_dry_run_dicing]
+
+            - trigger:    do_storedice
+              source:     [tagged, mailed]
+              dest:       sample
+              prepare:    _parse_response
+              conditions: [_is_decision_sample, _is_not_dry_run_dicing]
 
             - [do_addfiles,  [diced,
                               nosample,
@@ -787,6 +787,24 @@ DRY-RUN: Now you must send the email your self!
             ## Don't repeat your self...
             event.kwargs['action'] = '%s stamp-email' % ('FAKED' if dry_run else 'sent')
 
+    def _validate_stamp_verdict(self, verdict):
+        err_msgs = []
+
+        stamp_pname = verdict.get('report', {}).get('project')
+        if stamp_pname != self.pname:
+            err_msgs.append("Stamp's project('%s') is different from current one('%s')!"
+                   % (stamp_pname, self.pname))
+
+        stamp_tag = verdict.get('dice', {}).get('tag')
+        tag = _find_dice_tag(self.repo, self.pname, self.max_dices_per_project)
+        last_tag = tag and '%s: %s' % (tag.name, tag.commit.hexsha)
+        if stamp_tag != last_tag:
+            err_msgs.append("Stamp's tag('%s') is different "
+                       "from last tag on current project('%s')!"
+                   % (stamp_tag, last_tag))
+
+        return '\n'.join(err_msgs)
+
     def _parse_response(self, event) -> bool:
         """
         Triggered by `do_storedice(verdict=<dict> | tstamp_txt=<str>)` in PREPARE for `sample/nosample` states.
@@ -811,14 +829,12 @@ DRY-RUN: Now you must send the email your self!
             recv = tstamp.TstampReceiver(config=self.config)
             verdict = recv.parse_tstamp_response(tstamp_txt)
 
-        pname = verdict.get('report', {}).get('project')
-        if pname != self.pname:
-            msg = ("Current project('%s') is different from tstamp('%s')!"
-                   % (self.pname, pname))
+        err_msg = self._validate_stamp_verdict(verdict)
+        if err_msg:
             if self.force:
-                self.log.error("%s  \n  But forced to accept it.", msg)
+                self.log.error("%s  \n  But forced to accept it.", err_msg)
             else:
-                raise CmdException(msg)
+                raise CmdException(err_msg)
 
         ## Store DICE-decision under email-response!
         #
