@@ -29,6 +29,7 @@ import textwrap as tw
 import traceback as tb
 import wtforms.fields as wtff
 import wtforms.validators as wtfl
+from tests.sampling.test_tsigner import default_recipients
 
 
 STAMPED_PROJECTS_KEY = 'stamped_projects'
@@ -46,6 +47,23 @@ def get_bool_arg(argname):
         param = args[argname].strip()
         return param.lower() not in '0 false no off'.split()
 
+
+def unique_ci(words):
+    """
+    Eliminate all but 1st duplicate words, case-insensitively.
+
+    >>> words = 'a big A pig In JaPaN in japan JAPAN'.split()
+    >>> unique_ci(words)
+    ['a', 'big', 'pig', 'In', 'JaPaN']
+    """
+    lower_words = set()
+    uniques = []
+    for w in words:
+        lw = w.lower()
+        if lw not in lower_words:
+            lower_words.add(lw)
+            uniques.append(w)
+    return uniques
 
 ## TODO: ESCAPE USER-INPUT!!!!
 def recipients_str(recipients):
@@ -178,9 +196,7 @@ def create_stamp_form_class(app):
             ## Prepend "hidden" default-recipients. (JRC & CLIMA?).
             #
             default_recipients = config.get('DEFAULT_STAMP_RECIPIENTS', [])
-            recipients = default_recipients + recipients
-
-            recipients = list(iset(recipients))
+            recipients = unique_ci(default_recipients + recipients)
 
             if len(recipients) < len(default_recipients) + 1:
                 raise wtforms.ValidationError(
