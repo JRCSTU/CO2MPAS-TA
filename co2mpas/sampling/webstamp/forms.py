@@ -277,7 +277,12 @@ def create_stamp_form_class(app):
                              (sent_action, len(stamp_recipients),
                               escape(recipients_str(stamp_recipients)))),
                       'error' if mail_err else 'info')
-                flash(Markup("Decision:<pre>\n%s</pre>" %
+                flash(Markup(tw.dedent("""
+                    Decision:<pre>\n%s</pre>
+                    <div class="alert alert-success">
+                      NOTE: you still must import the stamp above back
+                            into your project!
+                    </div>""") %
                              (escape(yaml.dump({'dice': dice_decision},
                                                default_flow_style=False)))),
                       'error'
