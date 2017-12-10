@@ -5,6 +5,11 @@ CO2MPAS Changes
 .. _changes:
 
 
+v1.7.4.post0, 11 Dec 2017
+=========================
+- feat(wstamp): cache last sender+recipient in cookies.
+
+
 v1.7.4, 15 Nov 2017: "Toketos"
 ==============================
 - feat(dice, :gh:`447`): Allow skipping ``tsend -n`` command to facilitate
