@@ -33,6 +33,8 @@ from tests.sampling.test_tsigner import default_recipients
 
 
 STAMPED_PROJECTS_KEY = 'stamped_projects'
+LAST_SENDER_KEY = 'last_sender'
+LAST_RECIPIENTS_KEY = 'last_recipients'
 
 
 logger = logging.getLogger(__name__)
@@ -150,6 +152,7 @@ def create_stamp_form_class(app):
             validators=[wtfl.InputRequired(),
                         wtfl.Length(min=3, max=60),
                         ascii_validator],
+            default=lambda: request.cookies.get(LAST_SENDER_KEY),
             render_kw={'autocomplete': 'on'})
 
         stamp_recipients = wtff.TextAreaField(
@@ -163,6 +166,7 @@ def create_stamp_form_class(app):
                 <kbd>[Space]</kbd>, <kbd>[Enter]</kbd>, <kbd>[Tab]</kbd> characters)
             """,
             validators=[wtfl.InputRequired()],
+            default=lambda: request.cookies.get(LAST_RECIPIENTS_KEY),
             render_kw={'rows': config['MAILIST_WIDGET_NROWS'],
                        'autocomplete': 'on'})
 
@@ -493,6 +497,13 @@ def create_stamp_form_class(app):
                                     dice_decision, mail_err]))
                 project = dice_decision['tag']
                 add_project_in_stamps_cookie(request.cookies, project)
+
+                @after_this_request
+                def store_form_field_as_cookies(response):
+                    response.set_cookie(LAST_SENDER_KEY, self.sender.data)
+                    response.set_cookie(LAST_RECIPIENTS_KEY, self.stamp_recipients.data)
+                    return response
+
                 self._manage_session(True)
 
         def render(self):
