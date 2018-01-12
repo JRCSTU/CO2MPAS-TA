@@ -11,8 +11,53 @@
 ##
 ##      pip install -r requirements/dev.pip
 
+## DIRECT DEPS
 pandas
+xlsxwriter
+scikit-learn
 numpy
 scipy
-scikit-learn
 matplotlib
+networkx
+dill
+docopt
+six
+regex
+tqdm
+PyYAML
+pip
+openpyxl
+toolz
+ipython_genutils
+gitpython
+PySocks
+parsedatetime
+Unidecode
+
+#NO: graphviz ## DOWNGRADES numpy!!
+
+## IDIRECT deps:
+lxml
+MarkupSafe
+Jinja2
+babel
+sphinxcontrib-websupport
+docutils
+snowballstemmer
+Pygments
+alabaster
+imagesize
+sphinx
+Werkzeug
+click
+itsdangerous
+flask
+beautifulsoup4
+dill
+colorama
+future
+jsonschema
+xlrd
+
+## (optional) NATIVE deps
+#git
