@@ -40,7 +40,7 @@ LAST_RECIPIENTS_KEY = 'last_recipients'
 logger = logging.getLogger(__name__)
 
 
-def get_bool_arg(argname):
+def get_bool_arg(argname, default=None):
     """
     True is an arg alone, or any stripped string not one of: ``0|false|no|off``
     """
@@ -48,6 +48,7 @@ def get_bool_arg(argname):
     if argname in args:
         param = args[argname].strip()
         return param.lower() not in '0 false no off'.split()
+    return default
 
 
 def unique_ci(words):
@@ -209,9 +210,7 @@ def create_stamp_form_class(app):
         def validate_stamp_recipients(self, field):
             """Must contain at least 1 non-standard email-address."""
             text = field.data
-            check_mx = get_bool_arg('skip_mail_mx_check')
-            if check_mx is None:
-                check_mx = os.name != 'nt'
+            skip_check_mx = get_bool_arg('skip_mail_mx_check', os.name == 'nt')
 
             recipients = re.split('[\s,;]+', text)
             recipients = [s and s.strip() for s in recipients]
@@ -228,7 +227,7 @@ def create_stamp_form_class(app):
                     recipients_str(recipients))
 
             for i, email in enumerate(recipients, 1):
-                if not validate_email(email, check_mx=check_mx):
+                if not validate_email(email, check_mx=not skip_check_mx):
                     raise wtforms.ValidationError(
                         'Invalid email-address no-%i: `%s`' %
                         (i, recipients_str(recipients)))
