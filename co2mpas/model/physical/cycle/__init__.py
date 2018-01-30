@@ -164,11 +164,12 @@ def cycle():
         inputs=(
             'accelerations', 'climbing_force', 'downscale_factor',
             'downscale_factor_threshold', 'downscale_phases',
-            'engine_max_power', 'engine_max_speed_at_max_power',
+            'engine_max_power', 'engine_speed_at_max_power',
             'full_load_curve', 'gear_box_type', 'gears', 'idle_engine_speed',
             'inertial_factor', 'max_speed_velocity_ratio', 'max_velocity',
             'motive_powers', 'road_loads', 'speed_velocity_ratios', 'times',
             'unladen_mass', 'vehicle_mass', 'velocities', 'wltp_base_model',
+            'engine_max_speed',
             'wltp_class', {'cycle_type': sh.SINK}),
         outputs=('gears', 'initial_temperature', 'max_time', 'velocities'),
         input_domain=is_wltp

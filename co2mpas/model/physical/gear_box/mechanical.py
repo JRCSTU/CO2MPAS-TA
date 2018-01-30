@@ -613,14 +613,6 @@ def _calculate_req_power(road_loads, velocity):
     return np.polyval(road_loads[::-1], velocity) * velocity / 3600
 
 
-def _calculate_maximum_power(
-        full_load_curve, engine_max_power, idle_engine_speed,
-        engine_max_speed_at_max_power, engine_speed):
-    n_norm = engine_speed - idle_engine_speed[0]
-    n_norm /= engine_max_speed_at_max_power - idle_engine_speed[0]
-    return full_load_curve(n_norm) * engine_max_power
-
-
 def calculate_last_gear_box_ratio(
         r_dynamic, final_drive_ratios, engine_speed_at_max_velocity,
         maximum_velocity):
@@ -654,31 +646,18 @@ def calculate_last_gear_box_ratio(
 
 
 def calculate_last_gear_box_ratio_v1(
-        full_load_curve, engine_max_power, idle_engine_speed,
-        final_drive_ratios, engine_max_speed_at_max_power, road_loads,
-        r_dynamic, maximum_velocity):
+        full_load_curve, final_drive_ratios, road_loads, r_dynamic,
+        maximum_velocity):
     """
     Calculates the gear box ratio of the last gear from full load curve.
 
     :param full_load_curve:
         Vehicle full load curve.
-    :type full_load_curve: scipy.interpolate.InterpolatedUnivariateSpline
-
-    :param engine_max_power:
-        Engine nominal power [kW].
-    :type engine_max_power: float
-
-    :param idle_engine_speed:
-        Engine speed idle median and std [RPM].
-    :type idle_engine_speed: (float, float)
+    :type full_load_curve: function
 
     :param final_drive_ratios:
         Final drive ratios [-].
     :type final_drive_ratios: dict[int | float]
-
-    :param engine_max_speed_at_max_power:
-        Rated engine speed [RPM].
-    :type engine_max_speed_at_max_power: float
 
     :param road_loads:
         Cycle road loads [N, N/(km/h), N/(km/h)^2].
@@ -699,19 +678,14 @@ def calculate_last_gear_box_ratio_v1(
     dfl = defaults.dfl.functions.calculate_last_gear_box_ratio_v1
     ratio = np.arange(dfl.MAX_RATIO, dfl.MIN_RATIO, -dfl.DELTA_RATIO)
 
-    speed = calculate_engine_speed_at_max_velocity(
+    p = full_load_curve(calculate_engine_speed_at_max_velocity(
         r_dynamic, final_drive_ratios, ratio, maximum_velocity
-    )
-
-    p = _calculate_maximum_power(
-        full_load_curve, engine_max_power, idle_engine_speed,
-        engine_max_speed_at_max_power, speed
-    )
+    ))
 
     return ratio[p > _calculate_req_power(road_loads, maximum_velocity)][0]
 
 
-def calculate_maximum_velocity(
+def calculate_maximum_velocity_v1(
         r_dynamic, final_drive_ratios, engine_speed_at_max_velocity,
         last_gear_box_ratio):
     """
@@ -743,32 +717,19 @@ def calculate_maximum_velocity(
     return vel
 
 
-def calculate_maximum_velocity_v1(
-        full_load_curve, engine_max_power, idle_engine_speed,
-        final_drive_ratios, engine_max_speed_at_max_power, road_loads,
-        r_dynamic, last_gear_box_ratio):
+def calculate_maximum_velocity_v2(
+        full_load_curve, final_drive_ratios, road_loads, r_dynamic,
+        last_gear_box_ratio):
     """
     Calculates the maximum velocity from full load curve.
 
     :param full_load_curve:
         Vehicle full load curve.
-    :type full_load_curve: scipy.interpolate.InterpolatedUnivariateSpline
-
-    :param engine_max_power:
-        Engine nominal power [kW].
-    :type engine_max_power: float
-
-    :param idle_engine_speed:
-        Engine speed idle median and std [RPM].
-    :type idle_engine_speed: (float, float)
+    :type full_load_curve: function
 
     :param final_drive_ratios:
         Final drive ratios [-].
     :type final_drive_ratios: dict[int | float]
-
-    :param engine_max_speed_at_max_power:
-        Rated engine speed [RPM].
-    :type engine_max_speed_at_max_power: float
 
     :param road_loads:
         Cycle road loads [N, N/(km/h), N/(km/h)^2].
@@ -789,14 +750,9 @@ def calculate_maximum_velocity_v1(
     dfl = defaults.dfl.functions.calculate_maximum_velocity_v1
     velocity = np.arange(dfl.MAX_VEL, dfl.MIN_VEL, -dfl.DELTA_VEL)
 
-    speed = calculate_engine_speed_at_max_velocity(
+    p = full_load_curve(calculate_engine_speed_at_max_velocity(
         r_dynamic, final_drive_ratios, last_gear_box_ratio, velocity
-    )
-
-    p = _calculate_maximum_power(
-        full_load_curve, engine_max_power, idle_engine_speed,
-        engine_max_speed_at_max_power, speed
-    )
+    ))
 
     return velocity[p > _calculate_req_power(road_loads, velocity)][0]
 
@@ -1036,27 +992,26 @@ def mechanical():
 
     d.add_function(
         function=calculate_last_gear_box_ratio_v1,
-        inputs=['full_load_curve', 'engine_max_power', 'idle_engine_speed',
-                'final_drive_ratios', 'engine_max_speed_at_max_power',
-                'road_loads', 'r_dynamic', 'maximum_velocity'],
+        inputs=['full_load_curve', 'final_drive_ratios', 'road_loads',
+                'r_dynamic', 'maximum_velocity'],
         outputs=['last_gear_box_ratio'],
         weight=5
     )
 
     d.add_function(
-        function=calculate_maximum_velocity,
+        function=calculate_maximum_velocity_v1,
         inputs=['r_dynamic', 'final_drive_ratios',
                 'engine_speed_at_max_velocity', 'last_gear_box_ratio'],
-        outputs=['maximum_velocity']
+        outputs=['maximum_velocity'],
+        weight=10
     )
 
     d.add_function(
-        function=calculate_maximum_velocity_v1,
-        inputs=['full_load_curve', 'engine_max_power', 'idle_engine_speed',
-                'final_drive_ratios', 'engine_max_speed_at_max_power',
-                'road_loads', 'r_dynamic', 'last_gear_box_ratio'],
+        function=calculate_maximum_velocity_v2,
+        inputs=['full_load_curve', 'final_drive_ratios', 'road_loads',
+                'r_dynamic', 'last_gear_box_ratio'],
         outputs=['maximum_velocity'],
-        weight=5
+        weight=15
     )
 
     d.add_function(

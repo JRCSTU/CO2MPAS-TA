@@ -471,7 +471,7 @@ def define_fmep_model(
 
     :param full_bmep_curve:
         Vehicle full bmep curve.
-    :type full_bmep_curve: scipy.interpolate.InterpolatedUnivariateSpline
+    :type full_bmep_curve: function
 
     :param engine_max_speed:
         Maximum allowed engine speed [RPM].

@@ -30,6 +30,7 @@ from sklearn.cluster import DBSCAN
 import schedula as sh
 import co2mpas.utils as co2_utl
 import functools
+import scipy.interpolate as sci_itp
 
 
 def calculate_engine_mass(ignition_type, engine_max_power):
@@ -77,27 +78,47 @@ def calculate_engine_heat_capacity(engine_mass):
     return engine_mass * np.sum(hc[k] * v for k, v in mp.items())
 
 
-def get_full_load(ignition_type):
+def identify_engine_speed_at_max_power(full_load_speeds, full_load_powers):
     """
-    Returns vehicle full load curve.
-
-    :param ignition_type:
-        Engine ignition type (positive or compression).
-    :type ignition_type: str
-
+    Identifies engine nominal speed at engine nominal power [RPM].
+    
+    :param full_load_speeds:
+        T1 map speed vector [RPM].
+    :type full_load_speeds: numpy.array
+     
+    :param full_load_powers:
+        T1 map power vector [kW].
+    :type full_load_powers: numpy.array 
+    
     :return:
-        Vehicle normalized full load curve.
-    :rtype: scipy.interpolate.InterpolatedUnivariateSpline
+        Engine speed at engine nominal power [RPM].
+    :rtype: float
     """
-
-    xp, fp = defaults.dfl.functions.get_full_load.FULL_LOAD[ignition_type]
-    func = functools.partial(
-        np.interp, xp=xp, fp=fp, left=fp[0], right=fp[-1]
-    )
-    return func
+    return full_load_speeds[np.argmax(full_load_powers)]
 
 
-def calculate_full_load(full_load_speeds, full_load_powers, idle_engine_speed):
+def calculate_engine_max_power(full_load_curve, engine_speed_at_max_power):
+    """
+    Calculates engine nominal power [kW].
+    
+    :param full_load_curve:
+        Vehicle full load curve.
+    :type full_load_curve: function
+     
+    :param engine_speed_at_max_power:
+        Engine speed at engine nominal power [RPM].
+    :type engine_speed_at_max_power: float
+     
+    :return: 
+        Engine nominal power [kW].
+    :rtype: float
+    """
+    return full_load_curve(engine_speed_at_max_power)
+
+
+def define_full_load_curve(
+        full_load_speeds, full_load_powers, idle_engine_speed,
+        engine_max_speed):
     """
     Calculates the full load curve.
 
@@ -112,56 +133,94 @@ def calculate_full_load(full_load_speeds, full_load_powers, idle_engine_speed):
     :param idle_engine_speed:
         Engine speed idle median and std [RPM].
     :type idle_engine_speed: (float, float)
-
+    
+    :param engine_max_speed:
+        Maximum allowed engine speed [RPM].
+    :type engine_max_speed: float
+    
     :return:
-        Vehicle full load curve, Maximum power [kW], Rated engine speed [RPM].
-    :rtype: (scipy.interpolate.InterpolatedUnivariateSpline, float, float)
+        Vehicle full load curve.
+    :rtype: function
     """
+    xp = [idle_engine_speed[0] - idle_engine_speed[1], engine_max_speed]
+    xp.extend(full_load_speeds)
+    xp = np.unique(xp)
 
-    pn = np.array((full_load_speeds, full_load_powers))
-    max_speed_at_max_power, max_power = pn[:, np.argmax(pn[1])]
-    pn[1] /= max_power
-    idle = idle_engine_speed[0]
-    pn[0] = (pn[0] - idle) / (max_speed_at_max_power - idle)
+    fp = sci_itp.InterpolatedUnivariateSpline(
+        full_load_speeds, full_load_powers, k=1
+    )(xp)
 
-    xp, fp = pn
-    func = functools.partial(
-        np.interp, xp=xp, fp=fp, left=fp[0], right=fp[-1]
-    )
-    return func, max_power, max_speed_at_max_power
+    return functools.partial(np.interp, xp=xp, fp=fp, left=0, right=0)
 
 
-def calculate_full_load_speeds_and_powers(
-        full_load_curve, engine_max_power, engine_max_speed_at_max_power,
-        idle_engine_speed):
+def default_engine_max_speed(
+        ignition_type, idle_engine_speed, engine_speed_at_max_power):
     """
-    Calculates the full load speeds and powers [RPM, kW].
+    Returns the default maximum allowed engine speed [RPM].
+    
+    :param ignition_type:
+        Engine ignition type (positive or compression).
+    :type ignition_type: str
+     
+    :param idle_engine_speed:
+        Engine speed idle median and std [RPM].
+    :type idle_engine_speed: (float, float)
+     
+    :param engine_speed_at_max_power:
+        Engine speed at engine nominal power [RPM].
+    :type engine_speed_at_max_power: float
+     
+    :return: 
+        Maximum allowed engine speed [RPM].
+    :rtype: float
+    """
+    dfl = defaults.dfl.functions.default_full_load_speeds_and_powers
+    idle, r = idle_engine_speed[0], max(dfl.FULL_LOAD[ignition_type][0])
+    return idle + r * (engine_speed_at_max_power - idle)
 
-    :param full_load_curve:
-        Vehicle normalized full load curve.
-    :type full_load_curve: scipy.interpolate.InterpolatedUnivariateSpline
+
+def default_full_load_speeds_and_powers(
+        ignition_type, engine_max_power, engine_speed_at_max_power,
+        idle_engine_speed, engine_max_speed):
+    """
+    Returns the defaults full load speeds and powers [RPM, kW].
+
+    :param ignition_type:
+        Engine ignition type (positive or compression).
+    :type ignition_type: str
 
     :param engine_max_power:
         Engine nominal power [kW].
     :type engine_max_power: float
 
-    :param engine_max_speed_at_max_power:
-        Engine nominal speed at engine nominal power [RPM].
-    :type engine_max_speed_at_max_power: float
+    :param engine_speed_at_max_power:
+        Engine speed at engine nominal power [RPM].
+    :type engine_speed_at_max_power: float
 
     :param idle_engine_speed:
         Engine speed idle median and std [RPM].
     :type idle_engine_speed: (float, float)
+    
+    :param engine_max_speed:
+        Maximum allowed engine speed [RPM].
+    :type engine_max_speed: float
 
     :return:
          T1 map speed [RPM] and power [kW] vectors.
     :rtype: (numpy.array, numpy.array)
     """
+    dfl = defaults.dfl.functions.default_full_load_speeds_and_powers
+    xp, fp = dfl.FULL_LOAD[ignition_type]
 
-    n_norm = np.arange(0.0, 1.21, 0.01)
-    full_load_powers = full_load_curve(n_norm) * engine_max_power
     idle = idle_engine_speed[0]
-    full_load_speeds = n_norm * (engine_max_speed_at_max_power - idle) + idle
+
+    full_load_speeds = np.unique(np.append(
+        [engine_speed_at_max_power], np.linspace(idle, engine_max_speed)
+    ))
+
+    full_load_powers = sci_itp.InterpolatedUnivariateSpline(xp, fp, k=1)(
+        (full_load_speeds - idle) / (engine_speed_at_max_power - idle)
+    ) * engine_max_power
 
     return full_load_speeds, full_load_powers
 
@@ -368,7 +427,7 @@ def identify_upper_bound_engine_speed(
 
 
 def calculate_engine_max_torque(
-        engine_max_power, engine_max_speed_at_max_power, ignition_type):
+        engine_max_power, engine_speed_at_max_power, ignition_type):
     """
     Calculates engine nominal torque [N*m].
 
@@ -376,9 +435,9 @@ def calculate_engine_max_torque(
         Engine nominal power [kW].
     :type engine_max_power: float
 
-    :param engine_max_speed_at_max_power:
-        Engine nominal speed at engine nominal power [RPM].
-    :type engine_max_speed_at_max_power: float
+    :param engine_speed_at_max_power:
+        Engine speed at engine nominal power [RPM].
+    :type engine_speed_at_max_power: float
 
     :param ignition_type:
         Engine ignition type (positive or compression).
@@ -391,11 +450,11 @@ def calculate_engine_max_torque(
 
     c = defaults.dfl.functions.calculate_engine_max_torque.PARAMS[ignition_type]
     pi = math.pi
-    return engine_max_power / engine_max_speed_at_max_power * 30000.0 / pi * c
+    return engine_max_power / engine_speed_at_max_power * 30000.0 / pi * c
 
 
-def calculate_engine_max_power(
-        engine_max_torque, engine_max_speed_at_max_power, ignition_type):
+def calculate_engine_max_power_v1(
+        engine_max_torque, engine_speed_at_max_power, ignition_type):
     """
     Calculates engine nominal power [kW].
 
@@ -403,9 +462,9 @@ def calculate_engine_max_power(
         Engine nominal torque [N*m].
     :type engine_max_torque: float
 
-    :param engine_max_speed_at_max_power:
-        Engine nominal speed at engine nominal power [RPM].
-    :type engine_max_speed_at_max_power: float
+    :param engine_speed_at_max_power:
+        Engine speed at engine nominal power [RPM].
+    :type engine_speed_at_max_power: float
 
     :param ignition_type:
         Engine ignition type (positive or compression).
@@ -416,8 +475,7 @@ def calculate_engine_max_power(
     :rtype: float
     """
 
-    c = calculate_engine_max_torque(1, engine_max_speed_at_max_power,
-                                    ignition_type)
+    c = calculate_engine_max_torque(1, engine_speed_at_max_power, ignition_type)
 
     return engine_max_torque / c
 
@@ -593,26 +651,13 @@ def calculate_min_available_engine_powers_out(
 
 
 def calculate_max_available_engine_powers_out(
-        engine_max_speed_at_max_power, idle_engine_speed, engine_max_power,
         full_load_curve, engine_speeds_out):
     """
     Calculates the maximum available engine power [kW].
 
-    :param engine_max_speed_at_max_power:
-        Rated engine speed [RPM].
-    :type engine_max_speed_at_max_power: float
-
-    :param idle_engine_speed:
-        Engine speed idle median and std [RPM].
-    :type idle_engine_speed: (float, float)
-
-    :param engine_max_power:
-        Maximum power [kW].
-    :type engine_max_power: float
-
     :param full_load_curve:
-        Vehicle normalized full load curve.
-    :type full_load_curve: scipy.interpolate.InterpolatedUnivariateSpline
+        Vehicle full load curve.
+    :type full_load_curve: function
 
     :param engine_speeds_out:
         Engine speed vector [RPM].
@@ -623,10 +668,7 @@ def calculate_max_available_engine_powers_out(
     :rtype: numpy.array | float
     """
 
-    n_norm = (engine_max_speed_at_max_power - idle_engine_speed[0])
-    n_norm = (np.asarray(engine_speeds_out) - idle_engine_speed[0]) / n_norm
-
-    return full_load_curve(n_norm) * engine_max_power
+    return full_load_curve(engine_speeds_out)
 
 
 def correct_engine_powers_out(
@@ -930,8 +972,8 @@ def identify_engine_max_speed(full_load_speeds):
 
 
 def define_full_bmep_curve(
-        full_load_speeds, full_load_powers, min_engine_on_speed,
-        engine_capacity, engine_stroke):
+        full_load_speeds, full_load_curve, min_engine_on_speed,
+        engine_capacity, engine_stroke, idle_engine_speed, engine_max_speed):
     """
     Defines the vehicle full bmep curve.
 
@@ -939,9 +981,9 @@ def define_full_bmep_curve(
         T1 map speed vector [RPM].
     :type full_load_speeds: numpy.array
 
-    :param full_load_powers:
-        T1 map power vector [kW].
-    :type full_load_powers: numpy.array
+    :param full_load_curve:
+        Vehicle full load curve.
+    :type full_load_curve: function
 
     :param min_engine_on_speed:
         Minimum engine speed to consider the engine to be on [RPM].
@@ -954,22 +996,31 @@ def define_full_bmep_curve(
     :param engine_stroke:
         Engine stroke [mm].
     :type engine_stroke: float
+    
+    :param idle_engine_speed:
+        Idle engine speed and its standard deviation [RPM].
+    :type idle_engine_speed: (float, float)
+    
+    :param engine_max_speed:
+        Maximum allowed engine speed [RPM].
+    :type engine_max_speed: float
 
     :return:
         Vehicle full bmep curve.
-    :rtype: scipy.interpolate.InterpolatedUnivariateSpline
+    :rtype: function
     """
 
+    speeds = np.unique(np.append(
+        full_load_speeds, [idle_engine_speed[0], engine_max_speed]
+    ))
     from .co2_emission import calculate_brake_mean_effective_pressures
     p = calculate_brake_mean_effective_pressures(
-        full_load_speeds, full_load_powers, engine_capacity,
+        speeds, full_load_curve(speeds), engine_capacity,
         min_engine_on_speed)
 
-    s = calculate_mean_piston_speeds(full_load_speeds, engine_stroke)
-    func = functools.partial(
-        np.interp, xp=s, fp=p, left=p[0], right=p[-1]
-    )
-    return func
+    s = calculate_mean_piston_speeds(speeds, engine_stroke)
+
+    return functools.partial(np.interp, xp=s, fp=p, left=0, right=0)
 
 
 def identify_idle_engine_speed():
@@ -1059,16 +1110,10 @@ def engine():
 
     d.add_function(
         function=define_full_bmep_curve,
-        inputs=['full_load_speeds', 'full_load_powers', 'min_engine_on_speed',
-                'engine_capacity', 'engine_stroke'],
+        inputs=['full_load_speeds', 'full_load_curve', 'min_engine_on_speed',
+                'engine_capacity', 'engine_stroke', 'idle_engine_speed',
+                'engine_max_speed'],
         outputs=['full_bmep_curve']
-    )
-
-    d.add_function(
-        function=get_full_load,
-        inputs=['ignition_type'],
-        outputs=['full_load_curve'],
-        weight=20
     )
 
     d.add_data(
@@ -1092,17 +1137,38 @@ def engine():
     )
 
     d.add_function(
-        function=calculate_full_load_speeds_and_powers,
-        inputs=['full_load_curve', 'engine_max_power',
-                'engine_max_speed_at_max_power', 'idle_engine_speed'],
+        function=default_engine_max_speed,
+        inputs=['ignition_type', 'idle_engine_speed',
+                'engine_speed_at_max_power'],
+        outputs=['engine_max_speed'],
+        weight=20
+    )
+
+    d.add_function(
+        function=default_full_load_speeds_and_powers,
+        inputs=['ignition_type', 'engine_max_power',
+                'engine_speed_at_max_power', 'idle_engine_speed',
+                'engine_max_speed'],
         outputs=['full_load_speeds', 'full_load_powers']
     )
 
     d.add_function(
-        function=calculate_full_load,
-        inputs=['full_load_speeds', 'full_load_powers', 'idle_engine_speed'],
-        outputs=['full_load_curve', 'engine_max_power',
-                 'engine_max_speed_at_max_power']
+        function=identify_engine_speed_at_max_power,
+        inputs=['full_load_speeds', 'full_load_powers'],
+        outputs=['engine_speed_at_max_power']
+    )
+
+    d.add_function(
+        function=calculate_engine_max_power,
+        inputs=['full_load_curve', 'engine_speed_at_max_power'],
+        outputs=['engine_max_power']
+    )
+
+    d.add_function(
+        function=define_full_load_curve,
+        inputs=['full_load_speeds', 'full_load_powers', 'idle_engine_speed',
+                'engine_max_speed'],
+        outputs=['full_load_curve']
     )
 
     d.add_function(
@@ -1169,14 +1235,15 @@ def engine():
 
     d.add_function(
         function=calculate_engine_max_torque,
-        inputs=['engine_max_power', 'engine_max_speed_at_max_power',
+        inputs=['engine_max_power', 'engine_speed_at_max_power',
                 'ignition_type'],
         outputs=['engine_max_torque']
     )
 
     d.add_function(
+        function_id='calculate_engine_max_power_v2',
         function=calculate_engine_max_torque,
-        inputs=['engine_max_torque', 'engine_max_speed_at_max_power',
+        inputs=['engine_max_torque', 'engine_speed_at_max_power',
                 'ignition_type'],
         outputs=['engine_max_power']
     )
@@ -1253,8 +1320,7 @@ def engine():
 
     d.add_function(
         function=calculate_max_available_engine_powers_out,
-        inputs=['engine_max_speed_at_max_power', 'idle_engine_speed',
-                'engine_max_power', 'full_load_curve', 'engine_speeds_out'],
+        inputs=['full_load_curve', 'engine_speeds_out'],
         outputs=['max_available_engine_powers_out']
     )
 

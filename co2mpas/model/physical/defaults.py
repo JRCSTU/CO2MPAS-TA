@@ -224,7 +224,7 @@ class Functions(co2_utl.Constants):
 
     class calculate_maximum_velocity_v1(co2_utl.Constants):
         #: Maximum admissible velocity for the vehicle maximum velocity [km/h].
-        MAX_VEL = 500
+        MAX_VEL = 1000
 
         #: Minimum admissible velocity for the vehicle maximum velocity [km/h].
         MIN_VEL = 1
@@ -616,7 +616,7 @@ class Functions(co2_utl.Constants):
             'thermal_management_factor': 0.5
         }
 
-    class get_full_load(co2_utl.Constants):
+    class default_full_load_speeds_and_powers(co2_utl.Constants):
         #: Vehicle normalized full load curve.
         FULL_LOAD = {
             'positive': (

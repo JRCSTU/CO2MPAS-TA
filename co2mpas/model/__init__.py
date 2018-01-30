@@ -27,7 +27,7 @@ _prediction_data = [
     'engine_stroke', 'final_drive_efficiency', 'final_drive_ratios',
     'frontal_area', 'final_drive_ratio', 'engine_thermostat_temperature',
     'aerodynamic_drag_coefficient', 'fuel_type', 'ignition_type',
-    'gear_box_type', 'engine_max_power', 'engine_max_speed_at_max_power',
+    'gear_box_type', 'engine_max_power', 'engine_speed_at_max_power',
     'rolling_resistance_coeff', 'time_cold_hot_transition',
     'engine_idle_fuel_consumption', 'engine_type', 'engine_is_turbo',
     'engine_fuel_lower_heating_value', 'has_start_stop',

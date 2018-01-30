@@ -414,7 +414,6 @@ def sub_models():
 
     from ..physical.gear_box.at_gear import at_gear
     at_pred_inputs = [
-        'engine_max_power', 'engine_max_speed_at_max_power',
         'idle_engine_speed', 'full_load_curve', 'road_loads', 'vehicle_mass',
         'accelerations', 'motive_powers', 'engine_speeds_out',
         'engine_coolant_temperatures', 'time_cold_hot_transition', 'times',

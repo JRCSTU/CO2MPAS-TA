@@ -75,23 +75,14 @@ class CorrectGear(object):
         return self.mvl.predict(velocity, acceleration, gear)
 
     def fit_correct_gear_full_load(
-            self, max_engine_power, max_engine_speed_at_max_power,
-            full_load_curve, road_loads, vehicle_mass,
+            self, full_load_curve, road_loads, vehicle_mass,
             max_velocity_full_load_correction):
         """
         Fit the parameters to corrects the gear according to full load curve.
 
-        :param max_engine_power:
-            Maximum power [kW].
-        :type max_engine_power: float
-
-        :param max_engine_speed_at_max_power:
-            Rated engine speed [RPM].
-        :type max_engine_speed_at_max_power: float
-
         :param full_load_curve:
             Vehicle full load curve.
-        :type full_load_curve: scipy.interpolate.InterpolatedUnivariateSpline
+        :type full_load_curve: function
 
         :param road_loads:
             Cycle road loads [N, N/(km/h), N/(km/h)^2].
@@ -110,17 +101,15 @@ class CorrectGear(object):
 
         from ..wheels import calculate_wheel_power
 
-        self.p_norm = functools.partial(
+        self._power = functools.partial(
             calculate_wheel_power,
-            road_loads=np.array(road_loads) / max_engine_power,
-            vehicle_mass=vehicle_mass / max_engine_power
+            road_loads=np.array(road_loads),
+            vehicle_mass=vehicle_mass
         )
-        idle = self.idle_engine_speed[0]
-        r = max_engine_speed_at_max_power - idle
         vsr = self.vsr
 
         def _flc(velocity, gear):
-            return full_load_curve((velocity / vsr[gear] - idle) / r)
+            return full_load_curve(velocity / vsr[gear])
 
         self.flc = _flc
         self.pipe.append(self.correct_gear_full_load)
@@ -149,9 +138,9 @@ class CorrectGear(object):
         if velocity > self.max_velocity_full_load_corr or gear == 0:
             return gear
 
-        p_norm = self.p_norm(velocity, acceleration)
+        p, flc = self._power(velocity, acceleration), self.flc
         for g in self.gears[self.gears.index(gear):0:-1]:
-            if p_norm <= self.flc(velocity, g):
+            if p <= flc(velocity, g):
                 # to consider adding the reverse function in the future because
                 # the n+200 rule should be applied at the engine not the GB
                 # (rpm < idle_speed + 200 and 0 <= a < 0.1) or
@@ -183,10 +172,9 @@ def _upgrade_gsm(gsm, velocity_speed_ratios, cycle_type):
 
 
 def correct_gear_v0(
-        cycle_type, velocity_speed_ratios, mvl, engine_max_power,
-        engine_max_speed_at_max_power, idle_engine_speed, full_load_curve,
-        road_loads, vehicle_mass, max_velocity_full_load_correction,
-        plateau_acceleration):
+        cycle_type, velocity_speed_ratios, mvl, idle_engine_speed,
+        full_load_curve, road_loads, vehicle_mass,
+        max_velocity_full_load_correction, plateau_acceleration):
     """
     Returns a function to correct the gear predicted according to
     :func:`correct_gear_mvl` and :func:`correct_gear_full_load`.
@@ -203,21 +191,13 @@ def correct_gear_v0(
         Matrix velocity limits (upper and lower bound) [km/h].
     :type mvl: MVL
 
-    :param engine_max_power:
-        Maximum power [kW].
-    :type engine_max_power: float
-
-    :param engine_max_speed_at_max_power:
-        Rated engine speed [RPM].
-    :type engine_max_speed_at_max_power: float
-
     :param idle_engine_speed:
         Engine speed idle median and std [RPM].
     :type idle_engine_speed: (float, float)
 
     :param full_load_curve:
         Vehicle full load curve.
-    :type full_load_curve: scipy.interpolate.InterpolatedUnivariateSpline
+    :type full_load_curve: function
 
     :param road_loads:
         Cycle road loads [N, N/(km/h), N/(km/h)^2].
@@ -246,8 +226,8 @@ def correct_gear_v0(
     correct_gear = CorrectGear(velocity_speed_ratios, idle_engine_speed)
     correct_gear.fit_correct_gear_mvl(mvl)
     correct_gear.fit_correct_gear_full_load(
-        engine_max_power, engine_max_speed_at_max_power, full_load_curve,
-        road_loads, vehicle_mass, max_velocity_full_load_correction
+        full_load_curve, road_loads, vehicle_mass,
+        max_velocity_full_load_correction
     )
     correct_gear.fit_basic_correct_gear()
 
@@ -297,9 +277,8 @@ def correct_gear_v1(
 
 
 def correct_gear_v2(
-        velocity_speed_ratios, engine_max_power, engine_max_speed_at_max_power,
-        idle_engine_speed, full_load_curve, road_loads, vehicle_mass,
-        max_velocity_full_load_correction):
+        velocity_speed_ratios, idle_engine_speed, full_load_curve, road_loads,
+        vehicle_mass, max_velocity_full_load_correction):
     """
     Returns a function to correct the gear predicted according to
     :func:`correct_gear_full_load`.
@@ -308,21 +287,13 @@ def correct_gear_v2(
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
     :type velocity_speed_ratios: dict[int | float]
 
-    :param engine_max_power:
-        Maximum power [kW].
-    :type engine_max_power: float
-
-    :param engine_max_speed_at_max_power:
-        Rated engine speed [RPM].
-    :type engine_max_speed_at_max_power: float
-
     :param idle_engine_speed:
         Engine speed idle median and std [RPM].
     :type idle_engine_speed: (float, float)
 
     :param full_load_curve:
         Vehicle full load curve.
-    :type full_load_curve: scipy.interpolate.InterpolatedUnivariateSpline
+    :type full_load_curve: function
 
     :param road_loads:
         Cycle road loads [N, N/(km/h), N/(km/h)^2].
@@ -343,8 +314,8 @@ def correct_gear_v2(
 
     correct_gear = CorrectGear(velocity_speed_ratios, idle_engine_speed)
     correct_gear.fit_correct_gear_full_load(
-        engine_max_power, engine_max_speed_at_max_power, full_load_curve,
-        road_loads, vehicle_mass, max_velocity_full_load_correction
+        full_load_curve, road_loads, vehicle_mass,
+        max_velocity_full_load_correction
     )
     correct_gear.fit_basic_correct_gear()
 
@@ -1566,8 +1537,7 @@ def at_gear():
     d.add_function(
         function=sh.add_args(correct_gear_v0),
         inputs=['fuel_saving_at_strategy', 'cycle_type',
-                'velocity_speed_ratios', 'MVL', 'engine_max_power',
-                'engine_max_speed_at_max_power', 'idle_engine_speed',
+                'velocity_speed_ratios', 'MVL', 'idle_engine_speed',
                 'full_load_curve', 'road_loads', 'vehicle_mass',
                 'max_velocity_full_load_correction', 'plateau_acceleration'],
         outputs=['correct_gear'],
@@ -1586,8 +1556,7 @@ def at_gear():
 
     d.add_function(
         function=correct_gear_v2,
-        inputs=['velocity_speed_ratios', 'engine_max_power',
-                'engine_max_speed_at_max_power', 'idle_engine_speed',
+        inputs=['velocity_speed_ratios', 'idle_engine_speed',
                 'full_load_curve', 'road_loads', 'vehicle_mass',
                 'max_velocity_full_load_correction'],
         outputs=['correct_gear'],
