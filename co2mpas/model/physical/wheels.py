@@ -20,40 +20,6 @@ import schema
 log = logging.getLogger(__name__)
 
 
-def calculate_wheel_power(velocities, accelerations, road_loads, vehicle_mass):
-    """
-    Calculates the wheel power [kW].
-
-    :param velocities:
-        Velocity [km/h].
-    :type velocities: numpy.array | float
-
-    :param accelerations:
-        Acceleration [m/s2].
-    :type accelerations: numpy.array | float
-
-    :param road_loads:
-        Cycle road loads [N, N/(km/h), N/(km/h)^2].
-    :type road_loads: list, tuple
-
-    :param vehicle_mass:
-        Vehicle mass [kg].
-    :type vehicle_mass: float
-
-    :return:
-        Power at wheels [kW].
-    :rtype: numpy.array | float
-    """
-
-    f0, f1, f2 = road_loads
-
-    quadratic_term = f0 + (f1 + f2 * velocities) * velocities
-
-    vel = velocities / 3600
-
-    return (quadratic_term + 1.03 * vehicle_mass * accelerations) * vel
-
-
 def calculate_wheel_torques(wheel_powers, wheel_speeds):
     """
     Calculates torque at the wheels [N*m].

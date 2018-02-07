@@ -222,7 +222,34 @@ class Functions(co2_utl.Constants):
         #: Delta ratio for calculating the last gear [-].
         DELTA_RATIO = 0.1
 
-    class calculate_maximum_velocity_v1(co2_utl.Constants):
+    class calculate_maximum_velocity(co2_utl.Constants):
+        #: Maximum admissible velocity for the vehicle maximum velocity [km/h].
+        MAX_VEL = 1000
+
+        #: Minimum admissible velocity for the vehicle maximum velocity [km/h].
+        MIN_VEL = 1
+
+        #: Delta ratio for calculating the vehicle maximum velocity [km/h].
+        DELTA_VEL = 1
+
+        #: Full load curve percentage fro calculating the available power [-].
+        PREC_FLC = 0.9
+
+    class MGS(co2_utl.Constants):
+        #: Maximum admissible velocity for the vehicle maximum velocity [km/h].
+        MAX_VEL = 1000
+
+        #: Minimum admissible velocity for the vehicle maximum velocity [km/h].
+        MIN_VEL = 1
+
+        #: Delta ratio for calculating the vehicle maximum velocity [km/h].
+        DELTA_VEL = 0.1
+
+        #: Full load curve percentage fro calculating the available power [-].
+        PREC_FLC = 0.9
+
+
+    class calculate_maximum_velocity_v2(co2_utl.Constants):
         #: Maximum admissible velocity for the vehicle maximum velocity [km/h].
         MAX_VEL = 1000
 

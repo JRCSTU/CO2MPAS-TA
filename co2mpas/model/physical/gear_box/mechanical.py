@@ -685,6 +685,46 @@ def calculate_last_gear_box_ratio_v1(
     return ratio[p > _calculate_req_power(road_loads, maximum_velocity)][0]
 
 
+def calculate_maximum_velocity(
+        full_load_curve, road_loads, speed_velocity_ratios):
+    """
+    Calculates the maximum velocity from full load curve.
+
+    :param full_load_curve:
+        Vehicle full load curve.
+    :type full_load_curve: function
+
+    :param road_loads:
+        Cycle road loads [N, N/(km/h), N/(km/h)^2].
+    :type road_loads: list, tuple
+
+    :param speed_velocity_ratios:
+        Speed velocity ratios of the gear box [h*RPM/km].
+    :type speed_velocity_ratios: dict[int | float]
+
+    :return:
+        Maximum velocity and gear at maximum velocity [km/h, -].
+    :return: float, int
+    """
+
+    dfl = defaults.dfl.functions.calculate_maximum_velocity
+    velocity = np.arange(dfl.MIN_VEL, dfl.MAX_VEL, dfl.DELTA_VEL, float)
+
+    g_id, svr = zip(*[(k, v) for k, v in sorted(
+        speed_velocity_ratios.items(), reverse=True
+    ) if k])
+
+    p = full_load_curve(np.round(np.multiply(velocity[:, None], svr), 1))
+
+    b = (p * dfl.PREC_FLC) < _calculate_req_power(road_loads, velocity)[:, None]
+    velocity = np.repeat(velocity[:, None], b.shape[1], 1)
+    velocity[b] = np.nan
+    p[b] = np.nan
+
+    i, j = np.unravel_index(np.argmax(velocity), velocity.shape)
+    return velocity[i, j], g_id[j]
+
+
 def calculate_maximum_velocity_v1(
         r_dynamic, final_drive_ratios, engine_speed_at_max_velocity,
         last_gear_box_ratio):
@@ -747,7 +787,7 @@ def calculate_maximum_velocity_v2(
         Maximum velocity [km/h].
     :return: float
     """
-    dfl = defaults.dfl.functions.calculate_maximum_velocity_v1
+    dfl = defaults.dfl.functions.calculate_maximum_velocity_v2
     velocity = np.arange(dfl.MAX_VEL, dfl.MIN_VEL, -dfl.DELTA_VEL)
 
     p = full_load_curve(calculate_engine_speed_at_max_velocity(
@@ -996,6 +1036,12 @@ def mechanical():
                 'r_dynamic', 'maximum_velocity'],
         outputs=['last_gear_box_ratio'],
         weight=5
+    )
+
+    d.add_function(
+        function=calculate_maximum_velocity,
+        inputs=['full_load_curve', 'road_loads', 'speed_velocity_ratios'],
+        outputs=['maximum_velocity', 'gear_at_maximum_velocity']
     )
 
     d.add_function(
