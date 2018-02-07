@@ -539,9 +539,12 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
     - Invoke this for every "manually" visited config-file, successful or not.
     """
 
+    def __init__(self):
+        self._visited_tuples = []
+
     #: A list of 2-tuples ``(folder, fname(s))`` with loaded config-files
     #: in ascending order (last overrides earlier).
-    _visited_tuples = []
+    _visited_tuples = None
 
     @property
     def config_tuples(self):
