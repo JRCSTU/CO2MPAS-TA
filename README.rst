@@ -111,33 +111,61 @@ For recent activity, check the :doc:`changes`.
 
 Licensing
 =========
-The |co2mpas| application, both executable and its sources, is distributed under the EUPL license.
+The European Commission (JRC) compiles and distributes 2 "packages":
+
+1. the CO2MPAS python package,
+2. the ALLINONE archive (AIO).
+
+|co2mpas|\'s package licensing terms
+------------------------------------
+Commission is the *exclusive* copyright holder of the  first |cO2MPAS| package,
+and have set its licensing terms to the "copylefted" as |EUPL|,
+so it will remain for ever free.
+
+
+EUPL license compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 EUPL is `"eventually" compatible
 <https://joinup.ec.europa.eu/community/eupl/og_page/eupl-compatible-open-source-licences>`_
-with all major open-source licenses, whether copy-lefted or not, but in reality
-|co2mpas| does not contain any prior code to derive from - all the code is a property of JRC's
-and covered by the said license.
-
+with all major open-source licenses, whether "permissive"[1]_ or "copylefted"[2]_,
+but *usually* EUPL must be applied on the resulting combination (one certain
+exception is GPL family of licenses, where GPLs win over).
 
 The *ALLINONE archive* contains many python libraries installed in its standard python -folder,
 (``co2mpas_ALLINONE-XXX\Apps\WinPython\python-YYY.amd64\Lib\``)
 so |co2mpas| only `"links dynamically"
 <https://joinup.ec.europa.eu/community/eupl/og_page/eupl-compatible-open-source-licences#section-3>`_ to them.
-A non-exhaustive list of python-libraries contained is listed in `WinPython site
-<https://github.com/winpython/winpython/blob/master/changelogs/WinPython-3.5.2.1.md>`_
 plus those manually installed by JRC when installing |co2mpas| in ALLINONE.
 We are certain that all of them are open-source and can be freely re-distributed.
 
-The ALLINONE contains also *"external programs"*, all of them open-source,
-except from the MS redistributable (``Apps/vc_redist.x64.exe`` file)
+
+AIO archive's licensing terms
+-----------------------------
+The AIO is a "fat" archive (~1.4GB when inflated) containing a myriad
+of *3rd-party* applications and python packages (e.g. see folder
+``co2mpas_ALLINONE-XXX\Apps\WinPython\python-YYY.amd64\Lib\``).
+These applications comprise the ecosystem needed to launch CO2MPAS
+for official purposes.  Different licenses apply to each application in AIO,
+but have all been checked to be free for *redistribution*, with "permissive"[1]_
+or "copylefted"[2]_ licenses.
+
+A non-exhaustive list of python-libraries contained is listed in `WinPython site
+<https://github.com/winpython/winpython/blob/master/changelogs/WinPython-3.5.2.1.md>`_
+
+The ALLINONE contains also the MS redistributable (``Apps/vc_redist.x64.exe`` file)
 which is explicitly exempted from the usual `restrictive MS Licenses
 <https://msdn.microsoft.com/en-us/library/ms235299.aspx>`_.
 
 
+Licensing terms for other material
+----------------------------------
 All the *logo and graphic work* is our own, but without having registered for trademark;
 we are discouraged by the EU guidelines on the subject; subsequently we discourage
 their use without our consent, beyond their intended usage, which is to run |co2mpas|.
 
+
+.. [1] https://en.wikipedia.org/wiki/Permissive_software_licence
+.. [2] https://en.wikipedia.org/wiki/Copyleft
 
 .. _end-opening:
 .. contents:: Table of Contents
@@ -1653,3 +1681,5 @@ environment (ALLINONE is pre-configured with them):
 .. _winpython: https://winpython.github.io/
 .. |anaconda| replace:: *Anaconda*
 .. _anaconda: http://continuum.io/downloads
+.. |EUPL| replace:: *EUPL*
+.. _EUPL: https://joinup.ec.europa.eu/page/eupl-text-11-12

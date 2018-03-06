@@ -435,7 +435,7 @@ DICE
 
         Used also as a verb:
 
-            The simulation files have been **diced** as ``NOSAMPLE``.
+            "The simulation files have been **diced** as ``NOSAMPLE``."
 
     Git DB
     Hash DB
@@ -451,9 +451,10 @@ DICE
     dice project
     project id
     project archive
-        The **project** is the persistent entity keeping track of the electronic
-        artifacts of the `type approval` for some vehicle family, residing in
-        the local `hash DB` of each `dice` installation.
+        The **project** corresponds one-to-one with the `vehicle_family_id`,
+        and it is the entity under which all electronic artifacts of the
+        `type approval` are stored inside the local `hash DB` of each `dice`
+        installation:
 
           | *ID* (**project**)  :=  `vehicle_family_id`
 
