@@ -24,9 +24,9 @@ import itertools
 import math
 import lmfit
 import numpy as np
+import xgboost as xgb
 import scipy.stats as sci_stat
 import sklearn.pipeline as sk_pip
-import sklearn.ensemble as sk_ens
 import sklearn.tree as sk_tree
 import sklearn.metrics as sk_met
 import sklearn.cluster as sk_clu
@@ -256,7 +256,7 @@ def identify_alternator_initialization_time(
         n, i = len(on_engine), co2_utl.argmax((s[:-1] != s[1:]) & s[:-1])
         i = min(n - 1, i)
         opt = {
-            'random_state': 0, 'max_depth': 2, 'loss': 'huber', 'alpha': 0.99
+            'seed': 0, 'max_depth': 2
         }
 
         from ..engine.thermal import _build_samples
@@ -266,7 +266,7 @@ def identify_alternator_initialization_time(
 
         j = min(i, int(n / 2))
         opt['n_estimators'] = int(min(100, 0.25 * (n - j))) or 1
-        model = sk_ens.GradientBoostingRegressor(**opt)
+        model = xgb.XGBRegressor(**opt)
         model.fit(spl[j:][:, :-1], spl[j:][:, -1])
         err = np.abs(spl[:, -1] - model.predict(spl[:, :-1]))
         sets = np.array(co2_utl.get_inliers(err)[0], dtype=int)[:i]
@@ -467,7 +467,7 @@ class AlternatorCurrentModel(object):
         self.mask = None
         self.init_model = default_model
         self.init_mask = None
-        self.base_model = sk_ens.GradientBoostingRegressor
+        self.base_model = xgb.XGBRegressor
 
     def predict(self, X, init_time=0.0):
         X = np.asarray(X)
@@ -506,11 +506,9 @@ class AlternatorCurrentModel(object):
 
     def _fit_model(self, spl, in_mask=(), out_mask=()):
         opt = {
-            'random_state': 0,
+            'seed': 0,
             'max_depth': 2,
-            'n_estimators': int(min(300, 0.25 * (len(spl) - 1))) or 1,
-            'loss': 'huber',
-            'alpha': 0.99
+            'n_estimators': int(min(300, 0.25 * (len(spl) - 1))) or 1
         }
         from ..engine.thermal import _SelectFromModel
         model = self.base_model(**opt)

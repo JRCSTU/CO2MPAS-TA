@@ -9,9 +9,8 @@
 It contains functions that model the basic mechanics of a CVT.
 """
 
-
+import xgboost as xgb
 import schedula as sh
-import sklearn.ensemble as sk_ens
 import numpy as np
 
 
@@ -49,12 +48,10 @@ def calibrate_cvt(
     X = np.column_stack((velocities, accelerations, gear_box_powers_out))[b]
     y = engine_speeds_out[b]
 
-    regressor = sk_ens.GradientBoostingRegressor(
-        random_state=0,
+    regressor = xgb.XGBRegressor(
+        seed=0,
         max_depth=3,
-        n_estimators=int(min(300, 0.25 * (len(y) - 1))),
-        loss='huber',
-        alpha=0.99
+        n_estimators=int(min(300, 0.25 * (len(y) - 1)))
     )
 
     regressor.fit(X, y)

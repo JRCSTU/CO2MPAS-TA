@@ -8,9 +8,8 @@
 """
 It contains functions that model the basic mechanics of the torque converter.
 """
-
+import xgboost as xgb
 import sklearn.metrics as sk_met
-import sklearn.ensemble as sk_ens
 import sklearn.pipeline as sk_pip
 import schedula as sh
 import numpy as np
@@ -48,12 +47,10 @@ class TorqueConverter(object):
 
     def _fit_regressor(self, X, y):
         from ..engine.thermal import _SelectFromModel
-        model = sk_ens.GradientBoostingRegressor(
-            random_state=0,
+        model = xgb.XGBRegressor(
+            seed=0,
             max_depth=2,
-            n_estimators=int(min(300, 0.25 * (len(y) - 1))),
-            loss='huber',
-            alpha=0.99
+            n_estimators=int(min(300, 0.25 * (len(y) - 1)))
         )
         model = sk_pip.Pipeline([
             ('feature_selection', _SelectFromModel(model, '0.8*median')),

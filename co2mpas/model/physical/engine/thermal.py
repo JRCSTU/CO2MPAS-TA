@@ -14,9 +14,9 @@ import itertools
 from sklearn.linear_model import RANSACRegressor
 
 import co2mpas.utils as co2_utl
+import xgboost as xgb
 import numpy as np
 import schedula as sh
-import sklearn.ensemble as sk_ens
 import sklearn.feature_selection as sk_fsel
 import sklearn.pipeline as sk_pip
 from ..defaults import dfl
@@ -145,7 +145,7 @@ class ThermalModel(object):
         self.mask = None
         self.cold = default_model
         self.mask_cold = None
-        self.base_model = sk_ens.GradientBoostingRegressor
+        self.base_model = xgb.XGBRegressor
         self.thermostat = thermostat
         self.min_temp = -float('inf')
 
@@ -183,11 +183,9 @@ class ThermalModel(object):
 
         spl = _filter_temperature_samples(spl, on_engine, self.thermostat)
         opt = {
-            'random_state': 0,
+            'seed': 0,
             'max_depth': 2,
-            'n_estimators': int(min(300, 0.25 * (len(spl) - 1))),
-            'loss': 'huber',
-            'alpha': 0.99
+            'n_estimators': int(min(300, 0.25 * (len(spl) - 1)))
         }
 
         model = _SafeRANSACRegressor(
@@ -215,11 +213,9 @@ class ThermalModel(object):
             return self
         spl = spl[:co2_utl.argmax(np.percentile(spl[:, 0], 60) <= spl[:, 0])]
         opt = {
-            'random_state': 0,
+            'seed': 0,
             'max_depth': 2,
-            'n_estimators': int(min(300, 0.25 * (len(spl) - 1))),
-            'loss': 'huber',
-            'alpha': 0.99
+            'n_estimators': int(min(300, 0.25 * (len(spl) - 1)))
         }
         model = self.base_model(**opt)
         model = sk_pip.Pipeline([
@@ -238,12 +234,12 @@ class ThermalModel(object):
         t_max, t_min = spl[:, -1].max(), spl[:, -1].min()
         spl = spl[(t_max - (t_max - t_min) / 3) <= spl[:, -1]]
 
-        model = sk_ens.GradientBoostingRegressor(random_state=0)
+        model = xgb.XGBRegressor(seed=0)
         model.fit(spl[:, :-1], spl[:, -1])
         ratio = np.arange(1, 1.5, 0.1) * idle_engine_speed[0]
         spl = np.zeros((len(ratio), 4))
         spl[:, 2] = ratio
-        return np.median(model.predict(spl))
+        return float(np.median(model.predict(spl)))
 
     def __call__(self, deltas_t, *args, initial_temperature=23, max_temp=100.0):
         delta, temp = self.delta, np.zeros(len(deltas_t) + 1, dtype=float)
