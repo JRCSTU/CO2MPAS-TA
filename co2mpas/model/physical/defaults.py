@@ -201,6 +201,10 @@ class Values(co2_utl.Constants):
 class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
 
+    class CMV(co2_utl.Constants):
+        #: Enable optimization loop?
+        ENABLE_OPT_LOOP = False
+
     class default_start_stop_activation_time(co2_utl.Constants):
         #: Enable function?
         ENABLE = False

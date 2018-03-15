@@ -468,32 +468,36 @@ class CMV(collections.OrderedDict):
         self.velocity_speed_ratios = velocity_speed_ratios
         self.update(identify_gear_shifting_velocity_limits(gears, velocities,
                                                            stop_velocity))
+        if defaults.dfl.functions.CMV.ENABLE_OPT_LOOP:
+            gear_id, velocity_limits = zip(*list(sorted(self.items()))[1:])
+            max_gear, _inf, grp = gear_id[-1], float('inf'), co2_utl.grouper
+            update, predict = self.update, self.predict
+            def _update_gvs(vel_limits):
+                self[0] = (0, vel_limits[0])
+                self[max_gear] = (vel_limits[-1], _inf)
+                update(dict(zip(gear_id, grp(vel_limits[1:-1], 2))))
 
-        gear_id, velocity_limits = zip(*list(sorted(self.items()))[1:])
-        max_gear, _inf, grp = gear_id[-1], float('inf'), co2_utl.grouper
-        update, predict = self.update, self.predict
-        def _update_gvs(vel_limits):
-            self[0] = (0, vel_limits[0])
-            self[max_gear] = (vel_limits[-1], _inf)
-            update({k: v for k, v in zip(gear_id, grp(vel_limits[1:-1], 2))})
+            X = np.column_stack((velocities, accelerations))
 
-        X = np.column_stack((velocities, accelerations))
+            def _error_fun(vel_limits):
+                _update_gvs(vel_limits)
 
-        def _error_fun(vel_limits):
-            _update_gvs(vel_limits)
+                g_pre = predict(X, correct_gear=correct_gear)
 
-            g_pre = predict(X, correct_gear=correct_gear)
+                speed_pred = calculate_gear_box_speeds_in(
+                    g_pre, velocities, velocity_speed_ratios, stop_velocity)
 
-            speed_pred = calculate_gear_box_speeds_in(
-                g_pre, velocities, velocity_speed_ratios, stop_velocity)
+                return np.float32(np.mean(np.abs(
+                    speed_pred - engine_speeds_out
+                )))
 
-            return np.float32(np.mean(np.abs(speed_pred - engine_speeds_out)))
+            x0 = [self[0][1]].__add__(
+                list(itertools.chain(*velocity_limits))[:-1]
+            )
 
-        x0 = [self[0][1]].__add__(list(itertools.chain(*velocity_limits))[:-1])
+            x = sci_opt.fmin(_error_fun, x0, disp=False)
 
-        x = sci_opt.fmin(_error_fun, x0, disp=False)
-
-        _update_gvs(x)
+            _update_gvs(x)
 
         return self
 
