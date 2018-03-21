@@ -14,9 +14,11 @@ import numpy as np
 import schedula as sh
 import co2mpas.utils as co2_utl
 from .gear_box import mechanical as gb_mec
+# noinspection PyCompatibility
 import regex
 import logging
 import schema
+
 log = logging.getLogger(__name__)
 
 
@@ -54,7 +56,8 @@ def calculate_wheel_power(velocities, accelerations, road_loads, vehicle_mass):
     return (quadratic_term + 1.03 * vehicle_mass * accelerations) * vel
 
 
-def calculate_wheel_torques(wheel_powers, wheel_speeds):
+# noinspection PyIncorrectDocstring,SpellCheckingInspection
+def calculate_wheel_torques(wheel_powers, wheel_speeds, coef=30000 / math.pi):
     """
     Calculates torque at the wheels [N*m].
 
@@ -70,11 +73,7 @@ def calculate_wheel_torques(wheel_powers, wheel_speeds):
         Torque at the wheels [N*m].
     :rtype: numpy.array | float
     """
-
-    pi = math.pi
-    if isinstance(wheel_speeds, np.ndarray):
-        return np.nan_to_num(wheel_powers / wheel_speeds * (30000.0 / pi))
-    return wheel_powers / wheel_speeds * (30000.0 / pi) if wheel_speeds else 0.0
+    return np.where(wheel_speeds, wheel_powers / wheel_speeds * coef, 0)
 
 
 def calculate_wheel_powers(wheel_torques, wheel_speeds):
@@ -97,6 +96,15 @@ def calculate_wheel_powers(wheel_torques, wheel_speeds):
     return wheel_torques * wheel_speeds * (math.pi / 30000.0)
 
 
+def _compile_speed_function(r_dynamic):
+    c = 30.0 / (3.6 * math.pi * r_dynamic)
+
+    def _wheel_speed(velocities):
+        return velocities * c
+
+    return _wheel_speed
+
+
 def calculate_wheel_speeds(velocities, r_dynamic):
     """
     Calculates rotating speed of the wheels [RPM].
@@ -113,8 +121,7 @@ def calculate_wheel_speeds(velocities, r_dynamic):
         Rotating speed of the wheel [RPM].
     :rtype: numpy.array | float
     """
-
-    return velocities * (30.0 / (3.6 * math.pi * r_dynamic))
+    return _compile_speed_function(r_dynamic)(velocities)
 
 
 def identify_r_dynamic_v1(
@@ -313,7 +320,7 @@ def calculates_brake_powers(
 
     b = wheel_powers <= 0
     speeds = np.ediff1d(gear_box_speeds_in, [0])[b] / 30 * math.pi
-    engine_powers_on_brake = engine_moment_inertia / 2000 * speeds**2
+    engine_powers_on_brake = engine_moment_inertia / 2000 * speeds ** 2
 
     engine_powers_on_brake += calculate_wheel_powers(
         auxiliaries_torque_losses, gear_box_speeds_in
@@ -399,6 +406,7 @@ _re_tyre_code_numeric = regex.compile(
     """, regex.IGNORECASE | regex.X | regex.DOTALL)
 
 
+# noinspection PyUnusedLocal
 def _format_tyre_code(
         nominal_section_width, rim_diameter, aspect_ratio=0, use='', carcass='',
         load_index='', speed_rating='', additional_marks='', load_range='',
@@ -546,6 +554,123 @@ def calculate_tyre_dimensions(tyre_code):
     raise ValueError('Invalid tyre code: %s', tyre_code)
 
 
+# noinspection PyMissingOrEmptyDocstring
+class WheelsModel:
+    key_outputs = [
+        'wheel_speeds',
+        'wheel_powers',
+        'wheel_torques'
+    ]
+
+    types = {float: set(key_outputs)}
+
+    def __init__(self, r_dynamic=None, outputs=None):
+        self.r_dynamic = r_dynamic
+        self._outputs = outputs
+        self.outputs = None
+
+    def __call__(self, times, *args, **kwargs):
+        self.set_outputs(times.shape[0])
+        for _ in self.yield_results(times, *args, **kwargs):
+            pass
+        return sh.selector(self.key_outputs, self.outputs, output_type='list')
+
+    def yield_speed(self, velocities):
+        key = 'wheel_speeds'
+        if self._outputs is not None and key in self._outputs:
+            yield from self._outputs[key]
+        else:
+            yield from map(_compile_speed_function(self.r_dynamic), velocities)
+
+    def yield_power(self, motive_powers):
+        key = 'wheel_powers'
+        if self._outputs is not None and key in self._outputs:
+            yield from self._outputs[key]
+        else:
+            yield from motive_powers
+
+    def yield_torque(self, wheel_powers, wheel_speeds):
+        key = 'wheel_torques'
+        if self._outputs is not None and key in self._outputs:
+            yield from self._outputs[key]
+        else:
+            for v in zip(wheel_powers, wheel_speeds):
+                yield calculate_wheel_torques(*v)
+
+    def set_outputs(self, n, outputs=None):
+        if outputs is None:
+            outputs = {}
+        outputs.update(self._outputs or {})
+
+        for t, names in self.types.items():
+            names = names - set(outputs)
+            if names:
+                outputs.update(zip(names, np.empty((len(names), n), dtype=t)))
+
+        self.outputs = outputs
+
+    def yield_results(self, velocities, motive_powers):
+        outputs = self.outputs
+
+        s_gen = self.yield_speed(velocities)
+
+        p_gen = self.yield_power(motive_powers)
+
+        t_gen = self.yield_torque(
+            outputs['wheel_powers'], outputs['wheel_speeds']
+        )
+
+        for i, (s, p) in enumerate(zip(s_gen, p_gen)):
+            outputs['wheel_speeds'][i] = s
+            outputs['wheel_powers'][i] = p
+            outputs['wheel_torques'][i] = t = next(t_gen)
+            yield s, p, t
+
+
+def define_fake_wheels_prediction_model(
+        wheel_speeds, wheel_powers, wheel_torques):
+    """
+    Defines a fake wheels prediction model.
+
+    :param wheel_speeds:
+        Rotating speed of the wheel [RPM].
+    :type wheel_speeds: numpy.array
+
+    :param wheel_powers:
+        Power at the wheels [kW].
+    :type wheel_powers: numpy.array
+
+    :param wheel_torques:
+        Torque at the wheel [N*m].
+    :type wheel_torques: numpy.array
+
+    :return:
+        Wheels prediction model.
+    :rtype: WheelsModel
+    """
+    model = WheelsModel(outputs={
+        'wheel_speeds': wheel_speeds,
+        'wheel_powers': wheel_powers,
+        'wheel_torques': wheel_torques
+    })
+    return model
+
+
+def define_wheels_prediction_model(r_dynamic):
+    """
+    Defines the wheels prediction model.
+
+    :param r_dynamic:
+        Dynamic radius of the wheels [m].
+    :type r_dynamic: float
+
+    :return:
+        Wheels prediction model.
+    :rtype: WheelsModel
+    """
+    return WheelsModel(r_dynamic)
+
+
 def wheels():
     """
     Defines the wheels model.
@@ -670,6 +795,19 @@ def wheels():
         function=sh.bypass,
         inputs=['motive_powers'],
         outputs=['wheel_powers']
+    )
+
+    d.add_function(
+        function=define_fake_wheels_prediction_model,
+        inputs=['wheel_speeds', 'wheel_powers', 'wheel_torques'],
+        outputs=['wheels_prediction_model']
+    )
+
+    d.add_function(
+        function=define_wheels_prediction_model,
+        inputs=['r_dynamic'],
+        outputs=['wheels_prediction_model'],
+        weight=400
     )
 
     return d
