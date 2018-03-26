@@ -627,18 +627,15 @@ def calculate_state_of_charges(
     :rtype: numpy.array
     """
 
-    soc = [initial_soc]
-    c = battery_capacity * 36.0
+    soc = np.empty_like(times, float)
+    soc[0] = initial_soc
+    bc = np.minimum(battery_currents, max_battery_charging_current)
+    bc = (bc[:-1] + bc[1:]) * np.diff(times) / (2.0 * battery_capacity * 36.0)
 
-    bc = np.asarray(battery_currents)
-    bc[bc > max_battery_charging_current] = max_battery_charging_current
-    bc = (bc[:-1] + bc[1:]) * np.diff(times) / 2.0
+    for i, b in enumerate(bc, 1):
+        soc[i] = min(soc[i - 1] + b, 100.0)
 
-    for b in bc:
-        soc.append(soc[-1] + b / c)
-        soc[-1] = min(soc[-1], 100.0)
-
-    return np.asarray(soc)
+    return soc
 
 
 def calculate_alternator_powers_demand(
