@@ -17,6 +17,7 @@ import co2mpas.utils as co2_utl
 import xgboost as xgb
 import numpy as np
 import schedula as sh
+# noinspection SpellCheckingInspection
 import sklearn.feature_selection as sk_fsel
 import sklearn.pipeline as sk_pip
 from ..defaults import dfl
@@ -111,12 +112,15 @@ class _SelectFromModel(sk_fsel.SelectFromModel):
         return mask
 
 
+# noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class NoDelta(object):
+    # noinspection PyUnusedLocal
     @staticmethod
     def predict(X, *args):
         return np.zeros(X.shape[0])
 
 
+# noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class _SafeRANSACRegressor(RANSACRegressor):
     def fit(self, X, y, **kwargs):
         try:
@@ -137,7 +141,7 @@ class _SafeRANSACRegressor(RANSACRegressor):
                 raise ex
 
 
-# noinspection PyMethodMayBeStatic,PyMethodMayBeStatic
+# noinspection PyMethodMayBeStatic,PyMethodMayBeStatic,PyMissingOrEmptyDocstring
 class ThermalModel(object):
     def __init__(self, thermostat=100.0):
         default_model = NoDelta()
@@ -185,7 +189,7 @@ class ThermalModel(object):
         opt = {
             'seed': 0,
             'max_depth': 2,
-            'n_estimators': int(min(300, 0.25 * (len(spl) - 1)))
+            'n_estimators': int(min(300.0, 0.25 * (len(spl) - 1)))
         }
 
         model = _SafeRANSACRegressor(
@@ -215,7 +219,7 @@ class ThermalModel(object):
         opt = {
             'seed': 0,
             'max_depth': 2,
-            'n_estimators': int(min(300, 0.25 * (len(spl) - 1)))
+            'n_estimators': int(min(300.0, 0.25 * (len(spl) - 1)))
         }
         model = self.base_model(**opt)
         model = sk_pip.Pipeline([
@@ -315,6 +319,119 @@ def calibrate_engine_temperature_regression_model(
         engine_coolant_temperatures, gear_box_powers_in, engine_speeds_out_hot,
         accelerations
     )
+
+    return model
+
+
+# noinspection PyMissingOrEmptyDocstring
+class EngineTemperatureModel:
+    key_outputs = ['engine_coolant_temperatures']
+    types = {float: {'engine_coolant_temperatures'}}
+
+    def __init__(self, initial_engine_temperature=None,
+                 engine_temperature_regression_model=None,
+                 max_engine_coolant_temperature=None, outputs=None):
+        self.initial_engine_temperature = initial_engine_temperature
+        self.engine_temperature_regression_model = \
+            engine_temperature_regression_model
+        self.max_engine_coolant_temperature = max_engine_coolant_temperature
+        self._outputs = outputs or {}
+        self.outputs = None
+
+    def __call__(self, times, *args, **kwargs):
+        self.set_outputs(times.shape[0])
+        for _ in self.yield_results(times, *args, **kwargs):
+            pass
+        return sh.selector(self.key_outputs, self.outputs, output_type='list')
+
+    def set_outputs(self, n, outputs=None):
+        if outputs is None:
+            outputs = {}
+        outputs.update(self._outputs or {})
+
+        for t, names in self.types.items():
+            names = names - set(outputs)
+            if names:
+                outputs.update(zip(names, np.empty((len(names), n), dtype=t)))
+            if 'engine_coolant_temperatures' in names:
+                eng_t = self.initial_engine_temperature
+                outputs['engine_coolant_temperatures'][0] = eng_t
+
+        self.outputs = outputs
+
+    def yield_results(self, times, accelerations, final_drive_powers_in,
+                      engine_speeds_out_hot):
+        k = 'engine_coolant_temperatures'
+        if self._outputs is not None and k in self._outputs:
+            yield from self._outputs[k]
+        else:
+            temp = self.outputs['engine_coolant_temperatures']
+            eng_temp = self.initial_engine_temperature
+            temp[0] = eng_temp
+            yield eng_temp
+            it = enumerate(zip(
+                np.ediff1d(times, to_begin=[0]), accelerations,
+                final_drive_powers_in, engine_speeds_out_hot
+            ), 1)
+            func = self.engine_temperature_regression_model.delta
+            for i, (dt, a, fdp, eng_s) in it:
+                eng_temp += func(
+                    dt, fdp, eng_s, a, prev_temperature=eng_temp,
+                    max_temp=self.max_engine_coolant_temperature
+                )
+                try:
+                    temp[i] = eng_temp
+                except IndexError:
+                    pass
+                yield eng_temp
+
+
+def define_engine_temperature_prediction_model(
+        initial_engine_temperature, engine_temperature_regression_model,
+        max_engine_coolant_temperature):
+    """
+    Defines the engine temperature prediction model.
+
+    :param initial_engine_temperature:
+        Initial engine temperature [°C].
+    :type initial_engine_temperature: float
+
+    :param engine_temperature_regression_model:
+        The calibrated engine temperature regression model.
+    :type engine_temperature_regression_model: ThermalModel
+
+    :param max_engine_coolant_temperature:
+        Maximum engine coolant temperature [°C].
+    :type max_engine_coolant_temperature: float
+
+    :return:
+        Engine temperature prediction model.
+    :rtype: EngineTemperatureModel
+    """
+    model = EngineTemperatureModel(
+        initial_engine_temperature, engine_temperature_regression_model,
+        max_engine_coolant_temperature
+    )
+
+    return model
+
+
+def define_fake_engine_temperature_prediction_model(
+        engine_coolant_temperatures):
+    """
+    Defines a fake engine temperature prediction model.
+
+    :param engine_coolant_temperatures:
+        Engine coolant temperature vector [°C].
+    :type engine_coolant_temperatures: numpy.array
+
+    :return:
+        Engine temperature prediction model.
+    :rtype: EngineTemperatureModel
+    """
+    model = EngineTemperatureModel(outputs={
+        'engine_coolant_temperatures': engine_coolant_temperatures
+    })
 
     return model
 
@@ -485,6 +602,22 @@ def thermal():
         function=identify_initial_engine_temperature,
         inputs=['engine_coolant_temperatures'],
         outputs=['initial_engine_temperature']
+    )
+
+    d.add_function(
+        function=define_fake_engine_temperature_prediction_model,
+        inputs=['engine_coolant_temperatures'],
+        outputs=['engine_temperature_prediction_model']
+    )
+
+    d.add_function(
+        function=define_engine_temperature_prediction_model,
+        inputs=[
+            'initial_engine_temperature', 'engine_temperature_regression_model',
+            'max_engine_coolant_temperature'
+        ],
+        outputs=['engine_temperature_prediction_model'],
+        weight=400
     )
 
     return d
