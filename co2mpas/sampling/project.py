@@ -2248,8 +2248,11 @@ class ExportCmd(_SubCmd):
         help="""
         The filepath of the resulting zip archive to create.
 
-        If undefined, generates one based on the current date-time like
-        `CO2MPAS_projects-<timestamp>`.  Specifying the extension is not needed.
+        - If undefined, a "standard" filename is generated based on
+          current date & time, like `CO2MPAS_projects-<timestamp>`.
+        - If the given path resolves to a folder, the "standard" filename
+          is appended.
+        - The '.zip' extension is not needed.
         """
     ).tag(config=True)
 
@@ -2286,9 +2289,12 @@ class ExportCmd(_SubCmd):
         pnames = iset(pnames)
 
         now = datetime.now().strftime('%Y%m%d-%H%M%S%Z')
-        zip_name = self.out or '%s-%s' % ("CO2MPAS_projects", now)
-        zip_name = pndlu.ensure_file_ext(zip_name, '.%s' % arch_format)
+        standard_fname = '%s-%s' % ("CO2MPAS_projects", now)
+        zip_name = self.out or standard_fname
         zip_name = pndlu.convpath(zip_name)
+        if osp.isdir(zip_name):
+            zip_name = osp.join(zip_name, standard_fname)
+        zip_name = pndlu.ensure_file_ext(zip_name, '.%s' % arch_format)
 
         if not self.force and osp.exists(zip_name):
             raise CmdException("File to export '%s' already exists!"
