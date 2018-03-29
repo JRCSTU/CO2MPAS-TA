@@ -262,6 +262,7 @@ def identify_on_idle(
     return on_idle
 
 
+# noinspection PyPep8Naming,PyMissingOrEmptyDocstring
 class _IdleDetector(DBSCAN):
     def __init__(self, eps=0.5, min_samples=5, metric='euclidean',
                  algorithm='auto', leaf_size=30, p=None):
@@ -505,10 +506,9 @@ def calculate_engine_speeds_out_hot(
     if isinstance(gear_box_speeds_in, float):
         s = max(idle_engine_speed[0], gear_box_speeds_in) if on_engine else 0
     else:
-        s = gear_box_speeds_in.copy()
-
-        s[~on_engine] = 0
-        s[on_engine & (s < idle_engine_speed[0])] = idle_engine_speed[0]
+        s = np.where(
+            on_engine, np.maximum(gear_box_speeds_in, idle_engine_speed[0]), 0
+        )
 
     return s
 
@@ -833,6 +833,7 @@ def calculate_engine_moment_inertia(engine_capacity, ignition_type):
         Engine moment of inertia [kg*m2].
     :rtype: float
     """
+    # noinspection PyPep8Naming
     PARAMS = defaults.dfl.functions.calculate_engine_moment_inertia.PARAMS
 
     return (0.05 + 0.1 * engine_capacity / 1000.0) * PARAMS[ignition_type]
@@ -1065,6 +1066,200 @@ def identify_idle_engine_speed():
     return d
 
 
+# noinspection PyMissingOrEmptyDocstring
+class EngineModel:
+    key_outputs = [
+        'on_engine', 'engine_starts', 'engine_speeds_out_hot',
+        'engine_coolant_temperatures'
+    ]
+
+    types = {
+        float: {'engine_speeds_out_hot', 'engine_coolant_temperatures'},
+        bool: {'on_engine', 'engine_starts'}
+    }
+
+    def __init__(self,
+                 start_stop_prediction_model=None, idle_engine_speed=None,
+                 engine_temperature_prediction_model=None, outputs=None):
+        self.start_stop_prediction_model = start_stop_prediction_model
+        self.idle_engine_speed = idle_engine_speed
+        self.engine_temperature_prediction_model = \
+            engine_temperature_prediction_model
+        self._outputs = outputs or {}
+        self.outputs = None
+
+    def __call__(self, times, *args, **kwargs):
+        self.set_outputs(times.shape[0])
+        for _ in self.yield_results(times, *args, **kwargs):
+            pass
+        return sh.selector(self.key_outputs, self.outputs, output_type='list')
+
+    def yield_on_start(self, times, velocities, accelerations,
+                       engine_coolant_temperatures, state_of_charges, gears):
+        yield from self.start_stop_prediction_model.yield_results(
+            times, velocities, accelerations, engine_coolant_temperatures,
+            state_of_charges, gears
+        )
+
+    def yield_speed(self, on_engine, gear_box_speeds_in):
+        key = 'engine_speeds_out_hot'
+        if self._outputs is not None and key in self._outputs:
+            yield from self._outputs[key]
+        else:
+            idle = self.idle_engine_speed
+            for on_eng, gb_s in zip(on_engine, gear_box_speeds_in):
+                yield calculate_engine_speeds_out_hot(gb_s, on_eng, idle)
+
+    def yield_thermal(self, times, accelerations, final_drive_powers_in,
+                      engine_speeds_out_hot):
+        yield from self.engine_temperature_prediction_model.yield_results(
+            times, accelerations, final_drive_powers_in, engine_speeds_out_hot
+        )
+
+    def set_outputs(self, n, outputs=None):
+        if outputs is None:
+            outputs = {}
+        self.engine_temperature_prediction_model.set_outputs(n, outputs)
+        self.start_stop_prediction_model.set_outputs(n, outputs)
+        outputs.update(self._outputs or {})
+        for t, names in self.types.items():
+            names = names - set(outputs)
+            if names:
+                outputs.update(zip(names, np.empty((len(names), n), dtype=t)))
+
+        self.outputs = outputs
+
+    def yield_results(self, times, velocities, accelerations,
+                      final_drive_powers_in, gears, gear_box_speeds_in):
+        outputs = self.outputs
+
+        ss_gen = self.yield_on_start(
+            times, velocities, accelerations,
+            outputs['engine_coolant_temperatures'], outputs['state_of_charges'],
+            gears
+        )
+
+        s_gen = self.yield_speed(outputs['on_engine'], gear_box_speeds_in)
+
+        t_gen = self.yield_thermal(
+            times, accelerations, final_drive_powers_in,
+            outputs['engine_speeds_out_hot']
+        )
+        eng_temp = outputs['engine_coolant_temperatures']
+        eng_temp[0] = next(t_gen)
+        for i, on_eng in enumerate(ss_gen):
+            # if e[-1] < min_soc and not on_eng[0]:
+            #    on_eng[0], on_eng[1] = True, not eng[0]
+
+            outputs['on_engine'][i], outputs['engine_starts'][i] = on_eng
+
+            outputs['engine_speeds_out_hot'][i] = eng_s = next(s_gen)
+            try:
+                eng_temp[i + 1] = next(t_gen)
+            except IndexError:
+                pass
+            yield on_eng[0], on_eng[1], eng_s, eng_temp[i]
+
+
+def define_engine_prediction_model(
+        start_stop_prediction_model, idle_engine_speed,
+        engine_temperature_prediction_model):
+    """
+    Defines the engine prediction model.
+
+    :param start_stop_activation_time:
+        Start-stop activation time threshold [s].
+    :type start_stop_activation_time: float
+
+    :param initial_engine_temperature:
+        Initial engine temperature [°C].
+    :type initial_engine_temperature: float
+
+    :param correct_start_stop_with_gears:
+        A flag to impose engine on when there is a gear > 0.
+    :type correct_start_stop_with_gears: bool
+
+    :param min_time_engine_on_after_start:
+        Minimum time of engine on after a start [s].
+    :type min_time_engine_on_after_start: float
+
+    :param has_start_stop:
+        Does the vehicle have start/stop system?
+    :type has_start_stop: bool
+
+    :param use_basic_start_stop:
+        If True the basic start stop model is applied, otherwise complex one.
+
+        ..note:: The basic start stop model is function of velocity and
+          acceleration. While, the complex model is function of velocity,
+          acceleration, temperature, and battery state of charge.
+    :type use_basic_start_stop: bool
+
+    :param idle_engine_speed:
+        Engine speed idle median and std [RPM].
+    :type idle_engine_speed: (float, float)
+
+    :param start_stop_model:
+        Start/stop model.
+    :type start_stop_model: StartStopModel
+
+    :param engine_temperature_regression_model:
+        The calibrated engine temperature regression model.
+    :type engine_temperature_regression_model: ThermalModel
+
+    :param max_engine_coolant_temperature:
+        Maximum engine coolant temperature [°C].
+    :type max_engine_coolant_temperature: float
+
+    :return:
+        Engine prediction model.
+    :rtype: EngineModel
+    """
+    model = EngineModel(
+        start_stop_prediction_model, idle_engine_speed,
+        engine_temperature_prediction_model
+    )
+
+    return model
+
+
+def define_fake_engine_prediction_model(
+        on_engine, engine_starts, engine_speeds_out_hot,
+        engine_temperature_prediction_model):
+    """
+    Defines a fake engine prediction model.
+
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :param engine_starts:
+        When the engine starts [-].
+    :type engine_starts: numpy.array
+
+    :param engine_speeds_out_hot:
+        Engine speed at hot condition [RPM].
+    :type engine_speeds_out_hot: numpy.array
+
+    :param engine_coolant_temperatures:
+        Engine coolant temperature vector [°C].
+    :type engine_coolant_temperatures: numpy.array
+
+    :return:
+        Engine prediction model.
+    :rtype: EngineModel
+    """
+    model = EngineModel(
+        engine_temperature_prediction_model=engine_temperature_prediction_model,
+        outputs={
+            'on_engine': on_engine,
+            'engine_starts': engine_starts,
+            'engine_speeds_out_hot': engine_speeds_out_hot
+        })
+
+    return model
+
+
 def engine():
     """
     Defines the engine model.
@@ -1230,7 +1425,8 @@ def engine():
             'engine_temperature_regression_model',
             'engine_thermostat_temperature',
             'engine_thermostat_temperature_window',
-            'initial_engine_temperature', 'max_engine_coolant_temperature')
+            'initial_engine_temperature', 'max_engine_coolant_temperature',
+            'engine_temperature_prediction_model')
     )
 
     d.add_function(
@@ -1262,7 +1458,8 @@ def engine():
             'state_of_charges', 'times', 'use_basic_start_stop', 'velocities'),
         outputs=(
             'correct_start_stop_with_gears', 'engine_starts', 'on_engine',
-            'start_stop_model', 'use_basic_start_stop')
+            'start_stop_model', 'use_basic_start_stop',
+            'start_stop_prediction_model')
     )
 
     d.add_data(
@@ -1433,6 +1630,24 @@ def engine():
             'phases_fuel_consumptions', 'phases_willans_factors',
             'willans_factors', 'co2_rescaling_scores'),
         inp_weight={'co2_params': defaults.dfl.EPS}
+    )
+
+    d.add_function(
+        function=define_fake_engine_prediction_model,
+        inputs=[
+            'on_engine', 'engine_starts', 'engine_speeds_out_hot',
+            'engine_temperature_prediction_model'
+        ],
+        outputs=['engine_prediction_model']
+    )
+
+    d.add_function(
+        function=define_engine_prediction_model,
+        inputs=['start_stop_prediction_model', 'idle_engine_speed',
+                'engine_temperature_prediction_model'
+                ],
+        outputs=['engine_prediction_model'],
+        weight=400
     )
 
     return d
