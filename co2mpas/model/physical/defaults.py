@@ -466,7 +466,7 @@ class Functions(co2_utl.Constants):
         #: Max standard deviation percentage of median value [-].
         MAX_STD_PERC = 0.3
 
-    class DefaultStartStopModel(co2_utl.Constants):
+    class StartStopModel(co2_utl.Constants):
         #: Maximum allowed velocity to stop the engine [km/h].
         stop_velocity = 2.0
 
