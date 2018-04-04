@@ -14,6 +14,46 @@ import schedula as sh
 import numpy as np
 
 
+# noinspection PyMissingOrEmptyDocstring,PyPep8Naming,PyUnusedLocal
+class CVT:
+    def __init__(self):
+        self.base_model = xgb.XGBRegressor
+        self.model = None
+
+    def fit(self, on_engine, engine_speeds_out, velocities, accelerations,
+            gear_box_powers_out):
+        b = on_engine
+        X = np.column_stack((velocities, accelerations, gear_box_powers_out))[b]
+        y = engine_speeds_out[b]
+
+        # noinspection PyArgumentEqualDefault
+        self.model = self.base_model(
+            seed=0,
+            max_depth=3,
+            n_estimators=int(min(300.0, 0.25 * (len(y) - 1)))
+        )
+        self.model.fit(X, y)
+        return self
+
+    # noinspection PyUnusedLocal
+    @staticmethod
+    def yield_gear(times, *args, **kwargs):
+        for _ in range(times.shape[0]):
+            yield 1
+
+    def predict(self, velocities, accelerations, gear_box_powers_out):
+        X = np.column_stack((velocities, accelerations, gear_box_powers_out))
+        return self.model.predict(X)
+
+    def yield_speed(self, stop_velocity, gears, velocities, accelerations,
+                    gear_box_powers_out):
+        func = self.model.predict
+        x = np.empty((1, 3), float)
+        for v in zip(velocities, accelerations, gear_box_powers_out):
+            x[:, :] = v
+            yield func(x)
+
+
 def calibrate_cvt(
         on_engine, engine_speeds_out, velocities, accelerations,
         gear_box_powers_out):
@@ -44,19 +84,10 @@ def calibrate_cvt(
         Continuously variable transmission model.
     :rtype: callable
     """
-    b = on_engine
-    X = np.column_stack((velocities, accelerations, gear_box_powers_out))[b]
-    y = engine_speeds_out[b]
-
-    regressor = xgb.XGBRegressor(
-        seed=0,
-        max_depth=3,
-        n_estimators=int(min(300, 0.25 * (len(y) - 1)))
+    model = CVT().fit(
+        on_engine, engine_speeds_out, velocities, accelerations,
+        gear_box_powers_out
     )
-
-    regressor.fit(X, y)
-
-    model = regressor.predict
 
     return model
 
@@ -87,9 +118,7 @@ def predict_gear_box_speeds_in(
     :rtype: numpy.array, numpy.array, int
     """
 
-    X = np.column_stack((velocities, accelerations, gear_box_powers_out))
-
-    return cvt(X)
+    return cvt.predict(velocities, accelerations, gear_box_powers_out)
 
 
 def predict_gears(velocities):
@@ -139,6 +168,18 @@ def identify_max_speed_velocity_ratio(
     return max(engine_speeds_out[b] / velocities[b])
 
 
+def default_correct_gear():
+    """
+    Returns a fake function to correct the gear.
+
+    :return:
+        A function to correct the predicted gear.
+    :rtype: callable
+    """
+    from .at_gear import CorrectGear
+    return CorrectGear()
+
+
 def cvt_model():
     """
     Defines the gear box model.
@@ -155,6 +196,11 @@ def cvt_model():
     d = sh.Dispatcher(
         name='CVT model',
         description='Models the gear box.'
+    )
+
+    d.add_function(
+        function=default_correct_gear,
+        outputs=['correct_gear']
     )
 
     d.add_function(
