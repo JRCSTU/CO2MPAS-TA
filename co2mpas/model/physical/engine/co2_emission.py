@@ -208,7 +208,8 @@ class IdleFuelConsumptionModel(object):
             if not (ac_phases is None or ac_phases.all() or 'acr' in params):
                 p = params.copy()
                 p['acr'] = self.fmep_model.base_acr
-                _fc, _, _ac, _avv, _lb, _egr = self.fmep_model(p, self.n_s, 0, 1)
+                _fc, _, _ac, _avv, _lb, _egr = self.fmep_model(p, self.n_s, 0,
+                                                               1)
                 fc = np.where(ac_phases, fc, _fc)
                 ac = np.where(ac_phases, ac, _ac)
                 avv = np.where(ac_phases, avv, _avv)
@@ -357,7 +358,9 @@ class FMEP(object):
                     b = n_temp < 1
                 else:
                     b = n_speeds < self.egr_max_mean_piston_speeds
-                    b &= n_powers <= (self.fbc(n_speeds) * self.egr_fbc_percentage)
+                    b &= n_powers <= (
+                            self.fbc(n_speeds) * self.egr_fbc_percentage
+                    )
 
                 if b is True:
                     a['egr'] = (egr, True),
@@ -373,7 +376,7 @@ class FMEP(object):
     def acr(self, params, n_speeds, n_powers, n_temp, a=None):
         a = a or {'acr': [(self.base_acr, True)]}
         if self.has_cylinder_deactivation and self.active_cylinder_ratios and \
-                        'acr' not in params:
+                'acr' not in params:
             l = a['acr']
             b = (n_temp == 1) & (n_powers > 0)
             b &= (n_speeds < self.acr_max_mean_piston_speeds)
@@ -462,10 +465,11 @@ class FMEP(object):
 
 
 def define_fmep_model(
-    full_bmep_curve, engine_max_speed, engine_stroke, active_cylinder_ratios,
-    has_cylinder_deactivation, has_variable_valve_actuation, has_lean_burn,
-    has_exhausted_gas_recirculation, has_selective_catalytic_reduction,
-    engine_type):
+        full_bmep_curve, engine_max_speed, engine_stroke,
+        active_cylinder_ratios, has_cylinder_deactivation,
+        has_variable_valve_actuation, has_lean_burn,
+        has_exhausted_gas_recirculation, has_selective_catalytic_reduction,
+        engine_type):
     """
     Defines the vehicle FMEP model.
 
@@ -671,8 +675,8 @@ def calculate_p0(
 def _apply_ac_phases(func, fmep_model, params, *args, ac_phases=None):
     res_with_ac = func(fmep_model, params, *args)
     if ac_phases is None or ac_phases.all() or not (
-                fmep_model.has_cylinder_deactivation and
-                fmep_model.active_cylinder_ratios):
+            fmep_model.has_cylinder_deactivation and
+            fmep_model.active_cylinder_ratios):
         return res_with_ac
     else:
         p = params.copy()
@@ -1150,7 +1154,7 @@ def _define_rescaling_function(
     def _rescaling_function(params_initial_guess):
         co2_emissions = co2_emissions_model(params_initial_guess)[0]
         A = [np.sum(co2_emissions[i:j, None] * m, 0) for i, j, m in it]
-        k_factors = np.linalg.lstsq(A, cumulative_co2_emissions)[0]
+        k_factors = np.linalg.lstsq(A, cumulative_co2_emissions, rcond=-1)[0]
         co2_emissions *= np.dot(rescaling_matrix, k_factors)
         return co2_emissions, k_factors
 
@@ -1670,11 +1674,11 @@ def _identify_cold_phase(p, is_cycle_hot, engine_coolant_temperatures):
 
 
 def calibrate_co2_params(
-    is_cycle_hot, engine_coolant_temperatures, co2_error_function_on_emissions,
-    co2_params_initial_guess,
-    _1st_step=defaults.dfl.functions.calibrate_co2_params.enable_first_step,
-    _2nd_step=defaults.dfl.functions.calibrate_co2_params.enable_second_step,
-    _3rd_step=defaults.dfl.functions.calibrate_co2_params.enable_third_step):
+        is_cycle_hot, engine_coolant_temperatures,
+        co2_error_function_on_emissions, co2_params_initial_guess,
+        _1st_step=defaults.dfl.functions.calibrate_co2_params.enable_first_step,
+        _2nd_step=defaults.dfl.functions.calibrate_co2_params.enable_second_step,
+        _3rd_step=defaults.dfl.functions.calibrate_co2_params.enable_third_step):
     """
     Calibrates the CO2 emission model parameters (a2, b2, a, b, c, l, l2, t, trg
     ).

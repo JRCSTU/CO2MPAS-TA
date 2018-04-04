@@ -74,7 +74,7 @@ class TestGearBox(unittest.TestCase):
     def test_calculate_torque_out(self):
         wp, es, gbs = self.wp, self.es, self.ws
         self.assertEquals(
-            list(calculate_gear_box_torques(wp, es, gbs, 10)), list(self.tgb)
+            list(calculate_gear_box_torques(wp, gbs, es, 10)), list(self.tgb)
         )
 
     @unittest.skip("to be reviewed")

@@ -200,6 +200,7 @@ setup(
         'parsedatetime',
         'validate_email',           # dice: distinguish EWS fields
         'Unidecode',                # dice: convert non-ASCII for tstamper.
+        'xgboost'
     ],
     packages=find_packages(exclude=[
         'tests', 'tests.*',
