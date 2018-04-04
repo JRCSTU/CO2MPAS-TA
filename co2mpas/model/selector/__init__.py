@@ -428,8 +428,7 @@ def sub_models():
         'select_models': functools.partial(
             at_models_selector, at_gear(), at_pred_inputs
         ),
-        'models': ['MVL', 'CMV', 'CMV_Cold_Hot', 'DT_VA', 'DT_VAT', 'DT_VAP',
-                   'DT_VATP', 'GSPV', 'GSPV_Cold_Hot',
+        'models': ['MVL', 'CMV', 'CMV_Cold_Hot', 'DTGS', 'GSPV', 'GSPV_Cold_Hot',
                    'specific_gear_shifting', 'change_gear_window_width',
                    'max_velocity_full_load_correction', 'plateau_acceleration'],
         'inputs': at_pred_inputs,
@@ -464,8 +463,7 @@ def at_models_selector(d, at_pred_inputs, models_ids, data):
     t_e = ('mean_absolute_error', 'accuracy_score', 'correlation_coefficient')
 
     # at_models to be assessed.
-    at_m = {'CMV', 'CMV_Cold_Hot', 'DT_VA', 'DT_VAT', 'DT_VAP', 'DT_VATP',
-            'GSPV', 'GSPV_Cold_Hot'} if at_m == 'ALL' else {at_m}
+    at_m = {'CMV', 'CMV_Cold_Hot', 'DTGS', 'GSPV', 'GSPV_Cold_Hot'} if at_m == 'ALL' else {at_m}
 
     # Other models to be taken from calibration output.
     models = select(set(models_ids) - at_m, data, allow_miss=True)

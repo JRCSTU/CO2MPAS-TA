@@ -11,12 +11,12 @@ It contains functions to predict the A/T gear shifting.
 
 import collections
 import copy
-import functools
 import itertools
 import pprint
 import scipy.interpolate as sci_itp
 import scipy.optimize as sci_opt
 import sklearn.metrics as sk_met
+import sklearn.pipeline as sk_pip
 import sklearn.tree as sk_tree
 import schedula as sh
 import co2mpas.model.physical.defaults as defaults
@@ -24,157 +24,394 @@ import co2mpas.utils as co2_utl
 import numpy as np
 
 
+# noinspection PyMissingOrEmptyDocstring,PyAttributeOutsideInit,PyUnusedLocal
 class CorrectGear(object):
     def __init__(self, velocity_speed_ratios=None, idle_engine_speed=None):
         velocity_speed_ratios = velocity_speed_ratios or {}
-        self.gears = sorted(k for k in velocity_speed_ratios if k > 0)
+        self.gears = np.array(sorted(k for k in velocity_speed_ratios if k > 0))
         self.vsr = velocity_speed_ratios
-        self.min_gear = self.gears[0]
-        self.idle_engine_speed=idle_engine_speed
+        self.min_gear = velocity_speed_ratios and self.gears[0] or None
+        self.idle_engine_speed = idle_engine_speed
         self.pipe = []
+        self.prepare_pipe = []
 
     def fit_basic_correct_gear(self):
-        idle = self.idle_engine_speed[0]
-        self.idle_vel = [(k, self.vsr[k] * idle) for k in self.gears]
-        self.pipe.append(self.basic_correct_gear)
+        idle = self.idle_engine_speed[0] - self.idle_engine_speed[1]
+        self.idle_vel = np.array([self.vsr[k] * idle for k in self.gears])
+        self.prepare_pipe.append(self.prepare_basic)
 
-    def basic_correct_gear(self, velocity, acceleration, gear):
-        """
-        Corrects the gear predicted according to basic drive-ability rules.
+    def prepare_basic(
+            self, matrix, times, velocities, accelerations, motive_powers,
+            engine_coolant_temperatures):
 
-        :param velocity:
-            Vehicle velocity [km/h].
-        :type velocity: float
+        max_gear = np.repeat(
+            np.array([self.gears], int), velocities.shape[0], 0
+        )
+        max_gear[velocities[:, None] < self.idle_vel] = 0
+        max_gear = max_gear.max(1)
+        b = velocities > 0
+        max_gear[~b] = 0
+        b[-1] &= accelerations[-1] > 0
+        b[:-1] &= (accelerations[:-1] > 0) | (np.diff(velocities) > 0)
+        min_gear = np.minimum(np.where(b, self.min_gear, 0), max_gear)
+        del b
 
-        :param acceleration:
-            Vehicle acceleration [m/s2].
-        :type acceleration: float
+        for gears in matrix.values():
+            np.clip(gears, min_gear, max_gear, gears)
+        del max_gear, min_gear
+        return matrix
 
-        :param gear:
-            Predicted vehicle gear [-].
-        :type gear: int
-
-        :return:
-            A gear corrected according to basic drive-ability rules.
-        :rtype: int
-        """
-        if gear == 0 and acceleration > 0:
-            gear = self.min_gear
-        elif gear > 1:
-            for g, v in self.idle_vel[self.gears.index(gear):0:-1]:
-                if velocity >= v:
-                    return g
-            return self.min_gear
+    def basic_correct_gear(
+            self, gear, i, gears, times, velocities, accelerations,
+            motive_powers, engine_coolant_temperatures, matrix):
+        vel, mg = velocities[i], self.min_gear
+        if not vel:
+            gear = 0
+        elif gear > mg:
+            j = np.searchsorted(self.gears, gear)
+            valid = (vel >= self.idle_vel)[::-1]
+            k = valid.argmax()
+            gear = valid[k] and self.gears[j - k] or mg
+        if not gear:
+            b = accelerations[i] > 0 or velocities.take(i + 1, mode='clip')
+            gear = b and mg or 0
         return gear
 
     def fit_correct_gear_mvl(self, mvl):
         self.mvl = mvl
+        self.mvl_acc = mvl.plateau_acceleration
+        self.vl_dn, self.vl_up = np.array(list(zip(*map(mvl.get, self.gears))))
         self.pipe.append(self.correct_gear_mvl)
 
-    def correct_gear_mvl(self, velocity, acceleration, gear):
-        return self.mvl.predict(velocity, acceleration, gear)
+    def prepare_mvl(
+            self, matrix, times, velocities, accelerations, motive_powers,
+            engine_coolant_temperatures):
+
+        vel = velocities[:, None]
+        max_gear = np.repeat(np.array([self.gears], float), vel.shape[0], 0)
+        max_gear[(vel > self.vl_up) | (vel < self.vl_dn)] = np.nan
+        del vel
+
+        b = velocities.astype(bool) & (accelerations < self.mvl_acc)
+        max_gear = np.nanmax(max_gear, 1)
+        c = ~np.isnan(max_gear)
+        b, c = c & b, c & ~b
+        max_gear = max_gear[b].astype(int), max_gear[c].astype(int)
+        for gears in matrix.values():
+            gears[b] = max_gear[0]
+            gears[c] = np.minimum(max_gear[1], gears[c])
+
+        del max_gear, b, c
+
+        return matrix
+
+    # noinspection PyUnusedLocal
+    def correct_gear_mvl(
+            self, gear, i, gears, times, velocities, accelerations,
+            motive_powers, engine_coolant_temperatures, matrix):
+        vel = velocities[i]
+        if abs(accelerations[i]) < self.mvl_acc:
+            j = np.where(self.vl_dn < vel)[0]
+            if j.shape[0]:
+                g = self.gears[j.max()]
+                if g > gear:
+                    return g
+        if gear:
+            while vel > self.mvl[gear][1]:
+                gear += 1
+        return gear
 
     def fit_correct_gear_full_load(
-            self, full_load_curve, road_loads, vehicle_mass,
-            max_velocity_full_load_correction):
-        """
-        Fit the parameters to corrects the gear according to full load curve.
-
-        :param full_load_curve:
-            Vehicle full load curve.
-        :type full_load_curve: function
-
-        :param road_loads:
-            Cycle road loads [N, N/(km/h), N/(km/h)^2].
-        :type road_loads: list, tuple
-
-        :param vehicle_mass:
-            Vehicle mass [kg].
-        :type vehicle_mass: float
-
-        :param max_velocity_full_load_correction:
-            Maximum velocity to apply the correction due to the full load curve.
-        :type max_velocity_full_load_correction: float
-        """
-
+            self, full_load_curve, max_velocity_full_load_correction):
         self.max_velocity_full_load_corr = max_velocity_full_load_correction
-
-        from ..wheels import calculate_wheel_power
-
-        self._power = functools.partial(
-            calculate_wheel_power,
-            road_loads=np.array(road_loads),
-            vehicle_mass=vehicle_mass
-        )
-        vsr = self.vsr
-
-        def _flc(velocity, gear):
-            return full_load_curve(velocity / vsr[gear])
-
-        self.flc = _flc
+        self.flc = full_load_curve
+        self.np_vsr = np.array(list(map(self.vsr.get, self.gears)))
         self.pipe.append(self.correct_gear_full_load)
 
-    def correct_gear_full_load(self, velocity, acceleration, gear):
-        """
-        Corrects the gear predicted according to full load curve.
+    def prepare_full_load(
+            self, matrix, times, velocities, accelerations, motive_powers,
+            engine_coolant_temperatures):
 
-        :param velocity:
-            Vehicle velocity [km/h].
-        :type velocity: float
+        max_gear = np.repeat(
+            np.array([self.gears], float), velocities.shape[0], 0
+        )
+        speeds = velocities[:, None] / self.np_vsr
+        speeds[:, 0] = np.maximum(speeds[:, 0], self.idle_engine_speed[0])
+        max_gear[self.flc(speeds) <= motive_powers[:, None]] = np.nan
+        del speeds
+        max_gear = np.nanmax(max_gear, 1)
+        max_gear[velocities > self.max_velocity_full_load_corr] = self.gears[-1]
+        b = ~np.isnan(max_gear)
+        max_gear = max_gear[b].astype(int)
+        for gears in matrix.values():
+            gears[b] = np.clip(gears[b], 0, max_gear)
+        del max_gear, b
 
-        :param acceleration:
-            Vehicle acceleration [m/s2].
-        :type acceleration: float
+        return matrix
 
-        :param gear:
-            Predicted vehicle gear [-].
-        :type gear: int
-
-        :return:
-            A gear corrected according to full load curve.
-        :rtype: int
-        """
-
-        if velocity > self.max_velocity_full_load_corr or gear == 0:
+    def correct_gear_full_load(
+            self, gear, i, gears, times, velocities, accelerations,
+            motive_powers, engine_coolant_temperatures, matrix):
+        vel = velocities[i]
+        if vel > self.max_velocity_full_load_corr or gear <= self.min_gear:
             return gear
 
-        p, flc = self._power(velocity, acceleration), self.flc
-        for g in self.gears[self.gears.index(gear):0:-1]:
-            if p <= flc(velocity, g):
-                # to consider adding the reverse function in the future because
-                # the n+200 rule should be applied at the engine not the GB
-                # (rpm < idle_speed + 200 and 0 <= a < 0.1) or
-                return g
-        return self.min_gear
+        j = np.searchsorted(self.gears, gear)
+        valid = (self.flc(vel / self.np_vsr[:j + 1]) >= motive_powers[i])[::-1]
+        k = valid.argmax()
+        if not valid[k]:
+            return self.min_gear
+        return self.gears[j - k]
 
-    def __call__(self, velocity, acceleration, gear):
+    def fit_correct_driveability_rules(self, engine_speed_at_max_power):
+        idle = self.idle_engine_speed[0]
+        n_min_drive = idle + 0.125 * (engine_speed_at_max_power - idle)
+        idle = {1: idle, 2: idle * 0.9}
+        self.min_gear_vel = {
+            g: idle.get(g, n_min_drive) * self.vsr[g] for g in self.gears
+        }
+        self.pipe.append(self.correct_driveability_rules)
+        self.next_gears = []
+
+    # noinspection PyUnresolvedReferences
+    def correct_driveability_rules(
+            self, gear, i, gears, times, velocities, accelerations,
+            motive_powers, engine_coolant_temperatures, matrix):
+        pg = gears.take(i - 1, mode='clip')  # Previous gear.
+        power = motive_powers[i]  # Current power.
+        t0 = times[i]
+        for j, (g, t) in enumerate(self.next_gears):
+            if t0 <= t:
+                gear = g
+                self.next_gears = self.next_gears[j:]
+                break
+        else:
+            self.next_gears = []
+
+        # noinspection PyShadowingNames
+        def get_next(k, g):
+            t0 = times[k]
+            for j, v in enumerate(self.next_gears):
+                if t0 <= v[0]:
+                    g = v[1]
+                    break
+            else:
+                g = matrix[g][k]
+            # 4.3
+            if g and motive_powers[k] < 0 and \
+                    self.min_gear_vel[g] > velocities[k]:
+                return 0
+            return g
+
+        # 4.a During accelerations a gear have to last at least 2 seconds.
+        if power > 0 or velocities.take(i + 1, mode='clip') > velocities[i]:
+            j = np.searchsorted(times, times[i] - 2)
+            gear = min(gear, pg + int((gears[j:i] == pg).all()))
+
+        # 4.b
+        if gear > 1 and power > 0:
+            if pg < gear or motive_powers.take(i - 1, mode='clip') <= 0:
+                g = gear
+                t0 = times[i] + 10
+                j = i + 1
+                gen = enumerate(zip(times[j:], motive_powers[j:]), j)
+                while True:
+                    try:
+                        k, (t, p) = next(gen)
+                    except StopIteration:
+                        break
+                    if p <= 0:
+                        break
+                    g = get_next(k, g)
+                    if g < gear:
+                        if t <= t0:
+                            gear = g
+                        else:
+                            t0 += 10
+                            while True:
+                                try:
+                                    k, (t, p) = next(gen)
+                                except StopIteration:
+                                    break
+                                if t > t0 or p <= 0:
+                                    break
+                                g = get_next(k, g)
+                                if g < gear:
+                                    gear = g
+                                    break
+                        break
+
+            if pg > gear:
+                g = gear
+                t0 = times[i] + 10
+                j = i + 1
+                gen = enumerate(zip(times[j:], motive_powers[j:]), j)
+                while True:
+                    try:
+                        k, (t, p) = next(gen)
+                    except StopIteration:
+                        break
+                    g = get_next(k, g)
+                    if g < pg:
+                        break
+                    if t > t0 or p <= 0:
+                        gear = pg
+                        break
+
+        # 4.c, 4.d
+        if pg and pg < gear:
+            if power < 0 or motive_powers.take(i + 1, mode='clip') < 0:  # 4.d
+                gear = pg
+            else:  # 4.c
+                g = gear
+                t0 = times[i] + 5.01
+                j = i + 1
+                gen = enumerate(times[j:], j)
+                while True:
+                    try:
+                        k, t = next(gen)
+                    except StopIteration:
+                        break
+                    if t > t0:
+                        break
+                    g = get_next(k, g)
+                    if g < gear:
+                        gear = max(pg, g)
+                        break
+        # 4.e
+        if gear == 1 and pg == 2 and power < 0:
+            for k, p in enumerate(motive_powers[i + 1:], i + 1):
+                if p >= 0:
+                    if velocities[k] <= 1:
+                        gear = 2
+                    break
+
+        # 4.e
+        if gear and power < 0 and self.min_gear_vel[gear] > velocities[i]:
+            gear = 0
+
+        # 4.f
+        if gear and power < 0 and pg > gear:
+            j, g = i - 1, gear
+            t0 = times.take(j, mode='clip')
+            if (gears[np.searchsorted(times[:j], t0 - 3):j] == pg).all():
+                t1, t2, t3 = times[i], t0 + 2, t0 + 5
+                flag = gear, t1 + 3
+                j = i + 1
+                gen = enumerate(zip(times[j:], motive_powers[j:]), j)
+                for k, (t, p) in gen:
+                    if not (p <= 0 or t <= t2):
+                        break
+                    g = get_next(k, g)
+                    if g != flag[0]:
+                        flag = g, t + 3
+
+                    if t >= flag[1]:
+                        if flag[0] < gear:
+                            gear = 0
+                            self.next_gears = [(0, t0 + 1), (flag[0], t0 + 2)]
+                        break
+                    elif t > t3:
+                        break
+                    elif t > t2 and 2 <= pg - g <= 3:
+                        gear = 0
+                        self.next_gears = [(0, t0 + 1), (flag[0], t0 + 2)]
+                        break
+
+                if not gear and pg > flag[0] + 1:
+                    v, g0, r = None, g, flag[0] - 1
+                    t1, t2 = t0 + 2, t0 + 5
+                    for k, (t, p) in gen:
+                        g = get_next(k, g)
+                        if p > 0 or g > g0:
+                            break
+                        g0 = g
+                        if v is None and t >= t1:
+                            v = matrix[g][k] - g <= 2
+                        if t >= t2:
+                            if g <= r:
+                                if v:
+                                    self.next_gears = [(0, t0 + 1), (r, t0 + 4)]
+                                else:
+                                    self.next_gears = [(0, t0 + 2), (g, t2)]
+                            break
+
+        # 4.f
+        if power < 0 and gear and (pg > gear or pg == 0):
+            j, g0 = i + 1, gear
+            t0 = times.take(i - 1, mode='clip') + 2
+            gen = enumerate(zip(times[j:], motive_powers[j:]), j)
+            for k, (t, p) in gen:
+                if p > 0:
+                    break
+                g1 = get_next(k, g0)
+                if g1 == g0 and (g0 == 1 or t <= t0):
+                    g0 = g1
+                    continue
+                if velocities[k] < 1:
+                    self.next_gears = [(0, t)]
+                    gear = 0
+                elif not g1 and gear == 1:
+                    g0 = g1
+                    continue
+                break
+
+        # 3.2
+        j = i + np.searchsorted(times[i:], times[i] + 1)
+        if not gear and np.diff(velocities.take([j, j + 1], mode='clip')) > 0:
+            gear = self.min_gear
+
+        return gear
+
+    def prepare(
+            self, matrix, times, velocities, accelerations, motive_powers,
+            engine_coolant_temperatures):
+        for f in self.prepare_pipe:
+            matrix = f(
+                matrix, times, velocities, accelerations, motive_powers,
+                engine_coolant_temperatures
+            )
+        return matrix
+
+    def __call__(self, gear, i, gears, times, velocities, accelerations,
+                 motive_powers, engine_coolant_temperatures, matrix):
         for f in self.pipe:
-            gear = f(velocity, acceleration, gear)
+            gear = f(
+                gear, i, gears, times, velocities, accelerations, motive_powers,
+                engine_coolant_temperatures, matrix
+            )
         return gear
 
 
 def _upgrade_gsm(gsm, velocity_speed_ratios, cycle_type):
-    gsm = copy.deepcopy(gsm).convert(velocity_speed_ratios)
-    if cycle_type == 'NEDC':
-        if isinstance(gsm, MVL):
-            par = defaults.dfl.functions.correct_constant_velocity
-            gsm.correct_constant_velocity(
-                up_cns_vel=par.CON_VEL_DN_SHIFT, dn_cns_vel=par.CON_VEL_UP_SHIFT
-            )
-        elif isinstance(gsm, CMV) and not isinstance(gsm, GSPV):
-            par = defaults.dfl.functions.correct_constant_velocity
-            gsm.correct_constant_velocity(
-                up_cns_vel=par.CON_VEL_UP_SHIFT, up_window=par.VEL_UP_WINDOW,
-                up_delta=par.DV_UP_SHIFT, dn_cns_vel=par.CON_VEL_DN_SHIFT,
-                dn_window=par.VEL_DN_WINDOW, dn_delta=par.DV_DN_SHIFT
-            )
+    if isinstance(gsm, (CMV, DTGS)):
+        gsm = copy.deepcopy(gsm).convert(velocity_speed_ratios)
+        if cycle_type == 'NEDC':
+            if isinstance(gsm, MVL):
+                par = defaults.dfl.functions.correct_constant_velocity
+                gsm.correct_constant_velocity(
+                    up_cns_vel=par.CON_VEL_DN_SHIFT,
+                    dn_cns_vel=par.CON_VEL_UP_SHIFT
+                )
+            elif isinstance(gsm, CMV) and not isinstance(gsm, GSPV):
+                par = defaults.dfl.functions.correct_constant_velocity
+                gsm.correct_constant_velocity(
+                    up_cns_vel=par.CON_VEL_UP_SHIFT,
+                    up_window=par.VEL_UP_WINDOW,
+                    up_delta=par.DV_UP_SHIFT, dn_cns_vel=par.CON_VEL_DN_SHIFT,
+                    dn_window=par.VEL_DN_WINDOW, dn_delta=par.DV_DN_SHIFT
+                )
+    elif isinstance(gsm, GSMColdHot):
+        for k, v in gsm.items():
+            gsm[k] = _upgrade_gsm(v, velocity_speed_ratios, cycle_type)
+
     return gsm
 
 
 def correct_gear_v0(
         cycle_type, velocity_speed_ratios, mvl, idle_engine_speed,
-        full_load_curve, road_loads, vehicle_mass,
-        max_velocity_full_load_correction, plateau_acceleration):
+        full_load_curve, max_velocity_full_load_correction=float('inf'),
+        plateau_acceleration=float('inf')):
     """
     Returns a function to correct the gear predicted according to
     :func:`correct_gear_mvl` and :func:`correct_gear_full_load`.
@@ -199,14 +436,6 @@ def correct_gear_v0(
         Vehicle full load curve.
     :type full_load_curve: function
 
-    :param road_loads:
-        Cycle road loads [N, N/(km/h), N/(km/h)^2].
-    :type road_loads: list, tuple
-
-    :param vehicle_mass:
-        Vehicle mass [kg].
-    :type vehicle_mass: float
-
     :param max_velocity_full_load_correction:
         Maximum velocity to apply the correction due to the full load curve.
     :type max_velocity_full_load_correction: float
@@ -226,8 +455,7 @@ def correct_gear_v0(
     correct_gear = CorrectGear(velocity_speed_ratios, idle_engine_speed)
     correct_gear.fit_correct_gear_mvl(mvl)
     correct_gear.fit_correct_gear_full_load(
-        full_load_curve, road_loads, vehicle_mass,
-        max_velocity_full_load_correction
+        full_load_curve, max_velocity_full_load_correction
     )
     correct_gear.fit_basic_correct_gear()
 
@@ -236,7 +464,7 @@ def correct_gear_v0(
 
 def correct_gear_v1(
         cycle_type, velocity_speed_ratios, mvl, idle_engine_speed,
-        plateau_acceleration):
+        plateau_acceleration=float('inf')):
     """
     Returns a function to correct the gear predicted according to
     :func:`correct_gear_mvl`.
@@ -277,8 +505,8 @@ def correct_gear_v1(
 
 
 def correct_gear_v2(
-        velocity_speed_ratios, idle_engine_speed, full_load_curve, road_loads,
-        vehicle_mass, max_velocity_full_load_correction):
+        velocity_speed_ratios, idle_engine_speed, full_load_curve,
+        max_velocity_full_load_correction=float('inf')):
     """
     Returns a function to correct the gear predicted according to
     :func:`correct_gear_full_load`.
@@ -295,14 +523,6 @@ def correct_gear_v2(
         Vehicle full load curve.
     :type full_load_curve: function
 
-    :param road_loads:
-        Cycle road loads [N, N/(km/h), N/(km/h)^2].
-    :type road_loads: list, tuple
-
-    :param vehicle_mass:
-        Vehicle mass [kg].
-    :type vehicle_mass: float
-
     :param max_velocity_full_load_correction:
         Maximum velocity to apply the correction due to the full load curve.
     :type max_velocity_full_load_correction: float
@@ -314,8 +534,7 @@ def correct_gear_v2(
 
     correct_gear = CorrectGear(velocity_speed_ratios, idle_engine_speed)
     correct_gear.fit_correct_gear_full_load(
-        full_load_curve, road_loads, vehicle_mass,
-        max_velocity_full_load_correction
+        full_load_curve, max_velocity_full_load_correction
     )
     correct_gear.fit_basic_correct_gear()
 
@@ -377,15 +596,15 @@ def identify_gear_shifting_velocity_limits(gears, velocities, stop_velocity):
             x = np.asarray(x)
 
             # noinspection PyTypeChecker
-            m, (n, s) = np.median(x), (len(x), 1 / np.std(x))
+            m, (n, s) = np.median(x), (len(x), np.std(x))
 
-            y = 2 > (abs(x - m) * s)
+            y = 2 > (abs(x - m) / s)
 
             if y.any():
                 y = x[y]
 
                 # noinspection PyTypeChecker
-                m, (n, s) = np.median(y), (len(y), 1 / np.std(y))
+                m, (n, s) = np.median(y), (len(y), np.std(y))
 
             return m, (n, s)
         else:
@@ -432,7 +651,9 @@ def define_gear_filter(
         :rtype: numpy.array
         """
 
-        gears = co2_utl.median_filter(times, gears, change_gear_window_width)
+        gears = co2_utl.median_filter(
+            times, gears.astype(float), change_gear_window_width
+        )
 
         gears = co2_utl.clear_fluctuations(
             times, gears, change_gear_window_width
@@ -443,6 +664,7 @@ def define_gear_filter(
     return gear_filter
 
 
+# noinspection PyMissingOrEmptyDocstring,PyUnusedLocal
 class CMV(collections.OrderedDict):
     def __init__(self, *args, velocity_speed_ratios=None):
         super(CMV, self).__init__(*args)
@@ -461,28 +683,31 @@ class CMV(collections.OrderedDict):
         s = '{}({}, velocity_speed_ratios={})'.format(name, items, vsr)
         return s.replace('inf', "float('inf')")
 
-    def fit(self, correct_gear, gears, engine_speeds_out, velocities,
-            accelerations, velocity_speed_ratios, stop_velocity):
+    def fit(self, correct_gear, gears, engine_speeds_out, times, velocities,
+            accelerations, motive_powers, velocity_speed_ratios, stop_velocity):
         from .mechanical import calculate_gear_box_speeds_in
         self.clear()
         self.velocity_speed_ratios = velocity_speed_ratios
-        self.update(identify_gear_shifting_velocity_limits(gears, velocities,
-                                                           stop_velocity))
+        self.update(identify_gear_shifting_velocity_limits(
+            gears, velocities, stop_velocity
+        ))
         if defaults.dfl.functions.CMV.ENABLE_OPT_LOOP:
             gear_id, velocity_limits = zip(*list(sorted(self.items()))[1:])
             max_gear, _inf, grp = gear_id[-1], float('inf'), co2_utl.grouper
             update, predict = self.update, self.predict
+
             def _update_gvs(vel_limits):
                 self[0] = (0, vel_limits[0])
                 self[max_gear] = (vel_limits[-1], _inf)
                 update(dict(zip(gear_id, grp(vel_limits[1:-1], 2))))
 
-            X = np.column_stack((velocities, accelerations))
-
             def _error_fun(vel_limits):
                 _update_gvs(vel_limits)
 
-                g_pre = predict(X, correct_gear=correct_gear)
+                g_pre = predict(
+                    times, velocities, accelerations, motive_powers,
+                    correct_gear=correct_gear
+                )
 
                 speed_pred = calculate_gear_box_speeds_in(
                     g_pre, velocities, velocity_speed_ratios, stop_velocity)
@@ -539,17 +764,26 @@ class CMV(collections.OrderedDict):
         """
 
         def _set_velocity(velocity, const_steps, window, delta):
-            for v in const_steps:
-                if v < velocity < v + window:
-                    return v + delta
+            for s in const_steps:
+                if s < velocity < s + window:
+                    return s + delta
             return velocity
 
-        def _fun(v):
-            limits = (_set_velocity(v[0], dn_cns_vel, dn_window, dn_delta),
-                      _set_velocity(v[1], up_cns_vel, up_window, up_delta))
-            return limits
+        for k, v in sorted(self.items()):
+            v = [
+                _set_velocity(v[0], dn_cns_vel, dn_window, dn_delta),
+                _set_velocity(v[1], up_cns_vel, up_window, up_delta)
+            ]
 
-        self.update((k, _fun(v)) for k, v in self.items())
+            if v[0] >= v[1]:
+                v[0] = v[1] + dn_delta
+
+            try:
+                if self[k - 1][1] <= v[0]:
+                    v[0] = self[k - 1][1] + up_delta
+            except KeyError:
+                pass
+            self[k] = tuple(v)
 
         return self
 
@@ -565,41 +799,84 @@ class CMV(collections.OrderedDict):
         plt.legend(loc='best')
         plt.xlabel('Velocity [km/h]')
 
-    def _prediction_matrix(self, X):
+    def _prepare(self, times, velocities, accelerations, motive_powers,
+                 engine_coolant_temperatures):
         keys = sorted(self.keys())
-        pg, r, c = {}, X.shape[0], len(keys) - 1
+        matrix, r, c = {}, velocities.shape[0], len(keys) - 1
         for i, g in enumerate(keys):
             down, up = self[g]
-            pg[g] = p = np.tile(g, r)
-            p[X[:, 0] < down] = keys[max(0, i - 1)]
-            p[X[:, 0] >= up] = keys[min(i + 1, c)]
-        return X, pg
+            matrix[g] = p = np.tile(g, r)
+            p[velocities < down] = keys[max(0, i - 1)]
+            p[velocities >= up] = keys[min(i + 1, c)]
+        return matrix
 
-    def _predict(self, X, correct_gear, previous_gear):
-        gear = previous_gear or min(self)
-        X, pg = self._prediction_matrix(X)
-        gears = np.zeros(X.shape[0])
-        for i, (velocity, acceleration) in enumerate(X):
-            gear = pg[gear][i]
+    def predict(self, times, velocities, accelerations, motive_powers,
+                engine_coolant_temperatures=None,
+                correct_gear=lambda i, g, *args: g[i],
+                gear_filter=define_gear_filter(), index=0, gears=None):
+        if gears is None:
+            gears = np.zeros_like(times, int)
 
-            g = correct_gear(velocity, acceleration, gear)
+        for _ in self.yield_gear(
+                times, velocities, accelerations, motive_powers,
+                engine_coolant_temperatures, correct_gear, index, gears):
+            pass
 
-            if g in self:
-                gear = g
+        # if gear_filter is not None:
+        #    gears[index:times.shape[0]] = gear_filter(times, gears)
 
-            gears[i] = gear
-        return gears
+        return gears[index:times.shape[0]]
 
-    def predict(self, X, correct_gear=lambda v, a, g: g, previous_gear=None,
-                times=None, gear_filter=define_gear_filter()):
+    @staticmethod
+    def get_gear(gear, index, gears, times, velocities, accelerations,
+                 motive_powers, engine_coolant_temperatures, matrix):
+        return matrix[gear][index]
 
-        gears = self._predict(X, correct_gear, previous_gear)
+    def yield_gear(self, times, velocities, accelerations, motive_powers,
+                   engine_coolant_temperatures=None,
+                   correct_gear=lambda i, g, *args: g[i], index=0, gears=None):
 
-        if times is not None:
-            gears = gear_filter(times, gears)
+        matrix = self._prepare(
+            times, velocities, accelerations, motive_powers,
+            engine_coolant_temperatures
+        )
+        if hasattr(correct_gear, 'prepare'):
+            matrix = correct_gear.prepare(
+                matrix, times, velocities, accelerations, motive_powers,
+                engine_coolant_temperatures
+            )
 
-        return gears
+        valid_gears = np.array(list(getattr(self, 'gears', self)))
 
+        def get_valid_gear(g):
+            if g in valid_gears:
+                return g
+            return valid_gears[np.abs(np.subtract(valid_gears, g)).argmin()]
+
+        gear = valid_gears.min()
+        if gears is None:
+            gears = np.zeros_like(times, int)
+        else:
+            gear = get_valid_gear(gears[index])
+
+        args = (
+            gears, times, velocities, accelerations, motive_powers,
+            engine_coolant_temperatures, matrix
+        )
+
+        for i in np.arange(index, times.shape[0], dtype=int):
+            gear = gears[i] = get_valid_gear(correct_gear(
+                self.get_gear(gear, i, *args), i, *args
+            ))
+            yield gear
+
+    def yield_speed(self, stop_velocity, gears, velocities, *args, **kwargs):
+        vsr = self.velocity_speed_ratios
+        for g, v in zip(gears, velocities):
+            r = v > stop_velocity and vsr.get(g, 0)
+            yield v / r if r else 0
+
+    # noinspection PyPep8Naming
     def convert(self, velocity_speed_ratios):
         if velocity_speed_ratios != self.velocity_speed_ratios:
 
@@ -620,6 +897,60 @@ class CMV(collections.OrderedDict):
         return self
 
 
+# noinspection PyMissingOrEmptyDocstring
+class GSMColdHot(collections.OrderedDict):
+    def __init__(self, *args, time_cold_hot_transition=0.0):
+        super(GSMColdHot, self).__init__(*args)
+        self.time_cold_hot_transition = time_cold_hot_transition
+
+    def __repr__(self):
+        name = self.__class__.__name__
+        items = [(k, v) for k, v in self.items()]
+        s = '{}({}, time_cold_hot_transition={})'.format(
+            name, items, self.time_cold_hot_transition
+        )
+        return s.replace('inf', "float('inf')")
+
+    def fit(self, model_class, times, *args):
+        self.clear()
+
+        b = times <= self.time_cold_hot_transition
+
+        for i in ['cold', 'hot']:
+            a = (v[b] if isinstance(v, np.ndarray) else v for v in args)
+            self[i] = model_class().fit(*a)
+            b = ~b
+        return self
+
+    # noinspection PyTypeChecker,PyCallByClass
+    def predict(self, *args, **kwargs):
+        return CMV.predict(self, *args, **kwargs)
+
+    def yield_gear(self, times, velocities, accelerations, motive_powers,
+                   engine_coolant_temperatures=None,
+                   correct_gear=lambda i, g, *args: g[i], index=0, gears=None):
+
+        if gears is None:
+            gears = np.zeros_like(times, int)
+
+        n = index + np.searchsorted(
+            times[index:], self.time_cold_hot_transition
+        )
+
+        flag, temp = engine_coolant_temperatures is not None, None
+        for i, j, k in [(index, n, 'cold'), (n, times.shape[0], 'hot')]:
+            if flag:
+                temp = engine_coolant_temperatures[:j]
+            yield from self[k].yield_gear(
+                times[:j], velocities[:j], accelerations[:j], motive_powers[:j],
+                temp, correct_gear=correct_gear, index=int(i), gears=gears
+            )
+
+    def yield_speed(self, *args, **kwargs):
+        yield from self['hot'].yield_speed(*args, **kwargs)
+
+
+# noinspection PyPep8Naming
 def _convert_limits(it, X):
     it = sorted(it)
     x, l, u = zip(*it[1:])
@@ -636,14 +967,75 @@ def _convert_limits(it, X):
 
 
 def calibrate_gear_shifting_cmv(
-        correct_gear, gears, engine_speeds_out, velocities, accelerations,
-        velocity_speed_ratios, stop_velocity):
+        correct_gear, gears, engine_speeds_out, times, velocities,
+        accelerations, motive_powers, velocity_speed_ratios, stop_velocity):
     """
     Calibrates a corrected matrix velocity to predict gears.
 
     :param correct_gear:
         A function to correct the predicted gear.
     :type correct_gear: callable
+
+    :param gears:
+        Gear vector [-].
+    :type gears: numpy.array
+
+    :param engine_speeds_out:
+        Engine speed vector [RPM].
+    :type engine_speeds_out: numpy.array
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param velocities:
+        Vehicle velocity [km/h].
+    :type velocities: numpy.array
+
+    :param accelerations:
+        Vehicle acceleration [m/s2].
+    :type accelerations: numpy.array
+
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
+
+    :param velocity_speed_ratios:
+        Constant velocity speed ratios of the gear box [km/(h*RPM)].
+    :type velocity_speed_ratios: dict[int | float]
+
+    :param stop_velocity:
+        Maximum velocity to consider the vehicle stopped [km/h].
+    :type stop_velocity: float
+
+    :returns:
+        A corrected matrix velocity to predict gears.
+    :rtype: dict
+    """
+
+    cmv = CMV().fit(
+        correct_gear, gears, engine_speeds_out, times, velocities,
+        accelerations, motive_powers, velocity_speed_ratios, stop_velocity
+    )
+
+    return cmv
+
+
+def calibrate_gear_shifting_cmv_cold_hot(
+        correct_gear, times, gears, engine_speeds_out, velocities,
+        accelerations, motive_powers, velocity_speed_ratios,
+        time_cold_hot_transition, stop_velocity):
+    """
+    Calibrates a corrected matrix velocity for cold and hot phases to predict
+    gears.
+
+    :param correct_gear:
+        A function to correct the predicted gear.
+    :type correct_gear: callable
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
 
     :param gears:
         Gear vector [-].
@@ -661,55 +1053,9 @@ def calibrate_gear_shifting_cmv(
         Vehicle acceleration [m/s2].
     :type accelerations: numpy.array
 
-    :param velocity_speed_ratios:
-        Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict[int | float]
-
-    :param stop_velocity:
-        Maximum velocity to consider the vehicle stopped [km/h].
-    :type stop_velocity: float
-
-    :returns:
-        A corrected matrix velocity to predict gears.
-    :rtype: dict
-    """
-
-    cmv = CMV().fit(correct_gear, gears, engine_speeds_out, velocities,
-                    accelerations, velocity_speed_ratios, stop_velocity)
-
-    return cmv
-
-
-def calibrate_gear_shifting_cmv_hot_cold(
-        correct_gear, times, gears, engine_speeds, velocities, accelerations,
-        velocity_speed_ratios, time_cold_hot_transition, stop_velocity):
-    """
-    Calibrates a corrected matrix velocity for cold and hot phases to predict
-    gears.
-
-    :param correct_gear:
-        A function to correct the predicted gear.
-    :type correct_gear: callable
-
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
-    :param gears:
-        Gear vector [-].
-    :type gears: numpy.array
-
-    :param engine_speeds:
-        Engine speed vector [RPM].
-    :type engine_speeds: numpy.array
-
-    :param velocities:
-        Vehicle velocity [km/h].
-    :type velocities: numpy.array
-
-    :param accelerations:
-        Vehicle acceleration [m/s2].
-    :type accelerations: numpy.array
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
@@ -727,46 +1073,12 @@ def calibrate_gear_shifting_cmv_hot_cold(
         Two corrected matrix velocities for cold and hot phases.
     :rtype: dict
     """
+    model = GSMColdHot(time_cold_hot_transition=time_cold_hot_transition).fit(
+        CMV, times, correct_gear, gears, engine_speeds_out, times, velocities,
+        accelerations, motive_powers, velocity_speed_ratios, stop_velocity
+    )
 
-    cmv = {}
-
-    b = times <= time_cold_hot_transition
-
-    for i in ['cold', 'hot']:
-        cmv[i] = calibrate_gear_shifting_cmv(
-            correct_gear, gears[b], engine_speeds[b], velocities[b],
-            accelerations[b], velocity_speed_ratios, stop_velocity)
-        b = ~b
-
-    return cmv
-
-
-def calibrate_gear_shifting_decision_tree(gears, *params):
-    """
-    Calibrates a decision tree classifier to predict gears.
-
-    :param gears:
-        Gear vector [-].
-    :type gears: numpy.array
-
-    :param params:
-        Time series vectors.
-    :type params: (numpy.array, ...)
-
-    :returns:
-        A decision tree classifier to predict gears.
-    :rtype: sklearn.tree.DecisionTreeClassifier
-    """
-
-    previous_gear = [gears[0]]
-
-    previous_gear.extend(gears[:-1])
-
-    tree = sk_tree.DecisionTreeClassifier(random_state=0)
-
-    tree.fit(np.column_stack((previous_gear,) + params), gears)
-
-    return tree
+    return model
 
 
 def correct_gsv(gsv, stop_velocity):
@@ -788,18 +1100,22 @@ def correct_gsv(gsv, stop_velocity):
 
     gsv[0] = [0, (stop_velocity, (defaults.dfl.INF, 0))]
 
-    for v0, v1 in sh.pairwise(gsv.values()):
-        up0, down1 = (v0[1][0], v1[0][0])
+    # noinspection PyMissingOrEmptyDocstring
+    def func(x):
+        return not x and float('inf') or 1 / x
 
-        if down1 + stop_velocity <= v0[0]:
-            v0[1] = v1[0] = up0
+    for v0, v1 in sh.pairwise(gsv.values()):
+        up0, s0, down1, s1 = v0[1][0], v0[1][1][1], v1[0][0], v1[0][1][1]
+
+        if down1 + s1 <= v0[0]:
+            v0[1], v1[0] = up0 + s0, up0 - s0
         elif up0 >= down1:
-            v0[1], v1[0] = (up0, down1)
+            v0[1], v1[0] = up0 + s0, down1 - s1
             continue
-        elif v0[1][1] >= v1[0][1]:
-            v0[1] = v1[0] = up0
+        elif (v0[1][1][0], func(s0)) >= (v1[0][1][0], func(s1)):
+            v0[1], v1[0] = up0 + s0, up0 - s0
         else:
-            v0[1] = v1[0] = down1
+            v0[1], v1[0] = down1 + s1, down1 - s1
 
         v0[1] += stop_velocity
 
@@ -808,6 +1124,7 @@ def correct_gsv(gsv, stop_velocity):
     return gsv
 
 
+# noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class GSPV(CMV):
     def __init__(self, *args, cloud=None, velocity_speed_ratios=None):
         super(GSPV, self).__init__(*args)
@@ -832,13 +1149,13 @@ class GSPV(CMV):
         return s.replace('inf', "float('inf')")
 
     # noinspection PyMethodOverriding
-    def fit(self, gears, velocities, wheel_powers, velocity_speed_ratios,
+    def fit(self, gears, velocities, motive_powers, velocity_speed_ratios,
             stop_velocity):
         self.clear()
 
         self.velocity_speed_ratios = velocity_speed_ratios
 
-        it = zip(velocities, wheel_powers, sh.pairwise(gears))
+        it = zip(velocities, motive_powers, sh.pairwise(gears))
 
         for v, p, (g0, g1) in it:
             if v > stop_velocity and g0 != g1:
@@ -863,7 +1180,7 @@ class GSPV(CMV):
         return self
 
     def _fit_cloud(self):
-        Spline = sci_itp.InterpolatedUnivariateSpline
+        spl = sci_itp.InterpolatedUnivariateSpline
 
         def _line(n, m, i):
             x = np.mean(np.asarray(m[i])) if m[i] else None
@@ -874,7 +1191,7 @@ class GSPV(CMV):
 
             if x is None or x > x_up:
                 x = x_up
-            return Spline([0, 1], [x] * 2, k=1)
+            return spl([0, 1], [x] * 2, k=1)
 
         def _mean(x):
             if x:
@@ -892,7 +1209,7 @@ class GSPV(CMV):
             if len(v[1][0]) > 2:
                 v[1] = _gspv_interpolate_cloud(*v[1])
             else:
-                v[1] = Spline([0, 1], [_mean(v[1][1])] * 2, k=1)
+                v[1] = spl([0, 1], [_mean(v[1][1])] * 2, k=1)
 
     @property
     def limits(self):
@@ -926,15 +1243,16 @@ class GSPV(CMV):
         plt.xlabel('Velocity [km/h]')
         plt.ylabel('Power [kW]')
 
-    def _prediction_matrix(self, X):
+    def _prepare(self, times, velocities, accelerations, motive_powers,
+                 engine_coolant_temperatures):
         keys = sorted(self.keys())
-        pg, r, c = {}, X.shape[0], len(keys) - 1
+        matrix, r, c = {}, times.shape[0], len(keys) - 1
         for i, g in enumerate(keys):
-            down, up = [func(X[:, 2]) for func in self[g]]
-            pg[g] = p = np.tile(g, r)
-            p[X[:, 0] < down] = keys[max(0, i - 1)]
-            p[X[:, 0] >= up] = keys[min(i + 1, c)]
-        return X[:, 0:2], pg
+            down, up = [func(motive_powers) for func in self[g]]
+            matrix[g] = p = np.tile(g, r)
+            p[velocities < down] = keys[max(0, i - 1)]
+            p[velocities >= up] = keys[min(i + 1, c)]
+        return matrix
 
     def convert(self, velocity_speed_ratios):
         if velocity_speed_ratios != self.velocity_speed_ratios:
@@ -973,7 +1291,7 @@ class GSPV(CMV):
 
 
 def calibrate_gspv(
-        gears, velocities, wheel_powers, velocity_speed_ratios, stop_velocity):
+        gears, velocities, motive_powers, velocity_speed_ratios, stop_velocity):
     """
     Identifies gear shifting power velocity matrix.
 
@@ -985,9 +1303,9 @@ def calibrate_gspv(
         Vehicle velocity [km/h].
     :type velocities: numpy.array
 
-    :param wheel_powers:
-        Power at wheels vector [kW].
-    :type wheel_powers: numpy.array
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
@@ -1004,7 +1322,7 @@ def calibrate_gspv(
 
     gspv = GSPV()
 
-    gspv.fit(gears, velocities, wheel_powers, velocity_speed_ratios,
+    gspv.fit(gears, velocities, motive_powers, velocity_speed_ratios,
              stop_velocity)
 
     return gspv
@@ -1019,8 +1337,8 @@ def _gspv_interpolate_cloud(powers, velocities):
     return sci_itp.InterpolatedUnivariateSpline(x, y, k=1, ext=3)
 
 
-def calibrate_gspv_hot_cold(
-        times, gears, velocities, wheel_powers, time_cold_hot_transition,
+def calibrate_gspv_cold_hot(
+        times, gears, velocities, motive_powers, time_cold_hot_transition,
         velocity_speed_ratios, stop_velocity):
     """
     Identifies gear shifting power velocity matrices for cold and hot phases.
@@ -1037,9 +1355,9 @@ def calibrate_gspv_hot_cold(
         Vehicle velocity [km/h].
     :type velocities: numpy.array
 
-    :param wheel_powers:
-         Power at wheels vector [kW].
-    :type wheel_powers: numpy.array
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
 
     :param time_cold_hot_transition:
         Time at cold hot transition phase [s].
@@ -1057,21 +1375,182 @@ def calibrate_gspv_hot_cold(
         Gear shifting power velocity matrices for cold and hot phases.
     :rtype: dict
     """
+    model = GSMColdHot(time_cold_hot_transition=time_cold_hot_transition).fit(
+        GSPV, times, gears, velocities, motive_powers, velocity_speed_ratios,
+        stop_velocity
+    )
 
-    gspv = {}
+    return model
 
-    b = times <= time_cold_hot_transition
 
-    for i in ['cold', 'hot']:
-        gspv[i] = calibrate_gspv(gears[b], velocities[b], wheel_powers[b],
-                                 velocity_speed_ratios, stop_velocity)
-        b = ~b
+def prediction_gears_gsm(
+        correct_gear, gear_filter, gsm, times, velocities, accelerations,
+        motive_powers, cycle_type=None, velocity_speed_ratios=None,
+        engine_coolant_temperatures=None):
+    """
+    Predicts gears with a gear shifting model (cmv or gspv or dtgs or mgs) [-].
 
-    return gspv
+    :param correct_gear:
+        A function to correct the gear predicted.
+    :type correct_gear: callable
+
+    :param gear_filter:
+        Gear filter function.
+    :type gear_filter: callable
+
+    :param cycle_type:
+        Cycle type (WLTP or NEDC).
+    :type cycle_type: str
+
+    :param velocity_speed_ratios:
+        Constant velocity speed ratios of the gear box [km/(h*RPM)].
+    :type velocity_speed_ratios: dict[int | float]
+
+    :param gsm:
+        A gear shifting model (cmv or gspv or dtgs).
+    :type gsm: GSPV | CMV | DTGS
+
+    :param velocities:
+        Vehicle velocity [km/h].
+    :type velocities: numpy.array
+
+    :param accelerations:
+        Vehicle acceleration [m/s2].
+    :type accelerations: numpy.array
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array, optional
+
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
+
+    :param engine_coolant_temperatures:
+        Engine coolant temperature vector [°C].
+    :type engine_coolant_temperatures: numpy.array
+
+    :return:
+        Predicted gears.
+    :rtype: numpy.array
+    """
+
+    if velocity_speed_ratios is not None and cycle_type is not None:
+        gsm = _upgrade_gsm(gsm, velocity_speed_ratios, cycle_type)
+
+    # noinspection PyArgumentList
+    gears = gsm.predict(
+        times, velocities, accelerations, motive_powers,
+        engine_coolant_temperatures,
+        correct_gear=correct_gear, gear_filter=gear_filter
+    )
+    return gears
+
+
+# noinspection PyMissingOrEmptyDocstring,PyCallByClass,PyUnusedLocal
+# noinspection PyTypeChecker,PyPep8Naming
+class DTGS:
+    def __init__(self, velocity_speed_ratios):
+        self.tree = sk_tree.DecisionTreeClassifier(random_state=0)
+        self.model = self.gears = None
+        self.velocity_speed_ratios = velocity_speed_ratios
+
+    def fit(self, gears, velocities, accelerations, motive_powers,
+            engine_coolant_temperatures):
+        i = np.arange(-1, gears.shape[0] - 1)
+        i[0] = 0
+        from ..engine.thermal import _SelectFromModel
+        model = self.tree
+        self.model = sk_pip.Pipeline([
+            ('feature_selection', _SelectFromModel(
+                model, '0.8*median', in_mask=(0, 1)
+            )),
+            ('classification', model)
+        ])
+        X = np.column_stack((
+            gears[i], velocities, accelerations, motive_powers,
+            engine_coolant_temperatures
+        ))
+        self.model.fit(X, gears)
+
+        self.gears = np.unique(gears)
+        return self
+
+    def _prepare(self, times, velocities, accelerations, motive_powers,
+                 engine_coolant_temperatures):
+        keys = sorted(self.velocity_speed_ratios.keys())
+        matrix, r, c = {}, velocities.shape[0], len(keys) - 1
+        func = self.model.predict
+        for i, g in enumerate(keys):
+            matrix[g] = func(np.column_stack((
+                np.tile(g, r), velocities, accelerations, motive_powers,
+                engine_coolant_temperatures
+            )))
+        return matrix
+
+    @staticmethod
+    def get_gear(gear, index, gears, times, velocities, accelerations,
+                 motive_powers, engine_coolant_temperatures, matrix):
+        return matrix[gear][index]
+
+    def yield_gear(self, *args, **kwargs):
+        return CMV.yield_gear(self, *args, **kwargs)
+
+    def yield_speed(self, *args, **kwargs):
+        return CMV.yield_speed(self, *args, **kwargs)
+
+    def predict(self, *args, **kwargs):
+        return CMV.predict(self, *args, **kwargs)
+
+    def convert(self, velocity_speed_ratios):
+        self.velocity_speed_ratios = velocity_speed_ratios
+
+
+def calibrate_gear_shifting_decision_tree(
+        velocity_speed_ratios, gears, velocities, accelerations, motive_powers,
+        engine_coolant_temperatures):
+    """
+    Calibrates a decision tree to predict gears.
+
+    :param velocity_speed_ratios:
+        Constant velocity speed ratios of the gear box [km/(h*RPM)].
+    :type velocity_speed_ratios: dict[int | float]
+
+    :param gears:
+        Gear vector [-].
+    :type gears: numpy.array
+
+    :param velocities:
+        Vehicle velocity [km/h].
+    :type velocities: numpy.array
+
+    :param accelerations:
+        Vehicle acceleration [m/s2].
+    :type accelerations: numpy.array
+
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
+
+    :param engine_coolant_temperatures:
+        Engine coolant temperature vector [°C].
+    :type engine_coolant_temperatures: numpy.array
+
+    :returns:
+        A decision tree to predict gears.
+    :rtype: DTGS
+    """
+
+    model = DTGS(velocity_speed_ratios).fit(
+        gears, velocities, accelerations, motive_powers,
+        engine_coolant_temperatures
+    )
+    return model
 
 
 def prediction_gears_decision_tree(
-        correct_gear, gear_filter, decision_tree, times, *params):
+        correct_gear, gear_filter, dtgs, times, velocities, accelerations,
+        motive_powers, engine_coolant_temperatures=None):
     """
     Predicts gears with a decision tree classifier [-].
 
@@ -1083,172 +1562,41 @@ def prediction_gears_decision_tree(
         Gear filter function.
     :type gear_filter: callable
 
-    :param decision_tree:
-        A decision tree classifier to predict gears.
-    :type decision_tree: sklearn.tree.DecisionTreeClassifier
+    :param dtgs:
+        A decision tree to predict gears.
+    :type dtgs: DTGS
 
     :param times:
         Time vector [s].
     :type times: numpy.array
 
-    :param params:
-        Time series vectors.
-    :type params: (nx.array, ...)
+    :param velocities:
+        Vehicle velocity [km/h].
+    :type velocities: numpy.array
+
+    :param accelerations:
+        Vehicle acceleration [m/s2].
+    :type accelerations: numpy.array
+
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
+
+    :param engine_coolant_temperatures:
+        Engine coolant temperature vector [°C].
+    :type engine_coolant_temperatures: numpy.array
 
     :return:
         Predicted gears.
     :rtype: numpy.array
     """
 
-    gears = [0]
-
-    predict = decision_tree.predict
-
-    def predict_gear(*args):
-        g = predict([gears + list(args)])[0]
-        gears[0] = correct_gear(args[0], args[1], g)
-        return gears[0]
-
-    gears = np.vectorize(predict_gear)(*params)
-
-    gears = gear_filter(times, gears)
+    gears = prediction_gears_gsm(
+        correct_gear, gear_filter, dtgs, times, velocities, accelerations,
+        motive_powers, engine_coolant_temperatures=engine_coolant_temperatures
+    )
 
     return gears
-
-
-def prediction_gears_gsm(
-        correct_gear, gear_filter, cycle_type, velocity_speed_ratios, gsm,
-        velocities, accelerations, times=None, wheel_powers=None):
-    """
-    Predicts gears with a gear shifting matrix (cmv or gspv) [-].
-
-    :param correct_gear:
-        A function to correct the gear predicted.
-    :type correct_gear: callable
-
-    :param gear_filter:
-        Gear filter function.
-    :type gear_filter: callable
-
-    :param cycle_type:
-        Cycle type (WLTP or NEDC).
-    :type cycle_type: str
-
-    :param velocity_speed_ratios:
-        Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict[int | float]
-
-    :param gsm:
-        A gear shifting matrix (cmv or gspv).
-    :type gsm: GSPV | CMV
-
-    :param velocities:
-        Vehicle velocity [km/h].
-    :type velocities: numpy.array
-
-    :param accelerations:
-        Vehicle acceleration [m/s2].
-    :type accelerations: numpy.array
-
-    :param times:
-        Time vector [s].
-
-        If None gears are predicted with cmv approach, otherwise with gspv.
-    :type times: numpy.array, optional
-
-    :param wheel_powers:
-        Power at wheels vector [kW].
-
-        If None gears are predicted with cmv approach, otherwise with gspv.
-    :type wheel_powers: numpy.array, optional
-
-    :return:
-        Predicted gears.
-    :rtype: numpy.array
-    """
-
-    X = [velocities, accelerations]
-
-    if wheel_powers is not None:
-        X.append(wheel_powers)
-
-    gsm = _upgrade_gsm(gsm, velocity_speed_ratios, cycle_type)
-
-    # noinspection PyArgumentList
-    gears = gsm.predict(np.column_stack(X), correct_gear=correct_gear,
-                        times=times, gear_filter=gear_filter)
-    return np.asarray(gears, dtype=int)
-
-
-def prediction_gears_gsm_hot_cold(
-        correct_gear, gear_filter, cycle_type, velocity_speed_ratios, gsm,
-        time_cold_hot_transition, times, velocities, accelerations,
-        wheel_powers=None):
-    """
-    Predicts gears with a gear shifting matrix (cmv or gspv) for cold and hot
-    phases [-].
-
-    :param correct_gear:
-        A function to correct the gear predicted.
-    :type correct_gear: callable
-
-    :param gear_filter:
-        Gear filter function.
-    :type gear_filter: callable
-
-    :param cycle_type:
-        Cycle type (WLTP or NEDC).
-    :type cycle_type: str
-
-    :param velocity_speed_ratios:
-        Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type velocity_speed_ratios: dict[int | float]
-
-    :param gsm:
-        A gear shifting matrix (cmv or gspv).
-    :type gsm: dict
-
-    :param time_cold_hot_transition:
-        Time at cold hot transition phase [s].
-    :type time_cold_hot_transition: float
-
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
-    :param velocities:
-        Vehicle velocity [km/h].
-    :type velocities: numpy.array
-
-    :param accelerations:
-        Vehicle acceleration [m/s2].
-    :type accelerations: numpy.array
-
-    :param wheel_powers:
-        Power at wheels vector [kW].
-
-        If None gears are predicted with cmv approach, otherwise with gspv.
-    :type wheel_powers: numpy.array, optional
-
-    :return:
-        Predicted gears [-].
-    :rtype: numpy.array
-    """
-
-    b = times <= time_cold_hot_transition
-
-    gears = []
-
-    for i in ['cold', 'hot']:
-        args = [correct_gear, gear_filter, cycle_type, velocity_speed_ratios,
-                gsm[i], velocities[b], accelerations[b], times[b]]
-        if wheel_powers is not None:
-            args.append(wheel_powers[b])
-
-        gears = np.append(gears, prediction_gears_gsm(*args))
-        b = ~b
-
-    return np.asarray(gears, dtype=int)
 
 
 def calculate_error_coefficients(
@@ -1389,13 +1737,14 @@ def correct_gear_mvl_v1(
     return gear
 
 
+# noinspection PyMissingOrEmptyDocstring
 class MVL(CMV):
     def __init__(self, *args,
                  plateau_acceleration=defaults.dfl.values.plateau_acceleration,
                  **kwargs):
         super(MVL, self).__init__(*args, **kwargs)
         self.plateau_acceleration = plateau_acceleration
-        
+
     # noinspection PyMethodOverriding,PyMethodOverriding
     def fit(self, gears, velocities, velocity_speed_ratios, idle_engine_speed,
             stop_velocity):
@@ -1450,9 +1799,8 @@ class MVL(CMV):
         return gear
 
 
-# noinspection PyUnusedLocal
+# noinspection PyUnusedLocal,PyMissingOrEmptyDocstring
 def domain_fuel_saving_at_strategy(fuel_saving_at_strategy, *args):
-
     return fuel_saving_at_strategy
 
 
@@ -1469,14 +1817,18 @@ def default_specific_gear_shifting():
     return d.SPECIFIC_GEAR_SHIFTING
 
 
+# noinspection PyMissingOrEmptyDocstring
 def at_domain(method):
+    # noinspection PyMissingOrEmptyDocstring
     def domain(kwargs):
         return kwargs['specific_gear_shifting'] in ('ALL', method)
 
     return domain
 
 
+# noinspection PyMissingOrEmptyDocstring
 def dt_domain(method):
+    # noinspection PyMissingOrEmptyDocstring
     def domain(kwargs):
         s = 'specific_gear_shifting'
         dt = 'use_dt_gear_shifting'
@@ -1542,8 +1894,8 @@ def at_gear():
         function=sh.add_args(correct_gear_v0),
         inputs=['fuel_saving_at_strategy', 'cycle_type',
                 'velocity_speed_ratios', 'MVL', 'idle_engine_speed',
-                'full_load_curve', 'road_loads', 'vehicle_mass',
-                'max_velocity_full_load_correction', 'plateau_acceleration'],
+                'full_load_curve', 'max_velocity_full_load_correction',
+                'plateau_acceleration'],
         outputs=['correct_gear'],
         input_domain=domain_fuel_saving_at_strategy
     )
@@ -1561,8 +1913,7 @@ def at_gear():
     d.add_function(
         function=correct_gear_v2,
         inputs=['velocity_speed_ratios', 'idle_engine_speed',
-                'full_load_curve', 'road_loads', 'vehicle_mass',
-                'max_velocity_full_load_correction'],
+                'full_load_curve', 'max_velocity_full_load_correction'],
         outputs=['correct_gear'],
         weight=50)
 
@@ -1589,7 +1940,7 @@ def at_gear():
         inputs=(
             'CMV', 'accelerations', 'correct_gear', 'cycle_type',
             'engine_speeds_out', 'gear_filter', 'gears', 'stop_velocity',
-            'times', 'velocities', 'velocity_speed_ratios',
+            'times', 'velocities', 'velocity_speed_ratios', 'motive_powers',
             {'specific_gear_shifting': sh.SINK}),
         outputs=('CMV', 'gears')
     )
@@ -1602,7 +1953,7 @@ def at_gear():
         inputs=(
             'CMV_Cold_Hot', 'accelerations', 'correct_gear', 'cycle_type',
             'engine_speeds_out', 'gear_filter', 'gears', 'stop_velocity',
-            'time_cold_hot_transition', 'times', 'velocities',
+            'time_cold_hot_transition', 'times', 'velocities', 'motive_powers',
             'velocity_speed_ratios', {'specific_gear_shifting': sh.SINK}),
         outputs=('CMV_Cold_Hot', 'gears')
     )
@@ -1614,53 +1965,16 @@ def at_gear():
     )
 
     d.add_dispatcher(
-        dsp_id='dt_va_model',
-        input_domain=dt_domain('DT_VA'),
-        dsp=at_dt_va(),
+        dsp_id='dtgs_model',
+        input_domain=dt_domain('DTGS'),
+        dsp=at_dtgs(),
         inputs=(
-            'DT_VA', 'accelerations', 'correct_gear', 'gear_filter', 'gears',
-            'times', 'velocities',
-            {'specific_gear_shifting': sh.SINK,
-             'use_dt_gear_shifting': sh.SINK}),
-        outputs=('DT_VA', 'gears')
-    )
-
-    d.add_dispatcher(
-        dsp_id='dt_vap_model',
-        input_domain=dt_domain('DT_VAP'),
-        dsp=at_dt_vap(),
-        inputs=(
-            'DT_VAP', 'accelerations', 'correct_gear', 'gear_filter', 'gears',
-            'motive_powers', 'times', 'velocities',
-            {'specific_gear_shifting': sh.SINK,
-             'use_dt_gear_shifting': sh.SINK}),
-        outputs=('DT_VAP', 'gears')
-    )
-
-    d.add_dispatcher(
-        dsp_id='dt_vat_model',
-        input_domain=lambda *args, **kwargs: False,
-        dsp=at_dt_vat(),
-        inputs=(
-            'DT_VAT', 'accelerations', 'correct_gear',
-            'engine_coolant_temperatures', 'gear_filter', 'gears', 'times',
-            'velocities',
-            {'specific_gear_shifting': sh.SINK,
-             'use_dt_gear_shifting': sh.SINK}),
-        outputs=('DT_VAT', 'gears')
-    )
-
-    d.add_dispatcher(
-        dsp_id='dt_vatp_model',
-        input_domain=lambda *args, **kwargs: False,
-        dsp=at_dt_vatp(),
-        inputs=(
-            'DT_VATP', 'accelerations', 'correct_gear',
+            'velocity_speed_ratios', 'DTGS', 'accelerations', 'correct_gear',
             'engine_coolant_temperatures', 'gear_filter', 'gears',
             'motive_powers', 'times', 'velocities',
             {'specific_gear_shifting': sh.SINK,
              'use_dt_gear_shifting': sh.SINK}),
-        outputs=('DT_VATP', 'gears')
+        outputs=('DTGS', 'gears')
     )
 
     d.add_dispatcher(
@@ -1716,17 +2030,17 @@ def at_cmv():
     # calibrate corrected matrix velocity
     d.add_function(
         function=calibrate_gear_shifting_cmv,
-        inputs=['correct_gear', 'gears', 'engine_speeds_out',
-                'velocities', 'accelerations', 'velocity_speed_ratios',
-                'stop_velocity'],
+        inputs=['correct_gear', 'gears', 'engine_speeds_out', 'times',
+                'velocities', 'accelerations', 'motive_powers',
+                'velocity_speed_ratios', 'stop_velocity'],
         outputs=['CMV'])
 
     # predict gears with corrected matrix velocity
     d.add_function(
         function=prediction_gears_gsm,
-        inputs=['correct_gear', 'gear_filter', 'cycle_type',
-                'velocity_speed_ratios', 'CMV', 'velocities', 'accelerations',
-                'times'],
+        inputs=['correct_gear', 'gear_filter', 'CMV', 'times', 'velocities',
+                'accelerations', 'motive_powers', 'cycle_type',
+                'velocity_speed_ratios'],
         outputs=['gears'])
 
     return d
@@ -1761,159 +2075,32 @@ def at_cmv_cold_hot():
 
     # calibrate corrected matrix velocity cold/hot
     d.add_function(
-        function=calibrate_gear_shifting_cmv_hot_cold,
-        inputs=['correct_gear', 'times', 'gears',
-                'engine_speeds_out', 'velocities', 'accelerations',
+        function=calibrate_gear_shifting_cmv_cold_hot,
+        inputs=['correct_gear', 'times', 'gears', 'engine_speeds_out',
+                'velocities', 'accelerations', 'motive_powers',
                 'velocity_speed_ratios', 'time_cold_hot_transition',
                 'stop_velocity'],
         outputs=['CMV_Cold_Hot'])
 
     # predict gears with corrected matrix velocity
     d.add_function(
-        function=prediction_gears_gsm_hot_cold,
-        inputs=['correct_gear', 'gear_filter', 'cycle_type',
-                'velocity_speed_ratios', 'CMV_Cold_Hot',
-                'time_cold_hot_transition', 'times', 'velocities',
-                'accelerations'],
+        function=prediction_gears_gsm,
+        inputs=['correct_gear', 'gear_filter', 'CMV_Cold_Hot', 'times',
+                'velocities', 'accelerations', 'motive_powers', 'cycle_type',
+                'velocity_speed_ratios'],
         outputs=['gears'])
 
     return d
 
 
-def at_dt_va():
-    """
-    Defines the decision tree with velocity & acceleration model.
-
-    .. dispatcher:: d
-
-        >>> d = at_dt_va()
-
-    :return:
-        The decision tree with velocity & acceleration model.
-    :rtype: schedula.Dispatcher
-    """
-
-    d = sh.Dispatcher(
-        name='Decision Tree with Velocity & Acceleration'
-    )
-
-    d.add_data(
-        data_id='accelerations',
-        description='Acceleration vector [m/s2].'
-    )
-
-    # calibrate decision tree with velocity & acceleration
-    d.add_function(
-        function=calibrate_gear_shifting_decision_tree,
-        inputs=['gears', 'velocities', 'accelerations'],
-        outputs=['DT_VA'])
-
-    # predict gears with decision tree with velocity & acceleration
-    d.add_function(
-        function=prediction_gears_decision_tree,
-        inputs=['correct_gear', 'gear_filter', 'DT_VA', 'times', 'velocities',
-                'accelerations'],
-        outputs=['gears'])
-
-    return d
-
-
-def at_dt_vap():
-    """
-    Defines the decision tree with velocity, acceleration, & power model.
-
-    .. dispatcher:: d
-
-        >>> d = at_dt_vap()
-
-    :return:
-        The decision tree with velocity, acceleration, & power model.
-    :rtype: schedula.Dispatcher
-    """
-
-    d = sh.Dispatcher(
-        name='Decision Tree with Velocity, Acceleration, & Power'
-    )
-
-    d.add_data(
-        data_id='accelerations',
-        description='Acceleration vector [m/s2].'
-    )
-
-    d.add_data(
-        data_id='motive_powers',
-        description='Motive power [kW].'
-    )
-
-    # calibrate decision tree with velocity, acceleration & wheel power
-    d.add_function(
-        function=calibrate_gear_shifting_decision_tree,
-        inputs=['gears', 'velocities', 'accelerations',
-                'motive_powers'],
-        outputs=['DT_VAP'])
-
-    # predict gears with decision tree with velocity, acceleration & wheel power
-    d.add_function(
-        function=prediction_gears_decision_tree,
-        inputs=['correct_gear', 'gear_filter', 'DT_VAP', 'times', 'velocities',
-                'accelerations', 'motive_powers'],
-        outputs=['gears'])
-
-    return d
-
-
-def at_dt_vat():
-    """
-    Defines the decision tree with velocity, acceleration, & temperature model.
-
-    .. dispatcher:: d
-
-        >>> d = at_dt_vat()
-
-    :return:
-        The decision tree with velocity, acceleration, & temperature model.
-    :rtype: schedula.Dispatcher
-    """
-
-    d = sh.Dispatcher(
-        name='Decision Tree with Velocity, Acceleration & Temperature'
-    )
-
-    d.add_data(
-        data_id='accelerations',
-        description='Acceleration vector [m/s2].'
-    )
-
-    d.add_data(
-        data_id='engine_coolant_temperatures',
-        description='Engine coolant temperature vector [°C].'
-    )
-
-    # calibrate decision tree with velocity, acceleration & temperature
-    d.add_function(
-        function=calibrate_gear_shifting_decision_tree,
-        inputs=['gears', 'velocities', 'accelerations',
-                'engine_coolant_temperatures'],
-        outputs=['DT_VAT'])
-
-    # predict gears with decision tree with velocity, acceleration & temperature
-    d.add_function(
-        function=prediction_gears_decision_tree,
-        inputs=['correct_gear', 'gear_filter', 'DT_VAT', 'times', 'velocities',
-                'accelerations', 'engine_coolant_temperatures'],
-        outputs=['gears'])
-
-    return d
-
-
-def at_dt_vatp():
+def at_dtgs():
     """
     Defines the decision tree with velocity, acceleration, temperature & power
     model.
 
     .. dispatcher:: d
 
-        >>> d = at_dt_vatp()
+        >>> d = at_dtgs()
 
     :return:
         The decision tree with velocity, acceleration, temperature & power
@@ -1944,17 +2131,18 @@ def at_dt_vatp():
     # & wheel power
     d.add_function(
         function=calibrate_gear_shifting_decision_tree,
-        inputs=['gears', 'velocities', 'accelerations',
-                'engine_coolant_temperatures', 'motive_powers'],
-        outputs=['DT_VATP'])
+        inputs=['velocity_speed_ratios', 'gears', 'velocities', 'accelerations',
+                'motive_powers', 'engine_coolant_temperatures'],
+        outputs=['DTGS']
+    )
 
     # predict gears with decision tree with velocity, acceleration, temperature
     # & wheel power
     d.add_function(
         function=prediction_gears_decision_tree,
-        inputs=['correct_gear', 'gear_filter', 'DT_VATP', 'times', 'velocities',
-                'accelerations', 'engine_coolant_temperatures',
-                'motive_powers'],
+        inputs=['correct_gear', 'gear_filter', 'DTGS', 'times', 'velocities',
+                'accelerations', 'motive_powers',
+                'engine_coolant_temperatures'],
         outputs=['gears'])
 
     return d
@@ -1992,9 +2180,9 @@ def at_gspv():
     # predict gears with corrected matrix velocity
     d.add_function(
         function=prediction_gears_gsm,
-        inputs=['correct_gear', 'gear_filter', 'cycle_type',
-                'velocity_speed_ratios', 'GSPV', 'velocities', 'accelerations',
-                'times', 'motive_powers'],
+        inputs=['correct_gear', 'gear_filter', 'GSPV', 'times', 'velocities',
+                'accelerations', 'motive_powers', 'cycle_type',
+                'velocity_speed_ratios'],
         outputs=['gears'])
 
     return d
@@ -2029,7 +2217,7 @@ def at_gspv_cold_hot():
 
     # calibrate corrected matrix velocity
     d.add_function(
-        function=calibrate_gspv_hot_cold,
+        function=calibrate_gspv_cold_hot,
         inputs=['times', 'gears', 'velocities',
                 'motive_powers', 'time_cold_hot_transition',
                 'velocity_speed_ratios', 'stop_velocity'],
@@ -2037,11 +2225,10 @@ def at_gspv_cold_hot():
 
     # predict gears with corrected matrix velocity
     d.add_function(
-        function=prediction_gears_gsm_hot_cold,
-        inputs=['correct_gear', 'gear_filter', 'cycle_type',
-                'velocity_speed_ratios', 'GSPV_Cold_Hot',
-                'time_cold_hot_transition', 'times', 'velocities',
-                'accelerations', 'motive_powers'],
+        function=prediction_gears_gsm,
+        inputs=['correct_gear', 'gear_filter', 'GSPV_Cold_Hot', 'times',
+                'velocities', 'accelerations', 'motive_powers', 'cycle_type',
+                'velocity_speed_ratios'],
         outputs=['gears'])
 
     return d

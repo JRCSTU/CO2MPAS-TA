@@ -22,7 +22,6 @@ Sub-Modules:
     mechanical
 """
 
-
 import schedula as sh
 import math
 import co2mpas.model.physical.defaults as defaults
@@ -44,9 +43,10 @@ def calculate_gear_shifts(gears):
     :rtype: numpy.array
     """
 
-    return np.ediff1d(gears, None, [0]) != 0
+    return np.ediff1d(gears, to_begin=[0]) != 0
 
 
+# noinspection PyPep8Naming
 def get_gear_box_efficiency_constants(has_torque_converter, gear_box_type):
     """
     Returns vehicle gear box efficiency constants (gbp00, gbp10, and gbp01).
@@ -114,22 +114,22 @@ def calculate_gear_box_efficiency_parameters_cold_hot(
 
 
 def calculate_gear_box_torques(
-        gear_box_powers_out, gear_box_speeds_in, gear_box_speeds_out,
+        gear_box_powers_out, gear_box_speeds_out, gear_box_speeds_in,
         min_engine_on_speed):
     """
     Calculates torque entering the gear box [N*m].
 
     :param gear_box_powers_out:
         Gear box power vector [kW].
-    :type gear_box_powers_out: numpy.array
+    :type gear_box_powers_out: numpy.array | float
 
     :param gear_box_speeds_in:
         Engine speed vector [RPM].
-    :type gear_box_speeds_in: numpy.array
+    :type gear_box_speeds_in: numpy.array | float
 
     :param gear_box_speeds_out:
         Wheel speed vector [RPM].
-    :type gear_box_speeds_out: numpy.array
+    :type gear_box_speeds_out: numpy.array | float
 
     :param min_engine_on_speed:
         Minimum engine speed to consider the engine to be on [RPM].
@@ -137,25 +137,31 @@ def calculate_gear_box_torques(
 
     :return:
         Torque gear box vector [N*m].
-    :rtype: numpy.array
+    :rtype: numpy.array | float
 
     .. note:: Torque entering the gearbox can be from engine side
        (power mode or from wheels in motoring mode)
     """
+    if isinstance(gear_box_speeds_in, float):
+        if gear_box_powers_out > 0:
+            x = gear_box_speeds_in
+        else:
+            x = gear_box_speeds_out
+        if x <= min_engine_on_speed:
+            return 0
+        return gear_box_powers_out / x * 30000.0 / math.pi
+    else:
+        x = np.where(
+            gear_box_powers_out > 0, gear_box_speeds_in, gear_box_speeds_out
+        )
 
-    s_in, s_out = gear_box_speeds_in, gear_box_speeds_out
+        y = gear_box_powers_out / x
+        y *= 30000.0 / math.pi
 
-    x = np.where(gear_box_powers_out > 0, s_in, s_out)
-
-    y = np.zeros_like(gear_box_powers_out)
-
-    b = x > min_engine_on_speed
-
-    y[b] = gear_box_powers_out[b] / x[b]
-
-    return y * (30000.0 / math.pi)
+        return np.where(x <= min_engine_on_speed, 0, y)
 
 
+# noinspection PyPep8Naming
 def calculate_gear_box_torques_in(
         gear_box_torques, gear_box_speeds_in, gear_box_speeds_out,
         gear_box_temperatures, gear_box_efficiency_parameters_cold_hot,
@@ -376,6 +382,7 @@ def calculate_torques_losses(gear_box_torques_in, gear_box_torques_out):
     return gear_box_torques_in - gear_box_torques_out
 
 
+# noinspection PyMissingOrEmptyDocstring
 class GearBoxLosses(object):
     def __init__(self, gear_box_efficiency_parameters_cold_hot,
                  equivalent_gear_box_heat_capacity, thermostat_temperature,
@@ -389,8 +396,6 @@ class GearBoxLosses(object):
             gear_box_efficiency_parameters_cold_hot
         base['gear_box_temperature_references'] = \
             gear_box_temperature_references
-
-        self.loop = False
 
         # from .thermal import thermal
         # inputs = (
@@ -410,31 +415,37 @@ class GearBoxLosses(object):
         self._thermal = functools.partial(_thermal, *tuple(base.values()))
 
     def predict(self, *args, **kwargs):
-        return np.array(list(self._yield_losses(*args, **kwargs))).T
+        return np.array(list(self.yield_losses(*args, **kwargs))).T
 
-    def _yield_losses(self, times, gear_box_powers_out, gear_box_speeds_in,
-                      gear_box_speeds_out, gear_box_torques_out,
-                      initial_gear_box_temperature, gears=None):
+    def yield_losses(self, times, gear_box_powers_out, gear_box_speeds_in,
+                     gear_box_speeds_out, gear_box_torques_out,
+                     initial_gear_box_temperature, gears=None,
+                     min_engine_on_speed=None):
         delta_times = np.zeros_like(times, dtype=float)
         delta_times[:-1] = np.diff(times)
-        inputs = collections.OrderedDict()
-        inputs['delta_time'] = delta_times
-        inputs['gear_box_power_out'] = gear_box_powers_out
-        inputs['gear_box_speed_out'] = gear_box_speeds_out
-        inputs['gear_box_speed_in'] = gear_box_speeds_in
-        inputs['gear_box_torque_out'] = gear_box_torques_out
-        inputs['gear'] = gears
+
+        if min_engine_on_speed is None:
+            # noinspection PyUnusedLocal
+            def gb_tor(*args):
+                return gear_box_torques_out[index]
+        else:
+            gb_tor = functools.partial(
+                calculate_gear_box_torques,
+                min_engine_on_speed=min_engine_on_speed
+            )
+            if gear_box_torques_out is None:
+                gear_box_torques_out = np.empty_like(gear_box_powers_out, float)
 
         o, func = [initial_gear_box_temperature], self._thermal
-        args = np.column_stack(tuple(inputs.values()))
-
-        for index in np.ndindex(args.shape[0]):
+        it = enumerate(zip(
+            delta_times, gear_box_powers_out, gear_box_speeds_out,
+            gear_box_speeds_in, gears
+        ))
+        for index, (dt, po, so, si, g) in it:
             temp = o[0]
-            while True:
-                o = func(temp, *args[index])
-                yield [temp] + o[1:]
-                if not self.loop:
-                    break
+            tr = gear_box_torques_out[index] = gb_tor(po, so, si)
+            o = func(temp, dt, po, so, si, tr, g)
+            yield [temp] + o[1:]
 
 
 def define_gear_box_loss_model(
@@ -555,7 +566,7 @@ def calculate_gear_box_powers_in(gear_box_torques_in, gear_box_speeds_in):
         Gear box power [kW].
     :rtype: numpy.array | float
     """
-    
+
     from ..wheels import calculate_wheel_powers
     return calculate_wheel_powers(gear_box_torques_in, gear_box_speeds_in)
 
@@ -593,16 +604,248 @@ def calculate_equivalent_gear_box_heat_capacity(
     return par['heat_capacity']['oil'] * heated_gear_box_mass
 
 
+# noinspection PyMissingOrEmptyDocstring
 def is_automatic(kwargs):
     return kwargs['gear_box_type'] == 'automatic'
 
 
+# noinspection PyMissingOrEmptyDocstring
+def is_manual(kwargs):
+    b = kwargs['gear_box_type'] == 'manual'
+    return b and kwargs['cycle_type'] != 'NEDC'
+
+
+# noinspection PyMissingOrEmptyDocstring
 def is_cvt(kwargs):
     return kwargs['gear_box_type'] == 'cvt'
 
 
+# noinspection PyMissingOrEmptyDocstring
 def not_cvt(kwargs):
     return kwargs['gear_box_type'] != 'cvt'
+
+
+# noinspection PyMissingOrEmptyDocstring
+class GearBoxModel:
+    key_outputs = [
+        'gears',
+        'gear_box_speeds_in',
+        'gear_box_temperatures',
+        'gear_box_torques_in',
+        'gear_box_efficiencies',
+        'gear_box_powers_in'
+    ]
+
+    types = {
+        float: {
+            # Gear box model outputs.
+            'gear_box_speeds_in', 'gear_box_powers_in',
+            'gear_box_torques_in',
+            'gear_box_temperatures', 'gear_box_efficiencies'
+        },
+        int: {
+            # Gear box model outputs.
+            'gears'
+        }
+    }
+
+    def __init__(self, stop_velocity=None, min_engine_on_speed=None,
+                 gear_shifting_model=None, gear_box_loss_model=None,
+                 initial_gear_box_temperature=None, correct_gear=None,
+                 outputs=None):
+        self.stop_velocity = stop_velocity
+        self.min_engine_on_speed = min_engine_on_speed
+        self.gear_shifting_model = gear_shifting_model
+        self.gear_box_loss_model = gear_box_loss_model
+        self.initial_gear_box_temperature = initial_gear_box_temperature
+        self.correct_gear = correct_gear
+        self._outputs = outputs
+        self.outputs = None
+
+    def __call__(self, times, *args, **kwargs):
+        self.set_outputs(times.shape[0])
+        for _ in self.yield_results(times, *args, **kwargs):
+            pass
+        return sh.selector(self.key_outputs, self.outputs, output_type='list')
+
+    def yield_gear(self, times, velocities, accelerations, motive_powers,
+                   engine_coolant_temperatures, gears):
+        if self._outputs is not None and 'gears' in self._outputs:
+            yield from self._outputs['gears']
+        else:
+            yield from self.gear_shifting_model.yield_gear(
+                times, velocities, accelerations, motive_powers,
+                engine_coolant_temperatures, correct_gear=self.correct_gear,
+                gears=gears
+            )
+
+    def yield_speed(self, gears, velocities, accelerations,
+                    final_drive_powers_in):
+        if self._outputs is not None and 'gear_box_speeds_in' in self._outputs:
+            yield from self._outputs['gear_box_speeds_in']
+        else:
+            yield from self.gear_shifting_model.yield_speed(
+                self.stop_velocity, gears, velocities, accelerations,
+                final_drive_powers_in
+            )
+
+    def yield_losses(self, times, final_drive_powers_in, gear_box_speeds_in,
+                     final_drive_speeds_in, gears):
+        keys = [
+            'gear_box_temperatures', 'gear_box_torques_in',
+            'gear_box_efficiencies'
+        ]
+
+        if self._outputs is not None and not (set(keys) - set(self._outputs)):
+            yield from zip(*sh.selector(
+                keys, self._outputs, output_type='list'
+            ))
+        else:
+            yield from self.gear_box_loss_model.yield_losses(
+                times, final_drive_powers_in, gear_box_speeds_in,
+                final_drive_speeds_in, self.outputs['gear_box_torques_in'],
+                self.initial_gear_box_temperature,
+                gears=gears, min_engine_on_speed=self.min_engine_on_speed
+            )
+
+    def yield_power(self, gear_box_torques_in, gear_box_speeds_in):
+        if self._outputs is not None and 'gear_box_powers_in' in self._outputs:
+            yield from self._outputs['gear_box_powers_in']
+        else:
+            for t, s in zip(gear_box_torques_in, gear_box_speeds_in):
+                yield calculate_gear_box_powers_in(t, s)
+
+    def set_outputs(self, n, outputs=None):
+        if outputs is None:
+            outputs = {}
+        outputs.update(self._outputs or {})
+
+        for t, names in self.types.items():
+            names = names - set(outputs)
+            if names:
+                outputs.update(zip(names, np.empty((len(names), n), dtype=t)))
+            if 'gears' in names:
+                outputs['gears'][0] = 0
+        self.outputs = outputs
+
+    def yield_results(self, times, velocities, accelerations, motive_powers,
+                      final_drive_speeds_in, final_drive_powers_in):
+        outputs = self.outputs
+        g_gen = self.yield_gear(
+            times, velocities, accelerations, motive_powers,
+            outputs['engine_coolant_temperatures'], outputs['gears']
+        )
+
+        s_gen = self.yield_speed(
+            outputs['gears'], velocities, accelerations, final_drive_powers_in
+        )
+
+        l_gen = self.yield_losses(
+            times, final_drive_powers_in, outputs['gear_box_speeds_in'],
+            final_drive_speeds_in, outputs['gears']
+        )
+
+        p_gen = self.yield_power(
+            outputs['gear_box_torques_in'], outputs['gear_box_speeds_in']
+        )
+
+        for i in range(0, times.shape[0]):
+            outputs['gears'][i] = g = next(g_gen)
+            outputs['gear_box_speeds_in'][i] = gb_s = next(s_gen)
+            gb_temp, gb_tor, gb_eff = next(l_gen)
+            outputs['gear_box_temperatures'][i] = gb_temp
+            outputs['gear_box_torques_in'][i] = gb_tor
+            outputs['gear_box_efficiencies'][i] = gb_eff
+            outputs['gear_box_powers_in'][i] = gb_p = next(p_gen)
+            yield g, gb_s, gb_temp, gb_tor, gb_eff, gb_p
+
+
+def define_fake_gear_box_prediction_model(
+        gears, gear_box_speeds_in, gear_box_temperatures, gear_box_torques_in,
+        gear_box_efficiencies, gear_box_powers_in):
+    """
+    Defines a fake gear box prediction model.
+
+    :param gears:
+        Gear vector [-].
+    :type gears: numpy.array
+
+    :param gear_box_speeds_in:
+        Gear box speed [RPM].
+    :type gear_box_speeds_in: numpy.array
+
+    :param gear_box_temperatures:
+        Temperature vector [°C].
+    :type gear_box_temperatures: numpy.array
+
+    :param gear_box_torques_in:
+        Torque required vector [N*m].
+    :type gear_box_torques_in: numpy.array
+
+    :param gear_box_efficiencies:
+        Gear box efficiency vector [-].
+    :type gear_box_efficiencies: numpy.array
+
+    :param gear_box_powers_in:
+        Gear box power vector [kW].
+    :type gear_box_powers_in: numpy.array
+
+    :return:
+        Gear box prediction model.
+    :rtype: GearBoxModel
+    """
+    model = GearBoxModel(outputs={
+        'gears': gears,
+        'gear_box_speeds_in': gear_box_speeds_in,
+        'gear_box_temperatures': gear_box_temperatures,
+        'gear_box_torques_in': gear_box_torques_in,
+        'gear_box_efficiencies': gear_box_efficiencies,
+        'gear_box_powers_in': gear_box_powers_in
+    })
+
+    return model
+
+
+def define_gear_box_prediction_model(
+        stop_velocity, min_engine_on_speed, gear_shifting_model,
+        gear_box_loss_model, initial_gear_box_temperature, correct_gear):
+    """
+    Defines the gear box prediction model.
+
+    :param stop_velocity:
+        Maximum velocity to consider the vehicle stopped [km/h].
+    :type stop_velocity: float
+
+    :param min_engine_on_speed:
+        Minimum engine speed to consider the engine to be on [RPM].
+    :type min_engine_on_speed: float
+
+    :param gear_shifting_model:
+        Gear shifting model.
+    :type gear_shifting_model: CMV | GSPV | GSM | DTGS
+
+    :param gear_box_loss_model:
+        Gear box loss model.
+    :type gear_box_loss_model: GearBoxLosses
+
+    :param initial_gear_box_temperature:
+        initial_gear_box_temperature [°C].
+    :type initial_gear_box_temperature: float
+
+    :param correct_gear:
+        A function to correct the predicted gear.
+    :type correct_gear: callable
+
+    :return:
+        Gear box prediction model.
+    :rtype: GearBoxModel
+    """
+    model = GearBoxModel(
+        stop_velocity, min_engine_on_speed, gear_shifting_model,
+        gear_box_loss_model, initial_gear_box_temperature, correct_gear
+    )
+
+    return model
 
 
 def gear_box():
@@ -621,6 +864,25 @@ def gear_box():
     d = sh.Dispatcher(
         name='Gear box model',
         description='Models the gear box.'
+    )
+
+    d.add_function(
+        function=define_fake_gear_box_prediction_model,
+        inputs=[
+            'gears', 'gear_box_speeds_in', 'gear_box_temperatures',
+            'gear_box_torques_in', 'gear_box_efficiencies',
+            'gear_box_powers_in'
+        ],
+        outputs=['gear_box_prediction_model']
+    )
+
+    d.add_function(
+        function=define_gear_box_prediction_model,
+        inputs=['stop_velocity', 'min_engine_on_speed', 'gear_shifting_model',
+                'gear_box_loss_model', 'initial_gear_box_temperature',
+                'correct_gear'],
+        outputs=['gear_box_prediction_model'],
+        weight=400
     )
 
     d.add_function(
@@ -648,8 +910,8 @@ def gear_box():
 
     d.add_function(
         function=calculate_gear_box_torques,
-        inputs=['gear_box_powers_out', 'gear_box_speeds_in',
-                'gear_box_speeds_out', 'min_engine_on_speed'],
+        inputs=['gear_box_powers_out', 'gear_box_speeds_out',
+                'gear_box_speeds_in', 'min_engine_on_speed'],
         outputs=['gear_box_torques'],
     )
 
@@ -778,21 +1040,43 @@ def gear_box():
         dsp=at_gear(),
         dsp_id='at_gear_shifting',
         inputs=(
-            'CMV', 'CMV_Cold_Hot', 'DT_VA', 'DT_VAP', 'DT_VAT', 'DT_VATP',
-            'GSPV', 'GSPV_Cold_Hot', 'MVL', 'accelerations',
-            'change_gear_window_width', 'cycle_type',
+            'CMV', 'CMV_Cold_Hot', 'DTGS', 'GSPV', 'GSPV_Cold_Hot', 'MVL',
+            'accelerations', 'change_gear_window_width', 'cycle_type',
             'engine_coolant_temperatures', 'engine_speeds_out',
             'fuel_saving_at_strategy', 'full_load_curve', 'gears',
             'idle_engine_speed', 'max_velocity_full_load_correction',
-            'motive_powers', 'plateau_acceleration', 'road_loads',
+            'motive_powers', 'plateau_acceleration',
             'specific_gear_shifting', 'stop_velocity',
             'time_cold_hot_transition', 'times', 'use_dt_gear_shifting',
-            'vehicle_mass', 'velocities', 'velocity_speed_ratios',
+            'velocities', 'velocity_speed_ratios',
             {'gear_box_type': sh.SINK}),
         outputs=(
-            'CMV', 'CMV_Cold_Hot', 'DT_VA', 'DT_VAP', 'DT_VAT', 'DT_VATP',
-            'GSPV', 'GSPV_Cold_Hot', 'MVL', 'gears', 'specific_gear_shifting'),
+            {
+                'CMV': ('CMV', 'gear_shifting_model'),
+                'CMV_Cold_Hot': ('CMV_Cold_Hot', 'gear_shifting_model'),
+                'DTGS': ('DTGS', 'gear_shifting_model'),
+                'GSPV': ('GSPV', 'gear_shifting_model'),
+                'GSPV_Cold_Hot': ('GSPV_Cold_Hot', 'gear_shifting_model')
+            }, 'MVL', 'gears', 'specific_gear_shifting', 'correct_gear'),
         input_domain=is_automatic
+    )
+
+    from .manual_gear import manual_gear
+    d.add_dispatcher(
+        include_defaults=True,
+        dsp=manual_gear(),
+        dsp_id='manual_gear_shifting',
+        inputs=(
+            'cycle_type',
+            'full_load_speeds', 'idle_engine_speed', 'engine_max_speed',
+            'full_load_curve', 'engine_max_power', 'road_loads',
+            'velocity_speed_ratios', 'engine_speed_at_max_power',
+            'velocities', 'accelerations', 'times', 'motive_powers',
+            {'gear_box_type': sh.SINK}),
+        outputs=('gears', 'correct_gear', {
+            'MGS': ('MGS', 'gear_shifting_model')
+        }),
+        input_domain=is_manual
     )
 
     from .cvt import cvt_model
@@ -805,7 +1089,11 @@ def gear_box():
             'idle_engine_speed', 'on_engine', 'stop_velocity', 'velocities',
             {'gear_box_type': sh.SINK}),
         outputs=(
-            'CVT', 'gear_box_speeds_in', 'gears', 'max_gear',
+            {
+                'CVT': ('CVT', 'gear_shifting_model')
+            },
+            'gear_box_speeds_in', 'correct_gear',
+            'gears', 'max_gear',
             'max_speed_velocity_ratio'),
         input_domain=is_cvt
     )
