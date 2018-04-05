@@ -1167,49 +1167,17 @@ def define_engine_prediction_model(
     """
     Defines the engine prediction model.
 
-    :param start_stop_activation_time:
-        Start-stop activation time threshold [s].
-    :type start_stop_activation_time: float
-
-    :param initial_engine_temperature:
-        Initial engine temperature [°C].
-    :type initial_engine_temperature: float
-
-    :param correct_start_stop_with_gears:
-        A flag to impose engine on when there is a gear > 0.
-    :type correct_start_stop_with_gears: bool
-
-    :param min_time_engine_on_after_start:
-        Minimum time of engine on after a start [s].
-    :type min_time_engine_on_after_start: float
-
-    :param has_start_stop:
-        Does the vehicle have start/stop system?
-    :type has_start_stop: bool
-
-    :param use_basic_start_stop:
-        If True the basic start stop model is applied, otherwise complex one.
-
-        ..note:: The basic start stop model is function of velocity and
-          acceleration. While, the complex model is function of velocity,
-          acceleration, temperature, and battery state of charge.
-    :type use_basic_start_stop: bool
+    :param start_stop_prediction_model:
+        Engine start/stop prediction model.
+    :type start_stop_prediction_model: EngineStartStopModel
 
     :param idle_engine_speed:
         Engine speed idle median and std [RPM].
     :type idle_engine_speed: (float, float)
 
-    :param start_stop_model:
-        Start/stop model.
-    :type start_stop_model: StartStopModel
-
-    :param engine_temperature_regression_model:
-        The calibrated engine temperature regression model.
-    :type engine_temperature_regression_model: ThermalModel
-
-    :param max_engine_coolant_temperature:
-        Maximum engine coolant temperature [°C].
-    :type max_engine_coolant_temperature: float
+    :param engine_temperature_prediction_model:
+        Engine temperature prediction model.
+    :type engine_temperature_prediction_model: .thermal.EngineTemperatureModel
 
     :return:
         Engine prediction model.
@@ -1241,9 +1209,9 @@ def define_fake_engine_prediction_model(
         Engine speed at hot condition [RPM].
     :type engine_speeds_out_hot: numpy.array
 
-    :param engine_coolant_temperatures:
-        Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
+    :param engine_temperature_prediction_model:
+        Engine temperature prediction model.
+    :type engine_temperature_prediction_model: .thermal.EngineTemperatureModel
 
     :return:
         Engine prediction model.
