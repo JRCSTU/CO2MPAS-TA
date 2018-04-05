@@ -81,15 +81,15 @@ def calculate_engine_heat_capacity(engine_mass):
 def identify_engine_speed_at_max_power(full_load_speeds, full_load_powers):
     """
     Identifies engine nominal speed at engine nominal power [RPM].
-    
+
     :param full_load_speeds:
         T1 map speed vector [RPM].
     :type full_load_speeds: numpy.array
-     
+
     :param full_load_powers:
         T1 map power vector [kW].
-    :type full_load_powers: numpy.array 
-    
+    :type full_load_powers: numpy.array
+
     :return:
         Engine speed at engine nominal power [RPM].
     :rtype: float
@@ -100,16 +100,16 @@ def identify_engine_speed_at_max_power(full_load_speeds, full_load_powers):
 def calculate_engine_max_power(full_load_curve, engine_speed_at_max_power):
     """
     Calculates engine nominal power [kW].
-    
+
     :param full_load_curve:
         Vehicle full load curve.
     :type full_load_curve: function
-     
+
     :param engine_speed_at_max_power:
         Engine speed at engine nominal power [RPM].
     :type engine_speed_at_max_power: float
-     
-    :return: 
+
+    :return:
         Engine nominal power [kW].
     :rtype: float
     """
@@ -133,11 +133,11 @@ def define_full_load_curve(
     :param idle_engine_speed:
         Engine speed idle median and std [RPM].
     :type idle_engine_speed: (float, float)
-    
+
     :param engine_max_speed:
         Maximum allowed engine speed [RPM].
     :type engine_max_speed: float
-    
+
     :return:
         Vehicle full load curve.
     :rtype: function
@@ -157,20 +157,20 @@ def default_engine_max_speed(
         ignition_type, idle_engine_speed, engine_speed_at_max_power):
     """
     Returns the default maximum allowed engine speed [RPM].
-    
+
     :param ignition_type:
         Engine ignition type (positive or compression).
     :type ignition_type: str
-     
+
     :param idle_engine_speed:
         Engine speed idle median and std [RPM].
     :type idle_engine_speed: (float, float)
-     
+
     :param engine_speed_at_max_power:
         Engine speed at engine nominal power [RPM].
     :type engine_speed_at_max_power: float
-     
-    :return: 
+
+    :return:
         Maximum allowed engine speed [RPM].
     :rtype: float
     """
@@ -200,7 +200,7 @@ def default_full_load_speeds_and_powers(
     :param idle_engine_speed:
         Engine speed idle median and std [RPM].
     :type idle_engine_speed: (float, float)
-    
+
     :param engine_max_speed:
         Maximum allowed engine speed [RPM].
     :type engine_max_speed: float
@@ -997,11 +997,11 @@ def define_full_bmep_curve(
     :param engine_stroke:
         Engine stroke [mm].
     :type engine_stroke: float
-    
+
     :param idle_engine_speed:
         Idle engine speed and its standard deviation [RPM].
     :type idle_engine_speed: (float, float)
-    
+
     :param engine_max_speed:
         Maximum allowed engine speed [RPM].
     :type engine_max_speed: float
@@ -1427,7 +1427,7 @@ def engine():
         outputs=(
             'correct_start_stop_with_gears', 'engine_starts', 'on_engine',
             'start_stop_model', 'use_basic_start_stop',
-            'start_stop_prediction_model')
+            'start_stop_prediction_model', 'start_stop_activation_time')
     )
 
     d.add_data(

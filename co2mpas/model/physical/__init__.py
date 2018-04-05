@@ -395,7 +395,7 @@ def physical():
             'engine_max_speed', 'engine_speed_at_max_power',
             'engine_max_torque', 'engine_moment_inertia', 'engine_powers_out',
             'engine_speeds_out', 'engine_speeds_out_hot', 'engine_starts',
-            'engine_temperature_derivatives',
+            'engine_temperature_derivatives', 'start_stop_activation_time',
             'engine_temperature_regression_model',
             'engine_thermostat_temperature',
             'engine_thermostat_temperature_window', 'engine_type',
