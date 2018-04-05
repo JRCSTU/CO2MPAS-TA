@@ -24,7 +24,6 @@ import schedula as sh
 
 from .. import vehicle_family_id_pattern
 
-
 log = logging.getLogger(__name__)
 
 
@@ -36,7 +35,7 @@ def check_data_version(flag):
             return True
         else:
             msg = "\n  Input file version %s. Please update your input " \
-                      "file with a version >= %s."
+                  "file with a version >= %s."
             log.warning(msg, ver, __input_file_version__)
     except KeyError:
         msg = "\n  Input file version not found. Please update your input " \
@@ -228,6 +227,7 @@ def _function(error=None, read=True, **kwargs):
     def _check_function(f):
         assert callable(f)
         return f
+
     if read:
         error = error or 'should be a function!'
         return _eval(Use(_check_function), error=error)
@@ -280,6 +280,7 @@ def _eval(s, error=None, **kwargs):
         from co2mpas.model.physical.engine.thermal import ThermalModel
         from co2mpas.model.physical.gear_box.at_gear import CMV, MVL, GSPV
         return eval(x)
+
     return Or(And(str, Use(_eval), s), s, error=error)
 
 
@@ -338,6 +339,7 @@ def _index_dict(error=None, **kwargs):
     error = error or 'cannot be parsed as {}!'.format({int: float})
     c = {int: Use(float)}
     s = And(dict, c)
+
     def f(x):
         return {k: v for k, v in enumerate(x, start=1)}
 
@@ -402,10 +404,23 @@ def _gspv(error=None, **kwargs):
 
 
 # noinspection PyUnusedLocal
+def _gsch(error=None, **kwargs):
+    from co2mpas.model.physical.gear_box.at_gear import GSMColdHot
+    return _type(type=GSMColdHot, error=error)
+
+
+# noinspection PyUnusedLocal
 def _dtc(error=None, read=True, **kwargs):
-    from sklearn import tree as sk_tree
     if read:
-        return _type(type=sk_tree.DecisionTreeClassifier, error=error)
+        from co2mpas.model.physical.gear_box.at_gear import DTGS
+        return _type(type=DTGS, error=error)
+    return And(_dtc(), Use(lambda x: sh.NONE), error=error)
+
+# noinspection PyUnusedLocal
+def _cvt(error=None, read=True, **kwargs):
+    if read:
+        from co2mpas.model.physical.gear_box.cvt import CVT
+        return _type(type=CVT, error=error)
     return And(_dtc(), Use(lambda x: sh.NONE), error=error)
 
 
@@ -472,7 +487,8 @@ def check_phases_separated(x):
 
     x = np.asarray(x)
     ## See http://stackoverflow.com/questions/19463985/pandas-drop-consecutive-duplicates
-    deduped_count = 1 + (x[1:] != x[:-1]).sum()  # [3,3,3,1,1,3] --> len([3,1,3])
+    deduped_count = 1 + (
+                x[1:] != x[:-1]).sum()  # [3,3,3,1,1,3] --> len([3,1,3])
 
     return deduped_count == np.unique(x).size
 
@@ -480,7 +496,8 @@ def check_phases_separated(x):
 def _bag_phases(error=None, read=True, **kwargs):
     er = 'Phases must be separated!'
     if read:
-        return And(_np_array(read=read), Schema(check_phases_separated, error=er), error=error)
+        return And(_np_array(read=read),
+                   Schema(check_phases_separated, error=er), error=error)
     else:
         return And(_bag_phases(error, True), _np_array(read=False), error=error)
 
@@ -499,17 +516,14 @@ def is_sorted(iterable, key=lambda a, b: a <= b):
     return all(key(a, b) for a, b in sh.pairwise(iterable))
 
 
-def pformat_d_cmv(adict):
-    it = sorted(adict.items())
-    return '{%s}' % ', '.join("'%s': %s" % (k, v.__repr__()) for k, v in it)
-
-
 # noinspection PyUnresolvedReferences
 @functools.lru_cache(None)
 def define_data_schema(read=True):
     cmv = _cmv(read=read)
     dtc = _dtc(read=read)
+    cvt = _cvt(read=read)
     gspv = _gspv(read=read)
+    gsch = _gsch(read=read)
     string = _string(read=read)
     positive = _positive(read=read)
     greater_than_zero = _positive(
@@ -539,9 +553,9 @@ def define_data_schema(read=True):
     _bool = _type(type=bool, read=read)
     function = _function(read=read)
     tuplefloat2 = _type(
-            type=And(Use(tuple), (_type(float),)),
-            length=2,
-            read=read
+        type=And(Use(tuple), (_type(float),)),
+        length=2,
+        read=read
     )
     tuplefloat = _type(type=And(Use(tuple), (_type(float),)), read=read)
     dictstrdict = _dict(format={str: dict}, read=read)
@@ -553,17 +567,12 @@ def define_data_schema(read=True):
     tyre_dimensions = _tyre_dimensions(read=read)
 
     schema = {
-        _compare_str('CVT'): function,
+        _compare_str('CVT'): cvt,
         _compare_str('CMV'): cmv,
-        _compare_str('CMV_Cold_Hot'): _dict(format={'hot': cmv, 'cold': cmv},
-                                            read=read, pformat=pformat_d_cmv),
-        _compare_str('DT_VA'): dtc,
-        _compare_str('DT_VAP'): dtc,
-        _compare_str('DT_VAT'): dtc,
-        _compare_str('DT_VATP'): dtc,
+        _compare_str('CMV_Cold_Hot'): gsch,
+        _compare_str('DTGS'): dtc,
         _compare_str('GSPV'): gspv,
-        _compare_str('GSPV_Cold_Hot'): _dict(format={'hot': gspv, 'cold': gspv},
-                                             read=read, pformat=pformat_d_cmv),
+        _compare_str('GSPV_Cold_Hot'): gsch,
         _compare_str('MVL'): _mvl(read=read),
 
         'lock_up_tc_limits': tuplefloat2,
@@ -576,7 +585,7 @@ def define_data_schema(read=True):
         'vehicle_category': _select(types='ABCDEFSMJ', read=read),
         'vehicle_body': _select(types=(
             'cabriolet', 'sedan', 'hatchback', 'stationwagon', 'suv/crossover',
-            'mpv', 'coupé', 'bus', 'bestelwagen','pick-up'
+            'mpv', 'coupé', 'bus', 'bestelwagen', 'pick-up'
         ), read=read),
         'tyre_class': _select(types=('C1', 'C2', 'C3'), read=read),
         'tyre_category': _select(types='ABCDEFG', read=read),
@@ -685,7 +694,11 @@ def define_data_schema(read=True):
         'electric_load': tuplefloat2,
         'engine_thermostat_temperature_window': tuplefloat2,
         'engine_temperature_regression_model': function,
-        'electrics_model': function,
+        'electrics_prediction_model': function,
+        'engine_prediction_model': function,
+        'gear_box_prediction_model': function,
+        'final_drive_prediction_model': function,
+        'wheels_prediction_model': function,
         'engine_type': string,
         'full_load_curve': function,
         'fmep_model': function,
@@ -773,7 +786,6 @@ def define_data_schema(read=True):
     schema[Optional(str)] = Or(_type(type=float, read=read), np_array)
 
     if not read:
-
         def f(x):
             return x is sh.NONE
 
@@ -785,11 +797,13 @@ def define_data_schema(read=True):
 #: Aka "ProjectId", referenced also by :mod:`.sampling.project`.
 vehicle_family_id_regex = re.compile(r'^%s$' % vehicle_family_id_pattern)
 
+
 def _vehicle_family_id(error=None, **kwargs):
     def m(s):
         return vehicle_family_id_regex.match(s)
+
     error = (error or "Invalid format!"
-             "\n  Expected('FT-ta-WMI-yyyy-nnnn'), where ta, yyy, nnn are numbers.")
+                      "\n  Expected('FT-ta-WMI-yyyy-nnnn'), where ta, yyy, nnn are numbers.")
     return And(_string(**kwargs), m, error=error)
 
 
@@ -829,7 +843,6 @@ def define_flags_schema(read=True):
     schema = {Optional(k): Or(Empty(), v) for k, v in schema.items()}
 
     if not read:
-
         def f(x):
             return x is sh.NONE
 
