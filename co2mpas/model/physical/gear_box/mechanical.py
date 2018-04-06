@@ -983,6 +983,12 @@ def mechanical():
     )
 
     d.add_function(
+        function=identify_n_gears,
+        inputs=['velocity_speed_ratios'],
+        outputs=['n_gears']
+    )
+
+    d.add_function(
         function=identify_velocity_speed_ratios,
         inputs=['n_gears', 'engine_speeds_out', 'velocities',
                 'idle_engine_speed', 'stop_velocity'],
