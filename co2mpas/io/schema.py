@@ -594,7 +594,9 @@ def define_data_schema(read=True):
         'engine_capacity': positive,
         'engine_stroke': positive,
         'engine_max_power': positive,
-        'engine_max_speed_at_max_power': positive,
+        _convert_str(
+            'engine_max_speed_at_max_power', 'engine_speed_at_max_power'
+        ): positive,
         'engine_max_speed': positive,
         'engine_max_torque': positive,
         'idle_engine_speed_median': positive,
