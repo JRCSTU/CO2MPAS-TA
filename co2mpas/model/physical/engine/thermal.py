@@ -86,18 +86,21 @@ class _SelectFromModel(sk_fsel.SelectFromModel):
         self._out_mask = out_mask
 
     def _get_support_mask(self):
+        if self.prefit:
+            estimator = self.estimator
+        elif hasattr(self, 'estimator_'):
+            estimator = self.estimator_
+        else:
+            raise ValueError(
+                'Either fit the model before transform or set "prefit=True"'
+                ' while passing the fitted estimator to the constructor.')
         try:
-            mask = super(_SelectFromModel, self)._get_support_mask()
-        except ValueError:
-            # SelectFromModel can directly call on transform.
-            if self.prefit:
-                estimator = self.estimator
-            elif hasattr(self, 'estimator_'):
-                estimator = self.estimator_
+            importances = getattr(estimator, "feature_importances_", None)
+            if importances is not None and np.isnan(importances).all():
+                mask = np.ones(importances.shape, bool)
             else:
-                raise ValueError(
-                    'Either fit the model before transform or set "prefit=True"'
-                    ' while passing the fitted estimator to the constructor.')
+                mask = super(_SelectFromModel, self)._get_support_mask()
+        except ValueError:
             sfm = sk_fsel.SelectFromModel(
                 estimator.estimator_, self.threshold, True
             )
