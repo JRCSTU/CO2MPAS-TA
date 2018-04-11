@@ -18,34 +18,36 @@ log = logging.getLogger(__name__)
 
 
 # noinspection PyUnusedLocal
-def calibrate_co2_params_all(rank, *data, data_id=None):
+def calibrate_co2_params_all(enable, rank, *data, data_id=None):
     res = {}
-    # noinspection PyBroadException
-    try:
-        from ..physical.engine.co2_emission import calibrate_model_params
-        cycle = rank[0][3]
-        d = next(d[cycle] for d in data if d['data_in'] == cycle)
+    if enable:
+        # noinspection PyBroadException
+        try:
+            from ..physical.engine.co2_emission import calibrate_model_params
+            cycle = rank[0][3]
+            d = next(d[cycle] for d in data if d['data_in'] == cycle)
 
-        initial_guess = d['co2_params_initial_guess']
+            initial_guess = d['co2_params_initial_guess']
 
-        err_func = []
-        func_id = 'co2_error_function_on_phases'
-        for d in data:
-            d = d[d['data_in']]
-            if func_id in d:
-                err_func.append(d[func_id])
+            err_func = []
+            func_id = 'co2_error_function_on_phases'
+            for d in data:
+                d = d[d['data_in']]
+                if func_id in d:
+                    err_func.append(d[func_id])
 
-        if len(err_func) <= 1:
-            return {}
-        status = [(True, copy.deepcopy(initial_guess)), (None, None),
-                  (None, None)]
+            if len(err_func) <= 1:
+                return {}
+            sta = [
+                (True, copy.deepcopy(initial_guess)), (None, None), (None, None)
+            ]
 
-        p, s = calibrate_model_params(err_func, initial_guess)
-        status.append((s, copy.deepcopy(p)))
-        res['initial_friction_params'] = d['initial_friction_params']
-        res.update({'co2_params_calibrated': p, 'calibration_status': status})
-    except:
-        pass
+            p, s = calibrate_model_params(err_func, initial_guess)
+            sta.append((s, copy.deepcopy(p)))
+            res['initial_friction_params'] = d['initial_friction_params']
+            res.update({'co2_params_calibrated': p, 'calibration_status': sta})
+        except:
+            pass
 
     return res
 
@@ -84,9 +86,11 @@ def co2_params_selector(
         outputs=['rank<0>']
     )
 
+    d.add_data('enable_all', True)
+
     d.add_function(
         function=functools.partial(calibrate_co2_params_all, data_id=data_in),
-        inputs=['rank<0>'] + errors[:-1],
+        inputs=['enable_all', 'rank<0>'] + errors[:-1],
         outputs=['ALL']
     )
 

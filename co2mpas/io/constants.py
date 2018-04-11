@@ -139,6 +139,7 @@ models_id = (
     )
 
 value = {
+    'enable_all': False,
     'best_model_settings': {
         'select': {
             'wltp_h': ('wltp_h', None),
