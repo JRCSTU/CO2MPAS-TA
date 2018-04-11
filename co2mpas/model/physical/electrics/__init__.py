@@ -1184,7 +1184,7 @@ class ElectricModel(object):
                 soc = calculate_battery_state_of_charge(
                     state_of_charges[i + 1],
                     self.battery_capacity, dt, bc,
-                    battery_currents.take(i, mode='clip')
+                    battery_currents[i] if i >= 0 else None
                 )
 
                 yield soc, bc
