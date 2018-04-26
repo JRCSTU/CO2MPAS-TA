@@ -184,7 +184,7 @@ class PathList(trt.List):
         return s
 
 
-class PeristentMixin:
+class PeristentMixin(metaclass=trt.MetaHasTraits):
     """
     A *cmd* and *spec* mixin to support storing of *persistent* traits into external file.
 
@@ -312,7 +312,7 @@ class PeristentMixin:
             self.observe(self._ptrait_observed, ptraits)
 
 
-class HasCiphersMixin:
+class HasCiphersMixin(metaclass=trt.MetaHasTraits):
     """Mixin for :class:`trtc.Configurable` that may have :class:`crypto.Cipher` traits"""
 
     def decipher(self, cipher_trait: Text):
@@ -345,7 +345,7 @@ class HasCiphersMixin:
         return value
 
 
-class TolerableSingletonMixin:
+class TolerableSingletonMixin(metaclass=trt.MetaHasTraits):
     """Like :class:`trtc.SingletonConfigurable` but with unrestricted instances by hierarchy. """
     @classmethod
     def instance(cls, *args, **kwargs):
