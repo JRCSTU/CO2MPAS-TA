@@ -268,7 +268,7 @@ class TstampSpec(dice.DiceSpec):
         return socks_str
 
     def choose_server_class(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def make_server(self):
         host = self.host
