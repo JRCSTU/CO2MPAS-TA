@@ -454,7 +454,8 @@ class Project(transitions.Machine, ProjectSpec):
 
             - [do_addfiles,  [diced,
                               nosample,
-                              sample],   nedc,         _is_other_files  ]
+                              sample,
+                              nedc],   nedc,         _is_other_files  ]
             """)
 
         super().__init__(states=states,
