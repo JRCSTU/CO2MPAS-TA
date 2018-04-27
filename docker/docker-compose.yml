@@ -1,0 +1,9 @@
+version: '3'
+services:
+  co2mpas:
+    container_name: co2mpas
+    image: ${CO2MPAS_TAG-vinci1it2000/co2mpas:latest}
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+    command: ${CO2MPAS_CMD-co2mpas batch ./input -O ./output}

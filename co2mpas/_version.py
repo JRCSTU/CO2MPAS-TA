@@ -22,3 +22,12 @@ __dice_report_version__ = '1.0.2'
 # Please UPDATE TIMESTAMP WHEN BUMPING VERSIONS AND BEFORE RELEASE.
 #: Release date.
 __updated__ = "2017-12-07 01:31:19"
+
+
+if __name__ == '__main__':
+    import sys
+    out = ';'.join(
+        eval('__%s__' % a[2:].replace('-', '_'))
+        for a in sys.argv[1:] if a[:2] == '--'
+    )
+    sys.stdout.write(out)
