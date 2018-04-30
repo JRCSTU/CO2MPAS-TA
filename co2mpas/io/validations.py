@@ -52,7 +52,7 @@ def hard_validation(data, usage, stage, cycle, *args):
     if usage in ('input', 'target'):
         checks = (
             _check_sign_currents,
-            #_check_initial_temperature,
+            # _check_initial_temperature,
             _check_acr,
             _check_ki_factor,
             _check_prediction_gears_not_mt,
@@ -164,20 +164,32 @@ def check_initial_temperature(
 
 
 def _check_ki_factor(data, *args):
-    s = 'has_periodically_regenerating_systems', 'ki_factor'
+    s = 'has_periodically_regenerating_systems', 'ki_multiplicative', \
+        'ki_additive'
 
     from ..model.physical.defaults import dfl
     has_prs = data.get(s[0], dfl.values.has_periodically_regenerating_systems)
-    if data.get(s[1], 1) > 1 and not has_prs:
-        msg = "Please since `ki_factor` is > 1 set " \
+
+    if (data.get(s[1], 1) > 1 and data.get(s[2], 0) > 0):
+        msg = "Please since `ki_multiplicative` is > 1 and `ki_additive` " \
+              "is > 0 set `ki_multiplicative = 1` or set `ki_additive = 0`!"
+        return s[1:], msg
+    elif not has_prs:
+        if data.get(s[1], 1) > 1:
+            msg = "Please since `ki_multiplicative` is > 1 set " \
               "`has_periodically_regenerating_systems = True` or set " \
-              "`ki_factor = 1`!"
-        return s, msg
+              "`ki_multiplicative = 1`!"
+            return s, msg
+        elif data.get(s[2], 1) > 0:
+            msg = "Please since `ki_additive` is > 0 set " \
+              "`has_periodically_regenerating_systems = True` or set " \
+              "`ki_additive = 0`!"
+            return s, msg
 
 
 def _check_acr(data, *args):
     s = ('active_cylinder_ratios', 'engine_has_cylinder_deactivation')
-    acr  = data.get(s[0], (1,))
+    acr = data.get(s[0], (1,))
 
     from ..model.physical.defaults import dfl
     has_acr = data.get(s[1], dfl.values.engine_has_cylinder_deactivation)

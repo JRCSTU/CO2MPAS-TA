@@ -323,9 +323,14 @@ If no input is provided, the |co2mpas| model will use the default value.
         The default is 0.
 
     ``ki_factor``
-        For vehicles without `has_periodically_regenerating_systems` ``ki_factor`` is set to 1.
-        For vehicles with periodically regenerating systems, if not provided,
-        this value is set to 1.05. The ``ki_factor`` to be used for |co2mpas| is the same value used for NEDC physical tests.
+    ``ki_multiplicative``
+    ``ki_additive``
+        For vehicles without `has_periodically_regenerating_systems`
+        ``ki_multiplicative`` and ``ki_additive`` are set to 1 and 0.
+        Otherwise, if not provided ``ki_multiplicative`` or ``ki_additive``,
+        ``ki_multiplicative`` and ``ki_additive`` are set to 1.05 and 0. The
+        ``ki_multiplicative`` or ``ki_additive`` to be used for |co2mpas| are
+        the same value used for NEDC physical tests.
 
     VVA
     Variable Valve Actuation

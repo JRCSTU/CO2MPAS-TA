@@ -2370,24 +2370,33 @@ def calculate_phases_fuel_consumptions(
     return tuple(np.asarray(phases_co2_emissions) * c)
 
 
-def default_ki_factor(has_periodically_regenerating_systems):
+def default_ki_multiplicative(
+        has_periodically_regenerating_systems, ki_additive):
     """
-    Returns the default ki factor [-].
+    Returns the default ki multiplicative factor [-].
 
     :param has_periodically_regenerating_systems:
         Does the vehicle has periodically regenerating systems? [-].
     :type has_periodically_regenerating_systems: bool
 
+    :param ki_additive:
+        Additive correction for vehicles with periodically regenerating
+        systems [CO2g/km].
+    :type ki_additive: float
+
     :return:
-        Correction for vehicles with periodically regenerating systems [-].
+        Multiplicative correction for vehicles with periodically regenerating
+        systems [-].
     :rtype: float
     """
-
-    par = defaults.dfl.functions.default_ki_factor.ki_factor
+    if ki_additive:
+        return 1.0
+    par = defaults.dfl.functions.default_ki_multiplicative.ki_multiplicative
     return par.get(has_periodically_regenerating_systems, 1.0)
 
 
-def calculate_declared_co2_emission(co2_emission_value, ki_factor):
+def calculate_declared_co2_emission(
+        co2_emission_value, ki_multiplicative, ki_additive):
     """
     Calculates the declared CO2 emission of the cycle [CO2g/km].
 
@@ -2395,16 +2404,22 @@ def calculate_declared_co2_emission(co2_emission_value, ki_factor):
         CO2 emission value of the cycle [CO2g/km].
     :type co2_emission_value: float
 
-    :param ki_factor:
-        Correction for vehicles with periodically regenerating systems [-].
-    :type ki_factor: float
+    :param ki_multiplicative:
+        Multiplicative correction for vehicles with periodically regenerating
+        systems [-].
+    :type ki_multiplicative: float
+
+    :param ki_additive:
+        Additive correction for vehicles with periodically regenerating
+        systems [CO2g/km].
+    :type ki_multiplicative: float
 
     :return:
         Declared CO2 emission value of the cycle [CO2g/km].
     :rtype: float
     """
 
-    return co2_emission_value * ki_factor
+    return co2_emission_value * ki_multiplicative + ki_additive
 
 
 def default_engine_has_exhausted_gas_recirculation(fuel_type):
@@ -2724,15 +2739,17 @@ def co2_emission():
         default_value=defaults.dfl.values.has_periodically_regenerating_systems
     )
 
+    d.add_data('ki_additive', defaults.dfl.values.ki_additive)
+
     d.add_function(
-        function=default_ki_factor,
-        inputs=['has_periodically_regenerating_systems'],
-        outputs=['ki_factor']
+        function=default_ki_multiplicative,
+        inputs=['has_periodically_regenerating_systems', 'ki_additive'],
+        outputs=['ki_multiplicative']
     )
 
     d.add_function(
         function=calculate_declared_co2_emission,
-        inputs=['co2_emission_value', 'ki_factor'],
+        inputs=['co2_emission_value', 'ki_multiplicative', 'ki_additive'],
         outputs=['declared_co2_emission_value']
     )
 

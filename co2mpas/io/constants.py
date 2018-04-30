@@ -59,7 +59,8 @@ calibration = {
     'active_cylinder_ratios': True,
     'has_exhausted_gas_recirculation': True,
     'has_periodically_regenerating_systems': True,
-    'ki_factor': True,
+    'ki_additive': True,
+    'ki_multiplicative': True,
     'has_particle_filter': True,
     'has_selective_catalytic_reduction': True,
     'has_nox_storage_catalyst': True,
@@ -84,7 +85,8 @@ prediction = {
     'fuel_carbon_content_percentage': True,
     'has_periodically_regenerating_systems': True,
     'has_gear_box_thermal_management': True,
-    'ki_factor': True,
+    'ki_additive': True,
+    'ki_multiplicative': True,
     'ignition_type': True,
     'engine_capacity': True,
     'engine_stroke': True,
@@ -133,10 +135,10 @@ prediction = {
 }
 
 models_id = (
-        'engine_coolant_temperature_model', 'start_stop_model', 'co2_params',
-        'engine_speed_model', 'engine_cold_start_speed_model', 'at_model',
-        'clutch_torque_converter_model', 'alternator_model'
-    )
+    'engine_coolant_temperature_model', 'start_stop_model', 'co2_params',
+    'engine_speed_model', 'engine_cold_start_speed_model', 'at_model',
+    'clutch_torque_converter_model', 'alternator_model'
+)
 
 value = {
     'enable_all': False,

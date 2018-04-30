@@ -576,7 +576,10 @@ def define_data_schema(read=True):
         _compare_str('MVL'): _mvl(read=read),
 
         'lock_up_tc_limits': tuplefloat2,
-        'ki_factor': greater_than_one,
+        _convert_str(
+            'ki_factor', 'ki_multiplicative'
+        ): greater_than_one,
+        'ki_additive': positive,
         'tyre_dimensions': tyre_dimensions,
         'tyre_code': tyre_code,
         'wltp_base_model': _dict(format=dict, read=read),

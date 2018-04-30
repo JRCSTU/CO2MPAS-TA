@@ -17,6 +17,10 @@ import co2mpas.utils as co2_utl
 
 #: Container of node default values.
 class Values(co2_utl.Constants):
+    #: Default additive correction for vehicles with periodically regenerating
+    #: systems [CO2g/km].
+    ki_additive = 0
+
     #: Number of passengers including driver [-].
     n_passengers = 1
 
@@ -426,9 +430,10 @@ class Functions(co2_utl.Constants):
         #: Minimum delta soc to set the charging boundaries [%].
         min_delta_soc = 8
 
-    class default_ki_factor(co2_utl.Constants):
-        #: Correction for vehicles with periodically regenerating systems [-].
-        ki_factor = {True: 1.05, False: 1.0}
+    class default_ki_multiplicative(co2_utl.Constants):
+        #: Multiplicative correction for vehicles with periodically regenerating
+        #: systems [-].
+        ki_multiplicative = {True: 1.05, False: 1.0}
 
     class define_fmep_model(co2_utl.Constants):
         #: Percentage of max full bmep curve used as limit in cylinder

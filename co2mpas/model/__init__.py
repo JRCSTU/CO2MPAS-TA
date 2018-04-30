@@ -41,7 +41,7 @@ _prediction_data = [
     'is_hybrid', 'tyre_code', 'engine_has_cylinder_deactivation',
     'active_cylinder_ratios', 'engine_has_variable_valve_actuation',
     'has_torque_converter', 'has_gear_box_thermal_management',
-    'has_lean_burn', 'ki_factor', 'n_wheel_drive',
+    'has_lean_burn', 'ki_additive', 'ki_multiplicative', 'n_wheel_drive',
     'has_periodically_regenerating_systems', 'n_dyno_axes',
     'has_selective_catalytic_reduction', 'has_exhausted_gas_recirculation',
     'start_stop_activation_time'
