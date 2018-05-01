@@ -23,7 +23,6 @@ regex
 schema
 lmfit>=0.9.5
 tqdm
-pip
 PyYAML>=3.12
 boltons
 pykalman
