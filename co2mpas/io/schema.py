@@ -574,7 +574,7 @@ def define_data_schema(read=True):
         _compare_str('GSPV'): gspv,
         _compare_str('GSPV_Cold_Hot'): gsch,
         _compare_str('MVL'): _mvl(read=read),
-
+        'engine_n_cylinders': positive_int,
         'lock_up_tc_limits': tuplefloat2,
         _convert_str(
             'ki_factor', 'ki_multiplicative'

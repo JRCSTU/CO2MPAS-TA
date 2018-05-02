@@ -1575,8 +1575,8 @@ def engine():
             'initial_engine_temperature', 'is_cycle_hot', 'ki_additive',
             'ki_multiplicative',
             'mean_piston_speeds', 'min_engine_on_speed', 'missing_powers',
-            'motive_powers', 'on_engine', 'phases_integration_times',
-            'stop_velocity', 'times', 'velocities',
+            'motive_powers', 'engine_n_cylinders', 'on_engine',
+            'phases_integration_times', 'stop_velocity', 'times', 'velocities',
             {'co2_params_calibrated': ('co2_params_calibrated', 'co2_params'),
              'engine_idle_fuel_consumption': (
                  'engine_idle_fuel_consumption',

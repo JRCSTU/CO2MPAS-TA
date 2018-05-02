@@ -1488,8 +1488,8 @@ def _select_initial_friction_params(co2_params_initial_guess):
 
 def define_initial_co2_emission_model_params_guess(
         params, engine_type, engine_normalization_temperature,
-        engine_thermostat_temperature_window, is_cycle_hot=False,
-        bounds=None):
+        engine_thermostat_temperature_window, engine_n_cylinders,
+        is_cycle_hot=False, bounds=None):
     """
     Selects initial guess and bounds of co2 emission model params.
 
@@ -1508,6 +1508,10 @@ def define_initial_co2_emission_model_params_guess(
     :param engine_thermostat_temperature_window:
         Thermostat engine temperature limits [°C].
     :type engine_thermostat_temperature_window: (float, float)
+
+    :param engine_n_cylinders:
+        Number of engine cylinders [-].
+    :type engine_n_cylinders: int
 
     :param is_cycle_hot:
         Is an hot cycle?
@@ -1531,6 +1535,11 @@ def define_initial_co2_emission_model_params_guess(
         'max': engine_thermostat_temperature_window[1],
         'vary': False
     }
+
+    keys, n = ('l', 'l2'), engine_n_cylinders / default.pop('n_cylinders', 4)
+    for d in sh.selector(keys, default, allow_miss=True):
+        for k in {'value', 'min', 'max'}.intersection(d):
+            d[k] *= n
 
     if is_cycle_hot:
         default['t1'].update({'value': 0.0, 'vary': False})
@@ -2609,6 +2618,8 @@ def co2_emission():
         outputs=['co2_emissions_model']
     )
 
+    d.add_data('engine_n_cylinders', defaults.dfl.values.engine_n_cylinders)
+
     d.add_data(
         data_id='is_cycle_hot',
         default_value=defaults.dfl.values.is_cycle_hot
@@ -2617,7 +2628,8 @@ def co2_emission():
     d.add_function(
         function=define_initial_co2_emission_model_params_guess,
         inputs=['co2_params', 'engine_type', 'engine_thermostat_temperature',
-                'engine_thermostat_temperature_window', 'is_cycle_hot'],
+                'engine_thermostat_temperature_window', 'engine_n_cylinders',
+                'is_cycle_hot'],
         outputs=['co2_params_initial_guess', 'initial_friction_params'],
     )
 

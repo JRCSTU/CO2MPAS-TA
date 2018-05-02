@@ -17,6 +17,9 @@ import co2mpas.utils as co2_utl
 
 #: Container of node default values.
 class Values(co2_utl.Constants):
+    #: Number of engine cylinders [-].
+    engine_n_cylinders = 4
+
     #: Default additive correction for vehicles with periodically regenerating
     #: systems [CO2g/km].
     ki_additive = 0

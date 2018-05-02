@@ -97,6 +97,9 @@ Vehicle general characteristics
         measurement of fuel consumption for 2 minutes. Disregard the first minute, then calculate idle fuel consumption as the
         average fuel consumption of the vehicle during the subsequent 1 minute.
 
+    ``engine_n_cylinders``
+        Specify the maximum number of engine cylinder. The default is 4.
+
     ``final_drive_ratio``
         Provide the ratio to be multiplied with all `gear_box_ratios`. If the car has more than 1 final drive ratio (eg,
         vehicles with dual/variable clutch), leave blank the final_drive_ratio cell in the Inputs tab and provide the

@@ -373,9 +373,10 @@ def physical():
             'is_cycle_hot', 'is_hybrid', 'ki_additive', 'ki_multiplicative',
             'max_engine_coolant_temperature',
             'min_engine_on_speed', 'min_time_engine_on_after_start',
-            'motive_powers', 'on_engine', 'on_idle', 'phases_integration_times',
-            'plateau_acceleration', 'start_stop_activation_time',
-            'start_stop_model', 'state_of_charges', 'stop_velocity', 'times',
+            'motive_powers', 'engine_n_cylinders', 'on_engine', 'on_idle',
+            'phases_integration_times', 'plateau_acceleration',
+            'start_stop_activation_time', 'start_stop_model',
+            'state_of_charges', 'stop_velocity', 'times',
             'use_basic_start_stop', 'velocities',
             {'initial_temperature': 'initial_engine_temperature'}),
         outputs=(
