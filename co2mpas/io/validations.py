@@ -180,7 +180,7 @@ def _check_ki_factor(data, *args):
               "`has_periodically_regenerating_systems = True` or set " \
               "`ki_multiplicative = 1`!"
             return s, msg
-        elif data.get(s[2], 1) > 0:
+        elif data.get(s[2], 0) > 0:
             msg = "Please since `ki_additive` is > 0 set " \
               "`has_periodically_regenerating_systems = True` or set " \
               "`ki_additive = 0`!"
