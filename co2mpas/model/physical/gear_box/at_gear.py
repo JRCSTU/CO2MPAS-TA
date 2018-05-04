@@ -1183,7 +1183,7 @@ class GSPV(CMV):
         spl = sci_itp.InterpolatedUnivariateSpline
 
         def _line(n, m, i):
-            x = np.mean(np.asarray(m[i])) if m[i] else None
+            x = np.mean(m[i]) if m[i] else None
             k_p = n - 1
             while k_p > 0 and k_p not in self:
                 k_p -= 1
@@ -1193,13 +1193,6 @@ class GSPV(CMV):
                 x = x_up
             return spl([0, 1], [x] * 2, k=1)
 
-        def _mean(x):
-            if x:
-                x = np.asarray(x)
-                return np.mean(x)
-            else:
-                return np.nan
-
         self.clear()
         self.update(copy.deepcopy(self.cloud))
 
@@ -1208,8 +1201,10 @@ class GSPV(CMV):
 
             if len(v[1][0]) > 2:
                 v[1] = _gspv_interpolate_cloud(*v[1])
+            elif v[1][1]:
+                v[1] = spl([0, 1], [np.mean(v[1][1])] * 2, k=1)
             else:
-                v[1] = spl([0, 1], [_mean(v[1][1])] * 2, k=1)
+                v[1] = self[k - 1][0]
 
     @property
     def limits(self):
