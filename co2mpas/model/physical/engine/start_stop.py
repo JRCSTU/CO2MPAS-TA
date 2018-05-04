@@ -238,10 +238,12 @@ class EngineStartStopModel:
                 *sh.selector(keys, self._outputs, output_type='list'))
         elif not self.has_start_stop:
             outputs = self.outputs
-            outputs['on_engine'][0] = True
+            outputs['on_engine'][0], outputs['engine_starts'][0] = True, False
             yield True, False
-            for prev in enumerate(outputs['on_engine'][:-1]):
-                yield True, not prev
+            for i, prev in enumerate(outputs['on_engine'][:-1], 1):
+                outputs['engine_starts'][i] = start = not prev
+                outputs['on_engine'][i] = True
+                yield True, start
         else:
             outputs, t_switch_on, can_off = self.outputs, times[0], False
             base = self.start_stop_model.base
