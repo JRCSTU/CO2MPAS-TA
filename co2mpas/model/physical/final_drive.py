@@ -246,7 +246,7 @@ def calculate_final_drive_ratio_vector(final_drive_ratios, gears):
     from .defaults import dfl
     d = collections.defaultdict(lambda: dfl.values.final_drive_ratio)
     d.update(final_drive_ratios)
-    return np.vectorize(d.get)(np.append([0], gears[:-1]))
+    return np.vectorize(lambda k: d[k])(np.append([0], gears[:-1]))
 
 
 # noinspection PyUnusedLocal,PyMissingOrEmptyDocstring

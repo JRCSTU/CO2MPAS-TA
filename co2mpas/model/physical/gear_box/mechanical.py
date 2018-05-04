@@ -314,7 +314,7 @@ def calculate_gear_box_speeds_in_v1(
 
     d.update(gear_box_ratios)
 
-    ratios = np.vectorize(d.get)(gears)
+    ratios = np.vectorize(lambda k: d[k])(gears)
 
     return gear_box_speeds_out * ratios
 
