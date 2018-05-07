@@ -277,6 +277,7 @@ def _eval(s, error=None, **kwargs):
         from co2mpas.model.physical.clutch_tc.torque_converter import \
             TorqueConverter
         from co2mpas.model.physical.engine.start_stop import StartStopModel
+        from co2mpas.model.physical.engine.cold_start import ColdStartModel
         from co2mpas.model.physical.engine.thermal import ThermalModel
         from co2mpas.model.physical.gear_box.at_gear import CMV, MVL, GSPV
         return eval(x)
@@ -384,6 +385,11 @@ def _np_array_positive(dtype=None, error=None, read=True,
         return And(_np_array_positive(dtype=dtype), Use(lambda x: x.tolist()),
                    error=error)
 
+
+# noinspection PyUnusedLocal
+def _cold_start_speed_model(error=None, **kwargs):
+    from co2mpas.model.physical.engine.cold_start import ColdStartModel
+    return _type(type=ColdStartModel, error=error)
 
 # noinspection PyUnusedLocal
 def _cmv(error=None, **kwargs):
@@ -519,6 +525,7 @@ def is_sorted(iterable, key=lambda a, b: a <= b):
 # noinspection PyUnresolvedReferences
 @functools.lru_cache(None)
 def define_data_schema(read=True):
+    cssm = _cold_start_speed_model(read=read)
     cmv = _cmv(read=read)
     dtc = _dtc(read=read)
     cvt = _cvt(read=read)
@@ -685,7 +692,7 @@ def define_data_schema(read=True):
         'co2_emissions_model': function,
         'co2_error_function_on_emissions': function,
         'co2_error_function_on_phases': function,
-        'cold_start_speed_model': function,
+        'cold_start_speed_model': cssm,
         'clutch_window': tuplefloat2,
         'co2_params_calibrated': parameters,
         'co2_params_initial_guess': parameters,

@@ -20,7 +20,25 @@ import lmfit
 
 def identify_cold_start_speeds_phases(
         engine_coolant_temperatures, engine_thermostat_temperature, on_idle):
+    """
+    Identifies phases when engine speed is affected by the cold start [-].
 
+    :param engine_coolant_temperatures:
+        Engine coolant temperature vector [°C].
+    :type engine_coolant_temperatures: numpy.array
+
+    :param engine_thermostat_temperature:
+        Engine thermostat temperature [°C].
+    :type engine_thermostat_temperature: float
+
+    :param on_idle:
+        If the engine is on idle [-].
+    :type on_idle: numpy.array
+
+    :return:
+        Phases when engine speed is affected by the cold start [-].
+    :rtype: numpy.array
+    """
     temp = engine_coolant_temperatures
     i = co2_utl.argmax(temp > engine_thermostat_temperature)
     p = on_idle.copy()
@@ -55,77 +73,103 @@ def identify_cold_start_speeds_delta(
     return speeds
 
 
-def _css_model(
-        idle, on_eng, temp, speeds, *args, ds=0, m=np.inf, temp_limit=30, **kw):
-    add_speeds = np.zeros_like(on_eng, dtype=float)
-    if ds > 0:
-        b = on_eng & (temp <= temp_limit)
-        if b.any():
-            if not np.isinf(m):
-                ds = np.minimum(ds, (temp_limit - temp[b]) * m)
-            add_speeds[b] = np.maximum((ds + 1) * idle - speeds[b], 0)
-    return add_speeds
+class ColdStartModel:
+    def __init__(self, ds=0, m=np.inf, temp_limit=30):
+        self.ds = ds
+        self.m = m
+        self.temp_limit = temp_limit
 
+    def __repr__(self):
+        s = '{}(ds={}, m={}, temp_limit={})'.format(
+            self.__class__.__name__, self.ds, self.m, self.temp_limit
+        )
+        return s.replace('inf', "float('inf')")
 
-def _correct_ds_css(min_t, ds=0, m=np.inf, temp_limit=30):
-    if not np.isinf(m):
-        ds = min(ds, (temp_limit - min_t) * m)
-    return ds
+    def set(self, **params):
+        for k, v in params.items():
+            setattr(self, k, v)
+        return self
 
+    @staticmethod
+    def initial_guess_temp_limit(
+            cold_start_speeds_delta, engine_coolant_temperatures):
+        reg = sk_tree.DecisionTreeRegressor(random_state=0, max_leaf_nodes=10)
+        reg.fit(engine_coolant_temperatures[:, None], cold_start_speeds_delta)
+        t = np.unique(engine_coolant_temperatures)
+        i = np.searchsorted(t, np.unique(reg.tree_.threshold))
+        n = len(t) - 1
+        if i[-1] != n:
+            i = np.append(i, (n,))
+        return t[i]
 
-def _calibrate_css_model(target, *args, x0=None, ind=0):
-    mean_abs_error = sk_met.mean_absolute_error
+    def correct_ds(self, min_t):
+        if not np.isinf(self.m):
+            self.ds = max(min(self.ds, (self.temp_limit - min_t) * self.m), 0)
+        return self
 
-    def _err(x):
-        return mean_abs_error(target, _css_model(*args, **x.valuesdict()))
+    def fit(self, cold_start_speeds_delta, engine_coolant_temperatures,
+        engine_speeds_out_hot, on_engine, idle_engine_speed,
+        cold_start_speeds_phases):
+        from .co2_emission import calibrate_model_params, _set_attr
 
-    from .co2_emission import calibrate_model_params, _set_attr
-    p = calibrate_model_params(_err, x0)[0]
-    d = {'ds': _correct_ds_css(p['temp_limit'].min, **p.valuesdict())}
-    _set_attr(p, d, attr='value')
+        temp = engine_coolant_temperatures
+        w = temp.max() + 1 - temp
 
-    return round(_err(p)), ind, functools.partial(_css_model, **p.valuesdict())
+        delta = cold_start_speeds_delta[cold_start_speeds_phases]
+        temp = engine_coolant_temperatures[cold_start_speeds_phases]
+        ds = delta / idle_engine_speed[0]
 
+        def _err(x=None):
+            if x is not None:
+                self.set(**x.valuesdict())
 
-def _identify_temp_limit(delta, temp):
-    reg = sk_tree.DecisionTreeRegressor(random_state=0, max_leaf_nodes=10)
-    reg.fit(temp[:, None], delta)
-    t = np.unique(temp)
-    i = np.searchsorted(t, np.unique(reg.tree_.threshold))
-    n = len(t) - 1
-    if i[-1] != n:
-        i = np.append(i, (n,))
+            s = self(
+                idle_engine_speed, on_engine, engine_coolant_temperatures,
+                engine_speeds_out_hot
+            )
+            return float(np.mean(np.abs(s - cold_start_speeds_delta) * w))
 
-    return t[i]
+        t_min, t_max = temp.min(), temp.max()
+        d = dict(min=t_min, max=t_max) if t_min < t_max else dict(vary=False)
+        p = lmfit.Parameters()
+        p.add('temp_limit', 0, **d)
+        p.add('ds', 0, min=0)
+        p.add('m', 0, min=0)
 
+        res = [(
+            round(_err(), 1), 0,
+            dict(ds=self.ds, m=self.m, temp_limit=self.temp_limit)
+        )]
 
-def _calibrate_models(delta, temp, speeds_hot, on_eng, idle, phases):
-    func = functools.partial(
-        _calibrate_css_model, delta, idle, on_eng, temp, speeds_hot
-    )
+        for i, t in enumerate(self.initial_guess_temp_limit(delta, temp), 1):
+            _set_attr(p, {'temp_limit': t}, attr='value')
+            ds_max = ds[temp <= t].max()
+            if not np.isclose(ds_max, 0.0):
+                _set_attr(p, {'ds': ds_max}, attr='max')
+                x = dict(calibrate_model_params(_err, p)[0].valuesdict())
+                x['ds'] = self.set(**x).correct_ds(t_min).ds
+                res.append((round(_err(), 1), i, x))
+        self.set(**min(res)[-1])
+        return self
 
-    ind = sh.counter()
-    best = (np.inf, _css_model)
-    delta, temp = delta[phases], temp[phases]
-    ds = delta / idle
-    p = lmfit.Parameters()
-    t_min, t_max = temp.min(), temp.max()
-    if t_min < t_max:
-        p.add('temp_limit', 0, min=t_min, max=t_max)
-    else:
-        p.add('temp_limit', 0, vary=False)
+    def __call__(self, idle_engine_speed, on_engine,
+                 engine_coolant_temperatures, engine_speeds_out_hot):
+        add_speeds = np.zeros_like(on_engine, dtype=float)
+        if self.ds > 0:
+            b = on_engine & (engine_coolant_temperatures <= self.temp_limit)
+            if b.any():
+                ds, m = self.ds, self.m
+                if not np.isinf(m):
+                    ds = np.minimum(
+                        ds,
+                        (self.temp_limit - engine_coolant_temperatures[b]) * m
+                    )
 
-    p.add('ds', 0, min=0)
-    p.add('m', 0, min=0)
-    from .co2_emission import _set_attr
-    for t in _identify_temp_limit(delta, temp):
-        _set_attr(p, {'temp_limit': t}, attr='value')
-        ds_max = ds[temp <= t].max()
-        if not np.isclose(ds_max, 0.0):
-            _set_attr(p, {'ds': ds_max}, attr='max')
-            best = min(func(x0=p, ind=ind()), best)
-
-    return best[-1]
+                add_speeds[b] = np.maximum(
+                    (ds + 1) * idle_engine_speed[0] - engine_speeds_out_hot[b],
+                    0
+                )
+        return add_speeds
 
 
 def calibrate_cold_start_speed_model(
@@ -160,12 +204,12 @@ def calibrate_cold_start_speed_model(
 
     :return:
         Cold start speed model.
-    :rtype: callable
+    :rtype: ColdStartModel
     """
 
-    model = _calibrate_models(
+    model = ColdStartModel().fit(
         cold_start_speeds_delta, engine_coolant_temperatures,
-        engine_speeds_out_hot, on_engine, idle_engine_speed[0],
+        engine_speeds_out_hot, on_engine, idle_engine_speed,
         cold_start_speeds_phases
     )
 
@@ -180,7 +224,7 @@ def calculate_cold_start_speeds_delta(
 
     :param cold_start_speed_model:
         Cold start speed model.
-    :type cold_start_speed_model: callable
+    :type cold_start_speed_model: ColdStartModel
 
     :param on_engine:
         If the engine is on [-].
@@ -202,9 +246,10 @@ def calculate_cold_start_speeds_delta(
         Engine speed delta due to the cold start and its phases [RPM, -].
     :rtype: numpy.array, numpy.array
     """
-    idle = idle_engine_speed[0]
+
     delta = cold_start_speed_model(
-        idle, on_engine, engine_coolant_temperatures, engine_speeds_out_hot
+        idle_engine_speed, on_engine, engine_coolant_temperatures,
+        engine_speeds_out_hot
     )
 
     return delta

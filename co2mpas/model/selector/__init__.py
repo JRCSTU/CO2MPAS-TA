@@ -259,10 +259,12 @@ def metric_engine_speed_model(
 
 
 def metric_engine_cold_start_speed_model(
-        y_true, y_pred, cold_start_speeds_phases):
+        y_true, y_pred, cold_start_speeds_phases, engine_coolant_temperatures):
     b = cold_start_speeds_phases
     if b.any():
-        return sk_met.mean_absolute_error(y_true[b], y_pred[b])
+        t = engine_coolant_temperatures
+        w = (t.max() + 1) - t[b]
+        return sk_met.mean_absolute_error(y_true[b], y_pred[b], w)
     else:
         return 0
 
@@ -345,9 +347,10 @@ def sub_models():
                    'on_engine', 'idle_engine_speed'],
         'outputs': ['engine_speeds_out'],
         'targets': ['engine_speeds_out'],
-        'metrics_inputs': ['cold_start_speeds_phases'],
+        'metrics_inputs': ['cold_start_speeds_phases',
+                           'engine_coolant_temperatures'],
         'metrics': [metric_engine_cold_start_speed_model],
-        'up_limit': [100],
+        'up_limit': [160],
     }
 
     from ..physical.clutch_tc import clutch_torque_converter
