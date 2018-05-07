@@ -57,7 +57,7 @@ def hard_validation(data, usage, stage, cycle, *args):
             _check_ki_factor,
             _check_prediction_gears_not_mt,
             _check_lean_burn_tech,
-            _check_vva,
+            # _check_vva,
             _check_scr,
             _check_has_torque_converter
         )
