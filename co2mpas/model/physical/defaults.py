@@ -129,7 +129,7 @@ class Values(co2_utl.Constants):
     gear_box_temperature_references = (40.0, 80.0)
 
     #: Constant torque loss due to engine auxiliaries [N*m].
-    auxiliaries_torque_loss = (0.175, 0.2021) # m, q
+    auxiliaries_torque_loss = (0.175, 0.2021)  # m, q
 
     #: Constant power loss due to engine auxiliaries [kW].
     auxiliaries_power_loss = 0.0213
@@ -208,6 +208,62 @@ class Values(co2_utl.Constants):
 class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
 
+    class define_fuel_type_and_is_hybrid(co2_utl.Constants):
+        #: Is the vehicle hybrid?
+        is_hybrid = {
+            # 0: False,  # Not available
+            1: False,  # Gasoline
+            2: False,  # Methanol
+            3: False,  # Ethanol
+            4: False,  # Diesel
+            5: False,  # LPG
+            6: False,  # CNG
+            7: False,  # Propane
+            8: True,  # Electric
+            9: False,  # Bifuel running Gasoline
+            10: False,  # Bifuel running Methanol
+            11: False,  # Bifuel running Ethanol
+            12: False,  # Bifuel running LPG
+            13: False,  # Bifuel running CNG
+            14: False,  # Bifuel running Propane
+            15: True,  # Bifuel running Electricity
+            16: True,  # Bifuel running electric and combustion engine
+            17: True,  # Hybrid gasoline
+            18: True,  # Hybrid Ethanol
+            19: True,  # Hybrid Diesel
+            20: True,  # Hybrid Electric
+            21: True,  # Hybrid running electric and combustion engine
+            22: True,  # Hybrid Regenerative
+            23: False,  # Bifuel running diesel
+        }
+        #: The vehicle fuel type.
+        fuel_type = {
+            # 0: 'gasoline',  # Not available
+            1: 'gasoline',  # Gasoline
+            2: 'methanol',  # Methanol
+            3: 'ethanol',  # Ethanol
+            4: 'diesel',  # Diesel
+            5: 'LPG',  # LPG
+            6: 'NG',  # CNG
+            7: 'propane',  # Propane
+            8: None,  # Electric
+            9: 'gasoline',  # Bifuel running Gasoline
+            10: 'methanol',  # Bifuel running Methanol
+            11: 'ethanol',  # Bifuel running Ethanol
+            12: 'LPG',  # Bifuel running LPG
+            13: 'NG',  # Bifuel running CNG
+            14: 'propane',  # Bifuel running Propane
+            15: None,  # Bifuel running Electricity
+            16: 'gasoline',  # Bifuel running electric and combustion engine
+            17: 'gasoline',  # Hybrid gasoline
+            18: 'ethanol',  # Hybrid Ethanol
+            19: 'diesel',  # Hybrid Diesel
+            20: None,  # Hybrid Electric
+            21: 'gasoline',  # Hybrid running electric and combustion engine
+            22: None,  # Hybrid Regenerative
+            23: 'diesel',  # Bifuel running diesel
+        }
+
     class CMV(co2_utl.Constants):
         #: Enable optimization loop?
         ENABLE_OPT_LOOP = False
@@ -259,7 +315,6 @@ class Functions(co2_utl.Constants):
         #: Full load curve percentage fro calculating the available power [-].
         PREC_FLC = 0.9
 
-
     class calculate_maximum_velocity_v2(co2_utl.Constants):
         #: Maximum admissible velocity for the vehicle maximum velocity [km/h].
         MAX_VEL = 1000
@@ -283,7 +338,6 @@ class Functions(co2_utl.Constants):
 
         #: Tuning factor to design the gear box ratios [-].
         f_tuning = np.arange(1, 1.1, 0.01)
-
 
     class _filter_temperature_samples(co2_utl.Constants):
         #: Max abs val of temperature derivatives during the cold phase [°C/s].
@@ -370,18 +424,18 @@ class Functions(co2_utl.Constants):
         #: Multiplication factors of the engine parameters [-].
         factors = {
             'vva': {
-                #0: {},
+                # 0: {},
                 1: {'a': 0.98, 'l': 0.92},
             },
             'lb': {
-                #0: {},
-                1: {'a': 1.1, 'b' : 0.72, 'c': 0.76, 'a2': 1.25, 'l2': 2.85}
+                # 0: {},
+                1: {'a': 1.1, 'b': 0.72, 'c': 0.76, 'a2': 1.25, 'l2': 2.85}
             },
             'egr': {
-                #0: {},
+                # 0: {},
                 1: {'a': 1.02, 'b': 1.1, 'c': 1.5, 'a2': 1.1},  # positive turbo
                 2: {'a': 1.02, 'b': 1.1, 'c': 1.5, 'a2': 1.1},  # positive natural aspiration
-                3: {'b': 1.08, 'c': 1.15, 'a2': 1.1}, # compression
+                3: {'b': 1.08, 'c': 1.15, 'a2': 1.1},  # compression
                 4: {'b': 1.08, 'c': 1.15, 'a2': 1.1}  # compression + scr
             }
         }
@@ -624,13 +678,13 @@ class Functions(co2_utl.Constants):
         #: Equivalent gear box heat capacity parameters.
         PARAMS = {
             'heated_mass_percentage': {
-                'coolant': 0.04,     # coolant: 50%/50% (0.85*4.186)
-                'oil': 0.055,        # oil: lubricant
-                'crankcase': 0.18,   # crankcase: cast iron
-                'cyl_head': 0.09,    # cyl_head: aluminium
-                'pistons': 0.025,    # pistons: aluminium
+                'coolant': 0.04,  # coolant: 50%/50% (0.85*4.186)
+                'oil': 0.055,  # oil: lubricant
+                'crankcase': 0.18,  # crankcase: cast iron
+                'cyl_head': 0.09,  # cyl_head: aluminium
+                'pistons': 0.025,  # pistons: aluminium
                 'crankshaft': 0.08,  # crankshaft: steel
-                'body': 0.1          # body: cast iron
+                'body': 0.1  # body: cast iron
             },
             # Cp in (J/kgK)
             'heat_capacity': {
@@ -708,6 +762,8 @@ class Functions(co2_utl.Constants):
             'LPG': 43200.0 / 46000.0 * 745.0,  # Gasoline equivalent.
             'NG': 43200.0 / 45100.0 * 745.0,  # Gasoline equivalent.
             'ethanol': 794.0,
+            'methanol': 791.0,
+            'propane': 510.0,
             'biodiesel': 890.0,
         }
 
@@ -722,6 +778,8 @@ class Functions(co2_utl.Constants):
             'LPG': 46000.0,
             'NG': 45100.0,
             'ethanol': 26800.0,
+            'methanol': 19800.0,
+            'propane': 49680.0,
             'biodiesel': 37900.0,
         }
 
@@ -736,6 +794,8 @@ class Functions(co2_utl.Constants):
             'LPG': 1.35,
             'NG': 3.21,
             'ethanol': 1.91,
+            'methanol': 1.37,
+            'propane': 2.99,
             'biodiesel': 2.81,
         }
 
@@ -770,5 +830,6 @@ class Defaults(co2_utl.Constants):
 
     #: Infinite value.
     INF = 10000.0
+
 
 dfl = Defaults()

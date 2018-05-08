@@ -926,7 +926,8 @@ def default_ignition_type_v1(fuel_type):
     Returns the default ignition type according to the fuel type.
 
     :param fuel_type:
-        Fuel type (diesel, gasoline, LPG, NG, ethanol, biodiesel).
+        Fuel type (diesel, gasoline, LPG, NG, ethanol, methanol, biodiesel,
+        propane).
     :type fuel_type: str
 
     :return:
@@ -1228,6 +1229,24 @@ def define_fake_engine_prediction_model(
     return model
 
 
+def define_fuel_type_and_is_hybrid(obd_fuel_type_code):
+    """
+    Defines engine fuel type and if the vehicle is hybrid.
+
+    :param obd_fuel_type_code:
+        OBD fuel type of the vehicle [-].
+    :type obd_fuel_type_code: int
+
+    :return:
+        Engine fuel type and if the vehicle is hybrid.
+    :rtype: (str, bool)
+    """
+
+    i = int(obd_fuel_type_code)
+    dfl = defaults.dfl.functions.define_fuel_type_and_is_hybrid
+    return dfl.fuel_type.get(i, sh.NONE), dfl.is_hybrid.get(i, sh.NONE)
+
+
 def engine():
     """
     Defines the engine model.
@@ -1244,6 +1263,12 @@ def engine():
     d = sh.Dispatcher(
         name='Engine',
         description='Models the vehicle engine.'
+    )
+
+    d.add_function(
+        function=define_fuel_type_and_is_hybrid,
+        inputs=['obd_fuel_type_code'],
+        outputs=['fuel_type', 'is_hybrid']
     )
 
     d.add_function(

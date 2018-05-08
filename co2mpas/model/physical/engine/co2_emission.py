@@ -29,7 +29,8 @@ def default_fuel_density(fuel_type):
     Returns the default fuel density [g/l].
 
     :param fuel_type:
-        Fuel type (diesel, gasoline, LPG, NG, ethanol, biodiesel).
+        Fuel type (diesel, gasoline, LPG, NG, ethanol, methanol, biodiesel,
+        propane).
     :type fuel_type: str
 
     :return:
@@ -47,7 +48,8 @@ def default_fuel_carbon_content(fuel_type):
     Returns the default fuel carbon content [CO2g/g].
 
     :param fuel_type:
-        Fuel type (diesel, gasoline, LPG, NG, ethanol, biodiesel).
+        Fuel type (diesel, gasoline, LPG, NG, ethanol, methanol, biodiesel,
+        propane).
     :type fuel_type: str
 
     :return:
@@ -65,7 +67,8 @@ def default_engine_fuel_lower_heating_value(fuel_type):
     Returns the default fuel lower heating value [kJ/kg].
 
     :param fuel_type:
-        Fuel type (diesel, gasoline, LPG, NG, ethanol, biodiesel).
+        Fuel type (diesel, gasoline, LPG, NG, ethanol, methanol, biodiesel,
+        propane).
     :type fuel_type: str
 
     :return:
@@ -2436,7 +2439,8 @@ def default_engine_has_exhausted_gas_recirculation(fuel_type):
     Returns the default engine has exhaust gas recirculation value [-].
 
     :param fuel_type:
-        Fuel type (diesel, gasoline, LPG, NG, ethanol, biodiesel).
+        Fuel type (diesel, gasoline, LPG, NG, ethanol, methanol, biodiesel,
+        propane).
     :type fuel_type: str
 
     :return:

@@ -590,8 +590,10 @@ def define_data_schema(read=True):
         'tyre_dimensions': tyre_dimensions,
         'tyre_code': tyre_code,
         'wltp_base_model': _dict(format=dict, read=read),
-        'fuel_type': _select(types=('gasoline', 'diesel', 'LPG', 'NG',
-                                    'ethanol', 'biodiesel'), read=read),
+        'fuel_type': _select(types=(
+            'gasoline', 'diesel', 'LPG', 'NG', 'ethanol', 'biodiesel',
+            'methanol', 'propane'), read=read),
+        'obd_fuel_type_code': positive_int,
         'vehicle_category': _select(types='ABCDEFSMJ', read=read),
         'vehicle_body': _select(types=(
             'cabriolet', 'sedan', 'hatchback', 'stationwagon', 'suv/crossover',
