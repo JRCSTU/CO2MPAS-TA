@@ -208,6 +208,13 @@ class Values(co2_utl.Constants):
 class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
 
+    class default_clutch_window(co2_utl.Constants):
+        #: Enable function?
+        ENABLE = True
+
+        #: Clutching time window [s].
+        clutch_window = (-0.89230769,  0.95384615)
+
     class define_fuel_type_and_is_hybrid(co2_utl.Constants):
         #: Is the vehicle hybrid?
         is_hybrid = {

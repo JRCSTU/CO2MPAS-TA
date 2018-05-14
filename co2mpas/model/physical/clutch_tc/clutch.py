@@ -309,6 +309,20 @@ def default_clutch_k_factor_curve():
     return define_k_factor_curve(*a)
 
 
+def default_clutch_window():
+    """
+    Returns a default clutching time window [s] for a generic clutch.
+
+    :return:
+        Clutching time window [s].
+    :rtype: tuple
+    """
+    from ..defaults import dfl
+    if dfl.functions.default_clutch_window.ENABLE:
+        return dfl.functions.default_clutch_window.clutch_window
+    return sh.NONE
+
+
 def clutch():
     """
     Defines the clutch model.
@@ -331,6 +345,11 @@ def clutch():
     d.add_data(
         data_id='stop_velocity',
         default_value=dfl.values.stop_velocity
+    )
+
+    d.add_function(
+        function=default_clutch_window,
+        outputs=['clutch_window']
     )
 
     d.add_function(
