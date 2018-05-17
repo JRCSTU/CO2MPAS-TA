@@ -84,8 +84,15 @@ class _SelectFromModel(sk_fsel.SelectFromModel):
         super(_SelectFromModel, self).__init__(*args, **kwargs)
         self._in_mask = in_mask
         self._out_mask = out_mask
+        self._cache_support_mask = None
+
+    def fit(self, *args, **kwargs):
+        self._cache_support_mask = None
+        return super(_SelectFromModel, self).fit(*args, **kwargs)
 
     def _get_support_mask(self):
+        if self._cache_support_mask is not None:
+            return self._cache_support_mask
         if self.prefit:
             estimator = self.estimator
         elif hasattr(self, 'estimator_'):
@@ -111,7 +118,7 @@ class _SelectFromModel(sk_fsel.SelectFromModel):
 
         for i in self._in_mask:
             mask[i] = True
-
+        self._cache_support_mask = mask
         return mask
 
 
