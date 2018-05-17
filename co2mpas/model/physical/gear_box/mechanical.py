@@ -161,8 +161,8 @@ def _correct_gear_shifts(
         g = gears[slice(i - 1, i + 1, 1)]
         if g[0] != 0 and g[-1] != 0:
             t = times[i]
-            n = max(i - sum(((t - dt) <= times) & (times <= t)), k)
-            m = min(i + sum((t <= times) & (times <= (t + dt))), s)
+            n = max(i - (((t - dt) <= times) & (times <= t)).sum(), k)
+            m = min(i + ((t <= times) & (times <= (t + dt))).sum(), s)
             j = int(sci_opt.brute(err, (slice(n, m, 1),), args=(vsr(g),),
                                   finish=None))
         else:
