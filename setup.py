@@ -179,6 +179,7 @@ setup(
         'toolz',
         'schedula>=0.1.14',         # Fix str(AbortDispatcher) not to print model
         'formulas>=0.0.7',
+        'xgboost',                  # Pure-python boost also works.
 
         'ipython_genutils',         # by vendorized `traitlets`
         'python-gnupg',
@@ -188,7 +189,6 @@ setup(
         'parsedatetime',
         'validate_email',           # dice: distinguish EWS fields
         'Unidecode',                # dice: convert non-ASCII for tstamper.
-        'xgboost'
     ],
     packages=find_packages(exclude=[
         'tests', 'tests.*',

@@ -30,6 +30,7 @@ wltp
 openpyxl>=2.4.0
 schedula>=0.1.14
 formulas>=0.0.7
+xgboost
 
 ## Dice
 ipython_genutils
