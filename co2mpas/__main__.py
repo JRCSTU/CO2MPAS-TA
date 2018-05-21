@@ -18,7 +18,8 @@ Use the `batch` sub-command to simulate a vehicle contained in an excel-file.
 USAGE:
   co2mpas ta          [-f] [-v] [-O=<output-folder>] [<input-path>]...
   co2mpas batch       [-v | -q | --logconf=<conf-file>] [-f]
-                      [--use-cache] [-O=<output-folder>]
+                      [--use-cache] [--comparable]
+                      [-O=<output-folder>]
                       [--modelconf=<yaml-file>]
                       [-D=<key=value>]... [<input-path>]...
   co2mpas demo        [-v | -q | --logconf=<conf-file>] [-f]
@@ -49,6 +50,7 @@ OPTIONS:
   --modelconf=<yaml-file>     Path to a model-configuration file, according to YAML:
                                 https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
   --use-cache                 Use the cached input file.
+  --comparable                Generate "co2parable" in tmp-folder (slow, internal option).
   --override, -D=<key=value>  Input data overrides (e.g., `-D fuel_type=diesel`,
                               `-D prediction.nedc_h.vehicle_mass=1000`).
   -l, --list                  List available models.
@@ -57,15 +59,15 @@ OPTIONS:
 
 
 Model flags (-D flag.xxx, example -D flag.engineering_mode=True):
- engineering_mode=<bool>     Use all data and not only the declaration data.
- soft_validation=<bool>      Relax some Input-data validations, to facilitate experimentation.
- use_selector=<bool>         Select internally the best model to predict both NEDC H/L cycles.
- only_summary=<bool>         Do not save vehicle outputs, just the summary.
- plot_workflow=<bool>        Open workflow-plot in browser, after run finished.
- output_template=<xlsx-file> Clone the given excel-file and appends results into
-                             it. By default, results are appended into an empty
-                             excel-file. Use `output_template=-` to use
-                             input-file as template.
+ engineering_mode=<bool>      Use all data and not only the declaration data.
+ soft_validation=<bool>       Relax some Input-data validations, to facilitate experimentation.
+ use_selector=<bool>          Select internally the best model to predict both NEDC H/L cycles.
+ only_summary=<bool>          Do not save vehicle outputs, just the summary.
+ plot_workflow=<bool>         Open workflow-plot in browser, after run finished.
+ output_template=<xlsx-file>  Clone the given excel-file and appends results into
+                              it. By default, results are appended into an empty
+                              excel-file. Use `output_template=-` to use
+                              input-file as template.
 
 Miscellaneous:
   -h, --help                  Show this help message and exit.
@@ -635,6 +637,10 @@ def _main(*args):
     if warns:
         for w in warns:
             log.warning(w)
+
+    if opts.get('--comparable', False):
+        from . import comparable
+        comparable.monkeypatch_schedula()
 
     if opts['--version']:
         v = build_version_string(verbose)
