@@ -639,8 +639,8 @@ def _main(*args):
             log.warning(w)
 
     if opts.get('--comparable', False):
-        from . import comparable
-        comparable.monkeypatch_schedula()
+        from co2mpas.comparable import co2hasher
+        co2hasher.Co2Hasher()
 
     if opts['--version']:
         v = build_version_string(verbose)
