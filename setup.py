@@ -19,7 +19,7 @@ if sys.version_info < (3, 5):
              str(sys.version_info))
 
 
-proj_name = 'co2mpas'
+PROJECT = 'co2mpas'
 mydir = os.path.dirname(__file__)
 
 # Version-trick to have version-info in a single place,
@@ -115,7 +115,7 @@ long_desc = ''.join(yield_rst_only_markup(readme_lines))
 download_url = 'https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v%s' % proj_ver
 
 setup(
-    name=proj_name,
+    name=PROJECT,
     version=proj_ver,
     description="The Type-Approving vehicle simulator predicting NEDC CO2 emissions from WLTP",
     long_description=long_desc,
@@ -211,8 +211,8 @@ setup(
     tests_require=['nose>=1.0', 'ddt'],
     entry_points={
         'console_scripts': [
-            '%(p)s = %(p)s.__main__:main' % {'p': proj_name},
-            '%(p)s-autocompletions = %(p)s.__main__:print_autocompletions' % {'p': proj_name},
+            '%(p)s = %(p)s.__main__:main' % {'p': PROJECT},
+            '%(p)s-autocompletions = %(p)s.__main__:print_autocompletions' % {'p': PROJECT},
             'datasync = co2mpas.datasync:main',
             'co2dice = co2mpas.sampling.dice:main ',
             ## Note: launching as gui-scripts DOES NOT WORK
