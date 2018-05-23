@@ -11,18 +11,38 @@ from co2mpas import datasync
 import co2mpas
 import io
 import re
+import sys
 import subprocess
 import unittest
 from unittest.mock import patch
 
 import os.path as osp
 
-
 mydir = osp.dirname(__file__)
 proj_path = osp.join(mydir, '..')
 readme_path = osp.join(proj_path, 'README.rst')
 
 
+def current_branch():
+    "Polyvers engraves versions usually on branch `latest`, and doctests checks those."
+    from co2mpas.utils.oscmd import cmd
+    try:
+        curbranch = [b[2:]
+                     for b in cmd.git.branch()
+                     if b.startswith('* ')][0]
+        return curbranch
+    except Exception as ex:
+        print("While checking if branch `latest`: %s" % ex, file=sys.stderr)
+        return True  # proceed wioth the tests
+
+
+curbranch = current_branch()
+is_ver_engraved = curbranch == 'latest'
+
+
+@unittest.skipUnless(is_ver_engraved,
+                     "README's versions may not be engraved in `%s` branch" %
+                     curbranch)
 class Doctest(unittest.TestCase):
 
     def test_README_version_opening(self):
