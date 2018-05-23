@@ -28,7 +28,7 @@ log = logging.getLogger(__name__)
 
 
 def check_data_version(flag):
-    from co2mpas._version import __input_file_version__
+    from co2mpas import __input_file_version__
     try:
         ver = flag['input_version']
         if tuple(ver.split('.')) >= tuple(__input_file_version__.split('.')):
