@@ -718,8 +718,7 @@ def calculate_maximum_velocity(
 
     b = (p * dfl.PREC_FLC) < _calculate_req_power(road_loads, velocity)[:, None]
     velocity = np.repeat(velocity[:, None], b.shape[1], 1)
-    velocity[b] = np.nan
-    p[b] = np.nan
+    velocity[b] = -1
 
     i, j = np.unravel_index(np.argmax(velocity), velocity.shape)
     return velocity[i, j], g_id[j]
