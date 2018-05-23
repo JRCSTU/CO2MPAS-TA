@@ -1,0 +1,20 @@
+PolyversCmd:
+  projects:
+  - pname: co2mpas
+    basepath: .
+    engraves:
+        - globs:
+            - setup.py
+            - co2mpas/_version.py
+          grafts:
+            - regex: 'polyversion\([^)]+\)'
+              subst: '"{version}"'
+            - regex: 'from polyversion import polyversion.*'
+              subst: ''
+Project:
+  pvtag_frmt: '{vprefix}{version}'
+  pvtag_regex: |-
+    (?xmi)
+        ^(?P<pname>)
+        {vprefix}(?P<version>\d[^-]*)
+        (?:-(?P<descid>\d+-g[a-f\d]+))?$

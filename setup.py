@@ -11,27 +11,18 @@ import os
 import re
 import sys
 
-from setuptools import setup, find_packages
-
-
 if sys.version_info < (3, 5):
     sys.exit("Sorry, Python >= 3.5 is required, found: %s" %
              str(sys.version_info))
 
+from setuptools import setup, find_packages
+from polyversion import polyversion  # noqa: F401  # engraved-out in packages.
+
+
 
 PROJECT = 'co2mpas'
+VERSION = polyversion(PROJECT)
 mydir = os.path.dirname(__file__)
-
-# Version-trick to have version-info in a single place,
-# taken from: http://stackoverflow.com/questions/2058802/how-can-i-get-the-version-defined-in-setup-py-setuptools-in-my-package
-##
-def read_project_version():
-    fglobals = {}
-    with io.open(os.path.join(
-            mydir, 'co2mpas', '_version.py'), encoding='UTF-8') as fd:
-        exec(fd.read(), fglobals)  # To read __version__
-    return fglobals['__version__']
-
 
 def read_text_lines(fname):
     with io.open(os.path.join(mydir, fname), encoding='utf-8') as fd:
@@ -108,15 +99,14 @@ def yield_rst_only_markup(lines):
         yield clean_line(line)
 
 
-proj_ver = read_project_version()
 readme_lines = read_text_lines('README.rst')
 description = readme_lines[1]
 long_desc = ''.join(yield_rst_only_markup(readme_lines))
-download_url = 'https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v%s' % proj_ver
+download_url = 'https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v%s' % VERSION
 
 setup(
     name=PROJECT,
-    version=proj_ver,
+    version=VERSION,
     description="The Type-Approving vehicle simulator predicting NEDC CO2 emissions from WLTP",
     long_description=long_desc,
     download_url=download_url,
@@ -152,6 +142,7 @@ setup(
     ],
     python_requires='>=3.5',  # http://www.python3statement.org/practicalities/
     install_requires=[
+        'polyversion',
         'rainbow_logging_handler',
         'pandas',
         'xlsxwriter',
