@@ -11,7 +11,7 @@
 #: Authoritative project's PEP 440 version.
 from polyversion import polyversion
 
-__version__ = version = polyversion('co2mpas')  # Also update README.rst, CHANGES.rst,
+__version__ = version = "1.8.0a0.dev0"  # Also update README.rst, CHANGES.rst,
 
 #: Input/Output file's version.
 __file_version__ = "2.2.7"

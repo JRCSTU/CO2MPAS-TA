@@ -21,7 +21,7 @@ from polyversion import polyversion  # noqa: F401  # engraved-out in packages.
 
 
 PROJECT = 'co2mpas'
-VERSION = polyversion(PROJECT)
+VERSION = "1.8.0a0.dev0"
 mydir = os.path.dirname(__file__)
 
 def read_text_lines(fname):
