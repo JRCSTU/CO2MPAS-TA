@@ -177,7 +177,7 @@ class ComparableHasher(ABC):
              n not in func_xargs}
         return d
 
-    def _make_args_map(self, node, nattr, args, per_funx_xargs: Sequence):
+    def _make_args_map(self, node, nattr, args, per_func_xargs: Sequence):
         if nattr not in node:
             ## data-nodes have not `inputs`
             names = ['_%s_%i' % (nattr, i) for i in range(len(args))]
@@ -201,7 +201,7 @@ class ComparableHasher(ABC):
         for name in self.args_to_print & inp.keys():
             self._args_printed.append((name, inp[name]))
 
-        ckmap = self._args_cked(inp.items(), per_funx_xargs)
+        ckmap = self._args_cked(inp.items(), per_func_xargs)
 
         return ckmap
 
@@ -212,21 +212,25 @@ class ComparableHasher(ABC):
     def eval_fun(self_sol, self, args, node_id, node_attr, attr):  # @NoSelf
         fun = node_attr['function']
         funame = dsp.parent_func(fun).__name__
+        funames = {node_id, funame}
 
         ## Filter out Funcs or Args.
         #
-        per_funx_xargs = self.funs_to_exclude.get(funame, ())
-        if per_funx_xargs is None:
-            return self._org_eval_fun(self_sol, args, node_id, node_attr, attr)
+        per_func_xargs = set()
+        for funame in funames:
+            xargs = self.funs_to_exclude.get(funame, ())
+            if xargs is None:
+                return self._org_eval_fun(self_sol, args, node_id, node_attr, attr)
+            per_func_xargs.update(xargs)
 
         funpath, base_ck = self._checksum_stack.get()
-        funpath = '%s/%s' % (funpath, funame)
+        funpath = '%s/%s' % (funpath, node_id)
 
         ## Checksums
         #
-        if funame in self.funs_to_reset:
+        if funames & self.funs_to_reset.keys():
             base_ck = 0
-        ckmap = self._make_args_map(node_attr, 'inputs', args, per_funx_xargs)
+        ckmap = self._make_args_map(node_attr, 'inputs', args, per_func_xargs)
         myck = self.checksum(base_ck, list(ckmap.values()))
 
         ## Write comparable lines.
@@ -257,7 +261,7 @@ class ComparableHasher(ABC):
                 outname = '(%s)' % names[0] if len(names) == 1 else ''
                 self._ckfile.write('  OUT%s: %s\n' % (outname, myck))
                 if len(names) > 1:
-                    ckmap = self._make_args_map(node_attr, 'outputs', res, per_funx_xargs)
+                    ckmap = self._make_args_map(node_attr, 'outputs', res, per_func_xargs)
                     self._ckfile.write('  RES:\n' + ''.join(
                         '    - %s: %s\n' % (name, ck)
                         for name, ck in ckmap.items()))
