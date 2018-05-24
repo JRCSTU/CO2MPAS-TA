@@ -213,35 +213,43 @@ class ComparableHasher(ABC):
         fun = node_attr['function']
         funame = dsp.parent_func(fun).__name__
 
+        ## Filter out Funcs or Args.
+        #
         per_funx_xargs = self.funs_to_exclude.get(funame, ())
         if per_funx_xargs is None:
             return self._org_eval_fun(self_sol, args, node_id, node_attr, attr)
 
-        ckmap = self._make_args_map(node_attr, 'inputs', args, per_funx_xargs)
-
         funpath, base_ck = self._checksum_stack.get()
         funpath = '%s/%s' % (funpath, funame)
+
+        ## Checksums
+        #
         if funame in self.funs_to_reset:
             base_ck = 0
-
+        ckmap = self._make_args_map(node_attr, 'inputs', args, per_funx_xargs)
         myck = self.checksum(base_ck, list(ckmap.values()))
+
+        ## Write comparable lines.
+        #
         self._ckfile.write('\n- %s: %s\n' % (funpath, myck))
         if ckmap:
-            self._ckfile.write('  ARGS:\n' + ''.join(
-                '    - %s: %s\n' % (name, ck)
-                for name, ck in ckmap.items()))
+            self._ckfile.write('  ARGS:\n' +
+                               ''.join('    - %s: %s\n' % (name, ck)
+                                       for name, ck in ckmap.items()))
 
+        ## Do nested schedula call.
+        #
+        res = FAIL = object() # sentinel
         token = self._checksum_stack.set((funpath, myck))
-        res = FAIL = object()
         try:
             res = self._org_eval_fun(self_sol, args, node_id, node_attr, attr)
             return res
         finally:
             self._checksum_stack.reset(token)
 
-            ## warn when comparing, res might be dataframe.
+            ## No == compares, res might be dataframe.
             if res is not None and res is not FAIL:
-                ## Checksum based on pre-func checksum `ck` (and not `myck`),
+                ## Checksum based on pre-func checksum `base_ck` (and not `myck`),
                 #  to detect differences separately from input-args.
                 myck = self.checksum(base_ck, res)
 
@@ -278,7 +286,7 @@ class ComparableHasher(ABC):
         log.info("Writing `comparable` at: %s", fpath)
         self._ckfile = open(fpath, 'w')  # will close when process die...
         sol.Solution._evaluate_function = fnt.partialmethod(
-            ComparableHasher.eval_fun, self)
+            ComparableHasher.eval_fun, self)  # `self` will pass as the 2nd arg
         _hasher = self
 
 
