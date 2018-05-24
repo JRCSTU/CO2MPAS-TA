@@ -228,18 +228,19 @@ class ComparableHasher(ABC):
 
         ## Checksums
         #
-        if funames & self.funs_to_reset.keys():
-            base_ck = 0
+        # if funames & self.funs_to_reset.keys():
+        #     base_ck = 0
+        base_ck = myck = 0  # RESET ALWAYS!
         ckmap = self._make_args_map(node_attr, 'inputs', args, per_func_xargs)
-        myck = self.checksum(base_ck, list(ckmap.values()))
+        #myck = self.checksum(base_ck, list(ckmap.values()))
 
         ## Write comparable lines.
         #
-        self._ckfile.write('\n- %s: %s\n' % (funpath, myck))
         if ckmap:
-            self._ckfile.write('  ARGS:\n' +
-                               ''.join('    - %s: %s\n' % (name, ck)
-                                       for name, ck in ckmap.items()))
+            self._ckfile.write('\n- %s: \n%s' % (
+                funpath,
+                ''.join('    - %s: %s\n' % (name, ck)
+                        for name, ck in ckmap.items())))
 
         ## Do nested schedula call.
         #
@@ -251,20 +252,15 @@ class ComparableHasher(ABC):
         finally:
             self._checksum_stack.reset(token)
 
+            names = node_attr.get('outputs', ())
             ## No == compares, res might be dataframe.
-            if res is not None and res is not FAIL:
-                ## Checksum based on pre-func checksum `base_ck` (and not `myck`),
-                #  to detect differences separately from input-args.
-                myck = self.checksum(base_ck, res)
-
-                names = node_attr.get('outputs', ())
-                outname = '(%s)' % names[0] if len(names) == 1 else ''
-                self._ckfile.write('  OUT%s: %s\n' % (outname, myck))
-                if len(names) > 1:
-                    ckmap = self._make_args_map(node_attr, 'outputs', res, per_func_xargs)
-                    self._ckfile.write('  RES:\n' + ''.join(
-                        '    - %s: %s\n' % (name, ck)
-                        for name, ck in ckmap.items()))
+            if res is not None and res is not FAIL and names:
+                if len(names) == 1:
+                    res = [res]
+                ckmap = self._make_args_map(node_attr, 'outputs', res, per_func_xargs)
+                self._ckfile.write('  OUT:\n' + ''.join(
+                    '    - %s: %s\n' % (name, ck)
+                    for name, ck in ckmap.items()))
 
             if self._checksum_stack.get()[0] == '':
                 if self._args_printed:

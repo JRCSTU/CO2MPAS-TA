@@ -61,10 +61,13 @@ class Co2Hasher(ComparableHasher):
             'timestamp',
             'start_time',
             'output_file_name',     # contains timestamp
+            'excel',
+            'name',
+
             'gear_filter',          # a function
             'tau_function',         # a function
             'k_factor_curve',       # a function
-            'full_load_curve',      # an InterpolatedUnivariateSpline
+            # 'full_load_curve',      # an InterpolatedUnivariateSpline
         }
 
     @property
