@@ -171,7 +171,7 @@ class ComparableHasher(ABC):
                   func_xargs: Sequence[Tuple[str, Any]],
                   *,
                   base_ck=0):
-        d = {n: self.checksum(base_ck, [a])
+        d = {n: self.checksum(base_ck, a)
              for n, a in arg_pairs
              if n not in self.args_to_exclude and
              n not in func_xargs}
