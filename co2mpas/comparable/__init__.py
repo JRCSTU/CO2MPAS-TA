@@ -17,7 +17,7 @@ from schedula import Dispatcher, add_args
 from schedula.utils import sol, dsp
 import tempfile
 import types
-from typing import Tuple, Sequence, Mapping, Any, Callable
+from typing import Tuple, Sequence, Mapping, Any, Callable, Optional
 
 import contextvars
 from numpy import ndarray
@@ -234,7 +234,7 @@ class ComparableHasher(ABC):
         ckmap = self._make_args_map(node_attr, 'inputs', args, per_func_xargs)
         #myck = self.checksum(base_ck, list(ckmap.values()))
 
-        ## Write comparable lines.
+        ## Dump comparable lines form INP.
         #
         if ckmap:
             self._ckfile.write('\n- %s: \n%s' % (
@@ -252,6 +252,8 @@ class ComparableHasher(ABC):
         finally:
             self._checksum_stack.reset(token)
 
+            ## Dump comparable lines form OUT.
+            #
             names = node_attr.get('outputs', ())
             ## No == compares, res might be dataframe.
             if res is not None and res is not FAIL and names:
@@ -262,6 +264,8 @@ class ComparableHasher(ABC):
                     '    - %s: %s\n' % (name, ck)
                     for name, ck in ckmap.items()))
 
+            ## Dump any collected dubugged items to print.
+            #
             if self._checksum_stack.get()[0] == '':
                 if self._args_printed:
                     self._ckfile.write('- PRINTED:\n' + ''.join(
@@ -274,6 +278,11 @@ class ComparableHasher(ABC):
     _org_eval_fun = None
 
     def __init__(self):
+        """
+        Patch schedula to start collecting its calls, and open dump-file.
+
+        - must be called only once.
+        """
         global _hasher
 
         if _hasher:
@@ -294,6 +303,6 @@ class ComparableHasher(ABC):
 _hasher = None
 
 
-def checksum(*items):
+def checksum(*items) -> Optional[int]:
     "Call this to hash with active hasher, or a dummy one."
-    return _hasher and _hasher.checksum(*items) or -1
+    return _hasher and _hasher.checksum(*items)
