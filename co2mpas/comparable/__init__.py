@@ -177,17 +177,18 @@ class ComparableHasher(ABC):
              n not in func_xargs}
         return d
 
-    def _make_args_map(self, node, nattr, args, per_func_xargs: Sequence):
-        if nattr not in node:
-            ## data-nodes have not `inputs`
-            names = ['_%s_%i' % (nattr, i) for i in range(len(args))]
+    def _make_args_map(self, names, args, per_func_xargs: Sequence, expandargs=True):
+        if not names:
+            names = ['_item_%i' % i for i in range(len(args))]
+            inp = dict(zip(names, args))
+        elif len(names) == 1 and not expandargs:  # missing or single RES in "output"
+            inp = {names[0]: args}
         else:
-            names = node[nattr]
-        assert len(names) >= len(args), (names, args)
+            assert len(names) >= len(args), (len(names), len(args))
+            inp = dict(zip(names, args))
+            # Check there were not any dupe keys.
+            assert len(inp) == len(args), (len(inp), len(args))
 
-        inp = dict(zip(names, args))
-        # Check there were not any dupe keys.
-        assert len(inp) == len(args), (inp, args)
 
         ## Process certain args.
         #
@@ -231,7 +232,8 @@ class ComparableHasher(ABC):
         # if funames & self.funs_to_reset.keys():
         #     base_ck = 0
         base_ck = myck = 0  # RESET ALWAYS!
-        ckmap = self._make_args_map(node_attr, 'inputs', args, per_func_xargs)
+        names = node_attr.get('inputs')
+        ckmap = self._make_args_map(names, args, per_func_xargs)
         #myck = self.checksum(base_ck, list(ckmap.values()))
 
         ## Dump comparable lines form INP.
@@ -244,7 +246,7 @@ class ComparableHasher(ABC):
 
         ## Do nested schedula call.
         #
-        res = FAIL = object() # sentinel
+        res = None
         token = self._checksum_stack.set((funpath, myck))
         try:
             res = self._org_eval_fun(self_sol, args, node_id, node_attr, attr)
@@ -254,12 +256,11 @@ class ComparableHasher(ABC):
 
             ## Dump comparable lines form OUT.
             #
-            names = node_attr.get('outputs', ())
             ## No == compares, res might be dataframe.
-            if res is not None and res is not FAIL and names:
-                if len(names) == 1:
-                    res = [res]
-                ckmap = self._make_args_map(node_attr, 'outputs', res, per_func_xargs)
+            if res is not  None:
+                names = node_attr.get('outputs', ('RES', ))
+                assert not isinstance(names, str), names
+                ckmap = self._make_args_map(names, res, per_func_xargs, expandargs=False)
                 self._ckfile.write('  OUT:\n' + ''.join(
                     '    - %s: %s\n' % (name, ck)
                     for name, ck in ckmap.items()))
