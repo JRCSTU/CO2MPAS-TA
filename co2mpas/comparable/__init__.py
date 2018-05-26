@@ -10,7 +10,7 @@ from co2mpas.model.physical.engine.co2_emission import IdleFuelConsumptionModel,
 from co2mpas.model.physical.final_drive import FinalDriveModel
 from co2mpas.model.physical.gear_box import GearBoxLosses, GearBoxModel
 from co2mpas.model.physical.wheels import WheelsModel
-from collections import abc
+from collections import defaultdict, abc
 import logging
 import operator
 from schedula import Dispatcher, add_args
@@ -54,6 +54,10 @@ def _convert_partial(p):
 def _convert_obj(obj):
     "Used explicetely only, bc maybe str(obj) gives a better hash."
     return (type(obj).__name__, *_convert_dict(vars(obj)))
+
+
+def _convert_default_dict(d):
+    return (d.default_factory, *d.items())
 
 
 def _remove_timestamp_from_plan(item):
@@ -150,13 +154,16 @@ class ComparableHasher(ABC):
     #         return fnt.reduce(operator.xor, (self._hash(i) for i in item.items()
     #                                          if i[0] not in self.args_to_exclude), 3)
 
-        if isinstance(item, fnt.partial):
-            return self.checksum(*_convert_partial(item))
-
         if isinstance(item, types.MethodType):
             return self.checksum(*_convert_meth(item))
         if isinstance(item, types.FunctionType):
             return self.checksum(*_convert_fun(item))
+
+        if isinstance(item, fnt.partial):
+            return self.checksum(*_convert_partial(item))
+
+        if isinstance(item, defaultdict):
+            return self.checksum(*_convert_default_dict(item))
 
         if isinstance(item, self.objects_to_convert):
             return self.checksum(*_convert_obj(item))
