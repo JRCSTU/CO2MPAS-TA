@@ -187,7 +187,7 @@ class Hasher(ABC):
              n not in func_xargs}
         return d
 
-    def dump_args_map(self, funpath: str,
+    def dump_args(self, funpath: str,
                       names:List[str], args,
                       per_func_xargs: Sequence, expandargs=True):
         if not names:
@@ -217,7 +217,7 @@ class Hasher(ABC):
         ckmap = self._args_cked(inp.items(), per_func_xargs)
 
         if ckmap:
-            self._dump_args(funpath, ckmap)
+            self._write_and_compare(self._ckmap_to_text(funpath, ckmap))
 
         ## return for inspeaxtion, or to generate a global hash.
         return ckmap
@@ -247,10 +247,10 @@ class Hasher(ABC):
             if l.startswith('- PRINT:'):
                 self._old_nline += 1
             else:
-                ## nlines increased in self._write()
+                ## nlines increased in self._write_and_compare()
                 yield l.strip()
 
-    def _write(self, text, *, skip_compare=False):
+    def _write_and_compare(self, text, *, skip_compare=False):
         "Write text and compare it against any old-file, preserving line-numbering."
         self._ckfile.write(text)
 
@@ -271,16 +271,16 @@ class Hasher(ABC):
                 self._old_nline += nlines
             self._ckfile_nline += nlines
 
-    def _dump_args(self, funpath, ckmap):
+    def _ckmap_to_text(self, funpath, ckmap):
         if self._dump_yaml:
-            self._write('\n- %s:\n%s' % (
+            return '\n- %s:\n%s' % (
                 funpath,
               ''.join('    %s: %i\n' % (name, ck)
-                      for name, ck in ckmap.items())))
+                      for name, ck in ckmap.items()))
         else:
-            self._write('\n' +
-                        ''.join('%s,%s,%i\n' % (funpath, name, ck)
-                                for name, ck in ckmap.items()))
+            return ('\n' +
+                    ''.join('%s,%s,%i\n' % (funpath, name, ck)
+                            for name, ck in ckmap.items()))
 
     #: The schedula functions visited stored here along with
     #: their checksum of all their args, forming a tree-path.
@@ -292,7 +292,7 @@ class Hasher(ABC):
             ## Note: not compared.
             dumpobj = ''.join('  - %s: %s\n' % (k, v)
                            for k, v in self._args_printed)
-            self._write('- PRINT: %s\n' % dumpobj.replace('\n', '\\n'),
+            self._write_and_compare('- PRINT: %s\n' % dumpobj.replace('\n', '\\n'),
                        skip_compare=True)
             self._args_printed.clear()
 
@@ -347,7 +347,7 @@ def my_eval_fun(solution: sol.Solution,
     ## Checksum, Dump & Compare INPs.
     #
     inpnames = node_attr.get('inputs')
-    hasher.dump_args_map('INP/' + funpath,
+    hasher.dump_args('INP/' + funpath,
                          inpnames, args,
                          per_func_xargs)
     #myck = hasher.checksum(base_ck, list(ckmap.values()))
@@ -368,7 +368,7 @@ def my_eval_fun(solution: sol.Solution,
         if res is not  None:
             outnames = node_attr.get('outputs', ('RES', ))
             assert not isinstance(outnames, str), outnames
-            hasher.dump_args_map('OUT/' + funpath,
+            hasher.dump_args('OUT/' + funpath,
                                  outnames, res,
                                  per_func_xargs,
                                  expandargs=False)
