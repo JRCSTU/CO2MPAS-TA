@@ -18,7 +18,7 @@ Use the `batch` sub-command to simulate a vehicle contained in an excel-file.
 USAGE:
   co2mpas ta          [-f] [-v] [-O=<output-folder>] [<input-path>]...
   co2mpas batch       [-v | -q | --logconf=<conf-file>] [-f]
-                      [--use-cache] [--comparable]
+                      [--use-cache] [--co2mparable=<old-yaml>]
                       [-O=<output-folder>]
                       [--modelconf=<yaml-file>]
                       [-D=<key=value>]... [<input-path>]...
@@ -50,7 +50,11 @@ OPTIONS:
   --modelconf=<yaml-file>     Path to a model-configuration file, according to YAML:
                                 https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
   --use-cache                 Use the cached input file.
-  --comparable                Generate "co2parable" in tmp-folder (slow, internal option).
+  --co2mparable=<old-yaml>    (internal) Enable co2parable generation in tmp-folder and
+                              optionally provide an <old-yaml> file to compare with while executing.
+                              Overrides env-vars CO2MPARE_ENABLED, CO2MPARE_WITH_FPATH and
+                              optionally CO2MPARE_ZIP, when <old-yaml> ends with '.yaml.xz'.
+                              [default: <DISABLED>]
   --override, -D=<key=value>  Input data overrides (e.g., `-D fuel_type=diesel`,
                               `-D prediction.nedc_h.vehicle_mass=1000`).
   -l, --list                  List available models.
@@ -638,9 +642,17 @@ def _main(*args):
         for w in warns:
             log.warning(w)
 
-    if opts.get('--comparable', False):
+    from co2mpas import comparable
+    co2mpare_with_fpath = opts.get('--co2mparable')
+    if co2mpare_with_fpath != '<DISABLED>' or \
+            comparable.bool_env(comparable.CO2MPARE_ENABLED, False):
+        ## Too slow recursive import,
+        #  referencing elements too deep into the model.
         from co2mpas.comparable import co2hasher
-        co2hasher.Co2Hasher()
+        co2hasher.Co2Hasher(
+            co2mpare_with_fpath=(co2mpare_with_fpath
+                                 if co2mpare_with_fpath != '<DISABLED>' else
+                                 None))
 
     if opts['--version']:
         v = build_version_string(verbose)

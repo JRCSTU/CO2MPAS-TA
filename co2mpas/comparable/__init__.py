@@ -4,6 +4,8 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
+"Generate co2mparable by intercepting all Schedula function-calls and hashing args/results."
+import sys
 from abc import ABC, abstractmethod
 from binascii import crc32
 from co2mpas.model.physical.engine.co2_emission import IdleFuelConsumptionModel, FMEP
@@ -12,12 +14,13 @@ from co2mpas.model.physical.gear_box import GearBoxLosses, GearBoxModel
 from co2mpas.model.physical.wheels import WheelsModel
 from collections import defaultdict, abc
 import logging
+import lzma
 import operator
 from schedula import Dispatcher, add_args
 from schedula.utils import sol, dsp
 import tempfile
 import types
-from typing import Tuple, Sequence, Mapping, Any, Callable, Optional
+from typing import Tuple, Sequence, Mapping, Any, Callable, Optional, Union
 
 import contextvars
 from numpy import ndarray
@@ -25,9 +28,26 @@ from pandas.core.generic import NDFrame
 
 import functools as fnt
 import toolz.dicttoolz as dtz
+import weakref
+import time
+import os
 
 
 log = logging.getLogger(__name__)
+
+FLUSH_INTERVAL_SEC = 3
+#: Env-var that when true, co2mparable is generated and optionally compared
+#: against an existing co2mparable given in --co2mparable=<old-yaml>
+CO2MPARE_ENABLED = 'CO2MPARE_ENABLED'
+#: Env-var that when true, generate compressed co2mparable (as '.xz' with LZMA).
+CO2MPARE_ZIP = 'CO2MPARE_ZIP'
+#: Env-var specifying an existing yaml(.xz) co2mparable to compare while executing.
+CO2MPARE_WITH_FPATH = 'CO2MPARE_WITH_FPATH'
+
+def bool_env(env_var, default):
+    "A `true` is any non-null value except: 0, false, off"
+    v = os.environ.get(env_var, default)
+    return v and v.lower() not in ('0', 'false', 'off')
 
 
 def _convert_fun(fun):
@@ -41,7 +61,7 @@ def _convert_meth(fun):
 
 
 def _convert_dict(d):
-    "Expand into a sequence, to allow partials and funcs to weed out."
+    "Expand into a sequence` k1, v1, k2,     ...`, to allow partials and funcs to weed out."
     return [i for pair in d.items() for i in pair]
 
 
@@ -92,6 +112,8 @@ def _to_bytes(item) -> bytes:
             return item.values.tobytes()
 
         return str(item).encode(errors='ignore')
+    except KeyboardInterrupt:
+        raise
     except Exception as ex:
         print("CKerr: %s\n  %s" % (ex, item))
         raise
@@ -213,9 +235,32 @@ class ComparableHasher(ABC):
 
         return ckmap
 
+    def _yield_old_non_print_lines(self):
+        "Skip debug lines in old file, preserving line-numbering."
+        for l in self._old_ckfile:
+            if not l.startswith('- PRINT'):
+                yield l
+            self._old_nline += 1
+
+    def _write(self, text, *, skip_compare=False):
+        "Write text and compare it against any old-file, preserving line-numbering."
+        new_lines = text.split('\n')
+        self._ckfile.write(text)
+
+        if self._old_ckfile and not skip_compare:
+            old_lines = [oldl
+                         for _newl, oldl in zip(new_lines,
+                                                self._yield_old_non_print_lines())]
+            if old_lines and new_lines != old_lines:
+                log.info('Comparable missmatch: NEW#L%i != OLD#L%i',
+                         self._ckfile_nline, self._old_nline)
+
+        self._ckfile_nline += len(new_lines)
+
     #: The schedula functions visited stored here along with
     #: their checksum of all their args, forming a tree-path.
     _checksum_stack = contextvars.ContextVar('checksum_stack', default=('', 0))
+    _last_flash = time.clock()
 
     def eval_fun(self_sol, self, args, node_id, node_attr, attr):  # @NoSelf
         fun = node_attr['function']
@@ -246,10 +291,9 @@ class ComparableHasher(ABC):
         ## Dump comparable lines form INP.
         #
         if ckmap:
-            self._ckfile.write('\n- %s.INP: \n%s' % (
-                funpath,
-                ''.join('    - %s: %s\n' % (name, ck)
-                        for name, ck in ckmap.items())))
+            self._write('\n' +
+                               ''.join('- INP, %s, %s, %i\n' % (funpath, name, ck)
+                                       for name, ck in ckmap.items()))
 
         ## Do nested schedula call.
         #
@@ -268,28 +312,48 @@ class ComparableHasher(ABC):
                 names = node_attr.get('outputs', ('RES', ))
                 assert not isinstance(names, str), names
                 ckmap = self._make_args_map(names, res, per_func_xargs, expandargs=False)
-                self._ckfile.write('\n- %sOUT: \n%s' % (
-                    funpath,
-                    ''.join('    - %s: %s\n' % (name, ck)
-                            for name, ck in ckmap.items())))
+                self._write('\n' +
+                                   ''.join('- OUT, %s, %s, %i\n' % (funpath, name, ck)
+                                           for name, ck in ckmap.items()))
 
             ## Dump any collected dubugged items to print.
             #
             if self._checksum_stack.get()[0] == '':
                 if self._args_printed:
-                    self._ckfile.write('- PRINTED:\n' + ''.join(
+                    ## Note: not compared.
+                    self._write('- PRINT:\n' + ''.join(
                         '  - %s: %s\n' % (k, v)
-                        for k, v in self._args_printed))
+                        for k, v in self._args_printed),
+                    skip_compare=True)
                     self._args_printed.clear()
+
+            now = time.clock()
+            if now - self._last_flash > FLUSH_INTERVAL_SEC:
                 self._ckfile.flush()
+                self._last_flash = now
 
     _ckfile = None
+    _ckfile_nline = 0
+    _old_ckfile = None
+    _old_nline = 0
     _org_eval_fun = None
 
-    def __init__(self):
-        """
-        Patch schedula to start collecting its calls, and open dump-file.
+    def _open_file(self, fpath, mode, *args, **kw):
+        if fpath.endswith('.xz'):
+            if 'w' in mode:
+                FLUSH_INTERVAL_SEC = sys.maxsize  # no fun flushing zip-archives
+            return lzma.open(fpath, mode, *args, **kw)
+        return open(fpath, mode, *args, **kw)
 
+    def __init__(self, *,
+                 compare_with_fpath: Union[str, Path, None] = None):
+        """
+        Intercept schedula and open new & old files if env[CO2MPARE_ENABLED] is true.
+
+        :param co2mpare_enabled:
+            if true/false, override env[CO2MPARE_ENABLED]
+        :param co2mpare_with_fpath:
+            if true/false, override env[CO2MPARE_WITH_FPATH]
         - must be called only once.
         """
         global _hasher
@@ -297,14 +361,26 @@ class ComparableHasher(ABC):
         if _hasher:
             raise AssertionError("Already patched dsp.Solution!")
 
-        self._org_eval_fun = sol.Solution._evaluate_function
-        _fd, fpath = tempfile.mkstemp(suffix='.yaml',
-                                      prefix='co2funcsums-',
+        suffix = '.yaml%s' % ('.xz' if bool_env(CO2MPARE_ZIP, True) else '')
+        _fd, fpath = tempfile.mkstemp(suffix=suffix,
+                                      prefix='co2cksums-',
                                       text=False)
         log.info("Writing `comparable` at: %s", fpath)
-        self._ckfile = open(fpath, 'w')  # will close when process die...
+        self._ckfile = self._open_file(fpath, 'wt')
+        ## close before process dies...
+        weakref.finalize(self, self._ckfile.close)
+
+        if compare_with_fpath:
+            self._old_ckfile = self._open_file(compare_with_fpath, 'rt')
+            ## close before process dies...
+            weakref.finalize(self, self._old_ckfile.close)
+
+        ## Intercept Schedula.
+        #
+        self._org_eval_fun = sol.Solution._evaluate_function
         sol.Solution._evaluate_function = fnt.partialmethod(
             ComparableHasher.eval_fun, self)  # `self` will pass as the 2nd arg
+
         _hasher = self
 
 
