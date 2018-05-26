@@ -55,7 +55,7 @@ OPTIONS:
                               Overrides CO2MPARE_ENABLED and CO2MPARE_WITH_FPATH env-vars
                               (unless `--co2mparable=` specified).
                               The <old-yaml> may end with '(txt|.yaml)[.xz]'.
-                              Other env-vars CO2MPARE_ZIP.
+                              Other env-vars: CO2MPARE_YAML (default: CSV), CO2MPARE_ZIP(yes)
                               [default: <DISABLED>]
   --override, -D=<key=value>  Input data overrides (e.g., `-D fuel_type=diesel`,
                               `-D prediction.nedc_h.vehicle_mass=1000`).

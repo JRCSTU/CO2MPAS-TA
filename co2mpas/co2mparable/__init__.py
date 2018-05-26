@@ -19,6 +19,8 @@ from typing import Optional
 CO2MPARE_ENABLED = 'CO2MPARE_ENABLED'
 #: Env-var that when true, generate compressed co2mparable (as '.xz' with LZMA).
 CO2MPARE_ZIP = 'CO2MPARE_ZIP'
+#: Env-var that when true, co2mparable stored as yaml else as text-lines..
+CO2MPARE_YAML = 'CO2MPARE_YAML'
 #: Env-var specifying an existing yaml(.xz) co2mparable to compare while executing.
 CO2MPARE_WITH_FPATH = 'CO2MPARE_WITH_FPATH'
 
@@ -63,6 +65,7 @@ def enable_hasher(*,
             compare_with_fpath=(compare_with_fpath
                                  if compare_with_fpath != '<DISABLED>' else
                                  None),
+            dump_yaml=bool_env(CO2MPARE_YAML, False),
             zip_output=bool_env(CO2MPARE_ZIP, True)
         )
 

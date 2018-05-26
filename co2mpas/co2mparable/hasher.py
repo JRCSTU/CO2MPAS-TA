@@ -196,7 +196,7 @@ class Hasher(ABC):
         else:
             assert len(names) >= len(args), (len(names), len(args))
             inp = dict(zip(names, args))
-            # Check there were not any dupe keys.
+            # Check there were not any duplicate keys.
             assert len(inp) == len(args), (len(inp), len(args))
 
 
@@ -240,7 +240,7 @@ class Hasher(ABC):
                 yield l
             self._old_nline += 1
 
-    def _write(self, text, *, skip_compare=False):
+    def write(self, text, *, skip_compare=False):
         "Write text and compare it against any old-file, preserving line-numbering."
         new_lines = text.split('\n')
         self._ckfile.write(text)
@@ -255,6 +255,17 @@ class Hasher(ABC):
 
         self._ckfile_nline += len(new_lines)
 
+    def dump_args(self, funpath, ckmap):
+        if self._dump_yaml:
+            self.write('\n- %s:\n%s' % (
+                funpath,
+              ''.join('    %s: %i\n' % (name, ck)
+                      for name, ck in ckmap.items())))
+        else:
+            self.write('\n' +
+                        ''.join('%s,%s,%i\n' % (funpath, name, ck)
+                                for name, ck in ckmap.items()))
+
     #: The schedula functions visited stored here along with
     #: their checksum of all their args, forming a tree-path.
     _checksum_stack = contextvars.ContextVar('checksum_stack', default=('', 0))
@@ -262,11 +273,17 @@ class Hasher(ABC):
 
     def __init__(self, *,
                  compare_with_fpath: Union[str, Path, None] = None,
-                 zip_output:bool = None):
+                 zip_output: bool = None,
+                 dump_yaml: bool = None):
         "Intercept schedula and open new & old co2mparable files."
-        suffix = '.yaml%s' % ('.xz' if zip_output else '')
+        self._dump_yaml = bool(compare_with_fpath and
+                               '.yaml' in compare_with_fpath.lower() or
+                               dump_yaml)
+
+        suffix = '%s%s' % ('.yaml' if self._dump_yaml else '.txt',
+                           '.xz' if zip_output else '')
         _fd, fpath = tempfile.mkstemp(suffix=suffix,
-                                      prefix='co2cksums-',
+                                      prefix='co2mparable-',
                                       text=False)
         log.info("Writing co2mparable at: %s", fpath)
         self._ckfile = self._open_file(fpath, 'wt')
@@ -302,7 +319,7 @@ def my_eval_fun(solution: sol.Solution,
     funpath, base_ck = hasher._checksum_stack.get()
     funpath = '%s/%s' % (funpath, node_id)
 
-    ## Checksums
+    ## Checksum INPs
     #
     # if funames & hasher.funs_to_reset.keys():
     #     base_ck = 0
@@ -311,12 +328,10 @@ def my_eval_fun(solution: sol.Solution,
     ckmap = hasher._make_args_map(names, args, per_func_xargs)
     #myck = hasher.checksum(base_ck, list(ckmap.values()))
 
-    ## Dump co2mparable lines form INP.
+    ## Dump co2mparable lines for INP.
     #
     if ckmap:
-        hasher._write('\n' +
-                      ''.join('- INP, %s, %s, %i\n' % (funpath, name, ck)
-                              for name, ck in ckmap.items()))
+        hasher.dump_args('INP/%s' % funpath, ckmap)
 
     ## Do nested schedula call.
     #
@@ -328,26 +343,25 @@ def my_eval_fun(solution: sol.Solution,
     finally:
         hasher._checksum_stack.reset(token)
 
-        ## Dump co2mparable lines form OUT.
+        ## Checksum & Dump OUT.
         #
-        ## No == compares, res might be dataframe.
+        ## No == comparisons, res might be dataframe.
         if res is not  None:
             names = node_attr.get('outputs', ('RES', ))
             assert not isinstance(names, str), names
             ckmap = hasher._make_args_map(names, res, per_func_xargs, expandargs=False)
-            hasher._write('\n' +
-                          ''.join('- OUT, %s, %s, %i\n' % (funpath, name, ck)
-                                  for name, ck in ckmap.items()))
+            hasher.dump_args('OUT/%s' % funpath, ckmap)
 
-        ## Dump any collected dubugged items to print.
+        ## Dump any collected debugged items to print
+        #  when funpath at root.
         #
         if hasher._checksum_stack.get()[0] == '':
             if hasher._args_printed:
                 ## Note: not compared.
-                hasher._write('- PRINT:\n' +
-                              ''.join('  - %s: %s\n' % (k, v)
-                                      for k, v in hasher._args_printed),
-                skip_compare=True)
+                hasher.write('- PRINT:\n' +
+                             ''.join('  - %s: %s\n' % (k, v)
+                                     for k, v in hasher._args_printed),
+                             skip_compare=True)
                 hasher._args_printed.clear()
 
         now = time.clock()
