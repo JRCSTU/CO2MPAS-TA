@@ -12,6 +12,7 @@ from co2mpas.model.physical.engine.co2_emission import IdleFuelConsumptionModel,
 from co2mpas.model.physical.wheels import WheelsModel
 from co2mpas.model.physical.final_drive import FinalDriveModel
 from . import ComparableHasher, _convert_partial
+from co2mpas.comparable import _convert_obj
 
 
 def _remove_timestamp_from_plan(item):
@@ -74,9 +75,9 @@ class Co2Hasher(ComparableHasher):
     def args_to_print(self):
         return {
             '_',
-            'full_bmep_curve',
             'correct_gear',
             'error_function_on_emissions',
+            'final_drive_ratios'
         }
 
     @property
@@ -84,8 +85,8 @@ class Co2Hasher(ComparableHasher):
         return {
             'base_data': _remove_timestamp_from_plan,
             'plan_data': _remove_timestamp_from_plan,
-            #'correct_gear': _convert_obj,
-            #'gear_box_loss_model': _convert_obj,
+            'correct_gear': _convert_obj,
+            'gear_box_loss_model': _convert_obj,
             'idle_fuel_consumption_model': _convert_fmep_in_idle,
             'fmep_model': _convert_interp_partial_in_fmep,
         }
