@@ -39,66 +39,55 @@ class Co2Hasher(Hasher):
     #: Map
     #:    {<funame}: (<xarg1>, ...)}
     #: A `None` value exclude the whole function.
-    @property
-    def funs_to_exclude(self):
-        return {
-            #'get_cache_fpath': None,
-            'default_start_time': None,
-            'default_timestamp': None,
-        }
+    funs_to_exclude = {
+        #'get_cache_fpath': None,
+        'default_start_time': None,
+        'default_timestamp': None,
+        '': None,
+    }
 
-    @property
-    def funs_to_reset(self):
-        return {
-        }
+    funs_to_reset = {
+    }
 
-    @property
-    def args_to_exclude(self):
-        return {
-            '_',  # make it a set, even when items below missing
-            'output_folder',
-            'vehicle_name',
-            'output_file_name',
-            'timestamp',
-            'start_time',
-            'output_file_name',     # contains timestamp
-            'excel',
-            'name',
+    args_to_exclude = {
+        '_',  # make it a set, even when items below missing
+        'output_folder',
+        'vehicle_name',
+        'output_file_name',
+        'timestamp',
+        'start_time',
+        'output_file_name',     # contains timestamp
+        'excel',
+        'name',
 
-            'gear_filter',          # a function
-            'tau_function',         # a function
-            'k_factor_curve',       # a function
-            # 'full_load_curve',      # an InterpolatedUnivariateSpline
-        }
+        'gear_filter',          # a function
+        'tau_function',         # a function
+        'k_factor_curve',       # a function
+        # 'full_load_curve',      # an InterpolatedUnivariateSpline
+    }
 
-    @property
-    def args_to_print(self):
-        return {
-            '_',
-            'correct_gear',
-            'error_function_on_emissions',
-            'final_drive_ratios'
-        }
+    args_to_print = {
+        '_',
+        'correct_gear',
+        'error_function_on_emissions',
+        'final_drive_ratios'
+    }
 
-    @property
-    def args_to_convert(self):
-        return {
-            'base_data': _remove_timestamp_from_plan,
-            'plan_data': _remove_timestamp_from_plan,
-            'correct_gear': _convert_obj,
-            'gear_box_loss_model': _convert_obj,
-            'idle_fuel_consumption_model': _convert_fmep_in_idle,
-            'fmep_model': _convert_interp_partial_in_fmep,
-        }
+    args_to_convert = {
+        'base_data': _remove_timestamp_from_plan,
+        'plan_data': _remove_timestamp_from_plan,
+        'correct_gear': _convert_obj,
+        'gear_box_loss_model': _convert_obj,
+        'idle_fuel_consumption_model': _convert_fmep_in_idle,
+        'fmep_model': _convert_interp_partial_in_fmep,
+    }
 
-    @property
-    def objects_to_convert(self):
-        return (
-            Dispatcher, add_args,
-            GearBoxLosses,
-            GearBoxModel,
-            IdleFuelConsumptionModel,
-            FMEP,
-            WheelsModel,
-            FinalDriveModel,
-        )
+    objects_to_convert = (
+        Dispatcher, add_args,
+        GearBoxLosses,
+        GearBoxModel,
+        IdleFuelConsumptionModel,
+        FMEP,
+        WheelsModel,
+        FinalDriveModel,
+    )
