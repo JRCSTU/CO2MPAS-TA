@@ -17,7 +17,7 @@ import sys
 import tempfile
 import time
 import types
-from typing import Tuple, Sequence, Mapping, Any, Callable, \
+from typing import Tuple, List, Sequence, Mapping, Any, Callable, \
     Optional, Union  # @UnusedImport
 import weakref
 
@@ -187,7 +187,9 @@ class Hasher(ABC):
              n not in func_xargs}
         return d
 
-    def _make_args_map(self, names, args, per_func_xargs: Sequence, expandargs=True):
+    def dump_args_map(self, funpath: str,
+                      names:List[str], args,
+                      per_func_xargs: Sequence, expandargs=True):
         if not names:
             names = ['_item_%i' % i for i in range(len(args))]
             inp = dict(zip(names, args))
@@ -214,6 +216,10 @@ class Hasher(ABC):
 
         ckmap = self._args_cked(inp.items(), per_func_xargs)
 
+        if ckmap:
+            self._dump_args(funpath, ckmap)
+
+        ## return for inspeaxtion, or to generate a global hash.
         return ckmap
 
     _ckfile = None
@@ -265,7 +271,7 @@ class Hasher(ABC):
                 self._old_nline += nlines
             self._ckfile_nline += nlines
 
-    def dump_args(self, funpath, ckmap):
+    def _dump_args(self, funpath, ckmap):
         if self._dump_yaml:
             self._write('\n- %s:\n%s' % (
                 funpath,
@@ -278,7 +284,7 @@ class Hasher(ABC):
 
     #: The schedula functions visited stored here along with
     #: their checksum of all their args, forming a tree-path.
-    _checksum_stack = contextvars.ContextVar('checksum_stack', default=('', 0))
+    _checksum_stack = contextvars.ContextVar('checksum_stack', default='')
     _last_flash = time.clock()
 
     def dump_args_to_debug(self):
@@ -335,46 +341,42 @@ def my_eval_fun(solution: sol.Solution,
             return hasher._org_eval_fun(solution, args, node_id, node_attr, attr)
         per_func_xargs.update(xargs)
 
-    funpath, base_ck = hasher._checksum_stack.get()
+    funpath = hasher._checksum_stack.get()
     funpath = '%s/%s' % (funpath, node_id)
 
-    ## Checksum INPs
+    ## Checksum, Dump & Compare INPs.
     #
-    # if funames & hasher.funs_to_reset.keys():
-    #     base_ck = 0
-    base_ck = myck = 0  # RESET ALWAYS!
     inpnames = node_attr.get('inputs')
-    ckmap = hasher._make_args_map(inpnames, args, per_func_xargs)
+    hasher.dump_args_map('INP/' + funpath,
+                         inpnames, args,
+                         per_func_xargs)
     #myck = hasher.checksum(base_ck, list(ckmap.values()))
-
-    ## Dump co2mparable lines for INP.
-    #
-    if ckmap:
-        hasher.dump_args('INP/%s' % funpath, ckmap)
 
     ## Do nested schedula call.
     #
     res = None
-    token = hasher._checksum_stack.set((funpath, myck))
+    token = hasher._checksum_stack.set(funpath)
     try:
         res = hasher._org_eval_fun(solution, args, node_id, node_attr, attr)
         return res
     finally:
         hasher._checksum_stack.reset(token)
 
-        ## Checksum & Dump OUT.
+        ## Checksum, Dump & Compare OUTs.
         #
         ## No == comparisons, res might be dataframe.
         if res is not  None:
             outnames = node_attr.get('outputs', ('RES', ))
             assert not isinstance(outnames, str), outnames
-            ckmap = hasher._make_args_map(outnames, res, per_func_xargs, expandargs=False)
-            hasher.dump_args('OUT/%s' % funpath, ckmap)
+            hasher.dump_args_map('OUT/' + funpath,
+                                 outnames, res,
+                                 per_func_xargs,
+                                 expandargs=False)
 
         ## Dump any collected debugged items to print
         #  when funpath at root.
         #
-        if hasher._checksum_stack.get()[0] == '':
+        if hasher._checksum_stack.get() == '':
             hasher.dump_args_to_debug()
 
         now = time.clock()
