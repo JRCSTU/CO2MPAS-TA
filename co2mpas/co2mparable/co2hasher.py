@@ -12,7 +12,7 @@ from co2mpas.model.physical.engine.co2_emission import IdleFuelConsumptionModel,
 from co2mpas.model.physical.wheels import WheelsModel
 from co2mpas.model.physical.final_drive import FinalDriveModel
 from . import ComparableHasher, _convert_partial
-from co2mpas.comparable import _convert_obj
+from . import _convert_obj
 
 
 def _remove_timestamp_from_plan(item):

@@ -5,7 +5,6 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 "Generate co2mparable by intercepting all Schedula function-calls and hashing args/results."
-import sys
 from abc import ABC, abstractmethod
 from binascii import crc32
 from co2mpas.model.physical.engine.co2_emission import IdleFuelConsumptionModel, FMEP
@@ -16,11 +15,16 @@ from collections import defaultdict, abc
 import logging
 import lzma
 import operator
+import os
+from pathlib import Path
 from schedula import Dispatcher, add_args
 from schedula.utils import sol, dsp
+import sys
 import tempfile
+import time
 import types
 from typing import Tuple, Sequence, Mapping, Any, Callable, Optional, Union
+import weakref
 
 import contextvars
 from numpy import ndarray
@@ -28,9 +32,6 @@ from pandas.core.generic import NDFrame
 
 import functools as fnt
 import toolz.dicttoolz as dtz
-import weakref
-import time
-import os
 
 
 log = logging.getLogger(__name__)
@@ -46,7 +47,9 @@ CO2MPARE_WITH_FPATH = 'CO2MPARE_WITH_FPATH'
 
 def bool_env(env_var, default):
     "A `true` is any non-null value except: 0, false, off"
-    v = os.environ.get(env_var, default)
+    if env_var not in os.environ:
+        return default
+    v = os.environ[env_var]
     return v and v.lower() not in ('0', 'false', 'off')
 
 
@@ -235,6 +238,23 @@ class ComparableHasher(ABC):
 
         return ckmap
 
+    _ckfile = None
+    _ckfile_nline = 0
+    _old_ckfile = None
+    _old_nline = 0
+    _org_eval_fun = None
+
+    def _open_file(self, fpath, mode, *args, **kw):
+        if fpath.endswith('.xz'):
+            if 'w' in mode:
+                FLUSH_INTERVAL_SEC = sys.maxsize  # no fun flushing zip-archives
+            return lzma.open(fpath, mode, *args, **kw)
+        fp = open(fpath, mode, *args, **kw)
+        ## close before process dies...
+        weakref.finalize(self, fp.close)
+
+        return fp
+
     def _yield_old_non_print_lines(self):
         "Skip debug lines in old file, preserving line-numbering."
         for l in self._old_ckfile:
@@ -262,126 +282,111 @@ class ComparableHasher(ABC):
     _checksum_stack = contextvars.ContextVar('checksum_stack', default=('', 0))
     _last_flash = time.clock()
 
-    def eval_fun(self_sol, self, args, node_id, node_attr, attr):  # @NoSelf
-        fun = node_attr['function']
-        funame = dsp.parent_func(fun).__name__
-        funames = {node_id, funame}
-
-        ## Filter out Funcs or Args.
-        #
-        per_func_xargs = set()
-        for funame in funames:
-            xargs = self.funs_to_exclude.get(funame, ())
-            if xargs is None:
-                return self._org_eval_fun(self_sol, args, node_id, node_attr, attr)
-            per_func_xargs.update(xargs)
-
-        funpath, base_ck = self._checksum_stack.get()
-        funpath = '%s/%s' % (funpath, node_id)
-
-        ## Checksums
-        #
-        # if funames & self.funs_to_reset.keys():
-        #     base_ck = 0
-        base_ck = myck = 0  # RESET ALWAYS!
-        names = node_attr.get('inputs')
-        ckmap = self._make_args_map(names, args, per_func_xargs)
-        #myck = self.checksum(base_ck, list(ckmap.values()))
-
-        ## Dump comparable lines form INP.
-        #
-        if ckmap:
-            self._write('\n' +
-                               ''.join('- INP, %s, %s, %i\n' % (funpath, name, ck)
-                                       for name, ck in ckmap.items()))
-
-        ## Do nested schedula call.
-        #
-        res = None
-        token = self._checksum_stack.set((funpath, myck))
-        try:
-            res = self._org_eval_fun(self_sol, args, node_id, node_attr, attr)
-            return res
-        finally:
-            self._checksum_stack.reset(token)
-
-            ## Dump comparable lines form OUT.
-            #
-            ## No == compares, res might be dataframe.
-            if res is not  None:
-                names = node_attr.get('outputs', ('RES', ))
-                assert not isinstance(names, str), names
-                ckmap = self._make_args_map(names, res, per_func_xargs, expandargs=False)
-                self._write('\n' +
-                                   ''.join('- OUT, %s, %s, %i\n' % (funpath, name, ck)
-                                           for name, ck in ckmap.items()))
-
-            ## Dump any collected dubugged items to print.
-            #
-            if self._checksum_stack.get()[0] == '':
-                if self._args_printed:
-                    ## Note: not compared.
-                    self._write('- PRINT:\n' + ''.join(
-                        '  - %s: %s\n' % (k, v)
-                        for k, v in self._args_printed),
-                    skip_compare=True)
-                    self._args_printed.clear()
-
-            now = time.clock()
-            if now - self._last_flash > FLUSH_INTERVAL_SEC:
-                self._ckfile.flush()
-                self._last_flash = now
-
-    _ckfile = None
-    _ckfile_nline = 0
-    _old_ckfile = None
-    _old_nline = 0
-    _org_eval_fun = None
-
-    def _open_file(self, fpath, mode, *args, **kw):
-        if fpath.endswith('.xz'):
-            if 'w' in mode:
-                FLUSH_INTERVAL_SEC = sys.maxsize  # no fun flushing zip-archives
-            return lzma.open(fpath, mode, *args, **kw)
-        return open(fpath, mode, *args, **kw)
-
     def __init__(self, *,
-                 compare_with_fpath: Union[str, Path, None] = None):
+                 co2mpare_with_fpath: Union[str, Path, None] = None):
         """
-        Intercept schedula and open new & old files if env[CO2MPARE_ENABLED] is true.
+        Intercept schedula and open new & old co2mparable files.
 
-        :param co2mpare_enabled:
-            if true/false, override env[CO2MPARE_ENABLED]
         :param co2mpare_with_fpath:
-            if true/false, override env[CO2MPARE_WITH_FPATH]
+            if it evaluates to true, overrides env[CO2MPARE_WITH_FPATH]
         - must be called only once.
         """
         global _hasher
 
         if _hasher:
-            raise AssertionError("Already patched dsp.Solution!")
+            raise AssertionError("Already intercepted dsp.Solution!")
 
         suffix = '.yaml%s' % ('.xz' if bool_env(CO2MPARE_ZIP, True) else '')
         _fd, fpath = tempfile.mkstemp(suffix=suffix,
                                       prefix='co2cksums-',
                                       text=False)
-        log.info("Writing `comparable` at: %s", fpath)
+        log.info("Writing co2mparable at: %s", fpath)
         self._ckfile = self._open_file(fpath, 'wt')
-        ## close before process dies...
-        weakref.finalize(self, self._ckfile.close)
 
-        if compare_with_fpath:
-            self._old_ckfile = self._open_file(compare_with_fpath, 'rt')
-            ## close before process dies...
-            weakref.finalize(self, self._old_ckfile.close)
+        co2mpare_with_fpath = co2mpare_with_fpath or os.environ.get(CO2MPARE_WITH_FPATH)
+        if co2mpare_with_fpath:
+            self._old_ckfile = self._open_file(co2mpare_with_fpath, 'rt')
 
         ## Intercept Schedula.
         #
         self._org_eval_fun = sol.Solution._evaluate_function
-        sol.Solution._evaluate_function = fnt.partialmethod(
-            ComparableHasher.eval_fun, self)  # `self` will pass as the 2nd arg
+        ## `self` will bind to 2nd arg, `solution` to 1st
+        sol.Solution._evaluate_function = fnt.partialmethod(my_eval_fun, self)
 
         _hasher = self
+
+
+def my_eval_fun(solution: sol.Solution,
+                hasher: ComparableHasher,
+                args, node_id, node_attr, attr):
+    fun = node_attr['function']
+    funame = dsp.parent_func(fun).__name__
+    funames = {node_id, funame}
+
+    ## Filter out Funcs or Args.
+    #
+    per_func_xargs = set()
+    for funame in funames:
+        xargs = hasher.funs_to_exclude.get(funame, ())
+        if xargs is None:
+            return hasher._org_eval_fun(solution, args, node_id, node_attr, attr)
+        per_func_xargs.update(xargs)
+
+    funpath, base_ck = hasher._checksum_stack.get()
+    funpath = '%s/%s' % (funpath, node_id)
+
+    ## Checksums
+    #
+    # if funames & hasher.funs_to_reset.keys():
+    #     base_ck = 0
+    base_ck = myck = 0  # RESET ALWAYS!
+    names = node_attr.get('inputs')
+    ckmap = hasher._make_args_map(names, args, per_func_xargs)
+    #myck = hasher.checksum(base_ck, list(ckmap.values()))
+
+    ## Dump co2mparable lines form INP.
+    #
+    if ckmap:
+        hasher._write('\n' +
+                      ''.join('- INP, %s, %s, %i\n' % (funpath, name, ck)
+                              for name, ck in ckmap.items()))
+
+    ## Do nested schedula call.
+    #
+    res = None
+    token = hasher._checksum_stack.set((funpath, myck))
+    try:
+        res = hasher._org_eval_fun(solution, args, node_id, node_attr, attr)
+        return res
+    finally:
+        hasher._checksum_stack.reset(token)
+
+        ## Dump co2mparable lines form OUT.
+        #
+        ## No == compares, res might be dataframe.
+        if res is not  None:
+            names = node_attr.get('outputs', ('RES', ))
+            assert not isinstance(names, str), names
+            ckmap = hasher._make_args_map(names, res, per_func_xargs, expandargs=False)
+            hasher._write('\n' +
+                          ''.join('- OUT, %s, %s, %i\n' % (funpath, name, ck)
+                                  for name, ck in ckmap.items()))
+
+        ## Dump any collected dubugged items to print.
+        #
+        if hasher._checksum_stack.get()[0] == '':
+            if hasher._args_printed:
+                ## Note: not compared.
+                hasher._write('- PRINT:\n' +
+                              ''.join('  - %s: %s\n' % (k, v)
+                                      for k, v in hasher._args_printed),
+                skip_compare=True)
+                hasher._args_printed.clear()
+
+        now = time.clock()
+        if now - hasher._last_flash > FLUSH_INTERVAL_SEC:
+            hasher._ckfile.flush()
+            hasher._last_flash = now
 
 
 #: Global stored for :func:`checksum()` below, and to detect double-monkeypatches.

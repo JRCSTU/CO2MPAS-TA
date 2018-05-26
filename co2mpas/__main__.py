@@ -642,13 +642,13 @@ def _main(*args):
         for w in warns:
             log.warning(w)
 
-    from co2mpas import comparable
+    from co2mpas import co2mparable
     co2mpare_with_fpath = opts.get('--co2mparable')
     if co2mpare_with_fpath != '<DISABLED>' or \
-            comparable.bool_env(comparable.CO2MPARE_ENABLED, False):
+            co2mparable.bool_env(co2mparable.CO2MPARE_ENABLED, False):
         ## Too slow recursive import,
         #  referencing elements too deep into the model.
-        from co2mpas.comparable import co2hasher
+        from co2mpas.co2mparable import co2hasher
         co2hasher.Co2Hasher(
             co2mpare_with_fpath=(co2mpare_with_fpath
                                  if co2mpare_with_fpath != '<DISABLED>' else
