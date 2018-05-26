@@ -4,6 +4,7 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
+"Co2mpas-model specific conversions for co2mparable-hasher."
 from schedula import Dispatcher, add_args
 
 import toolz.dicttoolz as dtz
@@ -11,8 +12,7 @@ from co2mpas.model.physical.gear_box import GearBoxLosses, GearBoxModel
 from co2mpas.model.physical.engine.co2_emission import IdleFuelConsumptionModel, FMEP
 from co2mpas.model.physical.wheels import WheelsModel
 from co2mpas.model.physical.final_drive import FinalDriveModel
-from . import ComparableHasher, _convert_partial
-from . import _convert_obj
+from .hasher import Hasher, _convert_partial, _convert_obj
 
 
 def _remove_timestamp_from_plan(item):
@@ -35,7 +35,7 @@ def _convert_fmep_in_idle(item):
     return item
 
 
-class Co2Hasher(ComparableHasher):
+class Co2Hasher(Hasher):
     #: Map
     #:    {<funame}: (<xarg1>, ...)}
     #: A `None` value exclude the whole function.

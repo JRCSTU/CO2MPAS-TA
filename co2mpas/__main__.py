@@ -52,8 +52,10 @@ OPTIONS:
   --use-cache                 Use the cached input file.
   --co2mparable=<old-yaml>    (internal) Enable co2parable generation in tmp-folder and
                               optionally provide an <old-yaml> file to compare with while executing.
-                              Overrides env-vars CO2MPARE_ENABLED, CO2MPARE_WITH_FPATH and
-                              optionally CO2MPARE_ZIP, when <old-yaml> ends with '.yaml.xz'.
+                              Overrides CO2MPARE_ENABLED and CO2MPARE_WITH_FPATH env-vars
+                              (unless `--co2mparable=` specified).
+                              The <old-yaml> may end with '(txt|.yaml)[.xz]'.
+                              Other env-vars CO2MPARE_ZIP.
                               [default: <DISABLED>]
   --override, -D=<key=value>  Input data overrides (e.g., `-D fuel_type=diesel`,
                               `-D prediction.nedc_h.vehicle_mass=1000`).
@@ -643,16 +645,13 @@ def _main(*args):
             log.warning(w)
 
     from co2mpas import co2mparable
-    co2mpare_with_fpath = opts.get('--co2mparable')
-    if co2mpare_with_fpath != '<DISABLED>' or \
-            co2mparable.bool_env(co2mparable.CO2MPARE_ENABLED, False):
-        ## Too slow recursive import,
-        #  referencing elements too deep into the model.
-        from co2mpas.co2mparable import co2hasher
-        co2hasher.Co2Hasher(
-            co2mpare_with_fpath=(co2mpare_with_fpath
-                                 if co2mpare_with_fpath != '<DISABLED>' else
-                                 None))
+    compare_with_fpath = opts['--co2mparable']
+    hasher_enabled = compare_with_fpath != '<DISABLED>'
+    co2mparable.enable_hasher(
+        enabled=hasher_enabled or None,
+        compare_with_fpath=(compare_with_fpath
+                            if hasher_enabled else
+                            None))
 
     if opts['--version']:
         v = build_version_string(verbose)
