@@ -43,6 +43,10 @@ class Co2Hasher(Hasher):
         #'get_cache_fpath': None,
         'default_start_time': None,
         'default_timestamp': None,
+        'get_cache_fpath': None,
+        'parse_excel_file': None,
+        'cache_parsed_data': None,
+        'get_template_file_name': None,
         '': None,
     }
 
@@ -52,7 +56,10 @@ class Co2Hasher(Hasher):
     args_to_exclude = {
         '_',  # make it a set, even when items below missing
         'output_folder',
+        'output_template',
         'vehicle_name',
+        'input_file_name',
+        'overwrite_cache',
         'output_file_name',
         'timestamp',
         'start_time',
