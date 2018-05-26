@@ -239,7 +239,7 @@ class ComparableHasher(ABC):
         ## Dump comparable lines form INP.
         #
         if ckmap:
-            self._ckfile.write('\n- %s: \n%s' % (
+            self._ckfile.write('\n- %s.INP: \n%s' % (
                 funpath,
                 ''.join('    - %s: %s\n' % (name, ck)
                         for name, ck in ckmap.items())))
@@ -257,13 +257,14 @@ class ComparableHasher(ABC):
             ## Dump comparable lines form OUT.
             #
             ## No == compares, res might be dataframe.
-            # if res is not  None:
-            #     names = node_attr.get('outputs', ('RES', ))
-            #     assert not isinstance(names, str), names
-            #     ckmap = self._make_args_map(names, res, per_func_xargs, expandargs=False)
-            #     self._ckfile.write('  OUT:\n' + ''.join(
-            #         '    - %s: %s\n' % (name, ck)
-            #         for name, ck in ckmap.items()))
+            if res is not  None:
+                names = node_attr.get('outputs', ('RES', ))
+                assert not isinstance(names, str), names
+                ckmap = self._make_args_map(names, res, per_func_xargs, expandargs=False)
+                self._ckfile.write('\n- %sOUT: \n%s' % (
+                    funpath,
+                    ''.join('    - %s: %s\n' % (name, ck)
+                            for name, ck in ckmap.items())))
 
             ## Dump any collected dubugged items to print.
             #
