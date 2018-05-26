@@ -217,9 +217,11 @@ class Hasher(ABC):
         return ckmap
 
     _ckfile = None
-    _ckfile_nline = 0
+    #: current written-line number
+    _ckfile_nline = 1
     _old_ckfile = None
-    _old_nline = 0
+    #: current read-line
+    _old_nline = 1
     _org_eval_fun = None
 
     def _open_file(self, fpath, mode, *args, **kw):
@@ -236,33 +238,41 @@ class Hasher(ABC):
     def _yield_old_non_print_lines(self):
         "Skip debug lines in old file, preserving line-numbering."
         for l in self._old_ckfile:
-            if not l.startswith('- PRINT'):
-                yield l
-            self._old_nline += 1
+            if l.startswith('- PRINT:'):
+                self._old_nline += 1
+            else:
+                ## nlines increased in self._write()
+                yield l.strip()
 
-    def write(self, text, *, skip_compare=False):
+    def _write(self, text, *, skip_compare=False):
         "Write text and compare it against any old-file, preserving line-numbering."
-        new_lines = text.split('\n')
         self._ckfile.write(text)
 
-        if self._old_ckfile and not skip_compare:
-            old_lines = [oldl
-                         for _newl, oldl in zip(new_lines,
-                                                self._yield_old_non_print_lines())]
-            if old_lines and new_lines != old_lines:
-                log.info('Comparable missmatch: NEW#L%i != OLD#L%i',
-                         self._ckfile_nline, self._old_nline)
+        if self._old_ckfile:
+            ## trim last \n or it consumes +1 from old-file.
+            new_lines = text.rstrip().split('\n')
+            nlines = len(new_lines)
 
-        self._ckfile_nline += len(new_lines)
+            if not skip_compare:
+                old_lines = [oldl
+                             for _newl, oldl in zip(new_lines,
+                                                    self._yield_old_non_print_lines())]
+                if old_lines and new_lines != old_lines:
+                    ## -{{{{-BREAKPOINT HERE TO DISCOVER PROBLEMS-}}}}-
+                    log.debug('Comparable missmatch: NEW#L%i != OLD#L%i (%i)',
+                             self._ckfile_nline, self._old_nline, nlines)
+
+                self._old_nline += nlines
+            self._ckfile_nline += nlines
 
     def dump_args(self, funpath, ckmap):
         if self._dump_yaml:
-            self.write('\n- %s:\n%s' % (
+            self._write('\n- %s:\n%s' % (
                 funpath,
               ''.join('    %s: %i\n' % (name, ck)
                       for name, ck in ckmap.items())))
         else:
-            self.write('\n' +
+            self._write('\n' +
                         ''.join('%s,%s,%i\n' % (funpath, name, ck)
                                 for name, ck in ckmap.items()))
 
@@ -270,6 +280,15 @@ class Hasher(ABC):
     #: their checksum of all their args, forming a tree-path.
     _checksum_stack = contextvars.ContextVar('checksum_stack', default=('', 0))
     _last_flash = time.clock()
+
+    def dump_args_to_debug(self):
+        if self._args_printed:
+            ## Note: not compared.
+            dumpobj = ''.join('  - %s: %s\n' % (k, v)
+                           for k, v in self._args_printed)
+            self._write('- PRINT: %s\n' % dumpobj.replace('\n', '\\n'),
+                       skip_compare=True)
+            self._args_printed.clear()
 
     def __init__(self, *,
                  compare_with_fpath: Union[str, Path, None] = None,
@@ -356,13 +375,7 @@ def my_eval_fun(solution: sol.Solution,
         #  when funpath at root.
         #
         if hasher._checksum_stack.get()[0] == '':
-            if hasher._args_printed:
-                ## Note: not compared.
-                hasher.write('- PRINT:\n' +
-                             ''.join('  - %s: %s\n' % (k, v)
-                                     for k, v in hasher._args_printed),
-                             skip_compare=True)
-                hasher._args_printed.clear()
+            hasher.dump_args_to_debug()
 
         now = time.clock()
         if now - hasher._last_flash > FLUSH_INTERVAL_SEC:
