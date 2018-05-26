@@ -205,7 +205,7 @@ class Hasher(ABC):
         to_proc = self.args_to_convert.keys() & inp.keys()
         if to_proc:
             for k in to_proc:
-                inp[k] = self.args_to_convert[k](inp[k])
+                inp[k] = self.checksum(*self.args_to_convert[k](inp[k]))
 
         ## Debug-print certain args.
         #
@@ -343,8 +343,8 @@ def my_eval_fun(solution: sol.Solution,
     # if funames & hasher.funs_to_reset.keys():
     #     base_ck = 0
     base_ck = myck = 0  # RESET ALWAYS!
-    names = node_attr.get('inputs')
-    ckmap = hasher._make_args_map(names, args, per_func_xargs)
+    inpnames = node_attr.get('inputs')
+    ckmap = hasher._make_args_map(inpnames, args, per_func_xargs)
     #myck = hasher.checksum(base_ck, list(ckmap.values()))
 
     ## Dump co2mparable lines for INP.
@@ -366,9 +366,9 @@ def my_eval_fun(solution: sol.Solution,
         #
         ## No == comparisons, res might be dataframe.
         if res is not  None:
-            names = node_attr.get('outputs', ('RES', ))
-            assert not isinstance(names, str), names
-            ckmap = hasher._make_args_map(names, res, per_func_xargs, expandargs=False)
+            outnames = node_attr.get('outputs', ('RES', ))
+            assert not isinstance(outnames, str), outnames
+            ckmap = hasher._make_args_map(outnames, res, per_func_xargs, expandargs=False)
             hasher.dump_args('OUT/%s' % funpath, ckmap)
 
         ## Dump any collected debugged items to print
