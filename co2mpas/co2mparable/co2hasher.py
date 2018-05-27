@@ -20,8 +20,7 @@ from schedula.utils.sol import Solution
 
 import toolz.dicttoolz as dtz
 
-from .hasher import (Hasher, _convert_partial, _convert_obj,
-                     _convert_dict, _convert_meth)
+from .hasher import Hasher, _convert_partial, _convert_obj, _convert_dict
 
 
 def _remove_timestamp_from_plan(item):

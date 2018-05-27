@@ -11,18 +11,20 @@ import logging
 import lzma
 import operator
 from pathlib import Path  # @UnusedImport
+import re
 from schedula.utils import sol, dsp
 import sys
 import tempfile
 import time
 import types
-from typing import Tuple, List, Sequence, Mapping, Any, \
+from typing import Tuple, List, Sequence, Mapping, Any, Pattern, \
     Optional, Union  # @UnusedImport
 import weakref
 
 import contextvars
 from numpy import ndarray
 from pandas.core.generic import NDFrame
+from toolz import dicttoolz as dtz
 
 import functools as fnt
 
@@ -79,6 +81,14 @@ def _to_bytes(item) -> bytes:
     except Exception as ex:
         print("CKerr: %s\n  %s" % (ex, item))
         raise
+
+
+def _match_regex_map(s: str, d: Mapping[Pattern, Any], default=None):
+    "Return the value of the 1st matching regex key in the dict. "
+    for regex, v in d.items():
+        if regex.match(s):
+            return v
+    return default
 
 
 class Hasher:
@@ -262,7 +272,8 @@ class Hasher:
                  zip_output: bool = None,
                  dump_yaml: bool = None):
         "Intercept schedula and open new & old co2mparable files."
-        ## TODO: sanity checks on the subclass.
+        ## TODO: more sanity checks on the subclass.
+        self.funcs_to_exclude = dtz.keymap(re.compile, self.funcs_to_exclude)
 
         self._dump_yaml = bool(compare_with_fpath and
                                '.yaml' in compare_with_fpath.lower() or
@@ -299,13 +310,18 @@ def my_eval_fun(solution: sol.Solution,
     #
     per_func_xargs = set()
     for funame in funames:
-        xargs = hasher.funcs_to_exclude.get(funame, ())
-        if (xargs is None or
-                not funame[0].isidentifier() or     # formulas
-                funame.startswith('IFERROR')    # formulas
-            ):
+        ## Exclude certain functions
+        #
+        exclude = (not funame[0].isidentifier() or     # formulas
+                   funame.startswith('IFERROR'))       # formulas
+        if not exclude:
+            xargs = _match_regex_map(funame, hasher.funcs_to_exclude, ())
+            if xargs is None:
+                exclude = True
+            else:
+                per_func_xargs.update(xargs)    # btw prepare per-fun args exclusions
+        if exclude:
             return hasher._org_eval_fun(solution, args, node_id, node_attr, attr)
-        per_func_xargs.update(xargs)
 
     funpath = hasher._checksum_stack.get()
     funpath = '%s/%s' % (funpath, node_id)
