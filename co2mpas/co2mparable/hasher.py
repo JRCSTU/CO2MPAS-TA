@@ -5,20 +5,18 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 "Generate co2mparable by intercepting all Schedula function-calls and hashing args/results."
-from abc import ABC, abstractmethod
 from binascii import crc32
 from collections import defaultdict
 import logging
 import lzma
 import operator
-import os
 from pathlib import Path  # @UnusedImport
 from schedula.utils import sol, dsp
 import sys
 import tempfile
 import time
 import types
-from typing import Tuple, List, Sequence, Mapping, Any, Callable, \
+from typing import Tuple, List, Sequence, Mapping, Any, \
     Optional, Union  # @UnusedImport
 import weakref
 
@@ -103,41 +101,7 @@ def _to_bytes(item) -> bytes:
         raise
 
 
-class Hasher(ABC):
-    @property
-    @abstractmethod
-    def funs_to_exclude(self) -> Mapping[str, Any]:
-        """
-        A Map ``{<funame}: (<xarg1>, ...)}``, where
-        a `None` value exclude the whole function.
-        """
-        ...
-
-    @property
-    @abstractmethod
-    def funs_to_reset(self) -> set:
-        ...
-
-    @property
-    @abstractmethod
-    def args_to_exclude(self) -> set:
-        ...
-
-    @property
-    @abstractmethod
-    def args_to_print(self) -> set:
-        ...
-
-    @property
-    @abstractmethod
-    def args_to_convert(self) -> Mapping[str, Callable]:
-        ...
-
-    @property
-    @abstractmethod
-    def objects_to_convert(self) -> set:
-        pass
-
+class Hasher:
     #: Collects the values for `self.args_to_print`.
     _args_printed: Tuple[str, Any] = []
 
@@ -158,7 +122,7 @@ class Hasher(ABC):
     #
     #     if isinstance(item, abc.Mapping):
     #         return fnt.reduce(operator.xor, (self._hash(i) for i in item.items()
-    #                                          if i[0] not in self.args_to_exclude), 3)
+    #                                          if i[0] not in self.args_to_skip), 3)
 
         if isinstance(item, types.MethodType):
             return self.checksum(*_convert_meth(item))
@@ -171,8 +135,11 @@ class Hasher(ABC):
         if isinstance(item, defaultdict):
             return self.checksum(*_convert_default_dict(item))
 
-        if isinstance(item, self.objects_to_convert):
+        if isinstance(item, self.classes_to_convert):
             return self.checksum(*_convert_obj(item))
+        if type(item) in self.classes_to_skip:
+            return 13
+
 
         return crc32(_to_bytes(item))
 
@@ -186,7 +153,7 @@ class Hasher(ABC):
                   base_ck=0):
         d = {n: self.checksum(base_ck, a)
              for n, a in arg_pairs
-             if n not in self.args_to_exclude and
+             if n not in self.args_to_skip and
              n not in func_xargs}
         return d
 
@@ -315,6 +282,8 @@ class Hasher(ABC):
                  zip_output: bool = None,
                  dump_yaml: bool = None):
         "Intercept schedula and open new & old co2mparable files."
+        ## TODO: sanity checks on the subclass.
+
         self._dump_yaml = bool(compare_with_fpath and
                                '.yaml' in compare_with_fpath.lower() or
                                dump_yaml)
@@ -350,7 +319,7 @@ def my_eval_fun(solution: sol.Solution,
     #
     per_func_xargs = set()
     for funame in funames:
-        xargs = hasher.funs_to_exclude.get(funame, ())
+        xargs = hasher.funcs_to_exclude.get(funame, ())
         if xargs is None:
             return hasher._org_eval_fun(solution, args, node_id, node_attr, attr)
         per_func_xargs.update(xargs)

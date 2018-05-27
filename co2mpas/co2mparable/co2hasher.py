@@ -6,6 +6,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 "Co2mpas-model specific conversions for co2mparable-hasher."
 from schedula import Dispatcher, add_args
+from schedula.utils.sol import Solution
 
 import toolz.dicttoolz as dtz
 from co2mpas.model.physical.gear_box import GearBoxLosses, GearBoxModel
@@ -39,7 +40,7 @@ class Co2Hasher(Hasher):
     #: Map
     #:    {<funame}: (<xarg1>, ...)}
     #: A `None` value exclude the whole function.
-    funs_to_exclude = {
+    funcs_to_exclude = {
         #'get_cache_fpath': None,
         'default_start_time': None,
         'default_timestamp': None,
@@ -53,7 +54,7 @@ class Co2Hasher(Hasher):
     funs_to_reset = {
     }
 
-    args_to_exclude = {
+    args_to_skip = {
         '_',  # make it a set, even when items below missing
         'output_folder',
         'output_template',
@@ -69,15 +70,11 @@ class Co2Hasher(Hasher):
 
         'gear_filter',          # a function
         'tau_function',         # a function
-        'k_factor_curve',       # a function
-        # 'full_load_curve',      # an InterpolatedUnivariateSpline
     }
 
     args_to_print = {
         '_',
-        'correct_gear',
         'error_function_on_emissions',
-        'final_drive_ratios'
     }
 
     args_to_convert = {
@@ -89,7 +86,8 @@ class Co2Hasher(Hasher):
         'fmep_model': _convert_interp_partial_in_fmep,
     }
 
-    objects_to_convert = (
+    #: Converts them through the standard :func:`_convert_obj()`.
+    classes_to_convert = (
         Dispatcher, add_args,
         GearBoxLosses,
         GearBoxModel,
@@ -98,3 +96,7 @@ class Co2Hasher(Hasher):
         WheelsModel,
         FinalDriveModel,
     )
+
+    classes_to_skip = {
+        Solution
+    }
