@@ -5,19 +5,23 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 "Co2mpas-model specific conversions for co2mparable-hasher."
+from co2mpas.model.physical.electrics import Alternator_status_model
+from co2mpas.model.physical.engine import EngineModel
+from co2mpas.model.physical.engine.co2_emission import IdleFuelConsumptionModel, FMEP
 from co2mpas.model.physical.engine.start_stop import EngineStartStopModel,\
     StartStopModel
-from co2mpas.model.physical.engine.co2_emission import IdleFuelConsumptionModel, FMEP
 from co2mpas.model.physical.engine.thermal import EngineTemperatureModel
 from co2mpas.model.physical.final_drive import FinalDriveModel
 from co2mpas.model.physical.gear_box import GearBoxLosses, GearBoxModel
+from co2mpas.model.physical.gear_box.at_gear import CorrectGear
 from co2mpas.model.physical.wheels import WheelsModel
 from schedula import Dispatcher, add_args
 from schedula.utils.sol import Solution
 
 import toolz.dicttoolz as dtz
 
-from .hasher import Hasher, _convert_partial, _convert_obj
+from .hasher import (Hasher, _convert_partial, _convert_obj,
+                     _convert_dict, _convert_meth)
 
 
 def _remove_timestamp_from_plan(item):
@@ -40,6 +44,16 @@ def _convert_fmep_in_idle(item):
     return item
 
 
+def _convert_correct_gear(cg):
+    item = vars(cg).copy()
+    #mvl = item['mvl']
+    pipe = item['pipe']
+    ppipe = item['prepare_pipe']
+    del item['prepare_pipe']
+    return (*_convert_dict(item), *pipe, *ppipe) #+ \
+        #_convert_obj(mvl)
+
+
 class Co2Hasher(Hasher):
     #: Map
     #:    {<funame}: (<xarg1>, ...)}
@@ -52,6 +66,9 @@ class Co2Hasher(Hasher):
         'parse_excel_file': None,
         'cache_parsed_data': None,
         'get_template_file_name': None,
+        'write_outputs': None,
+        'write_to_excel': None,
+        'bypass': None,
         '': None,
     }
 
@@ -79,6 +96,7 @@ class Co2Hasher(Hasher):
     args_to_print = {
         '_',
         'error_function_on_emissions',
+        'correct_gear',
     }
 
     args_to_convert = {
@@ -88,6 +106,7 @@ class Co2Hasher(Hasher):
         'gear_box_loss_model': _convert_obj,
         'idle_fuel_consumption_model': _convert_fmep_in_idle,
         'fmep_model': _convert_interp_partial_in_fmep,
+        'correct_gear': _convert_correct_gear,
     }
 
     #: Converts them through the standard :func:`_convert_obj()`.
@@ -102,6 +121,9 @@ class Co2Hasher(Hasher):
         EngineTemperatureModel,
         EngineStartStopModel,
         StartStopModel,
+        CorrectGear,
+        Alternator_status_model,
+        EngineModel,
     )
 
     classes_to_skip = {

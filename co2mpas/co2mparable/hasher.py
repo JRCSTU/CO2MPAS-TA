@@ -25,7 +25,6 @@ from numpy import ndarray
 from pandas.core.generic import NDFrame
 
 import functools as fnt
-import toolz.dicttoolz as dtz
 
 from . import CO2MPARE_DEBUG, bool_env
 
@@ -41,18 +40,19 @@ def _convert_fun(fun):
 
 def _convert_meth(fun):
     "hide obj-address from functions."
-    return ('fun: ', fun.__qualname__)
+    return ('meth: ', fun.__qualname__)
 
 
 def _convert_dict(d):
     "Expand into a sequence` k1, v1, k2,     ...`, to allow partials and funcs to weed out."
-    return [i for pair in d.items() for i in pair]
+    return tuple(i for pair in d.items() for i in pair)
 
 
 def _convert_partial(p):
     return ('partial', p.func.__name__,
-            'args', p.args,
-            'kw', _convert_dict(p.keywords))
+            ## Don't delve nto args/kwds
+            p.args,
+            _convert_dict(p.keywords))
 
 
 def _convert_obj(obj):
@@ -61,7 +61,7 @@ def _convert_obj(obj):
 
 
 def _convert_default_dict(d):
-    return (d.default_factory, *d.items())
+    return (d.default_factory, *d.items())  # don't delve into pairs
 
 
 def _to_bytes(item) -> bytes:
@@ -300,7 +300,10 @@ def my_eval_fun(solution: sol.Solution,
     per_func_xargs = set()
     for funame in funames:
         xargs = hasher.funcs_to_exclude.get(funame, ())
-        if xargs is None:
+        if (xargs is None or
+                not funame[0].isidentifier() or     # formulas
+                funame.startswith('IFERROR')    # formulas
+            ):
             return hasher._org_eval_fun(solution, args, node_id, node_attr, attr)
         per_func_xargs.update(xargs)
 
