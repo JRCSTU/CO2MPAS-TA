@@ -69,6 +69,10 @@ class Co2Hasher(Hasher):
         'write_outputs': None,
         'write_to_excel': None,
         'bypass': None,
+        ## Excel write
+        '_build_ref': None,
+        '_build_id': None,
+        '_col2index': None,
         '': None,
     }
 
