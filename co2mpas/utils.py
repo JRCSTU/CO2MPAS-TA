@@ -22,8 +22,6 @@ import statistics
 import sys
 
 import yaml
-
-import networkx as nx
 import numpy as np
 
 
@@ -39,15 +37,16 @@ __all__ = [
 
 
 class Constants(dict):
-    @nx.utils.open_file(1, mode='rb')
     def load(self, file, **kw):
-        self.from_dict(yaml.load(file, **kw))
+        with open(file, 'rb') as f:
+            self.from_dict(yaml.load(f, **kw))
         return self
 
-    @nx.utils.open_file(1, mode='w')
     def dump(self, file, default_flow_style=False, **kw):
-        d = self.to_dict()
-        yaml.dump(d, file, default_flow_style=default_flow_style, **kw)
+        with open(file, 'w') as f:
+            yaml.dump(
+                self.to_dict(), f, default_flow_style=default_flow_style, **kw
+            )
 
     def from_dict(self, d):
         for k, v in sorted(d.items()):

@@ -14,12 +14,10 @@ import logging
 log = logging.getLogger(__name__)
 
 import dill
-import schedula as sh
 
 __all__ = ['load_from_dill', 'save_dill']
 
 
-@sh.open_file(0, mode='rb')
 def load_from_dill(fpath):
     """
     Load inputs from .dill file.
@@ -33,11 +31,12 @@ def load_from_dill(fpath):
     :rtype: dict
     """
     log.debug('Reading dill-file: %s', fpath)
-    return dill.load(fpath)
+    with open(fpath, 'rb') as f:
+        return dill.load(f)
 
 
 # noinspection PyUnusedLocal
-@sh.open_file(1, mode='wb')
 def save_dill(data, fpath, *args, **kwargs):
     log.debug('Writing dill-file: %s', fpath)
-    dill.dump(data, fpath, recurse=False)
+    with open(fpath, 'wb') as f:
+        return dill.dump(data, f, recurse=False)
