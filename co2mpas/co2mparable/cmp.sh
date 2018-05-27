@@ -16,5 +16,5 @@
 #    (same as above with `cut -f1`, ~1400 funcs out of ~2160)
 #
 
-#diff <(xzcat "$1" | awk '!a[$0]++' ) <(xzcat "$2" | awk '!a[$0]++' ) ---speed-large-files
-comm <(xzcat "$1" | awk '!a[$0]++' ) <(xzcat "$2" | awk '!a[$0]++' ) -13
+#diff <(xzcat "$1" | awk '!a[$0]++' ) <(xzcat "$2" | awk '!a[$0]++' ) --speed-large-files
+comm <(xzcat "$1" | sort -u ) <(xzcat "$2" | sort -u ) -23
