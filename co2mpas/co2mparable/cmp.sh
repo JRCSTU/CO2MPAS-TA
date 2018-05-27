@@ -2,8 +2,8 @@
 #
 ## Example commands:
 #
-#  - Count functions::
-#       xzcat <co2mparable-XXX.txt.xz> | cut -d, -f1 |sort --unique |wc -l
+#  - See all function invocations in order::
+#       xzcat <co2mparable-XXX.txt.xz> | cut -d, -f1 |awk '!a[$0]++'
 #
 #  - Show all diff-lines (from 1st file)::
 #       \ls -tr *xz |head -n2 | xargs ./cmp.sh

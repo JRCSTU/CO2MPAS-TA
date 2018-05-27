@@ -8,9 +8,8 @@
 Co2mpas-model specific conversions for co2mparable-hasher.
 
 .. Tip::
-    To discover and fix discrepancies, compare with an old file in debugger,
-    and set a breakpoint in :meth:`Hasher._write_and_compare()`,
-    at the log-statement!
+    Read instructions on :mod:`hasher` explaining how to launch co2mpas
+    in *debugging mode* and populate the structures below.
 """
 from co2mpas.model.physical.clutch_tc.torque_converter import TorqueConverter
 from co2mpas.model.physical.electrics import Alternator_status_model,\

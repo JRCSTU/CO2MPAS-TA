@@ -8,9 +8,16 @@
 Generate co2mparable by intercepting all Schedula function-calls and hashing args/results.
 
 .. Tip::
-    To discover and fix discrepancies, compare with an old file in debugger,
-    and set a breakpoint in :meth:`Hasher._write_and_compare()`,
-    at the log-statement!
+    To discover and fix discrepancies:
+    - set env[CO2MPARE_DEBUG],
+    - set a *breakpoint* in :meth:`Hasher._write_and_compare()`
+      (at the log-statement)
+    - set an old file to compare against in env[CO2MPARE_WITH_FPATH)
+      (or use --co2mparable), and
+    - launch co2mpas in debugger mode, and wait for the breakpoint to trigger.
+      Examine the item to see the reason why it is not hashed the same.
+    - You may have to add the offending item into :attr:`co2hasher.Co2Hasher.args_to_print`
+      and pre-run it on the other computer.
 """
 from binascii import crc32
 from collections import defaultdict
