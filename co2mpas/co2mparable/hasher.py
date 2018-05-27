@@ -283,10 +283,10 @@ class Hasher:
     def dump_args_to_debug(self):
         if self._args_printed:
             ## Note: not compared.
-            dumpobj = ''.join('  - %s: %s\n' % (k, v)
-                           for k, v in self._args_printed)
-            self._write_and_compare('- PRINT: %s\n' % dumpobj.replace('\n', '\\n'),
-                       skip_compare=True)
+            str_objects = [('- PRINT,%s,%s' % (k, v)).replace('\n', '\\n')
+                           for k, v in self._args_printed]
+            self._write_and_compare('\n' + '\n'.join(str_objects),
+                                    skip_compare=True)
             self._args_printed.clear()
 
     def __init__(self, *,
