@@ -5,14 +5,16 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 "Co2mpas-model specific conversions for co2mparable-hasher."
+from co2mpas.model.physical.engine.co2_emission import IdleFuelConsumptionModel, FMEP
+from co2mpas.model.physical.engine.thermal import EngineTemperatureModel
+from co2mpas.model.physical.final_drive import FinalDriveModel
+from co2mpas.model.physical.gear_box import GearBoxLosses, GearBoxModel
+from co2mpas.model.physical.wheels import WheelsModel
 from schedula import Dispatcher, add_args
 from schedula.utils.sol import Solution
 
 import toolz.dicttoolz as dtz
-from co2mpas.model.physical.gear_box import GearBoxLosses, GearBoxModel
-from co2mpas.model.physical.engine.co2_emission import IdleFuelConsumptionModel, FMEP
-from co2mpas.model.physical.wheels import WheelsModel
-from co2mpas.model.physical.final_drive import FinalDriveModel
+
 from .hasher import Hasher, _convert_partial, _convert_obj
 
 
@@ -95,6 +97,8 @@ class Co2Hasher(Hasher):
         FMEP,
         WheelsModel,
         FinalDriveModel,
+        EngineTemperatureModel,
+
     )
 
     classes_to_skip = {
