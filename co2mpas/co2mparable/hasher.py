@@ -79,10 +79,14 @@ def _to_bytes(item) -> bytes:
 
         return str(item).encode(errors='ignore')
     except Exception as ex:
-        log.error("Cannot stringify instance from class `%s` due to: %s" %
-                  type(item), ex)
-        if bool_env(CO2MPARE_DEBUG, False):
-            raise
+        from sklearn.pipeline import Pipeline
+        ## Ex-msg: "scikit-learn estimators should always specify their parameters
+        #           in the signature of their __init__ (no varargs)."
+        if not isinstance(item, Pipeline):
+            log.error("Cannot stringify instance from class `%s` due to: %s" %
+                      type(item), ex)
+            if bool_env(CO2MPARE_DEBUG, False):
+                raise
         return b'\17'
 
 
