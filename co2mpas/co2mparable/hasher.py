@@ -162,9 +162,8 @@ class Hasher:
                       per_func_xargs: Sequence, expandargs=True):
         ## Checksum failures twice, to allow debugging them.
         #
-        i = -1
-        limit = 0
-        while i < limit:
+        i = 0
+        while i < 1 + int(bool_env('CO2MPARE_DEBUG', 0)):
             if not names:
                 names = ['_item_%i' % i for i in range(len(args))]
                 inp = dict(zip(names, args))
@@ -191,10 +190,11 @@ class Hasher:
             ## Checksum:
             ckmap = self._args_cked(inp.items(), per_func_xargs)
 
-            if ckmap:
+            if ckmap and i == 0:  # compare & read old-file only once.
                 ok  = self._write_and_compare(self._ckmap_to_text(funpath, ckmap))
                 if not ok:
-                    limit = int(bool_env('CO2MPARE_DEBUG', 0))
+                    ## -{{{{-BREAKPOINT HERE TO DISCOVER PROBLEMS-}}}}-
+                    pass
             i += 1
 
         ## return for inspeaxtion, or to generate a global hash.

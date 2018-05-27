@@ -61,8 +61,10 @@ def define_k_factor_curve(stand_still_torque_ratio=1.0, lockup_speed_ratio=0.0):
         y = [stand_still_torque_ratio, 1, 1]
 
     res = sci_itp.InterpolatedUnivariateSpline(x, y, k=1)
-    from co2mpas import co2mparable
-    res.co2hash = co2mparable.checksum(x, y)
+
+    from co2mpas.co2mparable import tag_checksum
+    tag_checksum(res, x, y)
+
     return res
 
 
