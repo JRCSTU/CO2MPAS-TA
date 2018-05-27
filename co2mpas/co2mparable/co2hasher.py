@@ -65,14 +65,15 @@ class Co2Hasher(Hasher):
         'parse_excel_file': None,
         'cache_parsed_data': None,
         'get_template_file_name': None,
-        'write_outputs': None,
-        'write_to_excel': None,
         'bypass': None,
         ## Excel write
+        'write_outputs': None,
+        'write_to_excel': None,
         '_build_ref': None,
         '_build_id': None,
-        '_col2index': None,
-        '': None,
+        '_col2index.*': None,
+        '_index2col.*': None,
+        'convert2df': None,
     }
 
     funs_to_reset = {
@@ -94,6 +95,7 @@ class Co2Hasher(Hasher):
 
         'gear_filter',          # a function
         'tau_function',         # a `lognorm` native func with 1 input
+        'CO2MPAS_results',      # a map with 2 Solutions (h, l)
     }
 
     args_to_print = {
