@@ -5,18 +5,23 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 "Co2mpas-model specific conversions for co2mparable-hasher."
-from co2mpas.model.physical.electrics import Alternator_status_model
+from co2mpas.model.physical.clutch_tc.torque_converter import TorqueConverter
+from co2mpas.model.physical.electrics import Alternator_status_model,\
+    AlternatorCurrentModel, ElectricModel
 from co2mpas.model.physical.engine import EngineModel
 from co2mpas.model.physical.engine.co2_emission import IdleFuelConsumptionModel, FMEP
 from co2mpas.model.physical.engine.start_stop import EngineStartStopModel,\
     StartStopModel
-from co2mpas.model.physical.engine.thermal import EngineTemperatureModel
+from co2mpas.model.physical.engine.thermal import EngineTemperatureModel,\
+    ThermalModel
 from co2mpas.model.physical.final_drive import FinalDriveModel
 from co2mpas.model.physical.gear_box import GearBoxLosses, GearBoxModel
 from co2mpas.model.physical.gear_box.at_gear import CorrectGear
 from co2mpas.model.physical.wheels import WheelsModel
 from schedula import Dispatcher, add_args
 from schedula.utils.sol import Solution
+import functools as fnt
+from xgboost import XGBRegressor
 
 import toolz.dicttoolz as dtz
 
@@ -51,6 +56,10 @@ def _convert_correct_gear(cg):
     del item['pipe'], item['prepare_pipe']
     return (*_convert_dict(item), *pipe, *ppipe) #+ \
         #_convert_obj(mvl)
+
+
+_convert_wltp_hl = fnt.partial(dtz.keyfilter,
+                               lambda k: k != 'data')  # `data` is a Solution
 
 
 class Co2Hasher(Hasher):
@@ -98,12 +107,6 @@ class Co2Hasher(Hasher):
         'CO2MPAS_results',      # a map with 2 Solutions (h, l)
     }
 
-    args_to_print = {
-        '_',
-        'error_function_on_emissions',
-        'correct_gear',
-    }
-
     args_to_convert = {
         'base_data': _remove_timestamp_from_plan,
         'plan_data': _remove_timestamp_from_plan,
@@ -112,6 +115,11 @@ class Co2Hasher(Hasher):
         'idle_fuel_consumption_model': _convert_fmep_in_idle,
         'fmep_model': _convert_interp_partial_in_fmep,
         'correct_gear': _convert_correct_gear,
+        'input/wltp_l': _convert_wltp_hl,
+        'input/wltp_h': _convert_wltp_hl,
+        'inputs<0>': _convert_dict,
+        'inputs<1>': _convert_dict,
+        'metrics': _convert_dict,  # dict of funcs
     }
 
     #: Converts them through the standard :func:`_convert_obj()`.
@@ -129,8 +137,19 @@ class Co2Hasher(Hasher):
         CorrectGear,
         Alternator_status_model,
         EngineModel,
+        TorqueConverter,            # XGBoost regressor
+        ThermalModel,               # XGBoost regressor
+        AlternatorCurrentModel,     # XGBoost regressor
+        ElectricModel,
     )
 
     classes_to_skip = {
-        Solution
+        Solution,
+        XGBRegressor,
     }
+
+    args_to_print = {
+        '_',
+        'input/wltp_h',
+    }
+
