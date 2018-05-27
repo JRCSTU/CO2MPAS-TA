@@ -11,6 +11,7 @@ from collections import defaultdict
 import logging
 import lzma
 import operator
+import os
 from pathlib import Path  # @UnusedImport
 from schedula.utils import sol, dsp
 import sys
@@ -27,6 +28,8 @@ from pandas.core.generic import NDFrame
 
 import functools as fnt
 import toolz.dicttoolz as dtz
+
+from . import bool_env
 
 
 log = logging.getLogger(__name__)
@@ -190,34 +193,42 @@ class Hasher(ABC):
     def dump_args(self, funpath: str,
                       names:List[str], args,
                       per_func_xargs: Sequence, expandargs=True):
-        if not names:
-            names = ['_item_%i' % i for i in range(len(args))]
-            inp = dict(zip(names, args))
-        elif len(names) == 1 and not expandargs:  # missing or single RES in "output"
-            inp = {names[0]: args}
-        else:
-            assert len(names) >= len(args), (len(names), len(args))
-            inp = dict(zip(names, args))
-            # Check there were not any duplicate keys.
-            assert len(inp) == len(args), (len(inp), len(args))
-
-
-        ## Process certain args.
+        ## Checksum failures twice, to allow debugging them.
         #
-        to_proc = self.args_to_convert.keys() & inp.keys()
-        if to_proc:
-            for k in to_proc:
-                inp[k] = self.checksum(*self.args_to_convert[k](inp[k]))
+        i = -1
+        limit = 0
+        while i < limit:
+            if not names:
+                names = ['_item_%i' % i for i in range(len(args))]
+                inp = dict(zip(names, args))
+            elif len(names) == 1 and not expandargs:  # missing or single RES in "output"
+                inp = {names[0]: args}
+            else:
+                assert len(names) >= len(args), (len(names), len(args))
+                inp = dict(zip(names, args))
+                # Check there were not any duplicate keys.
+                assert len(inp) == len(args), (len(inp), len(args))
 
-        ## Debug-print certain args.
-        #
-        for name in self.args_to_print & inp.keys():
-            self._args_printed.append((name, inp[name]))
+            ## Process before Checksum on certain args.
+            #
+            to_proc = self.args_to_convert.keys() & inp.keys()
+            if to_proc:
+                for k in to_proc:
+                    inp[k] = self.checksum(*self.args_to_convert[k](inp[k]))
 
-        ckmap = self._args_cked(inp.items(), per_func_xargs)
+            ## Debug-print certain args.
+            #
+            for name in self.args_to_print & inp.keys():
+                self._args_printed.append((name, inp[name]))
 
-        if ckmap:
-            self._write_and_compare(self._ckmap_to_text(funpath, ckmap))
+            ## Checksum:
+            ckmap = self._args_cked(inp.items(), per_func_xargs)
+
+            if ckmap:
+                ok  = self._write_and_compare(self._ckmap_to_text(funpath, ckmap))
+                if not ok:
+                    limit = int(bool_env('CO2MPARE_DEBUG', 0))
+            i += 1
 
         ## return for inspeaxtion, or to generate a global hash.
         return ckmap
@@ -250,10 +261,11 @@ class Hasher(ABC):
                 ## nlines increased in self._write_and_compare()
                 yield l.strip()
 
-    def _write_and_compare(self, text, *, skip_compare=False):
+    def _write_and_compare(self, text, *, skip_compare=False) -> bool:
         "Write text and compare it against any old-file, preserving line-numbering."
         self._ckfile.write(text)
 
+        same = None
         if self._old_ckfile:
             ## trim last \n or it consumes +1 from old-file.
             new_lines = text.rstrip().split('\n')
@@ -263,13 +275,15 @@ class Hasher(ABC):
                 old_lines = [oldl
                              for _newl, oldl in zip(new_lines,
                                                     self._yield_old_non_print_lines())]
-                if old_lines and new_lines != old_lines:
+                same = old_lines and new_lines == old_lines
+                if not same:
                     ## -{{{{-BREAKPOINT HERE TO DISCOVER PROBLEMS-}}}}-
                     log.debug('Comparable missmatch: NEW#L%i != OLD#L%i (%i)',
                              self._ckfile_nline, self._old_nline, nlines)
 
                 self._old_nline += nlines
             self._ckfile_nline += nlines
+            return same
 
     def _ckmap_to_text(self, funpath, ckmap):
         if self._dump_yaml:
