@@ -230,7 +230,7 @@ class Hasher:
 
                 self._old_nline += nlines
             self._ckfile_nline += nlines
-            return same
+        return same
 
     def _ckmap_to_text(self, funpath, ckmap):
         if self._dump_yaml:
@@ -332,12 +332,13 @@ def my_eval_fun(solution: sol.Solution,
         #
         ## No == comparisons, res might be dataframe.
         if res is not  None:
-            outnames = node_attr.get('outputs', ('RES', ))
-            assert not isinstance(outnames, str), outnames
-            hasher.dump_args('OUT/' + funpath,
-                                 outnames, res,
-                                 per_func_xargs,
-                                 expandargs=False)
+            outnames = node_attr.get('outputs')
+            if outnames:
+                assert not isinstance(outnames, str), outnames
+                hasher.dump_args('OUT/' + funpath,
+                                     outnames, res,
+                                     per_func_xargs,
+                                     expandargs=False)
 
         ## Dump any collected debugged items to print
         #  when funpath at root.
