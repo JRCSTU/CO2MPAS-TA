@@ -90,6 +90,11 @@ class Co2Hasher(Hasher):
         '_col2index.*': None,
         '_index2col.*': None,
         'convert2df': None,
+        ## Report: Actually they are good for a single vehicle.
+        'parse_dsp_solution': None,
+        'make_report': None,
+        'get_report_output_data': None,
+        'extract_summary': None,
     }
 
     funs_to_reset = {
@@ -112,6 +117,7 @@ class Co2Hasher(Hasher):
         'gear_filter',          # a function
         'tau_function',         # a `lognorm` native func with 1 input
         'CO2MPAS_results',      # a map with 2 Solutions (h, l)
+        'calibrated_models',    # a dict that gets updated.
     }
 
     args_to_convert = {
@@ -157,6 +163,6 @@ class Co2Hasher(Hasher):
 
     args_to_print = {
         '_',
-        'input/wltp_h',
+        'calibrated_models',
     }
 
