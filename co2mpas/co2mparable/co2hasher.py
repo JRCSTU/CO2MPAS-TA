@@ -49,7 +49,7 @@ def _convert_correct_gear(cg):
     #mvl = item['mvl']
     pipe = item['pipe']
     ppipe = item['prepare_pipe']
-    del item['prepare_pipe']
+    del item['pipe'], item['prepare_pipe']
     return (*_convert_dict(item), *pipe, *ppipe) #+ \
         #_convert_obj(mvl)
 
