@@ -8,7 +8,7 @@
 Simple co2mparable-hasher definitions to cnditionally enable it
 
 without iporting full dependencies (too slow);  model-items can set their ``co2hash``
-attribute by calling :func:`checksum()` here, even when hasher disabled.
+attribute by calling :func:`tag_checksum()` here, even when hasher disabled.
 """
 import os
 from typing import Optional
@@ -23,7 +23,9 @@ CO2MPARE_ZIP = 'CO2MPARE_ZIP'
 CO2MPARE_YAML = 'CO2MPARE_YAML'
 #: Env-var specifying an existing yaml(.xz) co2mparable to compare while executing.
 CO2MPARE_WITH_FPATH = 'CO2MPARE_WITH_FPATH'
-
+#: Env-var when true, and comparing, ck runs twice
+#: to give a 2nd opportunity to inspect the problem to debuggers.
+CO2MPARE_DEBUG = 'CO2MPARE_DEBUG'
 
 def bool_env(env_var, default):
     """
@@ -38,7 +40,7 @@ def bool_env(env_var, default):
     return v and v.lower() not in ('0 false no off') or v == ''
 
 
-#: Global stored for :func:`checksum()` below, and to detect double-monkeypatches.
+#: Global stored for :func:`tag_checksum()` below, and to detect double-monkeypatches.
 _hasher = None
 
 
@@ -70,6 +72,7 @@ def enable_hasher(*,
         )
 
 
-def checksum(*items) -> Optional[int]:
-    "Call this to hash with active hasher, or a dummy one."
-    return _hasher and _hasher.checksum(*items)
+def tag_checksum(tagged, item1, *items) -> Optional[int]:
+    "Call this to tag an object with a has hash from the active hasher, f any."
+    if _hasher:
+        tagged.co2hash = _hasher.checksum(item1, *items)

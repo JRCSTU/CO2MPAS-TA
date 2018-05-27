@@ -5,6 +5,8 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 "Co2mpas-model specific conversions for co2mparable-hasher."
+from co2mpas.model.physical.engine.start_stop import EngineStartStopModel,\
+    StartStopModel
 from co2mpas.model.physical.engine.co2_emission import IdleFuelConsumptionModel, FMEP
 from co2mpas.model.physical.engine.thermal import EngineTemperatureModel
 from co2mpas.model.physical.final_drive import FinalDriveModel
@@ -71,7 +73,7 @@ class Co2Hasher(Hasher):
         'name',
 
         'gear_filter',          # a function
-        'tau_function',         # a function
+        'tau_function',         # a `lognorm` native func with 1 input
     }
 
     args_to_print = {
@@ -98,7 +100,8 @@ class Co2Hasher(Hasher):
         WheelsModel,
         FinalDriveModel,
         EngineTemperatureModel,
-
+        EngineStartStopModel,
+        StartStopModel,
     )
 
     classes_to_skip = {

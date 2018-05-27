@@ -27,7 +27,7 @@ from pandas.core.generic import NDFrame
 import functools as fnt
 import toolz.dicttoolz as dtz
 
-from . import bool_env
+from . import CO2MPARE_DEBUG, bool_env
 
 
 log = logging.getLogger(__name__)
@@ -163,7 +163,7 @@ class Hasher:
         ## Checksum failures twice, to allow debugging them.
         #
         i = 0
-        while i < 1 + int(bool_env('CO2MPARE_DEBUG', 0)):
+        while i < 1 + int(bool_env(CO2MPARE_DEBUG, 0)):
             if not names:
                 names = ['_item_%i' % i for i in range(len(args))]
                 inp = dict(zip(names, args))
