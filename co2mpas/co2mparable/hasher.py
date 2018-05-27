@@ -4,7 +4,14 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-"Generate co2mparable by intercepting all Schedula function-calls and hashing args/results."
+"""
+Generate co2mparable by intercepting all Schedula function-calls and hashing args/results.
+
+.. Tip::
+    To discover and fix discrepancies, compare with an old file in debugger,
+    and set a breakpoint in :meth:`Hasher._write_and_compare()`,
+    at the log-statement!
+"""
 from binascii import crc32
 from collections import defaultdict
 import logging
@@ -223,7 +230,11 @@ class Hasher:
                 yield l.strip()
 
     def _write_and_compare(self, text, *, skip_compare=False) -> bool:
-        "Write text and compare it against any old-file, preserving line-numbering."
+        """
+        Write text and compare it against any old-file, preserving line-numbering.
+
+        Write+compare combined in a single fun to maintain line-numbering of files.
+        """
         self._ckfile.write(text)
 
         same = None

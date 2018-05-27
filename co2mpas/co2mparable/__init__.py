@@ -5,10 +5,16 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Simple co2mparable-hasher definitions to cnditionally enable it
+Simple co2mparable-hasher definitions to conditionally enable it
 
-without iporting full dependencies (too slow);  model-items can set their ``co2hash``
+without importing full dependencies (too slow);  model-items can set their ``co2hash``
 attribute by calling :func:`tag_checksum()` here, even when hasher disabled.
+
+- Put co2mpas-specific convertion utils in :mod:`co2hasher`,
+  generic ones, (ie for delving into generic objects) in :mod:`hasher`.
+- Compare with old co2mparables in debugger mode (see other modules
+  for where to place breakpoints)
+- See the sample commands in the comments of the `cmp.sh` script.
 """
 import os
 from typing import Optional

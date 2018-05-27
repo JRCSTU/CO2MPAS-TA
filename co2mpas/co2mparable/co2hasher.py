@@ -4,7 +4,14 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-"Co2mpas-model specific conversions for co2mparable-hasher."
+"""
+Co2mpas-model specific conversions for co2mparable-hasher.
+
+.. Tip::
+    To discover and fix discrepancies, compare with an old file in debugger,
+    and set a breakpoint in :meth:`Hasher._write_and_compare()`,
+    at the log-statement!
+"""
 from co2mpas.model.physical.clutch_tc.torque_converter import TorqueConverter
 from co2mpas.model.physical.electrics import Alternator_status_model,\
     AlternatorCurrentModel, ElectricModel
@@ -75,6 +82,7 @@ class Co2Hasher(Hasher):
         'cache_parsed_data': None,
         'get_template_file_name': None,
         'bypass': None,
+        'combine_dicts': None,  # no value mutation
         ## Excel write
         'write_outputs': None,
         'write_to_excel': None,
