@@ -53,7 +53,7 @@ def _convert_dict(d):
 def _convert_partial(p):
     return ('partial', p.func.__name__,
             ## Don't delve nto args/kwds
-            p.args,
+            *p.args,
             _convert_dict(p.keywords))
 
 
@@ -181,10 +181,7 @@ class Hasher:
             ckmap = self._args_cked(inp.items(), per_func_xargs)
 
             if ckmap and i == 0:  # compare & read old-file only once.
-                ok  = self._write_and_compare(self._ckmap_to_text(funpath, ckmap))
-                if not ok:
-                    ## -{{{{-BREAKPOINT HERE TO DISCOVER PROBLEMS-}}}}-
-                    pass
+                self._write_and_compare(self._ckmap_to_text(funpath, ckmap))
             i += 1
 
         ## return for inspeaxtion, or to generate a global hash.
