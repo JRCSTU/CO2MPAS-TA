@@ -79,8 +79,11 @@ def _to_bytes(item) -> bytes:
 
         return str(item).encode(errors='ignore')
     except Exception as ex:
-        print("CKerr: %s\n  %s" % (ex, item))
-        raise
+        log.error("Cannot stringify instance from class `%s` due to: %s" %
+                  type(item), ex)
+        if bool_env(CO2MPARE_DEBUG, False):
+            raise
+        return b'\17'
 
 
 def _match_regex_map(s: str, d: Mapping[Pattern, Any], default=None):
