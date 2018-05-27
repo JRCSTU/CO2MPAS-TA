@@ -64,26 +64,6 @@ def _convert_default_dict(d):
     return (d.default_factory, *d.items())
 
 
-def _remove_timestamp_from_plan(item):
-    notstamp = lambda k: k != 'timestamp'
-    item = dtz.keyfilter(notstamp, item)
-    item['flag'] = dtz.keyfilter(notstamp, item['flag'])
-
-    return item
-
-
-def _convert_interp_partial_in_fmep(item):
-    item = vars(item).copy()
-    item['fbc'] = _convert_partial(item['fbc'])
-    return item
-
-
-def _convert_fmep_in_idle(item):
-    item = vars(item).copy()
-    item['fmep_model'] = _convert_interp_partial_in_fmep(item['fmep_model'])
-    return item
-
-
 def _to_bytes(item) -> bytes:
     try:
         if item is None:
