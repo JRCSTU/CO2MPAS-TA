@@ -167,6 +167,24 @@ class Hasher:
             if self.args_to_print[name] in (None, before_or_after):
                 self._args_printed.append((name, items[name]))
 
+    def dump_args_to_debug(self):
+        if self._args_printed:
+            try:
+                ## Note: not compared.
+                str_objects = [('- PRINT,%s,%s' % (k, v)).replace('\n', '\\n')
+                               for k, v in self._args_printed]
+                self._write_and_compare('\n' + '\n'.join(str_objects),
+                                        skip_compare=True)
+            except Exception as ex:
+                log.warning("Could not print %i debugged items: %s"
+                            "\n  due to: %s" %
+                            len(self._args_printed),
+                            ', '.join(str(a) for a in self._args_printed),
+                            ex)
+                if bool_env(CO2MPARE_DEBUG, False):
+                    raise
+            self._args_printed.clear()
+
     def _args_cked(self,
                    arg_pairs: Mapping,
                    func_xargs: Sequence[Tuple[str, Any]],
@@ -296,24 +314,6 @@ class Hasher:
     #: their checksum of all their args, forming a tree-path.
     _checksum_stack = contextvars.ContextVar('checksum_stack', default='')
     _last_flash = time.clock()
-
-    def dump_args_to_debug(self):
-        if self._args_printed:
-            try:
-                ## Note: not compared.
-                str_objects = [('- PRINT,%s,%s' % (k, v)).replace('\n', '\\n')
-                               for k, v in self._args_printed]
-                self._write_and_compare('\n' + '\n'.join(str_objects),
-                                        skip_compare=True)
-            except Exception as ex:
-                log.warning("Could not print %i debugged items: %s"
-                            "\n  due to: %s" %
-                            len(self._args_printed),
-                            ', '.join(str(a) for a in self._args_printed),
-                            ex)
-                if bool_env(CO2MPARE_DEBUG, False):
-                    raise
-            self._args_printed.clear()
 
     def __init__(self, *,
                  compare_with_fpath: Union[str, Path, None] = None,
