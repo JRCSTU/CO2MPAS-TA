@@ -54,6 +54,7 @@ CO2MPARABLE_FNAME_PREFIX = 'co2mparable-'
 #: after this interval has passed.
 FLUSH_INTERVAL_SEC = 3
 
+
 def _convert_fun(fun):
     "hide obj-address from functions."
     return ('fun: ', fun.__name__)
@@ -117,7 +118,6 @@ def _match_regex_map(s: str, d: Mapping[Pattern, Any], default=None):
     return default
 
 
-
 class Hasher:
     #: Collects the values for `self.args_to_print`.
     _args_printed: Tuple[str, Any] = []
@@ -157,7 +157,6 @@ class Hasher:
         if type(item) in self.classes_to_skip:
             return 13
 
-
         return crc32(_to_bytes(item))
 
     def checksum(self, *items) -> int:
@@ -169,10 +168,10 @@ class Hasher:
                 self._args_printed.append((name, items[name]))
 
     def _args_cked(self,
-                  arg_pairs: Mapping,
-                  func_xargs: Sequence[Tuple[str, Any]],
-                  *,
-                  base_ck=0):
+                   arg_pairs: Mapping,
+                   func_xargs: Sequence[Tuple[str, Any]],
+                   *,
+                   base_ck=0):
 
         xargs = self.args_to_skip.copy()
         xargs.update(func_xargs)
@@ -185,8 +184,9 @@ class Hasher:
         return d
 
     def dump_args(self, funpath: str,
-                      names:List[str], args,
-                      per_func_xargs: Sequence, expandargs=True):
+                  names: List[str],
+                  args,
+                  per_func_xargs: Sequence, expandargs=True):
         ## Checksum failures twice, to allow debugging them.
         #
         i = 0
@@ -269,7 +269,7 @@ class Hasher:
                 if not same:
                     ## -{{{{-BREAKPOINT HERE TO DISCOVER PROBLEMS-}}}}-
                     log.debug('Comparable mismatch: NEW#L%i != OLD#L%i (%i)',
-                             self._ckfile_nline, self._old_nline, nlines)
+                              self._ckfile_nline, self._old_nline, nlines)
 
                 self._old_nline += nlines
             self._ckfile_nline += nlines
@@ -279,8 +279,8 @@ class Hasher:
         if self._dump_yaml:
             return '\n- %s:\n%s' % (
                 funpath,
-              ''.join('    %s: %i\n' % (name, ck)
-                      for name, ck in ckmap.items()))
+                ''.join('    %s: %i\n' % (name, ck)
+                        for name, ck in ckmap.items()))
         else:
             return ('\n' +
                     ''.join('%s,%s,%i\n' % (funpath, name, ck)
@@ -385,8 +385,8 @@ def my_eval_fun(solution: sol.Solution,
     #
     inpnames = node_attr.get('inputs')
     hasher.dump_args('INP/' + funpath,
-                         inpnames, args,
-                         per_func_xargs)
+                     inpnames, args,
+                     per_func_xargs)
     #myck = hasher.checksum(base_ck, list(ckmap.values()))
 
     ## Do nested schedula call.
@@ -402,14 +402,14 @@ def my_eval_fun(solution: sol.Solution,
         ## Checksum, Dump & Compare OUTs.
         #
         ## No == comparisons, res might be dataframe.
-        if res is not  None:
+        if res is not None:
             outnames = node_attr.get('outputs')
             if outnames:
                 assert not isinstance(outnames, str), outnames
                 hasher.dump_args('OUT/' + funpath,
-                                     outnames, res,
-                                     per_func_xargs,
-                                     expandargs=False)
+                                 outnames, res,
+                                 per_func_xargs,
+                                 expandargs=False)
 
         ## Dump any collected debugged items to print
         #  when funpath at root.

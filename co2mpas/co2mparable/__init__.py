@@ -74,8 +74,8 @@ def enable_hasher(*,
 
         _hasher = co2hasher.Co2Hasher(
             compare_with_fpath=(compare_with_fpath
-                                 if compare_with_fpath != '<DISABLED>' else
-                                 (os.environ.get('CO2MPARE_WITH_FPATH') or None)),
+                                if compare_with_fpath != '<DISABLED>' else
+                                (os.environ.get('CO2MPARE_WITH_FPATH') or None)),
             dump_yaml=bool_env(CO2MPARE_YAML, False),
             zip_output=bool_env(CO2MPARE_ZIP, True)
         )

@@ -60,8 +60,8 @@ def _convert_correct_gear(cg):
     pipe = item['pipe']
     ppipe = item['prepare_pipe']
     del item['pipe'], item['prepare_pipe']
-    return (*_convert_dict(item), *pipe, *ppipe) #+ \
-        #_convert_obj(mvl)
+    return (*_convert_dict(item), *pipe, *ppipe)  # + \
+    #_convert_obj(mvl)
 
 
 _convert_wltp_hl = fnt.partial(dtz.keyfilter,
@@ -198,4 +198,3 @@ class Co2Hasher(Hasher):
         'models': None,
         '_item_0': None,
     }
-
