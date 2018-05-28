@@ -95,8 +95,8 @@ class Co2Hasher(Hasher):
         '_build_id': None,
         '_col2index.*': None,
         '_index2col.*': None,
-        'convert2df': None,
         ## Report: Actually they are good for a single vehicle.
+        #'convert2df': None,  No, we need main-flags
         'parse_dsp_solution': None,
         'make_report': None,
         'get_report_output_data': None,
@@ -119,6 +119,11 @@ class Co2Hasher(Hasher):
         'output_file_name',     # contains timestamp
         'excel',
         'name',
+        #'output_data',
+
+        ## proc_infos
+        'main_flags',
+        'dfs',
 
         'gear_filter',          # a function
         'tau_function',         # a `lognorm` native func with 1 input
@@ -158,6 +163,8 @@ class Co2Hasher(Hasher):
         'models_wltp_h': _convert_dict,
         'models_wltp_l': _convert_dict,
 
+        'output_data': _convert_dict,
+
         ## WIP: doesn't work
         'models': _convert_dict,
         'model': _convert_dict,
@@ -192,9 +199,21 @@ class Co2Hasher(Hasher):
 
     #: True: before hash, False: after, None: both
     args_to_print = {
+        'main_data': False,         # KEEP THIS ALWAYS
+        'dfs': False,               # KEEP THIS ALWAYS
+        'input_file_name': False,   # KEEP THIS ALWAYS
+
         #'calibrated_models': False,
         #'prediction_inputs': False,
-        'rank': None,
-        'models': None,
-        '_item_0': None,
+        'output_data': True,
+
+        # Why Gears models???
+        'CMV': None,
+        'GSPV_Cold_Hot': None,
+        'CMV_Cold_Hot': None,
+
+        ## WIP: Bored to death...
+        #'rank': None,
+        #'models': None,
+        #'_item_0': None,
     }
