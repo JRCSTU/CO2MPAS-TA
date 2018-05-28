@@ -209,11 +209,14 @@ class Hasher:
              if n not in xargs}
         return d
 
-    def dump_args(self, funpath: str,
+    def dump_args(self,
+                  prefix: str,
+                  funpath: str,
                   names: List[str],
                   args,
                   per_func_xargs: Sequence, expandargs=True):
-        ## Checksum failures twice, to allow debugging them.
+        ## Checksum failures twice,
+        #  to allow DEBUGGER to inspect differences.
         #
         i = 0
         while i < 1 + int(bool_env(CO2MPARE_DEBUG, 0)):
@@ -238,7 +241,8 @@ class Hasher:
             self._collect_debugged_items(inp, False)
 
             if ckmap and i == 0:  # compare & read old-file only once.
-                self._write_and_compare(self._ckmap_to_text(funpath, ckmap))
+                self._write_and_compare(
+                    self._ckmap_to_text(prefix, funpath, ckmap))
             i += 1
 
         ## return for inspeaxtion, or to generate a global hash.
@@ -307,15 +311,16 @@ class Hasher:
             self._ckfile_nline += nlines
         return same
 
-    def _ckmap_to_text(self, funpath, ckmap):
+    def _ckmap_to_text(self, prefix, funpath, ckmap):
         if self._dump_yaml:
-            return '\n- %s:\n%s' % (
+            return '\n- %s,%s:\n%s' % (
+                prefix,
                 funpath,
                 ''.join('    %s: %i\n' % (name, ck)
                         for name, ck in ckmap.items()))
         else:
             return ('\n' +
-                    ''.join('%s,%s,%i\n' % (funpath, name, ck)
+                    ''.join('%s,%s,%s,%i\n' % (prefix, funpath, name, ck)
                             for name, ck in ckmap.items()))
 
     #: The schedula functions visited stored here along with
@@ -407,7 +412,7 @@ def my_eval_fun(solution: sol.Solution,
     ## Checksum, Dump & Compare INPs.
     #
     inpnames = node_attr.get('inputs')
-    hasher.dump_args('INP/' + funpath,
+    hasher.dump_args('INP', funpath,
                      inpnames, args,
                      per_func_xargs)
     #myck = hasher.checksum(base_ck, list(ckmap.values()))
@@ -429,7 +434,7 @@ def my_eval_fun(solution: sol.Solution,
             outnames = node_attr.get('outputs')
             if outnames:
                 assert not isinstance(outnames, str), outnames
-                hasher.dump_args('OUT/' + funpath,
+                hasher.dump_args('OUT', funpath,
                                  outnames, res,
                                  per_func_xargs,
                                  expandargs=False)
