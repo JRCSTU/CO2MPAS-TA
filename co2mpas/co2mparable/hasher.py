@@ -23,7 +23,7 @@ from binascii import crc32
 from collections import defaultdict
 from pathlib import Path  # @UnusedImport
 from typing import Tuple, List, Sequence, Mapping, Any, Pattern, \
-    Optional, Union  # @UnusedImport
+    Set, Optional, Union  # @UnusedImport
 import logging
 import lzma
 import operator
@@ -103,7 +103,7 @@ def _to_bytes(item) -> bytes:
         ## Ex-msg: "scikit-learn estimators should always specify their parameters
         #           in the signature of their __init__ (no varargs)."
         if not isinstance(item, Pipeline):
-            log.warning("Cannot stringify instance from class `%s` due to: %s" %
+            log.warning("Cannot stringify instance of type `%s` due to: %s" %
                         type(item), ex)
             if bool_env(CO2MPARE_DEBUG, False):
                 raise
@@ -120,7 +120,7 @@ def _match_regex_map(s: str, d: Mapping[Pattern, Any], default=None):
 
 class Hasher:
     #: Collects the values for `self.args_to_print`.
-    _args_printed: Tuple[str, Any] = []
+    _args_printed: Set[Tuple[str, Any]] = set()
 
     def _hash(self, item):
         if item is None:
@@ -163,16 +163,24 @@ class Hasher:
         return fnt.reduce(operator.xor, (self._hash(i) for i in items), 1)
 
     def _collect_debugged_items(self, items: Mapping, before_or_after: bool):
-        for name in self.args_to_print.keys() & items.keys():
-            if self.args_to_print[name] in (None, before_or_after):
-                self._args_printed.append((name, items[name]))
+        for argname in self.args_to_print.keys() & items.keys():
+            if self.args_to_print[argname] in (None, before_or_after):
+                item = items[argname]
+                try:
+                    self._args_printed.add('%s,%s' % (argname, item))
+                except Exception as ex:
+                    log.warning(
+                        "Cannot stringify arg '%s' of type `%s` due to: %s" %
+                        argname, type(item), ex)
+                    if bool_env(CO2MPARE_DEBUG, False):
+                        raise
 
     def dump_args_to_debug(self):
         if self._args_printed:
             try:
                 ## Note: not compared.
-                str_objects = [('- PRINT,%s,%s' % (k, v)).replace('\n', '\\n')
-                               for k, v in self._args_printed]
+                str_objects = [('- PRINT,%s' % s).replace('\n', '\\n')
+                               for s in self._args_printed]
                 self._write_and_compare('\n' + '\n'.join(sorted(str_objects)),
                                         skip_compare=True)
             except Exception as ex:
