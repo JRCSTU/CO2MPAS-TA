@@ -208,6 +208,13 @@ class Values(co2_utl.Constants):
 class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
 
+    class calculate_engine_temperature_derivatives(co2_utl.Constants):
+        #: Derivative spacing [s].
+        dx = 4
+
+        #: Degree of the smoothing spline [-].
+        order = 7
+
     class default_clutch_window(co2_utl.Constants):
         #: Enable function?
         ENABLE = True

@@ -40,8 +40,10 @@ def calculate_engine_temperature_derivatives(
         Derivative of the engine temperature [°C/s].
     :rtype: numpy.array
     """
-
-    return co2_utl.derivative(times, engine_coolant_temperatures, dx=4, order=7)
+    par = dfl.functions.calculate_engine_temperature_derivatives
+    return co2_utl.derivative(
+        times, engine_coolant_temperatures, dx=par.dx, order=par.order
+    )
 
 
 def identify_max_engine_coolant_temperature(engine_coolant_temperatures):
