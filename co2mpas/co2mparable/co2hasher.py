@@ -22,7 +22,7 @@ from co2mpas.model.physical.engine.thermal import EngineTemperatureModel,\
     ThermalModel
 from co2mpas.model.physical.final_drive import FinalDriveModel
 from co2mpas.model.physical.gear_box import GearBoxLosses, GearBoxModel
-from co2mpas.model.physical.gear_box.at_gear import CorrectGear
+from co2mpas.model.physical.gear_box.at_gear import CorrectGear, GSMColdHot
 from co2mpas.model.physical.wheels import WheelsModel
 from schedula import Dispatcher, add_args
 from schedula.utils.sol import Solution
@@ -133,6 +133,12 @@ class Co2Hasher(Hasher):
         'inputs<0>': _convert_dict,
         'inputs<1>': _convert_dict,
         'metrics': _convert_dict,  # dict of funcs
+        'data.prediction.models_nedc_h': _convert_dict,
+        'data.prediction.models_nedc_l': _convert_dict,
+        'data.prediction.models_wltp_h': _convert_dict,
+        'data.prediction.models_wltp_l': _convert_dict,
+        'data.prediction.wltp_h': _convert_dict,
+        'data.prediction.wltp_l': _convert_dict,
     }
 
     #: Converts them through the standard :func:`_convert_obj()`.
@@ -154,6 +160,7 @@ class Co2Hasher(Hasher):
         ThermalModel,               # XGBoost regressor
         AlternatorCurrentModel,     # XGBoost regressor
         ElectricModel,
+        GSMColdHot,
     )
 
     classes_to_skip = {
@@ -165,5 +172,6 @@ class Co2Hasher(Hasher):
     args_to_print = {
         #'calibrated_models': False,
         'prediction_inputs': False,
+        'rank': True,
     }
 
