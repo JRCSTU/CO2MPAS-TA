@@ -146,6 +146,7 @@ class Co2Hasher(Hasher):
         'idle_fuel_consumption_model': _convert_fmep_in_idle,
         'fmep_model': _convert_interp_partial_in_fmep,
         'correct_gear': _convert_correct_gear,
+        'gears': np.asarray,
         'input/wltp_l': _convert_wltp_hl,
         'input/wltp_h': _convert_wltp_hl,
         'inputs<0>': _convert_dict,
