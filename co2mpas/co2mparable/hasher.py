@@ -157,15 +157,25 @@ class Hasher:
     def checksum(self, *items) -> int:
         return fnt.reduce(operator.xor, (self._hash(i) for i in items), 1)
 
+    def _collect_debugged_items(self, items: Mapping, before_or_after: bool):
+        for name in self.args_to_print.keys() & items.keys():
+            if self.args_to_print[name] in (None, before_or_after):
+                self._args_printed.append((name, items[name]))
+
     def _args_cked(self,
                   arg_pairs: Mapping,
                   func_xargs: Sequence[Tuple[str, Any]],
                   *,
                   base_ck=0):
-        d = {n: self.checksum(base_ck, a)
+
+        xargs = self.args_to_skip.copy()
+        xargs.update(func_xargs)
+        d = {n: self.checksum(*((base_ck, *self.args_to_convert[n](a))
+                                ## Custom-process certain args.
+                                if n in self.args_to_convert else
+                                (base_ck, a)))
              for n, a in arg_pairs
-             if n not in self.args_to_skip and
-             n not in func_xargs}
+             if n not in xargs}
         return d
 
     def dump_args(self, funpath: str,
@@ -186,20 +196,14 @@ class Hasher:
                 # Check there were not any duplicate keys.
                 assert len(inp) == len(args), (len(inp), len(args))
 
-            ## Process before Checksum on certain args.
-            #
-            to_proc = self.args_to_convert.keys() & inp.keys()
-            if to_proc:
-                for k in to_proc:
-                    inp[k] = self.checksum(*self.args_to_convert[k](inp[k]))
+            ## Debug-print certain args before hashing.
+            self._collect_debugged_items(inp, True)
 
-            ## Debug-print certain args.
-            #
-            for name in self.args_to_print & inp.keys():
-                self._args_printed.append((name, inp[name]))
-
-            ## Checksum:
+            ## Checksum
             ckmap = self._args_cked(inp.items(), per_func_xargs)
+
+            ## Debug-print certain args after hashing.
+            self._collect_debugged_items(inp, False)
 
             if ckmap and i == 0:  # compare & read old-file only once.
                 self._write_and_compare(self._ckmap_to_text(funpath, ckmap))

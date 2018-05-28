@@ -161,8 +161,9 @@ class Co2Hasher(Hasher):
         XGBRegressor,
     }
 
+    #: True: before hash, False: after, None: both
     args_to_print = {
-        '_',
-        'calibrated_models',
+        #'calibrated_models': False,
+        'prediction_inputs': False,
     }
 
