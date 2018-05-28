@@ -125,6 +125,12 @@ class Co2Hasher(Hasher):
         'CO2MPAS_results',      # a map with 2 Solutions (h, l)
         'calibrated_models',    # a dict that gets updated.
         'prediction_inputs',    # a dict that gets updated.
+
+        ## WIP: Bored to death...
+        'rank',
+        'models',
+        'model',
+        '_item_0'
     }
 
     args_to_convert = {
@@ -147,6 +153,14 @@ class Co2Hasher(Hasher):
         'data.prediction.models_wltp_l': _convert_dict,
         'data.prediction.wltp_h': _convert_dict,
         'data.prediction.wltp_l': _convert_dict,
+        'models_nedc_h': _convert_dict,
+        'models_nedc_l': _convert_dict,
+        'models_wltp_h': _convert_dict,
+        'models_wltp_l': _convert_dict,
+
+        ## WIP: doesn't work
+        'models': _convert_dict,
+        'model': _convert_dict,
     }
 
     #: Converts them through the standard :func:`_convert_obj()`.
@@ -180,6 +194,8 @@ class Co2Hasher(Hasher):
     args_to_print = {
         #'calibrated_models': False,
         #'prediction_inputs': False,
-        #'rank': True,
+        'rank': None,
+        'models': None,
+        '_item_0': None,
     }
 
