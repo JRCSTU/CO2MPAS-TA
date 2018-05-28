@@ -148,12 +148,15 @@ def _proc_info2df(data, start_time, main_flags):
 
 
 def _co2mpas_info2df(start_time, main_flags=None):
+    import socket
 
     time_elapsed = (datetime.datetime.today() - start_time).total_seconds()
+    hostname = socket.gethostname()
     info = [
         ('CO2MPAS version', version),
         ('Simulation started', start_time.strftime('%Y/%m/%d-%H:%M:%S')),
-        ('Time elapsed', '%.3f sec' % time_elapsed)
+        ('Time elapsed', '%.3f sec' % time_elapsed),
+        ('Hostname', hostname),
     ]
 
     if main_flags:
