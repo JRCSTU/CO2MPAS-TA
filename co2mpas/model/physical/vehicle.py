@@ -370,7 +370,7 @@ def calculate_rotational_inertia_forces(
     return vehicle_mass * inertial_factor * accelerations / 100
 
 
-def select_default_n_dyno_axes(cycle_type):
+def select_default_n_dyno_axes(cycle_type, n_wheel_drive):
     """
     Selects the default number of dyno axes[-].
 
@@ -378,12 +378,20 @@ def select_default_n_dyno_axes(cycle_type):
         Cycle type (WLTP or NEDC).
     :type cycle_type: str
 
+    :param n_wheel_drive:
+        Number of wheel drive [-].
+    :type n_wheel_drive: int
+
     :return:
         Number of dyno axes [-].
     :rtype: int
     """
     par = dfl.functions.select_default_n_dyno_axes
-    return par.DYNO_AXES.get(cycle_type.upper(), 2)
+
+    try:
+        return par.DYNO_AXES[cycle_type.upper()][n_wheel_drive]
+    except KeyError:
+        return n_wheel_drive // 2
 
 
 def select_inertial_factor(n_dyno_axes):
@@ -778,7 +786,7 @@ def vehicle():
 
     d.add_function(
         function=select_default_n_dyno_axes,
-        inputs=['cycle_type'],
+        inputs=['cycle_type', 'n_wheel_drive'],
         outputs=['n_dyno_axes']
     )
 
