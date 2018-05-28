@@ -68,6 +68,12 @@ _convert_wltp_hl = fnt.partial(dtz.keyfilter,
                                lambda k: k != 'data')  # `data` is a Solution
 
 
+def _convert_rank(rank):
+    "Rank: a List-ofList where [0][4?] == dict(k: Alternator_status_mode}"
+    return [_convert_dict(i) if isinstance(i, dict) else i
+            for i in rank[0]]
+
+
 class Co2Hasher(Hasher):
     #: Map
     #:    {<funame}: (<xarg1>, ...)}
@@ -118,6 +124,7 @@ class Co2Hasher(Hasher):
         'tau_function',         # a `lognorm` native func with 1 input
         'CO2MPAS_results',      # a map with 2 Solutions (h, l)
         'calibrated_models',    # a dict that gets updated.
+        'prediction_inputs',    # a dict that gets updated.
     }
 
     args_to_convert = {
@@ -133,6 +140,7 @@ class Co2Hasher(Hasher):
         'inputs<0>': _convert_dict,
         'inputs<1>': _convert_dict,
         'metrics': _convert_dict,  # dict of funcs
+        'rank': _convert_rank,
         'data.prediction.models_nedc_h': _convert_dict,
         'data.prediction.models_nedc_l': _convert_dict,
         'data.prediction.models_wltp_h': _convert_dict,
@@ -171,7 +179,7 @@ class Co2Hasher(Hasher):
     #: True: before hash, False: after, None: both
     args_to_print = {
         #'calibrated_models': False,
-        'prediction_inputs': False,
-        'rank': True,
+        #'prediction_inputs': False,
+        #'rank': True,
     }
 
