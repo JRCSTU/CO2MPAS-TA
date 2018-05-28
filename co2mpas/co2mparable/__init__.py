@@ -4,6 +4,7 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
+from co2mpas.__main__ import CmdException
 """
 Simple co2mparable-hasher definitions to conditionally enable it
 
@@ -69,18 +70,28 @@ def enable_hasher(*,
         if _hasher:
             raise AssertionError("Already intercepted *schedula*!")
 
+        import re
         from . import co2hasher
 
-        if compare_with_fpath and compare_with_fpath.upper() == '<LATEST>':
-            import glob
-            import tempfile
-            from . import hasher
+        if compare_with_fpath:
+            m = re.match('<LATEST(?::([^>]+))?>',
+                         compare_with_fpath, re.IGNORECASE)
+            if m:
+                from . import hasher
+                import glob
+                import tempfile
 
-            files = glob.glob(osp.join(tempfile.gettempdir(),
-                                       hasher.CO2MPARABLE_FNAME_PREFIX + '*'))
-            compare_with_fpath = max(files, key=os.path.getctime)
-        elif not compare_with_fpath:
+                search_dir = m.group(1) or tempfile.gettempdir()
+                old_co2mparable_pattern = osp.join(
+                    search_dir, hasher.CO2MPARABLE_FNAME_PREFIX + '*')
+                files = glob.glob(old_co2mparable_pattern)
+                if not files:
+                    raise CmdException('No <latest> *co2mparable* found in %s' %
+                                       old_co2mparable_pattern)
+                compare_with_fpath = max(files, key=os.path.getctime)
+        else:
             compare_with_fpath = os.environ.get('CO2MPARE_WITH_FPATH')
+
         _hasher = co2hasher.Co2Hasher(
             compare_with_fpath=compare_with_fpath or None,
             dump_yaml=bool_env(CO2MPARE_YAML, False),

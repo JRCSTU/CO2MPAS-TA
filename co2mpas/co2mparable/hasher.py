@@ -266,7 +266,7 @@ class Hasher:
                 same = old_lines and new_lines == old_lines
                 if not same:
                     ## -{{{{-BREAKPOINT HERE TO DISCOVER PROBLEMS-}}}}-
-                    log.debug('Comparable missmatch: NEW#L%i != OLD#L%i (%i)',
+                    log.debug('Comparable mismatch: NEW#L%i != OLD#L%i (%i)',
                              self._ckfile_nline, self._old_nline, nlines)
 
                 self._old_nline += nlines
@@ -315,12 +315,14 @@ class Hasher:
         _fd, fpath = tempfile.mkstemp(suffix=suffix,
                                       prefix=CO2MPARABLE_FNAME_PREFIX,
                                       text=False)
-        log.info("Writing *co2mparable* at: %s", fpath)
         self._ckfile = self._open_file(fpath, 'wt')
 
         if compare_with_fpath:
             self._old_ckfile = self._open_file(compare_with_fpath, 'rt')
-            log.info("Reading *co2mparable* from: %s", compare_with_fpath)
+            compare_with_fpath = "\n  while comparing with '%s'" % compare_with_fpath
+        else:
+            compare_with_fpath = ''
+        log.info("Writing *co2mparable* to '%s'%s.", fpath, compare_with_fpath)
 
         ## Intercept Schedula.
         #
