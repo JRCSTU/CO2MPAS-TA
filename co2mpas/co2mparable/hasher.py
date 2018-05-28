@@ -173,7 +173,7 @@ class Hasher:
                 ## Note: not compared.
                 str_objects = [('- PRINT,%s,%s' % (k, v)).replace('\n', '\\n')
                                for k, v in self._args_printed]
-                self._write_and_compare('\n' + '\n'.join(str_objects),
+                self._write_and_compare('\n' + '\n'.join(sorted(str_objects)),
                                         skip_compare=True)
             except Exception as ex:
                 log.warning("Could not print %i debugged items: %s"
