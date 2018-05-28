@@ -4,7 +4,6 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-from co2mpas.__main__ import CmdException
 """
 Simple co2mparable-hasher definitions to conditionally enable it
 
@@ -17,8 +16,10 @@ attribute by calling :func:`tag_checksum()` here, even when hasher disabled.
   for where to place breakpoints)
 - See the sample commands in the comments of the `cmp.sh` script.
 """
-import os
+from co2mpas.__main__ import CmdException
 from typing import Optional
+import contextlib
+import os
 
 
 #: Env-var that when true, co2mparable is generated and optionally compared
@@ -79,6 +80,21 @@ def enable_hasher(*,
             dump_yaml=bool_env(CO2MPARE_YAML, False),
             zip_output=bool_env(CO2MPARE_ZIP, True)
         )
+
+
+@contextlib.contextmanager
+def hashing_schedula(compare_with_fpath: Optional[str]):
+        hasher_enabled = compare_with_fpath != '<DISABLED>'
+        enable_hasher(
+            enabled=hasher_enabled or None,
+            compare_with_fpath=(compare_with_fpath
+                                if hasher_enabled else
+                                None))
+        try:
+            yield _hasher
+        finally:
+            if _hasher:
+                _hasher.close()
 
 
 def tag_checksum(tagged, item1, *items) -> Optional[int]:

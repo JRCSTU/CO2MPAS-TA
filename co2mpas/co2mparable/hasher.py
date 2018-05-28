@@ -238,6 +238,12 @@ class Hasher:
 
         return fp
 
+    def close(self):
+        if self._ckfile:
+            self._ckfile.close()
+        if self._old_ckfile:
+            self._old_ckfile.close()
+
     def _yield_old_non_print_lines(self):
         "Skip debug lines in old file, preserving line-numbering."
         for l in self._old_ckfile:

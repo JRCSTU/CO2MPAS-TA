@@ -644,15 +644,6 @@ def _main(*args):
         for w in warns:
             log.warning(w)
 
-    from co2mpas import co2mparable
-    compare_with_fpath = opts['--co2mparable']
-    hasher_enabled = compare_with_fpath != '<DISABLED>'
-    co2mparable.enable_hasher(
-        enabled=hasher_enabled or None,
-        compare_with_fpath=(compare_with_fpath
-                            if hasher_enabled else
-                            None))
-
     if opts['--version']:
         v = build_version_string(verbose)
         # noinspection PyBroadException
@@ -675,7 +666,10 @@ def _main(*args):
     elif opts['ta']:
         _run_batch(opts, type_approval_mode=True, overwrite_cache=True)
     else:
-        _run_batch(opts)
+        from co2mpas import co2mparable
+
+        with co2mparable.hashing_schedula(opts['--co2mparable']):
+            _run_batch(opts)
 
 
 def main(*args):
