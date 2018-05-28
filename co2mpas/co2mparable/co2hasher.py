@@ -12,23 +12,25 @@ Co2mpas-model specific conversions for co2mparable-hasher.
     in *debugging mode* and populate the structures below.
 """
 from co2mpas.model.physical.clutch_tc.torque_converter import TorqueConverter
-from co2mpas.model.physical.electrics import Alternator_status_model,\
+from co2mpas.model.physical.electrics import Alternator_status_model, \
     AlternatorCurrentModel, ElectricModel
 from co2mpas.model.physical.engine import EngineModel
 from co2mpas.model.physical.engine.co2_emission import IdleFuelConsumptionModel, FMEP
-from co2mpas.model.physical.engine.start_stop import EngineStartStopModel,\
+from co2mpas.model.physical.engine.start_stop import EngineStartStopModel, \
     StartStopModel
-from co2mpas.model.physical.engine.thermal import EngineTemperatureModel,\
+from co2mpas.model.physical.engine.thermal import EngineTemperatureModel, \
     ThermalModel
 from co2mpas.model.physical.final_drive import FinalDriveModel
 from co2mpas.model.physical.gear_box import GearBoxLosses, GearBoxModel
 from co2mpas.model.physical.gear_box.at_gear import CorrectGear, GSMColdHot
 from co2mpas.model.physical.wheels import WheelsModel
+
 from schedula import Dispatcher, add_args
 from schedula.utils.sol import Solution
-import functools as fnt
 from xgboost import XGBRegressor
 
+import functools as fnt
+import numpy as np
 import toolz.dicttoolz as dtz
 
 from .hasher import Hasher, _convert_partial, _convert_obj, _convert_dict
@@ -119,11 +121,11 @@ class Co2Hasher(Hasher):
         'output_file_name',     # contains timestamp
         'excel',
         'name',
-        #'output_data',
+        'output_data',          # all program data
 
         ## proc_infos
         'main_flags',
-        'dfs',
+        'dfs',                  # model-names executed
 
         'gear_filter',          # a function
         'tau_function',         # a `lognorm` native func with 1 input
@@ -201,20 +203,23 @@ class Co2Hasher(Hasher):
     #: True: before hash, False: after, None: both
     args_to_print = {
         'main_data': False,         # KEEP THIS ALWAYS
-        'dfs': False,               # KEEP THIS ALWAYS
         'input_file_name': False,   # KEEP THIS ALWAYS
+        'dfs': False,               # KEEP THIS ALWAYS (# model-names executed)
 
         #'calibrated_models': False,
         #'prediction_inputs': False,
-        'output_data': True,
+        #'output_data': True,            # too big!
 
-        # Why Gears models???
-        'CMV': None,
-        'GSPV_Cold_Hot': None,
-        'CMV_Cold_Hot': None,
+        # Why Gears models don't always match???
+        'CMV': None,                    # !@dancing order!@
+        'GSPV': None,
+        'CMV_Cold_Hot': None,           # !@dancing order!@
+        'GSPV_Cold_Hot': None,          # !@dancing order!@
 
         ## WIP: Bored to death...
-        #'rank': None,
         #'models': None,
         #'_item_0': None,
+
+        ## Good-to-have
+        'raw_data': None,
     }
