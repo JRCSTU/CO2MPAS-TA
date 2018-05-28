@@ -17,6 +17,7 @@ attribute by calling :func:`tag_checksum()` here, even when hasher disabled.
 - See the sample commands in the comments of the `cmp.sh` script.
 """
 import os
+import os.path as osp
 from typing import Optional
 
 
@@ -69,10 +70,19 @@ def enable_hasher(*,
             raise AssertionError("Already intercepted *schedula*!")
 
         from . import co2hasher
+
+        if compare_with_fpath and compare_with_fpath.upper() == '<LATEST>':
+            import glob
+            import tempfile
+            from . import hasher
+
+            files = glob.glob(osp.join(tempfile.gettempdir(),
+                                       hasher.CO2MPARABLE_FNAME_PREFIX + '*'))
+            compare_with_fpath = max(files, key=os.path.getctime)
+        elif not compare_with_fpath:
+            compare_with_fpath = os.environ.get('CO2MPARE_WITH_FPATH')
         _hasher = co2hasher.Co2Hasher(
-            compare_with_fpath=(compare_with_fpath
-                                 if compare_with_fpath != '<DISABLED>' else
-                                 None),
+            compare_with_fpath=compare_with_fpath or None,
             dump_yaml=bool_env(CO2MPARE_YAML, False),
             zip_output=bool_env(CO2MPARE_ZIP, True)
         )

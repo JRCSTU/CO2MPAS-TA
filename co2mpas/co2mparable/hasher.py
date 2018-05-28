@@ -47,6 +47,10 @@ from . import CO2MPARE_DEBUG, bool_env
 
 log = logging.getLogger(__name__)
 
+#: The prefix of the `co2mparable` file to write in tempdir.
+CO2MPARABLE_FNAME_PREFIX = 'co2mparable-'
+#: When writing an uncompressed `co2mparable`, flush it
+#: after this interval has passed.
 FLUSH_INTERVAL_SEC = 3
 
 def _convert_fun(fun):
@@ -110,6 +114,7 @@ def _match_regex_map(s: str, d: Mapping[Pattern, Any], default=None):
         if regex.match(s):
             return v
     return default
+
 
 
 class Hasher:
@@ -308,13 +313,14 @@ class Hasher:
         suffix = '%s%s' % ('.yaml' if self._dump_yaml else '.txt',
                            '.xz' if zip_output else '')
         _fd, fpath = tempfile.mkstemp(suffix=suffix,
-                                      prefix='co2mparable-',
+                                      prefix=CO2MPARABLE_FNAME_PREFIX,
                                       text=False)
-        log.info("Writing co2mparable at: %s", fpath)
+        log.info("Writing *co2mparable* at: %s", fpath)
         self._ckfile = self._open_file(fpath, 'wt')
 
         if compare_with_fpath:
             self._old_ckfile = self._open_file(compare_with_fpath, 'rt')
+            log.info("Reading *co2mparable* from: %s", compare_with_fpath)
 
         ## Intercept Schedula.
         #
