@@ -33,7 +33,7 @@ __uri__       = "https://co2mpas.io"
 __version__   = polyversion('co2mpas', mono_project=True)
 version       = __version__
 #: Release date.
-__updated__ = polytime(no_raise=True)
+__updated__ = polytime()
 
 #: Input/Output file's version.
 __file_version__        = "2.2.7"

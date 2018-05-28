@@ -142,7 +142,7 @@ setup(
     ],
     python_requires='>=3.5',  # http://www.python3statement.org/practicalities/
     install_requires=[
-        'polyversion',
+        'polyversion >= 0.0.2a9',       # inversion of scream logic
         'rainbow_logging_handler',
         'pandas',
         'xlsxwriter',
