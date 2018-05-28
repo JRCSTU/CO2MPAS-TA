@@ -21,26 +21,27 @@ Generate co2mparable by intercepting all Schedula function-calls and hashing arg
 """
 from binascii import crc32
 from collections import defaultdict
+from pathlib import Path  # @UnusedImport
+from typing import Tuple, List, Sequence, Mapping, Any, Pattern, \
+    Optional, Union  # @UnusedImport
 import logging
 import lzma
 import operator
-from pathlib import Path  # @UnusedImport
 import re
-from schedula.utils import sol, dsp
 import sys
 import tempfile
 import time
 import types
-from typing import Tuple, List, Sequence, Mapping, Any, Pattern, \
-    Optional, Union  # @UnusedImport
 import weakref
 
-import contextvars
 from numpy import ndarray
 from pandas.core.generic import NDFrame
+from schedula.utils import sol, dsp
 from toolz import dicttoolz as dtz
+import contextvars
 
 import functools as fnt
+import os.path as osp
 
 from . import CO2MPARE_DEBUG, bool_env
 
@@ -226,6 +227,7 @@ class Hasher:
     _org_eval_fun = None
 
     def _open_file(self, fpath, mode, *args, **kw):
+        "Open LZMA files, depending on its .ext."
         if fpath.endswith('.xz'):
             if 'w' in mode:
                 FLUSH_INTERVAL_SEC = sys.maxsize  # no fun flushing zip-archives
@@ -316,6 +318,25 @@ class Hasher:
                                       prefix=CO2MPARABLE_FNAME_PREFIX,
                                       text=False)
         self._ckfile = self._open_file(fpath, 'wt')
+
+        if compare_with_fpath:
+            m = re.match('<LATEST(?::([^>]+))?>',
+                         compare_with_fpath, re.IGNORECASE)
+            if m:
+                import glob
+
+                search_dir = m.group(1) or tempfile.gettempdir()
+                old_co2mparable_pattern = osp.join(
+                    search_dir, CO2MPARABLE_FNAME_PREFIX)
+                if not (set('*?[]') & set(old_co2mparable_pattern)):
+                    old_co2mparable_pattern += '*'
+                files = glob.glob(old_co2mparable_pattern)
+                if not files:
+                    log.warning('No <latest> *co2mparable* found in %s',
+                                old_co2mparable_pattern)
+                    compare_with_fpath = None
+                else:
+                    compare_with_fpath = max(files, key=osp.getctime)
 
         if compare_with_fpath:
             self._old_ckfile = self._open_file(compare_with_fpath, 'rt')

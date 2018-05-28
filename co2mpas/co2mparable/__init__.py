@@ -18,7 +18,6 @@ attribute by calling :func:`tag_checksum()` here, even when hasher disabled.
 - See the sample commands in the comments of the `cmp.sh` script.
 """
 import os
-import os.path as osp
 from typing import Optional
 
 
@@ -34,6 +33,7 @@ CO2MPARE_WITH_FPATH = 'CO2MPARE_WITH_FPATH'
 #: Env-var when true, and comparing, ck runs twice
 #: to give a 2nd opportunity to inspect the problem to debuggers.
 CO2MPARE_DEBUG = 'CO2MPARE_DEBUG'
+
 
 def bool_env(env_var, default):
     """
@@ -70,30 +70,12 @@ def enable_hasher(*,
         if _hasher:
             raise AssertionError("Already intercepted *schedula*!")
 
-        import re
         from . import co2hasher
 
-        if compare_with_fpath:
-            m = re.match('<LATEST(?::([^>]+))?>',
-                         compare_with_fpath, re.IGNORECASE)
-            if m:
-                from . import hasher
-                import glob
-                import tempfile
-
-                search_dir = m.group(1) or tempfile.gettempdir()
-                old_co2mparable_pattern = osp.join(
-                    search_dir, hasher.CO2MPARABLE_FNAME_PREFIX + '*')
-                files = glob.glob(old_co2mparable_pattern)
-                if not files:
-                    raise CmdException('No <latest> *co2mparable* found in %s' %
-                                       old_co2mparable_pattern)
-                compare_with_fpath = max(files, key=os.path.getctime)
-        else:
-            compare_with_fpath = os.environ.get('CO2MPARE_WITH_FPATH')
-
         _hasher = co2hasher.Co2Hasher(
-            compare_with_fpath=compare_with_fpath or None,
+            compare_with_fpath=(compare_with_fpath
+                                 if compare_with_fpath != '<DISABLED>' else
+                                 (os.environ.get('CO2MPARE_WITH_FPATH') or None)),
             dump_yaml=bool_env(CO2MPARE_YAML, False),
             zip_output=bool_env(CO2MPARE_ZIP, True)
         )
