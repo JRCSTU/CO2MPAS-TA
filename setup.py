@@ -141,6 +141,18 @@ setup(
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
     python_requires='>=3.5',  # http://www.python3statement.org/practicalities/
+    setup_requires=[
+        # PEP426-field actually not used by `pip`, hence
+        # included also in /requirements/developmnet.pip.
+        'setuptools',
+        'setuptools-git>=0.3',  # Example given like that in PY docs.
+        'wheel',
+    ],
+    # dev_requires=[
+    #     # PEP426-field actually not used by `pip`, hence
+    #     # included in /requirements/developmnet.pip.
+    #     'sphinx',
+    # ],
     install_requires=[
         'polyversion >= 0.0.2a9',       # inversion of scream logic
         'rainbow_logging_handler',
