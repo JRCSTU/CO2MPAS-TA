@@ -106,7 +106,7 @@ download_url = 'https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v%s' % VERSION
 
 setup(
     name=PROJECT,
-    version=VERSION,
+    version='1.8.0.dev1',
     description="The Type-Approving vehicle simulator predicting NEDC CO2 emissions from WLTP",
     long_description=long_desc,
     download_url=download_url,

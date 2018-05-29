@@ -30,10 +30,10 @@ __uri__       = "https://co2mpas.io"
 
 #: Authoritative project's PEP 440 version.
 #: Remember to manually update version in CHANGES.rst.
-__version__   = polyversion('co2mpas', mono_project=True)
+__version__   = '1.8.0.dev1'
 version       = __version__
 #: Release date.
-__updated__ = polytime()
+__updated__ = '2018-05-29T01:19:09.958693'
 
 #: Input/Output file's version.
 __file_version__        = "2.2.7"
