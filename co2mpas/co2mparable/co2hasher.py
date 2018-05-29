@@ -200,10 +200,11 @@ class Co2Hasher(Hasher):
         XGBRegressor,
     }
 
-    #: True: before hash, False: after, None: both
+    #: False: before hash, True: after, None: both
     args_to_print = {
         'main_data': False,         # KEEP THIS ALWAYS
         'input_file_name': False,   # KEEP THIS ALWAYS
+        'timestamp': False,         # KEEP THIS ALWAYS
         'dfs': False,               # KEEP THIS ALWAYS (# model-names executed)
 
         #'calibrated_models': False,
