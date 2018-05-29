@@ -1,0 +1,3 @@
+[build-system]
+# pep 0518: minimum requirements for the build system to execute.
+requires = ["setuptools", "wheel", "polyversion"]  # PEP 508 specifications.
