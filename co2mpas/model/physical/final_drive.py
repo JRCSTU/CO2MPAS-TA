@@ -456,6 +456,8 @@ def define_final_drive_prediction_model(
         Final drive prediction model.
     :rtype: FinalDriveModel
     """
+    if final_drive_torque_loss is sh.EMPTY:
+        final_drive_torque_loss = None
     model = FinalDriveModel(
         final_drive_ratios, final_drive_torque_loss, n_wheel_drive,
         final_drive_efficiency
@@ -524,14 +526,14 @@ def final_drive():
 
     d.add_data(
         data_id='final_drive_torque_loss',
-        default_value=None
+        default_value=sh.EMPTY
     )
 
     d.add_function(
         function=calculate_final_drive_torque_losses,
         inputs=['final_drive_torques_out', 'final_drive_torque_loss'],
         outputs=['final_drive_torque_losses'],
-        input_domain=lambda *args: args[1] is not None
+        input_domain=lambda *args: args[1] is not sh.EMPTY
     )
 
     d.add_function(
