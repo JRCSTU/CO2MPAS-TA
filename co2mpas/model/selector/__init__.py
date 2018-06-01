@@ -189,11 +189,10 @@ def _check_model(rank, scores, models_wo_err, selector_id, index, cycles):
     return m[3], c, m[-1]
 
 
-def select_outputs(outputs, targets, results):
-
+def select_outputs(names, outputs, targets, results):
     results = sh.selector(outputs, results, allow_miss=True)
     results = sh.map_dict(dict(zip(outputs, targets)), results)
-    it = ((k, results[k]) for k in targets if k in results)
+    it = ((k, results[v]) for k, v in zip(names, targets) if v in results)
     return collections.OrderedDict(it)
 
 
@@ -220,7 +219,6 @@ def _check_limit(limit, errors, check=lambda e, l: e <= l):
 
 
 def check_limits(errors, up_limit=None, dn_limit=None):
-
     status = {}
 
     limit = _check_limit(up_limit, errors, check=lambda e, l: e <= l)
@@ -273,6 +271,26 @@ def metric_clutch_torque_converter_model(y_true, y_pred, on_engine):
     return sk_met.mean_absolute_error(y_true[on_engine], y_pred[on_engine])
 
 
+def split_engine_coolant_temperatures(
+        engine_coolant_temperatures, engine_thermostat_temperature):
+    i = np.searchsorted(
+        engine_coolant_temperatures, (engine_thermostat_temperature,)
+    )[0]
+    return engine_coolant_temperatures[:i], engine_coolant_temperatures[i:]
+
+
+def metric_engine_coolant_temperature_model_cold(y_true, y_pred):
+    if len(y_pred) > 2:
+        return sk_met.mean_absolute_error(y_true[:len(y_pred)], y_pred)
+    return 0
+
+
+def metric_engine_coolant_temperature_model_hot(y_true, y_pred):
+    if len(y_pred) > 2:
+        return sk_met.mean_absolute_error(y_true[-len(y_pred):], y_pred)
+    return 0
+
+
 def combine_outputs(outputs):
     return {k[:-9]: v for k, v in outputs.items() if v}
 
@@ -281,16 +299,29 @@ def sub_models():
     models = {}
 
     from ..physical.engine.thermal import thermal
+    d = thermal()
+    d.add_function(
+        function=split_engine_coolant_temperatures,
+        inputs=['engine_coolant_temperatures', 'engine_thermostat_temperature'],
+        outputs=['engine_coolant_temperatures_cold',
+                 'engine_coolant_temperatures_hot']
+    )
+
     models['engine_coolant_temperature_model'] = {
-        'd': thermal(),
+        'd': d,
         'models': ['engine_temperature_regression_model',
                    'max_engine_coolant_temperature'],
         'inputs': ['times', 'accelerations', 'final_drive_powers_in',
-                   'engine_speeds_out_hot', 'initial_engine_temperature'],
-        'outputs': ['engine_coolant_temperatures'],
-        'targets': ['engine_coolant_temperatures'],
-        'metrics': [sk_met.mean_absolute_error],
-        'up_limit': [3],
+                   'engine_speeds_out_hot', 'initial_engine_temperature',
+                   'engine_thermostat_temperature'],
+        'outputs': ['engine_coolant_temperatures_cold',
+                    'engine_coolant_temperatures_hot'],
+        'targets': ['engine_coolant_temperatures'] * 2,
+        'names': ['cold', 'hot'],
+        'metrics': [metric_engine_coolant_temperature_model_cold,
+                    metric_engine_coolant_temperature_model_hot],
+        'weights': [3, 1],
+        'up_limit': [8, 3],
     }
 
     from ..physical.engine.start_stop import start_stop
@@ -431,7 +462,8 @@ def sub_models():
         'select_models': functools.partial(
             at_models_selector, at_gear(), at_pred_inputs
         ),
-        'models': ['MVL', 'CMV', 'CMV_Cold_Hot', 'DTGS', 'GSPV', 'GSPV_Cold_Hot',
+        'models': ['MVL', 'CMV', 'CMV_Cold_Hot', 'DTGS', 'GSPV',
+                   'GSPV_Cold_Hot',
                    'specific_gear_shifting', 'change_gear_window_width',
                    'max_velocity_full_load_correction', 'plateau_acceleration'],
         'inputs': at_pred_inputs,
@@ -466,7 +498,8 @@ def at_models_selector(d, at_pred_inputs, models_ids, data):
     t_e = ('mean_absolute_error', 'accuracy_score', 'correlation_coefficient')
 
     # at_models to be assessed.
-    at_m = {'CMV', 'CMV_Cold_Hot', 'DTGS', 'GSPV', 'GSPV_Cold_Hot'} if at_m == 'ALL' else {at_m}
+    at_m = {'CMV', 'CMV_Cold_Hot', 'DTGS', 'GSPV',
+            'GSPV_Cold_Hot'} if at_m == 'ALL' else {at_m}
 
     # Other models to be taken from calibration output.
     models = select(set(models_ids) - at_m, data, allow_miss=True)
@@ -479,8 +512,8 @@ def at_models_selector(d, at_pred_inputs, models_ids, data):
 
     def _err(model_id, model):
         gears = d.dispatch(
-                inputs=c_dicts(inputs, {sgs: model_id, model_id: model}),
-                outputs=['gears']
+            inputs=c_dicts(inputs, {sgs: model_id, model_id: model}),
+            outputs=['gears']
         )['gears']
 
         eng = calculate_gear_box_speeds_in(gears, vel, vsr, sv)
@@ -603,8 +636,9 @@ def selector(*data, pred_cyl_ids=('nedc_h', 'nedc_l', 'wltp_h', 'wltp_l')):
     )
 
     for k, v in setting.items():
+        v['names'] = v.get('names', v['targets'])
         v['dsp'] = v.pop('define_sub_model', define_sub_model)(v.pop('d'), **v)
-        v['metrics'] = sh.map_list(v['targets'], *v['metrics'])
+        v['metrics'] = sh.map_list(v['names'], *v['metrics'])
         d.add_function(
             function=v.pop('model_selector', _selector)(k, data, data, v),
             function_id='%s selector' % k,
@@ -639,8 +673,12 @@ def define_selector_settings(selector_settings, node_ids=()):
     return tuple(selector_settings.get(k, {}) for k in node_ids)
 
 
-def _selector(name, data_in, data_out, setting):
+def select_targets(names, targets, data):
+    data = sh.selector(targets, data, output_type='list', allow_miss=True)
+    return sh.map_list(names, *data)
 
+
+def _selector(name, data_in, data_out, setting):
     d = sh.Dispatcher(
         name='%s selector' % name,
         description='Select the calibrated %s.' % name
@@ -650,7 +688,9 @@ def _selector(name, data_in, data_out, setting):
     _sort_models = setting.pop('sort_models', sort_models)
 
     if 'weights' in setting:
-        _weights = sh.map_list(setting['targets'], *setting.pop('weights'))
+        _weights = sh.map_list(
+            setting.get('names', setting['targets']), *setting.pop('weights')
+        )
     else:
         _weights = None
 
@@ -702,7 +742,6 @@ def _selector(name, data_in, data_out, setting):
 
 
 def _errors(name, data_id, data_out, setting):
-
     d = sh.Dispatcher(
         name='%s-%s errors' % (name, data_id),
         description='Calculates the error of calibrated model.',
@@ -735,7 +774,6 @@ def _errors(name, data_id, data_out, setting):
     )
     err = _error(name, setting)
     for o in data_out:
-
         d.add_function(
             function=functools.partial(
                 sh.map_list, ['calibrated_models', 'data']
@@ -761,7 +799,6 @@ def _errors(name, data_id, data_out, setting):
 
 
 def _error(name, setting):
-
     d = sh.Dispatcher(
         name=name,
         description='Calculates the error of calibrated model of a reference.',
@@ -776,12 +813,15 @@ def _error(name, setting):
     }
 
     default_settings.update(setting)
+    default_settings['names'] = default_settings.get(
+        'names', default_settings['targets']
+    )
 
     it = sh.selector(['up_limit', 'dn_limit'], default_settings).items()
 
     for k, v in it:
         if v is not None:
-            default_settings[k] = sh.map_list(setting['targets'], *v)
+            default_settings[k] = sh.map_list(setting['names'], *v)
 
     d.add_function(
         function_id='select_inputs',
@@ -804,9 +844,8 @@ def _error(name, setting):
     )
 
     d.add_function(
-        function_id='select_targets',
-        function=functools.partial(sh.selector, allow_miss=True),
-        inputs=['targets', 'data'],
+        function=select_targets,
+        inputs=['names', 'targets', 'data'],
         outputs=['references']
     )
 
@@ -819,9 +858,8 @@ def _error(name, setting):
     )
 
     d.add_function(
-        function_id='select_outputs',
         function=select_outputs,
-        inputs=['outputs', 'targets', 'results'],
+        inputs=['names', 'outputs', 'targets', 'results'],
         outputs=['predictions']
     )
 
