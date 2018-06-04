@@ -156,6 +156,7 @@ def _parse_sheet(match, sheet, sheet_name, res=None):
             msg = 'Columns {} in {} sheet contains nan.\n ' \
                   'Please correct the inputs!'
             raise ValueError(msg.format(drop, sheet_name))
+        data = data.to_dict('list')
     else:
         data = {k: v for k, v in data.items() if k}
 
@@ -308,7 +309,7 @@ def parse_excel_file(file_path):
             v['cycle_type'] = v.get('cycle_type', k[-1].split('_')[0]).upper()
             v['cycle_name'] = v.get('cycle_name', k[-1]).upper()
 
-    res['plan'] = _finalize_plan(res, plans, file_path)
+    res['plan'] = _finalize_plan(res, plans, file_path).to_dict('split')
 
     return res
 

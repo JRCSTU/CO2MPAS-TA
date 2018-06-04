@@ -404,7 +404,10 @@ def prepare_data(raw_data, variation, input_file_name, overwrite_cache,
         Prepared data.
     :rtype: dict
     """
-    has_plan = 'plan' in raw_data and (not raw_data['plan'].empty)
+    raw_data = raw_data.copy()
+    import pandas as pd
+    raw_data['plan'] = pd.DataFrame(**raw_data.get('plan', {}))
+    has_plan = not raw_data['plan'].empty
     match = {
         'scope': 'plan' if has_plan else 'base',
     }
