@@ -178,7 +178,7 @@ setup(
         'Pillow',           # for tkui
         'toolz',
         'schedula>=0.1.14',         # Fix str(AbortDispatcher) not to print model
-        'formulas>=0.0.7',
+        'formulas>=0.0.10',
         'xgboost',                  # Pure-python boost also works.
 
         'ipython_genutils',         # by vendorized `traitlets`
