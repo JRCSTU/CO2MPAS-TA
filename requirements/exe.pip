@@ -21,7 +21,7 @@ pandalone>=0.2.0
 xlsxwriter
 regex
 schema
-lmfit>=0.9.5
+lmfit>=0.9.7
 tqdm
 PyYAML>=3.12
 boltons
