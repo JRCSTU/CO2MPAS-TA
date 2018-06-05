@@ -674,8 +674,7 @@ def define_selector_settings(selector_settings, node_ids=()):
 
 
 def select_targets(names, targets, data):
-    data = sh.selector(targets, data, output_type='list', allow_miss=True)
-    return sh.map_list(names, *data)
+    return {k: data[i] for k, i in zip(names, targets) if i in data}
 
 
 def _selector(name, data_in, data_out, setting):
