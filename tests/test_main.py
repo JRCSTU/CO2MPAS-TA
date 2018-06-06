@@ -24,7 +24,6 @@ import co2mpas.plot as co2plot
 
 
 mydir = os.path.dirname(__file__)
-readme_path = os.path.join(mydir, '..', 'README.rst')
 
 init_logging(level=logging.DEBUG)
 #logging.getLogger('pandalone.xleash').setLevel(logging.INFO)

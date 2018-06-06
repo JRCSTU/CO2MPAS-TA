@@ -1,0 +1,12 @@
+PolyversCmd:
+  projects:
+  - pname: co2mpas
+    basepath: .
+
+Project:
+  pvtag_format: '{vprefix}{version}'
+  pvtag_regex: |-
+    (?xmi)
+        ^(?P<pname>)
+        {vprefix}(?P<version>\d[^-]*)
+        (?:-(?P<descid>\d+-g[a-f\d]+))?$

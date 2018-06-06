@@ -18,7 +18,8 @@ Use the `batch` sub-command to simulate a vehicle contained in an excel-file.
 USAGE:
   co2mpas ta          [-f] [-v] [-O=<output-folder>] [<input-path>]...
   co2mpas batch       [-v | -q | --logconf=<conf-file>] [-f]
-                      [--use-cache] [-O=<output-folder>]
+                      [--use-cache] [--co2mparable=<old-yaml>]
+                      [-O=<output-folder>]
                       [--modelconf=<yaml-file>]
                       [-D=<key=value>]... [<input-path>]...
   co2mpas demo        [-v | -q | --logconf=<conf-file>] [-f]
@@ -49,6 +50,13 @@ OPTIONS:
   --modelconf=<yaml-file>     Path to a model-configuration file, according to YAML:
                                 https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
   --use-cache                 Use the cached input file.
+  --co2mparable=<old-yaml>    (internal) Enable co2parable generation in tmp-folder and
+                              optionally provide an <old-yaml> file to compare with while executing.
+                              Overrides CO2MPARE_ENABLED and CO2MPARE_WITH_FPATH env-vars
+                              (unless `--co2mparable=` specified).
+                              The <old-yaml> may end with '(txt|.yaml)[.xz]' or be <LATEST>.
+                              Other env-vars: CO2MPARE_YAML (default: CSV), CO2MPARE_ZIP(yes)
+                              [default: <DISABLED>]
   --override, -D=<key=value>  Input data overrides (e.g., `-D fuel_type=diesel`,
                               `-D prediction.nedc_h.vehicle_mass=1000`).
   -l, --list                  List available models.
@@ -57,15 +65,15 @@ OPTIONS:
 
 
 Model flags (-D flag.xxx, example -D flag.engineering_mode=True):
- engineering_mode=<bool>     Use all data and not only the declaration data.
- soft_validation=<bool>      Relax some Input-data validations, to facilitate experimentation.
- use_selector=<bool>         Select internally the best model to predict both NEDC H/L cycles.
- only_summary=<bool>         Do not save vehicle outputs, just the summary.
- plot_workflow=<bool>        Open workflow-plot in browser, after run finished.
- output_template=<xlsx-file> Clone the given excel-file and appends results into
-                             it. By default, results are appended into an empty
-                             excel-file. Use `output_template=-` to use
-                             input-file as template.
+ engineering_mode=<bool>      Use all data and not only the declaration data.
+ soft_validation=<bool>       Relax some Input-data validations, to facilitate experimentation.
+ use_selector=<bool>          Select internally the best model to predict both NEDC H/L cycles.
+ only_summary=<bool>          Do not save vehicle outputs, just the summary.
+ plot_workflow=<bool>         Open workflow-plot in browser, after run finished.
+ output_template=<xlsx-file>  Clone the given excel-file and appends results into
+                              it. By default, results are appended into an empty
+                              excel-file. Use `output_template=-` to use
+                              input-file as template.
 
 Miscellaneous:
   -h, --help                  Show this help message and exit.
@@ -658,7 +666,10 @@ def _main(*args):
     elif opts['ta']:
         _run_batch(opts, type_approval_mode=True, overwrite_cache=True)
     else:
-        _run_batch(opts)
+        from co2mpas import co2mparable
+
+        with co2mparable.hashing_schedula(opts['--co2mparable']):
+            _run_batch(opts)
 
 
 def main(*args):

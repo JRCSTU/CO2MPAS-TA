@@ -40,7 +40,7 @@ LAST_RECIPIENTS_KEY = 'last_recipients'
 logger = logging.getLogger(__name__)
 
 
-def get_bool_arg(argname):
+def get_bool_arg(argname, default=None):
     """
     True is an arg alone, or any stripped string not one of: ``0|false|no|off``
     """
@@ -48,6 +48,7 @@ def get_bool_arg(argname):
     if argname in args:
         param = args[argname].strip()
         return param.lower() not in '0 false no off'.split()
+    return default
 
 
 def unique_ci(words):
@@ -66,6 +67,26 @@ def unique_ci(words):
             lower_words.add(lw)
             uniques.append(w)
     return uniques
+
+def _remote_address(self, request, width=None):
+    """
+    Find request's remote address, even if proxied (return the full list).
+
+    :return:
+        a string with a single or CS client IPs, optionally limited in width
+        with ellipsis.
+
+    Taken From:
+      https://stackoverflow.com/questions/12770950/flask-request-remote-addr-is-wrong-on-webfaction-and-not-showing-real-user-ip
+    Read also the linked article:
+      http://esd.io/blog/flask-apps-heroku-real-ip-spoofing.html
+    """
+    headers_list = request.headers.getlist("X-Forwarded-For")
+    client_ip = str(headers_list) if headers_list else request.remote_addr
+    if width:
+        client_ip = tw.shorten(client_ip, width)
+    return client_ip
+
 
 ## TODO: ESCAPE USER-INPUT!!!!
 def recipients_str(recipients):
@@ -189,9 +210,7 @@ def create_stamp_form_class(app):
         def validate_stamp_recipients(self, field):
             """Must contain at least 1 non-standard email-address."""
             text = field.data
-            check_mx = get_bool_arg('skip_mail_mx_check')
-            if check_mx is None:
-                check_mx = os.name != 'nt'
+            skip_check_mx = get_bool_arg('skip_mail_mx_check', os.name == 'nt')
 
             recipients = re.split('[\s,;]+', text)
             recipients = [s and s.strip() for s in recipients]
@@ -208,7 +227,7 @@ def create_stamp_form_class(app):
                     recipients_str(recipients))
 
             for i, email in enumerate(recipients, 1):
-                if not validate_email(email, check_mx=check_mx):
+                if not validate_email(email, check_mx=not skip_check_mx):
                     raise wtforms.ValidationError(
                         'Invalid email-address no-%i: `%s`' %
                         (i, recipients_str(recipients)))
@@ -418,14 +437,19 @@ def create_stamp_form_class(app):
 
             return sign_validator
 
-        def _sign_dreport(self, dreport, recipients):
+        def _sign_dreport(self, dreport, sender, recipients):
             """
             :return:
                 tuple(dice_stamp, dice_decision)
             """
             signer = self.signer
             signer.recipients = recipients
-            sender = '(%s) %s' % (request.remote_addr, self.sender.data)
+            ## Calculate remaining width for IP in parenthesis of::
+            #
+            #     #    (123.456.123.456) user@home.gr
+            max_line_width = 60  # See :meth:`TsignerService.sign_text_as_tstamper()`
+            avail_width = max_line_width - len('#    ()') - len(sender)
+            sender = '(%s) %s' % (_remote_address(request, avail_width), sender)
             return signer.sign_dreport_as_tstamper(sender,
                                                    dreport)
 
@@ -480,7 +504,7 @@ def create_stamp_form_class(app):
             try:
                 self._check_key_exists()
                 dice_stamp, dice_decision = self._sign_dreport(dreport,
-                                                               recipients)
+                                                               sender, recipients)
             except CmdException as ex:
                 self._log_client_error("Signing", ex)
                 flash(str(ex), 'error')

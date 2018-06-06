@@ -4,15 +4,37 @@ CO2MPAS Changes
 .. contents::
 .. _changes:
 
-v1.dev8.0, 15 Nov 2017
+
+NEXT RELEASE
 ======================
+v1.8.0.dev1, 29 May 2018
+------------------------
+- chore:(build, :gh:`408`, :git:`0761ba9d6`):
+  Start versioning project with `polyvers` tool, as *mono-project*.
+- feat(data, :gh:`???`):
+  Implemented *co2mparable* generation for ex-post reproducibility studies.
+
+v1.8.0.dev0, 22 May 2018
+-----------------------------
+Included in 1st AIO-UpgradePack (see :gh:`463`).
+
+- chore(build, :git:`e90680fae`):
+  removed `setup_requires`;  must have
+  these packages installed before attempting to install in "develop mode"::
+
+      pip, setuptools setuptools-git >= 0.3, wheel, polyvers
+
+- feat(deps): Add `xgboost` native-lib dependency, for speed.
+
+pre v1.8.0.dev0, 15 Nov 2017
+----------------------------
 - feat(model): Add utility to design gearbox ratios if they cannot be identified
   based on `maximum_velocity` and `maximum_vehicle_laden_mass`. This is not
   affecting the TA mode.
-
 - feat(model): Add function to calculate the `vehicle_mass` from `curb mass`,
   `cargo_mass`, `curb_mass`, `fuel_mass`, `passenger_mass`, and `n_passengers`.
   This is not affecting the TA mode.
+- Dice & WebStamper updates...
 
 
 v1.7.4.post0, 11 Dec 2017

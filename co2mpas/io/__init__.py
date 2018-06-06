@@ -148,12 +148,15 @@ def _proc_info2df(data, start_time, main_flags):
 
 
 def _co2mpas_info2df(start_time, main_flags=None):
+    import socket
 
     time_elapsed = (datetime.datetime.today() - start_time).total_seconds()
+    hostname = socket.gethostname()
     info = [
         ('CO2MPAS version', version),
         ('Simulation started', start_time.strftime('%Y/%m/%d-%H:%M:%S')),
-        ('Time elapsed', '%.3f sec' % time_elapsed)
+        ('Time elapsed', '%.3f sec' % time_elapsed),
+        ('Hostname', hostname),
     ]
 
     if main_flags:
@@ -167,8 +170,12 @@ def _co2mpas_info2df(start_time, main_flags=None):
 
 
 def _freeze2df():
-    from pip.operations import freeze
     import pandas as pd
+    try:
+        ## From pip >= 10.0.0 `freeze` module moved to `_internal` package
+        from pip._internal.operations import freeze
+    except ImportError:
+        from pip.operations import freeze
 
     d = dict((v.key, v.version)
              for v  # DistInfoDistribution

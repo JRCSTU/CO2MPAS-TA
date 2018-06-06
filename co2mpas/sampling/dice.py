@@ -5,17 +5,21 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 #
-"""co2dice: prepare/sign/send/receive/validate/archive Type Approval sampling emails of *co2mpas*."""
+"""
+Main CO2MPAS dice command to prepare/sign/send/receive/validate/archive ...
 
+Type Approval sampling emails of *co2mpas*.
+"""
 from co2mpas import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 from co2mpas._vendor import traitlets as trt
 from co2mpas.sampling import baseapp, CmdException
 from co2mpas.sampling.baseapp import (APPNAME, Cmd,
                                       chain_cmds)  # @UnusedImport
 from collections import OrderedDict
+from polyversion import polyversion
+from typing import Sequence, Text, List, Tuple  # @UnusedImport
 import logging
 import sys
-from typing import Sequence, Text, List, Tuple  # @UnusedImport
 
 import os.path as osp
 import pandalone.utils as pndlu
@@ -69,25 +73,26 @@ class Co2diceCmd(Cmd):
     """
 
     name = trt.Unicode(APPNAME)
-    version = __version__
+    version = polyversion(pname='co2mpas', mono_project=True)
     examples = trt.Unicode("""\
-        - Try the `project` sub-command::
-              %(cmd_chain)s  project
+    - Try the `project` sub-command::
+          %(cmd_chain)s  project
 
-        - To learn more about command-line options and configurations::
-              %(cmd_chain)s  config
+    - To learn more about command-line options and configurations::
+          %(cmd_chain)s  config
 
-        - Read configurations also from a `GMail` folder present in current-dir
-          and view what was loaded actually::
-              %(cmd_chain)s  config paths --config-paths GMail --config-paths ~/.co2dice
-              %(cmd_chain)s  config show --source file --config-paths GMail --config-paths ~/.co2dice
+    - Read configurations also from a `GMail` folder present in current-dir
+      and view what was loaded actually::
+          %(cmd_chain)s  config paths --config-paths GMail --config-paths ~/.co2dice
+          %(cmd_chain)s  config show --source file --config-paths GMail --config-paths ~/.co2dice
     """)
 
     subcommands = OrderedDict([
         ('project', ('co2mpas.sampling.project.ProjectCmd',
                      "Commands to administer the storage repo of TA *projects*.")),
         ('report', ('co2mpas.sampling.report.ReportCmd',
-                    "Extract the report parameters from the co2mpas input/output files, or from *current-project*.")),
+                    "Extract the report parameters from the co2mpas input/output files, "
+                    "or from *current-project*.")),
         ('tstamp', ('co2mpas.sampling.tstamp.TstampCmd',
                     "Commands to manage the communications with the Timestamp server.")),
         ('config', ('co2mpas.sampling.cfgcmd.ConfigCmd',

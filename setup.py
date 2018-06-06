@@ -14,23 +14,14 @@ import sys
 from setuptools import setup, find_packages
 
 
+PROJECT = 'co2mpas'
+
 if sys.version_info < (3, 5):
-    sys.exit("Sorry, Python >= 3.5 is required, found: %s" %
-             str(sys.version_info))
+    sys.exit("Sorry, Python >= 3.5 is required to install %s, found: %s" %
+             (sys.version_info, PROJECT))
 
 
-proj_name = 'co2mpas'
 mydir = os.path.dirname(__file__)
-
-# Version-trick to have version-info in a single place,
-# taken from: http://stackoverflow.com/questions/2058802/how-can-i-get-the-version-defined-in-setup-py-setuptools-in-my-package
-##
-def read_project_version():
-    fglobals = {}
-    with io.open(os.path.join(
-            mydir, 'co2mpas', '_version.py'), encoding='UTF-8') as fd:
-        exec(fd.read(), fglobals)  # To read __version__
-    return fglobals['__version__']
 
 
 def read_text_lines(fname):
@@ -51,8 +42,7 @@ def yield_rst_only_markup(lines):
         (r':ref:`([^`]+)`', r'ref: *\1*'),
         (r':term:`([^`]+)`', r'**\1**'),
         (r':dfn:`([^`]+)`', r'**\1**'),
-        (r':(samp|guilabel|menuselection|doc|file):`([^`]+)`',
-                                    r'``\2``'),
+        (r':(samp|guilabel|menuselection|doc|file):`([^`]+)`', r'``\2``'),
 
         # Sphinx-only roles:
         #        :foo:`bar`   --> foo(``bar``)
@@ -108,18 +98,22 @@ def yield_rst_only_markup(lines):
         yield clean_line(line)
 
 
-proj_ver = read_project_version()
+polyversion = 'polyversion >= 0.1.0a7'  # kwd changed, engrave `_version.py`.
 readme_lines = read_text_lines('README.rst')
 description = readme_lines[1]
 long_desc = ''.join(yield_rst_only_markup(readme_lines))
-download_url = 'https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v%s' % proj_ver
 
 setup(
-    name=proj_name,
-    version=proj_ver,
+    name=PROJECT,
+    ## Include a default for robustness (eg to work on shallow git -clones)
+    #  but also for engraveds to have  their version visible.
+    version='0.0.0',
+    polyversion={
+        'mono_project': True,
+    },
     description="The Type-Approving vehicle simulator predicting NEDC CO2 emissions from WLTP",
     long_description=long_desc,
-    download_url=download_url,
+    download_url='https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/{version}',
     keywords="""
         CO2 fuel-consumption WLTP NEDC vehicle automotive
         EU JRC IET STU correlation back-translation policy monitoring
@@ -151,7 +145,21 @@ setup(
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
     python_requires='>=3.5',  # http://www.python3statement.org/practicalities/
+    setup_requires=[
+        # PEP426-field actually not used by `pip`, hence
+        # included also in /requirements/developmnet.pip.
+        'setuptools',
+        'setuptools-git>=0.3',  # Example given like that in PY docs.
+        'wheel',
+        polyversion,
+    ],
+    # dev_requires=[
+    #     # PEP426-field actually not used by `pip`, hence
+    #     # included in /requirements/developmnet.pip.
+    #     'sphinx',
+    # ],
     install_requires=[
+        polyversion,
         'rainbow_logging_handler',
         'pandas',
         'xlsxwriter',
@@ -211,8 +219,8 @@ setup(
     tests_require=['nose>=1.0', 'ddt'],
     entry_points={
         'console_scripts': [
-            '%(p)s = %(p)s.__main__:main' % {'p': proj_name},
-            '%(p)s-autocompletions = %(p)s.__main__:print_autocompletions' % {'p': proj_name},
+            '%(p)s = %(p)s.__main__:main' % {'p': PROJECT},
+            '%(p)s-autocompletions = %(p)s.__main__:print_autocompletions' % {'p': PROJECT},
             'datasync = co2mpas.datasync:main',
             'co2dice = co2mpas.sampling.dice:main ',
             ## Note: launching as gui-scripts DOES NOT WORK

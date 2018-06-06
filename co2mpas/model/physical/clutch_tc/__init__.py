@@ -4,7 +4,6 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-
 """
 It contains functions that model the basic mechanics of the clutch and torque
 converter.
@@ -60,7 +59,13 @@ def define_k_factor_curve(stand_still_torque_ratio=1.0, lockup_speed_ratio=0.0):
     else:
         x = [0, lockup_speed_ratio, 1]
         y = [stand_still_torque_ratio, 1, 1]
-    return sci_itp.InterpolatedUnivariateSpline(x, y, k=1)
+
+    res = sci_itp.InterpolatedUnivariateSpline(x, y, k=1)
+
+    from co2mpas.co2mparable import tag_checksum
+    tag_checksum(res, x, y)
+
+    return res
 
 
 def calculate_clutch_tc_powers(
