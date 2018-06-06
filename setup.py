@@ -11,18 +11,18 @@ import os
 import re
 import sys
 
-if sys.version_info < (3, 5):
-    sys.exit("Sorry, Python >= 3.5 is required, found: %s" %
-             str(sys.version_info))
-
 from setuptools import setup, find_packages
-from polyversion import polyversion  # noqa: F401  # engraved-out in packages.
-
 
 
 PROJECT = 'co2mpas'
-VERSION = polyversion(PROJECT, mono_project=True)
+
+if sys.version_info < (3, 5):
+    sys.exit("Sorry, Python >= 3.5 is required to install %s, found: %s" %
+             (sys.version_info, PROJECT))
+
+
 mydir = os.path.dirname(__file__)
+
 
 def read_text_lines(fname):
     with io.open(os.path.join(mydir, fname), encoding='utf-8') as fd:
@@ -42,8 +42,7 @@ def yield_rst_only_markup(lines):
         (r':ref:`([^`]+)`', r'ref: *\1*'),
         (r':term:`([^`]+)`', r'**\1**'),
         (r':dfn:`([^`]+)`', r'**\1**'),
-        (r':(samp|guilabel|menuselection|doc|file):`([^`]+)`',
-                                    r'``\2``'),
+        (r':(samp|guilabel|menuselection|doc|file):`([^`]+)`', r'``\2``'),
 
         # Sphinx-only roles:
         #        :foo:`bar`   --> foo(``bar``)
@@ -99,17 +98,19 @@ def yield_rst_only_markup(lines):
         yield clean_line(line)
 
 
+polyversion = 'polyversion >= 0.1.0a7'  # kwd changed, engrave `_version.py`.
 readme_lines = read_text_lines('README.rst')
 description = readme_lines[1]
 long_desc = ''.join(yield_rst_only_markup(readme_lines))
-download_url = 'https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v%s' % VERSION
 
 setup(
     name=PROJECT,
-    version=VERSION,
+    polyversion={
+        'mono_project': True,
+    },
     description="The Type-Approving vehicle simulator predicting NEDC CO2 emissions from WLTP",
     long_description=long_desc,
-    download_url=download_url,
+    download_url='https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/{version}',
     keywords="""
         CO2 fuel-consumption WLTP NEDC vehicle automotive
         EU JRC IET STU correlation back-translation policy monitoring
@@ -147,6 +148,7 @@ setup(
         'setuptools',
         'setuptools-git>=0.3',  # Example given like that in PY docs.
         'wheel',
+        polyversion,
     ],
     # dev_requires=[
     #     # PEP426-field actually not used by `pip`, hence
@@ -154,7 +156,7 @@ setup(
     #     'sphinx',
     # ],
     install_requires=[
-        'polyversion >= 0.0.2a9',       # inversion of scream logic
+        polyversion,
         'rainbow_logging_handler',
         'pandas',
         'xlsxwriter',

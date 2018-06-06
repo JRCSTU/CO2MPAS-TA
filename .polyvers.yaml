@@ -4,7 +4,7 @@ PolyversCmd:
     basepath: .
 
 Project:
-  pvtag_frmt: '{vprefix}{version}'
+  pvtag_format: '{vprefix}{version}'
   pvtag_regex: |-
     (?xmi)
         ^(?P<pname>)

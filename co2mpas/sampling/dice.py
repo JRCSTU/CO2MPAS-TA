@@ -13,6 +13,7 @@ from co2mpas.sampling import baseapp, CmdException
 from co2mpas.sampling.baseapp import (APPNAME, Cmd,
                                       chain_cmds)  # @UnusedImport
 from collections import OrderedDict
+from polyversion import polyversion
 import logging
 import sys
 from typing import Sequence, Text, List, Tuple  # @UnusedImport
@@ -69,7 +70,7 @@ class Co2diceCmd(Cmd):
     """
 
     name = trt.Unicode(APPNAME)
-    version = __version__
+    version = polyversion(pname='co2mpas', mono_project=True)
     examples = trt.Unicode("""\
         - Try the `project` sub-command::
               %(cmd_chain)s  project
