@@ -105,6 +105,9 @@ long_desc = ''.join(yield_rst_only_markup(readme_lines))
 
 setup(
     name=PROJECT,
+    ## Include a default for robustness (eg to work on shallow git -clones)
+    #  but also for engraveds to have  their version visible.
+    version='0.0.0',
     polyversion={
         'mono_project': True,
     },
