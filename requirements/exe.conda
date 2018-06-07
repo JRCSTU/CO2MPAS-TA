@@ -12,21 +12,32 @@
 ##      pip install -r requirements/dev.pip
 
 ## DIRECT DEPS
-pandas
-xlsxwriter
-scikit-learn
-numpy
-scipy
+asteval==0.9.12
+chardet==3.0.4
+dill==0.2.7.1
+formulas==0.0.10
+lmfit==0.9.10
+networkx==2.1
+numpy==1.14.3+mkl
+openpyxl==2.5.3
+pandas==0.23.0
+pykalman==0.9.5
+schedula==0.1.19
+schema==0.6.7
+scikit-learn==0.19.1
+scipy==0.19.0
+wltp==0.1.0a2
+xgboost==0.72
+xlrd==1.1.0
+XlsxWriter==1.0.5
+
 matplotlib
-networkx
-dill
 docopt
 six
 regex
 tqdm
 PyYAML
 pip
-openpyxl
 toolz
 ipython_genutils
 gitpython
@@ -36,7 +47,7 @@ Unidecode
 
 #NO: graphviz ## DOWNGRADES numpy!!
 
-## IDIRECT deps:
+## INDIRECT deps:
 lxml
 MarkupSafe
 Jinja2
@@ -53,11 +64,9 @@ click
 itsdangerous
 flask
 beautifulsoup4
-dill
 colorama
 future
 jsonschema
-xlrd
 
 ## (optional) NATIVE deps
 #git

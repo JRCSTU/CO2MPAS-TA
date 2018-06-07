@@ -1,38 +1,45 @@
-## Pip-dependencies for installing and running the project.
+## Pip-dependencies for installing before running the project.
+#
+## PINNED for Results Reproducibility
+#
+asteval==0.9.12
+chardet==3.0.4
+dill==0.2.7.1
+formulas==0.0.10
+lmfit==0.9.10
+networkx==2.1
+numpy==1.14.3+mkl
+openpyxl==2.5.3
+pandas==0.23.0
+pykalman==0.9.5
+schedula==0.1.19
+schema==0.6.7
+scikit-learn==0.19.1
+scipy==0.19.0
+wltp==0.1.0a2
+xgboost==0.72
+xlrd==1.1.0
+XlsxWriter==1.0.5
 
 ## C-backends (under Anaconda use `conda` to install them)
 #
-rainbow_logging_handler
-pandas
-numpy
-scipy
-scikit-learn
 matplotlib
 
 ## Pure python libs.
 #
+rainbow_logging_handler
 setuptools
-networkx
-dill!=0.2.7
 graphviz
 docopt
 six
 pandalone>=0.2.0
-xlsxwriter
-regex
-schema
-lmfit>=0.9.7
 tqdm
 PyYAML>=3.12
 boltons
-pykalman
-wltp
-openpyxl>=2.4.0
-schedula>=0.1.14
-formulas>=0.0.10
-xgboost
+
 
 ## Dice
+#
 ipython_genutils
 python-gnupg
 gitpython >= 2.1.0      ## Win+Cygwin support
