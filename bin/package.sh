@@ -33,18 +33,33 @@ if [ $# -gt 1 ]; then
 fi
 
 rm -rf build/* dist/*
-python setup.py build bdist_wheel 
+python setup.py build bdist_wheel
 
 
-## Check if data-files exist.
+## Check SDIST archive.
 #
-src_list="`unzip -l ./dist/co2mpas-*.zip`"
-whl_list="`unzip -l ./dist/co2mpas-*.whl`"
-( echo "$src_list" | grep -q co2mpas_template; ) || echo "FAIL: No TEMPLATE-file in SOURCES!"
-( echo "$src_list" | grep -q co2mpas_demo; ) || echo "FAIL: No DEMO in SOURCES!"
-( echo "$src_list" | grep -q simVehicle.ipynb; ) || echo "FAIL: No IPYNBS in SOURCES!"
+wildcard='./dist/co2mpas-*.zip'
+matches="$(echo $wildcard)"
+if [ "$wildcard" != "$matches" ]; then
+    src_list="$(unzip -l ./dist/co2mpas-*.zip)"
+    ( echo "$src_list" | grep -q co2mpas_template; ) || echo "FAIL: No TEMPLATE-file in SDIST($wildcard)!"
+    ( echo "$src_list" | grep -q co2mpas_demo; ) || echo "FAIL: No DEMO in SDIST($wildcard)!"
+    ( echo "$src_list" | grep -q simVehicle.ipynb; ) || echo "FAIL: No IPYNBS in SDIST($wildcard)!"
+else
+        echo "No SDIST($wildcard) generated, fine."
+fi
 
-( echo "$whl_list" | grep -q co2mpas_template; ) || echo "FAIL: No TEMPLATE-file in WHEEL!"
-( echo "$whl_list" | grep -q co2mpas_demo; ) || echo "FAIL: No DEMO in WHEEL!"
-( echo "$whl_list" | grep -q simVehicle.ipynb; ) || echo "FAIL: No IPYNBS in WHEEL!"
-( echo "$whl_list" | grep -q .co2mpas_cache; ) && echo "FAIL!!!! CACHE IN DEMOS!!!"
+## Check WHEEL archive.
+#
+wildcard='./dist/co2mpas-*.whl'
+matches="$(echo $wildcard)"
+if [ "$wildcard" != "$matches" ]; then
+    whl_list="$(unzip -l $wildcard)"
+    ( echo "$whl_list" | grep -q co2mpas_template; ) || echo "FAIL: No TEMPLATE-file in WHEEL($(ldcard)!)!"
+    ( echo "$whl_list" | grep -q co2mpas_demo; ) || echo "FAIL: No DEMO in WHEEL($(ldcard)!)!"
+    ( echo "$whl_list" | grep -q simVehicle.ipynb; ) || echo "FAIL: No IPYNBS in WHEEL($(ldcard)!)!"
+    ( echo "$whl_list" | grep -q .co2mpas_cache; ) && echo "FAIL!!!! CACHE IN DEMOS!!!"
+else
+        echo "No WHEEL ($wildcard) generated!!"
+        exit 1
+fi
