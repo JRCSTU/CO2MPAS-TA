@@ -5,7 +5,9 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 #
-"""A *report* contains the co2mpas-run values to time-stamp and disseminate to TA authorities & oversight bodies."""
+"""
+A *report* contains the co2mpas-run values to time-stamp and disseminate to TA authorities.
+"""
 
 from collections import (
     defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
@@ -32,7 +34,9 @@ def clip_and_asciify(s, fname_clip_len=64):
 ##     Specs     ##
 ###################
 def _report_tuple_2_dict(fpath, iokind, report) -> dict:
-    """Converts tuples produced by :meth:`_yield_report_tuples_from_iofiles()` into stuff YAML-able. """
+    """
+    Converts tuples from :meth:`_yield_report_tuples_from_iofiles()` into stuff YAML-able.
+    """
     import pandas as pd
 
     d = OrderedDict([
@@ -45,7 +49,7 @@ def _report_tuple_2_dict(fpath, iokind, report) -> dict:
         def fmt_row_as_pair(i, k, v):
             try:
                 v = round(v.astype(float), decs_rounding)
-            except:
+            except:  # @IgnorePep8
                 pass
             v = v.tolist()
 
@@ -70,7 +74,8 @@ class Report(baseapp.Spec):
 
     input_head_xlref = trt.Unicode(
         '#Inputs!B1:D5:{"func": "df", "kwds": {"index_col": 0}}',
-        help="The *xlref* extracting 5-10 lines from ``Inputs`` sheets of the input-file as a dataframe."
+        help="The *xlref* extracting 5-10 lines from ``Inputs`` sheets "
+        "of the input-file as a dataframe."
     ).tag(config=True)
     input_vfid_coords = trt.Tuple(
         trt.Unicode(), trt.Unicode(),
@@ -152,7 +157,8 @@ class Report(baseapp.Spec):
                 ('inp' | 'out', <abs-fpath>, <report-df>)
 
             - `<report>` is series/data-frame, because that's extracted from excel.
-            - For *input* files, the ``<report>`` has this index: ``['vehicle_family_id': <expectec_vfid>}``;
+            - For *input* files, the ``<report>`` has this index:
+              ``['vehicle_family_id': <expectec_vfid>}``;
             - For *output* files, the ``<report>`` is a pandas data-frame.
             - For *other* files, the ``<report>`` is None.
 
@@ -167,9 +173,9 @@ class Report(baseapp.Spec):
             if expected_vfid is None:
                 expected_vfid = file_vfid
             elif expected_vfid != file_vfid:
-                return ("mismatch `vehicle_family_id` between this file and the rest: "
+                return ("mismatch `vehicle_family_id` between this file(%s) and the rest: "
                         "'%s' != expected('%s')'" %
-                        (file_vfid, expected_vfid))
+                        (fpath, file_vfid, expected_vfid))
 
         for fpath in iofiles.inp:
             fpath = pndlu.convpath(fpath)
@@ -183,6 +189,7 @@ class Report(baseapp.Spec):
                     raise CmdException(msg)
             yield (fpath, 'inp', OrderedDict([
                 ('vehicle_family_id', file_vfid),
+                ('timestamp', osp.getmtime(fpath)),
             ]))
 
         for fpath in iofiles.out:
@@ -222,7 +229,7 @@ class Report(baseapp.Spec):
 
 class ReportCmd(baseapp.Cmd):
     """
-    Extract dice-report from the given co2mpas input/output/other files, or from those in *current-project*.
+    Extract dice-report from the input/output/other files, or from *current-project*.
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] ( --inp <co2mpas-file> | --out <co2mpas-file> | <other-file> ) ...
@@ -344,6 +351,6 @@ class ReportCmd(baseapp.Cmd):
                 yield yaml.dump({fpath: drep}, indent=2)
 
 ## test CMDS:
-#    co2dice report -i ../../../compas.vinz/co2mpas/demos/co2mpas_demo-7.xlsx -o 20170207_192057-* && \
+#    co2dice report -i ./co2mpas/demos/co2mpas_demo-7.xlsx -o 20170207_192057-* && \
 #    co2dice report  --vfids --project && co2dice report   --project && \
 #    co2dice report   --project -v &&  co2dice report   --project --vfids -v
