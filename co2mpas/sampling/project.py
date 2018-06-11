@@ -684,7 +684,7 @@ class Project(transitions.Machine, ProjectSpec):
             A class:`PFiles` containing list of working-dir paths
             for any WLTP files, or none if none exists.
         """
-        io_kinds = PFiles._io_kinds_list(*io_kinds)
+        io_kinds = PFiles.io_kinds_list(*io_kinds)
         repo = self.repo
 
         def collect_kind_files(io_kind):

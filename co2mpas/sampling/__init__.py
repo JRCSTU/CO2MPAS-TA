@@ -61,7 +61,7 @@ class PFiles(namedtuple('PFiles', all_io_kinds)):
     #  because it is used in their function declarations.
 
     @staticmethod
-    def _io_kinds_list(*io_kinds) -> Tuple[Text]:
+    def io_kinds_list(*io_kinds) -> Tuple[Text]:
         """
         :param io_kinds:
             if none specified, return all kinds,
