@@ -113,6 +113,16 @@ class Report(baseapp.Spec):
 
         return vfid, df
 
+    def is_excel_true_or_null(self, val):
+        return val is None or val is True or str(val).lower() == 'true'
+
+    def _check_is_ta(self, fpath, report):
+        ta_flags = report.ix['TA_mode', :]
+        self.log.debug("TA flags for file('%s'): %s" % (fpath, ta_flags))
+        is_ta_mode = all(self.is_excel_true_or_null(f) for f in ta_flags)
+        if not is_ta_mode:
+            return "file is NOT in TA mode: %s" % ta_flags
+
     def _yield_report_tuples_from_iofiles(self, iofiles: PFiles, expected_vfid=None):
         """
         Parses input/output files and yields their *unique* vehicle-family-id and any dice-reports.
@@ -145,16 +155,6 @@ class Report(baseapp.Spec):
                         "'%s' != expected('%s')'" %
                         (file_vfid, expected_vfid))
 
-        def is_excel_true_or_null(val):
-            return val is None or val is True or str(val).lower() == 'true'
-
-        def check_is_ta(fpath, report):
-            ta_flags = report.ix['TA_mode', :]
-            self.log.debug("TA flags for file('%s'): %s" % (fpath, ta_flags))
-            is_ta_mode = all(is_excel_true_or_null(f) for f in ta_flags)
-            if not is_ta_mode:
-                return "file is NOT in TA mode: %s" % ta_flags
-
         for fpath in iofiles.inp:
             fpath = pndlu.convpath(fpath)
             file_vfid = self._extract_vfid_from_input(fpath)
@@ -172,7 +172,7 @@ class Report(baseapp.Spec):
         for fpath in iofiles.out:
             fpath = pndlu.convpath(fpath)
             file_vfid, dice_report = self._extract_dice_report_from_output(fpath)
-            msg1 = check_is_ta(fpath, dice_report)
+            msg1 = self._check_is_ta(fpath, dice_report)
             msg2 = check_vfid_missmatch(fpath, file_vfid)
             msgs = [m for m in [msg1, msg2] if m]
             if any(msgs):
