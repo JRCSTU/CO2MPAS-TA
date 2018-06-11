@@ -9,7 +9,7 @@
 from co2mpas.__main__ import init_logging
 from co2mpas._vendor.traitlets import config as trtc
 from co2mpas.sampling import CmdException, report, project, crypto
-from co2mpas.sampling.baseapp import collect_cmd, pump_cmd
+from co2mpas.sampling.baseapp import pump_cmd
 import logging
 import os
 import re
@@ -21,13 +21,20 @@ import unittest
 import ddt
 import yaml
 
-import numpy as np
 import os.path as osp
 import subprocess as sbp
 
 from . import (test_inp_fpath, test_out_fpath, test_vfid,
                test_pgp_fingerprint, test_pgp_keys, test_pgp_trust)
 
+
+class FailingTempDir(tempfile.TemporaryDirectory):
+    def __exit__(self, *args, **kwds):
+        ## The process cannot access the file on windows
+        try:
+            super().__exit__(*args, **kwds)
+        except Exception as ex:
+            print('Ignored tempdir-failure: %s' % ex)
 
 
 mydir = osp.dirname(__file__)
@@ -36,6 +43,7 @@ log = logging.getLogger(__name__)
 
 proj1 = 'IP-12-WMI-1234-5678'
 proj2 = 'RL-99-BM3-2017-0001'
+
 
 @ddt.ddt
 class TApp(unittest.TestCase):
@@ -165,7 +173,8 @@ class TReportProject(TReportBase):
 
     def test_fails_when_empty(self):
         c = self.cfg
-        with tempfile.TemporaryDirectory() as td:
+        ## "The process cannot access the file" when deleting on Windows.
+        with FailingTempDir() as td:
             c.ProjectsDB.repo_path = td
             pump_cmd(project.InitCmd(config=c).run(proj1))
             cmd = report.ReportCmd(config=c)
@@ -177,7 +186,8 @@ class TReportProject(TReportBase):
 
     def test_input_output(self):
         c = self.cfg
-        with tempfile.TemporaryDirectory() as td:
+        ## "The process cannot access the file" when deleting on Windows.
+        with FailingTempDir() as td:
             c.ProjectsDB.repo_path = td
             pump_cmd(project.InitCmd(config=c).run(test_vfid))
 
@@ -213,7 +223,8 @@ class TReportProject(TReportBase):
 
     def test_output_input(self):
         c = self.cfg
-        with tempfile.TemporaryDirectory() as td:
+        ## "The process cannot access the file" when deleting on Windows.
+        with FailingTempDir() as td:
             c.ProjectsDB.repo_path = td
             pump_cmd(project.InitCmd(config=c).run(test_vfid))
 
@@ -245,7 +256,8 @@ class TReportProject(TReportBase):
 
     def test_both(self):
         c = self.cfg
-        with tempfile.TemporaryDirectory() as td:
+        ## "The process cannot access the file" when deleting on Windows.
+        with FailingTempDir() as td:
             c.ProjectsDB.repo_path = td
             pump_cmd(project.InitCmd(config=c).run(proj2))
 
