@@ -77,10 +77,9 @@ class Report(baseapp.Spec):
         help="The *xlref* extracting 5-10 lines from ``Inputs`` sheets "
         "of the input-file as a dataframe."
     ).tag(config=True)
-    input_vfid_coords = trt.Tuple(
-        trt.Unicode(), trt.Unicode(),
-        default_value=('flag.vehicle_family_id', 'Value'),
-        help="the (row, col) names of the ``vehicle_family_id`` value in the extracted dataframe."
+    input_vfid_coords = trt.Unicode(
+        'flag.vehicle_family_id',
+        help="the dot-separated keys of  ``vehicle_family_id`` into parsed excel file."
     ).tag(config=True)
 
     dice_report_xlref = trt.Unicode(
@@ -93,16 +92,16 @@ class Report(baseapp.Spec):
         help="the (row, col) names of the ``vehicle_family_id`` value in the extracted dataframe."
     ).tag(config=True)
 
-    def _extract_vfid_from_input(self, fpath):
-        import pandas as pd
-        from pandalone import xleash
+    def _parse_input_xlsx(self, inp_xlsx_fpath):
+        from co2mpas.io.excel import parse_excel_file
 
-        df = xleash.lasso(self.input_head_xlref, url_file=fpath)
-        assert isinstance(df, pd.DataFrame), (
-            "The *inputs* xlref(%s) must resolve to a DataFrame, not type(%r): %s" %
-            (self.input_head_xlref, type(df), df))
+        data = parse_excel_file(inp_xlsx_fpath)
 
-        return df.at[self.input_vfid_coords]
+        file_vfid = data
+        for k in self.input_vfid_coords.split('.'):
+            file_vfid = file_vfid[k]
+
+        return file_vfid
 
     def _extract_dice_report_from_output(self, fpath):
         import pandas as pd
@@ -179,7 +178,7 @@ class Report(baseapp.Spec):
 
         for fpath in iofiles.inp:
             fpath = pndlu.convpath(fpath)
-            file_vfid = self._extract_vfid_from_input(fpath)
+            file_vfid = self._parse_input_xlsx(fpath)
             msg = check_vfid_missmatch(fpath, file_vfid)
             if msg:
                 msg = "File('%s') %s!" % (fpath, msg)
