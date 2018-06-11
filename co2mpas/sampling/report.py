@@ -123,6 +123,22 @@ class Report(baseapp.Spec):
         if not is_ta_mode:
             return "file is NOT in TA mode: %s" % ta_flags
 
+    def _check_deviations_are_valid(self, fpath, report):
+        import numpy as np
+
+        deviations = report.ix['TA_mode', :]
+        is_ok = False
+        self.log.debug("Deviations for file('%s'): %s" % (fpath, deviations))
+        try:
+            is_ok = np.isfinite(deviations)
+        except Exception as ex:
+            self.log.warning(
+                "Ignored error while checking deviations(%s) for file('%s'): %s" %
+                (deviations, fpath, ex))
+
+        if not is_ok:
+            return "invalid deviations: %s" % deviations
+
     def _yield_report_tuples_from_iofiles(self, iofiles: PFiles, expected_vfid=None):
         """
         Parses input/output files and yields their *unique* vehicle-family-id and any dice-reports.
@@ -174,7 +190,8 @@ class Report(baseapp.Spec):
             file_vfid, dice_report = self._extract_dice_report_from_output(fpath)
             msg1 = self._check_is_ta(fpath, dice_report)
             msg2 = check_vfid_missmatch(fpath, file_vfid)
-            msgs = [m for m in [msg1, msg2] if m]
+            msg3 = check_vfid_missmatch(fpath, file_vfid)
+            msgs = [m for m in [msg1, msg2, msg3] if m]
             if any(msgs):
                 msg = ';\n  also '.join(msgs)
                 msg = "File('%s') %s!" % (fpath, msg)
