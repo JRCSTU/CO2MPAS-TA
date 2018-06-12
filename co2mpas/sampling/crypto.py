@@ -646,6 +646,14 @@ class StamperAuthSpec(trtc.SingletonConfigurable, GpgSpec):
 
 def get_stamper_auth(config: trtc.Config) -> StamperAuthSpec:
     return StamperAuthSpec.instance(config=config)
+
+
+class EncrypterSpec(trtc.SingletonConfigurable, GpgSpec):
+    """Used to verify stamper's timestamp service."""
+
+
+def get_encrypter(config: trtc.Config) -> EncrypterSpec:
+    return EncrypterSpec.instance(config=config)
 ##
 ########################################
 
