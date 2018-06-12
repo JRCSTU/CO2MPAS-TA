@@ -1193,43 +1193,6 @@ def define_engine_prediction_model(
     return model
 
 
-def define_fake_engine_prediction_model(
-        on_engine, engine_starts, engine_speeds_out_hot,
-        engine_temperature_prediction_model):
-    """
-    Defines a fake engine prediction model.
-
-    :param on_engine:
-        If the engine is on [-].
-    :type on_engine: numpy.array
-
-    :param engine_starts:
-        When the engine starts [-].
-    :type engine_starts: numpy.array
-
-    :param engine_speeds_out_hot:
-        Engine speed at hot condition [RPM].
-    :type engine_speeds_out_hot: numpy.array
-
-    :param engine_temperature_prediction_model:
-        Engine temperature prediction model.
-    :type engine_temperature_prediction_model: .thermal.EngineTemperatureModel
-
-    :return:
-        Engine prediction model.
-    :rtype: EngineModel
-    """
-    model = EngineModel(
-        engine_temperature_prediction_model=engine_temperature_prediction_model,
-        outputs={
-            'on_engine': on_engine,
-            'engine_starts': engine_starts,
-            'engine_speeds_out_hot': engine_speeds_out_hot
-        })
-
-    return model
-
-
 def define_fuel_type_and_is_hybrid(obd_fuel_type_code):
     """
     Defines engine fuel type and if the vehicle is hybrid.
@@ -1629,19 +1592,9 @@ def engine():
     )
 
     d.add_function(
-        function=define_fake_engine_prediction_model,
-        inputs=[
-            'on_engine', 'engine_starts', 'engine_speeds_out_hot',
-            'engine_temperature_prediction_model'
-        ],
-        outputs=['engine_prediction_model']
-    )
-
-    d.add_function(
         function=define_engine_prediction_model,
         inputs=['start_stop_prediction_model', 'idle_engine_speed',
-                'engine_temperature_prediction_model'
-                ],
+                'engine_temperature_prediction_model'],
         outputs=['engine_prediction_model'],
         weight=400
     )
