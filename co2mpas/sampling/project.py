@@ -561,6 +561,8 @@ class Project(transitions.Machine, ProjectSpec):
             self.result = cmsg._asdict()
 
         if is_tagging:
+            import tempfile
+
             ## Note: No meaning to enable env-vars earlier,
             #  *GitPython* commis without invoking `git` cmd.
             #
@@ -575,10 +577,12 @@ class Project(transitions.Machine, ProjectSpec):
                     self.log.info('Tagging %s: %s', self, tagname)
                     assert isinstance(tagname, str), tagname
 
-                    tagref = repo.create_tag(tagname,
-                                             message=cmsg_txt,
-                                             sign=True,
-                                             local_user=git_auth.master_key_resolved)
+                    with tempfile.NamedTemporaryFile() as msg_file:
+                        msg_file.write(cmsg_txt.encode())
+                        tagref = repo.create_tag(tagname,
+                                                 F=msg_file.name,
+                                                 sign=True,
+                                                 local_user=git_auth.master_key_resolved)
                     self.result = _read_dice_tag(repo, tagref)
 
                     ok = True

@@ -62,7 +62,7 @@ def _report_tuple_2_dict(fpath, iokind, report) -> dict:
     elif isinstance(report, pd.Series):
         report = OrderedDict(report.items())
     elif report is not None:
-        assert isinstance(report, dict)
+        assert isinstance(report, (list, dict))
 
     d['report'] = report
 
@@ -178,6 +178,7 @@ class Report(baseapp.Spec):
                         (fpath, file_vfid, expected_vfid))
 
         rtuples = []
+        input_report = {}  # a mapping {fpath --> raw_data}
         for fpath in iofiles.inp:
             fpath = pndlu.convpath(fpath)
             file_vfid, inp_data = self._parse_input_xlsx(fpath)
@@ -192,6 +193,8 @@ class Report(baseapp.Spec):
                 ('vehicle_family_id', file_vfid),
                 ('timestamp', osp.getmtime(fpath)),
             ])))
+
+            input_report[fpath] = inp_data
 
         for fpath in iofiles.out:
             fpath = pndlu.convpath(fpath)
@@ -214,11 +217,38 @@ class Report(baseapp.Spec):
             fpath = pndlu.convpath(fpath)
             rtuples.append((fpath, 'other', None))
 
-        return rtuples
+        return rtuples, input_report
+
+    def _encryptb64(self, data, width=72) -> str:
+        from . import crypto
+        import base64
+        import msgpack
+        import lzma
+
+        plaintext = msgpack.packb(data, use_bin_type=True,
+                             unicode_errors='surrogateescape')
+        enc = crypto.get_encrypter(self.config)
+        cipher = enc.encryptobj('input-report', plaintext,
+                                no_armor=True,
+                                no_pickle=True)
+        lzmabytes = lzma.compress(cipher, preset=9 | lzma.PRESET_EXTREME)
+        text = base64.b64encode(lzmabytes).decode('ascii')
+        first_width = width - 7 # len('port: [')
+        atext = [text[:first_width]] + [
+            text[i:i + width]
+            for i in range(first_width, len(text), width)]
+
+        return atext
 
     ## TODO: Rename Report to `extract_file_infos()`.
     def get_dice_report(self, iofiles: PFiles, expected_vfid=None):
-        tuples = self._make_report_tuples_from_iofiles(iofiles, expected_vfid)
+        tuples, ireport = self._make_report_tuples_from_iofiles(iofiles,
+                                                                expected_vfid)
+        include_input_report = True  # TODO: check include-input-in-summary-report flag
+        if include_input_report:
+            self.log.info("Attaching input-report...")
+            tuples.append(('input_report', '', self._encryptb64(ireport)))
+
         report = OrderedDict((file_tuple[0], _report_tuple_2_dict(*file_tuple))
                              for file_tuple
                              in tuples)
