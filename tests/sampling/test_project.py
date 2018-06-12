@@ -152,7 +152,10 @@ class TProjectsDBStory(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls._project_repo.cleanup()
+        try:
+            cls._project_repo.cleanup()
+        except Exception as ex:
+            print('Ignored tempdir-failure: %s' % ex)
         shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
 
     @property
@@ -534,7 +537,10 @@ class TParseCheck(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
-        cls._project_repo.cleanup()
+        try:
+            cls._project_repo.cleanup()
+        except Exception as ex:
+            print('Ignored tempdir-failure: %s' % ex)
 
     @property
     def _config(self):
@@ -565,6 +571,7 @@ class TParseCheck(unittest.TestCase):
         self.assertIn('sample',
                       collect_cmd(project.LsCmd(config=cfg).run(test_vfid)))
 
+
 class TInitCmd(unittest.TestCase):
 
     def setUp(self):
@@ -572,7 +579,10 @@ class TInitCmd(unittest.TestCase):
         log.debug('Temp-repo: %s', self._project_repo)
 
     def tearDown(self):
-        self._project_repo.cleanup()
+        try:
+            self._project_repo.cleanup()
+        except Exception as ex:
+            print('Ignored tempdir-failure: %s' % ex)
 
     @property
     def _config(self):
@@ -646,7 +656,10 @@ class TBackupCmd(unittest.TestCase):
         log.debug('Temp-repo: %s', self._project_repo)
 
     def tearDown(self):
-        self._project_repo.cleanup()
+        try:
+            self._project_repo.cleanup()
+        except Exception as ex:
+            print('Ignored tempdir-failure: %s' % ex)
 
     @property
     def _config(self):
