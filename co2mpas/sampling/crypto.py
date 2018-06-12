@@ -460,7 +460,8 @@ class GpgSpec(baseapp.Spec):
         return '%s: %s' % (key['keyid'], key['uids'][0])
 
     ## TODO: Add `full_ouput` kwd.
-    def encryptobj(self, pswdid: Text, plainobj, extra_args=None) -> Text:
+    def encryptobj(self, pswdid: Text, plainobj,
+                   extra_args=None, no_armor=False, no_pickle=False) -> Text:
         """
         Encrypt `plainobj` in PGP-armor format, suitable to be stored in a file.
 
@@ -480,11 +481,11 @@ class GpgSpec(baseapp.Spec):
         assert not is_pgp_encrypted(plainobj), "PswdId('%s'): already encrypted!" % pswdid
 
         try:
-            plainbytes = pickle.dumps(plainobj)  # type: bytes
+            plainbytes = plainobj if no_pickle else pickle.dumps(plainobj)  # type: bytes
         except Exception as ex:
                 raise ValueError("PswdId('%s'): encryption failed due to: %s" % (pswdid, ex))
 
-        cipher = self.GPG.encrypt(plainbytes, enc_key, armor=True,
+        cipher = self.GPG.encrypt(plainbytes, enc_key, armor=not no_armor,
                                   extra_args=extra_args)
         if not cipher.ok:
             ## When failing due to untrusted-key, status is '',
@@ -494,10 +495,11 @@ class GpgSpec(baseapp.Spec):
                 "PswdId('%s'): %s\n  %s" %
                 (pswdid, cipher.status, filter_gpg_stderr(stderr)))
 
-        return str(cipher)
+        return cipher.data if no_armor else str(cipher)
 
     ## TODO: Add `full_ouput` kwd.
-    def decryptobj(self, pswdid: Text, armor_text: Text, extra_args=None):
+    def decryptobj(self, pswdid: Text, armor_text: Text,
+                   extra_args=None, no_pickle=False):
         """
         PGP-decrypt `armor_text` encrypted with :func:`pgp_encrypt()`.
 
@@ -530,8 +532,10 @@ class GpgSpec(baseapp.Spec):
                 (pswdid, plain.status, filter_gpg_stderr(stderr)))
         else:
             self.check_test_key_missused(plain.key_id)
+            plainobj = plain.data
 
-        plainobj = pickle.loads(plain.data)
+        if not no_pickle:
+            plainobj = pickle.loads(plainobj)
 
         return plainobj
 

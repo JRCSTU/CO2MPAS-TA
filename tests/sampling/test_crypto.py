@@ -671,16 +671,16 @@ class TestKey(unittest.TestCase):
         vault = crypto.VaultSpec.instance()
 
         vault.master_key = self.ok_key.fingerprint
-        ciphertext = vault.encryptobj('enc_test', obj)
+        ciphertext = vault.encryptobj(pswdid, obj)
         msg = (obj, ciphertext)
         self.assertTrue(crypto.is_pgp_encrypted(ciphertext), msg)
 
         vault.master_key = test_pgp_key_id
         with self.assertRaisesRegex(CmdException, "After July 27 2017"):
-            ciphertext = vault.encryptobj('enc_test', obj)
+            ciphertext = vault.encryptobj(pswdid, obj)
 
         vault.allow_test_key = True
-        ciphertext = vault.encryptobj('enc_test', obj)
+        ciphertext = vault.encryptobj(pswdid, obj)
         msg = (obj, ciphertext)
         self.assertTrue(crypto.is_pgp_encrypted(ciphertext), msg)
 
@@ -691,6 +691,16 @@ class TestKey(unittest.TestCase):
         vault.allow_test_key = True
         plainbytes2 = vault.decryptobj(pswdid, ciphertext)
         self.assertEqual(obj, plainbytes2, msg)
+
+    def test_dencrypt_binary(self):
+        vault = crypto.VaultSpec.instance()
+
+        pswdid = 'fooid'
+        plain = b'bar'
+        vault.master_key = self.ok_key.fingerprint
+        ciphertext = vault.encryptobj(pswdid, plain, no_pickle=True, no_armor=True)
+        plain2 = vault.decryptobj(pswdid, ciphertext, no_pickle=True)
+        assert plain2 == plain
 
 
 class TCipherTrait(unittest.TestCase):
