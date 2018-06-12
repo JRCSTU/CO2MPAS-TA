@@ -7,6 +7,10 @@ CO2MPAS Changes
 
 NEXT RELEASE
 ======================
+v1.8.0a1, 12 Jun 2018
+--------------------
+FIX dice, did not start due to `polyversion` not being engraved.
+
 v1.8.0a1, 7 Jun 2018
 --------------------
 PINNED REQUIRED VERSIONS, served with AIO-1.8.1a1
