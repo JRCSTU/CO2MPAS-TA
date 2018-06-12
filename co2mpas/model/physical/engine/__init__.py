@@ -317,7 +317,8 @@ def define_idle_model_detector(
     """
 
     b = (velocities < stop_velocity) & (engine_speeds_out > min_engine_on_speed)
-
+    if not b.any():
+        return sh.NONE
     x = engine_speeds_out[b, None]
     eps = defaults.dfl.functions.define_idle_model_detector.EPS
     model = _IdleDetector(eps=eps)
