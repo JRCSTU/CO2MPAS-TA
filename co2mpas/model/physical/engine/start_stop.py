@@ -508,7 +508,8 @@ def start_stop():
                 'correct_start_stop_with_gears',
                 'min_time_engine_on_after_start',
                 'has_start_stop', 'use_basic_start_stop'],
-        outputs=['start_stop_prediction_model']
+        outputs=['start_stop_prediction_model'],
+        weight=1
     )
 
     d.add_function(
