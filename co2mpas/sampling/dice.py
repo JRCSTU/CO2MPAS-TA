@@ -10,13 +10,13 @@ Main CO2MPAS dice command to prepare/sign/send/receive/validate/archive ...
 
 Type Approval sampling emails of *co2mpas*.
 """
-from co2mpas import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 from co2mpas._vendor import traitlets as trt
-from co2mpas.sampling import baseapp, CmdException
+from co2mpas.sampling import (
+    __version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
+    baseapp, CmdException)
 from co2mpas.sampling.baseapp import (APPNAME, Cmd,
                                       chain_cmds)  # @UnusedImport
 from collections import OrderedDict
-from polyversion import polyversion
 from typing import Sequence, Text, List, Tuple  # @UnusedImport
 import logging
 import sys
@@ -27,7 +27,6 @@ import pandalone.utils as pndlu
 
 __title__ = APPNAME
 __summary__ = pndlu.first_line(__doc__)
-
 
 try:
     _mydir = osp.dirname(__file__)
@@ -73,7 +72,7 @@ class Co2diceCmd(Cmd):
     """
 
     name = trt.Unicode(APPNAME)
-    version = polyversion(pname='co2mpas', mono_project=True)
+    version = __version__
     examples = trt.Unicode("""\
     - Try the `project` sub-command::
           %(cmd_chain)s  project

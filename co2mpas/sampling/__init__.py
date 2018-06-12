@@ -34,10 +34,22 @@ For usage examples read the "Random Sampling" section in the manual (http://co2m
 """
 from collections import namedtuple, defaultdict
 import enum
+from polyversion import polyversion, polytime
 import re
 from typing import Text, Tuple
 
 from .._vendor import traitlets as trt
+
+__copyright__ = "Copyright (C) 2015-2018 European Commission (JRC)"
+__license__   = "EUPL 1.1+"
+__title__     = "co2dice"
+__summary__   = __doc__.splitlines()[0]
+__uri__       = "https://co2mpas.io"
+
+## FIXME: change projectname when co2dice graduates to own project.
+__version__ = polyversion(pname='co2mpas', mono_project=True)
+version = __version__
+__updated__ = polytime()
 
 
 class CmdException(trt.TraitError):
