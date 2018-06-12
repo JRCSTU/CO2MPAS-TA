@@ -35,7 +35,7 @@ def clip_and_asciify(s, fname_clip_len=64):
 ###################
 def _report_tuple_2_dict(fpath, iokind, report) -> dict:
     """
-    Converts tuples from :meth:`_yield_report_tuples_from_iofiles()` into stuff YAML-able.
+    Converts tuples from :meth:`_make_report_tuples_from_iofiles()` into stuff YAML-able.
     """
     import pandas as pd
 
@@ -101,7 +101,7 @@ class Report(baseapp.Spec):
         for k in self.input_vfid_coords.split('.'):
             file_vfid = file_vfid[k]
 
-        return file_vfid
+        return file_vfid, data
 
     def _extract_dice_report_from_output(self, fpath):
         import pandas as pd
@@ -143,7 +143,8 @@ class Report(baseapp.Spec):
         if not is_ok:
             return "invalid deviations: %s" % deviations
 
-    def _yield_report_tuples_from_iofiles(self, iofiles: PFiles, expected_vfid=None):
+    def _make_report_tuples_from_iofiles(self, iofiles: PFiles,
+                                         expected_vfid=None):
         """
         Parses input/output files and yields their *unique* vehicle-family-id and any dice-reports.
 
@@ -176,9 +177,10 @@ class Report(baseapp.Spec):
                         "'%s' != expected('%s')'" %
                         (fpath, file_vfid, expected_vfid))
 
+        rtuples = []
         for fpath in iofiles.inp:
             fpath = pndlu.convpath(fpath)
-            file_vfid = self._parse_input_xlsx(fpath)
+            file_vfid, inp_data = self._parse_input_xlsx(fpath)
             msg = check_vfid_missmatch(fpath, file_vfid)
             if msg:
                 msg = "File('%s') %s!" % (fpath, msg)
@@ -186,10 +188,10 @@ class Report(baseapp.Spec):
                     self.log.warning(msg)
                 else:
                     raise CmdException(msg)
-            yield (fpath, 'inp', OrderedDict([
+            rtuples.append((fpath, 'inp', OrderedDict([
                 ('vehicle_family_id', file_vfid),
                 ('timestamp', osp.getmtime(fpath)),
-            ]))
+            ])))
 
         for fpath in iofiles.out:
             fpath = pndlu.convpath(fpath)
@@ -206,15 +208,17 @@ class Report(baseapp.Spec):
                 else:
                     raise CmdException(msg)
 
-            yield (fpath, 'out', dice_report)
+            rtuples.append((fpath, 'out', dice_report))
 
         for fpath in iofiles.other:
             fpath = pndlu.convpath(fpath)
-            yield (fpath, 'other', None)
+            rtuples.append((fpath, 'other', None))
+
+        return rtuples
 
     ## TODO: Rename Report to `extract_file_infos()`.
     def get_dice_report(self, iofiles: PFiles, expected_vfid=None):
-        tuples = self._yield_report_tuples_from_iofiles(iofiles, expected_vfid)
+        tuples = self._make_report_tuples_from_iofiles(iofiles, expected_vfid)
         report = OrderedDict((file_tuple[0], _report_tuple_2_dict(*file_tuple))
                              for file_tuple
                              in tuples)
@@ -341,7 +345,7 @@ class ReportCmd(baseapp.Cmd):
                 yield '- %s: %s' % (fpath, rep and rep.get('vehicle_family_id'))
 
         else:
-            for rtuple in repspec._yield_report_tuples_from_iofiles(pfiles):
+            for rtuple in repspec._make_report_tuples_from_iofiles(pfiles):
                 drep = _report_tuple_2_dict(*rtuple)
                 fpath = rtuple[0]
                 if not self.verbose:
