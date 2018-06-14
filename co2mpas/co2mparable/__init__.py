@@ -38,24 +38,26 @@ CO2MPARE_DEBUG = 'CO2MPARE_DEBUG'
 
 def bool_env(env_var, default):
     """
-    A `true` env-var is any value except: 0, f, false, n, no, off
-    A `false` env-var is any value except: 1, t, true, y, yes, on
-    Any other value (incl. empty) raise CmdException.
+    - false: 0, f, false, n, no, off
+    - true: 1, t, true, y, yes, on
+    - default: missing, or empty string
+
+    Any other value raise CmdException.
 
     .. Attention::
         On *Windows* it's impossible to assign the empty-string to a variable!
     """
+    v = os.environ.get(env_var)
+    if not v:
+        return default
+
     false = '0 f false n no off'
     true = '1 t true y yes on'
+    v = v.lower()
+    for flag, values in zip((0, 1), (false, true)):
+        if v in values.split():
+            return flag
 
-    if env_var not in os.environ:
-        return default
-    v = os.environ[env_var]
-    if v:
-        if v.lower() in false.split():
-            return False
-        if v.lower() not in true.split():
-            return False
     raise CmdException("Invalid value '%s' for env-var[%s]!"
                        "\n  Should be one of (%s %s)." %
                        (v, env_var, false, true))
