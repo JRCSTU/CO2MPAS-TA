@@ -199,7 +199,7 @@ Road loads
         Inertia class of NEDC-H - Do not correct for rotating parts [kg].
 
     ``f0.NEDC-H``
-        Set the F0 road load coefficient for NEDC-H. This scalar corresponds to the rolling resistance force [N], 
+        Set the F0 road load coefficient for NEDC-H. This scalar corresponds to the rolling resistance force [N],
         when the angle slope is 0.
 
     ``f1.NEDC-H``
@@ -213,7 +213,7 @@ Road loads
         Inertia class of NEDC-H - Do not correct for rotating parts. [kg]
 
     ``f0.NEDC-L``
-        Set the F0 road load coefficient for NEDC-L. This scalar corresponds to the rolling resistance force [N], 
+        Set the F0 road load coefficient for NEDC-L. This scalar corresponds to the rolling resistance force [N],
         when the angle slope is 0.
 
     ``f1.NEDC-L``
@@ -238,7 +238,7 @@ Targets
         Phase high, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-H test measurements.
 
     ``co2_emissions_extra_high.WLTP-H``
-        Phase extra high, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, 
+        Phase extra high, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB,
         not rounded WLTP-H test measurements.
 
     ``co2_emissions_low.WLTP-L``
