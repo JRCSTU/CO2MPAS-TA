@@ -79,7 +79,12 @@ class Report(baseapp.Spec):
     ).tag(config=True)
     input_vfid_coords = trt.Unicode(
         'flag.vehicle_family_id',
-        help="the dot-separated keys of  ``vehicle_family_id`` into parsed excel file."
+        help="the dot-separated keys of  `vehicle_family_id` into parsed excel file."
+    ).tag(config=True)
+
+    input_include_in_dice_coords = trt.Unicode(
+        'flag.include_input_in_dice',
+        help="the dot-separated keys of  `include_input_in_dice` flag into parsed excel file."
     ).tag(config=True)
 
     dice_report_xlref = trt.Unicode(
@@ -93,6 +98,7 @@ class Report(baseapp.Spec):
     ).tag(config=True)
 
     def _parse_input_xlsx(self, inp_xlsx_fpath):
+        "Return VehId & raw_data if include-in-dice flag is true"
         from co2mpas.io.excel import parse_excel_file
 
         data = parse_excel_file(inp_xlsx_fpath)
@@ -101,7 +107,13 @@ class Report(baseapp.Spec):
         for k in self.input_vfid_coords.split('.'):
             file_vfid = file_vfid[k]
 
-        return file_vfid, data
+        include_input = data
+        for k in self.input_include_in_dice_coords.split('.'):
+            include_input = include_input.get(k)
+            if not include_input:
+                break
+
+        return file_vfid, data if include_input else None
 
     def _extract_dice_report_from_output(self, fpath):
         import pandas as pd
@@ -194,7 +206,8 @@ class Report(baseapp.Spec):
                 ('timestamp', osp.getmtime(fpath)),
             ])))
 
-            input_report[fpath] = inp_data
+            if inp_data:
+                input_report[fpath] = inp_data
 
         for fpath in iofiles.out:
             fpath = pndlu.convpath(fpath)
@@ -217,7 +230,11 @@ class Report(baseapp.Spec):
             fpath = pndlu.convpath(fpath)
             rtuples.append((fpath, 'other', None))
 
-        return rtuples, input_report
+        if input_report:
+            self.log.info("Attaching input-report...")
+            rtuples.append(('input_report', '', self._encryptb64(input_report)))
+
+        return rtuples
 
     def _encryptb64(self, data, width=72) -> str:
         from . import crypto
@@ -226,14 +243,14 @@ class Report(baseapp.Spec):
         import lzma
 
         plaintext = msgpack.packb(data, use_bin_type=True,
-                             unicode_errors='surrogateescape')
+                                  unicode_errors='surrogateescape')
         enc = crypto.get_encrypter(self.config)
         cipher = enc.encryptobj('input-report', plaintext,
                                 no_armor=True,
                                 no_pickle=True)
         lzmabytes = lzma.compress(cipher, preset=9 | lzma.PRESET_EXTREME)
         text = base64.b64encode(lzmabytes).decode('ascii')
-        first_width = width - 7 # len('port: [')
+        first_width = width - 7  # len('port: [')
         atext = [text[:first_width]] + [
             text[i:i + width]
             for i in range(first_width, len(text), width)]
@@ -242,13 +259,7 @@ class Report(baseapp.Spec):
 
     ## TODO: Rename Report to `extract_file_infos()`.
     def get_dice_report(self, iofiles: PFiles, expected_vfid=None):
-        tuples, ireport = self._make_report_tuples_from_iofiles(iofiles,
-                                                                expected_vfid)
-        include_input_report = True  # TODO: check include-input-in-summary-report flag
-        if include_input_report:
-            self.log.info("Attaching input-report...")
-            tuples.append(('input_report', '', self._encryptb64(ireport)))
-
+        tuples = self._make_report_tuples_from_iofiles(iofiles, expected_vfid)
         report = OrderedDict((file_tuple[0], _report_tuple_2_dict(*file_tuple))
                              for file_tuple
                              in tuples)
