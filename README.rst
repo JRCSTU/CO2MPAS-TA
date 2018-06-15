@@ -24,7 +24,8 @@
 fuel-consumption simulator for light-duty M1 & N1 vehicles (cars and vans), specially crafted to
 *estimate and type-approve CO2 emissions* of vehicles undergoing NEDC testing
 based on the emissions produced during WLTP tests, according to the
-*EU legislations 1152/EUR/2017 and 1153/EUR/2017* (see `History`_ section, below).
+:term:`EU legislation`\s *1152/EUR/2017 and 1153/EUR/2017*
+(see `History`_ section, below).
 
 It is an open-source project(`EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_)
 developed for Python-3.5+ using |winpython|_ & |anaconda|_ under Windows 7,

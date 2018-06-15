@@ -487,7 +487,8 @@ DICE
 
     dice report sheet
         A sheet in the output excel-file roughly derived from Input + Output files
-        containing the non-confidential results of the simulation:
+        containing the non-confidential results of the simulation,
+        labelled as "summary report" in the legislation:
 
             | **dice report sheet** := *non_confidential_data* (input-files + output-files + other-files)
 
@@ -602,6 +603,16 @@ DICE
 Generic terms
 =============
 .. glossary::
+
+    EU legislation
+        All EU regulations related to the tool:
+
+        - (EU) 2017/1151: https://eur-lex.europa.eu/eli/reg_impl/2017/1151/oj
+           voted on 1 june 2017, and amending acts
+        - (EU) 2017/1152: https://eur-lex.europa.eu/eli/reg_impl/2017/1152/oj
+           voted on 2 june 2017
+        - (EU) 2017/1153: https://eur-lex.europa.eu/eli/reg_impl/2017/1153/oj
+           voted on 2 june 2017
 
     NEDC
         New European Driving Cycle
