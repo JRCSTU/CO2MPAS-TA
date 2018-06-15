@@ -7,9 +7,15 @@ CO2MPAS Changes
 
 NEXT RELEASE
 ======================
+- feat(:gh:`466`, :gh:`467`, io, dice):
+  
 v1.8.0a1, 12 Jun 2018
 --------------------
-FIX dice, did not start due to `polyversion` not being engraved.
+- FIX dice, did not start due to `polyversion` not being engraved.
+- The :envvar:`CO2MPARE_ENABLED` fails with::
+
+      ERROR:co2mpas_main:Invalid value '1' for env-var[CO2MPARE_ENABLED]!
+        Should be one of (0 f false n no off 1 t true y yes on).
 
 v1.8.0a1, 7 Jun 2018
 --------------------
