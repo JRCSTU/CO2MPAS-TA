@@ -167,6 +167,8 @@ Road loads
 .. glossary::
     ``vehicle_mass.WLTP-H``
         Simulated inertia applied during the WLTP-H test on the dyno [kg].
+        It should reflect correction for rotational mass mr as foreseen by WLTP regulation
+        for 1-axle chassis dyno testing. (Regulation 2017/1151; Sub-Annex 4; paragraph 2.5.3)
 
     ``f0.WLTP-H``
         Set the F0 road load coefficient for WLTP-H. This scalar corresponds to the rolling resistance force [N], when the angle slope is 0.
@@ -179,7 +181,9 @@ Road loads
         :math:`[\frac{N}{{kmh}^2}]`.
 
     ``vehicle_mass.WLTP-L``
-        Simulated inertia applied during the WLTP-H test on the dyno [kg].
+        Simulated inertia applied during the WLTP-L test on the dyno [kg].
+        It should reflect correction for rotational mass mr as foreseen by WLTP regulation
+        for 1-axle chassis dyno testing. (Regulation 2017/1151; Sub-Annex 4; paragraph 2.5.3)
 
     ``f0.WLTP-L``
         Set the F0 road load coefficient for WLTP-L. This scalar corresponds to the rolling resistance force [N], when the angle slope is 0.
@@ -195,7 +199,8 @@ Road loads
         Inertia class of NEDC-H - Do not correct for rotating parts [kg].
 
     ``f0.NEDC-H``
-        Set the F0 road load coefficient for NEDC-H. This scalar corresponds to the rolling resistance force [N], when the angle slope is 0.
+        Set the F0 road load coefficient for NEDC-H. This scalar corresponds to the rolling resistance force [N], 
+        when the angle slope is 0.
 
     ``f1.NEDC-H``
         Set the F1 road load coefficient for NEDC-H. Defined by Dyno procedure :math:`[\frac{N}{kmh}]`.
@@ -208,7 +213,8 @@ Road loads
         Inertia class of NEDC-H - Do not correct for rotating parts. [kg]
 
     ``f0.NEDC-L``
-        Set the F0 road load coefficient for NEDC-L. This scalar corresponds to the rolling resistance force [N], when the angle slope is 0.
+        Set the F0 road load coefficient for NEDC-L. This scalar corresponds to the rolling resistance force [N], 
+        when the angle slope is 0.
 
     ``f1.NEDC-L``
         Set the F1 road load coefficient for NEDC-L. Defined by Dyno procedure :math:`[\frac{N}{kmh}]`.
@@ -232,7 +238,8 @@ Targets
         Phase high, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-H test measurements.
 
     ``co2_emissions_extra_high.WLTP-H``
-        Phase extra high, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-H test measurements.
+        Phase extra high, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, 
+        not rounded WLTP-H test measurements.
 
     ``co2_emissions_low.WLTP-L``
         Phase low, |CO2| emissions bag values [g|CO2|/km], not corrected for RCB, not rounded WLTP-L test measurements.
