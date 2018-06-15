@@ -10,6 +10,106 @@ Glossary
 .. Tip to the authors: Use this web-app to previes this page: https://sphinxed.wltp.io/
 
 
+Generic terms
+=============
+.. glossary::
+
+    EU legislation
+        All EU regulations related to the tool:
+
+        - (EU) 2017/1151: https://eur-lex.europa.eu/eli/reg_impl/2017/1151/oj
+           voted on 1 june 2017, and amending acts
+        - (EU) 2017/1152: https://eur-lex.europa.eu/eli/reg_impl/2017/1152/oj
+           voted on 2 june 2017
+        - (EU) 2017/1153: https://eur-lex.europa.eu/eli/reg_impl/2017/1153/oj
+           voted on 2 june 2017
+
+    NEDC
+        New European Driving Cycle
+
+    WLTP
+    type approval
+        Worldwide harmonized Light vehicles Test Procedures
+
+    |co2mpas|
+        May refer to the application, the correlation procedure, or
+        to the `WLTP` --> `NEDC` simulator.
+
+    repeatability
+        The capability of |co2mpas| to duplicate the exact simulation results when running repeatedly
+        **on the same** computer.
+        This is guaranteed by using non-stochastic algorithms (or using always the same random-seed).
+
+    reproducibility
+    replicability
+        The capability of |co2mpas| to duplicate the exact same simulation results on **a different computer**.
+        This is guaranteed when using the All-in-One environment.
+
+    e-file
+    electronic-file
+        Any piece of information stored in electronic form that constitutes
+        the input or the output of some software application or IT procedure.
+
+    hash
+    Hash-ID
+        A very big number usually expressed in hexadecimal form (e.g. `SHA1`)
+        that can be generated cryptographically from any kind of `e-file` based
+        exclusively on its contents; even if a single bit of the file changes,
+        its hash-id is guaranteed to be totally different.
+
+    Git
+        An open-source version control system use for software development that
+        organizes files in versioned folders, stored based on their `hash`.
+        It is distributed, in the sense that any Git installation can communicate and exchange
+        files and versioned folders with any other installation.
+
+    SHA1
+        A fast and hashing algorithm with 160bit numbers (20 bytes, 40 hex digits),
+        used, among others, by `Git`.
+
+        Example::
+
+               SHA1("CO2MPAS") = c5badbe95ad77c0ca66abed422c964aa080d8c07
+
+    JSON
+        JavaScript Object Notation:  a lightweight human-readable data-interchange
+        data format, easy for machines to parse and generate.
+        https://en.wikipedia.org/wiki/JSON
+
+    YAML
+        Ain't Markup Language: A human-friendly data serialization language,
+        commonly used for configuration files and data exchnage.
+        https://en.wikipedia.org/wiki/YAML
+
+    IO
+        Input/Output; when referring to a software application, we mean the internal interfaces
+        that read and write files and streams of data from devices, databases or other external resources.
+
+    OEM
+        Original Equipment Manufacturers, eg. a Vehicle manufacturer
+
+    TAA
+        Type Approval Authority: the national supervision body for a `type approval`
+        procedure
+
+    TS
+        Technical service: the entity running the `WLTP` on behalf of the `OEM`,
+        which reports to some `TAA`.  in some cases, the `TAA` might be also the *TS*.
+
+    designated user
+        Any organizational entity or person (usually a `TS`) running type-approval
+        on behalf of some `OEM` and reporting to some `TAA`.
+
+    Capped cycles
+        For vehicles that cannot follow the standard NEDC/WLTP cycles (for example, because they have not enough power to attain the acceleration and maximum speed values required in the operating cycle) it is still possible to use the |co2mpas| tool to predict the NEDC |co2| emission. For these capped cycles, the vehicle has to be operated with the accelerator control fully depressed until they once again reach the required operating curve. Thus, the operated cycle may last more than the standard duration seconds and the subphases may vary in duration. Therefore there is a need to indicate the exact duration of each subphase. This can be done by filling in, the corresponding bag_phases vector in the input file which define the phases integration time [1,1,1,...,2,2,2,...,3,3,3,...,4,4,4]. Providing this input for WLTP cycles together with the other standard vectorial inputs such as speed,engine speed, etc. allows |co2mpas| to process a "modified" WLTP and get calibrated properly. The NEDC that is predicted corresponds to the respective NEDC velocity profile and gearshifting that applies to the capped cycle, which is provided in the appropriate tab. Note that, providing NEDC velocity and gear shifting profile is not allowed for normal vehicles.
+
+    Rotational mass
+        The rotational mass is defined in the WLTP GTR (ECE/TRANS/WP.29/GRPE/2016/3) as the equivalent effective mass of all
+        the  wheels and vehicle components rotating with the wheels on the road while the gearbox is placed in neutral, in kg. It shall
+        be measured or calculated using an appropriate technique agreed upon by the responsible authority. Alternatively, it may be
+        estimated to be 3 per cent of the sum of the mass in running order and 25 kg.
+
+
 Input file terminology
 =========================
 Vehicle general characteristics
@@ -598,106 +698,6 @@ DICE
         JRC's user-friendly `stamper` web-application that uses a simple HTTP-form to
         timestamp a pasted `dice report` and return a `dice stamp`, emailing it also
         to any specified recipients, always including from CLIMA/JRC.
-
-
-Generic terms
-=============
-.. glossary::
-
-    EU legislation
-        All EU regulations related to the tool:
-
-        - (EU) 2017/1151: https://eur-lex.europa.eu/eli/reg_impl/2017/1151/oj
-           voted on 1 june 2017, and amending acts
-        - (EU) 2017/1152: https://eur-lex.europa.eu/eli/reg_impl/2017/1152/oj
-           voted on 2 june 2017
-        - (EU) 2017/1153: https://eur-lex.europa.eu/eli/reg_impl/2017/1153/oj
-           voted on 2 june 2017
-
-    NEDC
-        New European Driving Cycle
-
-    WLTP
-    type approval
-        Worldwide harmonized Light vehicles Test Procedures
-
-    |co2mpas|
-        May refer to the application, the correlation procedure, or
-        to the `WLTP` --> `NEDC` simulator.
-
-    repeatability
-        The capability of |co2mpas| to duplicate the exact simulation results when running repeatedly
-        **on the same** computer.
-        This is guaranteed by using non-stochastic algorithms (or using always the same random-seed).
-
-    reproducibility
-    replicability
-        The capability of |co2mpas| to duplicate the exact same simulation results on **a different computer**.
-        This is guaranteed when using the All-in-One environment.
-
-    e-file
-    electronic-file
-        Any piece of information stored in electronic form that constitutes
-        the input or the output of some software application or IT procedure.
-
-    hash
-    Hash-ID
-        A very big number usually expressed in hexadecimal form (e.g. `SHA1`)
-        that can be generated cryptographically from any kind of `e-file` based
-        exclusively on its contents; even if a single bit of the file changes,
-        its hash-id is guaranteed to be totally different.
-
-    Git
-        An open-source version control system use for software development that
-        organizes files in versioned folders, stored based on their `hash`.
-        It is distributed, in the sense that any Git installation can communicate and exchange
-        files and versioned folders with any other installation.
-
-    SHA1
-        A fast and hashing algorithm with 160bit numbers (20 bytes, 40 hex digits),
-        used, among others, by `Git`.
-
-        Example::
-
-               SHA1("CO2MPAS") = c5badbe95ad77c0ca66abed422c964aa080d8c07
-
-    JSON
-        JavaScript Object Notation:  a lightweight human-readable data-interchange
-        data format, easy for machines to parse and generate.
-        https://en.wikipedia.org/wiki/JSON
-
-    YAML
-        Ain't Markup Language: A human-friendly data serialization language,
-        commonly used for configuration files and data exchnage.
-        https://en.wikipedia.org/wiki/YAML
-
-    IO
-        Input/Output; when referring to a software application, we mean the internal interfaces
-        that read and write files and streams of data from devices, databases or other external resources.
-
-    OEM
-        Original Equipment Manufacturers, eg. a Vehicle manufacturer
-
-    TAA
-        Type Approval Authority: the national supervision body for a `type approval`
-        procedure
-
-    TS
-        Technical service: the entity running the `WLTP` on behalf of the `OEM`,
-        which reports to some `TAA`.  in some cases, the `TAA` might be also the *TS*.
-
-    designated user
-        Any organizational entity or person (usually a `TS`) running type-approval
-        on behalf of some `OEM` and reporting to some `TAA`.
-
-    Capped cycles
-        For vehicles that cannot follow the standard NEDC/WLTP cycles (for example, because they have not enough power to attain the acceleration and maximum speed values required in the operating cycle) it is still possible to use the |co2mpas| tool to predict the NEDC |co2| emission. For these capped cycles, the vehicle has to be operated with the accelerator control fully depressed until they once again reach the required operating curve. Thus, the operated cycle may last more than the standard duration seconds and the subphases may vary in duration. Therefore there is a need to indicate the exact duration of each subphase. This can be done by filling in, the corresponding bag_phases vector in the input file which define the phases integration time [1,1,1,...,2,2,2,...,3,3,3,...,4,4,4]. Providing this input for WLTP cycles together with the other standard vectorial inputs such as speed,engine speed, etc. allows |co2mpas| to process a "modified" WLTP and get calibrated properly. The NEDC that is predicted corresponds to the respective NEDC velocity profile and gearshifting that applies to the capped cycle, which is provided in the appropriate tab. Note that, providing NEDC velocity and gear shifting profile is not allowed for normal vehicles.
-
-    Rotational mass
-        The rotational mass is defined in the WLTP GTR (ECE/TRANS/WP.29/GRPE/2016/3) as the equivalent effective mass of all
-        the  wheels and vehicle components rotating with the wheels on the road while the gearbox is placed in neutral, in kg. It shall
-        be measured or calculated using an appropriate technique agreed upon by the responsible authority. Alternatively, it may be
-        estimated to be 3 per cent of the sum of the mass in running order and 25 kg.
 
 
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
