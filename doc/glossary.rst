@@ -167,7 +167,7 @@ Road loads
 .. glossary::
     ``vehicle_mass.WLTP-H``
         Simulated inertia applied during the WLTP-H test on the dyno [kg].
-        It should reflect correction for rotational mass mr as foreseen by WLTP regulation
+        It should reflect correction for rotational mass |mr| as foreseen by WLTP regulation
         for 1-axle chassis dyno testing. (Regulation 2017/1151; Sub-Annex 4; paragraph 2.5.3)
 
     ``f0.WLTP-H``
@@ -182,7 +182,7 @@ Road loads
 
     ``vehicle_mass.WLTP-L``
         Simulated inertia applied during the WLTP-L test on the dyno [kg].
-        It should reflect correction for rotational mass mr as foreseen by WLTP regulation
+        It should reflect correction for rotational mass |mr| as foreseen by WLTP regulation
         for 1-axle chassis dyno testing. (Regulation 2017/1151; Sub-Annex 4; paragraph 2.5.3)
 
     ``f0.WLTP-L``
@@ -692,5 +692,6 @@ Generic terms
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
 .. |CO2| replace:: CO\ :sub:`2`
 .. |NOx| replace:: NO\ :sub:`x`\
+.. |mr| replace:: m\ :sub:`r`\
 
 .. default-role:: obj
