@@ -62,7 +62,7 @@ def _report_tuple_2_dict(fpath, iokind, report) -> dict:
     elif isinstance(report, pd.Series):
         report = OrderedDict(report.items())
     elif report is not None:
-        assert isinstance(report, (list, dict))
+        assert isinstance(report, (list, dict, str)), type(report)
 
     d['report'] = report
 
@@ -232,7 +232,8 @@ class Report(baseapp.Spec):
 
         if input_report:
             self.log.info("Attaching input-report...")
-            rtuples.append(('input_report', '', self._encryptb64(input_report)))
+            rtuples.append(('input_report', 'input_report',
+                            self._encryptb64(input_report)))
 
         return rtuples
 
@@ -241,6 +242,7 @@ class Report(baseapp.Spec):
         import base64
         import msgpack
         import lzma
+        from ruamel.yaml import scalarstring as scs
 
         plaintext = msgpack.packb(data, use_bin_type=True,
                                   unicode_errors='surrogateescape')
@@ -250,12 +252,12 @@ class Report(baseapp.Spec):
                                 no_pickle=True)
         lzmabytes = lzma.compress(cipher, preset=9 | lzma.PRESET_EXTREME)
         text = base64.b64encode(lzmabytes).decode('ascii')
-        first_width = width - 7  # len('port: [')
-        atext = [text[:first_width]] + [
+        first_width = width - 40  # len('port: [')
+        atext = '\n'.join([text[:first_width]] + [
             text[i:i + width]
-            for i in range(first_width, len(text), width)]
+            for i in range(first_width, len(text), width)])
 
-        return atext
+        return scs.preserve_literal(atext)
 
     ## TODO: Rename Report to `extract_file_infos()`.
     def get_dice_report(self, iofiles: PFiles, expected_vfid=None):
@@ -373,7 +375,7 @@ class ReportCmd(baseapp.Cmd):
             pfiles.check_files_exist(self.name)
             self.log.info("Extracting %s from files...\n  %s", infos, pfiles)
 
-        import yaml
+        from ruamel import yaml
 
         repspec = Report(config=self.config)
         if self.vfids_only:
@@ -392,7 +394,8 @@ class ReportCmd(baseapp.Cmd):
                 if not self.verbose:
                     fpath = osp.basename(fpath)
 
-                yield yaml.dump({fpath: drep}, indent=2)
+                yield yaml.dump({fpath: drep}, indent=2,
+                                default_flow_style=True)
 
 ## test CMDS:
 #    co2dice report -i ./co2mpas/demos/co2mpas_demo-7.xlsx -o 20170207_192057-* && \

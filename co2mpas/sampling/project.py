@@ -21,7 +21,7 @@ from boltons.setutils import IndexedSet as iset
 from toolz import itertoolz as itz
 from transitions.core import MachineError
 import transitions
-import yaml  # TODO: Upgrade unaintained yaml to ruamel
+from ruamel import yaml  # TODO: Upgrade unaintained yaml to ruamel
 
 import functools as fnt
 import os.path as osp
@@ -34,6 +34,12 @@ from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  
 from .._vendor import traitlets as trt
 from .._vendor.traitlets import config as trtc
 
+from ruamel.yaml.representer import RoundTripRepresenter
+y = yaml.YAML(typ='safe')
+
+yaddrepr = y.representer
+for d in [OrderedDict, defaultdict]:
+    yaddrepr.add_representer(d, RoundTripRepresenter.represent_dict)
 
 git_project_regex = re.compile(r'^\w[\w-]+$')
 
@@ -42,7 +48,8 @@ _after_first_empty_line_regex = re.compile(r'\n\r?\n')
 
 
 def _mydump(obj, indent=2, **kwds):
-    return yaml.dump(obj, indent=indent, **kwds)
+    y.indent = indent
+    return y.dump(obj, **kwds)
 
 
 _CommitMsgVer_regex = re.compile(r'(?<!\w)v:[ \t\r\n]+(\d+)\.(\d+)\.(\d+)(?!\d)')

@@ -29,6 +29,7 @@ _undefined = object()
 
 
 class UnverifiedSigException(CmdException):
+
     def __init__(self, msg, verdict):
         self.verdict = verdict
         super().__init__(msg)
@@ -79,6 +80,12 @@ STARTTLS_PORTS = (587, 143)
 
 class TstampSpec(dice.DiceSpec):
     """Common parameters and methods for both SMTP(sending emails) & IMAP(receiving emails)."""
+
+    log_lines_limit = trt.Int(
+        120,
+        config=True,
+        help="Clip dice-report/stamp to those lines, and avoid excessively long warnings."
+    )
 
     user_account = trt.Unicode(
         None, allow_none=True,
