@@ -292,6 +292,18 @@ class Project(transitions.Machine, ProjectSpec):
         "on `sampe/nosample` states."
     ).tag(config=True)
 
+    commit_msg_lines_limit = trt.Int(
+        30,
+        config=True,
+        help="""
+            Clip commit-msg to those lines due to GitPython lib's technical limitation.
+
+            GitPython cannot receive the message from a file, and in case
+            the dice-report contains the encrypted input, it reaches the limit
+            of characters in command-line when launching the `git` process.
+        """
+    )
+
     @classmethod
     @fnt.lru_cache()
     def _project_zygote(cls) -> 'Project':
@@ -528,6 +540,18 @@ class Project(transitions.Machine, ProjectSpec):
 
         return env
 
+    def _commit(self, repo, report_txt: str, project: str):
+        index = repo.index
+        cmsg_txt = '\n'.join(report_txt.split('\n')[:self.commit_msg_lines_limit])
+        try:
+            index.commit(cmsg_txt)
+        except ModuleNotFoundError as ex:
+            if "No module named 'pwd'" in str(ex):
+                raise CmdException(
+                    "Cannot derive user while committing dice-project: %s"
+                    "\n  Please set USERNAME env-var." %
+                    project)
+
     @contextlib.contextmanager
     def _make_msg_tmpfile(self, bcontents: bytes,
                           *tempfile_args, prefix='co2tag-', **tempfile_kwds):
@@ -564,18 +588,10 @@ class Project(transitions.Machine, ProjectSpec):
         report = _evarg(event, 'report', (list, dict), missing_ok=True)
         is_tagging = state in 'tagged sample nosample'.split() and report
         cmsg = self._make_commitMsg(action, report)
-        cmsg_txt = cmsg.dump_commit_msg(width=self.git_desc_width)
+        report_txt = cmsg.dump_commit_msg(width=self.git_desc_width)
 
         self.log.info('Committing %s: %s', self, action)
-        index = repo.index
-        try:
-            index.commit(cmsg_txt)
-        except ModuleNotFoundError as ex:
-            if "No module named 'pwd'" in str(ex):
-                raise CmdException(
-                    "Cannot derive user while committing dice-project: %s"
-                    "\n  Please set USERNAME env-var." %
-                    cmsg.p)
+        self._commit(repo, report_txt, cmsg.p)
 
         ## Update result if not any cb previous has done it first
         #
