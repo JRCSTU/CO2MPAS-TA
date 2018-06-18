@@ -8,6 +8,7 @@
 """A *project* stores all CO2MPAS files for a single vehicle, and tracks its sampling procedure. """
 from co2mpas._vendor.traitlets.traitlets import TraitError
 from collections import (defaultdict, OrderedDict, namedtuple)  # @UnusedImport
+import contextlib
 import copy
 import io
 import os
@@ -527,6 +528,20 @@ class Project(transitions.Machine, ProjectSpec):
 
         return env
 
+    @contextlib.contextmanager
+    def _make_msg_tmpfile(self, bcontents: bytes,
+                          *tempfile_args, prefix='co2tag-', **tempfile_kwds):
+        import tempfile
+
+        msg_fd, msg_fpath = tempfile.mkstemp(prefix=prefix,
+                                             *tempfile_args, **tempfile_kwds)
+        try:
+            os.write(msg_fd, bcontents)
+            os.close(msg_fd)
+            yield msg_fpath
+        finally:
+            os.unlink(msg_fpath)
+
     def _cb_commit_or_tag(self, event):
         """Executed AFTER all state changes, and commits/tags into repo. """
         from . import crypto
@@ -568,8 +583,6 @@ class Project(transitions.Machine, ProjectSpec):
             self.result = cmsg._asdict()
 
         if is_tagging:
-            import tempfile
-
             ## Note: No meaning to enable env-vars earlier,
             #  *GitPython* commis without invoking `git` cmd.
             #
@@ -584,12 +597,13 @@ class Project(transitions.Machine, ProjectSpec):
                     self.log.info('Tagging %s: %s', self, tagname)
                     assert isinstance(tagname, str), tagname
 
-                    with tempfile.NamedTemporaryFile() as msg_file:
-                        msg_file.write(cmsg_txt.encode())
-                        tagref = repo.create_tag(tagname,
-                                                 F=msg_file.name,
-                                                 sign=True,
-                                                 local_user=git_auth.master_key_resolved)
+                    with self._make_msg_tmpfile(report_txt.encode()) as msg_fpath:
+                        tagref = repo.create_tag(
+                            tagname,
+                            file=msg_fpath,
+                            sign=True,
+                            local_user=git_auth.master_key_resolved)
+
                     self.result = _read_dice_tag(repo, tagref)
 
                     ok = True
