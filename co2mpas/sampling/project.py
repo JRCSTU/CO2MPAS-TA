@@ -553,7 +553,14 @@ class Project(transitions.Machine, ProjectSpec):
 
         self.log.info('Committing %s: %s', self, action)
         index = repo.index
-        index.commit(cmsg_txt)
+        try:
+            index.commit(cmsg_txt)
+        except ModuleNotFoundError as ex:
+            if "No module named 'pwd'" in str(ex):
+                raise CmdException(
+                    "Cannot derive user while committing dice-project: %s"
+                    "\n  Please set USERNAME env-var." %
+                    cmsg.p)
 
         ## Update result if not any cb previous has done it first
         #
