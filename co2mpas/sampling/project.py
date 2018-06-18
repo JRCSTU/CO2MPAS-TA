@@ -8,19 +8,19 @@
 """A *project* stores all CO2MPAS files for a single vehicle, and tracks its sampling procedure. """
 from co2mpas._vendor.traitlets.traitlets import TraitError
 from collections import (defaultdict, OrderedDict, namedtuple)  # @UnusedImport
+from typing import (
+    Any, Union, List, Dict, Sequence, Iterable, Optional, Text, Tuple, Callable)  # @UnusedImport
 import contextlib
 import copy
 import io
 import os
 import re
 import sys
-from typing import (
-    Any, Union, List, Dict, Sequence, Iterable, Optional, Text, Tuple, Callable)  # @UnusedImport
 
 from boltons.setutils import IndexedSet as iset
 from toolz import itertoolz as itz
-import transitions
 from transitions.core import MachineError
+import transitions
 import yaml  # TODO: Upgrade unaintained yaml to ruamel
 
 import functools as fnt
@@ -835,21 +835,21 @@ DRY-RUN: Now you must send the email your self!
         stamp_pname = verdict.get('report', {}).get('project')
         if stamp_pname != self.pname:
             err_msgs.append("Stamp's project('%s') is different from current one('%s')!"
-                   % (stamp_pname, self.pname))
+                            % (stamp_pname, self.pname))
 
         stamp_tag = verdict.get('dice', {}).get('tag')
         tag = _find_dice_tag(self.repo, self.pname, self.max_dices_per_project)
         last_tag = tag and '%s: %s' % (tag.name, tag.commit.hexsha)
         if stamp_tag != last_tag:
             err_msgs.append("Stamp's tag('%s') is different "
-                       "from last tag on current project('%s')!"
-                   % (stamp_tag, last_tag))
+                            "from last tag on current project('%s')!"
+                            % (stamp_tag, last_tag))
 
         return '\n'.join(err_msgs)
 
     def _parse_response(self, event) -> bool:
         """
-        Triggered by `do_storedice(verdict=<dict> | tstamp_txt=<str>)` in PREPARE for `sample/nosample` states.
+        Triggered by `do_storedice(verdict=<dict> | tstamp_txt=<str>)` in PREPARE `sample/nosample`.
 
         :param verdict:
             The result of verifying timestamped-response.
@@ -933,10 +933,11 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
       will be shown as they happen
 
       NOTE: All logging is done through a Python logger, so make sure your program is configured
-      to show INFO-level messages. If this is not the case, try adding the following to your program:
+      to show INFO-level messages.
 
-    - :envvar:`GIT_PYTHON_GIT_EXECUTABLE`: If set, it should contain the full path to the git executable, e.g.
-      ``c:\Program Files (x86)\Git\bin\git.exe on windows`` or ``/usr/bin/git`` on linux.
+    - :envvar:`GIT_PYTHON_GIT_EXECUTABLE`: If set, it should contain the full path
+      to the git executable, e.g. ``c:\Program Files (x86)\Git\bin\git.exe on windows``
+      or ``/usr/bin/git`` on linux.
     """
 
     repo_path = trt.Unicode(
@@ -950,7 +951,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
     preserved_git_settings = trt.List(
         trt.CRegExp(),
         help="""
-        On start up, all git-repo's settings are overwritten except those mathcing this list of regexes.
+        Overwritte all git-repo's settings on start-up except those mathcing this list of regexes.
 
         Git settings include user-name and email address, so this option might be usefull
         when the regular owner running the app has changed but old-user should be preserved.
@@ -1973,7 +1974,7 @@ class TstampCmd(_SubCmd):
 
 class TsendCmd(_SubCmd):
     """
-    IRREVOCABLY send report to the time-stamp service, or print it for sending it manually (--dry-run).
+    IRREVOCABLY send report to time-stamp service, or print it for sending it manually (--dry-run).
 
     SYNTAX
         %(cmd_chain)s [OPTIONS]
@@ -2105,7 +2106,7 @@ class TparseCmd(_SubCmd):
 
 class TrecvCmd(TparseCmd):
     """
-    Fetch tstamps from IMAP server, derive *decisions* OK/SAMPLE flags and store them (or compare with existing).
+    Fetch tstamps from IMAP server, derive *decisions* OK/SAMPLE flags and store them.
 
 
     SYNTAX
@@ -2513,7 +2514,7 @@ class ImportCmd(_SubCmd):
 
 class BackupCmd(_SubCmd):
     """
-    Backup projects repository into the archive filepath specified, or current-directory, if none specified.
+    Backup projects repo into the archive filepath specified (or current-directory).
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<archive-path>]
