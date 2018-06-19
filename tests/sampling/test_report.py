@@ -49,17 +49,17 @@ proj2 = 'RL-99-BM3-2017-0001'
 class TApp(unittest.TestCase):
 
     @ddt.data(
-        report.ReportCmd.document_config_options,
-        report.ReportCmd.print_alias_help,
-        report.ReportCmd.print_flag_help,
-        report.ReportCmd.print_options,
-        report.ReportCmd.print_subcommands,
-        report.ReportCmd.print_examples,
-        report.ReportCmd.print_help,
+        trtc.Application.document_config_options,
+        trtc.Application.print_alias_help,
+        trtc.Application.print_flag_help,
+        trtc.Application.print_options,
+        trtc.Application.print_subcommands,
+        trtc.Application.print_examples,
+        trtc.Application.print_help,
     )
     def test_app(self, meth):
         c = trtc.Config()
-        c.ReportCmd.raise_config_file_errors = True
+        c.Cmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c)
         meth(cmd)
 

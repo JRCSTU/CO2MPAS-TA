@@ -7,16 +7,16 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
+from co2mpas._vendor.traitlets import config as trtc
 from co2mpas.sampling import baseapp, crypto, dice, project, PFiles
 from co2mpas.sampling.baseapp import pump_cmd, collect_cmd
 from co2mpas.utils import chdir
-
+from tests.sampling import (test_inp_fpath, test_out_fpath, test_vfid,
+                            test_pgp_fingerprint, test_pgp_keys, test_pgp_trust)
 import logging
 import os
 import shutil
 import tempfile
-from tests.sampling import (test_inp_fpath, test_out_fpath, test_vfid,
-                            test_pgp_fingerprint, test_pgp_keys, test_pgp_trust)
 import unittest
 
 import ddt
@@ -24,7 +24,6 @@ import ddt
 import itertools as itt
 import os.path as osp
 import pandas as pd
-from co2mpas._vendor.traitlets import config as trtc
 
 
 mydir = osp.dirname(__file__)
@@ -35,25 +34,24 @@ proj1 = 'IP-12-WMI-1234-5678'
 proj2 = 'IP-12-WMI-1111-2222'
 
 
-
 @ddt.ddt
 class TApp(unittest.TestCase):
 
     @ddt.data(*list(itt.product((
-        dice.Co2diceCmd.document_config_options,
-        dice.Co2diceCmd.print_alias_help,
-        dice.Co2diceCmd.print_flag_help,
-        dice.Co2diceCmd.print_options,
-        dice.Co2diceCmd.print_subcommands,
-        dice.Co2diceCmd.print_examples,
-        dice.Co2diceCmd.print_help,
+        trtc.Application.document_config_options,
+        trtc.Application.print_alias_help,
+        trtc.Application.print_flag_help,
+        trtc.Application.print_options,
+        trtc.Application.print_subcommands,
+        trtc.Application.print_examples,
+        trtc.Application.print_help,
     ),
         project.all_subcmds))
     )
     def test_app(self, case):
         meth, cmd_cls = case
         c = trtc.Config()
-        c.Co2diceCmd.raise_config_file_errors = True
+        c.Cmd.raise_config_file_errors = True
         cmd = cmd_cls(config=c)
         meth(cmd)
 

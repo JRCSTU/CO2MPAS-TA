@@ -7,11 +7,11 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
+from co2mpas._vendor.traitlets import config as trtc
 from co2mpas.sampling import baseapp, dice, cfgcmd
 import logging
 import os
 import tempfile
-from co2mpas._vendor.traitlets.config import get_config
 import unittest
 
 import ddt
@@ -30,22 +30,22 @@ mydir = osp.dirname(__file__)
 class TApp(unittest.TestCase):
 
     @ddt.data(
-        dice.Co2diceCmd.document_config_options,
-        dice.Co2diceCmd.print_alias_help,
-        dice.Co2diceCmd.print_flag_help,
-        dice.Co2diceCmd.print_options,
-        dice.Co2diceCmd.print_subcommands,
-        dice.Co2diceCmd.print_examples,
-        dice.Co2diceCmd.print_help,
+        trtc.Application.document_config_options,
+        trtc.Application.print_alias_help,
+        trtc.Application.print_flag_help,
+        trtc.Application.print_options,
+        trtc.Application.print_subcommands,
+        trtc.Application.print_examples,
+        trtc.Application.print_help,
     )
     def test_app(self, meth):
-        c = get_config()
+        c = trtc.get_config()
         c.Co2dice.raise_config_file_errors = True
         cmd = dice.Co2diceCmd(config=c)
         meth(cmd)
 
     def test_config_init(self):
-        c = get_config()
+        c = trtc.get_config()
         c.Co2dice.raise_config_file_errors = True
         cmd = cfgcmd.WriteCmd(config=c)
         cmd.initialize([])
@@ -58,7 +58,7 @@ class TApp(unittest.TestCase):
             self.assertGreater(stat.st_size, 7000, stat)
 
     def test_config_paths(self):
-        c = get_config()
+        c = trtc.get_config()
         c.Co2dice.raise_config_file_errors = True
         cmd = baseapp.chain_cmds([cfgcmd.PathsCmd], [], config=c)
         res = cmd.start()
@@ -66,7 +66,7 @@ class TApp(unittest.TestCase):
         self.assertGreaterEqual(len(res), 2, res)
 
     def test_config_show(self):
-        c = get_config()
+        c = trtc.get_config()
         c.Co2dice.raise_config_file_errors = True
         cmd = baseapp.chain_cmds([cfgcmd.ShowCmd], [], config=c)
         res = cmd.start()
@@ -76,7 +76,7 @@ class TApp(unittest.TestCase):
         self.assertGreaterEqual(ncmdlines, 10, res)  # I counted at least 10...
 
     def test_config_show_verbose(self):
-        c = get_config()
+        c = trtc.get_config()
         c.ShowCmd.verbose = 1
         c.Co2dice.raise_config_file_errors = True
         cmd = cfgcmd.ShowCmd(config=c)
