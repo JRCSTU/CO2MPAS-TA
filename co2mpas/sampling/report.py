@@ -412,7 +412,7 @@ class ReportCmd(baseapp.Cmd):
                 if not self.verbose:
                     fpath = osp.basename(fpath)
 
-                yield yaml.dump({fpath: drep}, indent=2)
+                yield yaml.dump({fpath: drep}, indent=2, width=76)
 
 ## test CMDS:
 #    co2dice report -i ./co2mpas/demos/co2mpas_demo-7.xlsx -o 20170207_192057-* && \

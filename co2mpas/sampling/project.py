@@ -274,7 +274,8 @@ class Project(transitions.Machine, ProjectSpec):
     ).tag(config=True)
 
     git_desc_width = trt.Int(
-        76, allow_none=False,
+        76,  # NOTE: not respected from stanalone ReportCmd, number duplicated.
+        allow_none=False,
         help="""
         The width of the textual descriptions when committing and tagging Git objects.
 
