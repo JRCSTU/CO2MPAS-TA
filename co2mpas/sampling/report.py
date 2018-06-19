@@ -15,7 +15,6 @@ from typing import (
     List, Sequence, Iterable, Text, Tuple, Dict, Callable)  # @UnusedImport
 
 import os.path as osp
-import pandalone.utils as pndlu
 
 from . import baseapp, project, CmdException, PFiles
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
@@ -160,24 +159,30 @@ class Report(baseapp.Spec):
         if not is_ok:
             return "invalid deviations: %s" % deviations
 
-    def _encryptb64(self, data, width=72) -> str:
+    def _encrypt_data(self, data, width=72) -> List[str]:
+        """
+        :param data:
+             json-encodable object
+        :return:
+            a list of base64 lines of the encrypted & compressed msgpack of `data`
+        """
         from . import crypto
         import base64
         import msgpack
         import lzma
 
-        plaintext = msgpack.packb(data, use_bin_type=True,
-                                  unicode_errors='surrogateescape')
+        plainbytes = msgpack.packb(data, use_bin_type=True,
+                                   unicode_errors='surrogateescape')
         enc = crypto.get_encrypter(self.config)
-        cipher = enc.encryptobj('input-report', plaintext,
+        cipher = enc.encryptobj('input-report', plainbytes,
                                 no_armor=True,
                                 no_pickle=True)
         lzmabytes = lzma.compress(cipher, preset=9 | lzma.PRESET_EXTREME)
-        text = base64.b64encode(lzmabytes).decode('ascii')
+        b64str = base64.b64encode(lzmabytes).decode('ascii')
         first_width = width - 7  # len('port: [')
-        atext = [text[:first_width]] + [
-            text[i:i + width]
-            for i in range(first_width, len(text), width)]
+        atext = [b64str[:first_width]] + [
+            b64str[i:i + width]
+            for i in range(first_width, len(b64str), width)]
 
         return atext
 
@@ -205,6 +210,8 @@ class Report(baseapp.Spec):
             and `expected_vfid` when provided, unless --force.
 
         """
+        import pandalone.utils as pndlu
+
         def check_vfid_missmatch(fpath, file_vfid):
             nonlocal expected_vfid
 
@@ -258,7 +265,7 @@ class Report(baseapp.Spec):
 
         if input_report:
             self.log.info("Attaching input-report...")
-            rtuples.append(('input_report', '', self._encryptb64(input_report)))
+            rtuples.append(('input_report', '', self._encrypt_data(input_report)))
 
         return rtuples
 
