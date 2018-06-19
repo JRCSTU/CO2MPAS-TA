@@ -155,6 +155,27 @@ class Report(baseapp.Spec):
         if not is_ok:
             return "invalid deviations: %s" % deviations
 
+    def _encryptb64(self, data, width=72) -> str:
+        from . import crypto
+        import base64
+        import msgpack
+        import lzma
+
+        plaintext = msgpack.packb(data, use_bin_type=True,
+                                  unicode_errors='surrogateescape')
+        enc = crypto.get_encrypter(self.config)
+        cipher = enc.encryptobj('input-report', plaintext,
+                                no_armor=True,
+                                no_pickle=True)
+        lzmabytes = lzma.compress(cipher, preset=9 | lzma.PRESET_EXTREME)
+        text = base64.b64encode(lzmabytes).decode('ascii')
+        first_width = width - 7  # len('port: [')
+        atext = [text[:first_width]] + [
+            text[i:i + width]
+            for i in range(first_width, len(text), width)]
+
+        return atext
+
     def _make_report_tuples_from_iofiles(self, iofiles: PFiles,
                                          expected_vfid=None):
         """
@@ -235,27 +256,6 @@ class Report(baseapp.Spec):
             rtuples.append(('input_report', '', self._encryptb64(input_report)))
 
         return rtuples
-
-    def _encryptb64(self, data, width=72) -> str:
-        from . import crypto
-        import base64
-        import msgpack
-        import lzma
-
-        plaintext = msgpack.packb(data, use_bin_type=True,
-                                  unicode_errors='surrogateescape')
-        enc = crypto.get_encrypter(self.config)
-        cipher = enc.encryptobj('input-report', plaintext,
-                                no_armor=True,
-                                no_pickle=True)
-        lzmabytes = lzma.compress(cipher, preset=9 | lzma.PRESET_EXTREME)
-        text = base64.b64encode(lzmabytes).decode('ascii')
-        first_width = width - 7  # len('port: [')
-        atext = [text[:first_width]] + [
-            text[i:i + width]
-            for i in range(first_width, len(text), width)]
-
-        return atext
 
     ## TODO: Rename Report to `extract_file_infos()`.
     def get_dice_report(self, iofiles: PFiles, expected_vfid=None):
