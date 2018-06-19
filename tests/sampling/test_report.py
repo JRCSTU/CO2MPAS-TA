@@ -11,6 +11,7 @@ from co2mpas._vendor.traitlets import config as trtc
 from co2mpas.sampling import CmdException, report, project, crypto
 from co2mpas.sampling.baseapp import pump_cmd
 import logging
+import textwrap as tw
 import os
 import re
 import shutil
@@ -26,6 +27,7 @@ import subprocess as sbp
 
 from . import (test_inp_fpath, test_out_fpath, test_vfid,
                test_pgp_fingerprint, test_pgp_keys, test_pgp_trust)
+import pytest
 
 
 class FailingTempDir(tempfile.TemporaryDirectory):
@@ -62,6 +64,87 @@ class TApp(unittest.TestCase):
         c.Cmd.raise_config_file_errors = True
         cmd = report.ReportCmd(config=c)
         meth(cmd)
+
+
+@pytest.fixture
+def dreport_df():
+    """
+    YAML file generated with::
+
+        import io, json, pandas as pd, yaml
+        from co2mpas.sampling.report import Report
+
+        fpath = 'tests/sampling/output.xlsx'
+        _vfid, dreport: pd.DataFrame = Report()._extract_dice_report_from_output(fpath)
+        sink = io.StringIO()
+        dreport.to_json(sink, 'columns')
+        print(yaml.dump(json.loads(sink.getvalue()), default_flow_style=False))
+    """
+    import yaml
+    import pandas as pd
+
+    ytext = tw.dedent("""
+        vehicle-H:
+          CO2MPAS_deviation: -4.14
+          CO2MPAS_version: 1.5.0.dev1
+          Model_scores: vehicle-H
+          TA_mode: true
+          Vehicle: vehicle-H
+          alternator_model: 4.56
+          at_model: -0.95
+          clutch_torque_converter_model: 4.71
+          co2_params: 0
+          datetime: 2017/01/29-23:42:41
+          engine_capacity: 997
+          engine_cold_start_speed_model: 18.74
+          engine_coolant_temperature_model: 0.59
+          engine_is_turbo: true
+          engine_speed_model: 0.02
+          fuel_type: diesel
+          gear_box_type: automatic
+          report_type: dice_report
+          start_stop_model: -0.99
+          vehicle_family_id: RL-99-BM3-2017-0001
+        vehicle-L:
+          CO2MPAS_deviation: null
+          CO2MPAS_version: null
+          Model_scores: vehicle-L
+          TA_mode: null
+          Vehicle: vehicle-L
+          alternator_model: null
+          at_model: null
+          clutch_torque_converter_model: null
+          co2_params: null
+          datetime: null
+          engine_capacity: 997
+          engine_cold_start_speed_model: null
+          engine_coolant_temperature_model: null
+          engine_is_turbo: true
+          engine_speed_model: 91.36
+          fuel_type: diesel
+          gear_box_type: automatic
+          report_type: null
+          start_stop_model: null
+          vehicle_family_id: null
+    """)
+    return pd.DataFrame.from_dict(yaml.load(ytext), orient='columns')
+
+
+def test_validate_deviations(dreport_df):
+    msg = report.Report()._check_deviations_are_valid('<some path>', dreport_df)
+    assert not msg
+
+    dreport_df.loc['CO2MPAS_deviation', 'vehicle-L'] = 1.45
+    msg = report.Report()._check_deviations_are_valid('<some path>', dreport_df)
+    assert not msg
+
+    dreport_df.loc['CO2MPAS_deviation', 'vehicle-H'] = None
+    msg = report.Report()._check_deviations_are_valid('<some path>', dreport_df)
+    assert not msg
+
+    dreport_df.loc['CO2MPAS_deviation', 'vehicle-L'] = None
+    msg = report.Report()._check_deviations_are_valid('<some path>', dreport_df)
+    assert msg and "invalid deviations" in msg
 
 
 class TReportBase(unittest.TestCase):

@@ -149,14 +149,15 @@ class Report(baseapp.Spec):
         if not is_ta_mode:
             return "file is NOT in TA mode: %s" % ta_flags
 
-    def _check_deviations_are_valid(self, fpath, report):
+    def _check_deviations_are_valid(self, fpath, report: "pd.DataFrame"):
         import numpy as np
+        import pandas as pd
 
-        deviations = report.ix['TA_mode', :]
+        deviations = report.ix['CO2MPAS_deviation', :]
         is_ok = False
         self.log.debug("Deviations for file('%s'): %s" % (fpath, deviations))
         try:
-            is_ok = np.isfinite(deviations)
+            is_ok = np.isfinite(pd.to_numeric(deviations, 'coerce')).any()
         except Exception as ex:
             self.log.warning(
                 "Ignored error while checking deviations(%s) for file('%s'): %s" %
@@ -278,7 +279,7 @@ class Report(baseapp.Spec):
             file_vfid, dice_report = self._extract_dice_report_from_output(fpath)
             msg1 = self._check_is_ta(fpath, dice_report)
             msg2 = check_vfid_missmatch(fpath, file_vfid)
-            msg3 = check_vfid_missmatch(fpath, file_vfid)
+            msg3 = self._check_deviations_are_valid(fpath, dice_report)
             msgs = [m for m in [msg1, msg2, msg3] if m]
             if any(msgs):
                 msg = ';\n  also '.join(msgs)
