@@ -177,14 +177,20 @@ class Report(baseapp.Spec):
         import msgpack
         import lzma
 
+        enc = crypto.get_encrypter(self.config)
+
         plainbytes = msgpack.packb(data, use_bin_type=True,
                                    unicode_errors='surrogateescape')
-        enc = crypto.get_encrypter(self.config)
-        cipher = enc.encryptobj('input-report', plainbytes,
-                                no_armor=True,
-                                no_pickle=True)
-        lzmabytes = lzma.compress(cipher, preset=9 | lzma.PRESET_EXTREME)
-        b64str = base64.b64encode(lzmabytes).decode('ascii')
+        ## NOTE: compression:
+        #      - 270kb with GPG's `lzma` algo,
+        #      - 225kb with python-zlib(EXTREME, 9)
+        lzmabytes = lzma.compress(plainbytes, preset=9 | lzma.PRESET_EXTREME)
+        cipherbytes = enc.encryptobj('input-report', lzmabytes,
+                                     no_armor=True,
+                                     no_pickle=True,
+                                     extra_args=['--compress-algo', '0'])
+        b64bytes = base64.b64encode(cipherbytes)
+        b64str = b64bytes.decode()
         first_width = width - 7  # len('port: [')
         atext = [b64str[:first_width]] + [
             b64str[i:i + width]
