@@ -77,20 +77,26 @@ class Report(baseapp.Spec):
         help="The *xlref* extracting 5-10 lines from ``Inputs`` sheets "
         "of the input-file as a dataframe."
     ).tag(config=True)
-    input_vfid_coords = trt.Unicode(
-        'flag.vehicle_family_id',
-        help="the dot-separated keys of  `vehicle_family_id` into parsed excel file."
+    input_vfid_path = trt.Unicode(
+        'flag/vehicle_family_id',
+        help="the slash-separated keys of  `vehicle_family_id` into parsed excel file."
     ).tag(config=True)
 
-    input_include_in_dice_coords = trt.Unicode(
-        'flag.include_input_in_dice',
-        help="the dot-separated keys of  `include_input_in_dice` flag into parsed excel file."
+    include_input_in_dice_path = trt.Unicode(
+        'flag/include_input_in_dice',
+        help="the slash-separated keys of  `include_input_in_dice` flag into parsed excel file."
+    ).tag(config=True)
+
+    include_input_in_dice_default = trt.Bool(
+        False,
+        help="Whether to include input in dice report if unspecified by user."
     ).tag(config=True)
 
     dice_report_xlref = trt.Unicode(
         '#dice_report!:{"func": "df", "kwds": {"index_col": 0}}',
         help="The *xlref* extracting the dice-report from the output-file as a dataframe."
     ).tag(config=True)
+
     output_vfid_coords = trt.Tuple(
         trt.Unicode(), trt.Unicode(),
         default_value=('vehicle_family_id', 'vehicle-H'),
@@ -100,20 +106,19 @@ class Report(baseapp.Spec):
     def _parse_input_xlsx(self, inp_xlsx_fpath):
         "Return VehId & raw_data if include-in-dice flag is true"
         from co2mpas.io.excel import parse_excel_file
+        from pandalone.pandata import resolve_path
 
         data = parse_excel_file(inp_xlsx_fpath)
 
-        file_vfid = data
-        for k in self.input_vfid_coords.split('.'):
-            file_vfid = file_vfid[k]
+        file_vfid = resolve_path(data, self.input_vfid_path)
 
-        include_input = data
-        for k in self.input_include_in_dice_coords.split('.'):
-            include_input = include_input.get(k)
-            if not include_input:
-                break
+        data_in_dice = (data
+                        if resolve_path(data,
+                                        self.include_input_in_dice_path,
+                                        self.include_input_in_dice_default) else
+                        None)
 
-        return file_vfid, data if include_input else None
+        return file_vfid, data_in_dice
 
     def _extract_dice_report_from_output(self, fpath):
         import pandas as pd
