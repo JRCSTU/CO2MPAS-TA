@@ -198,6 +198,25 @@ class Report(baseapp.Spec):
 
         return atext
 
+    def _decrypt_b32_lines(self, b64_lines) -> List[str]:
+        from . import crypto
+        import base64
+        import msgpack
+        import lzma
+
+        enc = crypto.get_encrypter(self.config)
+
+        cipher = ''.join(b64_lines)
+        cipherbytes = base64.b64decode(cipher)
+        plainbytes = enc.decryptobj('input-report', cipherbytes,
+                                    no_pickle=True)
+        plainbytes = lzma.decompress(plainbytes)
+
+        data = msgpack.unpackb(plainbytes,
+                               encoding='utf-8',
+                               unicode_errors='surrogateescape')
+        return data
+
     def _make_report_tuples_from_iofiles(self, iofiles: PFiles,
                                          expected_vfid=None):
         """
@@ -287,6 +306,33 @@ class Report(baseapp.Spec):
                              for file_tuple
                              in tuples)
         return report
+
+    def unlock_report(self, dreport_text: str):
+        """
+        Unlock the encrypted input-data, if attached in the dice-report
+
+        :param dreport_text:
+            the dice report text (not the stamp!)
+        :return:
+            the input-data like that::
+
+                {'/input/file/path.xlsx': {
+                        'flag': {...},
+                    }
+                }
+
+        """
+        import yaml
+        from pandalone.pandata import resolve_path
+
+        dreport = yaml.load(dreport_text)
+        ireport = resolve_path(dreport, 'input_report/report', None)
+        if ireport is None:
+            raise CmdException('No input-data attached in dice-report!')
+
+        data = self._decrypt_b32_lines(ireport)
+
+        return data
 
 
 ###################

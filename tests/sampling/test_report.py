@@ -126,6 +126,29 @@ class TReportArgs(TReportBase):
             self.assertTrue(f.endswith(path), rpt)
             self.check_report_tuple(rec, test_vfid, path, iokind, exp_rpt)
 
+    def test_extract_both_input_in_dice(self):
+        c = trtc.Config()
+        c.ReportCmd.raise_config_file_errors = True
+        c.Report.include_input_in_dice_override = True
+
+        c.EncrypterSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+        c.EncrypterSpec.keys_to_import = test_pgp_keys
+        c.EncrypterSpec.trust_to_import = test_pgp_trust
+        c.EncrypterSpec.master_key = test_pgp_fingerprint
+        c.EncrypterSpec.allow_test_key = True
+
+        cmd = report.ReportCmd(config=c, inp=[test_inp_fpath], out=[test_out_fpath])
+        res = cmd.run()
+        self.assertIsInstance(res, types.GeneratorType)
+        res = list(res)
+        self.assertEqual(len(res), 3)
+
+        dreport = '\n'.join(res)
+        data = report.Report(config=c).unlock_report(dreport)
+        assert isinstance(data, dict)
+        data = next(iter(data.values()))
+        assert data['flag']['vehicle_family_id'] == 'RL-99-BM3-2017-0001'
+
 
 class TReportProject(TReportBase):
     @classmethod
