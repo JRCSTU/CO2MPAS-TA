@@ -262,8 +262,7 @@ class Report(baseapp.Spec):
 
         return rtuples
 
-    ## TODO: Rename Report to `extract_file_infos()`.
-    def get_dice_report(self, iofiles: PFiles, expected_vfid=None):
+    def extract_dice_report(self, iofiles: PFiles, expected_vfid=None):
         tuples = self._make_report_tuples_from_iofiles(iofiles, expected_vfid)
         report = OrderedDict((file_tuple[0], _report_tuple_2_dict(*file_tuple))
                              for file_tuple
@@ -383,7 +382,7 @@ class ReportCmd(baseapp.Cmd):
         repspec = Report(config=self.config)
         if self.vfids_only:
             repspec.force = True  # Irrelevant to check for mismatching VFids.
-            for fpath, data in repspec.get_dice_report(pfiles).items():
+            for fpath, data in repspec.extract_dice_report(pfiles).items():
                 if not self.verbose:
                     fpath = osp.basename(fpath)
 

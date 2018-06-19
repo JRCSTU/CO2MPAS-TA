@@ -675,7 +675,7 @@ class Project(transitions.Machine, ProjectSpec):
         #
         try:
             rep = self._report_spec()
-            rep.get_dice_report(pfiles, expected_vfid=self.pname)
+            rep.extract_dice_report(pfiles, expected_vfid=self.pname)
             ## TODO: reuse these findos later, if --report given.
         except CmdException as ex:
             msg = "Failed extracting report from %s, due to: %s"
@@ -761,7 +761,7 @@ class Project(transitions.Machine, ProjectSpec):
                           'ANEW' if self.force else '', event.kwargs)
             repspec = self._report_spec()
             pfiles = self.list_pfiles(*PFiles._fields, _as_index_paths=True)  # @UndefinedVariable
-            report = list(repspec.get_dice_report(pfiles).values())
+            report = list(repspec.extract_dice_report(pfiles).values())
 
             if self.dry_run:
                 self.log.warning("DRY-RUN: Not actually committed the report, "
@@ -780,7 +780,7 @@ class Project(transitions.Machine, ProjectSpec):
 
     def _cb_send_email(self, event):
         """
-        Triggered by `do_sendmail()` on ENTER of `sendmail` state.
+        Triggered by `extractsendmail()` on ENTER of `sendmail` state.
 
         Parses last tag and uses class:`SMTP` to send its message as email.
 
@@ -1876,7 +1876,7 @@ class InitCmd(AppendCmd):
             from . import report
 
             repspec = report.Report(config=self.config)
-            finfos = repspec.get_dice_report(pfiles)
+            finfos = repspec.extract_dice_report(pfiles)
             for fpath, data in finfos.items():
                 iokind = data['iokind']
                 if iokind in ('inp', 'out'):
@@ -2021,7 +2021,7 @@ class TsendCmd(_SubCmd):
                                % (self.name, len(args), args))
 
         proj = self.current_project
-        ok = proj.do_sendmail()
+        ok = proj.extractsendmail()
 
         return self._format_result(ok, proj.result,
                                    is_verbose=self.verbose or proj.dry_run)
