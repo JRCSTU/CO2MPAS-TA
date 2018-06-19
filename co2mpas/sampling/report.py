@@ -86,9 +86,15 @@ class Report(baseapp.Spec):
         help="the slash-separated keys of  `include_input_in_dice` flag into parsed excel file."
     ).tag(config=True)
 
-    include_input_in_dice_default = trt.Bool(
-        False,
-        help="Whether to include input in dice report if unspecified by user."
+    include_input_in_dice_override = trt.Bool(
+        allow_none=True,
+        default_value=None,
+        help="""
+        A 3-state bool whether to include inputs in dice report:
+
+        - none:  (default) decided by user-data flag in `Report.include_input_in_dice_path`
+        - True/False: override flag in user-file
+        """
     ).tag(config=True)
 
     dice_report_xlref = trt.Unicode(
@@ -111,13 +117,13 @@ class Report(baseapp.Spec):
 
         file_vfid = resolve_path(data, self.input_vfid_path)
 
-        data_in_dice = (data
-                        if resolve_path(data,
+        data_in_dice = self.include_input_in_dice_override
+        if data_in_dice is None:
+            data_in_dice = resolve_path(data,
                                         self.include_input_in_dice_path,
-                                        self.include_input_in_dice_default) else
-                        None)
+                                        None)
 
-        return file_vfid, data_in_dice
+        return file_vfid, data if data_in_dice else None
 
     def _extract_dice_report_from_output(self, fpath):
         import pandas as pd
@@ -349,6 +355,9 @@ class ReportCmd(baseapp.Cmd):
                 'vfids': ({
                     'ReportCmd': {'vfids_only': True},
                 }, ReportCmd.vfids_only.help),
+                'with-inputs': ({
+                    'Report': {'include_input_in_dice_override': True},
+                }, Report.include_input_in_dice_override.help),
             }
         }
         dkwds.update(kwds)

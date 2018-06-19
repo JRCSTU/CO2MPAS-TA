@@ -1930,7 +1930,11 @@ class ReportCmd(_SubCmd):
                     'Project': {'dry_run': True},
                 },
                 "Verify dice-report do not actually store it in the project."
-            )
+            ),
+            'with-inputs': (
+                {
+                    'Report': {'include_input_in_dice_override': True},
+                }, report.Report.include_input_in_dice_override.help),
         })
         super().__init__(**kwds)
 
