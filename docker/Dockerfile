@@ -41,8 +41,8 @@ ENV CONDA_DIR="/opt/conda"
 ENV PATH="$CONDA_DIR/bin:$PATH"
 
 # Install conda
-RUN CONDA_VERSION="4.4.10" && \
-    CONDA_MD5_CHECKSUM="bec6203dbb2f53011e974e9bf4d46e93" && \
+RUN CONDA_VERSION="4.5.4" && \
+    CONDA_MD5_CHECKSUM="a946ea1d0c4a642ddf0c3a26a18bb16d" && \
     \
     apk add --no-cache --virtual=.build-dependencies wget ca-certificates bash && \
     \
@@ -79,6 +79,7 @@ RUN cd /tmp/co2mpas/requirements && \
 COPY ./co2mpas /tmp/co2mpas/co2mpas
 COPY ./setup.py /tmp/co2mpas/setup.py
 COPY ./README.rst /tmp/co2mpas/README.rst
+COPY ./docker/setup.cfg /tmp/co2mpas/setup.cfg
 
 RUN cd /tmp/co2mpas && \
     python setup.py bdist_wheel && \
