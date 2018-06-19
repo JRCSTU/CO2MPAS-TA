@@ -368,6 +368,7 @@ class TStraightStory(unittest.TestCase):
         c = self.cfg.copy()
         c.ProjectsDB.repo_path = self._project_repo.name
         c.Spec.verbose = c.ProjectsDB.verbose = 0
+        c.TstampSender.cc_addresses = ['ankostis@gmail.com']
         return c
 
     def test_0_show_paths(self):
