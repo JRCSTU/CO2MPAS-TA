@@ -110,6 +110,8 @@ class ColdStartModel:
     def fit(self, cold_start_speeds_delta, engine_coolant_temperatures,
         engine_speeds_out_hot, on_engine, idle_engine_speed,
         cold_start_speeds_phases):
+        if not cold_start_speeds_phases.any():
+            return self
         from .co2_emission import calibrate_model_params, _set_attr
 
         temp = engine_coolant_temperatures

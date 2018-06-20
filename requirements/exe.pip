@@ -8,14 +8,14 @@ dill==0.2.7.1
 formulas==0.0.10
 lmfit==0.9.10
 networkx==2.1
-numpy==1.14.3+mkl
+numpy==1.14.3  # MKL!
 openpyxl==2.5.3
 pandas==0.23.0
 pykalman==0.9.5
 schedula==0.1.19
 schema==0.6.7
 scikit-learn==0.19.1
-scipy==0.19.0
+scipy==1.1.0
 wltp==0.1.0a2
 xgboost==0.72
 xlrd==1.1.0
@@ -36,6 +36,7 @@ pandalone>=0.2.0
 tqdm
 PyYAML>=3.12
 boltons
+polyversion>=0.1.0a7
 
 
 ## Dice

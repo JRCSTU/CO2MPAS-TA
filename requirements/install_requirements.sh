@@ -6,7 +6,7 @@
 conda install -c conda-forge \
     numpy==1.14.3  \
     scikit-learn==0.19.1 \
-    scipy==0.19.0 \
+    scipy==1.1.0 \
     xgboost==0.72 \
     pandas==0.23.0 \
     matplotlib
