@@ -6,17 +6,18 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
-from collections import Counter
-import logging
-from pprint import pformat as pf
-import shutil
-import tempfile
-import unittest
-
 from co2mpas.__main__ import init_logging
 from co2mpas._vendor.traitlets import config as trtc
 from co2mpas.sampling import crypto, tstamp
 from co2mpas.sampling.baseapp import collect_cmd, Cmd
+from collections import Counter
+from pprint import pformat as pf
+import logging
+import os
+import shutil
+import tempfile
+import unittest
+
 import ddt
 import yaml
 
@@ -24,7 +25,7 @@ import co2mpas._vendor.traitlets as trt
 import os.path as osp
 import subprocess as sbp
 
-from . import test_pgp_fingerprint, test_pgp_keys, test_pgp_trust
+from . import TEST_CONF_ENVAR, CONF_ENVAR, test_pgp_fingerprint, test_pgp_keys, test_pgp_trust
 
 
 init_logging(level=logging.DEBUG)
@@ -1040,7 +1041,17 @@ base32(tag): |=0A=\r
 
 @ddt.ddt
 class TstampShell(unittest.TestCase):
-    """Set ``CO2DICE_CONFIG_PATHS`` and optionally HOME env appropriately! to run"""
+    """Set ``TEST_CO2DICE_CONFIG_PATHS`` and optionally HOME env appropriately! to run"""
+    @classmethod
+    def setUpClass(cls):
+        cls._old_envvar = os.environ.get(CONF_ENVAR)
+        if TEST_CONF_ENVAR in os.environ:
+            os.environ[CONF_ENVAR] = os.environ[TEST_CONF_ENVAR]
+
+    @classmethod
+    def tearDownClass(cls):
+        if cls._old_envvar is not None:
+            os.environ[CONF_ENVAR] = cls._old_envvar
 
     def _get_vault_gnupghome(self):
         """Allow cipher-traits encrypted with the GPG of the user running tests."""

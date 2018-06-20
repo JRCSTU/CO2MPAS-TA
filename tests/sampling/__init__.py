@@ -10,6 +10,10 @@ import textwrap as tw
 
 
 mydir = osp.dirname(__file__)
+
+
+CONF_ENVAR = 'CO2DICE_CONFIG_PATHS'
+TEST_CONF_ENVAR = 'TEST_CO2DICE_CONFIG_PATHS'
 test_inp_fpath = osp.join(mydir, 'input.xlsx')
 test_out_fpath = osp.join(mydir, 'output.xlsx')
 test_vfid = 'RL-99-BM3-2017-0001'

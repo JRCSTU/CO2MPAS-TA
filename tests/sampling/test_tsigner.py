@@ -21,8 +21,9 @@ from git.util import rmtree as gutil_rmtree
 import os.path as osp
 import subprocess as sbp
 
-from . import test_pgp_fingerprint, test_pgp_keys, test_pgp_trust
+from . import TEST_CONF_ENVAR, CONF_ENVAR, test_pgp_fingerprint, test_pgp_keys, test_pgp_trust
 from .test_tstamp import signed_tag
+import os
 
 
 init_logging(level=logging.DEBUG)
@@ -126,14 +127,19 @@ class TS(unittest.TestCase):
 
 @ddt.ddt
 class TSShell(unittest.TestCase):
-    """Set ``CO2DICE_CONFIG_PATHS`` and optionally HOME env appropriately! to run"""
+    """Set ``TEST_CO2DICE_CONFIG_PATHS`` and optionally HOME env appropriately! to run"""
 
     @classmethod
     def setUpClass(cls):
         cls.tmp_chain_folder = tempfile.mkdtemp(prefix='stampchain-')
+        cls._old_envvar = os.environ.get(CONF_ENVAR)
+        if TEST_CONF_ENVAR in os.environ:
+            os.environ[CONF_ENVAR] = os.environ[TEST_CONF_ENVAR]
 
     @classmethod
     def tearDownClass(cls):
+        if cls._old_envvar is not None:
+            os.environ[CONF_ENVAR] = cls._old_envvar
         gutil_rmtree(cls.tmp_chain_folder)
 
     def _get_extra_options(self):
