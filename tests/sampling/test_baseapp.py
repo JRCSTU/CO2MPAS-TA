@@ -144,27 +144,24 @@ class TPConfFiles(unittest.TestCase):
             for f in ('a.py', 'b.json', 'c.py', 'c.json'):
                 io.open(osp.join(tdir, f), 'w').close()
 
-            try:
-                exp = [osp.join(tdir, f) for f in exp]
+            exp = [osp.join(tdir, f) for f in exp]
 
-                cmd = baseapp.Cmd()
-                if param is not None:
-                    cmd.config_paths = [osp.join(tdir, ff)
-                                        for f in param
-                                        for ff in f.split(os.pathsep)]
-                if var is not None:
-                    os.environ['CO2DICE_CONFIG_PATHS'] = os.pathsep.join(
-                        osp.join(tdir, ff)
-                        for f in var
-                        for ff in f.split(os.pathsep))
-
+            cmd = baseapp.Cmd()
+            if param is not None:
+                cmd.config_paths = [osp.join(tdir, ff)
+                                    for f in param
+                                    for ff in f.split(os.pathsep)]
+            if var is None:
                 paths = cmd._collect_static_fpaths()
-                self.assertListEqual(paths, exp)
-            finally:
-                try:
-                    del os.environ['CO2DICE_CONFIG_PATHS']
-                except:
-                    pass
+            else:
+                varvalue = os.pathsep.join(
+                    osp.join(tdir, ff)
+                    for f in var
+                    for ff in f.split(os.pathsep))
+                with mock.patch.dict('os.environ',
+                                     {'CO2DICE_CONFIG_PATHS': varvalue}):
+                    paths = cmd._collect_static_fpaths()
+                    self.assertListEqual(paths, exp)
 
     def test_move_both_config_persist_files(self):
         class MyCmd(baseapp.Cmd):
