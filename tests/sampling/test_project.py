@@ -370,7 +370,16 @@ class TStraightStory(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         project.ProjectsDB.clear_instance()
-        cls._project_repo.cleanup()
+        try:
+            import gc
+            import gitdb
+
+            gc.collect()
+            gitdb.util.mman.collect()
+            gc.collect()
+            cls._project_repo.cleanup()
+        except Exception as ex:
+            log.warning("Ignored cleanup error: %s", ex)
         shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
 
     @property
