@@ -549,6 +549,14 @@ class TStraightStory(unittest.TestCase):
         self.assertEqual(p.state, 'nedc')
 
 
+class TStraightLong(TStraightStory):
+    @property
+    def _config(self):
+        cfg = super()._config
+        cfg.Report.include_input_in_dice_override = True
+        return cfg
+
+
 class TParseCheck(unittest.TestCase):
 
     @classmethod
