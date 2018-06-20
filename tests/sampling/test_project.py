@@ -656,7 +656,7 @@ class TInitCmd(unittest.TestCase):
 
         pdb, p = self.get_cwp()
 
-        self.assertEqual(len(list(pdb.repo.head.commit.tree.traverse())), 1, list(pdb.repo.head.commit.tree.traverse()))
+        assert len(list(pdb.repo.head.commit.tree.traverse())) == 1
 
         p.do_addfiles(pfiles=PFiles(inp=[test_inp_fpath], out=[test_out_fpath]))
         self.assertEqual(len(list(pdb.repo.head.commit.tree.traverse())), 5,
@@ -755,8 +755,9 @@ class TBackupCmd(unittest.TestCase):
         pump_cmd(project.InitCmd(config=cfg).run(proj1))
         cmd = project.BackupCmd(config=cfg)
         with tempfile.TemporaryDirectory() as td:
-            with self.assertRaisesRegex(baseapp.CmdException,
-                                        r"Folder '.+__BAD_FOLDER' to store archive does not exist!"):
+            with self.assertRaisesRegex(
+                    baseapp.CmdException,
+                    r"Folder '.+__BAD_FOLDER' to store archive does not exist!"):
                 pump_cmd(cmd.run(osp.join(td, '__BAD_FOLDER', 'foo')))
 
     def test_export_import(self):
