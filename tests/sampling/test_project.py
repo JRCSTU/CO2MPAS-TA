@@ -551,6 +551,11 @@ class TStraightStory(unittest.TestCase):
         p2 = pdb.current_project()
         self.assertIs(p, p2)
 
+        pfiles = PFiles(other=[osp.join(osp.dirname(__file__), '__init__.py')])
+        res = p.do_addfiles(pfiles=pfiles)
+        self.assertTrue(res)
+        self.assertEqual(p.state, 'nedc')
+
 
 class TParseCheck(unittest.TestCase):
 
