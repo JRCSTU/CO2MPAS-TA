@@ -7,23 +7,21 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
+from co2mpas._vendor import traitlets as trt
+from co2mpas._vendor.traitlets import config as trtc
 from co2mpas.sampling import baseapp, crypto
+from unittest import mock
 import io
 import json
 import logging
 import os
 import shutil
 import tempfile
-from unittest import mock
 import unittest
 
 import ddt
 
-import itertools as itt
 import os.path as osp
-import pandalone.utils as pndlu
-from co2mpas._vendor import traitlets as trt
-from co2mpas._vendor.traitlets import config as trtc
 
 from . import test_crypto as cryptotc
 
@@ -57,14 +55,15 @@ class TCfgFilesRegistry(unittest.TestCase):
         cons = c._consolidate(visited)
 
         exp = [
-            ('D:\\Apps\\cygwin64\\home\\anastkn\\.co2dice', ['co2dice_config.py', 'co2dice_config.json']),
+            ('D:\\Apps\\cygwin64\\home\\anastkn\\.co2dice', ['co2dice_config.py',
+                                                             'co2dice_config.json']),
             ('d:\\apps\\cygwin64\\home\\anastkn\\work\\compas.vinz\\co2mpas\\sampling', []),
         ]
         print('FF\n', cons)
         self.assertListEqual(cons, exp, visited)
 
     def test_consolidate_2(self):
-        visited =  [
+        visited = [
             ('C:\\Users\\anastkn\\.co2dice', 'co2dice_persist.json'),
             ('C:\\Users\\anastkn\\.co2dice', 'co2dice_config.py'),
             ('C:\\Users\\anastkn\\.co2dice', None),
@@ -76,7 +75,7 @@ class TCfgFilesRegistry(unittest.TestCase):
         c = baseapp.CfgFilesRegistry()
         cons = c._consolidate(visited)
 
-        exp =   [
+        exp = [
             ('C:\\Users\\anastkn\\.co2dice', ['co2dice_persist.json', 'co2dice_config.py']),
             ('D:\\Work\\compas.vinz\\co2mpas\\sampling', []),
         ]
@@ -274,8 +273,6 @@ class TBase(unittest.TestCase):
         if clsname is not None:
             self.assertEqual(j[clsname][trait], value, j)
 
-        return j
-
 
 def prepare_persistent_config_file(pfile, extra_configs=None):
     j = {}
@@ -306,7 +303,6 @@ class TPTraits(TBase):
     @classmethod
     def tearDownClass(cls):
         shutil.rmtree(cls._tdir)
-
 
     def test_ptraits_spec(self):
         pfile = osp.join(self._tdir, 'foo.json')
@@ -433,7 +429,7 @@ class TCipherTraits(TBase):
         self.assertTrue(crypto.is_pgp_encrypted(cipher2))
         self.assertNotEqual(cipher1, cipher2)  # Due to encryption nonse.
 
-        j = self.check_persistent_config_file(pfile)
+        self.check_persistent_config_file(pfile)
         c.store_pconfig(pfile)
         self.check_persistent_config_file(pfile, 'MySpec', 'ctrait', cipher2)
 
@@ -474,6 +470,6 @@ class TCipherTraits(TBase):
 
         self.assertEqual(c.decipher('ctrait'), plainval)
 
-        j = self.check_persistent_config_file(pfile)
+        self.check_persistent_config_file(pfile)
         c.store_pconfig(pfile)
         self.check_persistent_config_file(pfile, 'MyCmd', 'ctrait', cipher2)
