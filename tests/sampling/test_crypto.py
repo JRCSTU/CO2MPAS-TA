@@ -128,12 +128,16 @@ class TGpgSpecBinary(unittest.TestCase):
 
         with patch.dict('os.environ',  # @UndefinedVariable
                         {'GNUPGEXE': '/bad_path'}):
-            with self.assertRaisesRegex(OSError, 'Unable to run gpg - it may not be available.'):
+            with self.assertRaisesRegex(
+                    OSError,
+                    r"Unable to run gpg \(/bad_path\) - it may not be available."):
                 crypto.GpgSpec().GPG
 
             cfg = trtc.Config()
             cfg.GpgSpec.gnupgexe = 'gpg'
-            with self.assertRaisesRegex(OSError, 'Unable to run gpg - it may not be available.'):
+            with self.assertRaisesRegex(
+                    OSError,
+                    "Unable to run gpg \(/bad_path\) - it may not be available."):
                 crypto.GpgSpec(config=cfg).GPG
 
         crypto.GpgSpec().GPG  # Ok.
