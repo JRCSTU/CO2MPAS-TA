@@ -29,6 +29,7 @@ _undefined = object()
 
 
 class UnverifiedSigException(CmdException):
+
     def __init__(self, msg, verdict):
         self.verdict = verdict
         super().__init__(msg)
@@ -79,6 +80,12 @@ STARTTLS_PORTS = (587, 143)
 
 class TstampSpec(dice.DiceSpec):
     """Common parameters and methods for both SMTP(sending emails) & IMAP(receiving emails)."""
+
+    log_lines_limit = trt.Int(
+        120,
+        config=True,
+        help="Clip dice-report/stamp to those lines, and avoid excessively long warnings."
+    )
 
     user_account = trt.Unicode(
         None, allow_none=True,
@@ -673,7 +680,7 @@ class TstampSender(TstampSpec):
                     raise CmdException(err)
             else:
                 err = "The dice-report in timestamp got verified OK: %s"
-                self.log.debug(err, verdict)
+                self.log.debug(err, verdict[:self.log_lines_limit])
 
         msg = self._scramble_tag(msg, subject_suffix)
         msg = self._append_tstamp_recipients(msg)
@@ -1058,7 +1065,7 @@ class TstampReceiver(TstampSpec):
                 raise CmdException(msg) from ex
         else:
             self.log.debug("The dice-report got verified OK: %s",
-                           _mydump(verdict))
+                           _mydump(verdict)[:self.log_lines_limit])
             tag = verdict['parts']['msg']
 
         ## Parse dice-report
@@ -1114,7 +1121,7 @@ class TstampReceiver(TstampSpec):
             if not m:
                 self.log.warning("Not tag-name found in %s!", place)
                 self.log.debug("The %s searched for tag-name:\n%s",
-                               place, txt)
+                               place, txt[:self.log_lines_limit])
                 continue
 
             try:
@@ -1183,7 +1190,8 @@ class TstampReceiver(TstampSpec):
             ts_verdict = ex.verdict
             if not force or 'signature_id' not in ts_verdict:  # Need sig-id for decision.
                 self.log.debug("%s\n but got: %s", ex,
-                               _mydump(sorted(ts_verdict.items())))
+                               _mydump(sorted(ts_verdict.items()))
+                               [:self.log_lines_limit])
                 raise CmdException(str(ex))
             else:
                 self.log.error(str(ex))
@@ -1195,7 +1203,7 @@ class TstampReceiver(TstampSpec):
         if not ts_parts:
             errlog("Cannot parse timestamp-response:"
                    "\n  mail-txt: %s\n\n  ts-verdict: %s",
-                   mail_text, _mydump(sorted(ts_verdict.items())))
+                   mail_text, _mydump(sorted(ts_verdict.items()))[:self.log_lines_limit])
             if not force:
                 raise CmdException(
                     "Cannot parse timestamp-response!")
@@ -1205,7 +1213,7 @@ class TstampReceiver(TstampSpec):
             ts_verdict['stamper_id'] = stamper_id
             if not tag:
                 errlog("Failed parsing response content and/or stamper-id: %s\n%s",
-                       _mydump(ts_parts), _mydump(sorted(ts_verdict.items())))
+                       _mydump(ts_parts), _mydump(sorted(ts_verdict.items()))[:self.log_lines_limit])
                 if not force:
                     raise CmdException(
                         "Failed parsing response content and/or stamper-id: %s\n%s" %
