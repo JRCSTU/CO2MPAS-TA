@@ -120,7 +120,9 @@ def all_cmds():
         ) +
         cfgcmd.config_subcmds +
         project.all_subcmds +
-        tstamp.all_subcmds)
+        tstamp.all_subcmds +
+        report.all_subcmds
+    )
 
 
 ## INFO: Add all SPECs here.

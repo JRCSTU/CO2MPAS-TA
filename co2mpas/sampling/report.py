@@ -343,6 +343,16 @@ class ReportSpec(baseapp.Spec):
 
 class ReportCmd(baseapp.Cmd):
     """
+    Subcommands to extract dice-reports from co2mpas files or unlock encrypted reports.
+    """
+
+    def __init__(self, **kwds):
+        kwds.setdefault('subcommands', baseapp.build_sub_cmds(*all_subcmds))
+        super().__init__(**kwds)
+
+
+class ExtractCmd(baseapp.Cmd):
+    """
     Extract dice-report from the input/output/other files, or from *current-project*.
 
     SYNTAX
@@ -398,16 +408,16 @@ class ReportCmd(baseapp.Cmd):
         dkwds = {
             'conf_classes': [project.ProjectsDB, project.Project, ReportSpec],
             'cmd_aliases': {
-                ('i', 'inp'): ('ReportCmd.inp', type(self).inp.help),
-                ('o', 'out'): ('ReportCmd.out', type(self).out.help),
+                ('i', 'inp'): ('ExtractCmd.inp', type(self).inp.help),
+                ('o', 'out'): ('ExtractCmd.out', type(self).out.help),
             },
             'cmd_flags': {
                 'project': ({
-                    'ReportCmd': {'project': True},
-                }, ReportCmd.project.help),
+                    'ExtractCmd': {'project': True},
+                }, ExtractCmd.project.help),
                 'vfids': ({
-                    'ReportCmd': {'vfids_only': True},
-                }, ReportCmd.vfids_only.help),
+                    'ExtractCmd': {'vfids_only': True},
+                }, ExtractCmd.vfids_only.help),
                 'with-inputs': ({
                     'ReportSpec': {'include_input_in_dice_override': True},
                 }, ReportSpec.include_input_in_dice_override.help),
@@ -466,6 +476,11 @@ class ReportCmd(baseapp.Cmd):
                     fpath = osp.basename(fpath)
 
                 yield yaml.dump({fpath: drep}, indent=2, width=76)
+
+
+all_subcmds = (
+    ExtractCmd,
+)
 
 ## test CMDS:
 #    co2dice report -i ./co2mpas/demos/co2mpas_demo-7.xlsx -o 20170207_192057-* && \

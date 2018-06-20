@@ -11,7 +11,6 @@ from co2mpas._vendor.traitlets import config as trtc
 from co2mpas.sampling import CmdException, report, project, crypto
 from co2mpas.sampling.baseapp import pump_cmd
 import logging
-import textwrap as tw
 import os
 import re
 import shutil
@@ -20,14 +19,16 @@ import types
 import unittest
 
 import ddt
+import pytest
 import yaml
 
+import itertools as itt
 import os.path as osp
 import subprocess as sbp
+import textwrap as tw
 
 from . import (test_inp_fpath, test_out_fpath, test_vfid,
                test_pgp_fingerprint, test_pgp_keys, test_pgp_trust)
-import pytest
 
 
 class FailingTempDir(tempfile.TemporaryDirectory):
@@ -50,7 +51,7 @@ proj2 = 'RL-99-BM3-2017-0001'
 @ddt.ddt
 class TApp(unittest.TestCase):
 
-    @ddt.data(
+    @ddt.data(*list(itt.product((
         trtc.Application.document_config_options,
         trtc.Application.print_alias_help,
         trtc.Application.print_flag_help,
@@ -58,11 +59,14 @@ class TApp(unittest.TestCase):
         trtc.Application.print_subcommands,
         trtc.Application.print_examples,
         trtc.Application.print_help,
+    ),
+        report.all_subcmds))
     )
-    def test_app(self, meth):
+    def test_app(self, case):
+        meth, cmd_cls = case
         c = trtc.Config()
         c.Cmd.raise_config_file_errors = True
-        cmd = report.ReportCmd(config=c)
+        cmd = cmd_cls(config=c)
         meth(cmd)
 
 
@@ -177,8 +181,8 @@ class TReportArgs(TReportBase):
 
     def test_extract_input(self):
         c = trtc.Config()
-        c.ReportCmd.raise_config_file_errors = True
-        cmd = report.ReportCmd(config=c, inp=[test_inp_fpath])
+        c.ExtractCmd.raise_config_file_errors = True
+        cmd = report.ExtractCmd(config=c, inp=[test_inp_fpath])
         res = cmd.run()
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
@@ -190,8 +194,8 @@ class TReportArgs(TReportBase):
 
     def test_extract_output(self):
         c = trtc.Config()
-        c.ReportCmd.raise_config_file_errors = True
-        cmd = report.ReportCmd(config=c, out=[test_out_fpath])
+        c.ExtractCmd.raise_config_file_errors = True
+        cmd = report.ExtractCmd(config=c, out=[test_out_fpath])
         res = cmd.run()
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
@@ -203,8 +207,8 @@ class TReportArgs(TReportBase):
 
     def test_extract_both(self):
         c = trtc.Config()
-        c.ReportCmd.raise_config_file_errors = True
-        cmd = report.ReportCmd(config=c, inp=[test_inp_fpath], out=[test_out_fpath])
+        c.ExtractCmd.raise_config_file_errors = True
+        cmd = report.ExtractCmd(config=c, inp=[test_inp_fpath], out=[test_out_fpath])
         res = cmd.run()
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
@@ -220,7 +224,7 @@ class TReportArgs(TReportBase):
 
     def test_extract_both_input_in_dice(self):
         c = trtc.Config()
-        c.ReportCmd.raise_config_file_errors = True
+        c.ExtractCmd.raise_config_file_errors = True
         c.ReportSpec.include_input_in_dice_override = True
 
         c.EncrypterSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
@@ -229,7 +233,7 @@ class TReportArgs(TReportBase):
         c.EncrypterSpec.master_key = test_pgp_fingerprint
         c.EncrypterSpec.allow_test_key = True
 
-        cmd = report.ReportCmd(config=c, inp=[test_inp_fpath], out=[test_out_fpath])
+        cmd = report.ExtractCmd(config=c, inp=[test_inp_fpath], out=[test_out_fpath])
         res = cmd.run()
         self.assertIsInstance(res, types.GeneratorType)
         res = list(res)
@@ -252,8 +256,8 @@ class TReportProject(TReportBase):
         c.GpgSpec.trust_to_import = test_pgp_trust
         c.GpgSpec.master_key = test_pgp_fingerprint
         c.GpgSpec.allow_test_key = True
-        c.ReportCmd.raise_config_file_errors = True
-        c.ReportCmd.project = True
+        c.ExtractCmd.raise_config_file_errors = True
+        c.ExtractCmd.project = True
         c.DiceSpec.user_name = "Test Vase"
         c.DiceSpec.user_email = "test@vase.com"
 
@@ -276,13 +280,13 @@ class TReportProject(TReportBase):
     def test_fails_with_args(self):
         c = self.cfg
         with self.assertRaisesRegex(CmdException, "--project' takes no arguments, received"):
-            list(report.ReportCmd(config=c).run('EXTRA_ARG'))
+            list(report.ExtractCmd(config=c).run('EXTRA_ARG'))
 
     def test_fails_when_no_project(self):
         c = self.cfg
         with tempfile.TemporaryDirectory() as td:
             c.ProjectsDB.repo_path = td
-            cmd = report.ReportCmd(config=c)
+            cmd = report.ExtractCmd(config=c)
             with self.assertRaisesRegex(CmdException, r"No current-project exists yet!"):
                 pump_cmd(cmd.run())
 
@@ -292,7 +296,7 @@ class TReportProject(TReportBase):
         with FailingTempDir() as td:
             c.ProjectsDB.repo_path = td
             pump_cmd(project.InitCmd(config=c).run(proj1))
-            cmd = report.ReportCmd(config=c)
+            cmd = report.ExtractCmd(config=c)
             with self.assertRaisesRegex(
                 CmdException, re.escape(
                     r"Current Project(%s: empty) contains no input/output files!"
@@ -308,7 +312,7 @@ class TReportProject(TReportBase):
 
             pump_cmd(project.AppendCmd(config=c,
                                        inp=[test_inp_fpath]).run())
-            cmd = report.ReportCmd(config=c)
+            cmd = report.ExtractCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
             res = list(res)
@@ -320,7 +324,7 @@ class TReportProject(TReportBase):
             self.check_report_tuple(rec, test_vfid, test_inp_fpath, 'inp', False)
 
             pump_cmd(project.AppendCmd(config=c, out=[test_out_fpath]).run())
-            cmd = report.ReportCmd(config=c)
+            cmd = report.ExtractCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
             res = list(res)
@@ -344,7 +348,7 @@ class TReportProject(TReportBase):
             pump_cmd(project.InitCmd(config=c).run(test_vfid))
 
             pump_cmd(project.AppendCmd(config=c, out=[test_out_fpath]).run())
-            res = report.ReportCmd(config=c).run()
+            res = report.ExtractCmd(config=c).run()
             self.assertIsInstance(res, types.GeneratorType)
             res = list(res)
             self.assertEqual(len(res), 1)
@@ -355,7 +359,7 @@ class TReportProject(TReportBase):
             self.check_report_tuple(rec, test_vfid, test_out_fpath, 'out', True)
 
             pump_cmd(project.AppendCmd(config=c, inp=[test_inp_fpath]).run())
-            res = report.ReportCmd(config=c).run()
+            res = report.ExtractCmd(config=c).run()
             self.assertIsInstance(res, types.GeneratorType)
             res = list(res)
             self.assertEqual(len(res), 2)
@@ -378,7 +382,7 @@ class TReportProject(TReportBase):
 
             cmd = project.AppendCmd(config=c, inp=[test_inp_fpath], out=[test_out_fpath])
             pump_cmd(cmd.run())
-            cmd = report.ReportCmd(config=c)
+            cmd = report.ExtractCmd(config=c)
             res = cmd.run()
             self.assertIsInstance(res, types.GeneratorType)
             res = list(res)
@@ -399,26 +403,26 @@ class TReportProject(TReportBase):
 class TReportShell(unittest.TestCase):
     def test_report_other_smoketest(self):
         fpath = osp.join(mydir, '..', '..', 'setup.py')
-        ret = sbp.check_call('co2dice report %s' % fpath,
+        ret = sbp.check_call('co2dice report extract %s' % fpath,
                              env=os.environ)
         self.assertEqual(ret, 0)
 
     def test_report_inp_smoketest(self):
         fpath = osp.join(mydir, 'input.xlsx')
-        ret = sbp.check_call('co2dice report -i %s' % fpath,
+        ret = sbp.check_call('co2dice report extract -i %s' % fpath,
                              env=os.environ)
         self.assertEqual(ret, 0)
 
     def test_report_out_smoketest(self):
         fpath = osp.join(mydir, 'output.xlsx')
-        ret = sbp.check_call('co2dice report -o %s' % fpath,
+        ret = sbp.check_call('co2dice report extract -o %s' % fpath,
                              env=os.environ)
         self.assertEqual(ret, 0)
 
     def test_report_io_smoketest(self):
         fpath1 = osp.join(mydir, 'input.xlsx')
         fpath2 = osp.join(mydir, 'output.xlsx')
-        ret = sbp.check_call('co2dice report -i %s -o %s' %
+        ret = sbp.check_call('co2dice report extract -i %s -o %s' %
                              (fpath1, fpath2),
                              env=os.environ)
         self.assertEqual(ret, 0)
@@ -427,7 +431,7 @@ class TReportShell(unittest.TestCase):
         fpath1 = osp.join(mydir, 'input.xlsx')
         fpath2 = osp.join(mydir, 'output.xlsx')
         fpath3 = osp.join(mydir, '__init__.py')
-        ret = sbp.check_call('co2dice report -i %s -o %s %s' %
+        ret = sbp.check_call('co2dice report extract -i %s -o %s %s' %
                              (fpath1, fpath2, fpath3),
                              env=os.environ)
         self.assertEqual(ret, 0)
