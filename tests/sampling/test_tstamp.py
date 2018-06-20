@@ -822,7 +822,8 @@ class TRX(unittest.TestCase):
 
     def test_parse_timestamp_bad(self):
         rcv = tstamp.TstampReceiver(config=self.cfg)
-        ex_msg = r"Cannot verify timestamp-response's signature due to: incorrect passphrase"
+        ex_msg = (r"Cannot verify timestamp-response's signature due to: "
+                  "error - verify 4294967295")
         with self.assertRaisesRegex(tstamp.CmdException, ex_msg):
             rcv.parse_tstamp_response("")
 
