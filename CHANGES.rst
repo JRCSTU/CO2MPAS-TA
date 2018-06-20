@@ -8,7 +8,14 @@ CO2MPAS Changes
 NEXT RELEASE
 ======================
 - feat(:gh:`466`, :gh:`467`, io, dice):
-  
+  - Add ``--with-inputs`` on ``report`` commands that override flag in
+    user-data `.xlsx` file.
+
+- testing :gh:`375`:
+  - dice: need *pytest* to run its TCs.
+  - dice: cannot run all tests together, only one module by one.  All pass
+
+
 v1.8.0a1, 12 Jun 2018
 --------------------
 - FIX dice, did not start due to `polyversion` not being engraved.
