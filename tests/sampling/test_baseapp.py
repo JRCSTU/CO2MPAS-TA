@@ -381,6 +381,7 @@ class TCipherTraits(TBase):
         cls._tdir = tdir = tempfile.mkdtemp(prefix='co2cipher-')
         cfg = trtc.Config()
         cfg.VaultSpec.gnupghome = tdir
+        crypto.VaultSpec.clear_instance()
         vault = crypto.VaultSpec.instance(config=cfg)
 
         key = cryptotc.gpg_gen_key(
