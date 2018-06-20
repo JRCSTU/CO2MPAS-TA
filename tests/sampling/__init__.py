@@ -5,12 +5,15 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
+import logging
+
 import os.path as osp
 import textwrap as tw
 
 
 mydir = osp.dirname(__file__)
 
+log = logging.getLogger(__name__)
 
 CONF_ENVAR = 'CO2DICE_CONFIG_PATHS'
 TEST_CONF_ENVAR = 'TEST_CO2DICE_CONFIG_PATHS'
@@ -157,3 +160,11 @@ test_pgp_trust = tw.dedent("""\
     8922372A2983334307D7DA90FFBEC4A18C008403:4:
     5464E04EE547D1FEDCAC4342B124C999CBBB52FF:6:
     """)
+
+
+def gitpython_cleanup(repo):
+    "clean running process & opened-files to allow for deleting git-repo."
+    try:
+        repo.close()
+    except Exception as ex:
+        log.warning("Ignored GitPython cleanup error: %s", ex)

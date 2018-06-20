@@ -11,8 +11,10 @@ from co2mpas._vendor.traitlets import config as trtc
 from co2mpas.sampling import baseapp, crypto, project, PFiles
 from co2mpas.sampling.baseapp import pump_cmd, collect_cmd
 from co2mpas.utils import chdir
-from tests.sampling import (test_inp_fpath, test_out_fpath, test_vfid,
-                            test_pgp_fingerprint, test_pgp_keys, test_pgp_trust)
+from tests.sampling import (
+    gitpython_cleanup, test_inp_fpath, test_out_fpath, test_vfid,
+    test_pgp_fingerprint, test_pgp_keys, test_pgp_trust,
+)
 import logging
 import os
 import shutil
@@ -160,10 +162,7 @@ class TProjectsDBStory(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        try:
-            cls._project_repo.cleanup()
-        except Exception as ex:
-            print('Ignored tempdir-failure: %s' % ex)
+        gitpython_cleanup(cls._project_repo)
         shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
 
     @property
@@ -370,16 +369,7 @@ class TStraightStory(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         project.ProjectsDB.clear_instance()
-        try:
-            import gc
-            import gitdb
-
-            gc.collect()
-            gitdb.util.mman.collect()
-            gc.collect()
-            cls._project_repo.cleanup()
-        except Exception as ex:
-            log.warning("Ignored cleanup error: %s", ex)
+        gitpython_cleanup(cls._project_repo)
         shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
 
     @property
@@ -585,10 +575,7 @@ class TParseCheck(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
-        try:
-            cls._project_repo.cleanup()
-        except Exception as ex:
-            print('Ignored tempdir-failure: %s' % ex)
+        gitpython_cleanup(cls._project_repo)
 
     @property
     def _config(self):
@@ -627,10 +614,7 @@ class TInitCmd(unittest.TestCase):
         log.debug('Temp-repo: %s', self._project_repo)
 
     def tearDown(self):
-        try:
-            self._project_repo.cleanup()
-        except Exception as ex:
-            print('Ignored tempdir-failure: %s' % ex)
+        gitpython_cleanup(self._project_repo)
 
     @property
     def _config(self):
@@ -704,10 +688,7 @@ class TBackupCmd(unittest.TestCase):
         log.debug('Temp-repo: %s', self._project_repo)
 
     def tearDown(self):
-        try:
-            self._project_repo.cleanup()
-        except Exception as ex:
-            print('Ignored tempdir-failure: %s' % ex)
+        gitpython_cleanup(self._project_repo)
 
     @property
     def _config(self):

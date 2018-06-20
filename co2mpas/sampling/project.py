@@ -1014,7 +1014,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             else:
                 ## Clean up old repo,
                 #  or else... https://github.com/gitpython-developers/GitPython/issues/508
-                self.__repo.git.clear_cache()
+                self.__repo.close()
                 ## Xmm, nai...
                 self._current_project = None
             self.__repo = None
