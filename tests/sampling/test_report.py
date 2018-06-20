@@ -166,6 +166,15 @@ class TReportBase(unittest.TestCase):
 @ddt.ddt
 class TReportArgs(TReportBase):
 
+    @classmethod
+    def setUpClass(cls):
+        ## Clean memories from past tests
+        #
+        crypto.StamperAuthSpec.clear_instance()
+        crypto.GitAuthSpec.clear_instance()
+        crypto.VaultSpec.clear_instance()
+        crypto.EncrypterSpec.clear_instance()
+
     def test_extract_input(self):
         c = trtc.Config()
         c.ReportCmd.raise_config_file_errors = True

@@ -1057,6 +1057,7 @@ class TstampShell(unittest.TestCase):
         """Allow cipher-traits encrypted with the GPG of the user running tests."""
         cmd = Cmd()
         cmd.initialize([])
+        crypto.VaultSpec.clear_instance()
         vault = crypto.VaultSpec(config=cmd.config)
         return ('--VaultSpec.gnupghome=%s' % vault.gnupghome
                 if vault.gnupghome
