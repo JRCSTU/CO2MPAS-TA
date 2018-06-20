@@ -469,7 +469,7 @@ class TStraightStory(unittest.TestCase):
 
         type(self).dreport = '\n'.join(p.result.split('\n')[2:])
         if pretend:
-            raise unittest.SkipTest(
+            raise AssertionError(
                 "Not fully run, bc no smtp-server credentials & tstamp "
                 "config file found in 'TEST_TSTAMP_CONFIG_FPATH' env-var.")
 
