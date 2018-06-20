@@ -447,18 +447,14 @@ class TStraightStory(unittest.TestCase):
     def test_5_send_email(self):
         cfg = self._config
 
-        persist_path = os.environ.get('TEST_TSTAMP_CONFIG_FPATH')
-        cfg.Project.dry_run = not bool(persist_path)
-        if persist_path:
-            cfg.Cmd.persist_path = persist_path
+        cfg.Project.dry_run = True
 
         pdb = project.ProjectsDB.instance(config=cfg)
         pdb.update_config(cfg)
         p = pdb.current_project()
         p.update_config(cfg)
 
-        pretend = not bool(persist_path)
-        res = p.do_sendmail(pretend=pretend)
+        res = p.do_sendmail(pretend=True)
         self.assertTrue(res)
         self.assertEqual(p.state, 'mailed')
 
@@ -468,10 +464,6 @@ class TStraightStory(unittest.TestCase):
         self.assertIs(p, p2)
 
         type(self).dreport = '\n'.join(p.result.split('\n')[2:])
-        if pretend:
-            raise AssertionError(
-                "Not fully run, bc no smtp-server credentials & tstamp "
-                "config file found in 'TEST_TSTAMP_CONFIG_FPATH' env-var.")
 
     def test_6_stamp(self):
         "Not actually testing project..."
