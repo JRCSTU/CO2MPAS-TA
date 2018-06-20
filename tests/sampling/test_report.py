@@ -72,10 +72,10 @@ def dreport_df():
     YAML file generated with::
 
         import io, json, pandas as pd, yaml
-        from co2mpas.sampling.report import Report
+        from co2mpas.sampling.report import ReportSpec
 
         fpath = 'tests/sampling/output.xlsx'
-        _vfid, dreport: pd.DataFrame = Report()._extract_dice_report_from_output(fpath)
+        _vfid, dreport: pd.DataFrame = ReportSpec()._extract_dice_report_from_output(fpath)
         sink = io.StringIO()
         dreport.to_json(sink, 'columns')
         print(yaml.dump(json.loads(sink.getvalue()), default_flow_style=False))
@@ -131,19 +131,19 @@ def dreport_df():
 
 
 def test_validate_deviations(dreport_df):
-    msg = report.Report()._check_deviations_are_valid('<some path>', dreport_df)
+    msg = report.ReportSpec()._check_deviations_are_valid('<some path>', dreport_df)
     assert not msg
 
     dreport_df.loc['CO2MPAS_deviation', 'vehicle-L'] = 1.45
-    msg = report.Report()._check_deviations_are_valid('<some path>', dreport_df)
+    msg = report.ReportSpec()._check_deviations_are_valid('<some path>', dreport_df)
     assert not msg
 
     dreport_df.loc['CO2MPAS_deviation', 'vehicle-H'] = None
-    msg = report.Report()._check_deviations_are_valid('<some path>', dreport_df)
+    msg = report.ReportSpec()._check_deviations_are_valid('<some path>', dreport_df)
     assert not msg
 
     dreport_df.loc['CO2MPAS_deviation', 'vehicle-L'] = None
-    msg = report.Report()._check_deviations_are_valid('<some path>', dreport_df)
+    msg = report.ReportSpec()._check_deviations_are_valid('<some path>', dreport_df)
     assert msg and "invalid deviations" in msg
 
 
@@ -221,7 +221,7 @@ class TReportArgs(TReportBase):
     def test_extract_both_input_in_dice(self):
         c = trtc.Config()
         c.ReportCmd.raise_config_file_errors = True
-        c.Report.include_input_in_dice_override = True
+        c.ReportSpec.include_input_in_dice_override = True
 
         c.EncrypterSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
         c.EncrypterSpec.keys_to_import = test_pgp_keys
@@ -236,7 +236,7 @@ class TReportArgs(TReportBase):
         self.assertEqual(len(res), 3)
 
         dreport = '\n'.join(res)
-        data = report.Report(config=c).unlock_report(dreport)
+        data = report.ReportSpec(config=c).unlock_report(dreport)
         assert isinstance(data, dict)
         data = next(iter(data.values()))
         assert data['flag']['vehicle_family_id'] == 'RL-99-BM3-2017-0001'

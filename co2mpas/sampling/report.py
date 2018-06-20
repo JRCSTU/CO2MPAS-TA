@@ -68,7 +68,7 @@ def _report_tuple_2_dict(fpath, iokind, report) -> dict:
     return d
 
 
-class Report(baseapp.Spec):
+class ReportSpec(baseapp.Spec):
     """Mines reported-parameters from co2mpas excel-files and serves them as a pandas dataframes."""
 
     input_head_xlref = trt.Unicode(
@@ -92,7 +92,7 @@ class Report(baseapp.Spec):
         help="""
         A 3-state bool whether to include inputs in dice report:
 
-        - none:  (default) decided by user-data flag in `Report.include_input_in_dice_path`
+        - none:  (default) decided by user-data flag in `ReportSpec.include_input_in_dice_path`
         - True/False: override flag in user-file
         """
     ).tag(config=True)
@@ -396,7 +396,7 @@ class ReportCmd(baseapp.Cmd):
 
     def __init__(self, **kwds):
         dkwds = {
-            'conf_classes': [project.ProjectsDB, project.Project, Report],
+            'conf_classes': [project.ProjectsDB, project.Project, ReportSpec],
             'cmd_aliases': {
                 ('i', 'inp'): ('ReportCmd.inp', type(self).inp.help),
                 ('o', 'out'): ('ReportCmd.out', type(self).out.help),
@@ -409,8 +409,8 @@ class ReportCmd(baseapp.Cmd):
                     'ReportCmd': {'vfids_only': True},
                 }, ReportCmd.vfids_only.help),
                 'with-inputs': ({
-                    'Report': {'include_input_in_dice_override': True},
-                }, Report.include_input_in_dice_override.help),
+                    'ReportSpec': {'include_input_in_dice_override': True},
+                }, ReportSpec.include_input_in_dice_override.help),
             }
         }
         dkwds.update(kwds)
@@ -448,7 +448,7 @@ class ReportCmd(baseapp.Cmd):
 
         import yaml
 
-        repspec = Report(config=self.config)
+        repspec = ReportSpec(config=self.config)
         if self.vfids_only:
             repspec.force = True  # Irrelevant to check for mismatching VFids.
             for fpath, data in repspec.extract_dice_report(pfiles).items():
