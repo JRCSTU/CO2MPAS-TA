@@ -8,7 +8,7 @@
 
 from co2mpas.__main__ import init_logging
 from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import baseapp, crypto, dice, project, PFiles
+from co2mpas.sampling import baseapp, crypto, project, PFiles
 from co2mpas.sampling.baseapp import pump_cmd, collect_cmd
 from co2mpas.utils import chdir
 from tests.sampling import (test_inp_fpath, test_out_fpath, test_vfid,
@@ -20,10 +20,11 @@ import tempfile
 import unittest
 
 import ddt
+import pytest
+import transitions
 
 import itertools as itt
 import os.path as osp
-import pandas as pd
 
 
 mydir = osp.dirname(__file__)
@@ -32,6 +33,15 @@ log = logging.getLogger(__name__)
 
 proj1 = 'IP-12-WMI-1234-5678'
 proj2 = 'IP-12-WMI-1111-2222'
+
+
+def reset_git(ref, pdb, cfg):
+    pdb.repo.git.reset(ref, hard=True)
+    pdb._current_project = None
+    p = pdb.current_project()
+    p.update_config(cfg)
+
+    return p
 
 
 @ddt.ddt
@@ -443,56 +453,81 @@ class TStraightStory(unittest.TestCase):
         self.assertTrue(res)
         self.assertEqual(p.state, 'mailed')
 
+        assert 'dices/RL-99-BM3-2017-0001/0' in p.result
+
         p2 = pdb.current_project()
         self.assertIs(p, p2)
 
+        type(self).dreport = '\n'.join(p.result.split('\n')[2:])
         if pretend:
-            raise unittest.SkipTest("No smtp-server credentials & tstamp config file "
-                                    "found in 'TEST_TSTAMP_CONFIG_FPATH' env-var.")
+            raise unittest.SkipTest(
+                "Not fully run, bc no smtp-server credentials & tstamp "
+                "config file found in 'TEST_TSTAMP_CONFIG_FPATH' env-var.")
 
-    def test_6A_receive_email(self):
+    def test_6_stamp(self):
+        "Not actually testing project..."
+        from co2mpas.sampling import tsigner
+
+        cfg = self._config
+        cfg.Project.dry_run = False  # modifed by prev TC.
+
+        dreport = self.dreport
+        sender = self.cfg.DiceSpec.user_email
+        signer = tsigner.TsignerService(config=self.cfg)
+        stamp, _decision = signer.sign_dreport_as_tstamper(sender, dreport)
+        type(self).stamp = stamp
+
+    def test_7_receive_stamp(self):
         from . import test_tstamp
 
         cfg = self._config
         cfg.Project.dry_run = False  # modifed by prev TC.
+        cfg.Project.force = False
         pdb = project.ProjectsDB.instance(config=cfg)
         pdb.update_config(cfg)
         p = pdb.current_project()
         p.update_config(cfg)
 
-        with self.assertLogs(level=logging.ERROR) as logrec:
-            res = p.do_storedice(tstamp_txt=test_tstamp.tstamp_responses[-1][-1])
-            assert "different from current one" in logrec.output[0], logrec
-            assert "is different from last tag " in logrec.output[0], logrec
-        self.assertTrue(res)
-        self.assertEqual(p.state, 'nosample')
+        with pytest.raises(baseapp.CmdException) as exinfo:
+            p.do_storedice(tstamp_txt=test_tstamp.tstamp_responses[-1][-1])
+        exinfo.match("different from current one")
+        exinfo.match("is different from last tag on current project")
+        self.assertEqual(p.state, 'mailed')
+
+        res = p.do_storedice(tstamp_txt=self.stamp)
+        assert res is True
+        assert p.state in ('sample', 'nosample')
+        decision = p.state
 
         p2 = pdb.current_project()
         self.assertIs(p, p2)
 
-    def test_6B_tag_parse(self):
-        from . import test_tstamp
+        with pytest.raises(transitions.MachineError,
+                           match="Can't trigger event do_storedice from state"):
+            p.do_storedice(tstamp_txt=self.stamp)
 
-        cfg = self._config
-        cfg.Project.dry_run = False  # modifed by prev TC.
-        pdb = project.ProjectsDB.instance(config=cfg)
-        pdb.update_config(cfg)
+        ## Out-of-order stamps fail.
+        #
+        ## Move back to `mailed` state to retry.
+        p = reset_git('HEAD~', pdb, cfg)
+        assert p.state == 'mailed'
+        with pytest.raises(baseapp.CmdException,
+                           match="is different from last tag on current project"):
+            p.do_storedice(tstamp_txt=test_tstamp.tstamp_responses[-1][-1])
 
-        ## Move back to `tagged` state.
-        pdb.repo.git.reset('HEAD~~', hard=True)
-        pdb._current_project = None
+        ## STAMP from 'tagged'
+        #
+        ## Delete stamp's tag to restart.
+        os.unlink(osp.join(pdb.repo.git_dir,
+                           'refs', 'tags', 'dices', 'RL-99-BM3-2017-0001', '1'))
+        p = reset_git('HEAD~', pdb, cfg)
+        assert p.state == 'tagged'
 
-        p = pdb.current_project()
-        p.update_config(cfg)
+        res = p.do_storedice(tstamp_txt=self.stamp)
+        assert res is True
+        assert p.state == decision
 
-        res = p.do_storedice(tstamp_txt=test_tstamp.tstamp_responses[-1][-1])
-        self.assertTrue(res)
-        self.assertEqual(p.state, 'nosample')
-
-        p2 = pdb.current_project()
-        self.assertIs(p, p2)
-
-    def test_7_add_nedc_files(self):
+    def test_8_add_nedc_files(self):
         cfg = self._config
         pdb = project.ProjectsDB.instance(config=cfg)
         pdb.update_config(cfg)
