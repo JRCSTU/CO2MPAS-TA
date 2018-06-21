@@ -692,6 +692,15 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         %s config desc <class>.<param>
     """.strip() % APPNAME)
 
+    @trt.default('subcommand_description')
+    def _subcmd_msg(self):
+        return """
+            Subcommands are launched as::
+                %(cmd_chain)s <subcmd> [args]
+            For information a <subcmd> use::
+                %(cmd_chain)s <subcmd> -h
+        """ % self._my_text_interpolations()
+
     #: Whether to raise if configs not found
     #: GUI don't need such validation, dice commands do.
     #: NOTE: HACK to fail early on first AIO launch.
