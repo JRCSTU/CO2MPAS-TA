@@ -884,7 +884,7 @@ def design_gear_box_ratios(n_gears, first_gear_box_ratio, last_gear_box_ratio):
     if b.any():
         ratios, dr = ratios[b], dr[b]
 
-    res = np.linalg.lstsq(np.vander(np.arange(n_gears - 1), 3), dr.T)[0]
+    res = np.linalg.lstsq(np.vander(np.arange(n_gears - 1), 3), dr.T, None)[0]
     b = res[0] < 0
 
     if b.any():
