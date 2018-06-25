@@ -189,16 +189,18 @@ def physical():
         inputs=(
             'aerodynamic_drag_coefficient', 'air_density', 'angle_slope',
             'angle_slopes', 'cargo_mass', 'correct_f0', 'cycle_type',
-            'curb_mass', 'f0', 'f0_uncorrected', 'f1', 'f2', 'frontal_area',
-            'fuel_mass', 'has_roof_box', 'inertial_factor', 'n_dyno_axes',
-            'n_passengers', 'n_wheel_drive', 'obd_velocities', 'passenger_mass',
-            'road_loads', 'rolling_resistance_coeff', 'times', 'tyre_category',
-            'tyre_class', 'unladen_mass', 'vehicle_body', 'vehicle_category',
-            'vehicle_height', 'vehicle_mass', 'vehicle_width', 'velocities'),
+            'curb_mass', 'elevations', 'f0', 'f0_uncorrected', 'f1', 'f2',
+            'frontal_area', 'fuel_mass', 'has_roof_box', 'inertial_factor',
+            'n_dyno_axes', 'n_passengers', 'n_wheel_drive', 'obd_velocities',
+            'passenger_mass', 'road_loads', 'rolling_resistance_coeff', 'times',
+            'tyre_category', 'tyre_class', 'unladen_mass', 'vehicle_body',
+            'vehicle_category', 'vehicle_height', 'vehicle_mass',
+            'vehicle_width', 'velocities'),
         outputs=(
             'accelerations', 'angle_slopes', 'climbing_force', 'curb_mass',
-            'f0', 'f1', 'f2', 'inertial_factor', 'motive_powers', 'n_dyno_axes',
-            'road_loads', 'unladen_mass', 'vehicle_mass', 'velocities'),
+            'distances', 'f0', 'f1', 'f2', 'inertial_factor', 'motive_powers',
+            'n_dyno_axes', 'road_loads', 'unladen_mass', 'vehicle_mass',
+            'velocities'),
     )
 
     from .wheels import wheels
