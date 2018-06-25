@@ -188,7 +188,8 @@ class TReportArgs(TReportBase):
         res = list(res)
         self.assertEqual(len(res), 1)
         rpt = yaml.load('\n'.join(res))
-        f, rec = next(iter(rpt.items()))
+        rec = next(iter(rpt))
+        f = rec['file']
         self.assertTrue(f.endswith("input.xlsx"), rpt)
         self.check_report_tuple(rec, test_vfid, test_inp_fpath, 'inp', False)
 
@@ -201,7 +202,8 @@ class TReportArgs(TReportBase):
         res = list(res)
         self.assertEqual(len(res), 1)
         rpt = yaml.load('\n'.join(res))
-        f, rec = next(iter(rpt.items()))
+        rec = next(iter(rpt))
+        f = rec['file']
         self.assertTrue(f.endswith("output.xlsx"), rpt)
         self.check_report_tuple(rec, test_vfid, test_out_fpath, 'out', True)
 
@@ -214,7 +216,8 @@ class TReportArgs(TReportBase):
         res = list(res)
         self.assertEqual(len(res), 2)
         rpt = yaml.load('\n'.join(res))
-        for f, rec in rpt.items():
+        for rec in rpt:
+            f = rec['file']
             if f.endswith('input.xlsx'):
                 path, iokind, exp_rpt = "input.xlsx", 'inp', False
             elif f.endswith('output.xlsx'):
@@ -318,9 +321,10 @@ class TReportProject(TReportBase):
             res = list(res)
             self.assertEqual(len(res), 1)
             rpt = yaml.load('\n'.join(res))
-            f, rec = next(iter(rpt.items()))
-            self.assertNotIn('output.xlsx', rpt)
-            self.assertIn("input.xlsx", rpt)
+            fnames = [rec['file'] for rec in rpt]
+            self.assertNotIn('output.xlsx', fnames)
+            self.assertIn("input.xlsx", fnames)
+            rec = next(iter(rpt))
             self.check_report_tuple(rec, test_vfid, test_inp_fpath, 'inp', False)
 
             pump_cmd(project.AppendCmd(config=c, out=[test_out_fpath]).run())
@@ -330,9 +334,11 @@ class TReportProject(TReportBase):
             res = list(res)
             self.assertEqual(len(res), 2)
             rpt = yaml.load('\n'.join(res))
-            self.assertIn('output.xlsx', rpt)
-            self.assertIn('input.xlsx', rpt)
-            for f, rec in rpt.items():
+            fnames = [rec['file'] for rec in rpt]
+            self.assertIn('output.xlsx', fnames)
+            self.assertIn('input.xlsx', fnames)
+            for rec in rpt:
+                f = rec['file']
                 if f.endswith('input.xlsx'):
                     path, iokind, rpt = "input.xlsx", 'inp', False
                 elif f.endswith('output.xlsx'):
@@ -353,9 +359,11 @@ class TReportProject(TReportBase):
             res = list(res)
             self.assertEqual(len(res), 1)
             rpt = yaml.load('\n'.join(res))
-            f, rec = next(iter(rpt.items()))
-            self.assertNotIn('input.xlsx', rpt)
-            self.assertIn("output.xlsx", rpt)
+            fnames = [rec['file'] for rec in rpt]
+            self.assertNotIn('input.xlsx', fnames)
+            self.assertIn("output.xlsx", fnames)
+
+            rec = next(iter(rpt))
             self.check_report_tuple(rec, test_vfid, test_out_fpath, 'out', True)
 
             pump_cmd(project.AppendCmd(config=c, inp=[test_inp_fpath]).run())
@@ -364,9 +372,11 @@ class TReportProject(TReportBase):
             res = list(res)
             self.assertEqual(len(res), 2)
             rpt = yaml.load('\n'.join(res))
-            self.assertIn('output.xlsx', rpt)
-            self.assertIn('input.xlsx', rpt)
-            for f, rec in rpt.items():
+            fnames = [rec['file'] for rec in rpt]
+            self.assertIn('output.xlsx', fnames)
+            self.assertIn('input.xlsx', fnames)
+            for rec in rpt:
+                f = rec['file']
                 if f == 'input.xlsx':
                     path, iokind, rpt = "tests\sampling\input.xlsx", 'inp', False
                 elif f == 'output.xlsx':
@@ -388,9 +398,11 @@ class TReportProject(TReportBase):
             res = list(res)
             self.assertEqual(len(res), 2)
             rpt = yaml.load('\n'.join(res))
-            self.assertIn('output.xlsx', rpt)
-            self.assertIn('input.xlsx', rpt)
-            for f, rec in rpt.items():
+            fnames = [rec['file'] for rec in rpt]
+            self.assertIn('output.xlsx', fnames)
+            self.assertIn('input.xlsx', fnames)
+            for rec in rpt:
+                f = rec['file']
                 if f.endswith('input.xlsx'):
                     path, iokind, rpt = "input.xlsx", 'inp', False
                 elif f.endswith('output.xlsx'):

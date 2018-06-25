@@ -475,7 +475,7 @@ class ExtractCmd(baseapp.Cmd):
                 if not self.verbose:
                     fpath = osp.basename(fpath)
 
-                yield yaml.dump({fpath: drep}, indent=2, width=76)
+                yield yaml.dump([drep], indent=2, width=76)
 
 
 all_subcmds = (
