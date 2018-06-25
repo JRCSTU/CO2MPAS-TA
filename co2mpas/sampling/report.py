@@ -16,7 +16,7 @@ from typing import (
 
 import os.path as osp
 
-from . import baseapp, project, CmdException, PFiles
+from . import baseapp, base, project, CmdException, PFiles
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 from .._vendor import traitlets as trt
 
@@ -482,8 +482,51 @@ class ExtractCmd(baseapp.Cmd):
                 yield yaml.dump([drep], indent=2, width=76)
 
 
+class UnlockCmd(baseapp.Cmd, base._StampParsingCmdMixin):
+    """
+    Decrypt data attached in dice-reports (also when wrapped in stamps) into STDOUT.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] [<dice-or-stamp-file>...]
+
+    - If no file or '-' given, read STDIN.
+      Use the PYTHONIOENCODING envvar to change its encoding.
+      See: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONIOENCODING
+    """
+
+    _reporter: ReportSpec = None
+
+    @property
+    def reporter(self) -> ReportSpec:
+        if not self._reporter:
+            self._reporter = ReportSpec(config=self.config)
+        return self._reporter
+
+    def run(self, *args):
+        import yaml
+        from pandalone.pandata import resolve_path
+
+        for fpath, is_tag, verdict in self.yield_verdicts(*args):
+            inp_type = 'TAG' if is_tag else 'STAMP'
+            self.log.info("Unlocking '%s' as %s", fpath, inp_type)
+            if 'commit_msg' in verdict:
+                dpath = 'commit_msg/data'
+            elif 'report' in verdict:
+                dpath = 'report/commit_msg/data'
+            else:
+                self.warning("Skipping %s from '%s' due to unexpected keys: %s",
+                             inp_type, fpath, list(verdict))
+                continue
+
+            records = resolve_path(verdict, dpath, None)
+            plain_recs = self.reporter.unlock_report_records(records)
+
+            yield yaml.dump([{fpath: plain_recs}])
+
+
 all_subcmds = (
     ExtractCmd,
+    UnlockCmd,
 )
 
 ## test CMDS:

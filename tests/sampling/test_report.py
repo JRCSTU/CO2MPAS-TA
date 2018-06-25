@@ -48,6 +48,19 @@ proj1 = 'IP-12-WMI-1234-5678'
 proj2 = 'RL-99-BM3-2017-0001'
 
 
+def _make_unlock_config():
+    c = trtc.Config()
+    c.ExtractCmd.raise_config_file_errors = True
+    c.ReportSpec.include_input_in_dice_override = True
+    c.EncrypterSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
+    c.EncrypterSpec.keys_to_import = test_pgp_keys
+    c.EncrypterSpec.trust_to_import = test_pgp_trust
+    c.EncrypterSpec.master_key = test_pgp_fingerprint
+    c.EncrypterSpec.allow_test_key = True
+
+    return c
+
+
 @ddt.ddt
 class TApp(unittest.TestCase):
 
@@ -226,16 +239,7 @@ class TReportArgs(TReportBase):
             self.check_report_tuple(rec, test_vfid, path, iokind, exp_rpt)
 
     def test_extract_both_input_in_dice(self):
-        c = trtc.Config()
-        c.ExtractCmd.raise_config_file_errors = True
-        c.ReportSpec.include_input_in_dice_override = True
-
-        c.EncrypterSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
-        c.EncrypterSpec.keys_to_import = test_pgp_keys
-        c.EncrypterSpec.trust_to_import = test_pgp_trust
-        c.EncrypterSpec.master_key = test_pgp_fingerprint
-        c.EncrypterSpec.allow_test_key = True
-
+        c = _make_unlock_config()
         cmd = report.ExtractCmd(config=c, inp=[test_inp_fpath], out=[test_out_fpath])
         res = cmd.run()
         self.assertIsInstance(res, types.GeneratorType)
@@ -250,6 +254,12 @@ class TReportArgs(TReportBase):
         assert isinstance(rec, dict) and len(rec) == 3
         inpfile1_data = next(iter(rec['report'].values()))
         assert inpfile1_data['flag']['vehicle_family_id'] == 'RL-99-BM3-2017-0001'
+
+    def test_unlock_freezed_dice(self):
+        c = _make_unlock_config()
+        cmd = report.UnlockCmd(config=c)
+        res = cmd.run(osp.join(mydir, 'cipherdice.txt'))
+        res_text = '\n'.join(res)
 
 
 class TReportProject(TReportBase):
