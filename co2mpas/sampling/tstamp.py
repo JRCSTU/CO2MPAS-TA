@@ -82,7 +82,7 @@ class TstampSpec(dice.DiceSpec):
     """Common parameters and methods for both SMTP(sending emails) & IMAP(receiving emails)."""
 
     log_lines_limit = trt.Int(
-        120,
+        -1,
         config=True,
         help="""
             Clip dice-report/stamp to those lines, and avoid excessively long warnings.
@@ -90,6 +90,11 @@ class TstampSpec(dice.DiceSpec):
             Negative numbers mean no limit.
         """
     )
+
+    @trt.default('log_lines_limit')
+    def _no_limit_if_to_verbose(self):
+        v = self.verbose
+        return -1 if int(v) > 1 else 120
 
     def limit_text_lines(self, text) -> str:
         if not text or self.log_lines_limit < 0:
