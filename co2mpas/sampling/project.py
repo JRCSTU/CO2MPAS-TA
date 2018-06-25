@@ -347,7 +347,7 @@ class Project(transitions.Machine, ProjectSpec):
 
     def _report_spec(self):
         from . import report
-        return report.ReportSpec(config=self.config)
+        return report.ReporterSpec(config=self.config)
 
     def _tstamp_sender_spec(self):
         from . import tstamp
@@ -747,7 +747,7 @@ class Project(transitions.Machine, ProjectSpec):
         If already on `tagged`, just sets the :data:`result` and exits,
         unless --force, in which case it generates another tag.
 
-        Uses the :class:`ReportSpec` to build the tag-msg.
+        Uses the :class:`ReporterSpec` to build the tag-msg.
 
         :return:
             Setting :attr:`result` to string.
@@ -1876,7 +1876,7 @@ class InitCmd(AppendCmd):
 
             from . import report
 
-            repspec = report.ReportSpec(config=self.config)
+            repspec = report.ReporterSpec(config=self.config)
             finfos = repspec.extract_dice_report(pfiles)
             for fpath, data in finfos.items():
                 iokind = data['iokind']
@@ -1924,7 +1924,7 @@ class ReportCmd(_SubCmd):
         from . import crypto
         from . import report
 
-        kwds.setdefault('conf_classes', [report.ReportSpec, crypto.GitAuthSpec])
+        kwds.setdefault('conf_classes', [report.ReporterSpec, crypto.GitAuthSpec])
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
                 {
@@ -1934,8 +1934,8 @@ class ReportCmd(_SubCmd):
             ),
             'with-inputs': (
                 {
-                    'ReportSpec': {'include_input_in_dice_override': True},
-                }, report.ReportSpec.include_input_in_dice_override.help),
+                    'ReporterSpec': {'include_input_in_dice_override': True},
+                }, report.ReporterSpec.include_input_in_dice_override.help),
         })
         super().__init__(**kwds)
 

@@ -134,7 +134,7 @@ def all_app_configurables() -> Tuple:
         baseapp.Spec,
         project.ProjectSpec, project.Project, project.ProjectsDB,
         crypto.VaultSpec, crypto.GitAuthSpec, crypto.StamperAuthSpec,
-        report.ReportSpec,
+        report.ReporterSpec,
         tstamp.TstampSender,
         tstamp.TstampReceiver,
         tsigner.TsignerService,

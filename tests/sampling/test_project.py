@@ -543,7 +543,7 @@ class TStraightLong(TStraightStory):
     @property
     def _config(self):
         cfg = super()._config
-        cfg.ReportSpec.include_input_in_dice_override = True
+        cfg.ReporterSpec.include_input_in_dice_override = True
         return cfg
 
 

@@ -68,7 +68,7 @@ def _report_tuple_2_dict(fpath, iokind, report) -> dict:
     return d
 
 
-class ReportSpec(baseapp.Spec):
+class ReporterSpec(baseapp.Spec):
     """Mines reported-parameters from co2mpas excel-files and serves them as a pandas dataframes."""
 
     input_head_xlref = trt.Unicode(
@@ -92,7 +92,7 @@ class ReportSpec(baseapp.Spec):
         help="""
         A 3-state bool whether to include inputs in dice report:
 
-        - none:  (default) decided by user-data flag in `ReportSpec.include_input_in_dice_path`
+        - none:  (default) decided by user-data flag in `ReporterSpec.include_input_in_dice_path`
         - True/False: override flag in user-file
         """
     ).tag(config=True)
@@ -412,7 +412,7 @@ class ExtractCmd(baseapp.Cmd):
 
     def __init__(self, **kwds):
         dkwds = {
-            'conf_classes': [project.ProjectsDB, project.Project, ReportSpec],
+            'conf_classes': [project.ProjectsDB, project.Project, ReporterSpec],
             'cmd_aliases': {
                 ('i', 'inp'): ('ExtractCmd.inp', type(self).inp.help),
                 ('o', 'out'): ('ExtractCmd.out', type(self).out.help),
@@ -425,8 +425,8 @@ class ExtractCmd(baseapp.Cmd):
                     'ExtractCmd': {'vfids_only': True},
                 }, ExtractCmd.vfids_only.help),
                 'with-inputs': ({
-                    'ReportSpec': {'include_input_in_dice_override': True},
-                }, ReportSpec.include_input_in_dice_override.help),
+                    'ReporterSpec': {'include_input_in_dice_override': True},
+                }, ReporterSpec.include_input_in_dice_override.help),
             }
         }
         dkwds.update(kwds)
@@ -464,7 +464,7 @@ class ExtractCmd(baseapp.Cmd):
 
         import yaml
 
-        repspec = ReportSpec(config=self.config)
+        repspec = ReporterSpec(config=self.config)
         if self.vfids_only:
             repspec.force = True  # Irrelevant to check for mismatching VFids.
             for fpath, data in repspec.extract_dice_report(pfiles).items():
@@ -515,12 +515,12 @@ class UnlockCmd(baseapp.Cmd, base._StampParsingCmdMixin):
                     ...
     """)
 
-    _reporter: ReportSpec = None
+    _reporter: ReporterSpec = None
 
     @property
-    def reporter(self) -> ReportSpec:
+    def reporter(self) -> ReporterSpec:
         if not self._reporter:
-            self._reporter = ReportSpec(config=self.config)
+            self._reporter = ReporterSpec(config=self.config)
         return self._reporter
 
     def run(self, *args):

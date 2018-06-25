@@ -51,7 +51,7 @@ proj2 = 'RL-99-BM3-2017-0001'
 def _make_unlock_config():
     c = trtc.Config()
     c.ExtractCmd.raise_config_file_errors = True
-    c.ReportSpec.include_input_in_dice_override = True
+    c.ReporterSpec.include_input_in_dice_override = True
     c.EncrypterSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
     c.EncrypterSpec.keys_to_import = test_pgp_keys
     c.EncrypterSpec.trust_to_import = test_pgp_trust
@@ -89,10 +89,10 @@ def dreport_df():
     YAML file generated with::
 
         import io, json, pandas as pd, yaml
-        from co2mpas.sampling.report import ReportSpec
+        from co2mpas.sampling.report import ReporterSpec
 
         fpath = 'tests/sampling/output.xlsx'
-        _vfid, dreport: pd.DataFrame = ReportSpec()._extract_dice_report_from_output(fpath)
+        _vfid, dreport: pd.DataFrame = ReporterSpec()._extract_dice_report_from_output(fpath)
         sink = io.StringIO()
         dreport.to_json(sink, 'columns')
         print(yaml.dump(json.loads(sink.getvalue()), default_flow_style=False))
@@ -148,19 +148,19 @@ def dreport_df():
 
 
 def test_validate_deviations(dreport_df):
-    msg = report.ReportSpec()._check_deviations_are_valid('<some path>', dreport_df)
+    msg = report.ReporterSpec()._check_deviations_are_valid('<some path>', dreport_df)
     assert not msg
 
     dreport_df.loc['CO2MPAS_deviation', 'vehicle-L'] = 1.45
-    msg = report.ReportSpec()._check_deviations_are_valid('<some path>', dreport_df)
+    msg = report.ReporterSpec()._check_deviations_are_valid('<some path>', dreport_df)
     assert not msg
 
     dreport_df.loc['CO2MPAS_deviation', 'vehicle-H'] = None
-    msg = report.ReportSpec()._check_deviations_are_valid('<some path>', dreport_df)
+    msg = report.ReporterSpec()._check_deviations_are_valid('<some path>', dreport_df)
     assert not msg
 
     dreport_df.loc['CO2MPAS_deviation', 'vehicle-L'] = None
-    msg = report.ReportSpec()._check_deviations_are_valid('<some path>', dreport_df)
+    msg = report.ReporterSpec()._check_deviations_are_valid('<some path>', dreport_df)
     assert msg and "invalid deviations" in msg
 
 
@@ -250,7 +250,7 @@ class TReportArgs(TReportBase):
 
         dreport_text = '\n'.join(res)
         dreport = yaml.load(dreport_text)
-        plain_recs = report.ReportSpec(config=c).unlock_report_records(dreport)
+        plain_recs = report.ReporterSpec(config=c).unlock_report_records(dreport)
         assert len(plain_recs) == 1
         rec = plain_recs[0]
         assert isinstance(rec, dict) and len(rec) == 3
