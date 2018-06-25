@@ -127,7 +127,7 @@ Vehicle general characteristics
         The ID is allocated in the `output report` and in the `dice report`.
         This is the structure of the ID::
 
-            FT-TA-WMI-yyyy-nnnn
+            FT-nnnnnnnnnnnnnnn-WMI-x
 
         Where:
 
@@ -136,20 +136,43 @@ Vehicle general characteristics
           - ``'IP'``: Interpolation family as defined in paragraph 5.6.
           - ``'RL'``: Road load family as defined in paragraph 5.7.
           - ``'RM'``: Road load matrix family as defined in paragraph 5.8.
-          - ``'PR'``: Periodically regenerating systems (Ki) family as defined in paragraph 5.9.
+          - ``'PR'``: Periodically regenerating systems (Ki) family
+            as defined in paragraph 5.9.
+          - ``'PR'``: Periodically regenerating systems (Ki) family as defined
+            in paragraph 5.9.
+          - ``'AT'``: ATCT family as defined in paragraph 2. of Sub-Annex 6a.
 
-        - ``TA`` is the distinguishing number of the EC Member State authority responsible for the family approval
-          as defined in [section 1 of point 1 of Annex VII of Directive (EC) 2007/46](http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32007L0046&from=EN).
-          1 for Germany; 2 for France; 3 for Italy; 4 for the Netherlands; 5 for Sweden; 6 for Belgium; 7 for Hungary;
-          8 for the Czech Republic; 9 for Spain; 11 for the United Kingdom; 12 for Austria; 13 for Luxembourg; 17 for Finland;
-          18 for Denmark; 19 for Romania; 20 for Poland; 21 for Portugal; 23 for Greece; 24 for Ireland; 26 for Slovenia;
-          27 for Slovakia; 29 for Estonia; 32 for Latvia; 34 for Bulgaria; 36 for Lithuania; 49 for Cyprus; 50 for Malta.
+        - ``nnnnnnnnnnnnnnn`` is a string with a maximum of fifteen characters,
+          restricted to using the characters 0-9, A-Z and the underscore character '_'.
 
-        - ``WMI`` (world manufacturer identifier) is a code that identifies the manufacturer
-          in a unique manner and is defined in ISO 3780:2009.
-          For a single manufacturers several WMI codes may be used.
-        - ``yyyy`` is the year when the test for the family were concluded.
-        - ``nnnn`` is a four digit sequence number.
+        - ``WMI`` (world manufacturer identifier) is a code that identifies
+          the manufacturer in a unique manner and is defined in ISO 3780:2009.
+
+        - ``x``: shall be set to '1' or '0' in accordance with the following
+          provisions:
+
+          - (a) With the agreement of the approval authority and the owner of the WMI,
+            the number shall be set to '1' where a vehicle family is defined
+            for the purpose of covering vehicles of:
+
+            - (i) a single manufacturer with one single WMI code;
+            - (ii)    a manufacturer with several WMI codes, but only in cases when
+              one WMI code is to be used;
+            - (iii)   more than one manufacturer, but only in cases when one WMI code
+              is to be used.
+
+            In the cases (i), (ii) and (iii), the family identifier code shall consist
+            of one unique string of n-characters and one unique WMI code followed by '1';
+
+          - (b) With the agreement of the approval authority, the number shall be set
+            to '0' in the case that a vehicle family is defined based on the same criteria
+            as the corresponding vehicle family defined in accordance with point (a),
+            but the manufacturer chooses to use a different WMI.
+            In this case the family identifier code shall consist of the same string
+            of n-characters as the one determined for the vehicle family defined
+            in accordance with point (a) and a unique WMI code which shall be different
+            from any of the WMI codes used under case (a), followed by '0'.'.
+
 
     ``fuel_type``
         Used to indicate the type of fuel used by the vehicle during the test.
