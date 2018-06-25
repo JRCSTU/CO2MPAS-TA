@@ -23,23 +23,24 @@
 from polyversion import polyversion, polytime
 
 __copyright__ = "Copyright (C) 2015-2017 European Commission (JRC)"
-__license__   = "EUPL 1.1+"
-__title__     = "co2mpas"
-__summary__   = "Vehicle simulator predicting NEDC CO2 emissions from WLTP time-series."
-__uri__       = "https://co2mpas.io"
+__license__   = "EUPL 1.1+"                         # noqa
+__title__     = "co2mpas"                           # noqa
+__summary__   = ("Vehicle simulator predicting NEDC CO2 emissions"  # noqa
+                 " from WLTP time-series.")
+__uri__       = "https://co2mpas.io"                # noqa
 
 #: Authoritative project's PEP 440 version.
 #: Remember to manually update version in CHANGES.rst.
-__version__   = polyversion(mono_project=True)
-version       = __version__
+__version__   = polyversion(mono_project=True)      # noqa
+version       = __version__                         # noqa
 #: Release date.
 __updated__ = polytime()
 
 #: Input/Output file's version.
-__file_version__        = "2.2.7"
+__file_version__        = "2.2.7"                   # noqa
 
 #: Compatible Input file's version.
-__input_file_version__  = "2"
+__input_file_version__  = "2"                       # noqa
 
 __dice_report_version__ = '1.0.2'
 
