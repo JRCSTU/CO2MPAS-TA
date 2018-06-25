@@ -4,7 +4,7 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-"""A *report* contains the co2mpas-run values to time-stamp and disseminate to TA authorities & oversight bodies."""
+"Send & parse co2mpas dice/stamps to TAAs/oversight bodies."
 from collections import (
     defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
 import io
@@ -366,7 +366,9 @@ SCRABLE_KEY = 'base64(tag)'
 
 @fnt.lru_cache()
 def _make_send_transfer_encoders_map():
-    """Add 2 capital/lower keys for each Content-Transfer-Encoder in :mod:`email import encoders`."""
+    """
+    Add 2 capital/lower keys for each Content-Transfer-Encoder in :mod:`email import encoders`.
+    """
     from email import encoders as enc
 
     encoders = [enc.encode_base64, enc.encode_quopri, enc.encode_7or8bit]
@@ -500,7 +502,7 @@ class TstampSender(TstampSpec):
             cls._is_not_empty)
         self.register_validators(
             cls.subject_prefix,
-            cls._is_not_empty,cls._is_all_latin)
+            cls._is_not_empty, cls._is_all_latin)
         self.register_validators(
             cls.tstamper_address,
             cls._is_not_empty, cls._is_pure_email_address)
@@ -526,8 +528,9 @@ class TstampSender(TstampSpec):
                 if a]
         if not adrs:
             myname = type(self).__name__
-            raise trt.TraitError('One of `%s.tstamper_address` and ``%s.timestamping_addresses` must not be empty!'
-                                 % (myname, myname))
+            raise trt.TraitError(
+                "One of `%s.tstamper_address` and `%s.timestamping_addresses` must not be empty!"
+                % (myname, myname))
         return adrs
 
     def _append_tstamp_recipients(self, msg):
@@ -536,8 +539,9 @@ class TstampSender(TstampSpec):
                            in self.tstamp_recipients + self.x_recipients)
         if not x_recs:
             myname = type(self).__name__
-            raise trt.TraitError('One of `%s.tstamp_recipients` and ``%s.x_recipients` must not be empty!'
-                                 % (myname, myname))
+            raise trt.TraitError(
+                "One of `%s.tstamp_recipients` and `%s.x_recipients` must not be empty!"
+                % (myname, myname))
 
         msg = "%s\n\n%s" % (x_recs, msg)
 
@@ -760,7 +764,7 @@ def _parse_slice(v: Text):
             v = int(v)
             return slice(v, v + 1)
 
-        ## From: https://stackoverflow.com/questions/680826/python-create-slice-object-from-string#comment3188450_681949
+        ## From: https://stackoverflow.com/questions/680826/python-create-sli#comment3188450_681949
         return slice(*map(lambda x: int(x.strip()) if x.strip() else None,
                           v.split(':')))
     except Exception:
@@ -779,7 +783,9 @@ class TstampReceiver(TstampSpec):
 
     vfid_extraction_regex = trt.CRegExp(
         r'vehicle_family_id[^\n]+(%s)' % vehicle_family_id_pattern,
-        help="""An approximate way to get a *well-formed* project-id if timestamp parsing has failed. """
+        help="""
+            An approximate way to get a *well-formed* project-id if timestamp parsing has failed.
+        """
     ).tag(config=True)
 
     mailbox = trt.Unicode(
@@ -875,7 +881,9 @@ class TstampReceiver(TstampSpec):
 
     after_date = trt.Unicode(
         None, allow_none=True,
-        help="""Search messages sent before the specified date, in human readable form (see `before_date`)"""
+        help="""
+        Search messages sent before the specified date, in human readable form (see `before_date`)
+        """
     ).tag(config=True)
 
     on_date = trt.Unicode(
@@ -1041,7 +1049,7 @@ class TstampReceiver(TstampSpec):
 
         return verdict
 
-    def parse_signed_tag(self, tag_text: Text) -> int:
+    def parse_signed_tag(self, tag_text: Text) -> dict:
         """
         :param msg_text:
             The tag as extracted from tstamp response by
@@ -1247,7 +1255,8 @@ class TstampReceiver(TstampSpec):
                     "Cannot parse timestamp-response!")
             stamper_id = tag_verdict = None
         else:
-            stamper_id, tag = self._capture_stamper_msg_and_id(ts_parts['msg'], ts_parts['sigarmor'])
+            stamper_id, tag = self._capture_stamper_msg_and_id(ts_parts['msg'],
+                                                               ts_parts['sigarmor'])
             ts_verdict['stamper_id'] = stamper_id
             if not tag:
                 parts_msg = self.limit_text_lines(_mydump(ts_parts))
@@ -1739,7 +1748,8 @@ class SendCmd(baseapp.Cmd):
     - Do not use this command directly (unless experimenting) - prefer
       the `project tsend` sub-command.
     - If '-' is given or no files at all, it reads from STDIN.
-    - Many options related to sending & receiving the email are expected to be stored in the config-file.
+    - Many options related to sending & receiving the email are expected
+      to be stored in the config-file.
     - Use --verbose to print the timestamped email.
     """
 
@@ -1749,7 +1759,7 @@ class SendCmd(baseapp.Cmd):
     """)
 
     dry_run = trt.Bool(
-        help="Verify dice-report and login to SMTP-server but do not actually send email to timestamp-service."
+        help="Verify dice-report and login to SMTP-server but don'tt actually send email."
     ).tag(config=True)
 
     def __init__(self, **kwds):
@@ -2034,7 +2044,10 @@ class ParseCmd(baseapp.Cmd):
         rcver = TstampReceiver(config=self.config)
         for file in files:
             if file == '-':
-                self.log.info("Parsing STDIN; paste message verbatim!")
+                msg = "Parsing STDIN..."
+                if getattr(sys.stdin, 'isatty', lambda: False)():
+                    msg += " paste message verbatim!"
+                self.log.info(msg)
                 mail_text = sys.stdin.read()
             else:
                 if not osp.exists(file):
@@ -2084,7 +2097,7 @@ class LoginCmd(baseapp.Cmd):
     """Attempts to login into SMTP server. """
 
     dry_run = trt.Bool(
-        help="Verify dice-report and login to SMTP-server but do not actually send email to timestamp-service."
+        help="Verify dice-report and login to SMTP-server but don't actually send email."
     ).tag(config=True)
 
     srv = trt.FuzzyEnum(
