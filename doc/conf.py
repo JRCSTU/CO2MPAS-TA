@@ -13,22 +13,16 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import io
-import os
 from os.path import abspath, join, dirname
+from polyversion import polyversion
+import os
 import sys
 
 
 mydir = os.path.dirname(__file__)
 
 
-def read_project_version():
-    fglobals = {}
-    with io.open(os.path.join(mydir, '..', 'co2mpas', '__init__.py')) as fd:
-        exec(fd.read(), fglobals)  # To read __version__
-    return fglobals['__version__']
-
-proj_ver = read_project_version()
+proj_ver = polyversion(pname='co2mpas', mono_project=True)
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
