@@ -19,7 +19,7 @@ from pandalone import utils as pndlu
 import functools as fnt
 import os.path as osp
 
-from . import CmdException, baseapp, dice, crypto
+from . import CmdException, base, baseapp, dice, crypto
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
                 vehicle_family_id_pattern)
 from .._vendor import traitlets as trt
@@ -1979,7 +1979,7 @@ class RecvCmd(baseapp.Cmd):
                               default_flow_style=default_flow_style)
 
 
-class ParseCmd(baseapp.Cmd):
+class ParseCmd(base._StampParsingCmdMixin, baseapp.Cmd):
     """
     Verifies and derives the *decision* OK/SAMPLE flag from tstamped-response email.
 
@@ -2036,61 +2036,23 @@ class ParseCmd(baseapp.Cmd):
             return bool(self.parse_as_tag)
 
     def run(self, *args):
-        from boltons.setutils import IndexedSet as iset
-
-        default_flow_style = None if self.verbose else False
-        files = iset(args) or ['-']
-
-        rcver = TstampReceiver(config=self.config)
-        for file in files:
-            if file == '-':
-                msg = "Parsing STDIN..."
-                if getattr(sys.stdin, 'isatty', lambda: False)():
-                    msg += " paste message verbatim!"
-                self.log.info(msg)
-                mail_text = sys.stdin.read()
-            else:
-                if not osp.exists(file):
-                    self.log.error("File to parse '%s' not found!", file)
-                    continue
-
-                try:
-                    with io.open(file, 'rt') as fin:
-                        mail_text = fin.read()
-                except Exception as ex:
-                    self.log.error(
-                        "Reading file to parse '%s' failed due to: %r",
-                        file, ex, exc_info=self.verbose)
-                    continue
-
-            is_parse_tag = self._is_parse_tag(mail_text)
-            self.log.info("Parsing file '%s' as %s...",
-                          file, 'TAG' if is_parse_tag else 'STAMP')
-
-            try:
-                if is_parse_tag:
-                    verdict = rcver.parse_signed_tag(mail_text)
-                else:
-                    verdict = rcver.parse_tstamp_response(mail_text)
-
-                    if not self.verbose:
-                        from toolz import dicttoolz as dtz
-
-                        verdict = dtz.keyfilter(lambda k: k == 'dice',
-                                                verdict)
-
-                if file != '-':
-                    verdict['fpath'] = file
-            except CmdException as ex:
-                verdict = ex
+        def handle_error(fpath, ex):
+            if isinstance(ex, CmdException):
                 self.log.warning("Failed parsing tstamp '%s' due to: %s",
-                                 file, ex)
-            except Exception as ex:
-                verdict = ex
-                self.log.error("Failed parsing tstamp '%s' due to: %r",
-                               file, ex, exc_info=self.verbose)
+                                 fpath, ex)
             else:
-                yield _mydump(verdict, default_flow_style=default_flow_style)
+                self.log.error("Failed parsing tstamp '%s' due to: %r",
+                               fpath, ex, exc_info=self.verbose)
+
+        for _fpath, is_tag, verdict in self.yield_verdicts(*args,
+                                                           ex_handler=handle_error):
+            if not is_tag and not self.verbose:
+                from toolz import dicttoolz as dtz
+
+                verdict = dtz.keyfilter(lambda k: k == 'dice',
+                                        verdict)
+            yield _mydump(verdict,
+                          default_flow_style=None if self.verbose else False)
 
 
 class LoginCmd(baseapp.Cmd):
