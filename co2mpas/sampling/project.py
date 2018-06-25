@@ -28,11 +28,12 @@ import os.path as osp
 import pandalone.utils as pndlu
 import textwrap as tw
 
-from . import baseapp, dice, CmdException, PFiles
+from . import baseapp, dice, CmdException
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
                 __dice_report_version__)
 from .._vendor import traitlets as trt
 from .._vendor.traitlets import config as trtc
+from .base import PFiles
 
 
 git_project_regex = re.compile(r'^\w[\w-]+$')

@@ -15,56 +15,58 @@ from . import CmdException
 from .._vendor import traitlets as trt
 
 
-#_file_arg_regex = re.compile('(inp|out)=(.+)', re.IGNORECASE)
-#
-#all_io_kinds = tuple('inp out other'.split())
-#
-#
-#class PFiles(namedtuple('PFiles', all_io_kinds)):
-#    """
-#    Holder of project-files stored in the repository.
-#
-#    :ivar inp:   ``[fname1, ...]``
-#    :ivar out:   ``[fname1, ...]``
-#    :ivar other: ``[fname1, ...]``
-#    """
-#    ## INFO: Defined here to avoid circular deps between report.py <-> project.py,
-#    #  because it is used in their function declarations.
-#
-#    @staticmethod
-#    def io_kinds_list(*io_kinds) -> Tuple[Text]:
-#        """
-#        :param io_kinds:
-#            if none specified, return all kinds,
-#            otherwise, validates and converts everything into a string.
-#        """
-#        if not io_kinds:
-#            io_kinds = all_io_kinds
-#        else:
-#            assert not (set(io_kinds) - set(all_io_kinds)), (
-#                "Invalid io-kind(s): ", set(io_kinds) - set(all_io_kinds))
-#        return tuple(set(io_kinds))
-#
-#    def nfiles(self):
-#        return sum(len(f) for f in self._asdict().values())
-#
-#    def find_nonfiles(self):
-#        import os.path as osp
-#        import itertools as itt
-#
-#        return [fpath for fpath in
-#                itt.chain(self.inp, self.out, self.other)
-#                if not osp.isfile(fpath)]
-#
-#    def check_files_exist(self, name):
-#        badfiles = self.find_nonfiles()
-#        if badfiles:
-#            raise CmdException("%s: cannot find %i file(s): %s" %
-#                               (name, len(badfiles), badfiles))
-#
-#
-##: Allow creation of PFiles with partial arguments.
-#PFiles.__new__.__defaults__ = ([], ) * len(all_io_kinds)
+_file_arg_regex = re.compile('(inp|out)=(.+)', re.IGNORECASE)
+
+all_io_kinds = tuple('inp out other'.split())
+
+
+class PFiles(namedtuple('PFiles', all_io_kinds)):
+    """
+    Holder of project-files stored in the repository.
+
+    :ivar inp:   ``[fname1, ...]``
+    :ivar out:   ``[fname1, ...]``
+    :ivar other: ``[fname1, ...]``
+    """
+    ## INFO: Defined here to avoid circular deps between report.py <-> project.py,
+    #  because it is used in their function declarations.
+
+    @staticmethod
+    def io_kinds_list(*io_kinds) -> Tuple[Text]:
+        """
+        :param io_kinds:
+            if none specified, return all kinds,
+            otherwise, validates and converts everything into a string.
+        """
+        if not io_kinds:
+            io_kinds = all_io_kinds
+        else:
+            assert not (set(io_kinds) - set(all_io_kinds)), (
+                "Invalid io-kind(s): ", set(io_kinds) - set(all_io_kinds))
+        return tuple(set(io_kinds))
+
+    def nfiles(self):
+        return sum(len(f) for f in self._asdict().values())
+
+    def find_nonfiles(self):
+        import os.path as osp
+        import itertools as itt
+
+        return [fpath for fpath in
+                itt.chain(self.inp, self.out, self.other)
+                if not osp.isfile(fpath)]
+
+    def check_files_exist(self, name):
+        badfiles = self.find_nonfiles()
+        if badfiles:
+            raise CmdException("%s: cannot find %i file(s): %s" %
+                               (name, len(badfiles), badfiles))
+
+
+#: Allow creation of PFiles with partial arguments.
+PFiles.__new__.__defaults__ = ([], ) * len(all_io_kinds)
+
+
 class _FileReadingMixin(metaclass=trt.MetaHasTraits):
     """
     Facilitates commands reading input files given in the command-line.

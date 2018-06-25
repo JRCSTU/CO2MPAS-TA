@@ -16,9 +16,10 @@ from typing import (
 
 import os.path as osp
 
-from . import baseapp, base, project, CmdException, PFiles
+from . import baseapp, base, project, CmdException
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 from .._vendor import traitlets as trt
+from .base import PFiles
 
 
 def clip_and_asciify(s, fname_clip_len=64):
@@ -495,7 +496,7 @@ class UnlockCmd(baseapp.Cmd, base._StampParsingCmdMixin):
       Use the PYTHONIOENCODING envvar to change its encoding.
       See: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONIOENCODING
     """
-    
+
     examples = trt.Unicode("""
     $ co2dice report unlock tests/sampling/cipherdice.txt
     2018-06-25 22:43:32: INFO:co2mpas.sampling.report.UnlockCmd:Parsing file '/path/to/cipherdice.txt' as TAG...

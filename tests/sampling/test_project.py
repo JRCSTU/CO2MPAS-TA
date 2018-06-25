@@ -8,7 +8,8 @@
 
 from co2mpas.__main__ import init_logging
 from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import baseapp, crypto, project, PFiles
+from co2mpas.sampling import baseapp, crypto, project
+from co2mpas.sampling.base import PFiles
 from co2mpas.sampling.baseapp import pump_cmd, collect_cmd
 from co2mpas.utils import chdir
 from tests.sampling import (
