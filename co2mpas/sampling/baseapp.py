@@ -890,7 +890,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
             self.log.debug("Loading persist-file: %s", persist_path)
             self._cfgfiles_registry.visit_file(persist_path, miss=not bool(config))
             if config is None:
-                self.log.info("Missing persist-file: %s", persist_path)
+                self.log.debug("Missing persist-file: %s", persist_path)
             return config
 
     def load_configurables_from_files(self) -> Tuple[trtc.Config, trtc.Config]:
