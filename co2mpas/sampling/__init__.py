@@ -43,9 +43,9 @@ __summary__   = __doc__.splitlines()[0] # noqa
 __uri__       = "https://co2mpas.io"    # noqa
 
 ## FIXME: change projectname when co2dice graduates to own project.
-__version__ = polyversion(pname='co2mpas', mono_project=True)
+__version__ = '1.8.2a0'
 version = __version__
-__updated__ = polytime()
+__updated__ = '2018-06-26T00:51:47.418783'
 
 
 class CmdException(trt.TraitError):
