@@ -75,10 +75,16 @@ class _FileReadingMixin(metaclass=trt.MetaHasTraits):
     """
 
     def yield_files(self, *fpaths):
+        """
+        :return:
+            a 2 tuple `(fpath, file_text)`
+        """
+
         import io
         import sys
         import os.path as osp
         from boltons.setutils import IndexedSet as iset
+        from pandalone.utils import convpath
 
         fpaths = iset(fpaths) or ['-']
         for fpath in fpaths:
@@ -87,15 +93,18 @@ class _FileReadingMixin(metaclass=trt.MetaHasTraits):
                 if getattr(sys.stdin, 'isatty', lambda: False)():
                     msg += "..paste text, then [Ctrl+Z] to exit!"
                 self.log.info(msg)
-                yield sys.stdin.read()
+                yield '<STDIN>', sys.stdin.read()
             else:
+                fpath = convpath(fpath)
                 if not osp.exists(fpath):
                     self.log.error("File to read '%s' not found!", fpath)
                     continue
 
                 try:
                     with io.open(fpath, 'rt') as fin:
-                        yield fin.read()
+                        text = fin.read()
+
+                    yield fpath, text
                 except Exception as ex:
                     self.log.error(
                         "Reading file-path '%s' failed due to: %r",
@@ -172,7 +181,7 @@ class _StampParsingCmdMixin(_FileReadingMixin):
             :raise:
                 any exception
         """
-        for fpath, ftext in zip(fpaths, self.yield_files(*fpaths)):
+        for fpath, ftext in self.yield_files(*fpaths):
             try:
                 is_tag = self._is_parse_tag(ftext)
                 self.log.info("Parsing file '%s' as %s...",

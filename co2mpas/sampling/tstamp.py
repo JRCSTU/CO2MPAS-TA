@@ -1738,7 +1738,7 @@ class TstampCmd(baseapp.Cmd):
         super().__init__(**kwds)
 
 
-class SendCmd(baseapp.Cmd):
+class SendCmd(base._FileReadingMixin, baseapp.Cmd):
     """
     Send emails to be timestamped.
 
@@ -1775,30 +1775,9 @@ class SendCmd(baseapp.Cmd):
         super().__init__(**kwds)
 
     def run(self, *args):
-        from boltons.setutils import IndexedSet as iset
-
-        files = iset(args) or ['-']
-
         sender = TstampSender(config=self.config)
-        for file in files:
-            if file == '-':
-                self.log.info("Timestamping STDIN; paste message verbatim!")
-                mail_text = sys.stdin.read()
-            else:
-                if not osp.exists(file):
-                    self.log.error("File to timestamp '%s' not found!", file)
-                    continue
-
-                try:
-                    with io.open(file, 'rt') as fin:
-                        mail_text = fin.read()
-                except Exception as ex:
-                    self.log.error(
-                        "Reading file to timestamp '%s' failed due to: %r",
-                        file, ex, exc_info=self.verbose)
-                    continue
-
-            self.log.info("Timestamping '%s'...", pndlu.convpath(file))
+        for fpath, mail_text in self.yield_files(*args):
+            self.log.info("Timestamping '%s'...", fpath)
 
             try:
                 mail = sender.send_timestamped_email(mail_text, dry_run=self.dry_run)
@@ -1806,10 +1785,10 @@ class SendCmd(baseapp.Cmd):
                     return str(mail)
             except CmdException as ex:
                 self.log.error("Timestamping file '%s' stopped due to: %s",
-                               ex, file, exc_info=1)  # one-off event, must not loose ex.
+                               ex, fpath, exc_info=1)  # one-off event, must not loose ex.
             except Exception as ex:
                 self.log.error("Timestamping file '%s' failed due to: %r",
-                               ex, file, exc_info=1)  # one-off event, must not loose ex.
+                               ex, fpath, exc_info=1)  # one-off event, must not loose ex.
 
 
 class MailboxCmd(baseapp.Cmd):
@@ -2044,8 +2023,10 @@ class ParseCmd(base._StampParsingCmdMixin, baseapp.Cmd):
                 self.log.error("Failed parsing tstamp '%s' due to: %r",
                                fpath, ex, exc_info=self.verbose)
 
-        for _fpath, is_tag, verdict in self.yield_verdicts(*args,
-                                                           ex_handler=handle_error):
+        for fpath, is_tag, verdict in self.yield_verdicts(*args,
+                                                          ex_handler=handle_error):
+            self.log.info("Parsed '%s' as %s", fpath, 'TAG' if is_tag else 'STAMP')
+
             if not is_tag and not self.verbose:
                 from toolz import dicttoolz as dtz
 

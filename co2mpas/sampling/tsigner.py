@@ -21,7 +21,7 @@ from pandalone import utils as pndlu
 
 from co2mpas.sampling.dirlock import locked_on_dir
 
-from . import CmdException, baseapp, crypto, tstamp
+from . import CmdException, base, baseapp, crypto, tstamp
 from .._vendor import traitlets as trt
 
 
@@ -424,7 +424,7 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
         return signed_text, dice_decision
 
 
-class TsignerCmd(baseapp.Cmd):
+class TsignerCmd(base._FileReadingMixin, baseapp.Cmd):
     """
     Private stamper service.
 
@@ -471,30 +471,17 @@ class TsignerCmd(baseapp.Cmd):
             raise Exception("Not impl!")
 
     def _sign_stamps(self, *files):
-        from boltons.setutils import IndexedSet as iset
-
         signer = TsignerService(config=self.config)
-
-        files = iset(files) or ['-']
-        self.log.info("Signining '%s'...", tuple(files))
-
-        for file in files:
-            if file == '-':
-                self.log.info("Reading STDIN; paste message verbatim!")
-                mail_text = sys.stdin.read()
-            else:
-                self.log.debug("Reading '%s'...", pndlu.convpath(file))
-                with io.open(file, 'rt') as fin:
-                    mail_text = fin.read()
-
+        for fpath, ftext in self.yield_files(*files):
+            self.log.info("Signining '%s'...", fpath)
             try:
                 sig_text, _decision = signer.sign_dreport_as_tstamper(
-                    self.sender, mail_text)
+                    self.sender, ftext)
 
                 yield sig_text
             except Exception as ex:
                 self.log.error("%s: signing %i-char message failed due to: %s",
-                               file, len(mail_text), ex, exc_info=1)
+                               fpath, len(ftext), ex, exc_info=1)
 
     def run(self, *args):
         if self.list:
