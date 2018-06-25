@@ -1028,7 +1028,7 @@ class TstampReceiver(TstampSpec):
         return tag_bytes
 
     def _verify_tag(self, tag_text: Text) -> OrderedDict:
-        """return verdict or raise if tag invalid"""
+        """return verdict (see :meth:`parse_signed_tag` or raise if tag invalid"""
         git_auth = crypto.get_git_auth(self.config)
 
         stag_bytes = self._descramble_tag(tag_text)
@@ -1046,6 +1046,13 @@ class TstampReceiver(TstampSpec):
         :param msg_text:
             The tag as extracted from tstamp response by
             :meth:`crypto.pgp_split_clearsigned`.
+        :return:
+            a dict with keys::
+
+                creation_date, data, expire_timestamp, fingerprint, key_id, key_status,
+                parts, pubkey_fingerprint, sig_timestamp, signature_id, status, stderr,
+                timestamp, trust_level, trust_text, username, valid
+                commit_msg, project, project_source
 
         :raise:
             if not a proper GPG-signature
@@ -1188,10 +1195,26 @@ class TstampReceiver(TstampSpec):
 
         return OrderedDict(dice_results)
 
-    def parse_tstamp_response(self, mail_text: Text, tag_name: str=None) -> int:
-        ## TODO: Could use dispatcher to parse tstamp-response, if failback routes were working...
-        import textwrap as tw
+    def parse_tstamp_response(self, mail_text: Text, tag_name: str=None) -> dict:
+        """
+        :return:
+            a dict with keys::
 
+                report:
+                    creation_date, data, expire_timestamp, fingerprint, key_id, key_status,
+                    parts, pubkey_fingerprint, sig_timestamp, signature_id, status,
+                    stderr, timestamp, trust_level, trust_text, username, valid, commit_msg,
+                    project, project_source
+                tstamp:
+                    valid, fingerprint, creation_date, timestamp, signature_id, key_id,
+                    username, key_status, status, pubkey_fingerprint, expire_timestamp,
+                    sig_timestamp, trust_text, trust_level, data, stderr, mail_text,
+                    parts, stamper_id
+                dice:
+                    tag, issuer, issue_date, stamper, dice_date, hexnum, percent, decision
+
+        """
+        ## TODO: Could use dispatcher to parse tstamp-response, if failback routes were working...
         force = self.force
         errlog = self.log.error if self.force else self.log.debug
 
@@ -1953,7 +1976,23 @@ class ParseCmd(baseapp.Cmd):
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<tstamped-file-1> ...]
 
-    - If '-' is given or no files at all, it reads from STDIN.
+    - If no file or '-' given, read STDIN.
+      Use the PYTHONIOENCODING envvar to change its encoding.
+      See: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONIOENCODING
+    - If input was a stamp, returns a YAML-dict with keys::
+        report:
+            creation_date, data, expire_timestamp, fingerprint, key_id, key_status,
+            parts, pubkey_fingerprint, sig_timestamp, signature_id, status,
+            stderr, timestamp, trust_level, trust_text, username, valid, commit_msg,
+            project, project_source
+        tstamp:
+            valid, fingerprint, creation_date, timestamp, signature_id, key_id,
+            username, key_status, status, pubkey_fingerprint, expire_timestamp,
+            sig_timestamp, trust_text, trust_level, data, stderr, mail_text,
+            parts, stamper_id
+        dice:
+            tag, issuer, issue_date, stamper, dice_date, hexnum, percent, decision
+    - If input was a dice-report tag, returns the `report` keys from above.
     """
     examples = trt.Unicode("""cat <mail> | %(cmd_chain)s""")
 
