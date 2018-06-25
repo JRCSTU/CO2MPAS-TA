@@ -8,10 +8,15 @@ CO2MPAS Changes
 NEXT RELEASE
 ======================
 - feat(:gh:`466`, :gh:`467`, io, dice):
-  - Add ``--with-inputs`` on ``report`` commands that override flag in
-    user-data `.xlsx` file.
+    - Add ``--with-inputs`` on ``report`` commands that override flag in
+    user-data `.xlsx` file, and attached all inputs encrypted in dice.
 
-- testing :gh:`375`:
+- - Add 2 sub-commands in `report` standalone command::
+
+        co2dice report extract  # that's the old `co2dice report`
+        co2dice report unlock   # unlocks encrypted inputs in dice/stamps
+
+testing :gh:`375`:
   - dice: need *pytest* to run its TCs.
   - dice: cannot run all tests together, only one module by one.  All pass
 
