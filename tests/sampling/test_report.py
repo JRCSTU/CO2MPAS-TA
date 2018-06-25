@@ -242,11 +242,14 @@ class TReportArgs(TReportBase):
         res = list(res)
         self.assertEqual(len(res), 3)
 
-        dreport = '\n'.join(res)
-        data = report.ReportSpec(config=c).unlock_report(dreport)
-        assert isinstance(data, dict)
-        data = next(iter(data.values()))
-        assert data['flag']['vehicle_family_id'] == 'RL-99-BM3-2017-0001'
+        dreport_text = '\n'.join(res)
+        dreport = yaml.load(dreport_text)
+        plain_recs = report.ReportSpec(config=c).unlock_report_records(dreport)
+        assert len(plain_recs) == 1
+        rec = plain_recs[0]
+        assert isinstance(rec, dict) and len(rec) == 3
+        inpfile1_data = next(iter(rec['report'].values()))
+        assert inpfile1_data['flag']['vehicle_family_id'] == 'RL-99-BM3-2017-0001'
 
 
 class TReportProject(TReportBase):

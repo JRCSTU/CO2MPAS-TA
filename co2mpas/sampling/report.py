@@ -297,7 +297,7 @@ class ReportSpec(baseapp.Spec):
 
         if input_report:
             self.log.info("Attaching input-report...")
-            rtuples.append(('input_report', '', self._encrypt_data(input_report)))
+            rtuples.append(('inputs.yaml', 'cipher', self._encrypt_data(input_report)))
 
         return rtuples
 
@@ -308,32 +308,36 @@ class ReportSpec(baseapp.Spec):
                              in tuples)
         return report
 
-    def unlock_report(self, dreport_text: str):
+    def _collect_ciphers(self, records):
+        return [rec
+                for rec in records
+                if rec['iokind'] == 'cipher']
+
+    def unlock_report_records(self, records: str):
         """
-        Unlock the encrypted input-data, if attached in the dice-report
+        Unlock any encrypted data-records, if attached in the dice-report
 
         :param dreport_text:
-            the dice report text (not the stamp!)
-        :return:
-            the input-data like that::
+            the dice report (not stamp) as a list of 3-item dicts::
 
-                {'/input/file/path.xlsx': {
-                        'flag': {...},
-                    }
+                {'file: 'inputs',  # can have different name
+                 'kind: 'cipher',
+                 'report: ...  # an array with base64 lines
                 }
 
+        :return:
+            The same record with plain text in `report` key, replaced.
+
         """
-        import yaml
-        from pandalone.pandata import resolve_path
+        ciphered_recs = self._collect_ciphers(records)
+        if not ciphered_recs:
+            raise CmdException('No encrypted records in dice-report!')
 
-        dreport = yaml.load(dreport_text)
-        ireport = resolve_path(dreport, 'input_report/report', None)
-        if ireport is None:
-            raise CmdException('No input-data attached in dice-report!')
+        for rec in ciphered_recs:
+            cipher = rec['report']
+            rec['report'] = self._decrypt_b32_lines(cipher)
 
-        data = self._decrypt_b32_lines(ireport)
-
-        return data
+        return ciphered_recs
 
 
 ###################
