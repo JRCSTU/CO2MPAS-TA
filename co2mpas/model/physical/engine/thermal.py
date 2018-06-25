@@ -629,7 +629,7 @@ def thermal():
             'max_engine_coolant_temperature'
         ],
         outputs=['engine_temperature_prediction_model'],
-        weight=400
+        weight=4000
     )
 
     return d

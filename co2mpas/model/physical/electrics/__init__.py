@@ -1575,7 +1575,7 @@ def electrics():
                 'alternator_initialization_time', 'times',
                 'initial_state_of_charge'],
         outputs=['electrics_prediction_model'],
-        weight=400
+        weight=4000
     )
 
     d.add_function(

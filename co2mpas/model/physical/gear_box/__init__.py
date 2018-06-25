@@ -882,7 +882,7 @@ def gear_box():
                 'gear_box_loss_model', 'initial_gear_box_temperature',
                 'correct_gear'],
         outputs=['gear_box_prediction_model'],
-        weight=400
+        weight=4000
     )
 
     d.add_function(

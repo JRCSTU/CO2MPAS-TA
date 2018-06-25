@@ -582,7 +582,7 @@ def final_drive():
             'final_drive_efficiency'
         ],
         outputs=['final_drive_prediction_model'],
-        weight=400
+        weight=4000
     )
 
     return d

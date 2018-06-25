@@ -752,7 +752,7 @@ def wheels():
         function=define_wheels_prediction_model,
         inputs=['r_dynamic'],
         outputs=['wheels_prediction_model'],
-        weight=400
+        weight=4000
     )
 
     return d
