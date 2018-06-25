@@ -239,6 +239,8 @@ class TReportArgs(TReportBase):
             self.check_report_tuple(rec, test_vfid, path, iokind, exp_rpt)
 
     def test_extract_both_input_in_dice(self):
+        from pandalone.pandata import resolve_path
+
         c = _make_unlock_config()
         cmd = report.ExtractCmd(config=c, inp=[test_inp_fpath], out=[test_out_fpath])
         res = cmd.run()
@@ -252,14 +254,23 @@ class TReportArgs(TReportBase):
         assert len(plain_recs) == 1
         rec = plain_recs[0]
         assert isinstance(rec, dict) and len(rec) == 3
-        inpfile1_data = next(iter(rec['report'].values()))
-        assert inpfile1_data['flag']['vehicle_family_id'] == 'RL-99-BM3-2017-0001'
+        inputs = rec['report']
+        assert len(inputs) == 1  # only one encrypted record
+        vehid = resolve_path(inputs, '/0/input_data/flag/vehicle_family_id')
+        assert vehid == 'RL-99-BM3-2017-0001'
 
     def test_unlock_freezed_dice(self):
+        from pandalone.pandata import resolve_path
+
         c = _make_unlock_config()
         cmd = report.UnlockCmd(config=c)
         res = cmd.run(osp.join(mydir, 'cipherdice.txt'))
         res_text = '\n'.join(res)
+        fileres = yaml.load(res_text)
+        assert len(fileres) == 1
+        plain = next(iter(fileres.values()))
+        vehid = resolve_path(plain, '/0/report/0/input_data/flag/vehicle_family_id')
+        assert vehid == 'IP-10-AAA-2017-1000'
 
 
 class TReportProject(TReportBase):

@@ -255,7 +255,8 @@ class ReportSpec(baseapp.Spec):
                         (fpath, file_vfid, expected_vfid))
 
         rtuples = []
-        input_report = {}  # a mapping {fpath --> raw_data}
+
+        input_report = []  # a list of dicts {file: ..., input_data: raw_data}
         for fpath in iofiles.inp:
             fpath = pndlu.convpath(fpath)
             file_vfid, inp_data = self._parse_input_xlsx(fpath)
@@ -272,7 +273,7 @@ class ReportSpec(baseapp.Spec):
             ])))
 
             if inp_data:
-                input_report[fpath] = inp_data
+                input_report.append({'file': fpath, 'input_data': inp_data})
 
         for fpath in iofiles.out:
             fpath = pndlu.convpath(fpath)
@@ -336,6 +337,7 @@ class ReportSpec(baseapp.Spec):
         for rec in ciphered_recs:
             cipher = rec['report']
             rec['report'] = self._decrypt_b32_lines(cipher)
+            rec['iokind'] = 'plaintext'
 
         return ciphered_recs
 
@@ -493,6 +495,25 @@ class UnlockCmd(baseapp.Cmd, base._StampParsingCmdMixin):
       Use the PYTHONIOENCODING envvar to change its encoding.
       See: https://docs.python.org/3/using/cmdline.html#envvar-PYTHONIOENCODING
     """
+    
+    examples = trt.Unicode("""
+    $ co2dice report unlock tests/sampling/cipherdice.txt
+    2018-06-25 22:43:32: INFO:co2mpas.sampling.report.UnlockCmd:Parsing file '/path/to/cipherdice.txt' as TAG...
+    2018-06-25 22:43:34: INFO:co2mpas.sampling.report.UnlockCmd:Unlocking '/path/to/cipherdice.txt' as TAG
+    - /path/to/cipherdice.txt:
+      - file: inputs.yaml
+        iokind: cipher
+        report:
+        - file: /path/to/original/co2mpas_demo-1.xlsx
+          input_data:
+            base:
+              input:
+                calibration:
+                  wltp_h:
+                    active_cylinder_ratios: [1]
+                    alternator_efficiency: 0.67
+                    ...
+    """)
 
     _reporter: ReportSpec = None
 
@@ -521,7 +542,7 @@ class UnlockCmd(baseapp.Cmd, base._StampParsingCmdMixin):
             records = resolve_path(verdict, dpath, None)
             plain_recs = self.reporter.unlock_report_records(records)
 
-            yield yaml.dump([{fpath: plain_recs}])
+            yield yaml.dump({fpath: plain_recs})
 
 
 all_subcmds = (
@@ -530,6 +551,6 @@ all_subcmds = (
 )
 
 ## test CMDS:
-#    co2dice report -i ./co2mpas/demos/co2mpas_demo-7.xlsx -o 20170207_192057-* && \
-#    co2dice report  --vfids --project && co2dice report   --project && \
-#    co2dice report   --project -v &&  co2dice report   --project --vfids -v
+#    co2dice report extract  -i ./co2mpas/demos/co2mpas_demo-7.xlsx -o 20170207_192057-* && \
+#    co2dice report extract  --vfids --project && co2dice report   --project && \
+#    co2dice report extract  --project -v &&  co2dice report   --project --vfids -v
