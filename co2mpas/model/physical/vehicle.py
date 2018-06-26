@@ -36,8 +36,8 @@ def calculate_velocities(times, obd_velocities):
     dt = float(np.median(np.diff(times)))
     t = np.arange(times[0], times[-1] + dt, dt)
     v = np.interp(t, times, obd_velocities)
-
-    return np.interp(times, t, pykalman.KalmanFilter().em(v).smooth(v)[0].T[0])
+    v = pykalman.KalmanFilter(random_state=0).em(v).smooth(v)[0].T[0]
+    return np.interp(times, t, v)
 
 
 def calculate_accelerations(times, velocities):
