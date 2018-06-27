@@ -7,6 +7,12 @@ CO2MPAS Changes
 
 NEXT RELEASE
 ======================
+
+v1.8.1a0 12 Jun 2018
+--------------------
+Tagged as ``co2mpas_v1.8.1a0`` just to switch *polyversion* repo-scheme,
+from `mono-project --> monorepo` (switch will complete in next tag).
+
 - feat(:gh:`466`, :gh:`467`, io, dice):
     - Add ``--with-inputs`` on ``report`` commands that override flag in
     user-data `.xlsx` file, and attached all inputs encrypted in dice.
