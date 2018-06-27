@@ -144,23 +144,24 @@ Vehicle general characteristics
         This ID does not affect the NEDC prediction.
         The ID is allocated in the `output report` and in the `dice report`.
 
-        The structure of the ID: is defined paragraph 5.0 of Annex XXI of
-        the amended `regulation`:
+        The new structure of the ID, as defined in paragraph 5.0 of Annex XXI of
+        the *amended* `regulation`, is the following:
 
-            IP-<max-15-chars>-<WMI>-<x>
+            FT-nnnnnnnnnnnnnnn-WMI-x
 
         Where:
 
-        - ``'IP'`` stands for "Interpolation family" as defined in paragraph 5.6
-          of the `regulation`.
+        - ``FT`` (Family Type) is pinned to ``'IP'`` (Interpolation Family)
+          from paragraph 5.6, Annex XXI.
 
-        - ``<max-15-chars>`` is a string with a maximum of fifteen characters,
+        - ``nnnnnnnnnnnnnnn`` is a string with a maximum of fifteen characters,
           restricted to using the characters 0-9, A-Z and the underscore character '_'.
 
-        - ``<WMI>`` (world manufacturer identifier) is a code that identifies
+        - ``WMI`` (world manufacturer identifier) is a code that identifies
           the manufacturer in a unique manner and is defined in ISO 3780:2009.
+          See also: https://en.wikibooks.org/wiki/Vehicle_Identification_Numbers_(VIN_codes)/World_Manufacturer_Identifier_(WMI)
 
-        - ``<x>``: shall be set to '1' or '0' in accordance with the following
+        - ``x``: shall be set to '1' or '0' in accordance with the following
           provisions:
 
           a. With the agreement of the approval authority and the owner of the WMI,
@@ -188,13 +189,14 @@ Vehicle general characteristics
         .. Attention::
             The format has changed in the legislation since May 2018 and in co2mpas
             after version (and including) ``v1.8.x``.
-            The old format of the ID was::
+            The old format **is still supported** i.e. for extensions
+            (but cell-validations in the input excel file must be disabled)::
 
-                <FT>-<TA>-<WMI>-<yyyy>-<nnnn>
+                FT-TA-WMI-yyyy-nnnn
 
             Where:
 
-            - ``<FT>`` is the identifier of the family type according to this:
+            - ``FT`` is the identifier of the Family Type according to this:
 
               - ``'IP'``: Interpolation family as defined in paragraph 5.6, Annex XXI.
               - ``'RL'``: Road load family as defined in paragraph 5.7, Annex XXI.
@@ -202,7 +204,7 @@ Vehicle general characteristics
               - ``'PR'``: Periodically regenerating systems (Ki) family as defined
                 in paragraph 5.9, Annex XXI.
 
-            - ``<TA>`` is the distinguishing number of the EC Member State authority responsible for the family approval
+            - ``TA`` is the distinguishing number of the EC Member State authority responsible for the family approval
               as defined in `section 1 of point 1 of Annex VII of Directive (EC) 2007/46
               <http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32007L0046&from=EN>`_:
 
@@ -234,11 +236,11 @@ Vehicle general characteristics
               - 49 for Cyprus;
               - 50 for Malta.
 
-            - ``<WMI>`` (world manufacturer identifier) is a code that identifies the manufacturer
+            - ``WMI`` (world manufacturer identifier) is a code that identifies the manufacturer
               in a unique manner and is defined in ISO 3780:2009.
               For a single manufacturers several WMI codes may be used.
-            - ``<yyyy>`` is the year when the test for the family were concluded.
-            - ``<nnnn>`` is a four digit sequence number.
+            - ``yyyy`` is the year when the test for the family were concluded.
+            - ``nnnn`` is a four digit sequence number.
 
 
     ``fuel_type``
