@@ -683,6 +683,7 @@ DICE
             | **dice report sheet** := *non_confidential_data* (input-files + output-files + other-files)
 
         The `dice report` is derived from it.
+        This sheet is called "summary report" in the `regulation`.
 
     output report
     output report sheet
