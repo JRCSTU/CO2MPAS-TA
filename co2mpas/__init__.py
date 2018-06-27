@@ -30,9 +30,9 @@ __summary__   = ("Vehicle simulator predicting NEDC CO2 emissions"  # noqa
 __uri__       = "https://co2mpas.io"                # noqa
 
 #: Project's PEP 440 version from Git (or env[co2mpas_VERSION])
-__version__   = polyversion()      # noqa
+__version__   = '1.8.2a1'
 #: Release date.
-__updated__ = polytime()
+__updated__ = '2018-06-27T14:05:35.291095'
 version       = __version__                         # noqa
 
 #: Input/Output file's version.
