@@ -138,6 +138,9 @@ Vehicle general characteristics
         Different versions of the file have been used throughout the development of the tool.
         Input files from version >= 2.2.5 can be used for type approving.
 
+        Check the currently supported file-version with ``co2mpas -vV`` command, or visit
+        the "about" help item of the GUI.
+
     ``IF_ID``
     ``vehicle_family_id``
         It corresponds to an individual code for each vehicle that is simulated with the |co2mpas| model.
