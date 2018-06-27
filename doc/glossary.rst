@@ -14,6 +14,7 @@ Generic terms
 =============
 .. glossary::
 
+    regulation
     EU legislation
         All EU regulations related to the tool:
 
@@ -121,57 +122,104 @@ Vehicle general characteristics
         Different versions of the file have been used throughout the development of the tool.
         Input files from version >= 2.2.5 can be used for type approving.
 
+    ``IF_ID``
     ``vehicle_family_id``
         It corresponds to an individual code for each vehicle that is simulated with the |co2mpas| model.
         This ID does not affect the NEDC prediction.
         The ID is allocated in the `output report` and in the `dice report`.
         This is the structure of the ID::
 
-            FT-nnnnnnnnnnnnnnn-WMI-x
+            IP-<max-15-chars>-<WMI>-<x>
 
         Where:
 
-        - ``FT`` is the identifier of the family type according to this:
+        - ``'IP'`` stands for "Interpolation family" as defined in paragraph 5.6
+          of the `regulation`.
 
-          - ``'IP'``: Interpolation family as defined in paragraph 5.6.
-          - ``'RL'``: Road load family as defined in paragraph 5.7.
-          - ``'RM'``: Road load matrix family as defined in paragraph 5.8.
-          - ``'PR'``: Periodically regenerating systems (Ki) family
-            as defined in paragraph 5.9.
-          - ``'PR'``: Periodically regenerating systems (Ki) family as defined
-            in paragraph 5.9.
-          - ``'AT'``: ATCT family as defined in paragraph 2. of Sub-Annex 6a.
-
-        - ``nnnnnnnnnnnnnnn`` is a string with a maximum of fifteen characters,
+        - ``<max-15-chars>`` is a string with a maximum of fifteen characters,
           restricted to using the characters 0-9, A-Z and the underscore character '_'.
 
-        - ``WMI`` (world manufacturer identifier) is a code that identifies
+        - ``<WMI>`` (world manufacturer identifier) is a code that identifies
           the manufacturer in a unique manner and is defined in ISO 3780:2009.
 
-        - ``x``: shall be set to '1' or '0' in accordance with the following
+        - ``<x>``: shall be set to '1' or '0' in accordance with the following
           provisions:
 
-          - (a) With the agreement of the approval authority and the owner of the WMI,
-            the number shall be set to '1' where a vehicle family is defined
-            for the purpose of covering vehicles of:
+          a. With the agreement of the approval authority and the owner of the WMI,
+             the number shall be set to '1' where a vehicle family is defined
+             for the purpose of covering vehicles of:
 
-            - (i) a single manufacturer with one single WMI code;
-            - (ii)    a manufacturer with several WMI codes, but only in cases when
-              one WMI code is to be used;
-            - (iii)   more than one manufacturer, but only in cases when one WMI code
-              is to be used.
+             1. a single manufacturer with one single WMI code;
+             2. a manufacturer with several WMI codes, but only in cases when
+                one WMI code is to be used;
+             3. more than one manufacturer, but only in cases when one WMI code
+                is to be used.
 
-            In the cases (i), (ii) and (iii), the family identifier code shall consist
-            of one unique string of n-characters and one unique WMI code followed by '1';
+             In the cases (1), (2) and (3), the family identifier code shall consist
+             of one unique string of n-characters and one unique WMI code followed by '1';
 
-          - (b) With the agreement of the approval authority, the number shall be set
-            to '0' in the case that a vehicle family is defined based on the same criteria
-            as the corresponding vehicle family defined in accordance with point (a),
-            but the manufacturer chooses to use a different WMI.
-            In this case the family identifier code shall consist of the same string
-            of n-characters as the one determined for the vehicle family defined
-            in accordance with point (a) and a unique WMI code which shall be different
-            from any of the WMI codes used under case (a), followed by '0'.'.
+          b. With the agreement of the approval authority, the number shall be set
+             to '0' in the case that a vehicle family is defined based on the same criteria
+             as the corresponding vehicle family defined in accordance with point (a),
+             but the manufacturer chooses to use a different WMI.
+             In this case the family identifier code shall consist of the same string
+             of n-characters as the one determined for the vehicle family defined
+             in accordance with point (a) and a unique WMI code which shall be different
+             from any of the WMI codes used under case (a), followed by '0'.
+
+        .. Attention::
+            The format has changed in the legislation since May 2018 and in co2mpas
+            after version (and including) ``v1.8.x``.
+            The old format of the ID was::
+
+                <FT>-<TA>-<WMI>-<yyyy>-<nnnn>
+
+            Where:
+
+            - ``<FT>`` is the identifier of the family type according to this:
+
+              - ``'IP'``: Interpolation family as defined in paragraph 5.6.
+              - ``'RL'``: Road load family as defined in paragraph 5.7.
+              - ``'RM'``: Road load matrix family as defined in paragraph 5.8.
+              - ``'PR'``: Periodically regenerating systems (Ki) family as defined in paragraph 5.9.
+
+            - ``<TA>`` is the distinguishing number of the EC Member State authority responsible for the family approval
+              as defined in `section 1 of point 1 of Annex VII of Directive (EC) 2007/46
+              <http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32007L0046&from=EN>`_:
+
+              - 1 for Germany;
+              - 2 for France;
+              - 3 for Italy;
+              - 4 for the Netherlands;
+              - 5 for Sweden;
+              - 6 for Belgium;
+              - 7 for Hungary;
+              - 8 for the Czech Republic;
+              - 9 for Spain;
+              - 11 for the United Kingdom;
+              - 12 for Austria;
+              - 13 for Luxembourg;
+              - 17 for Finland;
+              - 18 for Denmark;
+              - 19 for Romania;
+              - 20 for Poland;
+              - 21 for Portugal;
+              - 23 for Greece;
+              - 24 for Ireland;
+              - 26 for Slovenia;
+              - 27 for Slovakia;
+              - 29 for Estonia;
+              - 32 for Latvia;
+              - 34 for Bulgaria;
+              - 36 for Lithuania;
+              - 49 for Cyprus;
+              - 50 for Malta.
+
+            - ``<WMI>`` (world manufacturer identifier) is a code that identifies the manufacturer
+              in a unique manner and is defined in ISO 3780:2009.
+              For a single manufacturers several WMI codes may be used.
+            - ``<yyyy>`` is the year when the test for the family were concluded.
+            - ``<nnnn>`` is a four digit sequence number.
 
 
     ``fuel_type``
