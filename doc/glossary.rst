@@ -143,7 +143,9 @@ Vehicle general characteristics
         It corresponds to an individual code for each vehicle that is simulated with the |co2mpas| model.
         This ID does not affect the NEDC prediction.
         The ID is allocated in the `output report` and in the `dice report`.
-        This is the structure of the ID::
+
+        The structure of the ID: is defined paragraph 5.0 of Annex XXI of
+        the amended `regulation`:
 
             IP-<max-15-chars>-<WMI>-<x>
 
@@ -194,10 +196,11 @@ Vehicle general characteristics
 
             - ``<FT>`` is the identifier of the family type according to this:
 
-              - ``'IP'``: Interpolation family as defined in paragraph 5.6.
-              - ``'RL'``: Road load family as defined in paragraph 5.7.
-              - ``'RM'``: Road load matrix family as defined in paragraph 5.8.
-              - ``'PR'``: Periodically regenerating systems (Ki) family as defined in paragraph 5.9.
+              - ``'IP'``: Interpolation family as defined in paragraph 5.6, Annex XXI.
+              - ``'RL'``: Road load family as defined in paragraph 5.7, Annex XXI.
+              - ``'RM'``: Road load matrix family as defined in paragraph 5.8, Annex XXI.
+              - ``'PR'``: Periodically regenerating systems (Ki) family as defined
+                in paragraph 5.9, Annex XXI.
 
             - ``<TA>`` is the distinguishing number of the EC Member State authority responsible for the family approval
               as defined in `section 1 of point 1 of Annex VII of Directive (EC) 2007/46
