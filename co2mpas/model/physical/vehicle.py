@@ -298,7 +298,8 @@ def calculate_angle_slopes(distances, elevations):
     :rtype: numpy.array
     """
     from scipy.interpolate import InterpolatedUnivariateSpline as Spline
-    return np.arctan(Spline(distances, elevations).derivative()(distances))
+    i = np.append([0], np.where(np.diff(distances) > 0)[0] + 1)
+    return np.arctan(Spline(distances[i], elevations[i]).derivative()(distances))
 
 
 def calculate_rolling_resistance(f0, angle_slopes):
