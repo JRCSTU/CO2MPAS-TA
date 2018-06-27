@@ -18,12 +18,28 @@ Generic terms
     EU legislation
         All EU regulations related to the tool:
 
-        - (EU) 2017/1151: https://eur-lex.europa.eu/eli/reg_impl/2017/1151/oj
-           voted on 1 june 2017, and amending acts
-        - (EU) 2017/1152: https://eur-lex.europa.eu/eli/reg_impl/2017/1152/oj
-           voted on 2 june 2017
-        - (EU) 2017/1153: https://eur-lex.europa.eu/eli/reg_impl/2017/1153/oj
-           voted on 2 june 2017
+        - `(EU) 2017/1151 <https://eur-lex.europa.eu/eli/reg/2017/1151/oj>`_:
+          Commission Regulation (EU) 2017/1151 of 1 June 2017
+          supplementing Regulation (EC) No 715/2007 of the European Parliament
+          and of the Council on type-approval of motor vehicles with respect to
+          emissions from light passenger and commercial vehicles (Euro 5 and Euro 6)
+          and on access to vehicle repair and maintenance information,
+          amending Directive 2007/46/EC of the European Parliament and of the Council,
+          Commission Regulation (EC) No 692/2008 and Commission Regulation (EU) No 1230/2012
+          and repealing Commission Regulation (EC) No 692/2008 (Text with EEA relevance)
+
+        - `(EU) 2017/1152 <https://eur-lex.europa.eu/eli/reg_impl/2017/1152/oj>`_:
+          Commission Implementing Regulation (EU) 2017/1152 of 2 June 2017
+          setting out a methodology for determining the correlation parameters
+          necessary for reflecting the change in the regulatory test procedure
+          with regard to light commercial vehicles and amending Implementing Regulation
+          (EU) No 293/2012 (Text with EEA relevance)
+
+        - `(EU) 2017/1153 <https://eur-lex.europa.eu/eli/reg_impl/2017/1153/oj>`_:
+          Commission Implementing Regulation (EU) 2017/1153 of 2 June 2017
+          setting out a methodology for determining the correlation parameters
+          necessary for reflecting the change in the regulatory test procedure
+          and amending Regulation (EU) No 1014/2010 (Text with EEA relevance)
 
     NEDC
         New European Driving Cycle
