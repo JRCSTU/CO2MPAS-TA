@@ -22,7 +22,8 @@ import sys
 mydir = os.path.dirname(__file__)
 
 
-proj_ver = polyversion(pname='co2mpas', mono_project=True)
+#: Project's PEP 440 version from Git (or env[co2mpas_VERSION])
+proj_ver = polyversion(pname='co2mpas')
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

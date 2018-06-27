@@ -29,12 +29,11 @@ __summary__   = ("Vehicle simulator predicting NEDC CO2 emissions"  # noqa
                  " from WLTP time-series.")
 __uri__       = "https://co2mpas.io"                # noqa
 
-#: Authoritative project's PEP 440 version.
-#: Remember to manually update version in CHANGES.rst.
-__version__   = polyversion(mono_project=True)      # noqa
-version       = __version__                         # noqa
+#: Project's PEP 440 version from Git (or env[co2mpas_VERSION])
+__version__   = polyversion()      # noqa
 #: Release date.
 __updated__ = polytime()
+version       = __version__                         # noqa
 
 #: Input/Output file's version.
 __file_version__        = "2.2.7"                   # noqa

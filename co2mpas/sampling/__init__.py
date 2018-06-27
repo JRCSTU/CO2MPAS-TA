@@ -42,10 +42,11 @@ __title__     = "co2dice"               # noqa
 __summary__   = __doc__.splitlines()[0] # noqa
 __uri__       = "https://co2mpas.io"    # noqa
 
-## FIXME: change projectname when co2dice graduates to own project.
-__version__ = polyversion(pname='co2mpas', mono_project=True)
-version = __version__
+#: Project's PEP 440 version from Git (or env[co2mpas_VERSION])
+#: FIXME: change co2dice's pname in polyversion() when co2dice graduates to own project.
+__version__ = polyversion(pname='co2mpas')
 __updated__ = polytime()
+version = __version__
 
 
 class CmdException(trt.TraitError):
