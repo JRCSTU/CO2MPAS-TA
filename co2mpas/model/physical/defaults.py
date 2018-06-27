@@ -208,6 +208,10 @@ class Values(co2_utl.Constants):
 class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
 
+    class calculate_velocities(co2_utl.Constants):
+        #: Time window for the moving average of obd velocities [s].
+        dt_window = 5
+
     class calculate_engine_temperature_derivatives(co2_utl.Constants):
         #: Derivative spacing [s].
         dx = 4
@@ -220,7 +224,7 @@ class Functions(co2_utl.Constants):
         ENABLE = True
 
         #: Clutching time window [s].
-        clutch_window = (-0.89230769,  0.95384615)
+        clutch_window = (-0.89230769, 0.95384615)
 
     class define_fuel_type_and_is_hybrid(co2_utl.Constants):
         #: Is the vehicle hybrid?
@@ -646,7 +650,7 @@ class Functions(co2_utl.Constants):
         #: Number of dyno axes [-].
         DYNO_AXES = {
             'WLTP': {2: 1, 4: 2},
-            'NEDC': collections.defaultdict(lambda :1)
+            'NEDC': collections.defaultdict(lambda: 1)
         }
 
     class select_phases_integration_times(co2_utl.Constants):

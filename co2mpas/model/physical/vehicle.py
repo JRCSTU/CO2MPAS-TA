@@ -11,7 +11,6 @@ It contains functions that model the basic mechanics of the vehicle.
 
 import schedula as sh
 import scipy.interpolate as sci_itp
-import pykalman
 import numpy as np
 from .defaults import dfl
 
@@ -32,12 +31,9 @@ def calculate_velocities(times, obd_velocities):
         Velocity vector [km/h].
     :rtype: numpy.array
     """
-
-    dt = float(np.median(np.diff(times)))
-    t = np.arange(times[0], times[-1] + dt, dt)
-    v = np.interp(t, times, obd_velocities)
-    v = pykalman.KalmanFilter(random_state=0).em(v).smooth(v)[0].T[0]
-    return np.interp(times, t, v)
+    from co2mpas.utils import median_filter
+    dt_window = dfl.functions.calculate_velocities.dt_window
+    return median_filter(times, obd_velocities, dt_window, np.mean)
 
 
 def calculate_accelerations(times, velocities):
