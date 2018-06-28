@@ -1817,6 +1817,12 @@ class AppendCmd(_SubCmd):
             raise CmdException(
                 "Cmd %r must be given at least one file argument, received %d: %r!"
                 % (self.name, pfiles.nfiles(), pfiles))
+
+        if self.config.ReporterSpec.include_input_in_dice_override and not self.report:
+            raise CmdException(
+                "Command %r received a --with-inputs flag but without --report!"
+                % (self.name))
+
         pfiles.check_files_exist(self.name)
         self.log.info("Importing report files...\n  %s", pfiles)
 
@@ -1875,6 +1881,11 @@ class InitCmd(AppendCmd):
                 "Cmd %r needs BOTH --inp and --out files when --report given; "
                 "received args(%s), %s!"
                 % (self.name, args, pfiles))
+
+        if self.config.ReporterSpec.include_input_in_dice_override and not self.report:
+            raise CmdException(
+                "Command %r received a --with-inputs flag but without --report!"
+                % (self.name))
 
         if len(args) == 1:
             yield self.projects_db.proj_add(args[0])
