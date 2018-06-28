@@ -1784,6 +1784,8 @@ class AppendCmd(_SubCmd):
     ).tag(config=True)
 
     def __init__(self, **kwds):
+        from . import report
+
         kwds.setdefault('cmd_aliases', {
             ('i', 'inp'): ('AppendCmd.inp', AppendCmd.inp.help),
             ('o', 'out'): ('AppendCmd.out', AppendCmd.out.help),
@@ -1801,6 +1803,10 @@ class AppendCmd(_SubCmd):
                 {Project.__name__: {'recertify': True}},
                 Project.recertify.help
             ),
+            'with-inputs': (
+                {
+                    'ReporterSpec': {'include_input_in_dice_override': True},
+                }, report.ReporterSpec.include_input_in_dice_override.help),
         })
         super().__init__(**kwds)
 
