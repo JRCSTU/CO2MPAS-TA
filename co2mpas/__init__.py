@@ -29,15 +29,17 @@ __summary__   = ("Vehicle simulator predicting NEDC CO2 emissions"  # noqa
                  " from WLTP time-series.")
 __uri__       = "https://co2mpas.io"                # noqa
 
-#: Project's PEP 440 version from Git (or env[co2mpas_VERSION])
+#: The Project's PEP 440 and :term:`Semantic Versioning` is retrived
+#: from from Git tags (or env[co2mpas_VERSION]).
 __version__   = polyversion()      # noqa
 #: Release date.
 __updated__ = polytime()
 version       = __version__                         # noqa
 
-#: Semantic Input/Output file's version.
+#: The :term:`Semantic Versioning` for Input/Output files.
 __file_version__        = "2.3.0"                   # noqa
 
+#: The :term:`Semantic Versioning` for Input/Output files.
 __dice_report_version__ = '1.0.2'
 
 
