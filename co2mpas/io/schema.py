@@ -28,20 +28,36 @@ log = logging.getLogger(__name__)
 
 
 def check_data_version(flag):
-    from co2mpas import __input_file_version__
+    from co2mpas import __file_version__
+    exp_ver = __file_version__
+    exp_vinfo = tuple(exp_ver.split('.'))
+    ok = False
     try:
-        ver = flag['input_version']
-        if tuple(ver.split('.')) >= tuple(__input_file_version__.split('.')):
+        got_ver = flag['input_version']
+        got_vinfo = tuple(got_ver.split('.'))
+
+        if got_vinfo[:2] == exp_vinfo[:2]:
             return True
-        else:
-            msg = "\n  Input file version %s. Please update your input " \
-                  "file with a version >= %s."
-            log.warning(msg, ver, __input_file_version__)
+
+        if got_vinfo[:1] != exp_vinfo[:1]:
+            msg = ("Input-file version %s is incompatible with expected %s)."
+                   "\n  More failures may happen.")
+            return False
+
+        if got_vinfo[:2] > exp_vinfo[:2]:
+            msg = ("Input-file version %s comes from the (incompatible) future (> %s))."
+                   "\n  More failures may happen.")
+        else:  # got_vinfo[:2] < exp_vinfo[:2]:
+            msg = ("Input-file version %s is old (< %s))."
+                   "\n  You may need to update it, to use new fields.")
+            ok = True
+        log.warning(msg, got_ver, exp_ver)
     except KeyError:
         msg = "\n  Input file version not found. Please update your input " \
               "file with a version >= %s."
-        log.error(msg, __input_file_version__)
-    return False
+        log.error(msg, exp_ver)
+
+    return ok
 
 
 def _ta_mode(data):
