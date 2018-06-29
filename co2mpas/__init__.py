@@ -35,11 +35,8 @@ __version__   = polyversion()      # noqa
 __updated__ = polytime()
 version       = __version__                         # noqa
 
-#: Input/Output file's version.
-__file_version__        = "2.2.7"                   # noqa
-
-#: Compatible Input file's version.
-__input_file_version__  = "2"                       # noqa
+#: Semantic Input/Output file's version.
+__file_version__        = "2.3.0"                   # noqa
 
 __dice_report_version__ = '1.0.2'
 
@@ -47,7 +44,21 @@ __dice_report_version__ = '1.0.2'
 #: Define VehicleFamilyId (aka ProjectId) pattern here not to import the world on use.
 #: Note: referenced by :data:`io.schema.vehicle_family_id_regex` and
 #: :meth:`.sampling.tstamp.TstampReceiver.extract_dice_tag_name()`.
-vehicle_family_id_pattern = r'(IP|RL|RM|PR)-(\d{2})-(\w{2,3})-(\d{4})-(\d{4})'
+vehicle_family_id_pattern = r'''(?x)
+    (?:
+        (IP|RL|RM|PR)-(\d{2})-(\w{2,3})-(\d{4})-(\d{4})
+    )
+    |
+    (?:
+        IP
+        -
+        ([A-Za-z0-9_]{2,15})
+        -
+        (\w{2,3})
+        -
+        ([01])
+    )
+'''
 
 
 if __name__ == '__main__':
