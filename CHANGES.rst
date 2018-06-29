@@ -8,6 +8,20 @@ CO2MPAS Changes
 NEXT RELEASE
 ======================
 
+v1.9.0a0 29 Jun 2018
+--------------------
+Intermediate version just for rough testing.  TODO bump dice-minor.
+
+- BREAKING: Changed :term:`vehicle_family_id` format, but old format is still
+  supported (:gh:`473`)::
+
+        OLD: FT-TA-WMI-yyyy-nnnn
+        NEW: FT-nnnnnnnnnnnnnnn-WMI-x
+
+  - Bumped input-file version from ``2.2.8 --> 2.3.0``.  And improved
+    file-version comparison (:term:`Semantic Versioning`)
+
+
 v1.8.1a0 12 Jun 2018
 --------------------
 Tagged as ``co2mpas_v1.8.1a0`` just to switch *polyversion* repo-scheme,
