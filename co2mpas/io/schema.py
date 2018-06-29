@@ -16,7 +16,7 @@ import logging
 import pprint
 import re
 
-from schema import Schema, Use, And, Or, Optional, SchemaError
+from schema import Schema, Use, And, Or, Optional, Regex, SchemaError
 
 import numpy as np
 import os.path as osp
@@ -825,16 +825,16 @@ def define_data_schema(read=True):
 
 
 #: Aka "ProjectId", referenced also by :mod:`.sampling.project`.
-vehicle_family_id_regex = re.compile(r'^%s$' % vehicle_family_id_pattern)
+vehicle_family_id_regex = re.compile('^%s$' % vehicle_family_id_pattern)
 
 
 def _vehicle_family_id(error=None, **kwargs):
-    def m(s):
-        return vehicle_family_id_regex.match(s)
-
     error = (error or "Invalid format!"
-                      "\n  Expected('FT-ta-WMI-yyyy-nnnn'), where ta, yyy, nnn are numbers.")
-    return And(_string(**kwargs), m, error=error)
+                      "\n  Expected('IP-nnn-WMI-x'), "
+                      "where nnn is (2, 15) chars of A-Z, 0-9, or underscore(_)_.")
+    return And(_string(**kwargs),
+               Regex('^%s$' % vehicle_family_id_pattern),
+               error=error)
 
 
 @functools.lru_cache(None)
