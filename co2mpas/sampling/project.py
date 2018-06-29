@@ -658,7 +658,7 @@ class Project(transitions.Machine, ProjectSpec):
         index.add([state_fpath])
 
         ## Commit/tag callback expects `action` on event.
-        event.kwargs['action'] = 'new project'
+        event.kwargs['action'] = 'init'
 
     def _cb_stage_pfiles(self, event):
         """
@@ -706,7 +706,7 @@ class Project(transitions.Machine, ProjectSpec):
                 index.add([index_fpath])
 
         ## Commit/tag callback expects `action` on event.
-        event.kwargs['action'] = 'add %s files' % pfiles.nfiles()
+        event.kwargs['action'] = 'add'
 
     def list_pfiles(self, *io_kinds, _as_index_paths=False) -> PFiles or None:
         """
@@ -773,7 +773,7 @@ class Project(transitions.Machine, ProjectSpec):
                 return
 
             ## Commit/tag callback expects `report` on event.
-            event.kwargs['action'] = 'drep %s files' % pfiles.nfiles()
+            event.kwargs['action'] = 'drep'
             event.kwargs['report'] = report
         else:
             assert tagref
@@ -829,7 +829,7 @@ DRY-RUN: Now you must send the email your self!
 
         if event.transition.source != 'mailed':
             ## Don't repeat your self...
-            event.kwargs['action'] = '%s stamp-email' % ('FAKED' if dry_run else 'sent')
+            event.kwargs['action'] = '%s stamp' % ('FAKED' if dry_run else 'sent')
 
     def _validate_stamp_verdict(self, verdict):
         err_msgs = []
@@ -909,7 +909,7 @@ DRY-RUN: Now you must send the email your self!
         verdict = _evarg(event, 'verdict', dict)
 
         decision = verdict.get('dice', {}).get('decision', 'SAMPLE')
-        event.kwargs['action'] = "diced as %s" % decision
+        event.kwargs['action'] = "diced %s" % decision
 
         return decision == 'SAMPLE'
 
