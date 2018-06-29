@@ -67,6 +67,16 @@ Generic terms
         Any piece of information stored in electronic form that constitutes
         the input or the output of some software application or IT procedure.
 
+    Semantic Versioning
+        Given a version number ``MAJOR.MINOR.PATCH``, increment the:
+
+        - ``MAJOR`` version when you make incompatible API changes,
+        - ``MINOR`` version when you add functionality in a backwards-compatible
+          manner, and
+        - ``PATCH`` version when you make backwards-compatible bug fixes.
+
+        See https://semver.org/
+
     hash
     Hash-ID
         A very big number usually expressed in hexadecimal form (e.g. `SHA1`)
@@ -120,25 +130,26 @@ Generic terms
     Capped cycles
         For vehicles that cannot follow the standard NEDC/WLTP cycles (for example, because they have not enough power to attain the acceleration and maximum speed values required in the operating cycle) it is still possible to use the |co2mpas| tool to predict the NEDC |co2| emission. For these capped cycles, the vehicle has to be operated with the accelerator control fully depressed until they once again reach the required operating curve. Thus, the operated cycle may last more than the standard duration seconds and the subphases may vary in duration. Therefore there is a need to indicate the exact duration of each subphase. This can be done by filling in, the corresponding bag_phases vector in the input file which define the phases integration time [1,1,1,...,2,2,2,...,3,3,3,...,4,4,4]. Providing this input for WLTP cycles together with the other standard vectorial inputs such as speed,engine speed, etc. allows |co2mpas| to process a "modified" WLTP and get calibrated properly. The NEDC that is predicted corresponds to the respective NEDC velocity profile and gearshifting that applies to the capped cycle, which is provided in the appropriate tab. Note that, providing NEDC velocity and gear shifting profile is not allowed for normal vehicles.
 
-    Rotational mass
-        The rotational mass is defined in the WLTP GTR (ECE/TRANS/WP.29/GRPE/2016/3) as the equivalent effective mass of all
-        the  wheels and vehicle components rotating with the wheels on the road while the gearbox is placed in neutral, in kg. It shall
-        be measured or calculated using an appropriate technique agreed upon by the responsible authority. Alternatively, it may be
-        estimated to be 3 per cent of the sum of the mass in running order and 25 kg.
-
 
 Input file terminology
 =========================
 Vehicle general characteristics
 -------------------------------
 .. glossary::
+
+    Rotational mass
+        The rotational mass is defined in the WLTP GTR (ECE/TRANS/WP.29/GRPE/2016/3) as the equivalent effective mass of all
+        the  wheels and vehicle components rotating with the wheels on the road while the gearbox is placed in neutral, in kg. It shall
+        be measured or calculated using an appropriate technique agreed upon by the responsible authority. Alternatively, it may be
+        estimated to be 3 per cent of the sum of the mass in running order and 25 kg.
+
     ``input_version``
         It corresponds to the version of the template file used for |co2mpas| -
         not to the |co2mpas| version of the code.
         Different versions of the file have been used throughout the development of the tool.
         Input files from version >= 2.2.5 can be used for type approving.
 
-        Check the currently supported file-version with ``co2mpas -vV`` command, or visit
+        Check the currently supported version with ``co2mpas -vV`` command, or visit
         the "about" help item of the GUI.
 
     ``IF_ID``
