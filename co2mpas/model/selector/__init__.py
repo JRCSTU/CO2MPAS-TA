@@ -494,7 +494,6 @@ def at_models_selector(d, at_pred_inputs, models_ids, data):
     except KeyError:
         return {}
 
-    c_dicts, select, _g = sh.combine_dicts, sh.selector, d.dispatch
     t_e = ('mean_absolute_error', 'accuracy_score', 'correlation_coefficient')
 
     # at_models to be assessed.
@@ -502,17 +501,17 @@ def at_models_selector(d, at_pred_inputs, models_ids, data):
             'GSPV_Cold_Hot'} if at_m == 'ALL' else {at_m}
 
     # Other models to be taken from calibration output.
-    models = select(set(models_ids) - at_m, data, allow_miss=True)
+    models = sh.selector(set(models_ids) - at_m, data, allow_miss=True)
 
     # Inputs to predict the gears.
-    inputs = select(at_pred_inputs, data, allow_miss=True)
+    inputs = sh.selector(at_pred_inputs, data, allow_miss=True)
 
     from ..physical.gear_box.at_gear import calculate_error_coefficients
     from ..physical.gear_box.mechanical import calculate_gear_box_speeds_in
 
     def _err(model_id, model):
         gears = d.dispatch(
-            inputs=c_dicts(inputs, {sgs: model_id, model_id: model}),
+            inputs=sh.combine_dicts(inputs, {sgs: model_id, model_id: model}),
             outputs=['gears']
         )['gears']
 
@@ -523,12 +522,14 @@ def at_models_selector(d, at_pred_inputs, models_ids, data):
         return err
 
     def _sort(v):
-        e = select(t_e, v[0], output_type='list')
+        e = sh.selector(t_e, v[0], output_type='list')
         return (e[0], -e[1], -e[2]), v[1]
 
     # Sort by error.
-    at_m = select(at_m, data, allow_miss=True)
-    rank = sorted(((_err(k, m), k, m) for k, m in at_m.items()), key=_sort)
+    rank = sorted((
+        (_err(k, m), k, m)
+        for k, m in sorted(sh.selector(at_m, data, allow_miss=True).items())
+    ), key=_sort)
 
     if rank:
         data['at_scores'] = collections.OrderedDict((k, e) for e, k, m in rank)
@@ -536,7 +537,7 @@ def at_models_selector(d, at_pred_inputs, models_ids, data):
         models[sgs], models[k] = k, m
         log.debug('at_gear_shifting_model: %s with mean_absolute_error %.3f '
                   '[RPM], accuracy_score %.3f, and correlation_coefficient '
-                  '%.3f.', k, *select(t_e, e, output_type='list'))
+                  '%.3f.', k, *sh.selector(t_e, e, output_type='list'))
 
     return models
 
