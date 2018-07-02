@@ -71,7 +71,10 @@ def _ta_mode(data):
     for k in ('plan', 'flag'):
         diff.update((k,) + tuple(j.split('.')) for j in data.get(k, {}))
 
-    diff -= {('flag', 'input_version'), ('flag', 'vehicle_family_id')}
+    diff -= {('flag', 'input_version'),
+             ('flag', 'vehicle_family_id'),
+             ('flag', 'include_input_in_dice'),
+             }
 
     if diff:
         diff = ['.'.join(k) for k in sorted(diff)]
