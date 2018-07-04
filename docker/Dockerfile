@@ -79,7 +79,6 @@ RUN cd /tmp/co2mpas/requirements && \
 COPY ./co2mpas /tmp/co2mpas/co2mpas
 COPY ./setup.py /tmp/co2mpas/setup.py
 COPY ./README.rst /tmp/co2mpas/README.rst
-COPY ./docker/setup.cfg /tmp/co2mpas/setup.cfg
 
 RUN cd /tmp/co2mpas && \
     python setup.py bdist_wheel && \
