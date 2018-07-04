@@ -73,7 +73,6 @@ def _ta_mode(data):
 
     diff -= {('flag', 'input_version'),
              ('flag', 'vehicle_family_id'),
-             ('flag', 'include_input_in_dice'),
              }
 
     if diff:
@@ -854,7 +853,6 @@ def define_flags_schema(read=True):
     schema = {
         _compare_str('hostname'): string,
         _compare_str('input_version'): string,
-        _compare_str('include_input_in_dice'): _bool,
         _compare_str('vehicle_family_id'): _vehicle_family_id(read=read),
         _compare_str('modelconf'): isfile,
 
