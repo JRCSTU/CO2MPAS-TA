@@ -782,7 +782,7 @@ class TstampReceiver(TstampSpec):
     ).tag(config=True)
 
     vfid_extraction_regex = trt.CRegExp(
-        r'vehicle_family_id[^\n]+(%s)' % vehicle_family_id_pattern,
+        r'(?x)vehicle_family_id[^\n]+(%s)' % vehicle_family_id_pattern,
         help="""
             An approximate way to get a *well-formed* project-id if timestamp parsing has failed.
         """

@@ -44,9 +44,8 @@ __dice_report_version__ = '1.0.2'
 
 
 #: Define VehicleFamilyId (aka ProjectId) pattern here not to import the world on use.
-#: Note: referenced by :data:`io.schema.vehicle_family_id_regex` and
-#: :meth:`.sampling.tstamp.TstampReceiver.extract_dice_tag_name()`.
-vehicle_family_id_pattern = r'''(?x)
+#: Referenced by :meth:`.sampling.tstamp.TstampReceiver.extract_dice_tag_name()`.
+vehicle_family_id_pattern = r'''
     (?:
         (IP|RL|RM|PR)-(\d{2})-(\w{2,3})-(\d{4})-(\d{4})
     )
