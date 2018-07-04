@@ -157,10 +157,11 @@ class CorrectGear(object):
             return gear
 
         j = np.searchsorted(self.gears, gear)
-        valid = (self.flc(vel / self.np_vsr[:j + 1]) >= motive_powers[i])[::-1]
+        delta = (self.flc(vel / self.np_vsr) - motive_powers[i])
+        valid = delta[:j + 1][::-1] >= 0
         k = valid.argmax()
         if not valid[k]:
-            return self.min_gear
+            return self.gears[np.argmax(delta)]
         return self.gears[j - k]
 
     def fit_correct_driveability_rules(self, engine_speed_at_max_power):

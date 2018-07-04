@@ -806,6 +806,30 @@ def define_fake_gear_box_prediction_model(
     return model
 
 
+def initialize_gear_shifting_model(gsm, velocity_speed_ratios, cycle_type):
+    """
+    Initialize the gear shifting model.
+
+    :param gsm:
+        A gear shifting model (cmv or gspv or dtgs).
+    :type gsm: GSPV | CMV | DTGS
+
+    :param velocity_speed_ratios:
+        Constant velocity speed ratios of the gear box [km/(h*RPM)].
+    :type velocity_speed_ratios: dict[int | float]
+
+    :param cycle_type:
+        Cycle type (WLTP or NEDC).
+    :type cycle_type: str
+
+    :return:
+        Initialized gear shifting model (cmv or gspv or dtgs).
+    :rtype: GSPV | CMV | DTGS
+    """
+    from .at_gear import _upgrade_gsm
+    return _upgrade_gsm(gsm, velocity_speed_ratios, cycle_type)
+
+
 def define_gear_box_prediction_model(
         stop_velocity, min_engine_on_speed, gear_shifting_model,
         gear_box_loss_model, initial_gear_box_temperature, correct_gear):
@@ -877,12 +901,19 @@ def gear_box():
     )
 
     d.add_function(
+        function=initialize_gear_shifting_model,
+        inputs=['gear_shifting_model_raw', 'velocity_speed_ratios',
+                'cycle_type'],
+        outputs=['gear_shifting_model']
+    )
+
+    d.add_function(
         function=define_gear_box_prediction_model,
         inputs=['stop_velocity', 'min_engine_on_speed', 'gear_shifting_model',
                 'gear_box_loss_model', 'initial_gear_box_temperature',
                 'correct_gear'],
         outputs=['gear_box_prediction_model'],
-        weight=400
+        weight=4000
     )
 
     d.add_function(
@@ -1052,11 +1083,11 @@ def gear_box():
             {'gear_box_type': sh.SINK}),
         outputs=(
             {
-                'CMV': ('CMV', 'gear_shifting_model'),
-                'CMV_Cold_Hot': ('CMV_Cold_Hot', 'gear_shifting_model'),
-                'DTGS': ('DTGS', 'gear_shifting_model'),
-                'GSPV': ('GSPV', 'gear_shifting_model'),
-                'GSPV_Cold_Hot': ('GSPV_Cold_Hot', 'gear_shifting_model')
+                'CMV': ('CMV', 'gear_shifting_model_raw'),
+                'CMV_Cold_Hot': ('CMV_Cold_Hot', 'gear_shifting_model_raw'),
+                'DTGS': ('DTGS', 'gear_shifting_model_raw'),
+                'GSPV': ('GSPV', 'gear_shifting_model_raw'),
+                'GSPV_Cold_Hot': ('GSPV_Cold_Hot', 'gear_shifting_model_raw')
             }, 'MVL', 'gears', 'specific_gear_shifting', 'correct_gear'),
         input_domain=is_automatic
     )
@@ -1074,7 +1105,7 @@ def gear_box():
             'velocities', 'accelerations', 'times', 'motive_powers',
             {'gear_box_type': sh.SINK}),
         outputs=('gears', 'correct_gear', {
-            'MGS': ('MGS', 'gear_shifting_model')
+            'MGS': ('MGS', 'gear_shifting_model_raw')
         }),
         input_domain=is_manual
     )

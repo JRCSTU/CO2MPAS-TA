@@ -21,7 +21,6 @@ networkx==2.1
 numpy==1.14.3+mkl
 openpyxl==2.5.3
 pandas==0.23.0
-pykalman==0.9.5
 schedula==0.1.19
 schema==0.6.7
 scikit-learn==0.19.1

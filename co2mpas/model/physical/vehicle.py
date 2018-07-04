@@ -11,7 +11,6 @@ It contains functions that model the basic mechanics of the vehicle.
 
 import schedula as sh
 import scipy.interpolate as sci_itp
-import pykalman
 import numpy as np
 from .defaults import dfl
 
@@ -32,12 +31,9 @@ def calculate_velocities(times, obd_velocities):
         Velocity vector [km/h].
     :rtype: numpy.array
     """
-
-    dt = float(np.median(np.diff(times)))
-    t = np.arange(times[0], times[-1] + dt, dt)
-    v = np.interp(t, times, obd_velocities)
-
-    return np.interp(times, t, pykalman.KalmanFilter().em(v).smooth(v)[0].T[0])
+    from co2mpas.utils import median_filter
+    dt_window = dfl.functions.calculate_velocities.dt_window
+    return median_filter(times, obd_velocities, dt_window, np.mean)
 
 
 def calculate_accelerations(times, velocities):
@@ -83,7 +79,7 @@ def calculate_aerodynamic_resistances(f2, velocities):
     :rtype: numpy.array | float
     """
 
-    return f2 * velocities**2
+    return f2 * velocities ** 2
 
 
 def calculate_f2(
@@ -245,7 +241,7 @@ def calculate_f1(f2):
     return m * f2 + q
 
 
-def calculate_angle_slopes(times, angle_slope):
+def calculate_angle_slopes_v1(times, angle_slope):
     """
     Returns the angle slope vector [rad].
 
@@ -263,6 +259,47 @@ def calculate_angle_slopes(times, angle_slope):
     """
 
     return np.ones_like(times, dtype=float) * angle_slope
+
+
+def calculate_distances(times, velocities):
+    """
+    Calculates the cumulative distance vector [m].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array
+
+    :return:
+        Cumulative distance vector [m].
+    :rtype: numpy.array
+    """
+    from scipy.integrate import cumtrapz
+    return cumtrapz(velocities / 3.6, times, initial=0)
+
+
+def calculate_angle_slopes(distances, elevations):
+    """
+    Returns the angle slope vector [rad].
+
+    :param distances:
+       Cumulative distance vector [m].
+    :type distances: numpy.array
+
+    :param elevations:
+        Elevation vector [m].
+    :type elevations: numpy.array
+
+    :return:
+       Angle slope vector [rad].
+    :rtype: numpy.array
+    """
+    from scipy.interpolate import InterpolatedUnivariateSpline as Spline
+    i = np.append([0], np.where(np.diff(distances) > 0)[0] + 1)
+    return np.arctan(Spline(distances[i], elevations[i]).derivative()(distances))
 
 
 def calculate_rolling_resistance(f0, angle_slopes):
@@ -586,6 +623,7 @@ def calculate_unladen_mass_v1(vehicle_mass, passengers_mass, cargo_mass):
 
     return vehicle_mass - passengers_mass - cargo_mass
 
+
 def calculate_vehicle_mass(unladen_mass, passengers_mass, cargo_mass):
     """
     Calculate vehicle_mass [kg].
@@ -761,9 +799,22 @@ def vehicle():
     )
 
     d.add_function(
+        function=calculate_distances,
+        inputs=['times', 'velocities'],
+        outputs=['distances']
+    )
+
+    d.add_function(
         function=calculate_angle_slopes,
-        inputs=['times', 'angle_slope'],
+        inputs=['distances', 'elevations'],
         outputs=['angle_slopes']
+    )
+
+    d.add_function(
+        function=calculate_angle_slopes_v1,
+        inputs=['times', 'angle_slope'],
+        outputs=['angle_slopes'],
+        weight=5
     )
 
     d.add_function(

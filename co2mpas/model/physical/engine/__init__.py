@@ -1596,7 +1596,7 @@ def engine():
         inputs=['start_stop_prediction_model', 'idle_engine_speed',
                 'engine_temperature_prediction_model'],
         outputs=['engine_prediction_model'],
-        weight=400
+        weight=4000
     )
 
     return d

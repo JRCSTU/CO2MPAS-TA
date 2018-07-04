@@ -179,7 +179,6 @@ setup(
         'PyYAML>=3.12',
         'pip',
         'boltons',
-        'pykalman',
         'wltp',
         'openpyxl>=2.4.0',
         'Pillow',           # for tkui
