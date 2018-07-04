@@ -51,7 +51,7 @@ proj2 = 'RL-99-BM3-2017-0001'
 def _make_unlock_config():
     c = trtc.Config()
     c.ExtractCmd.raise_config_file_errors = True
-    c.ReporterSpec.include_input_in_dice_override = True
+    c.ReporterSpec.include_input_in_dice = True
     c.EncrypterSpec.gnupghome = tempfile.mkdtemp(prefix='gpghome-')
     c.EncrypterSpec.keys_to_import = test_pgp_keys
     c.EncrypterSpec.trust_to_import = test_pgp_trust

@@ -1805,8 +1805,8 @@ class AppendCmd(_SubCmd):
             ),
             'with-inputs': (
                 {
-                    'ReporterSpec': {'include_input_in_dice_override': True},
-                }, report.ReporterSpec.include_input_in_dice_override.help),
+                    'ReporterSpec': {'include_input_in_dice': True},
+                }, report.ReporterSpec.include_input_in_dice.help),
         })
         super().__init__(**kwds)
 
@@ -1818,7 +1818,7 @@ class AppendCmd(_SubCmd):
                 "Cmd %r must be given at least one file argument, received %d: %r!"
                 % (self.name, pfiles.nfiles(), pfiles))
 
-        if self.config.ReporterSpec.include_input_in_dice_override and not self.report:
+        if self.config.ReporterSpec.include_input_in_dice and not self.report:
             raise CmdException(
                 "Command %r received a --with-inputs flag but without --report!"
                 % (self.name))
@@ -1882,7 +1882,7 @@ class InitCmd(AppendCmd):
                 "received args(%s), %s!"
                 % (self.name, args, pfiles))
 
-        if self.config.ReporterSpec.include_input_in_dice_override and not self.report:
+        if self.config.ReporterSpec.include_input_in_dice and not self.report:
             raise CmdException(
                 "Command %r received a --with-inputs flag but without --report!"
                 % (self.name))
@@ -1952,8 +1952,8 @@ class ReportCmd(_SubCmd):
             ),
             'with-inputs': (
                 {
-                    'ReporterSpec': {'include_input_in_dice_override': True},
-                }, report.ReporterSpec.include_input_in_dice_override.help),
+                    'ReporterSpec': {'include_input_in_dice': True},
+                }, report.ReporterSpec.include_input_in_dice.help),
         })
         super().__init__(**kwds)
 
