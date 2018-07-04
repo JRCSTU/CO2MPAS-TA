@@ -83,8 +83,6 @@ class ReporterSpec(baseapp.Spec):
     ).tag(config=True)
 
     include_input_in_dice = trt.Bool(
-        allow_none=True,
-        default_value=None,
         help="If true, inputs are included in dice report encrypted."
     ).tag(config=True)
 
