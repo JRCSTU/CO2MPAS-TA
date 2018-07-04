@@ -12,3 +12,4 @@ wheel
 pytest
 nose
 ddt
+polyvers
