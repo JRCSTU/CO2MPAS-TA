@@ -831,15 +831,15 @@ vehicle_family_id_regex = re.compile('(?x)^%s$' % vehicle_family_id_pattern)
 
 
 def _vehicle_family_id(error=None, **kwargs):
-    ## NO custom error, cannot see the actual VF_ID used,
-    #  until https://github.com/keleshev/schema/issues/147 fixed.
-    #
-    #error = (error or "Invalid format!"
-    #                  "\n  Expected('IP-nnn-WMI-x'), "
-    #                  "where nnn is (2, 15) chars of A-Z, 0-9, or underscore(_)_.")
-    return And(_string(**kwargs),
-               Regex('(?x)^%s$' % vehicle_family_id_pattern),
-               error=error)
+    def m(s):
+        if not vehicle_family_id_regex.match(s):
+            raise SchemaError(
+                "Invalid VF_ID '%s'!"
+                "\n  New format is 'IP-nnn-WMI-x', where nnn is (2, 15) chars "
+                "of A-Z, 0-9, or underscore(_),"
+                "\n  (old format 'FT-ta-WMI-yyyy-nnnn' is still acceptable)." %
+                s)
+    return And(_string(**kwargs), m, error=error)
 
 
 @functools.lru_cache(None)
