@@ -8,6 +8,7 @@
 from collections import defaultdict
 import contextlib
 import os
+import sys
 import time
 from typing import Text
 
@@ -37,7 +38,8 @@ def locked_on_dir(dpath: Text,
                 elapsed_sec = (time.clock() - start_t)
                 if elapsed_sec > abort_sec:
                     raise TimeoutError(dpath)
-                print('dirlocking...', lock_wait_sec)
+                print("Dirlocking '%s' for %s sec..." % (dpath, lock_wait_sec),
+                      file=sys.stderr)
                 time.sleep(lock_wait_sec)
 
         yield
