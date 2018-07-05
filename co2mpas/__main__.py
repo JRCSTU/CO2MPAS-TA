@@ -632,7 +632,9 @@ def _main(*args):
 
     verbose = opts['--verbose']
     quiet = opts['--quiet']
-    assert not (verbose and quiet), "Specify one of `verbose` and `quiet` as true!"
+    if verbose and quiet:
+        raise CmdException("Specify one of `verbose` and `quiet` as true!")
+
     level = None  # Let `init_logging()` decide.
     if verbose:
         level = logging.DEBUG
