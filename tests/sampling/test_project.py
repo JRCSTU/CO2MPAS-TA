@@ -541,11 +541,11 @@ class TStraightStory(unittest.TestCase):
 
 
 class TStraightLong(TStraightStory):
-    @property
-    def _config(self):
-        cfg = super()._config
+    def test_4_tag(self):
+        cfg = self._config
         cfg.ReporterSpec.include_input_in_dice = True
-        return cfg
+        cfg.AppendCmd.report = True
+        super().test_4_tag()
 
 
 class TParseCheck(unittest.TestCase):
