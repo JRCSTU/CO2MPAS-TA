@@ -782,7 +782,7 @@ class Project(transitions.Machine, ProjectSpec):
 
     def _cb_send_email(self, event):
         """
-        Triggered by `extractsendmail()` on ENTER of `sendmail` state.
+        Triggered by `do_sendmail()` on ENTER of `sendmail` state.
 
         Parses last tag and uses class:`SMTP` to send its message as email.
 
@@ -2044,7 +2044,7 @@ class TsendCmd(_SubCmd):
                                % (self.name, len(args), args))
 
         proj = self.current_project
-        ok = proj.extractsendmail()
+        ok = proj.do_sendmail()
 
         return self._format_result(ok, proj.result,
                                    is_verbose=self.verbose or proj.dry_run)
