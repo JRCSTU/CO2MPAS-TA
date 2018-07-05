@@ -213,8 +213,10 @@ class SigChain(TsignerSpec):
         Load old stamps from stamp-folder and chain them.
 
         :return:
-            tuple(<count>, <last-sig_id>, <stamps-chain-list)
-            last element exists only if `revalidate`.
+            if revalidate false:
+                tuple(<count>, <last-sig_id>)
+            else:
+                <stamps-chain-list>
 
         Stamps-chain folder structure::
 
@@ -239,10 +241,10 @@ class SigChain(TsignerSpec):
                      chain_dir)
             count, parent_id = 0, ROOT_PARENT_ID
             self._write_chain_head(count, parent_id)
-            results = count, parent_id
             if revalidate:
-                results += ([], )
-            return results
+                return []
+            return count, parent_id
+
         try:
             count, parent_id = self._read_chain_head()
         except Exception as ex:
@@ -272,11 +274,10 @@ class SigChain(TsignerSpec):
 
         self._write_chain_head(count, parent_id)
 
-        results = count, parent_id
         if revalidate:
-            results += (chain, )
+            return chain
 
-        return results
+        return count, parent_id
 
     def _load_stamp_chain_head(self):
         return self._load_or_rebuild_stamp_chain()
@@ -287,7 +288,7 @@ class SigChain(TsignerSpec):
             tuple(count, parent_id, chain_list)
         """
         with locked_on_dir(self._lock_fpath):
-            return self._load_or_rebuild_stamp_chain(revalidate=True)[-1]
+            return self._load_or_rebuild_stamp_chain(revalidate=True)
 
 
 ## TODO: Extract non-config fields as Signable(HasTraits) class.
