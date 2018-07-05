@@ -840,6 +840,8 @@ def vehicle_family_id(error=None, **kwargs):
     def m(s):
         if not _vehicle_family_id_regex.match(s):
             raise SchemaError(invalid_vehicle_family_id_msg % s)
+        return True
+
     return And(_string(**kwargs), m, error=error)
 
 
