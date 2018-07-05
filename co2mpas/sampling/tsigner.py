@@ -113,10 +113,12 @@ class SigChain(TsignerSpec):
 
         return count, parent_id
 
+    def _sig_fpath(self, sig_hex):
+        return osp.join(self.stamp_chain_dir, sig_hex[:2], sig_hex[2:])
+
     def _write_sig_file(self, text, sig_hex):
-        dpath = osp.join(self.stamp_chain_dir, sig_hex[:2])
-        fpath = osp.join(dpath, sig_hex[2:])
-        os.makedirs(dpath, exist_ok=True)
+        fpath = self._sig_fpath(sig_hex)
+        os.makedirs(osp.dirname(fpath), exist_ok=True)
         ## Write as bytes to avoid duplicating PGP ``r\n`` EOL
         #  into ``\r\r\n``.
         #
@@ -142,20 +144,26 @@ class SigChain(TsignerSpec):
                     ro_file_cli.append(fpath)
                     sbp.check_call(ro_file_cli)
 
-    def _parse_sig_file(self, sig_hex):
-        stamp_auth = self._stamp_auth
-        sig_fpath = osp.join(self.stamp_chain_dir, sig_hex[:2], sig_hex[2:])
+    def load_sig_file(self, sig_hex):
+        sig_fpath = self._sig_fpath(sig_hex)
 
         ## Read as bytes to preserve PGP ``r\n`` EOLs
         #
         with open(sig_fpath, 'rb') as fd:
             sig = fd.read().decode('utf-8')
         sig = sig.replace('\r\r\n', '\r\n')
+
+        return sig
+
+    def _parse_sig_file(self, sig_hex):
+        stamp_auth = self._stamp_auth
+        sig = self.load_sig_file(sig_hex)
         verdict = stamp_auth.verify_clearsigned(sig)
         assert verdict, ("Invalid sig!", vars(verdict))
         verified_sig_hex = pgp_sig_to_hex(verdict.signature_id)
         assert sig_hex == verified_sig_hex, (
-            "Stamp-chain file mismatch sig_id!", sig_fpath, verified_sig_hex)
+            "Stamp-chain file mismatch sig_id!",
+            self._sig_fpath(sig_hex), verified_sig_hex)
 
         msg = crypto.pgp_split_clearsigned(sig)['msg']
         m = self.parent_sig_regex.search(msg)
