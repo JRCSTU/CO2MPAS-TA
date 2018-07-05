@@ -16,7 +16,7 @@ import logging
 import pprint
 import re
 
-from schema import Schema, Use, And, Or, Optional, Regex, SchemaError
+from schema import Schema, Use, And, Or, Optional, SchemaError
 
 import numpy as np
 import os.path as osp
@@ -827,18 +827,19 @@ def define_data_schema(read=True):
 
 
 #: Aka "ProjectId", referenced also by :mod:`.sampling.project`.
-vehicle_family_id_regex = re.compile('(?x)^%s$' % vehicle_family_id_pattern)
+_vehicle_family_id_regex = re.compile('(?x)^%s$' % vehicle_family_id_pattern)
+invalid_vehicle_family_id_msg = (
+    "Invalid VF_ID '%s'!"
+    "\n  New format is 'IP-nnn-WMI-x', where nnn is (2, 15) chars "
+    "of A-Z, 0-9, or underscore(_),"
+    "\n  (old format 'FT-ta-WMI-yyyy-nnnn' is still acceptable)."
+)
 
 
-def _vehicle_family_id(error=None, **kwargs):
+def vehicle_family_id(error=None, **kwargs):
     def m(s):
-        if not vehicle_family_id_regex.match(s):
-            raise SchemaError(
-                "Invalid VF_ID '%s'!"
-                "\n  New format is 'IP-nnn-WMI-x', where nnn is (2, 15) chars "
-                "of A-Z, 0-9, or underscore(_),"
-                "\n  (old format 'FT-ta-WMI-yyyy-nnnn' is still acceptable)." %
-                s)
+        if not _vehicle_family_id_regex.match(s):
+            raise SchemaError(invalid_vehicle_family_id_msg % s)
     return And(_string(**kwargs), m, error=error)
 
 
@@ -853,7 +854,7 @@ def define_flags_schema(read=True):
     schema = {
         _compare_str('hostname'): string,
         _compare_str('input_version'): string,
-        _compare_str('vehicle_family_id'): _vehicle_family_id(read=read),
+        _compare_str('vehicle_family_id'): vehicle_family_id(read=read),
         _compare_str('modelconf'): isfile,
 
         _compare_str('soft_validation'): _bool,

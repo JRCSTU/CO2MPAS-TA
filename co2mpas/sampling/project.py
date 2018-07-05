@@ -1452,9 +1452,10 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
     def validate_project_name(self, pname: Text) -> Project:
         from ..io import schema
 
-        return pname and (self.force and
-                          git_project_regex.match(pname) or
-                          schema.vehicle_family_id_regex.match(pname))
+        if not (pname and (self.force and
+                          git_project_regex.match(pname))):
+            raise CmdException(schema.invalid_vehicle_family_id_msg % pname)
+        schema.vehicle_family_id().validate(pname)
 
     def proj_add(self, pname: Text) -> Project:
         """
@@ -1466,10 +1467,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             the current :class:`Project` or fail
         """
         self.log.info('Creating project %r...', pname)
-        if not self.validate_project_name(pname):
-            raise CmdException(
-                "Invalid name %r for a project!\n  Expected('FT-ta-WMI-yyyy-nnnn'), "
-                "where `ta`, `yyyy` and `nnn` are numbers." % pname)
+        self.validate_project_name(pname)
 
         prefname = _pname2ref_name(pname)
         if prefname in self.repo.heads:
