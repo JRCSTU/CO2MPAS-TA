@@ -8,18 +8,27 @@ CO2MPAS Changes
 NEXT RELEASE
 ======================
 
-v1.9.0a0 29 Jun 2018
+v1.9.0a1 5 Jul 2018
 --------------------
-Intermediate version just for rough testing.  TODO bump dice-minor.
+Bumped *minor* number to signify that the :term:`VF_ID` and input-file version
+have changed forward-incompatibly.  Very roughly tested (see :gh:`472`).
+(`v1.9.0a0` was a checkpoint after `VF_ID` preliminary changes).
 
-- BREAKING: Changed :term:`vehicle_family_id` format, but old format is still
+- CHANGE: Changed :term:`vehicle_family_id` format, but old format is still
   supported (:gh:`473`)::
 
         OLD: FT-TA-WMI-yyyy-nnnn
         NEW: FT-nnnnnnnnnnnnnnn-WMI-x
 
-  - Bumped input-file version from ``2.2.8 --> 2.3.0``.  And improved
-    file-version comparison (:term:`Semantic Versioning`)
+- BREAK: Bumped input-file version from ``2.2.8 --> 2.3.0``.  And improved
+  file-version comparison (:term:`Semantic Versioning`)
+
+- fix: completed transition to *polyversion* monorepo scheme.
+
+- Model:
+
+  - FIX: Gear-model does not dance (:gh:`427`).
+  - fix: remove some pandas warnings
 
 
 v1.8.1a0 12 Jun 2018

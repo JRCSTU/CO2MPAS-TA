@@ -153,6 +153,7 @@ Vehicle general characteristics
         the "about" help item of the GUI.
 
     ``IF_ID``
+    ``VF_ID``
     ``vehicle_family_id``
         It corresponds to an individual code for each vehicle that is simulated with the |co2mpas| model.
         This ID does not affect the NEDC prediction.
