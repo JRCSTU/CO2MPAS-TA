@@ -7,7 +7,6 @@
 "Send & parse co2mpas dice/stamps to TAAs/oversight bodies."
 from collections import (
     defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
-import io
 import random
 import re
 import sys
@@ -17,7 +16,6 @@ from typing import (
 from pandalone import utils as pndlu
 
 import functools as fnt
-import os.path as osp
 
 from . import CmdException, base, baseapp, dice, crypto
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
