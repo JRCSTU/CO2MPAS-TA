@@ -35,7 +35,7 @@ pandalone>=0.2.0
 tqdm
 PyYAML>=3.12
 boltons
-polyversion>=0.2.0a2
+polyversion>=0.2.1a0
 
 
 ## Dice
