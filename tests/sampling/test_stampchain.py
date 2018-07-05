@@ -18,7 +18,7 @@ import ddt
 import os.path as osp
 
 
-init_logging(level=logging.DEBUG)
+init_logging(level=logging.WARNING)
 
 log = logging.getLogger(__name__)
 
@@ -50,11 +50,17 @@ class TcfgcmdShell(unittest.TestCase):
     def test_parse_stamps(self):
         cfg = trtc.Config()
         cfg.TstampReceiver.force = True
-        signer = self._SigChain()
-        trecv = tstamp.TstampReceiver()
+        signer = self._SigChain(cfg=cfg)
+        trecv = tstamp.TstampReceiver(config=cfg)
         chain = signer.load_stamp_chain()
 
-        for stamp_id in chain:
-            stamp = signer._parse_sig_file(stamp_id)
-            verdict = trecv.parse_tstamp_response(stamp)
-            print(verdict)
+        errors = []
+        for sig_hex in chain:
+            try:
+                stamp = signer.load_sig_file(sig_hex)
+                _verdict = trecv.parse_tstamp_response(stamp)
+                #print(_verdict)
+            except Exception as ex:
+                errors.append(ex)
+
+        assert len(errors) == 0
