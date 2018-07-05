@@ -1219,6 +1219,13 @@ class TstampReceiver(TstampSpec):
                 dice:
                     tag, issuer, issue_date, stamper, dice_date, hexnum, percent, decision
 
+            :raises CmdException:
+                 if not force and:
+
+                 - unverified sig,
+                 - cannot locate sig-id,
+                 - cannot parse stamp,
+                 - cannot extract stamper-id,
         """
         ## TODO: Could use dispatcher to parse tstamp-response, if failback routes were working...
         force = self.force
