@@ -47,17 +47,11 @@ __dice_report_version__ = '1.0.2'
 #: Referenced by :meth:`.sampling.tstamp.TstampReceiver.extract_dice_tag_name()`.
 vehicle_family_id_pattern = r'''
     (?:
-        (IP|RL|RM|PR)-(\d{2})-(\w{2,3})-(\d{4})-(\d{4})
+        (IP|RL|RM|PR) - (\d{2}) - ([A-Z0-9_]{2,3}) - (\d{4}) - (\d{4})
     )
     |
     (?:
-        IP
-        -
-        ([A-Z0-9_]{2,15})
-        -
-        ([A-Z0-9_]{3})
-        -
-        ([01])
+        IP - ([A-Z0-9_]{2,15}) - ([A-Z0-9_]{3}) - ([01])
     )
 '''
 
