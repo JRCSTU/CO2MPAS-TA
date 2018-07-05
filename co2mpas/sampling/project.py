@@ -1452,10 +1452,10 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
     def validate_project_name(self, pname: Text) -> Project:
         from ..io import schema
 
-        if not (pname and (self.force and
-                          git_project_regex.match(pname))):
+        if not pname or not git_project_regex.match(pname):
             raise CmdException(schema.invalid_vehicle_family_id_msg % pname)
-        schema.vehicle_family_id().validate(pname)
+        if not self.force:
+            schema.vehicle_family_id().validate(pname)
 
     def proj_add(self, pname: Text) -> Project:
         """
