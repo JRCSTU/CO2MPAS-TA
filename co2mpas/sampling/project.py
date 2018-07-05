@@ -1809,6 +1809,8 @@ class AppendCmd(_SubCmd):
         super().__init__(**kwds)
 
     def run(self, *args):
+        from . import report
+
         ## TODO: Support heuristic inp/out classification
         pfiles = PFiles(inp=self.inp, out=self.out, other=args)
         if not pfiles.nfiles():
@@ -1816,7 +1818,8 @@ class AppendCmd(_SubCmd):
                 "Cmd %r must be given at least one file argument, received %d: %r!"
                 % (self.name, pfiles.nfiles(), pfiles))
 
-        if self.config.ReporterSpec.include_input_in_dice and not self.report:
+        if not self.report and \
+                report.ReporterSpec(config=self.config).include_input_in_dice:
             raise CmdException(
                 "Command %r received a --with-inputs flag but without --report!"
                 % (self.name))
@@ -1880,11 +1883,6 @@ class InitCmd(AppendCmd):
                 "received args(%s), %s!"
                 % (self.name, args, pfiles))
 
-        if self.config.ReporterSpec.include_input_in_dice and not self.report:
-            raise CmdException(
-                "Command %r received a --with-inputs flag but without --report!"
-                % (self.name))
-
         if len(args) == 1:
             yield self.projects_db.proj_add(args[0])
         else:
@@ -1893,6 +1891,11 @@ class InitCmd(AppendCmd):
             from . import report
 
             repspec = report.ReporterSpec(config=self.config)
+            if repspec.include_input_in_dice and not self.report:
+                raise CmdException(
+                    "Command %r received a --with-inputs flag but without --report!"
+                    % (self.name))
+
             finfos = repspec.extract_dice_report(pfiles)
             for fpath, data in finfos.items():
                 iokind = data['iokind']
