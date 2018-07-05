@@ -167,6 +167,7 @@ def main(argv=None, **app_init_kwds):
             "Sorry, Python >= 3.5 is required, found: %s" % sys.version_info,
             logger=log)
 
+    import schema
     import transitions
 
     ## At these early stages, any log cmd-line option
@@ -181,7 +182,10 @@ def main(argv=None, **app_init_kwds):
         Cmd.configs_required = True
         cmd = Co2diceCmd.make_cmd(argv, **app_init_kwds)
         return baseapp.pump_cmd(cmd.start()) and 0
-    except (CmdException, trt.TraitError, transitions.MachineError) as ex:
+    except (CmdException,
+            trt.TraitError,
+            transitions.MachineError,
+            schema.SchemaError) as ex:
         log.debug('App exited due to: %r', ex, exc_info=1)
         ## Suppress stack-trace for "expected" errors but exit-code(1).
         return cmain.exit_with_pride(str(ex), logger=log)
