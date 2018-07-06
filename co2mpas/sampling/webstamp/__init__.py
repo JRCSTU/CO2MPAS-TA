@@ -26,30 +26,20 @@
 from co2mpas.__main__ import init_logging
 import logging
 import os
+from polyversion import polyversion, polytime
 import sys
 
 from flask import Flask, request
 from flask_appconfig import AppConfig
 from flask_bootstrap import Bootstrap
+from raven.contrib.flask import Sentry
 
 import os.path as osp
-from raven.contrib.flask import Sentry
 import subprocess as sbp
 
 
-def _get_git_version(log):
-    try:
-        mydir = osp.dirname(__file__)
-        cmd = ['git', '-C', mydir, 'describe', '--long']
-        v = sbp.check_output(cmd, universal_newlines=True)
-        v = v and v.strip()
-        log.info("\n%s\n@@ Starting Flask-app version: %r", '@' * 80, v)
-
-        if v:
-            return v
-
-    except Exception as ex:
-        log.warning("Failed to get app-version due to: %s", ex)
+__version__ = polyversion(pname='webstamp')
+__updated__ = polytime(pname='webstamp')
 
 
 ## NOTE: `configfile` DEPRECATED by `flask-appconfig` in latest dev.
@@ -72,7 +62,8 @@ def create_app(configfile=None, logconf_file=None):
     app = Flask(__name__)#, instance_relative_config=True)
 
     AppConfig(app, configfile)
-    app.config['GIT_VERSION'] = _get_git_version(logging.getLogger(__name__))
+    app.config['POLYVERSION'] = __version__
+    app.config['POLYTIME'] = __updated__
 
     ## Automatically discover DSN key:
     #  https://docs.sentry.io/clients/python/integrations/flask/#setup
