@@ -2,12 +2,12 @@
 {% import "bootstrap/wtf.html" as wtf %}
 {% import "bootstrap/utils.html" as utils %}
 
-{% block title %}co2mpas-stamper{% endblock %}
+{% block title %}{{ config['SITE_NAME'] }}{% endblock %}
 
 {%- block content -%}
   <div class="container">
     <div class="jumbotron">
-      <h1>co2mpas web stamper</h1>
+      <h1>{{ config['SITE_NAME'] }}</h1>
     </div>
     <form action="" method="post" class="form form-horizontal" role="form">
       {%- set button_map = {

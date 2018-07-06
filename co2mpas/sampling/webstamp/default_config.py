@@ -15,6 +15,7 @@ import logging
 ## For DOS, limit requests to:
 #  ~= x2 of (~4k each dreport + x2 for session + 10k cookies)
 MAX_CONTENT_LENGTH = 2 * 1024 * 1024
+SITE_NAME = "co2mpas web stamper"
 
 ## Note: Don't *ever* do this in a real app. A secret key should not have a
 #       default, rather the app should fail if it is missing. For the sample
