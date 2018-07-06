@@ -13,7 +13,6 @@ import os
 import re
 from typing import Text
 
-from boltons.setutils import IndexedSet as iset
 from flask import flash, request, session
 import flask
 from flask.ctx import after_this_request
@@ -29,7 +28,6 @@ import textwrap as tw
 import traceback as tb
 import wtforms.fields as wtff
 import wtforms.validators as wtfl
-from tests.sampling.test_tsigner import default_recipients
 
 
 STAMPED_PROJECTS_KEY = 'stamped_projects'
