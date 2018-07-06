@@ -38,6 +38,10 @@ boltons
 polyversion>=0.2.1a0
 
 
+## GUI
+#
+Pillow
+
 ## Dice
 #
 ipython_genutils
