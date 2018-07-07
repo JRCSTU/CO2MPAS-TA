@@ -1,5 +1,6 @@
 #co2mpas            ## Commented-out to prevent dep conflicts
 #mod-wsgi           ## In case it is not install by apt/apk
+polyversion>=0.2.2a0
 flask-appconfig>=0.10
 flask-bootstrap
 flask-debug

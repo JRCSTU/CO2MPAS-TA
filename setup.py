@@ -98,7 +98,7 @@ def yield_rst_only_markup(lines):
         yield clean_line(line)
 
 
-polyversion = 'polyversion >= 0.2.1a0'  # support env[co2mpas_version]
+polyversion = 'polyversion >= 0.2.2a0'  # Workaround buggy git<2.15, envvar: co2mpas_VERION
 readme_lines = read_text_lines('README.rst')
 description = readme_lines[1]
 long_desc = ''.join(yield_rst_only_markup(readme_lines))
