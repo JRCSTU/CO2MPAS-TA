@@ -345,7 +345,7 @@ class Hasher:
         _fd, fpath = tempfile.mkstemp(suffix=suffix,
                                       prefix=CO2MPARABLE_FNAME_PREFIX,
                                       text=False)
-        self._ckfile = self._open_file(fpath, 'wt')
+        self._ckfile = self._open_file(fpath, 'wt', errors='ignore')
 
         if compare_with_fpath:
             m = re.match('<LATEST(?::([^>]+))?>',
