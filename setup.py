@@ -185,6 +185,7 @@ setup(
         'toolz',
         'schedula>=0.1.14',         # Fix str(AbortDispatcher) not to print model
         'formulas>=0.0.10',
+        'contextvars',              # for co2mpare, backported for <PY37.
         'xgboost',                  # Pure-python boost also works.
 
         'ipython_genutils',         # by vendorized `traitlets`

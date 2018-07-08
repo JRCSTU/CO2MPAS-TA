@@ -35,6 +35,7 @@ pandalone>=0.2.0
 tqdm
 PyYAML>=3.12
 boltons
+contextvars             ## for co2mpare, backported for <PY37.
 polyversion>=0.2.2a0    ## Workaround buggy git<2.15, envvar: co2mpas_VERION
 
 
