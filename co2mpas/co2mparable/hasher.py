@@ -103,8 +103,8 @@ def _to_bytes(item) -> bytes:
         ## Ex-msg: "scikit-learn estimators should always specify their parameters
         #           in the signature of their __init__ (no varargs)."
         if not isinstance(item, Pipeline):
-            log.warning("Cannot stringify instance of type `%s` due to: %s" %
-                        type(item), ex)
+            log.warning("Cannot stringify instance of type `%s` due to: %s",
+                        type(item), ex, exc_info=1)
             if bool_env(CO2MPARE_DEBUG, False):
                 raise
         return b'\17'
@@ -170,8 +170,8 @@ class Hasher:
                     self._args_printed.add('%s,%s' % (argname, item))
                 except Exception as ex:
                     log.warning(
-                        "Cannot stringify arg '%s' of type `%s` due to: %s" %
-                        argname, type(item), ex)
+                        "Cannot stringify arg '%s' of type `%s` due to: %s",
+                        argname, type(item), ex, exc_info=1)
                     if bool_env(CO2MPARE_DEBUG, False):
                         raise
 
@@ -185,10 +185,10 @@ class Hasher:
                                         skip_compare=True)
             except Exception as ex:
                 log.warning("Could not print %i debugged items: %s"
-                            "\n  due to: %s" %
+                            "\n  due to: %s",
                             len(self._args_printed),
                             ', '.join(str(a) for a in self._args_printed),
-                            ex)
+                            ex, exc_info=1)
                 if bool_env(CO2MPARE_DEBUG, False):
                     raise
             self._args_printed.clear()
