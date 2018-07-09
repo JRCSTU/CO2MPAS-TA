@@ -20,27 +20,31 @@ import logging
 import subprocess as sbp
 
 
-#: Monkeypatch :class:`subprocess.CalledProcessError`
-#: to always print STDERR on errors.
-def err_includes_stderr(self):
-    import signal
-
-    tail = ('\n  STDERR: ' + self.stderr) if self.stderr else ''
-    tail += ('\n  STDOUT: ' + self.stdout) if self.stdout else ''
-
-    if self.returncode and self.returncode < 0:
+class MyCalledProcessError(sbp.CalledProcessError):
+    """
+    "A :class:`sbp.CalledProcessError` that includes STDOUT/STDERR on its message.
+    """
+    def __init__(self, returncode, cmd, output=None, stderr=None, cwd=None):
         try:
-            return "Command '%s' died with %r.%s" % (
-                self.cmd, signal.Signals(-self.returncode), tail)
-        except ValueError:
-            return "Command '%s' died with unknown signal %d.%s" % (
-                self.cmd, -self.returncode, tail)
-    else:
-        return "Command '%s' returned non-zero exit status %d.%s" % (
-            self.cmd, self.returncode, tail)
+            super(MyCalledProcessError, self).__init__(returncode, cmd, output, stderr)
+            self.cwd = cwd
+        except TypeError:
+            ## In PY < 3.5 Ex has no output/stderr attributes.
+            super(MyCalledProcessError, self).__init__(returncode, cmd)
+            self.output = self.stdout = output
+            self.stderr = stderr
 
+    def __str__(self):
+        out = getattr(self, 'stdout', None)  # strangely not always there...
+        err = getattr(self, 'stderr', None)
+        cwd = getattr(self, 'cwd', None)
+        tail = ('\n  STDERR: %s' % err) if err else ''
+        tail += ('\n  STDOUT: %s' % out) if out else ''
+        tail += ('\n     CWD: %s' % cwd) if cwd else ''
 
-sbp.CalledProcessError.__str__ = err_includes_stderr
+        err = super(MyCalledProcessError, self).__str__()
+
+        return err + tail
 
 
 def format_syscmd(cmd):
@@ -117,24 +121,12 @@ def exec_cmd(cmd,
         log.debug('%s %r ok: \n  stdout: %s\n  stderr: %s',
                   cmd_label, cmd_str, res.stdout, res.stderr)
 
-    if check_returncode:
-        try:
-            res.check_returncode()
-        except sbp.CalledProcessError as ex:
-            #
-            #  A hackish wedge to report to the user
-            ## the CWD when not in Git-repo.
+    if check_returncode and res.returncode:
+        import os.path as osp
 
-            if "ot a git repository" in (ex.stderr.decode()
-                                         if isinstance(ex.stderr, bytes) else
-                                         ex.stderr):
-                import os
-                from .. import pvtags
-
-                raise pvtags.NoGitRepoError(
-                    "Current-dir '%s' is not within a git repository!" %
-                    os.curdir) from ex
-            raise
+        raise MyCalledProcessError(res.returncode, cmd,
+                                   res.stdout, res.stderr,
+                                   popen_kws.get('cwd', osp.realpath('.')))
 
     return res
 
