@@ -73,7 +73,7 @@ RUN apk --update --no-cache add tk-dev
 # Install CO2MPAS requirements.
 COPY ./requirements /tmp/co2mpas/requirements
 RUN cd /tmp/co2mpas/requirements && \
-    bash ./install_requirements.sh
+    bash ./install_conda_reqs.sh
 
 # Install CO2MPAS.
 COPY ./co2mpas /tmp/co2mpas/co2mpas
