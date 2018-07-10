@@ -190,7 +190,9 @@ setup(
 
         'ipython_genutils',         # by vendorized `traitlets`
         'python-gnupg',
-        'gitpython >= 2.1.0',       # Win+Cygwin support
+        ## Win+Cygwin support, new packed-ref header format
+        #  (gitpython-developers/GitPython#689)
+        'gitpython >= 2.1.8',
         'transitions >= 0.5.0',     # prepare/finally cbs
         'PySocks >= 1.6.7',         # more proxy-error messages (#7)
         'parsedatetime',
