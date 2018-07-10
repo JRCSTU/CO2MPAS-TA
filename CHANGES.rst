@@ -7,6 +7,15 @@ CO2MPAS Changes
 
 NEXT RELEASE
 ======================
+v1.9.X X Jul 2018
+--------------------
+- WebStamp: split-off `vv1.9.0a1` as separate sub-project in sources.
+
+Model:
+~~~~~~
+- IO: Input-template provide separate H/L fields for both *ki multiplicative* and
+  *Ki additive* parameters.
+
 
 v1.9.0a1 5 Jul 2018
 --------------------
@@ -25,11 +34,18 @@ have changed forward-incompatibly.  Very roughly tested (see :gh:`472`).
 
 - fix: completed transition to *polyversion* monorepo scheme.
 
-- Model:
+- docker: ensure correct *numpy-base+MKL* installed in conda requirements.
+
+Model:
+~~~~~~
 
   - FIX: Gear-model does not dance (:gh:`427`).
   - fix: remove some pandas warnings
 
+- Other:
+
+  - fixes co2mparable.
+  -
 
 v1.8.1a0 12 Jun 2018
 --------------------
