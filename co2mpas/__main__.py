@@ -368,7 +368,7 @@ def _cmd_modelgraph(opts):
                 depth = int(depth)
                 if depth < 0:
                     depth = None
-            except:
+            except Exception:
                 msg = "The '--graph-depth' must be an integer!  Not %r."
                 raise CmdException(msg % depth)
         else:
@@ -651,7 +651,7 @@ def _main(*args):
         # noinspection PyBroadException
         try:
             sys.stdout.buffer.write(v.encode() + b'\n')
-        except:
+        except Exception:
             print(v)
     elif opts['template']:
         _cmd_template(opts)

@@ -1079,7 +1079,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                         continue
 
                     diff_value = [old_val, val]
-                except:  # @IgnorePep8
+                except Exception:
                     diff_value = ['<missing>', val]
 
                 is_preserved = any(r.match(key) for r in preserved_git_settings)

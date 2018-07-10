@@ -16,7 +16,7 @@ import unittest
 #
 try:  # pragma: no cover
     assertRaisesRegex = unittest.TestCase.assertRaisesRegex
-except:  # pragma: no cover
+except Exception:
     assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
 
 def _check_VERSION_in_folder(data_folder, ver_validator):

@@ -49,7 +49,7 @@ def _report_tuple_2_dict(fpath, iokind, report) -> dict:
         def fmt_row_as_pair(i, k, v):
             try:
                 v = round(v.astype(float), decs_rounding)
-            except:  # @IgnorePep8
+            except Exception:
                 pass
             v = v.tolist()
 

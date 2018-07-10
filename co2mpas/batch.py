@@ -69,7 +69,7 @@ def notify_result_listener(result_listener, res, out_fpath=None):
         except Exception as ex:
             try:
                 keys = list(res)
-            except:
+            except Exception:
                 keys = '<no keys>'
             log.warning("Failed notifying result-listener due to: %s\n  result-keys: %s",
                         ex, keys, exc_info=1)

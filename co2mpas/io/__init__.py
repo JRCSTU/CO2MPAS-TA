@@ -42,7 +42,7 @@ def get_cache_fpath(fpath, ext=('dill',)):
     try:
         # noinspection PyUnresolvedReferences
         cache_folder.mkdir()
-    except:  # dir exist
+    except Exception:  # dir exist
         pass
     return str(cache_folder.joinpath('.'.join((fpath.name, version) + ext)))
 

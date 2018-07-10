@@ -131,7 +131,7 @@ def _parse_sheet(match, sheet, sheet_name, res=None):
     try:
         import pandalone.xleash as xleash
         data = xleash.lasso(_xl_ref[sh_type] % sheet_name, sheet=sheet)
-    except:
+    except Exception:
         return res
 
     if sh_type == 'pl':
@@ -535,7 +535,7 @@ def _add_named_ranges(df, writer, shname, startrow, startcol, named_ranges, k0):
 
         def _create_named_range(ref_n, ref_r):
             define_name(ref % ref_n, ref % ref_r)
-    except:  # Use other pkg.
+    except Exception:  # Use other pkg.
         define_name = writer.book.create_named_range
         scope = writer.book.index(writer.sheets[shname])
 
@@ -573,7 +573,7 @@ def _index_levels(index):
     # noinspection PyBroadException
     try:
         return len(index.levels)
-    except:
+    except Exception:
         return 1
 
 

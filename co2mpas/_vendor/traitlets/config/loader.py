@@ -1139,7 +1139,7 @@ def load_pyconfig_files(config_files, path):
             next_config = loader.load_config()
         except ConfigFileNotFound:
             pass
-        except:
+        except Exception:
             raise
         else:
             config.merge(next_config)

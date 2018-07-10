@@ -383,7 +383,7 @@ def _make_send_transfer_encoders_map():
                                            for l in mbytes.split(b'\n'))
         try:
             mbytes.decode('ascii')
-        except:  # @IgnorePep8
+        except Exception:
             apply = True
 
         if apply:
@@ -1526,11 +1526,11 @@ class TstampReceiver(TstampSpec):
             else:
                 try:
                     infos['dice'] = verdict['dice']
-                except:  # @IgnorePep8
+                except Exception:
                     pass
             try:
                 infos['project'] = verdict['report']['project']
-            except:  # @IgnorePep8
+            except Exception:
                 pass
 
         return infos
@@ -1644,7 +1644,7 @@ def monkeypatch_imaplib_noop_debug_26543(imaplib):
             while n:
                 try:
                     self._mesg(*self._cmd_log[i])
-                except:  # @IgnorePep8
+                except Exception:
                     pass
                 i += 1
                 if i >= self._cmd_log_len:

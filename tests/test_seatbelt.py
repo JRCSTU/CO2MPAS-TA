@@ -147,7 +147,7 @@ def _has_difference(nv, ov):
     if DATA_DIFF_RATIO == 0 or isinstance(nv, str):
         try:
             return not np.allclose(ov, nv)
-        except:
+        except Exception:
             if isinstance(nv, np.ndarray):
                 return not (ov == nv).all()
             return nv != ov

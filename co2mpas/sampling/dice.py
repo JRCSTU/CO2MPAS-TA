@@ -30,7 +30,7 @@ __summary__ = pndlu.first_line(__doc__)
 
 try:
     _mydir = osp.dirname(__file__)
-except:  # @IgnorePep8
+except Exception:
     _mydir = '.'
 
 

@@ -350,7 +350,7 @@ def get_file_infos(fpath):
         s = os.stat(fpath)
         mtime = datetime.fromtimestamp(s.st_mtime)  # @UndefinedVariable
         res = (s.st_size, mtime.isoformat())
-    except:
+    except Exception:
         res = ('', '')
     return res
 
@@ -964,7 +964,7 @@ class LogPanel(ttk.Labelframe):
             log.critical('Unhandled TkUI exception:', exc_info=True)
             try:
                 self.app.cstatus('Unhandled TkUI exception: %s', args, delay=0)
-            except:
+            except Exception:
                 # Must not raise any errors, or infinite recursion here.
                 pass
             self._original_tk_ex_handler(*args)

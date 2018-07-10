@@ -206,13 +206,13 @@ def _key_or_attr(obj, key):
     value = None
     try:
         value = obj[key]
-    except:  # @IgnorePep8
+    except Exception:
         pass
 
     if not value:
         try:
             value = getattr(obj, key, None)
-        except:  # @IgnorePep8
+        except Exception:
             pass
 
     return value

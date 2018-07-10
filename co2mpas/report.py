@@ -37,7 +37,7 @@ def _compare(t, o, metrics):
                 m = v(t, o)
                 if not np.isnan(m):
                     res[k] = m
-            except:
+            except Exception:
                 pass
     except ValueError:
         pass

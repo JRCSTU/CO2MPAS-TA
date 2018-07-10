@@ -408,7 +408,7 @@ class ShowCmd(baseapp.Cmd):
             try:
                 for kk, vv in v.items():
                     yield '  +--%s = %s' % (kk, vv)
-            except:
+            except Exception:
                 yield '  +--%s' % v
 
     def _yield_configs_and_defaults(self, config, search_terms,

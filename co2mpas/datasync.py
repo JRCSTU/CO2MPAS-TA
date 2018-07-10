@@ -686,7 +686,7 @@ def _main(*args):
         try:
             sys.stdout.buffer.write(v.encode() + b'\n')
             sys.stdout.buffer.flush()
-        except:
+        except Exception:
             print(v)
     elif opts['--interp-methods']:
         msg = 'List of all interpolation methods:\n%s\n'
@@ -695,7 +695,7 @@ def _main(*args):
         try:
             sys.stdout.buffer.write(msg)
             sys.stdout.buffer.flush()
-        except:
+        except Exception:
             print(msg)
     elif opts['template']:
         _cmd_template(opts)

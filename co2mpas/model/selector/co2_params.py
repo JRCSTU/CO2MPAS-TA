@@ -46,7 +46,7 @@ def calibrate_co2_params_all(enable, rank, *data, data_id=None):
             sta.append((s, copy.deepcopy(p)))
             res['initial_friction_params'] = d['initial_friction_params']
             res.update({'co2_params_calibrated': p, 'calibration_status': sta})
-        except:
+        except Exception:
             pass
 
     return res
