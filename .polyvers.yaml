@@ -2,6 +2,8 @@ PolyversCmd:
   projects:
   - pname: co2mpas
     basepath: .
+  - pname: webstamp
+    basepath: co2mpas/sampling/webstamp
 Project:
   pvtag_format: '{pname}-{vprefix}{version}'
   pvtag_regex: |-
