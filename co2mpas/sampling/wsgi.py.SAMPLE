@@ -1,0 +1,19 @@
+## Sample WSGI file for uWSGI
+#
+#  NOTE: Move it to the parent of `webstamp` dir.
+
+import os
+import sys
+
+import os.path as osp
+import webstamp
+
+
+mydir = osp.realpath(osp.dirname(__file__))
+
+os.environ['WEBSTAMP_CONFIG'] = osp.join(mydir, 'local_config.py')
+app = webstamp.create_app(logconf_file=osp.join(mydir, 'logconf.yaml'))
+#application.debug=True
+
+if __name__ == "__main__":
+    app.run()
