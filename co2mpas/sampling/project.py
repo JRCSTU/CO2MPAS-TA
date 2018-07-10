@@ -777,7 +777,7 @@ class Project(transitions.Machine, ProjectSpec):
             event.kwargs['report'] = report
         else:
             assert tagref
-            self.log.info("Report already generated  as '%s'.", tagref.path)
+            self.log.debug("Report already generated as '%s'.", tagref.path)
             self.result = _read_dice_tag(repo, tagref)
 
     def _cb_send_email(self, event):
@@ -1978,7 +1978,7 @@ class ReportCmd(_SubCmd):
             assert isinstance(proj.result, str)
             result = ok and proj.result or ok
         else:
-            self.log.info("Report already generated  as '%s'.", tagref.path)
+            self.log.debug("Report already generated as '%s'.", tagref.path)
             result = _read_dice_tag(repo, tagref)
             ok = True
 
