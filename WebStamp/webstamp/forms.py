@@ -179,7 +179,7 @@ def create_stamp_form_class(app):
                 (free form, but only ASCII).
             """,
             validators=[wtfl.InputRequired(),
-                        wtfl.Length(min=3, max=60),
+                        wtfl.Length(min=3, max=40),
                         ascii_validator],
             default=lambda: request.cookies.get(LAST_SENDER_KEY),
             render_kw={'autocomplete': 'on'})
