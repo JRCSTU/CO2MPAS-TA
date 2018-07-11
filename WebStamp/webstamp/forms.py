@@ -66,7 +66,7 @@ def unique_ci(words):
             uniques.append(w)
     return uniques
 
-def _remote_address(self, request, width=None):
+def _remote_address(request, width=None):
     """
     Find request's remote address, even if proxied (return the full list).
 
