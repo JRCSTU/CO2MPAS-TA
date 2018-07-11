@@ -36,8 +36,7 @@
   {{super()}}
 
   <div id="git_version_box">
-    <div id="git_version">{{ config['POLYVERSION'] }}</div>
-    <div id="git_version">{{ config['POLYTIME'] }}</div>
+    <div id="git_version">{{ [config['POLYVERSION'], config['POLYTIME']] | join(", ") }}</div>
   </div>
   {%- endblock %}
 {%- endif %}
