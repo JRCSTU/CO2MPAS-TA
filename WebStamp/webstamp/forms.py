@@ -66,13 +66,14 @@ def unique_ci(words):
             uniques.append(w)
     return uniques
 
-def _remote_address(request, width=None):
+
+def _remote_sender(request, sender, max_width):
     """
     Find request's remote address, even if proxied (return the full list).
 
     :return:
-        a string with a single or CS client IPs, optionally limited in width
-        with ellipsis.
+        a string with `sender` and a single or CS client IPs, optionally
+        limited by `max_width` with ellipsis.
 
     Taken From:
       https://stackoverflow.com/questions/12770950/flask-request-remote-addr-is-wrong-on-webfaction-and-not-showing-real-user-ip
@@ -81,9 +82,18 @@ def _remote_address(request, width=None):
     """
     headers_list = request.headers.getlist("X-Forwarded-For")
     client_ip = str(headers_list) if headers_list else request.remote_addr
-    if width:
-        client_ip = tw.shorten(client_ip, width)
-    return client_ip
+    sender = '(%s) %s' % (sender, client_ip)
+    sender_len = len(sender)
+
+    if max_width and sender_len > max_width:
+        logger.info("Dice has a shortened remote-IP: %s", sender)
+
+        if max_width > 3:
+                sender = tw.shorten(sender, max_width)
+        else:
+            sender = ''
+
+    return sender
 
 
 ## TODO: ESCAPE USER-INPUT!!!!
@@ -447,7 +457,7 @@ def create_stamp_form_class(app):
             #     #    (123.456.123.456) user@home.gr
             max_line_width = 60  # See :meth:`TsignerService.sign_text_as_tstamper()`
             avail_width = max_line_width - len('#    ()') - len(sender)
-            sender = '(%s) %s' % (_remote_address(request, avail_width), sender)
+            sender = _remote_sender(request, sender, avail_width)
             return signer.sign_dreport_as_tstamper(sender,
                                                    dreport)
 
