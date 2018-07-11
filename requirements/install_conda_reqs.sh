@@ -14,6 +14,6 @@ conda install \
     matplotlib
 
 conda install -c conda-forge \
-    xgboost==0.72
+    xgboost==0.72.1
 
 pip install -r "$mydir/exe.pip" --no-cache-dir
