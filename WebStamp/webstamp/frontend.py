@@ -35,10 +35,10 @@ def attach_routes(setup_state):
     @frontend.route('/stamp/', methods=('GET', 'POST'))
     def stamp():
         log.info("WebStamp URL: %s\n  values: %s",
-                 request.url, request.values)
+                 request.url, [str(v)[:1400] for v in request.values.items()])
         try:
             return StampForm().render()
         except Exception as ex:
             log.fatal('WebStamp crashed due to: %s\n  %s',
-                      ex, request.values, exc_info=1)
+                      ex, [str(v)[:1400] for v in request.values.items()], exc_info=1)
             raise
