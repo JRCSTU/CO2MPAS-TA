@@ -498,6 +498,13 @@ class UnlockCmd(baseapp.Cmd, base._StampParsingCmdMixin):
                     ...
     """)
 
+    def __init__(self, **kwds):
+        from . import crypto
+
+        dkwds = {'conf_classes': [ReporterSpec, crypto.EncrypterSpec]}
+        dkwds.update(kwds)
+        super().__init__(**dkwds)
+
     _reporter: ReporterSpec = None
 
     @property
