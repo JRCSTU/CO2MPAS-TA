@@ -116,6 +116,26 @@ def calculate_f2(
     return 0.5 * c / 3.6 ** 2
 
 
+def calculate_air_density(air_temperature, atmospheric_pressure):
+    """
+    Calculates the air density [kg/m3].
+
+    :param air_temperature:
+        Air temperature [°C].
+    :type air_temperature: float
+
+    :param atmospheric_pressure:
+        Atmospheric pressure [kPa].
+    :type atmospheric_pressure: float
+
+    :return:
+        Air density [kg/m3].
+    :rtype: float
+    """
+    # http://www.thecartech.com/subjects/auto_eng/Road_loads.htm
+    return 3.48 * atmospheric_pressure / (273.16 + air_temperature)
+
+
 def calculate_raw_frontal_area_v1(vehicle_mass, vehicle_category):
     """
     Calculates raw frontal area of the vehicle [m2].
@@ -751,8 +771,19 @@ def vehicle():
     )
 
     d.add_data(
-        data_id='air_density',
-        default_value=dfl.values.air_density,
+        data_id='air_temperature',
+        default_value=dfl.values.air_temperature,
+    )
+
+    d.add_data(
+        data_id='atmospheric_pressure',
+        default_value=dfl.values.atmospheric_pressure,
+    )
+
+    d.add_function(
+        function=calculate_air_density,
+        inputs=['air_temperature', 'atmospheric_pressure'],
+        outputs=['air_density']
     )
 
     d.add_data(
@@ -846,7 +877,7 @@ def vehicle():
         inputs=['n_dyno_axes'],
         outputs=['inertial_factor']
     )
-    'vehicle_mass'
+
     d.add_function(
         function=calculate_rotational_inertia_forces,
         inputs=['vehicle_mass', 'inertial_factor', 'accelerations'],
