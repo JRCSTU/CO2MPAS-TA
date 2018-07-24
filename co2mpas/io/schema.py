@@ -858,7 +858,9 @@ def define_flags_schema(read=True):
         _compare_str('input_version'): string,
         _compare_str('vehicle_family_id'): vehicle_family_id(read=read),
         _compare_str('modelconf'): isfile,
+        _compare_str('encryption_keys'): string,
 
+        _compare_str('encrypt_inputs'): _bool,
         _compare_str('soft_validation'): _bool,
         _compare_str('use_selector'): _bool,
         _compare_str('engineering_mode'): _bool,
