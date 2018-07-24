@@ -183,7 +183,7 @@ setup(
         'openpyxl>=2.4.0',
         'Pillow',           # for tkui
         'toolz',
-        'schedula>=0.1.14',         # Fix str(AbortDispatcher) not to print model
+        'schedula[plot]>=0.2.1',     # Fix description.
         'formulas>=0.0.10',
         'contextvars',              # for co2mpare, backported for <PY37.
         'xgboost',                  # Pure-python boost also works.
