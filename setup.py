@@ -180,6 +180,7 @@ setup(
         'pip',
         'boltons',
         'wltp',
+        'cryptography',
         'openpyxl>=2.4.0',
         'Pillow',           # for tkui
         'toolz',
