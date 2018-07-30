@@ -233,8 +233,14 @@ def ta():
     dsp = sh.Dispatcher()
 
     dsp.add_function(
+        function=tuple,
+        inputs=['data', 'meta'],
+        outputs=['data2encrypt']
+    )
+
+    dsp.add_function(
         function=encrypt_data,
-        inputs=['encrypt_inputs', 'data', 'path_keys'],
+        inputs=['encrypt_inputs', 'data2encrypt', 'path_keys'],
         outputs=['encrypted_data']
     )
 
@@ -261,7 +267,8 @@ def ta():
         dsp,
         'write_ta_output',
         inputs=['encrypt_inputs', 'path_keys', 'vehicle_family_id',
-                'start_time', 'timestamp', 'data', 'report', 'output_folder'],
+                'start_time', 'timestamp', 'data', 'meta', 'report',
+                'output_folder'],
         outputs=['ta_file']
     )
 

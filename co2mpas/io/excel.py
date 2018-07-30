@@ -47,12 +47,18 @@ _base_params = r"""
 
 _flag_params = r"""^(?P<scope>flag)(\.|\s+)(?P<flag>[^\s.]*)\s*$"""
 
+_meta_params = r"""
+    ^(?P<scope>meta)(\.|\s+)((?P<meta>.+)(\.|\s+))?((?P<param>[^\s.]+))\s*$
+"""
+
 
 _plan_params = r"""
     ^(?P<scope>plan)(\.|\s+)(
      (?P<index>(id|base|run_base))\s*$
      |
 """ + _flag_params.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
+     |
+""" + _meta_params.replace('<scope>', '<v_scope>').replace('^(', '(')+ r"""
      |
 """ + _base_params.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
      )
@@ -62,13 +68,15 @@ _plan_params = r"""
 _re_params_name = regex.compile(
     r"""
         ^(?P<param>((plan|base|flag)|
-                    (target|input|output|data|config)|
+                    (target|input|output|data|config|meta)|
                     ((precondition|calibration|prediction|selector)s?)|
                     (WLTP([-_]{1}[HLP]{1})?|
                      NEDC([-_]{1}[HL]{1})?|
                      ALL)(recon)?))\s*$
         |
     """ + _flag_params + r"""
+        |
+    """ + _meta_params + r"""
         |
     """ + _plan_params + r"""
         |
@@ -86,18 +94,27 @@ _base_sheet = r"""
 
 _flag_sheet = r"""^(?P<scope>flag)((\.|\s+)(?P<type>(pa|ts|pl)))?\s*$"""
 
+_meta_sheet = r"""
+    ^(?P<scope>meta)((\.|\s+)(?P<meta>.+))?(\.|\s+)(?P<type>(pa|ts|pl))\s*$
+"""
+
 _plan_sheet = r"""
     ^(?P<scope>plan)((\.|\s+)(
 """ + _flag_sheet.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
+     |
+""" + _meta_sheet.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
      |
 """ + _base_sheet.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
      ))?\s*$
 """
 
 _re_input_sheet_name = regex.compile(
-    r'|'.join((_flag_sheet, _plan_sheet, _base_sheet)),
+    r'|'.join((_flag_sheet, _meta_sheet, _plan_sheet, _base_sheet)),
     regex.IGNORECASE | regex.X | regex.DOTALL
 )
+
+
+_re_space_dot = regex.compile('(\s*\.\s*|\s+)')
 
 
 _xl_ref = {
@@ -199,6 +216,8 @@ def _get_default_stage(stage=None, cycle=None, usage=None, **kw):
 def _parse_key(scope='base', usage='input', **match):
     if scope == 'flag':
         yield scope, match['flag']
+    elif scope == 'meta':
+        yield scope, _re_space_dot.sub(match.get('meta', ''), '.'), match['param']
     elif scope == 'plan':
         if len(match) == 1 and 'param' in match:
             m = _re_params_name.match('.'.join((scope, match['param'])))

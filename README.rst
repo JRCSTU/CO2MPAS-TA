@@ -1121,6 +1121,7 @@ Description of the name-parts
      and to predict the |CO2| emission.
    - ``flag``: values provided by the user as input to ``run_base`` and
      ``run_plan`` models.
+   - ``meta``: values provided by the user as meta data of the vehicle test.
 
 2. **usage:**
 

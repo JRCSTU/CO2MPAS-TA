@@ -453,6 +453,11 @@ def prepare_data(raw_data, variation, input_file_name, overwrite_cache,
             raw_data.get('flag', {}), r['flag'], depth=1
         )
 
+    if 'meta' in r:
+        r['meta'] = sh.combine_nested_dicts(
+            raw_data.get('meta', {}), r['meta'], depth=2
+        )
+
     data = sh.combine_dicts(raw_data, r)
 
     if type_approval_mode:
@@ -486,6 +491,7 @@ def prepare_data(raw_data, variation, input_file_name, overwrite_cache,
 
     res = {
         'flag': flag,
+        'meta': data.get('meta', {}),
         'variation': variation,
         'input_file_name': input_file_name,
     }
@@ -641,6 +647,12 @@ def run_base():
     )
 
     d.add_function(
+        function=schema.validate_meta,
+        inputs=['meta', 'soft_validation'],
+        outputs=['validated_meta']
+    )
+
+    d.add_function(
         function=sh.add_args(schema.validate_base),
         inputs=['run_base', 'data', 'engineering_mode', 'soft_validation',
                 'use_selector'],
@@ -679,9 +691,10 @@ def run_base():
 
     from .model import model
     d.add_function(
-        function=sh.SubDispatch(model()),
-        inputs=['validated_base'],
+        function=sh.add_args(sh.SubDispatch(model())),
+        inputs=['validated_meta', 'validated_base'],
         outputs=['dsp_solution'],
+        input_domain=check_first_arg
     )
 
     d.add_function(
@@ -703,7 +716,7 @@ def run_base():
     d.add_function(
         function=sh.add_args(ta()),
         inputs=['type_approval_mode', 'encrypt_inputs', 'encryption_keys',
-                'vehicle_family_id', 'start_time', 'timestamp', 'data',
+                'vehicle_family_id', 'start_time', 'timestamp', 'data', 'meta',
                 'report', 'output_folder'],
         outputs=['output_ta_file'],
         input_domain=check_first_arg
