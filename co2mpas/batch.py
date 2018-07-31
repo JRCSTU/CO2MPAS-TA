@@ -693,8 +693,7 @@ def run_base():
     d.add_function(
         function=sh.add_args(sh.SubDispatch(model())),
         inputs=['validated_meta', 'validated_base'],
-        outputs=['dsp_solution'],
-        input_domain=check_first_arg
+        outputs=['dsp_solution']
     )
 
     d.add_function(
