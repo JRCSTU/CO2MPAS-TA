@@ -16,6 +16,7 @@ import json
 import lmfit
 import tarfile
 import logging
+import functools
 import itertools
 import numpy as np
 import os.path as osp
@@ -67,7 +68,7 @@ def write_tar(tar, path, bytes):
     tar.addfile(info, io.BytesIO(bytes))
 
 
-def load_RSA_keys(fpath):
+def load_public_RSA_keys(fpath):
     from cryptography.hazmat.backends import default_backend
     from cryptography.hazmat.primitives import serialization
     keys = {}
@@ -75,9 +76,25 @@ def load_RSA_keys(fpath):
         for k in itertools.product(('public',), ('secret', 'server')):
             with tar.extractfile(tar.getmember('%s/%s.pem' % k[::-1])) as f:
                 key = serialization.load_pem_public_key(
-                        f.read(), default_backend()
-                    )
-                sh.get_nested_dicts(keys, *k[:-1])[k[-1]] = key
+                    f.read(), default_backend()
+                )
+                keys[k[-1]] = key
+    return keys
+
+
+def load_private_RSA_keys(fpath, passwords=None):
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import serialization
+    keys = {}
+
+    with tarfile.open(fpath, 'r') as tar:
+        it = itertools.product(('private',), ('secret', 'server'))
+        for k, p in itertools.zip_longest(it, passwords or ()):
+            p = p is not None and p.encode() or None
+            with tar.extractfile(tar.getmember('%s/%s.pem' % k[::-1])) as f:
+                keys[k[-1]] = serialization.load_pem_private_key(
+                    f.read(), p, default_backend()
+                )
     return keys
 
 
@@ -102,6 +119,50 @@ def make_hash(*data):
     return digest.finalize()
 
 
+def generate_keys(key_folder, passwords=None):
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+
+    keys = {'private': {}, 'public': {}}
+    for k, p in itertools.zip_longest(('secret', 'server'), passwords or ()):
+        key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+
+        if p is None:
+            encryption_alg = serialization.NoEncryption()
+        else:
+            encryption_alg = serialization.BestAvailableEncryption(p.encode())
+
+        keys['private'][k] = key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=encryption_alg
+        )
+
+        keys['public'][k] = key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+
+    it = (
+        ('dice.co2mpas.keys', (('public', 'secret'), ('public', 'server'))),
+        ('server.co2mpas.keys',
+         (('public', 'secret'), ('public', 'server'), ('private', 'server'))),
+        ('secret.co2mpas.keys',
+         (itertools.product(('public', 'private'), ('secret', 'server'))))
+    )
+
+    for fpath, v in it:
+        with tarfile.open(osp.join(key_folder, fpath), 'w') as tar:
+            for k in v:
+                path = '%s.pem' % osp.join(*k[::-1])
+                write_tar(tar, path, sh.get_nested_dicts(keys, *k))
+
+
 def define_rsa_padding():
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.asymmetric import padding
@@ -114,6 +175,10 @@ def define_rsa_padding():
 
 def rsa_encrypt(rsa, plaintext):
     return rsa.encrypt(plaintext, define_rsa_padding())
+
+
+def rsa_decrypt(rsa, plaintext):
+    return rsa.decrypt(plaintext, define_rsa_padding())
 
 
 def aes_cipher(key, iv, tag=None):
@@ -140,14 +205,40 @@ def aes_encrypt(plaintext, associated_data):
     return {'key': key, 'iv': iv, 'tag': encryptor.tag}, data
 
 
+def aes_decrypt(data, associated_data, key, iv, tag):
+    decryptor = aes_cipher(key, iv, tag).decryptor()
+
+    # We put associated_data back in or the tag will fail to verify
+    # when we finalize the decryptor.
+    decryptor.authenticate_additional_data(associated_data)
+
+    # Decryption gets us the authenticated plaintext.
+    # If the tag does not match an InvalidTag exception will be raised.
+    return decryptor.update(data) + decryptor.finalize()
+
+
 def encrypt_data(encrypt_inputs, data, path_keys):
     if encrypt_inputs and osp.isfile(path_keys):
-        rsa = load_RSA_keys(path_keys)['public']
+        rsa = load_public_RSA_keys(path_keys)
         plaintext = zlib.compress(yaml.dump(data).encode())
         key, data = aes_encrypt(plaintext, define_associated_data(rsa))
         key = rsa_encrypt(rsa['secret'], yaml.dump(key).encode())
         verify = rsa_encrypt(rsa['server'], make_hash(key, data))
         return {'verify': verify, 'encrypted': {'key': key, 'data': data}}
+
+
+def verify_AES_key(private_RSA_keys, verify, encrypted):
+    verify = rsa_decrypt(private_RSA_keys['server'], verify)
+    return make_hash(encrypted['key'], encrypted['data']) == verify
+
+
+def decrypt_data(encrypted_data, path_keys, passwords=None):
+    verify, encrypted = encrypted_data['verify'], encrypted_data['encrypted']
+    rsa = load_private_RSA_keys(path_keys, passwords=passwords)
+    assert verify_AES_key(rsa, verify, encrypted)
+    kw = yaml.load(rsa_decrypt(rsa['secret'], encrypted['key']))
+    ad = define_associated_data({k: v.public_key() for k, v in rsa.items()})
+    return yaml.load(zlib.decompress(aes_decrypt(encrypted['data'], ad, **kw)))
 
 
 def _save_data(fpath, **data):
@@ -165,9 +256,21 @@ def save_data(
         kw['encrypted_data'] = encrypted_data
     from co2mpas.batch import default_output_file_name
     tar_file = default_output_file_name(
-        output_folder, '%s.co2mpas.ta' % ta_id['vehicle_family_id'], timestamp
+        output_folder, ta_id['vehicle_family_id'], timestamp, 'co2mpas.ta'
     )
     return _save_data(tar_file, **kw)
+
+
+def load_data(fpath):
+    data = []
+    with tarfile.open(fpath, 'r') as tar:
+        for k in ('ta_id', 'dice_report', 'encrypted_data'):
+            try:
+                with tar.extractfile(tar.getmember(k)) as f:
+                    data.append(yaml.load(f.read()))
+            except KeyError:
+                data.append(sh.NONE)
+    return data
 
 
 def define_ta_id(vehicle_family_id, data, report):
@@ -186,7 +289,7 @@ def define_ta_id(vehicle_family_id, data, report):
     return key
 
 
-def extract_dice_report(vehicle_family_id, start_time,  report):
+def extract_dice_report(vehicle_family_id, start_time, report):
     from co2mpas import version
     res = {
         'info': {
@@ -229,7 +332,8 @@ def extract_dice_report(vehicle_family_id, start_time,  report):
     return res
 
 
-def ta():
+@functools.lru_cache()
+def crypto():
     dsp = sh.Dispatcher()
 
     dsp.add_function(
@@ -252,7 +356,7 @@ def ta():
 
     dsp.add_function(
         function=extract_dice_report,
-        inputs=['vehicle_family_id', 'start_time','report'],
+        inputs=['vehicle_family_id', 'start_time', 'report'],
         outputs=['dice_report']
     )
 
@@ -263,8 +367,32 @@ def ta():
         outputs=['ta_file']
     )
 
+    dsp.add_function(
+        function=load_data,
+        inputs=['ta_file'],
+        outputs=['ta_id', 'dice_report', 'encrypted_data']
+    )
+
+    dsp.add_data('passwords', None)
+
+    dsp.add_function(
+        function=decrypt_data,
+        inputs=['encrypted_data', 'path_keys', 'passwords'],
+        outputs=['data2encrypt']
+    )
+
+    dsp.add_function(
+        function=sh.bypass,
+        inputs=['data2encrypt'],
+        outputs=['data', 'meta']
+    )
+
+    return dsp
+
+
+def write_ta_output():
     func = sh.SubDispatchFunction(
-        dsp,
+        crypto(),
         'write_ta_output',
         inputs=['encrypt_inputs', 'path_keys', 'vehicle_family_id',
                 'start_time', 'timestamp', 'data', 'meta', 'report',
@@ -273,3 +401,31 @@ def ta():
     )
 
     return func
+
+
+def define_decrypt_function(path_keys, passwords=None):
+    dsp = crypto()
+    sol = dsp({'path_keys': path_keys, 'passwords': passwords})
+    dsp = dsp.shrink_dsp(
+        inputs=['ta_file'] + sorted(sol),
+        outputs=['ta_id', 'dice_report', 'data', 'meta']
+    )
+    for k, v in sol.items():
+        if k in dsp.nodes:
+            dsp.add_data(k, v)
+
+    func = sh.SubDispatchFunction(
+        dsp, 'decrypt', ['ta_file'], ['ta_id', 'dice_report', 'data', 'meta']
+    )
+
+    func.output_type = 'all'
+
+    return func
+
+
+if __name__ == '__main__':
+    passwords = None # ('12345', '67890')
+    #generate_keys('.', passwords)
+    func = define_decrypt_function('secret.co2mpas.keys', passwords)
+    r = func('output/20180731_153827-IP-04-YV1-2017-0002.co2mpas.ta')
+    r = 0
