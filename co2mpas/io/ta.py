@@ -233,7 +233,7 @@ def ta():
     dsp = sh.Dispatcher()
 
     dsp.add_function(
-        function=tuple,
+        function=sh.bypass,
         inputs=['data', 'meta'],
         outputs=['data2encrypt']
     )
