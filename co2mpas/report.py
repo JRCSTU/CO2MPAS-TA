@@ -292,7 +292,6 @@ def _extract_summary_from_model_scores(report, extracted):
                     o = _format_dict(gen, 'score {}/%s'.format(i))
                     v.update(o)
 
-
     return True
 
 

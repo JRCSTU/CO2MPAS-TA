@@ -1540,7 +1540,7 @@ def define_initial_co2_emission_model_params_guess(
     }
 
     keys, n = ('l', 'l2'), engine_n_cylinders / default.pop('n_cylinders', 4)
-    for d in sh.selector(keys, default, allow_miss=True):
+    for d in sh.selector(keys, default, allow_miss=True).values():
         for k in {'value', 'min', 'max'}.intersection(d):
             d[k] *= n
 

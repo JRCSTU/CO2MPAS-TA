@@ -21,9 +21,7 @@ import co2mpas.io.schema as schema
 import co2mpas.utils as co2_utl
 import os.path as osp
 
-
 log = logging.getLogger(__name__)
-
 
 files_exclude_regex = re.compile('^\w')
 
@@ -61,18 +59,26 @@ def parse_dsp_solution(solution):
 def notify_result_listener(result_listener, res, out_fpath=None):
     """Utility func to send to the listener the output-file discovered from the results."""
     are_in = sh.are_in_nested_dicts
-    if result_listener and (out_fpath or are_in(res, 'solution', 'output_file_name')):
+    if result_listener:
+
+        if not out_fpath:
+            it = []
+            for k in ('output_file_name', 'output_ta_file'):
+                if sh.are_in_nested_dicts(res, 'solution', k):
+                    it.append(res['solution'][k])
+        else:
+            it = sh.stlp(out_fpath)
         try:
-            if not out_fpath:
-                out_fpath = res['solution']['output_file_name']
-            result_listener((out_fpath, res))
+            for fpath in it:
+                result_listener((fpath, res))
         except Exception as ex:
             try:
                 keys = list(res)
             except Exception:
                 keys = '<no keys>'
-            log.warning("Failed notifying result-listener due to: %s\n  result-keys: %s",
-                        ex, keys, exc_info=1)
+            log.warning(
+                "Failed notifying result-listener due to: %s\n  result-keys: %s",
+                ex, keys, exc_info=1)
 
 
 def process_folder_files(input_files, output_folder,
@@ -174,6 +180,7 @@ def _process_folder_files(*args, result_listener=None, **kwargs):
             notify_result_listener(result_listener, res)
 
     return summary, start_time
+
 
 SITES = set()
 SITES_STOPPER = threading.Event()
@@ -446,6 +453,11 @@ def prepare_data(raw_data, variation, input_file_name, overwrite_cache,
             raw_data.get('flag', {}), r['flag'], depth=1
         )
 
+    if 'meta' in r:
+        r['meta'] = sh.combine_nested_dicts(
+            raw_data.get('meta', {}), r['meta'], depth=2
+        )
+
     data = sh.combine_dicts(raw_data, r)
 
     if type_approval_mode:
@@ -479,6 +491,7 @@ def prepare_data(raw_data, variation, input_file_name, overwrite_cache,
 
     res = {
         'flag': flag,
+        'meta': data.get('meta', {}),
         'variation': variation,
         'input_file_name': input_file_name,
     }
@@ -634,6 +647,12 @@ def run_base():
     )
 
     d.add_function(
+        function=schema.validate_meta,
+        inputs=['meta', 'soft_validation'],
+        outputs=['validated_meta']
+    )
+
+    d.add_function(
         function=sh.add_args(schema.validate_base),
         inputs=['run_base', 'data', 'engineering_mode', 'soft_validation',
                 'use_selector'],
@@ -672,9 +691,9 @@ def run_base():
 
     from .model import model
     d.add_function(
-        function=sh.SubDispatch(model()),
-        inputs=['validated_base'],
-        outputs=['dsp_solution'],
+        function=sh.add_args(sh.SubDispatch(model())),
+        inputs=['validated_meta', 'validated_base'],
+        outputs=['dsp_solution']
     )
 
     d.add_function(
@@ -688,6 +707,18 @@ def run_base():
         function=report(),
         inputs=['output_data', 'vehicle_name'],
         outputs=['report', 'summary'],
+    )
+
+    from .io.ta import ta
+    d.add_data('encrypt_inputs', True)
+    d.add_data('encryption_keys', './dice.co2mpas.keys')
+    d.add_function(
+        function=sh.add_args(ta()),
+        inputs=['type_approval_mode', 'encrypt_inputs', 'encryption_keys',
+                'vehicle_family_id', 'start_time', 'timestamp', 'data', 'meta',
+                'report', 'output_folder'],
+        outputs=['output_ta_file'],
+        input_domain=check_first_arg
     )
 
     d.add_function(

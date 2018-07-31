@@ -11,14 +11,15 @@ networkx==2.1
 numpy==1.14.3  # MKL!
 openpyxl==2.5.3
 pandas==0.23.0
-schedula==0.1.19
+schedula[plot]==0.2.1
 schema==0.6.7
 scikit-learn==0.19.1
 scipy==1.1.0
 wltp==0.1.0a2
-xgboost==0.72
+xgboost==0.72.1
 xlrd==1.1.0
 XlsxWriter==1.0.5
+cryptography==2.3
 
 ## C-backends (under Anaconda use `conda` to install them)
 #
@@ -47,7 +48,7 @@ Pillow
 #
 ipython_genutils
 python-gnupg
-## Win+Cygwin support, new packed-ref header format 
+## Win+Cygwin support, new packed-ref header format
 #  (gitpython-developers/GitPython#689)
 gitpython >= 2.1.8
 transitions >= 0.5.0    ## prepare/finally cbs

@@ -20,6 +20,7 @@ Modules:
     dill
     excel
     schema
+    ta
     validations
     constants
 """

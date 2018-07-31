@@ -48,8 +48,8 @@ def overwrite_declaration_config_data(data):
     return res
 
 
-def hard_validation(data, usage, stage, cycle, *args):
-    if usage in ('input', 'target'):
+def hard_validation(data, usage, stage=None, cycle=None, *args):
+    if usage in ('input', 'target', 'meta'):
         checks = (
             _check_sign_currents,
             # _check_initial_temperature,

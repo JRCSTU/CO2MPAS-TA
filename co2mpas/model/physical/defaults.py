@@ -95,8 +95,11 @@ class Values(co2_utl.Constants):
     #: [A].
     alternator_off_threshold = -1.0
 
-    #: Air density [kg/m3].
-    air_density = 1.2
+    #: Air temperature [°C].
+    air_temperature = 20
+
+    #: Atmospheric pressure [kPa].
+    atmospheric_pressure = 101.325
 
     #: Has the vehicle a roof box? [-].
     has_roof_box = False

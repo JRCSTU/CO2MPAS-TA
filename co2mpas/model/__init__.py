@@ -44,7 +44,7 @@ _prediction_data = [
     'has_lean_burn', 'ki_additive', 'ki_multiplicative', 'n_wheel_drive',
     'has_periodically_regenerating_systems', 'n_dyno_axes',
     'has_selective_catalytic_reduction', 'has_exhausted_gas_recirculation',
-    'start_stop_activation_time'
+    'start_stop_activation_time', 'engine_n_cylinders'
 ]
 
 _prediction_data_ts = ['times', 'velocities', 'gears']

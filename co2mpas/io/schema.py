@@ -166,10 +166,10 @@ def validate_plan(plan, engineering_mode, soft_validation, use_selector):
     return validated_plan
 
 
-def _validate_base_with_schema(data):
+def _validate_base_with_schema(data, depth=4):
     read_schema = define_data_schema(read=True)
     inputs, errors, validate = {}, {}, read_schema.validate
-    for k, v in sorted(sh.stack_nested_keys(data, depth=4)):
+    for k, v in sorted(sh.stack_nested_keys(data, depth=depth)):
         d = sh.get_nested_dicts(inputs, *k[:-1])
         _add_validated_input(d, validate, k, v, errors)
 
@@ -187,6 +187,20 @@ def validate_base(data, engineering_mode, soft_validation, use_selector):
         return sh.NONE
 
     return {'.'.join(k): v for k, v in sh.stack_nested_keys(i, depth=3)}
+
+
+def validate_meta(data, soft_validation):
+    i, e = _validate_base_with_schema(data, depth=2)
+    if not soft_validation:
+        from . import validations
+        for k, v in sorted(sh.stack_nested_keys(i, depth=1)):
+            for c, msg in validations.hard_validation(v, 'meta'):
+                sh.get_nested_dicts(e, *k)[c] = SchemaError([], [msg])
+
+    if _log_errors_msg(e):
+        return sh.NONE
+
+    return i
 
 
 def validate_flags(flags):
@@ -858,7 +872,9 @@ def define_flags_schema(read=True):
         _compare_str('input_version'): string,
         _compare_str('vehicle_family_id'): vehicle_family_id(read=read),
         _compare_str('modelconf'): isfile,
+        _compare_str('encryption_keys'): string,
 
+        _compare_str('encrypt_inputs'): _bool,
         _compare_str('soft_validation'): _bool,
         _compare_str('use_selector'): _bool,
         _compare_str('engineering_mode'): _bool,

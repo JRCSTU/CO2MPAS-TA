@@ -299,29 +299,16 @@ def sub_models():
     models = {}
 
     from ..physical.engine.thermal import thermal
-    d = thermal()
-    d.add_function(
-        function=split_engine_coolant_temperatures,
-        inputs=['engine_coolant_temperatures', 'engine_thermostat_temperature'],
-        outputs=['engine_coolant_temperatures_cold',
-                 'engine_coolant_temperatures_hot']
-    )
-
     models['engine_coolant_temperature_model'] = {
-        'd': d,
+        'd': thermal(),
         'models': ['engine_temperature_regression_model',
                    'max_engine_coolant_temperature'],
         'inputs': ['times', 'accelerations', 'final_drive_powers_in',
-                   'engine_speeds_out_hot', 'initial_engine_temperature',
-                   'engine_thermostat_temperature'],
-        'outputs': ['engine_coolant_temperatures_cold',
-                    'engine_coolant_temperatures_hot'],
-        'targets': ['engine_coolant_temperatures'] * 2,
-        'names': ['cold', 'hot'],
-        'metrics': [metric_engine_coolant_temperature_model_cold,
-                    metric_engine_coolant_temperature_model_hot],
-        'weights': [3, 1],
-        'up_limit': [8, 3],
+                   'engine_speeds_out_hot', 'initial_engine_temperature'],
+        'outputs': ['engine_coolant_temperatures'],
+        'targets': ['engine_coolant_temperatures'],
+        'metrics': [sk_met.mean_absolute_error],
+        'up_limit': [3],
     }
 
     from ..physical.engine.start_stop import start_stop
