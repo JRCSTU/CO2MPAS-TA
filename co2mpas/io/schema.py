@@ -61,6 +61,7 @@ def check_data_version(flag):
 
 
 def _ta_mode(data):
+    data = data.copy()
     base, errors = _validate_base_with_schema(data.get('base', {}))
 
     if _log_errors_msg(errors):
