@@ -271,7 +271,7 @@ def default_vehicle_name(fpath):
     return osp.splitext(osp.basename(fpath))[0]
 
 
-def default_output_file_name(output_folder, fname, timestamp):
+def default_output_file_name(output_folder, fname, timestamp, ext='xlsx'):
     """
     Returns the output file name.
 
@@ -294,7 +294,7 @@ def default_output_file_name(output_folder, fname, timestamp):
     """
     ofname = osp.join(output_folder, '%s-%s' % (timestamp, fname))
 
-    return '%s.xlsx' % ofname
+    return '%s.%s' % (ofname, ext)
 
 
 def _add2summary(total_summary, summary, base_keys=None):
@@ -709,9 +709,11 @@ def run_base():
         outputs=['report', 'summary'],
     )
 
-    from .io.ta import ta
-    d.add_data('encrypt_inputs', True)
-    d.add_data('encryption_keys', './dice.co2mpas.keys')
+    from .io.ta import write_ta_output
+    from .conf import defaults
+    dfl = defaults.io_constants_dfl
+    d.add_data('encrypt_inputs', dfl.ENCRYPT_INPUTS)
+    d.add_data('encryption_keys', dfl.ENCRYPTION_KEYS_PATH)
     d.add_function(
         function=sh.add_args(ta()),
         inputs=['type_approval_mode', 'encrypt_inputs', 'encryption_keys',

@@ -190,5 +190,11 @@ class Constants(utl.Constants):
     #: Data to be parsed from the input when declaration mode is enabled.
     DECLARATION_SELECTOR_CONFIG = {'config': dict.fromkeys(models_id, value)}
 
+    #: Encrypt inputs?
+    ENCRYPT_INPUTS = True
+
+    #: Encryption keys path.
+    ENCRYPTION_KEYS_PATH = './dice.co2mpas.keys'
+
 
 con_vals = Constants()
