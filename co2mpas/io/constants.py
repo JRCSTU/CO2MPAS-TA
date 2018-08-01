@@ -77,6 +77,9 @@ calibration = {
     'battery_currents': True,
     'cycle_name': True,
     'cycle_type': True,
+    'battery_voltage': True,
+    'fuel_heating_value': True,
+    'atct_family_correction_factor': True
 }
 
 prediction = {
@@ -133,7 +136,10 @@ prediction = {
     'gears': True,
     'bag_phases': True,
     'cycle_name': True,
-    'cycle_type': True
+    'cycle_type': True,
+    'battery_voltage': True,
+    'fuel_heating_value': True,
+    'atct_family_correction_factor': True
 }
 
 models_id = (
