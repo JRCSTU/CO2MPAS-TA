@@ -252,7 +252,7 @@ class ReporterSpec(baseapp.Spec):
                     raise CmdException(msg)
             rtuples.append((fpath, 'inp', OrderedDict([
                 ('vehicle_family_id', file_vfid),
-                ('timestamp', osp.getmtime(fpath)),
+                ('timestamp', int(osp.getmtime(fpath))),
             ])))
 
             if inp_data:
