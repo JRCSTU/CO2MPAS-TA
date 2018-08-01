@@ -289,10 +289,11 @@ def define_ta_id(vehicle_family_id, data, report):
     return key
 
 
-def extract_dice_report(vehicle_family_id, start_time, report):
+def extract_dice_report(encrypt_inputs, vehicle_family_id, start_time, report):
     from co2mpas import version
     res = {
         'info': {
+            'encrypt_inputs': encrypt_inputs,
             'vehicle_family_id': vehicle_family_id,
             'CO2MPAS_version': version,
             'datetime': start_time.strftime('%Y/%m/%d-%H:%M:%S')
@@ -356,7 +357,7 @@ def crypto():
 
     dsp.add_function(
         function=extract_dice_report,
-        inputs=['vehicle_family_id', 'start_time', 'report'],
+        inputs=['encrypt_inputs', 'vehicle_family_id', 'start_time', 'report'],
         outputs=['dice_report']
     )
 
