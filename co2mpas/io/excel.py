@@ -9,7 +9,6 @@
 It contains functions to read/write inputs/outputs from/on excel.
 """
 
-
 import logging
 import math
 import collections
@@ -23,9 +22,7 @@ import json
 import os.path as osp
 import functools
 
-
 log = logging.getLogger(__name__)
-
 
 _base_params = r"""
     ^((?P<scope>base)(\.|\s+))?
@@ -51,14 +48,13 @@ _meta_params = r"""
     ^(?P<scope>meta)(\.|\s+)((?P<meta>.+)(\.|\s+))?((?P<param>[^\s.]+))\s*$
 """
 
-
 _plan_params = r"""
     ^(?P<scope>plan)(\.|\s+)(
      (?P<index>(id|base|run_base))\s*$
      |
 """ + _flag_params.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
      |
-""" + _meta_params.replace('<scope>', '<v_scope>').replace('^(', '(')+ r"""
+""" + _meta_params.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
      |
 """ + _base_params.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
      )
@@ -113,9 +109,7 @@ _re_input_sheet_name = regex.compile(
     regex.IGNORECASE | regex.X | regex.DOTALL
 )
 
-
 _re_space_dot = regex.compile('(\s*\.\s*|\s+)')
-
 
 _xl_ref = {
     'pa': '#%s!B2:C_:["pipe", ["dict", "recurse"]]',
@@ -138,7 +132,6 @@ def _get_sheet_type(
 
 
 def _parse_sheet(match, sheet, sheet_name, res=None):
-
     if res is None:
         res = {}
 
@@ -248,6 +241,10 @@ def _parse_values(data, default=None, where=''):
     default = default or {}
     for k, v in data.items():
         match = _re_params_name.match(k) if k is not None else None
+        if not match and default.get('scope') == 'meta':
+            match = _re_params_name.match(
+                '.'.join(filter(bool, ('meta', default.get('meta'), k)))
+            )
         if not match:
             log.warning("Parameter '%s' %s cannot be parsed!", k, where)
             continue
@@ -697,7 +694,7 @@ def _chart2excel(writer, sheet, charts):
             n = int(i / m)
             j = i - n * m
 
-            sheet.add_chart(chart, '%s%d' %(xl_colname(8 * n), 1 + 15 * j))
+            sheet.add_chart(chart, '%s%d' % (xl_colname(8 * n), 1 + 15 * j))
 
 
 def _data_ref(ref):
