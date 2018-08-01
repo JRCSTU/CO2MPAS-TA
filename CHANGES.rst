@@ -7,9 +7,14 @@ CO2MPAS Changes
 
 NEXT RELEASE
 ======================
-v1.9.X X Jul 2018
+v1.9.0b0 31 Aug 2018
 --------------------
-- WebStamp: split-off `vv1.9.0a1` as separate sub-project in sources.
+1st release with new-dice functionality.
+
+
+v1.9.0a2 11 Jul 2018
+--------------------
+- WebStamp: split-off `v1.9.0a1` as separate sub-project in sources.
 
 Model:
 ~~~~~~
