@@ -1460,9 +1460,23 @@ class ConsumerBase:
 
 class PrintConsumer(ConsumerBase):
     """Prints any text-items while checking if all boolean ok."""
+    output_broke = False
+
     def _emit(self, item):
         if not isinstance(item, bool):
-            print(item)
+            try:
+                print(item)
+            except BrokenPipeError as ex:
+                # Ignore broken-pipe in STDOUT (ie when piped to `head`)
+                # for commands with side-effects to go through, and
+                # report only once the situation.
+                #
+                if not self.output_broke:
+                    self.output_broke = True
+                    log = logging.getLogger(__name__)
+                    log.info('Keep running despite closed STDOUT: %s',
+                             ex,
+                             exc_info=log.isEnabledFor(logging.DEBUG))
 
 
 class ListConsumer(ConsumerBase):
