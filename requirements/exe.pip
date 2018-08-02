@@ -20,7 +20,6 @@ xgboost==0.72.1; sys_platform != 'win32'
 xgboost==0.72; sys_platform == 'win32'
 xlrd==1.1.0
 XlsxWriter==1.0.5
-cryptography==2.3
 
 ## C-backends (under Anaconda use `conda` to install them)
 #
@@ -57,3 +56,4 @@ PySocks >= 1.6.7        ## more proxy-error messages (#7)
 parsedatetime
 validate_email          ## dice: distinguish EWS fields
 Unidecode               ## dice: convert non-ASCII for tstamper.
+cryptography            ## for new-dice
