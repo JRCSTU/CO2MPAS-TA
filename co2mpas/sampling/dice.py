@@ -11,11 +11,11 @@ Main CO2MPAS dice command to prepare/sign/send/receive/validate/archive ...
 Type Approval sampling emails of *co2mpas*.
 """
 from co2mpas._vendor import traitlets as trt
-from co2mpas.sampling import (
+from . import (
     __version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
     baseapp, CmdException)
-from co2mpas.sampling.baseapp import (APPNAME, Cmd,
-                                      chain_cmds)  # @UnusedImport
+from .baseapp import (APPNAME, Cmd,
+                      chain_cmds)  # @UnusedImport
 from collections import OrderedDict
 from typing import Sequence, Text, List, Tuple  # @UnusedImport
 import logging
@@ -105,7 +105,7 @@ class Co2diceCmd(Cmd):
 ## INFO: Add all CMDs here.
 #
 def all_cmds():
-    from co2mpas.sampling import cfgcmd, project, report, tstamp, tsigner
+    from . import cfgcmd, project, report, tstamp, tsigner
     from co2mpas import tkui
     return (
         (
@@ -128,7 +128,7 @@ def all_cmds():
 ## INFO: Add all SPECs here.
 #
 def all_app_configurables() -> Tuple:
-    from co2mpas.sampling import crypto, project, report, tstamp, tsigner
+    from . import crypto, project, report, tstamp, tsigner
     ## TODO: specs maybe missing from all-config-classes.
     all_config_classes = all_cmds() + (
         baseapp.Spec,
@@ -151,12 +151,12 @@ def all_app_configurables() -> Tuple:
 ####################################
 
 
-def main(argv=None, **app_init_kwds):
+def run(argv=(), **app_init_kwds):
     """
     Handles some exceptions politely and returns the exit-code.
 
     :param argv:
-        If `None`, use :data:`sys.argv`; use ``[]`` to explicitly use no-args.
+        Cmd-line arguments, nothing assumed if nothing given.
     """
     from co2mpas import __main__ as cmain
 
@@ -195,13 +195,6 @@ def main(argv=None, **app_init_kwds):
         log.debug('App failed due to: %r', ex, exc_info=1)
         ## Print stacktrace to stderr and exit-code(-1).
         return cmain.exit_with_pride(ex, logger=log)
-
-
-if __name__ == '__main__':
-    if __package__ is None:
-        __package__ = "co2mpas.sampling"  # @ReservedAssignment
-
-    sys.exit(main())  # Use sys.argv.
 
     ## DEBUG AID ARGS, remember to delete them once developed.
     #argv = ''.split()
