@@ -177,7 +177,12 @@ Fix
 - (clutch): Correct bug when `LOCKUP_SPEED_RATIO == 0`.
 
 
-v1.9.0b0 31 Aug 2018
+v1.9.0b1 2 Aug 2018
+--------------------
+More input-data, new-dice and small model changes.
+
+
+v1.9.0b0 31 Jul 2018
 --------------------
 1st release with new-dice functionality.
 
