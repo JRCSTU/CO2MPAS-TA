@@ -193,6 +193,11 @@ def init_logging(level=None, frmt=None, logconf_file=None,
     if no_args and osp.exists(default_logconf_file):
         logconf_file = default_logconf_file
 
+    ## Monkeypatch `colorama` to fix invalid chars when STDOUT piped,
+    #  see  https://github.com/JRCSTU/co2mpas/issues/475.
+    from co2mpas.utils import logconfutils as lcu
+    lcu.patch_colorama_not_to_wrap_stdout()
+
     if logconf_file:
         from logging import config as lcfg
 
