@@ -6,7 +6,15 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 #
+import logging
 import sys
+
+
+def _set_numpy_logging():
+    rlog = logging.getLogger()
+    if not rlog.isEnabledFor(logging.DEBUG):
+        import numpy as np
+        np.seterr(divide='ignore', invalid='ignore')
 
 
 def _colorama_init(autoreset=False, convert=None, strip=None, wrap=True):

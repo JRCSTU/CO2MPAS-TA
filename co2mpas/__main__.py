@@ -174,13 +174,7 @@ class CmdException(Exception):
 default_logconf_file = osp.expanduser(osp.join('~', '.co2_logconf.yaml'))
 
 
-def _set_numpy_logging():
-    rlog = logging.getLogger()
-    if not rlog.isEnabledFor(logging.DEBUG):
-        import numpy as np
-        np.seterr(divide='ignore', invalid='ignore')
-
-
+## TODO: move `init_logging()` to `utils.logconfutils`.
 def init_logging(level=None, frmt=None, logconf_file=None,
                  color=False, default_logconf_file=default_logconf_file,
                  not_using_numpy=False, **kwds):
@@ -252,7 +246,7 @@ def init_logging(level=None, frmt=None, logconf_file=None,
         logconf_src = 'explicit(level=%s)' % level
 
     if not not_using_numpy:
-        _set_numpy_logging()
+        lcu._set_numpy_logging()
 
     logging.captureWarnings(True)
 

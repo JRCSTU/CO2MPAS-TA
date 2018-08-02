@@ -361,14 +361,14 @@ def run_python_job(job_name, function, cmd_args, cmd_kwds, stdout=None, stderr=N
 
     Suitable to be run within a thread.
     """
-    from .utils import stds_redirected
+    from .utils import stds_redirected, logconfutils as lcu
     import schedula
 
     ## Numpy error-config is on per-thread basis:
     #    https://docs.scipy.org/doc/numpy/reference/ufuncs.html#error-handling
     #  So replicate :func:`cmain.init_logging()` logic also here.
     #
-    cmain._set_numpy_logging()
+    lcu._set_numpy_logging()
 
     ex = None
     with stds_redirected(stdout, stderr) as (stdout, stderr):
