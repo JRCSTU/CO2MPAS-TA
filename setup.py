@@ -184,7 +184,7 @@ setup(
         'openpyxl>=2.4.0',
         'Pillow',           # for tkui
         'toolz',
-        'schedula[plot]>=0.2.2',     # Fix description.
+        'schedula[plot]>=0.2.3',     # Fix description.
         'formulas>=0.0.10',
         'contextvars',              # for co2mpare, backported for <PY37.
         'xgboost',                  # Pure-python boost also works.

@@ -160,7 +160,7 @@ def generate_keys(key_folder, passwords=None):
     for fpath, v in it:
         with tarfile.open(osp.join(key_folder, fpath), 'w') as tar:
             for k in v:
-                path = '%s.pem' % osp.join(*k[::-1])
+                path = '%s.pem' % '/'.join(k[::-1])
                 write_tar(tar, path, sh.get_nested_dicts(keys, *k))
 
 

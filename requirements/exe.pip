@@ -11,7 +11,7 @@ networkx==2.1
 numpy==1.14.3  # MKL!
 openpyxl==2.5.3
 pandas==0.23.0
-schedula[plot]==0.2.2
+schedula[plot]==0.2.3
 schema==0.6.7
 scikit-learn==0.19.1
 scipy==1.1.0

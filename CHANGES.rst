@@ -247,7 +247,7 @@ testing :gh:`375`:
 
 
 v1.8.0a1, 12 Jun 2018
---------------------
+---------------------
 - FIX dice, did not start due to `polyversion` not being engraved.
 - The :envvar:`CO2MPARE_ENABLED` fails with::
 
