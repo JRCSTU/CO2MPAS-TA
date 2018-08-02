@@ -16,6 +16,9 @@ import schedula as sh
 import co2mpas.utils as co2_utl
 from . import constants
 import functools
+import logging
+
+log = logging.getLogger(__name__)
 
 
 def select_declaration_data(data, diff=None):
@@ -57,7 +60,7 @@ def hard_validation(data, usage, stage=None, cycle=None, *args):
             _check_ki_factor,
             _check_prediction_gears_not_mt,
             _check_lean_burn_tech,
-            # _check_vva,
+            _warn_vva,
             _check_scr,
             _check_has_torque_converter
         )
@@ -177,13 +180,13 @@ def _check_ki_factor(data, *args):
     elif not has_prs:
         if data.get(s[1], 1) > 1:
             msg = "Please since `ki_multiplicative` is > 1 set " \
-              "`has_periodically_regenerating_systems = True` or set " \
-              "`ki_multiplicative = 1`!"
+                  "`has_periodically_regenerating_systems = True` or set " \
+                  "`ki_multiplicative = 1`!"
             return s, msg
         elif data.get(s[2], 0) > 0:
             msg = "Please since `ki_additive` is > 0 set " \
-              "`has_periodically_regenerating_systems = True` or set " \
-              "`ki_additive = 0`!"
+                  "`has_periodically_regenerating_systems = True` or set " \
+                  "`ki_additive = 0`!"
             return s, msg
 
 
@@ -232,17 +235,21 @@ def _check_lean_burn_tech(data, usage, stage, cycle, *args):
         return s, msg
 
 
-def _check_vva(data, usage, stage, cycle, *args):
+def _warn_vva(data, usage, stage, cycle, *args):
     s = ('engine_has_variable_valve_actuation', 'ignition_type')
     it = _get_engine_model(s[1:]).dispatch(data, outputs=s[1:]).get(s[1], None)
     from ..model.physical.defaults import dfl
     has_vva = data.get(s[0], dfl.values.engine_has_variable_valve_actuation)
     if has_vva and it not in ('positive', None):
-        msg = "`engine_has_variable_valve_actuation` cannot be enable with " \
-              "`ignition_type = '%s'`." \
-              "Hence, set `engine_has_variable_valve_actuation = False` or " \
-              "set `ignition_type = 'positive'`!" % it
-        return s, msg
+        msg = "Please, ensure that the input combination " \
+              "`engine_has_variable_valve_actuation = True` and " \
+              "`ignition_type = '%s'` is correct. If it is intentionally " \
+              "added, you can neglect this warning. Otherwise, please " \
+              "correct the input setting " \
+              "`engine_has_variable_valve_actuation = False` or setting " \
+              "`ignition_type = 'positive'`!" % it
+
+        log.warning(msg)
 
 
 def _check_scr(data, usage, stage, cycle, *args):
