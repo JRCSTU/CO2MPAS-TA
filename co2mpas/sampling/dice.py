@@ -170,9 +170,15 @@ def run(argv=(), **app_init_kwds):
     import schema
     import transitions
 
-    ## At these early stages, any log cmd-line option
-    #  enable DEBUG logging ; later will be set by `baseapp` traits.
-    log_level = logging.DEBUG if cmain.is_any_log_option(argv) else None
+    ## Decide log-level.
+    #  NOTE that the use of any `--verbose` option,
+    #  will override log-level, by setting :attr:`Spec.verbose` trait to True.
+    #
+    from co2mpas .utils import logconfutils as lcu
+    log_level, argv = lcu.log_level_from_argv(
+        argv,
+        start_level=20,  # 10=DEBUG, 20=INFO, 30=WARNING, ...
+        eliminate_verbose=False, eliminate_quiet=True)
 
     cmain.init_logging(level=log_level, color=True, not_using_numpy=True)
     log = logging.getLogger(APPNAME)

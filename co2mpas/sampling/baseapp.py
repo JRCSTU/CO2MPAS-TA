@@ -385,17 +385,28 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
         (trt.Integer(0), trt.Bool(False)),
         ## INFO: Add verbose flag explanations here.
         help="""
-        Make various sub-commands increase their verbosity (not to be confused with --debug):
+        Make various sub-commands increase their verbosity (not confused with --debug):
         Can be a boolean or 0, 1(==True), 2, ....
 
+        Interaction with --quiet/-q option:
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        Some examples of combining --verbose with the --quiet cli-option:
+            co2dice project ls -q      # log-level >= WARNING
+            co2dice project ls -qq     # log-level >= ERROR
+            co2dice project ls -v      # enable "verbose" flag AND lower log-level (>= DEBUG)
+            co2dice project ls -vq     # "verbose" and `-q` cancel- out `-v`,
+                                       # to keep default log-level >= INFO
+            co2dice project ls -vqqq   # "verbose" and log >= ERROR
+
         SubCommands using this flag:
-        ~~~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         `project list/status`
             List project with the "long" format, include infos about the repo (when 2).
         `tstamp`
             Print SMTP/IMAP connection messages exchanged (WARN: passwords revealed!).
         `project init/open/append/tstamp`
-            Print committed-msg instead of try/false/proj-name (WARN: passwords revealed, see above!).
+            Print committed-msg instead of try/false/proj-name
+            (WARN: passwords revealed, see above!).
         `config show` and `config desc`
             Print class-parameters from the whole hierarchy, including those
             from intermediate classes.

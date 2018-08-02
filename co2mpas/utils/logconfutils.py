@@ -65,3 +65,67 @@ def patch_colorama_not_to_wrap_stdout():
     import colorama
 
     colorama.init = _colorama_init
+
+
+def _count_multiflag_in_argv(args, short, long, eliminate=False):
+    """
+    Match flags in `argvs` list, in short/long form, and optionally remove them.
+
+    :param eliminate:
+        If true, returned flags will have those matching, removed.
+    :return:
+        the 2-tuple (num-of-matches, new-args) where `new-args` possibly
+        have flags missing.
+    """
+    import re
+
+    long = '--%s' % long
+    nmatches = 0
+    new_args = []
+    for flag in args:
+        if flag == long:
+            nmatches += 1
+            if eliminate:
+                continue
+
+        elif re.match('^-[a-z]+', flag, re.I):
+            nmatches += flag.count(short)
+            if eliminate:
+                flag = flag.replace(short, '')
+                if flag == '-':
+                    continue
+
+        new_args.append(flag)
+
+    return nmatches, new_args
+
+
+def log_level_from_argv(args,
+                        start_level: int,
+                        eliminate_verbose=False,
+                        eliminate_quiet=False,
+                        verbosity_step=10):
+    """
+    :param start_level_index:
+        some existing level
+    :return:
+        a 2-tuple (level, new_args), where `new_args` is
+        the updated list of args
+    """
+    if not isinstance(start_level, int):
+        raise ValueError(
+            "Expecting an *integer* for logging level, got '%s'!" % start_level)
+    if not args:
+        return start_level, args
+
+    levels = list(sorted(logging._levelToName))
+
+    nverbose, new_args = _count_multiflag_in_argv(args, 'v', 'verbose',
+                                                  eliminate_verbose)
+    nquiet, new_args = _count_multiflag_in_argv(new_args, 'q', 'quiet',
+                                                eliminate_quiet)
+
+    level = start_level + verbosity_step * (nquiet - nverbose)
+    level = max(0, min(levels[-1], level))
+
+    return level, new_args
