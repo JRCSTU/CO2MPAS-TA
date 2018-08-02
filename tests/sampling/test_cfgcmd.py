@@ -8,7 +8,7 @@
 
 from co2mpas.__main__ import init_logging
 from co2mpas.sampling import cfgcmd
-from co2mpas.sampling.baseapp import pump_cmd, collect_cmd
+from co2mpas.sampling.baseapp import collect_cmd
 import logging
 import os
 import unittest
