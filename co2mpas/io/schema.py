@@ -74,7 +74,8 @@ def _ta_mode(data):
 
     diff -= {('flag', 'input_version'),
              ('flag', 'vehicle_family_id'),
-             }
+             ('flag', 'encrypt_inputs'),
+             ('flag', 'encryption_keys')}
 
     if diff:
         diff = ['.'.join(k) for k in sorted(diff)]

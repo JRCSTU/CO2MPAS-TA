@@ -10,6 +10,7 @@ It provides CO2MPAS-TA output model.
 """
 import io
 import os
+import copy
 import yaml
 import zlib
 import json
@@ -35,7 +36,7 @@ def _json_default(o):
     elif isinstance(o, lmfit.Parameter):
         return {'__parameter__': o.__getstate__()}
     elif isinstance(o, bytes):
-        return {'__bytes__': o.decode("utf-8")}
+        return {'__bytes__': str(o)}
     raise TypeError("Object of type '%s' is not JSON serializable" %
                     o.__class__.__name__)
 
@@ -48,7 +49,7 @@ def _json_object_hook(dct):
         _par.__setstate__(dct['__parameter__'])
         return _par
     elif '__bytes__' in dct:
-        return dct['__bytes__'].encode('utf-8')
+        return eval(dct['__bytes__'])
     return dct
 
 
@@ -220,9 +221,9 @@ def aes_decrypt(data, associated_data, key, iv, tag):
 def encrypt_data(encrypt_inputs, data, path_keys):
     if encrypt_inputs and osp.isfile(path_keys):
         rsa = load_public_RSA_keys(path_keys)
-        plaintext = zlib.compress(yaml.dump(data).encode())
+        plaintext = zlib.compress(yaml.safe_dump(data).encode())
         key, data = aes_encrypt(plaintext, define_associated_data(rsa))
-        key = rsa_encrypt(rsa['secret'], yaml.dump(key).encode())
+        key = rsa_encrypt(rsa['secret'], yaml.safe_dump(key).encode())
         verify = rsa_encrypt(rsa['server'], make_hash(key, data))
         return {'verify': verify, 'encrypted': {'key': key, 'data': data}}
 
@@ -244,7 +245,7 @@ def decrypt_data(encrypted_data, path_keys, passwords=None):
 def _save_data(fpath, **data):
     with tarfile.open(fpath, 'w') as tar:
         for k, v in data.items():
-            write_tar(tar, k, yaml.dump(v).encode())
+            write_tar(tar, k, yaml.safe_dump(v).encode())
     log.info('Written into ta-file(%s)...' % fpath)
     return fpath
 
@@ -289,10 +290,11 @@ def define_ta_id(vehicle_family_id, data, report):
     return key
 
 
-def extract_dice_report(vehicle_family_id, start_time, report):
+def extract_dice_report(encrypt_inputs, vehicle_family_id, start_time, report):
     from co2mpas import version
     res = {
         'info': {
+            'encrypt_inputs': encrypt_inputs,
             'vehicle_family_id': vehicle_family_id,
             'CO2MPAS_version': version,
             'datetime': start_time.strftime('%Y/%m/%d-%H:%M:%S')
@@ -329,7 +331,25 @@ def extract_dice_report(vehicle_family_id, start_time, report):
         sh.get_nested_dicts(res, 'model_scores').update(sh.selector(
             model_scores, sh.get_nested_dicts(report, *keys), allow_miss=True
         ))
+
+    res = copy.deepcopy(res)
+    for k, v in list(stack(res)):
+        if isinstance(v, np.generic):
+            sh.get_nested_dicts(res, *k[:-1])[k[-1]] = v.item()
+
     return res
+
+
+def stack(d, key=()):
+    it = ()
+    if hasattr(d, 'items'):
+        it = d.items()
+    elif isinstance(d, list):
+        it = enumerate(d)
+    else:
+        yield key, d
+    for k, v in it:
+        yield from stack(v, key=key + (k,))
 
 
 @functools.lru_cache()
@@ -356,7 +376,7 @@ def crypto():
 
     dsp.add_function(
         function=extract_dice_report,
-        inputs=['vehicle_family_id', 'start_time', 'report'],
+        inputs=['encrypt_inputs', 'vehicle_family_id', 'start_time', 'report'],
         outputs=['dice_report']
     )
 
@@ -424,8 +444,8 @@ def define_decrypt_function(path_keys, passwords=None):
 
 
 if __name__ == '__main__':
-    passwords = None # ('12345', '67890')
-    #generate_keys('.', passwords)
+    passwords = None  # ('12345', '67890')
+    # generate_keys('.', passwords)
     func = define_decrypt_function('secret.co2mpas.keys', passwords)
-    r = func('output/20180731_153827-IP-04-YV1-2017-0002.co2mpas.ta')
+    r = func('20180801_185906-IP-TEST_1234567890-AAA-1.co2mpas.ta')
     r = 0

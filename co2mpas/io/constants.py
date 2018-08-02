@@ -9,6 +9,7 @@
 """
 It provides constants for the CO2MPAS validation formulas.
 """
+import os
 import co2mpas.utils as utl
 
 calibration = {
@@ -200,7 +201,9 @@ class Constants(utl.Constants):
     ENCRYPT_INPUTS = True
 
     #: Encryption keys path.
-    ENCRYPTION_KEYS_PATH = './dice.co2mpas.keys'
+    ENCRYPTION_KEYS_PATH = os.environ.get(
+        'ENCRYPTION_KEYS_PATH', './dice.co2mpas.keys'
+    )
 
 
 con_vals = Constants()

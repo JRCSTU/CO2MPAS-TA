@@ -7,6 +7,176 @@ CO2MPAS Changes
 
 NEXT RELEASE
 ======================
+
+Model:
+------
+
+Feat
+~~~~
+- (io) :gh:`466`, :gh:`467`: Add meta scope to the input data.
+
+- (ta) :gh:`480`: New ta output file.
+
+- (vehicle): Add function calculate_air_density.
+
+- (vehicle) :gh:`440`: Avoid using `KalmanFilter` to filter the
+  `obd_velocities`.
+
+- (vehicle): Add function to calculate angle slopes from elevations.
+
+- (summary): Add sub-model scores.
+
+- (thermal) :gh:`458`: Add the thermal derivative spacing and degree of
+  the smoothing spline to defaults.
+
+- (core): Improve performances of `identify_gears` function.
+
+- (clutch) :gh:`464`: Cache support_mask of `_SelectFromModel`.
+
+- (engine) :gh:`425`: Add `propane` and `methanol` as fuel types + new
+  input `obd_fuel_type_code`.
+
+- (co2_emissions) :gh:`460`: Add `engine_n_cylinders` as input value.
+
+- (docker): Add dockerfile.
+
+- (co2_params): In declaration mode disable `calibrate_co2_params_all`.
+
+- (physical): Update prediction loop using all prediction models.
+
+- (cvt): Add a CVT class model.
+
+- (manual) :gh:`319`: Add a manual prediction model according GTR.
+
+- (engine): Add engine prediction model.
+
+- (s/s): Add start/stop prediction model.
+
+- (thermal): Add a thermal prediction model.
+
+- (electrics): Add a electrics prediction model.
+
+- (final_drive): Add a final drive prediction model.
+
+- (wheel): Add a wheel prediction model.
+
+- (gearbox): Make optimization loop of CMV model optional (30% faster).
+
+- (core): Improve calibration performances 60% using `xgboost` instead
+  `GradientBoostingRegressor`.
+
+- (gb): Add function to calculate the maximum velocity.
+
+- (vehicle): Add functions to calculate the vehicle mass from curb mass.
+
+- (final_drive): Simplify `calculate_final_drive_ratios` using `n_gears`
+  instead keys of `gear_box_ratios` or `velocity_speed_ratios`.
+
+- (gear_box): Add functions to design gearbox ratios when they cannot be
+  identified.
+
+
+Fix
+~~~
+- (gear_box): Remove FutureWarning of `np.linalg.lstsq`.
+
+- (co2_emissions) :gh:`460`: Add engine_n_cylinders as ta parameter.
+
+- (co2mpas_template.xlsx) :gh:`467`: Add additional sheets for meta
+  data.
+
+- (selector) :gh:`427`: Fix the execution order of the gear model
+  selection.
+
+- (vehicle): Ensure to have increasing distances calculating angle
+  slopes from elevations.
+
+- (vehicle): Set `random_state=0` to KalmanFilter.
+
+- (at): Correct `correct_gear_full_load` method using the best gear
+  instead the minimum when there is not sufficient power.
+
+- (engine) :gh:`470`: Do not define a IdleDetector when there are not
+  idling phases.
+
+- (io) :gh:`470`: Remove future warning of pandas when concatenating
+  dfs.
+
+- (S/S) :gh:`470`: Ensure to use the fake S/S model when on_engine is
+  given.
+
+- (selector): Avoid mistakes in selecting targets.
+
+- (lmfit): Update lmfit version (`minimize` bug is solved) + delete
+  patch.
+
+- (final_drive, io): Replace default value None with EMPTY to avoid the
+  error in output.
+
+- (vehicle) :gh:`455`: Default `n_dyno_axes` as function of
+  `n_wheel_drive` for wltp (4wd-->2d, 2wd-->1d).
+
+- (gear_box): Fix calculation of max velocity was returning nan.
+
+- (clutch) :gh:`464`: Add disable identification of the clutch window in
+  favour of a default.
+
+- (vva) :gh:`452`: Remove `_check_vva`.
+
+- (cold_start) :gh:`453`: Change optimization and metric of
+  `cold_start_speed_model` weighted mean absolute error.
+
+- (s/s): Correct prediction of `on_engine` when `has_start_stop=False`.
+
+- (GSPV): Correct calibration when are missing down shifting points.
+
+- (s/s): Add missing output `start_stop_activation_time` for model
+  selector.
+
+- (gear_box): Add alternative function to calculate `n_gears`.
+
+- (final_drive): `defaultdict` is not working as expected when invoked
+  with method `get`.
+
+- (ki_factor) :gh:`459`: Rename ki_factor to ki_multiplicative and add
+  ki_additive value.
+
+- (io): Convert old data `engine_max_speed_at_max_power` to new name
+  `engine_speed_at_max_power`.
+
+- (wheels): Remove unused functions.
+
+- (co2): Set `rcond=-1` to stop FutureWarning on `rcond` parameter.
+
+- (default): Rename DefaultStartStopModel with StartStopModel.
+
+- (electrics): Improve calculation of state of charges.
+
+- (io): Correct future warning `reindex_axis` --> `reindex`.
+
+- (start_stop): Disable `start_stop_activation_time` when
+  `has_start_stop == True`.
+
+- (co2_emission): Disable `define_idle_fuel_consumption_model` when
+  `idle_fuel_consumption` is not given.
+
+- (vehicle): Add `vehicle_mass` as output of `vehicle` model.
+
+- (final_drive): Correct type of `n_gears` bug.
+
+- (ta) :gh:`451`: Disable function `define_idle_fuel_consumption_model`
+  and `default_start_stop_activation_time`.
+
+- (vehicle): Add missing input `n_passengers` to physical model.
+
+- (requirements): Update `dill!=0.2.7` requirement.
+
+- (gearbox): Find the best factors to design the gearbox ratios
+  excluding invalid results.
+
+- (clutch): Correct bug when `LOCKUP_SPEED_RATIO == 0`.
+
+
 v1.9.0b0 31 Aug 2018
 --------------------
 1st release with new-dice functionality.
