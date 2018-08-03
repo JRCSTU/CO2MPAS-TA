@@ -1807,7 +1807,38 @@ class ShrinkingOutputMixin(trtc.Configurable):
 
         return txt
 
-class AppendCmd(_SubCmd, ShrinkingOutputMixin):
+
+_shrink_flags_kwd = {
+    'shrink': (
+        {'ShrinkingOutputMixin': {'shrink': True}},
+        "Omit lines of the report to facilitate console reading."
+    ),
+    'no-shrink': (
+        {'ShrinkingOutputMixin': {'shrink': False}},
+        "Print full report - don't omit any lines."
+    ),
+}
+
+
+class FileOutputMixin(trtc.Configurable):
+    write_fpath = trt.Unicode(
+        help="Write report into this file, if given; overwriten if it already exists."
+    ).tag(config=True)
+
+    def write_file(self, txt, wfpath=None):
+        if not wfpath:
+            wfpath = self.write_fpath
+        self.log.info('Writting report into: %s', osp.realpath(wfpath))
+        with open(wfpath, 'wt', encoding='utf-8') as fd:
+            fd.write(txt)
+
+
+_write_fpath_alias_kwd = {
+    ('W', 'write-fpath'): ('FileOutputMixin.write_fpath', FileOutputMixin.write_fpath.help)
+}
+
+
+class AppendCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
     """
     Import the specified input/output co2mpas files into the *current project*.
 
@@ -1844,18 +1875,15 @@ class AppendCmd(_SubCmd, ShrinkingOutputMixin):
         help="When True, proceed to generate report; will fail if files missing"
     ).tag(config=True)
 
-    write_fpath = trt.Unicode(
-        help="If given, the filepath to write the result into; overwriten if exists already."
-    ).tag(config=True)
-
     def __init__(self, **kwds):
         from . import report
 
-        kwds.setdefault('cmd_aliases', {
+        aliases = {
             ('i', 'inp'): ('AppendCmd.inp', AppendCmd.inp.help),
             ('o', 'out'): ('AppendCmd.out', AppendCmd.out.help),
-            ('W', 'write-fpath'): ('AppendCmd.write_fpath', AppendCmd.write_fpath.help),
-        })
+        }
+        aliases.update(_write_fpath_alias_kwd)
+        kwds.setdefault('cmd_aliases', aliases)
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
                 {'Project': {'dry_run': True}},
@@ -1873,14 +1901,7 @@ class AppendCmd(_SubCmd, ShrinkingOutputMixin):
                 {
                     'ReporterSpec': {'include_input_in_dice': True},
                 }, report.ReporterSpec.include_input_in_dice.help),
-            'shrink': (
-                {'ShrinkingOutputMixin': {'shrink': True}},
-                "Omit lines of the report to facilitate console reading."
-            ),
-            'no-shrink': (
-                {'ShrinkingOutputMixin': {'shrink': False}},
-                "Print full report - don't omit any lines."
-            ),
+            **_shrink_flags_kwd,
         })
         super().__init__(**kwds)
 
@@ -1921,11 +1942,8 @@ class AppendCmd(_SubCmd, ShrinkingOutputMixin):
                 key_uid = proj.extract_uid_from_report(result)
                 self.log.info("Report has been signed by '%s'.", key_uid)
 
-                wfile = self.write_fpath
-                if wfile:
-                    self.log.info('Writting report into: %s', osp.realpath(wfile))
-                    with open(wfile, 'wt', encoding='utf-8') as fd:
-                        fd.write(result)
+                if self.write_fpath:
+                    self.write_file(result)
                     yield ok
                 else:
                     yield self.shrink_text(result)
@@ -2000,7 +2018,7 @@ class InitCmd(AppendCmd):
             yield from self.append_and_report(pfiles)
 
 
-class ReportCmd(_SubCmd, ShrinkingOutputMixin):
+class ReportCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
     """
     Prepares or re-prints the signed dice-report that can be sent for timestamping.
 
@@ -2027,18 +2045,12 @@ class ReportCmd(_SubCmd, ShrinkingOutputMixin):
               git -C ~/.codice/repo cat-file tag dices/RL-12-BM3-2016-000/1 | %(cmd_chain)s send
     """)
 
-    write_fpath = trt.Unicode(
-        help="If given, the filepath to write the result into; overwriten if exists already."
-    ).tag(config=True)
-
     def __init__(self, **kwds):
         from . import crypto
         from . import report
 
         kwds.setdefault('conf_classes', [report.ReporterSpec, crypto.GitAuthSpec])
-        kwds.setdefault('cmd_aliases', {
-            ('W', 'write-fpath'): ('ReportCmd.write_fpath', ReportCmd.write_fpath.help),
-        })
+        kwds.setdefault('cmd_aliases', _write_fpath_alias_kwd)
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
                 {
@@ -2050,14 +2062,7 @@ class ReportCmd(_SubCmd, ShrinkingOutputMixin):
                 {
                     'ReporterSpec': {'include_input_in_dice': True},
                 }, report.ReporterSpec.include_input_in_dice.help),
-            'shrink': (
-                {'ShrinkingOutputMixin': {'shrink': True}},
-                "Omit lines of the report to facilitate console reading."
-            ),
-            'no-shrink': (
-                {'ShrinkingOutputMixin': {'shrink': False}},
-                "Print full report - don't omit any lines."
-            ),
+            **_shrink_flags_kwd,
         })
         super().__init__(**kwds)
 
@@ -2089,11 +2094,8 @@ class ReportCmd(_SubCmd, ShrinkingOutputMixin):
             key_uid = proj.extract_uid_from_report(result)
             self.log.info("Report has been signed by '%s'.", key_uid)
 
-        wfile = self.write_fpath
-        if wfile:
-            self.log.info('Writting report into: %s', osp.realpath(wfile))
-            with open(wfile, 'wt', encoding='utf-8') as fd:
-                fd.write(result)
+        if self.write_fpath:
+            self.write_file(result)
 
             yield ok
         else:
@@ -2202,14 +2204,7 @@ class TparseCmd(_SubCmd, ShrinkingOutputMixin):
                 },
                 "Parse the tstamped response without storing it in the project."
             ),
-            'shrink': (
-                {'ShrinkingOutputMixin': {'shrink': True}},
-                "Omit lines of the report to facilitate console reading."
-            ),
-            'no-shrink': (
-                {'ShrinkingOutputMixin': {'shrink': False}},
-                "Print full report - don't omit any lines."
-            ),
+            **_shrink_flags_kwd,
         })
         super().__init__(**kwds)
 
@@ -2323,14 +2318,7 @@ class TrecvCmd(TparseCmd, ShrinkingOutputMixin):
                 {type(self).__name__: {'wait': True}},
                 type(self).wait.help
             ),
-            'shrink': (
-                {'ShrinkingOutputMixin': {'shrink': True}},
-                "Omit lines of the report to facilitate console reading."
-            ),
-            'no-shrink': (
-                {'ShrinkingOutputMixin': {'shrink': False}},
-                "Print full report - don't omit any lines."
-            ),
+            **_shrink_flags_kwd,
         })
         super().__init__(**kwds)
 
