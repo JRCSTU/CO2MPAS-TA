@@ -969,7 +969,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
     # return repo_path
 
     allow_foreign_dice = trt.Bool(
-        help="Storing \"foreign\ dices\" is an advanced operation, "
+        help="Storing \"foreign dices\" is an advanced operation, "
         "corrupting git.")
 
     __repo = None
