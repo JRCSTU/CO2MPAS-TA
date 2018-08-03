@@ -2164,7 +2164,7 @@ class TsendCmd(_SubCmd):
                                    is_verbose=self.verbose or proj.dry_run)
 
 
-class TparseCmd(_SubCmd, ShrinkingOutputMixin):
+class TparseCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
     """
     Derives *decision* OK/SAMPLE flag from tstamped-response, and store it in current-project.
 
@@ -2197,6 +2197,7 @@ class TparseCmd(_SubCmd, ShrinkingOutputMixin):
 
         kwds.setdefault('conf_classes', [
             tstamp.TstampReceiver, crypto.GitAuthSpec, crypto.StamperAuthSpec])
+        kwds.setdefault('cmd_aliases', _write_fpath_alias_kwd)
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
                 {
@@ -2233,7 +2234,10 @@ class TparseCmd(_SubCmd, ShrinkingOutputMixin):
 
         if isinstance(report, str):
             ## That's parsed decision.
-            return self.shrink_text(report)
+            if self.write_fpath:
+                self.write_file(report)
+            else:
+                return self.shrink_text(report)
 
         from toolz import dicttoolz as dtz
 
@@ -2241,10 +2245,13 @@ class TparseCmd(_SubCmd, ShrinkingOutputMixin):
 
         result = self._format_result(short, report, default_flow_style=False)
 
-        return self.shrink_text(result)
+        if self.write_fpath:
+            self.write_file(result)
+        else:
+            return self.shrink_text(result)
 
 
-class TrecvCmd(TparseCmd, ShrinkingOutputMixin):
+class TrecvCmd(TparseCmd, ShrinkingOutputMixin, FileOutputMixin):
     """
     Fetch tstamps from IMAP server, derive *decisions* OK/SAMPLE flags and store them.
 
@@ -2255,6 +2262,8 @@ class TrecvCmd(TparseCmd, ShrinkingOutputMixin):
 
     - The fetching of emails can happen in one-shot or waiting mode.
     - For terms are searched in the email-subject - tip: use the project name(s).
+    - If --write-fpath given, mails are written in separate files derrived from the
+      filepath like <basename>-1<.ext>, ...
     - If --force, ignores most verification/parsing errors.
       that is, when you don't have the files of the projects in the repo.
       With this option, tstamp-response get, it extracts the dice-repot and adds it
@@ -2309,6 +2318,7 @@ class TrecvCmd(TparseCmd, ShrinkingOutputMixin):
             tstamp.TstampSender, tstamp.TstampReceiver,
             crypto.GitAuthSpec, crypto.StamperAuthSpec])
         self.cmd_aliases.update(tstamp.recv_cmd_aliases)
+        self.cmd_aliases.update(_write_fpath_alias_kwd)
         self.cmd_flags.update({
             ('n', 'dry-run'): (
                 {'Project': {'dry_run': True}},
@@ -2337,7 +2347,7 @@ class TrecvCmd(TparseCmd, ShrinkingOutputMixin):
 
         ## IMAP & CmdException raised here.
         emails = rcver.receive_timestamped_emails(self.wait, args, read_only=False)
-        for uid, mail in emails:
+        for i, (uid, mail) in enumerate(emails):
             mid = mail.get('Message-Id')
             mail_text = mail.get_payload()
             try:
@@ -2396,7 +2406,12 @@ class TrecvCmd(TparseCmd, ShrinkingOutputMixin):
                 result = _mydump({'[%s]%s' % (uid, mid): infos},
                                  default_flow_style=default_flow_style)
 
-                yield self.shrink_text(result)
+                if self.write_fpath:
+                    f, e = osp.splitext(self.write_fpath)
+                    wfpath = '%s-%i%s' % (f, i, e)
+                    self.write_file(result, wfpath)
+                else:
+                    yield self.shrink_text(result)
 
             except CmdException as ex:
                 email_dump = _mydump({'[%s]%s' % (uid, mid): all_infos},
