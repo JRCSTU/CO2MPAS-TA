@@ -1781,12 +1781,17 @@ class AppendCmd(_SubCmd):
         help="When True, proceed to generate report; will fail if files missing"
     ).tag(config=True)
 
+    write_file = trt.Unicode(
+        help="If given, the filepath to write the result into; overwriten if exists already."
+    ).tag(config=True)
+
     def __init__(self, **kwds):
         from . import report
 
         kwds.setdefault('cmd_aliases', {
             ('i', 'inp'): ('AppendCmd.inp', AppendCmd.inp.help),
             ('o', 'out'): ('AppendCmd.out', AppendCmd.out.help),
+            ('W', 'write-file'): ('AppendCmd.write_file', AppendCmd.write_file.help),
         })
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
@@ -1839,10 +1844,22 @@ class AppendCmd(_SubCmd):
             ok = proj.do_report()
 
             assert isinstance(proj.result, str)
-            yield ok and proj.result or ok
 
-            key_uid = proj.extract_uid_from_report(proj.result)
-            self.log.info("Report has been signed by '%s'.", key_uid)
+            if ok:
+                result = proj.result
+                key_uid = proj.extract_uid_from_report(result)
+                self.log.info("Report has been signed by '%s'.", key_uid)
+
+                wfile = self.write_file
+                if wfile:
+                    self.log.info('Writting report into: %s', osp.realpath(wfile))
+                    with open(wfile, 'wt', encoding='utf-8') as fd:
+                        fd.write(result)
+                    yield ok
+                else:
+                    yield result
+            else:
+                yield False
 
 
 class InitCmd(AppendCmd):
@@ -1939,11 +1956,18 @@ class ReportCmd(_SubCmd):
               git -C ~/.codice/repo cat-file tag dices/RL-12-BM3-2016-000/1 | %(cmd_chain)s send
     """)
 
+    write_file = trt.Unicode(
+        help="If given, the filepath to write the result into; overwriten if exists already."
+    ).tag(config=True)
+
     def __init__(self, **kwds):
         from . import crypto
         from . import report
 
         kwds.setdefault('conf_classes', [report.ReporterSpec, crypto.GitAuthSpec])
+        kwds.setdefault('cmd_aliases', {
+            ('W', 'write-file'): ('ReportCmd.write_file', ReportCmd.write_file.help),
+        })
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
                 {
@@ -1986,7 +2010,14 @@ class ReportCmd(_SubCmd):
             key_uid = proj.extract_uid_from_report(result)
             self.log.info("Report has been signed by '%s'.", key_uid)
 
-        yield result
+        wfile = self.write_file
+        if wfile:
+            self.log.info('Writting report into: %s', osp.realpath(wfile))
+            with open(wfile, 'wt', encoding='utf-8') as fd:
+                fd.write(result)
+            yield ok
+        else:
+            yield result
 
 
 class TstampCmd(_SubCmd):
