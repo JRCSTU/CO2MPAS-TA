@@ -8,7 +8,7 @@
 ######################################################################
 
 :official:      `AIO-1.7.3 <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v1.7.3>`_ + `co2mpas-1.7.x` (obligatory after 31-Oct-2017)
-:latest:        `1.7.4.post0`
+:latest:        `1.7.4.post1`
 :rel_date:      `2017-12-07 01:31:19`
 :home:          http://co2mpas.io/
 :repository:    https://github.com/JRCSTU/CO2MPAS-TA
@@ -344,7 +344,7 @@ Alternatively, open the CONSOLE and type the following command:
 
     ## Check co2mpas version.
     $ co2mpas -V
-    co2mpas-1.7.4.post0
+    co2mpas-1.7.4.post1
 
 
 |co2mpas| command syntax
@@ -1343,7 +1343,7 @@ Install |co2mpas| package
         Downloading http://pypi.co2mpas.io/packages/co2mpas-...
         ...
         Installing collected packages: co2mpas
-        Successfully installed co2mpas-1.7.4.post0
+        Successfully installed co2mpas-1.7.4.post1
 
    .. Warning::
         **Installation failures:**
@@ -1363,7 +1363,7 @@ Install |co2mpas| package
    .. code-block:: console
 
        > co2mpas -vV
-       co2mpas_version: 1.7.4.post0
+       co2mpas_version: 1.7.4.post1
        co2mpas_rel_date: 2017-12-07 01:31:19
        co2mpas_path: d:\co2mpas_ALLINONE-64bit-v1.4.1\Apps\WinPython\python-3.4.3\lib\site-packages\co2mpas
        python_path: D:\co2mpas_ALLINONE-64bit-v1.4.1\WinPython\python-3.4.3

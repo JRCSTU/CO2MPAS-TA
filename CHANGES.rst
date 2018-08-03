@@ -5,6 +5,15 @@ CO2MPAS Changes
 .. _changes:
 
 
+v1.7.4.post1, 3 Aug 2018
+========================
+Backport fixes to facilitate comparisons with forthcoming release 1.9+.
+
+- Support `pip >= 10+` (fixes :ghp:`26`).
+- Fix conflicting `dill` requirement.
+- Fix piping stdout.
+
+
 v1.7.4.post0, 11 Dec 2017
 =========================
 - feat(wstamp): cache last sender+recipient in cookies.

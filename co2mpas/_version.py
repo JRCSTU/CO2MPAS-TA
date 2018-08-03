@@ -9,7 +9,7 @@
 
 
 #: Authoritative project's PEP 440 version.
-__version__ = version = "1.7.4.post0"  # Also update README.rst, CHANGES.rst,
+__version__ = version = "1.7.4.post1"  # Also update README.rst, CHANGES.rst,
 
 #: Input/Output file's version.
 __file_version__ = "2.2.7"
