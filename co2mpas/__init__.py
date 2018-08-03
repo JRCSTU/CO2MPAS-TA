@@ -5,6 +5,8 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
+"Vehicle simulator predicting NEDC CO2 emissions from WLTP time-series.
+
 .. currentmodule:: co2mpas
 
 .. autosummary::
@@ -25,15 +27,14 @@ from polyversion import polyversion, polytime
 __copyright__ = "Copyright (C) 2015-2018 European Commission (JRC)"
 __license__   = "EUPL 1.1+"                         # noqa
 __title__     = "co2mpas"                           # noqa
-__summary__   = ("Vehicle simulator predicting NEDC CO2 emissions"  # noqa
-                 " from WLTP time-series.")
+__summary__   = __doc__.splitlines()[0]             # noqa
 __uri__       = "https://co2mpas.io"                # noqa
 
 #: The Project's PEP 440 and :term:`Semantic Versioning` is retrived
 #: from from Git tags (or env[co2mpas_VERSION]).
 __version__   = polyversion(pname='co2mpas')        # noqa
 #: Release date.
-__updated__   = polytime(pname='co2mpas')
+__updated__   = polytime(pname='co2mpas')           # noqa
 version       = __version__                         # noqa
 
 #: The :term:`Semantic Versioning` for Input/Output files.
