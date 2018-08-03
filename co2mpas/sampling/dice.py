@@ -133,7 +133,8 @@ def all_app_configurables() -> Tuple:
     all_config_classes = all_cmds() + (
         baseapp.Spec,
         project.ProjectSpec, project.Project, project.ProjectsDB,
-        crypto.VaultSpec, crypto.GitAuthSpec, crypto.StamperAuthSpec,
+        crypto.VaultSpec, crypto.GitAuthSpec,
+        crypto.StamperAuthSpec, crypto.EncrypterSpec,
         report.ReporterSpec,
         tstamp.TstampSender,
         tstamp.TstampReceiver,
