@@ -11,7 +11,7 @@ Backport fixes to facilitate comparisons with forthcoming release 1.9+.
 
 - Support `pip >= 10+` (fixes :ghp:`26`).
 - Fix conflicting `dill` requirement.
-- Fix piping stdout.
+- Fix piping dice-commands to stdout.
 
 
 v1.7.4.post0, 11 Dec 2017
