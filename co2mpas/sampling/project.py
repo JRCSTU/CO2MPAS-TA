@@ -2219,7 +2219,11 @@ class TparseCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
         proj = self.current_project
 
         if file == '-':
-            self.log.info("Reading STDIN; paste message verbatim!")
+            msg = "Reading STDIN."
+            if getattr(sys.stdin, 'isatty', lambda: False)():
+                msg += ("..paste message verbatim, then [Ctrl+%s] to exit!" %
+                        'Z' if sys.platform == 'win32' else 'D')
+            self.log.info(msg)
             mail_text = sys.stdin.read()
         else:
             if not osp.exists(file):

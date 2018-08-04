@@ -93,7 +93,8 @@ class _FileReadingMixin(metaclass=trt.MetaHasTraits):
             if fpath == '-':
                 msg = "Reading STDIN."
                 if getattr(sys.stdin, 'isatty', lambda: False)():
-                    msg += "..paste text, then [Ctrl+Z] to exit!"
+                    msg += ("..paste text, then [Ctrl+%s] to exit!" %
+                            'Z' if sys.platform == 'win32' else 'D')
                 self.log.info(msg)
                 yield '<STDIN>', sys.stdin.read()
             else:
