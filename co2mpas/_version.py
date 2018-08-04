@@ -21,4 +21,4 @@ __dice_report_version__ = '1.0.2'
 
 # Please UPDATE TIMESTAMP WHEN BUMPING VERSIONS AND BEFORE RELEASE.
 #: Release date.
-__updated__ = "2017-12-07 01:31:19"
+__updated__ = "2018-08-03"
