@@ -13,7 +13,7 @@ import json
 import logging
 import os
 import re
-from typing import Text
+from typing import List, Text
 
 from flask import flash, request, session
 import flask
@@ -158,9 +158,10 @@ def create_stamp_form_class(app):
 
         return stamped_projects
 
-    #: form-keys of data submitted.
+    #: The form-keys of stamp-data submitted and processed.
+    #: The `recipients` is there bc it may modify on each request roundtrip.
     FData = namedtuple("FData",
-                       'sender stamp_recipients dice_stamp dice_decision mail_err')
+                       'stamp_recipients dice_stamp dice_decision mail_err')
 
     class StampForm(FlaskForm):
         """
@@ -199,7 +200,7 @@ def create_stamp_form_class(app):
                        'autocomplete': 'on'})
 
         dice_report = wtff.TextAreaField(
-            # label='Dice Report:',  Set in `_manage_session()`.
+            # label='Dice Report:',  Set in `_manage_gui_state()`.
             render_kw={'rows': config['DREPORT_WIDGET_NROWS']})
 
         repeat_dice = wtff.BooleanField(
@@ -214,7 +215,7 @@ def create_stamp_form_class(app):
             '2: Stamp!',
             render_kw={})
 
-        def validate_stamp_recipients(self, field):
+        def validate_stamp_recipients(self, field) -> List[str]:
             """Must contain at least 1 non-standard email-address."""
             text = field.data
             skip_check_mx = get_bool_arg('skip_mail_mx_check', os.name == 'nt')
@@ -238,6 +239,8 @@ def create_stamp_form_class(app):
                     raise wtforms.ValidationError(
                         'Invalid email-address no-%i: `%s`' %
                         (i, recipients_str(recipients)))
+
+            self.stamp_recipients.data = recipients_str(recipients)
 
             return recipients
 
@@ -283,18 +286,17 @@ def create_stamp_form_class(app):
                     tw.indent(pp.pformat(error), indent),
                     **log_kw)
 
-        def _manage_session(self, fdata: FData = None):
+        def _manage_gui_state(self, fdata: FData = None):
             """If `is_stamped`, disable & populate fields from session, else clear it."""
-            if fdata:
-                self.sender.data = fdata.sender
-                self.stamp_recipients.data = recipients_str(fdata.stamp_recipients)
+            form_disabled = bool(fdata and fdata.dice_stamp)
+            if form_disabled:
                 self.dice_report.data = fdata.dice_stamp
-
+                self.repeat_dice.render_kw['disabled'] = True
                 dreport_label = "Dice Report <em>Stamped</em>:"
                 sent_action = fdata.mail_err or 'sent'
                 flash(Markup("Stamp %s to %i recipient(s): <pre>%s</pre>" %
                              (sent_action, len(fdata.stamp_recipients),
-                              escape(recipients_str(fdata.stamp_recipients)))),
+                              escape(self.stamp_recipients.data))),
                       'error' if fdata.mail_err else 'info')
                 flash(Markup(tw.dedent("""
                     Decision:<pre>\n%s</pre>
@@ -308,16 +310,12 @@ def create_stamp_form_class(app):
                       if fdata.dice_decision['decision'] == 'SAMPLE'
                       else 'info')
             else:
-                ## Clear session and reset form.
-                #
-                self.repeat_dice.render_kw['disabled'] = True
                 dreport_label = tw.dedent("""
                     <em>Paste</em> Dice Report below, or <em>Upload</em> it from a local file:
                     <input type="file" class="btn" id="upload-filename" style="display: inline-block;" />
                     <span id="upload-spinner", class="spinner hidden" />
                 """)
 
-            form_disabled = bool(fdata)
             btns = [self.check, self.submit]
             fields = [self.sender, self.stamp_recipients, self.dice_report]
             for i in fields:
@@ -325,6 +323,8 @@ def create_stamp_form_class(app):
             for i in btns:
                 i.render_kw['disabled'] = form_disabled
             self.dice_report.label.text = dreport_label
+            ## Notice that `repeat_dice` is not touched here (sticky).
+
 
         @property
         def traits_config(self):
@@ -430,6 +430,8 @@ def create_stamp_form_class(app):
                     <pre>%s</pre>
                 """ % (uid, len(recipients), recipients_str(recipients))))
 
+            return FData(recipients, None, None, None)
+
         @property
         def sign_validator(self) -> tstamp.TstampReceiver:
             sign_validator = getattr(request, 'sign_validator', None)
@@ -502,6 +504,7 @@ def create_stamp_form_class(app):
             sender = self.sender.data
             recipients = self.validate_stamp_recipients(self.stamp_recipients)
             dreport = self.dice_report.data
+            mail_err = None
 
             try:
                 self._check_key_exists()
@@ -522,8 +525,6 @@ def create_stamp_form_class(app):
                 mail_err = self._send_stamp_mails(sender, recipients,
                                                   dice_stamp, dice_decision)
 
-                self.repeat_dice.render_kw['disabled'] = True
-
                 project = dice_decision['tag']
                 stamped_projects = mark_project_as_stamped(request.cookies, project)
 
@@ -535,14 +536,18 @@ def create_stamp_form_class(app):
 
                     return response
 
-                fdata = FData(sender, recipients, dice_stamp, dice_decision, mail_err)
-                self._manage_session(fdata)
+                return FData(recipients, dice_stamp, dice_decision, mail_err)
 
         def render(self):
             if not self.is_submitted():
-                ## Clear session.
-                self._manage_session()
+                ## New session.
+                #
+                # Sticky until old-stampe found OR stamped.
+                self.repeat_dice.render_kw['disabled'] = True
+                self._manage_gui_state()
             else:
+                fdata = None
+
                 if not self.validate():
                     self._log_client_error('Stamping', self.errors)
                 else:
@@ -556,15 +561,18 @@ def create_stamp_form_class(app):
                         self.repeat_dice.render_kw['disabled'] = False
                         flash(Markup(
                             "You have <em>diced</em> project %r before.<br>"
-                            "Please confirm that you really want to dice it again." %
+                            "Please confirm to <strong>repeat dice</strong>, above." %
                             project), 'error')
+
                     else:
                         if self.check.data:
-                            self._do_check()
+                            fdata = self._do_check()
                         elif self.submit.data:
-                            self._do_stamp()
+                            fdata = self._do_stamp()
                         else:
-                            assert False, "Both submission buttons false!"
+                            raise AssertionError("Both submission buttons false!")
+
+                self._manage_gui_state(fdata)
 
             # ## NOTE: Enable this code to update `/logconf.yaml`.
             # print('\n'.join(sorted(logging.Logger.manager.loggerDict)))
