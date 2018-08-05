@@ -7,6 +7,11 @@ NEXT RELEASE
 ======================
 
 
+v1.9.1a1: 2018-08-05
+====================
+Rework GUI-state update logic, minor CSSs.
+
+
 v1.9.1a0: 2018-08-05
 ====================
 BIG DICES support to Upload/Download them with files.
