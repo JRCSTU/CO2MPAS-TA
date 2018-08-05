@@ -15,7 +15,9 @@
 #
 #  2. Copy and adapt `default_config.py --> local_config.py` in this package
 #     (or in some other path).
-#  3. Launch the application using `flask >=1.x.x` cli::
+#
+#  3. Launch the a SINGLE instance of the application (for stamp-chain to work)
+#     using `flask >=1.x.x` cli::
 #
 #         $export WEBSTAMP_CONFIG=local_config.py
 #         $export FLASK_ENV=development
