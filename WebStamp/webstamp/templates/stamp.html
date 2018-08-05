@@ -36,6 +36,17 @@
       </div>
 
       <div class="row">
+        <div class="col-md-1 col-left">
+          <div id="upload-spinner", class="spinner hidden"></div>
+        </div>
+        <div class="col-md-11 col-right">
+          <label id="upload-label">Upload dice-report:
+            <input type="file" class="btn" id="upload-filename" style="display: inline-block;"/>
+          </label>
+        </div>
+      </div>
+
+      <div class="row">
         <div class="col-md-12">
           {{ wtf.form_field(form.dice_report,
                             form_type=form_type) }}

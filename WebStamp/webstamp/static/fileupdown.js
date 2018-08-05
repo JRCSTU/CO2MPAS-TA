@@ -2,16 +2,39 @@
 
 "use strict";
 $(document).ready(function(event){
+    var upload_filename = $("#upload-filename");
+    var upload_spinner = $("#upload-spinner");
     var dice_report = $("#dice_report");
     var download_label = $("#download-label");
     var download_filename = $("#download-filename");
     var download_btn = $("#download-btn");
 
     if (!dice_report[0].readOnly) {
+        // Before stamping, hide download-stamp machinery.
+        //
         download_label.addClass('hidden');
         download_filename.addClass('hidden');
         download_btn.addClass('hidden');
+
+        // Upload-button populates dice-report Text-Area.
+        //
+        upload_filename.change(function(event) {
+            //var fpath = upload_filename[0].files[0].name;
+            var file =  event.target.files[0];
+            if (file) {
+                upload_spinner.removeClass("hidden");
+                var reader = new FileReader();
+                reader.onload = function(event) {
+                    dice_report[0].value = event.target.result;
+                    upload_spinner.addClass("hidden");
+                };
+
+                reader.readAsText(file);
+            }
+        });
     } else {
+        // Download-button saves locally the contents of dice-report Text-Area.
+        //
         download_btn.click(function(event){
             saveAs(
                 new self.Blob(
