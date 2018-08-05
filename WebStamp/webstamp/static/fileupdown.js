@@ -30,6 +30,14 @@ $(document).ready(function(event){
                 reader.readAsText(file);
             }
         });
+
+        // If user manually edits dice-report,
+        // reloading the *same* file does nothing above (no "change"),
+        // so reset file-input on manual edits
+        //
+        dice_report.change(function(event) {
+            upload_filename.val('');
+        });
     } else {
         download_machine.removeClass('hidden');
 
