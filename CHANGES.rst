@@ -222,10 +222,6 @@ Model:
   - FIX: Gear-model does not dance (:gh:`427`).
   - fix: remove some pandas warnings
 
-- Other:
-
-  - fixes co2mparable.
-  -
 
 v1.8.1a0 12 Jun 2018
 --------------------
@@ -287,6 +283,15 @@ pre v1.8.0.dev0, 15 Nov 2017
   `cargo_mass`, `curb_mass`, `fuel_mass`, `passenger_mass`, and `n_passengers`.
   This is not affecting the TA mode.
 - Dice & WebStamper updates...
+
+
+v1.7.4.post1, 3 Aug 2018
+========================
+Backport fixes to facilitate comparisons with forthcoming release 1.9+.
+
+- Support `pip >= 10+` (fixes :ghp:`26`).
+- Fix conflicting `dill` requirement.
+- Fix piping dice-commands to stdout.
 
 
 v1.7.4.post0, 11 Dec 2017
