@@ -7,6 +7,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 from co2mpas._vendor.traitlets import config as traitc
 from co2mpas.sampling import CmdException, crypto, tsigner, tstamp
+from flask_wtf import FlaskForm
 import json
 import logging
 import os
@@ -16,7 +17,6 @@ from typing import Text
 from flask import flash, request, session
 import flask
 from flask.ctx import after_this_request
-from flask_wtf import FlaskForm
 from markupsafe import escape, Markup
 from validate_email import validate_email
 import wtforms
@@ -150,15 +150,12 @@ def create_stamp_form_class(app):
     def is_project_in_stamps_cookie(cookies, project):
         return project in _get_stamped_projects(cookies)
 
-    def add_project_in_stamps_cookie(cookies, project):
+    def mark_project_as_stamped(cookies, project):
         stamped_projects = _get_stamped_projects(cookies)
         stamped_projects.add(project)
         stamped_projects = list(sorted(set(stamped_projects)))
 
-        @after_this_request
-        def store_stamped_projects(response):
-            response.set_cookie(STAMPED_PROJECTS_KEY, json.dumps(stamped_projects))
-            return response
+        return stamped_projects
 
     class StampForm(FlaskForm):
         """
@@ -532,13 +529,16 @@ def create_stamp_form_class(app):
                 session.update(zip(self._skeys,
                                    [sender, recipients, dice_stamp,
                                     dice_decision, mail_err]))
+
                 project = dice_decision['tag']
-                add_project_in_stamps_cookie(request.cookies, project)
+                stamped_projects = mark_project_as_stamped(request.cookies, project)
 
                 @after_this_request
                 def store_form_field_as_cookies(response):
                     response.set_cookie(LAST_SENDER_KEY, self.sender.data)
                     response.set_cookie(LAST_RECIPIENTS_KEY, self.stamp_recipients.data)
+                    response.set_cookie(STAMPED_PROJECTS_KEY, json.dumps(stamped_projects))
+
                     return response
 
                 self._manage_session(True)
