@@ -38,7 +38,7 @@ SITE_NAME = "co2mpas web stamper"
 MIN_DREPORT_SIZE = 1200
 
 MAILIST_WIDGET_NROWS = 2
-DREPORT_WIDGET_NROWS = 13
+DREPORT_WIDGET_NROWS = 14
 ## Can be a number of head/tail lines to log, or a boolean.
 CLIENT_VALIDATION_LOG_FULL_DREPORT = 600
 

@@ -1,6 +1,6 @@
 .jumbotron {
   margin-top: 1em;
-  padding-top: 1em;
+  padding-top: 0.5em;
   padding-bottom: 1em;
   ?* same width as form controls (have this) */
   margin-left: -15px;
@@ -9,7 +9,7 @@
 }
 
 #dice_report {
-  font-size: smaller;
+  font-size: xx-small;
   font-family: monospace;
 }
 
