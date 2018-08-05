@@ -23,7 +23,7 @@ $(document).ready(function(event){
                 upload_spinner.removeClass("hidden");
                 var reader = new FileReader();
                 reader.onload = function(event) {
-                    dice_report[0].value = event.target.result;
+                    dice_report.val(event.target.result);
                     upload_spinner.addClass("hidden");
                 };
 
@@ -38,10 +38,10 @@ $(document).ready(function(event){
         download_btn.click(function(event){
             saveAs(
                 new self.Blob(
-                    [dice_report.value],
+                    [dice_report.val()],
                     {type: "text/plain;charset=" + document.characterSet}
                 ),
-                (download_filename.value || download_filename[0].placeholder || "stamp.txt")
+                (download_filename.val() || download_filename[0].placeholder || "stamp.txt")
             );
         });
     }
