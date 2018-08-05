@@ -5,16 +5,14 @@ $(document).ready(function(event){
     var upload_filename = $("#upload-filename");
     var upload_spinner = $("#upload-spinner");
     var dice_report = $("#dice_report");
-    var download_label = $("#download-label");
+    var download_machine = $("#download-machine");
     var download_filename = $("#download-filename");
     var download_btn = $("#download-btn");
 
     if (!dice_report[0].readOnly) {
         // Before stamping, hide download-stamp machinery.
         //
-        download_label.addClass('hidden');
-        download_filename.addClass('hidden');
-        download_btn.addClass('hidden');
+        download_machine.addClass('hidden');
 
         // Upload-button populates dice-report Text-Area.
         //
@@ -33,6 +31,8 @@ $(document).ready(function(event){
             }
         });
     } else {
+        download_machine.removeClass('hidden');
+
         // Download-button saves locally the contents of dice-report Text-Area.
         //
         download_btn.click(function(event){

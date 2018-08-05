@@ -289,10 +289,7 @@ def create_stamp_form_class(app):
                 self.sender.data = fdata.sender
                 self.stamp_recipients.data = recipients_str(fdata.stamp_recipients)
                 self.dice_report.data = fdata.dice_stamp
-                self.dice_report.description = """
-                    <strong><kbd>Copy</kbd> + <kbd>Paste</kbd>
-                    this <em>stamp</em> above ^^ into your AIO.</strong>
-                """
+
                 dreport_label = "Dice Report <em>Stamped</em>:"
                 sent_action = fdata.mail_err or 'sent'
                 flash(Markup("Stamp %s to %i recipient(s): <pre>%s</pre>" %
