@@ -311,7 +311,11 @@ def create_stamp_form_class(app):
                 ## Clear session and reset form.
                 #
                 self.repeat_dice.render_kw['disabled'] = True
-                dreport_label = "Dice Report:"
+                dreport_label = tw.dedent("""
+                    <em>Paste</em> Dice Report below, or <em>Upload</em> it from a local file:
+                    <input type="file" class="btn" id="upload-filename" style="display: inline-block;" />
+                    <span id="upload-spinner", class="spinner hidden" />
+                """)
 
             form_disabled = bool(fdata)
             btns = [self.check, self.submit]
