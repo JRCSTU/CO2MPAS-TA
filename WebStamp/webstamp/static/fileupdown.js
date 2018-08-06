@@ -49,7 +49,8 @@ $(document).ready(function(event){
                     [dice_report.val()],
                     {type: "text/plain;charset=" + document.characterSet}
                 ),
-                (download_filename.val() || download_filename[0].placeholder || "stamp.txt")
+                (download_filename.val() || download_filename[0].placeholder || "stamp.txt"),
+                true // no_auto_bom
             );
         });
     }
