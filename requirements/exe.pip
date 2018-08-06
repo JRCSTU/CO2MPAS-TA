@@ -8,7 +8,8 @@ dill==0.2.7.1
 formulas==0.0.10
 lmfit==0.9.10
 networkx==2.1
-numpy==1.14.3  # MKL!
+numpy==1.14.3; sys_platform != 'win32'
+numpy==1.14.3+mkl; sys_platform == 'win32'  # Download from "Python UnofficiaL"
 openpyxl==2.5.3
 pandas==0.23.0
 schedula[plot]==0.2.3
