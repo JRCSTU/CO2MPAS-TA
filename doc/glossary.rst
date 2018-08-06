@@ -803,6 +803,7 @@ DICE
         daily in its site.
 
     web stamper
+    WebStamper
         JRC's user-friendly `stamper` web-application that uses a simple HTTP-form to
         timestamp a pasted `dice report` and return a `dice stamp`, emailing it also
         to any specified recipients, always including from CLIMA/JRC.

@@ -171,7 +171,7 @@ setup(
         'graphviz',
         'docopt',
         'six',
-        'pandalone[xlrd]>=0.2.0', # For datasync pascha-fixes and openpyxl version.
+        'pandalone[xlrd]>=0.2.0',  # For datasync pascha-fixes and openpyxl version.
         'regex',
         'schema',
         'tqdm',

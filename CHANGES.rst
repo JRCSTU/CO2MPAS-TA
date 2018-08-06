@@ -5,8 +5,8 @@ CO2MPAS Changes
 .. _changes:
 
 
-NEXT RELEASE
-======================
+Changes since 1.7.4
+===================
 
 Model:
 ------
@@ -176,29 +176,75 @@ Fix
 
 - (clutch): Correct bug when `LOCKUP_SPEED_RATIO == 0`.
 
+Dice
+----
+- TODO
+
+
+Intermediate releases:
+----------------------
 
 v1.9.0b1 2 Aug 2018
---------------------
-More input-data, new-dice and small model changes.
+~~~~~~~~~~~~~~~~~~~
+More changes at input-data, new-dice code and small model changes.
+
+- feat(dice): teach the options ``--write-fpath/-W`` and ``--shrink`` to the commands::
+
+      co2dice project (init|append|report|parse|trecv)
+
+  so they can write directly results (i.e. report) in local files, and avoid
+  printing big output to the console (see :gh:`466`).
+
+  *WebStamper* also works now with files, since files can potentially be Mbs
+  in size.
+
+- feat(dice): teach dice commands ``--quiet/-q`` option that along with ``--verbose/-v``
+  they control logging-level.
+
+  It is now possible to give multiple `-q` / `-v` in the command line,
+  and the verbose level is an algebraic additions of all of them, starting
+  from *INFO* level.
+
+  BUT if any -v is given, the `Spec.verbosed` trait-parameter is set to true.
+  (see :gh:`476`, :gh:`479`).
+
+- feat(dice): prepare the new-dice functionality of taring everything
+  (see :gh:`480`).
+
+  Add ``flag.encrypt_inputs`` in input-xlsx file, configured
+  by :envvar:`ENCRYPTION_KEYS_PATH`, but not yet respected by the dice commands;
+  must revive :git:`4de77ea1e`.
+
+- feat(WebStamper): Suport Upload dice-reports from local-files & Download
+  Stamp to local-files.
+
+- fix(dice): fix redirection/piping of commands.
+
+- fix(site): Update to latest `schedula-2.3.x` to fix site-generation
+  (see :gh:`476`, :git:`e534168b`).
+
+- enh(doc): Update all copyright notices to "2018".
+- refact(sources): start using ``__main__.py`` also for dice, but without
+  putting too much code in it, just for :pep:`366` relative-imports to work.
 
 
 v1.9.0b0 31 Jul 2018
---------------------
+~~~~~~~~~~~~~~~~~~~~
 1st release with new-dice functionality.
 
 
 v1.9.0a2 11 Jul 2018
---------------------
+~~~~~~~~~~~~~~~~~~~~
 - WebStamp: split-off `v1.9.0a1` as separate sub-project in sources.
 
 Model:
-~~~~~~
+^^^^^^
 - IO: Input-template provide separate H/L fields for both *ki multiplicative* and
   *Ki additive* parameters.
 
 
 v1.9.0a1 5 Jul 2018
---------------------
+~~~~~~~~~~~~~~~~~~~
 Bumped *minor* number to signify that the :term:`VF_ID` and input-file version
 have changed forward-incompatibly.  Very roughly tested (see :gh:`472`).
 (`v1.9.0a0` was a checkpoint after `VF_ID` preliminary changes).
@@ -217,33 +263,32 @@ have changed forward-incompatibly.  Very roughly tested (see :gh:`472`).
 - docker: ensure correct *numpy-base+MKL* installed in conda requirements.
 
 Model:
-~~~~~~
-
-  - FIX: Gear-model does not dance (:gh:`427`).
-  - fix: remove some pandas warnings
+^^^^^^
+- FIX: Gear-model does not dance (:gh:`427`).
+- fix: remove some pandas warnings
 
 
 v1.8.1a0 12 Jun 2018
---------------------
+~~~~~~~~~~~~~~~~~~~~
 Tagged as ``co2mpas_v1.8.1a0`` just to switch *polyversion* repo-scheme,
 from `mono-project --> monorepo` (switch will complete in next tag).
 
 - feat(:gh:`466`, :gh:`467`, io, dice):
-    - Add ``--with-inputs`` on ``report`` commands that override flag in
+  - Add ``--with-inputs`` on ``report`` commands that override flag in
     user-data `.xlsx` file, and attached all inputs encrypted in dice.
 
-- - Add 2 sub-commands in `report` standalone command::
+- Add 2 sub-commands in `report` standalone command::
 
-        co2dice report extract  # that's the old `co2dice report`
-        co2dice report unlock   # unlocks encrypted inputs in dice/stamps
+      co2dice report extract  # that's the old `co2dice report`
+      co2dice report unlock   # unlocks encrypted inputs in dice/stamps
 
-testing :gh:`375`:
+- testing :gh:`375`:
   - dice: need *pytest* to run its TCs.
   - dice: cannot run all tests together, only one module by one.  All pass
 
 
 v1.8.0a1, 12 Jun 2018
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 - FIX dice, did not start due to `polyversion` not being engraved.
 - The :envvar:`CO2MPARE_ENABLED` fails with::
 
@@ -251,19 +296,19 @@ v1.8.0a1, 12 Jun 2018
         Should be one of (0 f false n no off 1 t true y yes on).
 
 v1.8.0a1, 7 Jun 2018
---------------------
+~~~~~~~~~~~~~~~~~~~~
 PINNED REQUIRED VERSIONS, served with AIO-1.8.1a1
 
 
 v1.8.0.dev1, 29 May 2018
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 - chore:(build, :gh:`408`, :git:`0761ba9d6`):
   Start versioning project with `polyvers` tool, as *mono-project*.
 - feat(data, :gh:`???`):
   Implemented *co2mparable* generation for ex-post reproducibility studies.
 
 v1.8.0.dev0, 22 May 2018
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 Included in 1st AIO-UpgradePack (see :gh:`463`).
 
 - chore(build, :git:`e90680fae`):
@@ -275,7 +320,7 @@ Included in 1st AIO-UpgradePack (see :gh:`463`).
 - feat(deps): Add `xgboost` native-lib dependency, for speed.
 
 pre v1.8.0.dev0, 15 Nov 2017
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - feat(model): Add utility to design gearbox ratios if they cannot be identified
   based on `maximum_velocity` and `maximum_vehicle_laden_mass`. This is not
   affecting the TA mode.
