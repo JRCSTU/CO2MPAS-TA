@@ -203,7 +203,8 @@ setup(
     packages=find_packages(exclude=[
         'tests', 'tests.*',
         'doc', 'doc.*',
-        'benchmarks'
+        'benchmarks',
+        'WebStamp',
     ]),
     package_data={
         'co2mpas': [
