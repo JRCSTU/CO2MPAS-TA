@@ -7,16 +7,17 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 from co2mpas._vendor.traitlets import config as traitc
 from co2mpas.sampling import CmdException, crypto, tsigner, tstamp
+from collections import namedtuple
+from flask_wtf import FlaskForm
 import json
 import logging
 import os
 import re
-from typing import Text
+from typing import List, Text
 
 from flask import flash, request, session
 import flask
 from flask.ctx import after_this_request
-from flask_wtf import FlaskForm
 from markupsafe import escape, Markup
 from validate_email import validate_email
 import wtforms
@@ -150,15 +151,17 @@ def create_stamp_form_class(app):
     def is_project_in_stamps_cookie(cookies, project):
         return project in _get_stamped_projects(cookies)
 
-    def add_project_in_stamps_cookie(cookies, project):
+    def mark_project_as_stamped(cookies, project):
         stamped_projects = _get_stamped_projects(cookies)
         stamped_projects.add(project)
         stamped_projects = list(sorted(set(stamped_projects)))
 
-        @after_this_request
-        def store_stamped_projects(response):
-            response.set_cookie(STAMPED_PROJECTS_KEY, json.dumps(stamped_projects))
-            return response
+        return stamped_projects
+
+    #: The form-keys of stamp-data submitted and processed.
+    #: The `recipients` is there bc it may modify on each request roundtrip.
+    FData = namedtuple("FData",
+                       'stamp_recipients dice_stamp dice_decision mail_err')
 
     class StampForm(FlaskForm):
         """
@@ -168,9 +171,6 @@ def create_stamp_form_class(app):
         - ``validate_decision``: append decision
         - ``trim_dreport``: remove garbage suffix from dreport
         """
-
-        _skeys = ['sender', 'stamp_recipients', 'dice_stamp',
-                  'dice_decision', 'mail_err']
 
         sender = wtff.TextField(
             label='Sender:',
@@ -200,7 +200,7 @@ def create_stamp_form_class(app):
                        'autocomplete': 'on'})
 
         dice_report = wtff.TextAreaField(
-            # label='Dice Report:',  Set in `_manage_session()`.
+            # label='Dice Report:',  Set in `_manage_gui_state()`.
             render_kw={'rows': config['DREPORT_WIDGET_NROWS']})
 
         repeat_dice = wtff.BooleanField(
@@ -215,7 +215,7 @@ def create_stamp_form_class(app):
             '2: Stamp!',
             render_kw={})
 
-        def validate_stamp_recipients(self, field):
+        def validate_stamp_recipients(self, field) -> List[str]:
             """Must contain at least 1 non-standard email-address."""
             text = field.data
             skip_check_mx = get_bool_arg('skip_mail_mx_check', os.name == 'nt')
@@ -239,6 +239,8 @@ def create_stamp_form_class(app):
                     raise wtforms.ValidationError(
                         'Invalid email-address no-%i: `%s`' %
                         (i, recipients_str(recipients)))
+
+            self.stamp_recipients.data = recipients_str(recipients)
 
             return recipients
 
@@ -284,46 +286,36 @@ def create_stamp_form_class(app):
                     tw.indent(pp.pformat(error), indent),
                     **log_kw)
 
-        def _manage_session(self, is_stamped):
+        def _manage_gui_state(self, fdata: FData = None):
             """If `is_stamped`, disable & populate fields from session, else clear it."""
-            if is_stamped:
-                (sender, stamp_recipients, dice_stamp,
-                 dice_decision, mail_err) = [session[k]
-                                             for k in
-                                             self._skeys]
-                self.sender.data = sender
-                self.stamp_recipients.data = recipients_str(stamp_recipients)
-                self.dice_report.data = dice_stamp
-                self.dice_report.description = """
-                    <strong><kbd>Copy</kbd> + <kbd>Paste</kbd>
-                    this <em>stamp</em> above ^^ into your AIO.</strong>
-                """
+            form_disabled = bool(fdata and fdata.dice_stamp)
+            if form_disabled:
+                self.dice_report.data = fdata.dice_stamp
+                self.repeat_dice.render_kw['disabled'] = True
                 dreport_label = "Dice Report <em>Stamped</em>:"
-                sent_action = mail_err or 'sent'
+                sent_action = fdata.mail_err or 'sent'
                 flash(Markup("Stamp %s to %i recipient(s): <pre>%s</pre>" %
-                             (sent_action, len(stamp_recipients),
-                              escape(recipients_str(stamp_recipients)))),
-                      'error' if mail_err else 'info')
+                             (sent_action, len(fdata.stamp_recipients),
+                              escape(self.stamp_recipients.data))),
+                      'error' if fdata.mail_err else 'info')
                 flash(Markup(tw.dedent("""
                     Decision:<pre>\n%s</pre>
                     <div class="alert alert-success">
                       NOTE: you still must import the stamp above back
                             into your project!
                     </div>""") %
-                             (escape(yaml.dump({'dice': dice_decision},
+                             (escape(yaml.dump({'dice': fdata.dice_decision},
                                                default_flow_style=False)))),
                       'error'
-                      if dice_decision['decision'] == 'SAMPLE'
+                      if fdata.dice_decision['decision'] == 'SAMPLE'
                       else 'info')
             else:
-                ## Clear session and reset form.
-                #
-                self.repeat_dice.render_kw['disabled'] = True
-                dreport_label = "Dice Report:"
-                for k in self._skeys:
-                    session.pop(k, None)
+                dreport_label = tw.dedent("""
+                    <em>Paste</em> Dice Report below, or <em>Upload</em> it from a local file:
+                    <input type="file" class="btn" id="upload-filename" style="display: inline-block;" />
+                    <span id="upload-spinner", class="spinner hidden" />
+                """)
 
-            form_disabled = is_stamped
             btns = [self.check, self.submit]
             fields = [self.sender, self.stamp_recipients, self.dice_report]
             for i in fields:
@@ -331,6 +323,8 @@ def create_stamp_form_class(app):
             for i in btns:
                 i.render_kw['disabled'] = form_disabled
             self.dice_report.label.text = dreport_label
+            ## Notice that `repeat_dice` is not touched here (sticky).
+
 
         @property
         def traits_config(self):
@@ -436,6 +430,8 @@ def create_stamp_form_class(app):
                     <pre>%s</pre>
                 """ % (uid, len(recipients), recipients_str(recipients))))
 
+            return FData(recipients, None, None, None)
+
         @property
         def sign_validator(self) -> tstamp.TstampReceiver:
             sign_validator = getattr(request, 'sign_validator', None)
@@ -508,6 +504,7 @@ def create_stamp_form_class(app):
             sender = self.sender.data
             recipients = self.validate_stamp_recipients(self.stamp_recipients)
             dreport = self.dice_report.data
+            mail_err = None
 
             try:
                 self._check_key_exists()
@@ -528,52 +525,54 @@ def create_stamp_form_class(app):
                 mail_err = self._send_stamp_mails(sender, recipients,
                                                   dice_stamp, dice_decision)
 
-                self.repeat_dice.render_kw['disabled'] = True
-                session.update(zip(self._skeys,
-                                   [sender, recipients, dice_stamp,
-                                    dice_decision, mail_err]))
                 project = dice_decision['tag']
-                add_project_in_stamps_cookie(request.cookies, project)
+                stamped_projects = mark_project_as_stamped(request.cookies, project)
 
                 @after_this_request
                 def store_form_field_as_cookies(response):
                     response.set_cookie(LAST_SENDER_KEY, self.sender.data)
                     response.set_cookie(LAST_RECIPIENTS_KEY, self.stamp_recipients.data)
+                    response.set_cookie(STAMPED_PROJECTS_KEY, json.dumps(stamped_projects))
+
                     return response
 
-                self._manage_session(True)
+                return FData(recipients, dice_stamp, dice_decision, mail_err)
 
         def render(self):
             if not self.is_submitted():
-                ## Clear session.
-                self._manage_session(False)
+                ## New session.
+                #
+                # Sticky until old-stampe found OR stamped.
+                self.repeat_dice.render_kw['disabled'] = True
+                self._manage_gui_state()
             else:
-                if 'dice_stamp' in session:
-                    flash("Already diced! Click 'New stamp...' above.", 'error')
-                    self._manage_session(True)
+                fdata = None
+
+                if not self.validate():
+                    self._log_client_error('Stamping', self.errors)
                 else:
-                    if not self.validate():
-                        self._log_client_error('Stamping', self.errors)
+                    ## Check if user has diced project another time
+                    #  and present a confirmation check-box.
+                    #
+                    project = self.signer.extract_dice_tag_name(
+                        None, self.dice_report.data)
+                    if (is_project_in_stamps_cookie(request.cookies, project) and
+                            not self.repeat_dice.data):
+                        self.repeat_dice.render_kw['disabled'] = False
+                        flash(Markup(
+                            "You have <em>diced</em> project %r before.<br>"
+                            "Please confirm to <strong>repeat dice</strong>, above." %
+                            project), 'error')
+
                     else:
-                        ## Check if user has diced project another time
-                        #  and present a confirmation check-box.
-                        #
-                        project = self.signer.extract_dice_tag_name(
-                            None, self.dice_report.data)
-                        if (is_project_in_stamps_cookie(request.cookies, project) and
-                                not self.repeat_dice.data):
-                            self.repeat_dice.render_kw['disabled'] = False
-                            flash(Markup(
-                                "You have <em>diced</em> project %r before.<br>"
-                                "Please confirm that you really want to dice it again." %
-                                project), 'error')
+                        if self.check.data:
+                            fdata = self._do_check()
+                        elif self.submit.data:
+                            fdata = self._do_stamp()
                         else:
-                            if self.check.data:
-                                self._do_check()
-                            elif self.submit.data:
-                                self._do_stamp()
-                            else:
-                                assert False, "Both submission buttons false!"
+                            raise AssertionError("Both submission buttons false!")
+
+                self._manage_gui_state(fdata)
 
             # ## NOTE: Enable this code to update `/logconf.yaml`.
             # print('\n'.join(sorted(logging.Logger.manager.loggerDict)))

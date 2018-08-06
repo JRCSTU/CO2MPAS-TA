@@ -15,10 +15,16 @@
 #
 #  2. Copy and adapt `default_config.py --> local_config.py` in this package
 #     (or in some other path).
-#  3. Run the application
-#     (and optionally use an absolute path for `WEBSTAMP_CONFIG` envvar):
 #
-#      $ WEBSTAMP_CONFIG=local_config.py flask --app=sample_app dev
+#  3. Launch the a SINGLE instance of the application (for stamp-chain to work)
+#     using `flask >=1.x.x` cli::
+#
+#         $export WEBSTAMP_CONFIG=local_config.py
+#         $export FLASK_ENV=development
+#         $export FLASK_APP=webstamp
+#         $flask run
+#
+#     (optionally use an absolute path for `WEBSTAMP_CONFIG` envvar)
 #
 #  Afterwards, point your browser to http://localhost:5000, then check out the
 #  source.
@@ -30,7 +36,6 @@ from polyversion import polyversion, polytime
 import sys
 
 from flask import Flask, request
-from flask_appconfig import AppConfig
 from flask_bootstrap import Bootstrap
 from raven.contrib.flask import Sentry
 
@@ -61,7 +66,9 @@ def create_app(configfile=None, logconf_file=None):
 
     app = Flask(__name__)#, instance_relative_config=True)
 
-    AppConfig(app, configfile)
+    app.config.from_object('webstamp.default_config')
+    app.config.from_envvar('WEBSTAMP_CONFIG')
+
     app.config['POLYVERSION'] = __version__
     app.config['POLYTIME'] = __updated__
 

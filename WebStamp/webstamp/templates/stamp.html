@@ -4,6 +4,13 @@
 
 {% block title %}{{ config['SITE_NAME'] }}{% endblock %}
 
+{% block scripts -%}
+  {{super()}}
+  <script async="" src="https://cdn.rawgit.com/eligrey/Blob.js/0cef2746414269b16834878a8abc52eb9d53e6bd/Blob.js"></script>
+  <script async="" src="https://cdn.rawgit.com/eligrey/FileSaver.js/5ed507ef8aa53d8ecfea96d96bc7214cd2476fd2/FileSaver.min.js"></script>
+  <script async="" src="/static/fileupdown.js"></script>
+{%- endblock %}
+
 {%- block content -%}
   <div class="container">
     <div class="jumbotron">
@@ -32,6 +39,16 @@
         <div class="col-md-12">
           {{ wtf.form_field(form.dice_report,
                             form_type=form_type) }}
+        </div>
+      <div class="row">
+        <div class="col-md-12 hidden" id="download-machine">
+          <label>
+            <kbd>Copy</kbd> + <kbd>Paste</kbd> this <em>stamp</em> above ^^ into your AIO.
+            <br>or <em>download it</em> as:
+            <input type="text" class="filename" id="download-filename"
+              placeholder="stamp.txt"/>
+          </label>
+          <input type="button" id="download-btn" class="btn" value="Save" />
         </div>
       </div>
 
