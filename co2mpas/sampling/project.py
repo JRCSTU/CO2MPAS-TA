@@ -759,17 +759,20 @@ class Project(transitions.Machine, ProjectSpec):
         # FIXME: Use state-condition to capture `wltp_iof`
         gen_report = event.transition.source == 'wltp_iof' or not tagref or self.force
         if gen_report:
-            self.log.info('Preparing %s report: %s...',
-                          'ANEW' if self.force else '', event.kwargs)
-            repspec = self._report_spec()
-            pfiles = self.list_pfiles(*PFiles._fields, _as_index_paths=True)  # @UndefinedVariable
-            report = list(repspec.extract_dice_report(pfiles).values())
+            report = _evarg(event, 'report', (list, dict), missing_ok=True)
+            if not report:
+                self.log.info('Preparing %s report: %s...',
+                              'ANEW' if self.force else '', event.kwargs)
+                repspec = self._report_spec()
+                pfiles = self.list_pfiles(*PFiles._fields, _as_index_paths=True)  # @UndefinedVariable
+                report = list(repspec.extract_dice_report(pfiles).values())
 
             if self.dry_run:
                 self.log.warning("DRY-RUN: Not actually committed the report, "
                                  "and it is not yet signed!")
                 self.result = _mydump(report, width=self.git_desc_width)
 
+                del event.kwargs['action'], event.kwargs['report']
                 return
 
             ## Commit/tag callback expects `report` on event.
@@ -2102,6 +2105,153 @@ class ReportCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
             yield self.shrink_text(result)
 
 
+_sentinel = object()
+
+
+class WsendCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
+    """
+    Dice a new project in one action through WebStamper
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] (--inp <co2mpas-input>) ... (--out <co2mpas-output>) ...
+                                [<any-other-file>] ...
+
+    - If number of input-files given must match the number of output-file.
+      The files are "paired" in the order they are given.
+    - In case of errors, the project database is left as, and must use
+      the rest sub-commands to examine the situation and continue the dice.
+    """
+
+    examples = trt.Unicode("""
+        - In the simplest case, just give input/out files:
+              %(cmd_chain)s --inp input.xlsx --out output.xlsx
+        - To specify more files (e.g. H/L in different runs):
+              %(cmd_chain)s --inp input1.xlsx --out output1.xlsx --inp input2.xlsx --out output2.xlsx
+    """)
+
+    inp = trt.List(
+        trt.Unicode(),
+        help="Specify co2mpas INPUT files; use this option one or more times, and respectively --out."
+    ).tag(config=True)
+    out = trt.List(
+        trt.Unicode(),
+        help="Specify co2mpas OUTPUT files; use this option one or more time, and respectively --inps."
+    ).tag(config=True)
+
+    webstamper_url = trt.Unicode(
+        'http://localhost:5000',
+        help="The u"
+    ).tag(config=True)
+
+    def __init__(self, **kwds):
+        from . import report
+
+        aliases = {
+            ('i', 'inp'): ('WsendCmd.inp', WsendCmd.inp.help),
+            ('o', 'out'): ('WsendCmd.out', WsendCmd.out.help),
+        }
+        aliases.update(_write_fpath_alias_kwd)
+        kwds.setdefault('cmd_aliases', aliases)
+        kwds.setdefault('cmd_flags', {
+            ('n', 'dry-run'): (
+                {'Project': {'dry_run': True}},
+                "Parse files but do not actually store them in the project."
+            ),
+            'with-inputs': (
+                {
+                    'ReporterSpec': {'include_input_in_dice': True},
+                }, report.ReporterSpec.include_input_in_dice.help),
+            **_shrink_flags_kwd,
+        })
+        super().__init__(**kwds)
+
+    #: Data updated by workflow.
+    data = {}
+
+    def _dget(self, key, default=_sentinel, *,
+              instance=None, none_allowed=False, false_allowed=False):
+        d = self.data[key] if default is _sentinel else self.data.get(key, default)
+        if instance and not isinstance(d, instance):
+            raise AssertionError(
+                "Expected '%s' to be '%s', but was '%s'" %
+                (key, instance, type(d)))
+        if (not none_allowed and d is None) or (not false_allowed and not d):
+            raise AssertionError(
+                "Expected '%s' to be (none=%s, false=%s), but was '%s'" %
+                (key, none_allowed, false_allowed, d))
+
+        return d
+
+    def _parse_files(self, args):
+        self.log.info("Parsing arguments...")
+        pfiles = PFiles(inp=self.inp, out=self.out, other=args)
+        if not all((pfiles.inp, pfiles.out)) or len(pfiles.inp) != len(pfiles.out):
+            raise CmdException(
+                "Cmd %r must be given at least one *pair* of input and out-files; received: %s!"
+                % (self.name, pfiles))
+        pfiles.check_files_exist(self.name)
+
+        return pfiles
+
+    def _append_pfiles(self, proj: Project, pfiles: PFiles)
+        self.log.info("Appending into project '%s' files: %s" % (proj, pfiles))
+        ok = proj.do_addfiles(pfiles=pfiles)
+        if not ok:
+            raise CmdException("Unexpectedly denied appending into project '%s' files: %s" %
+                               (proj, pfiles))
+
+
+    def _extract_dice_report(self, pfiles):
+        from . import report
+
+        repspec = report.ReporterSpec(config=self.config)
+        report = repspec.extract_dice_report(pfiles)
+        for fpath, data in report.items():
+            iokind = data['iokind']
+            if iokind in ('inp', 'out'):
+                vfid = data['report']['vehicle_family_id']
+                self.log.info("Project '%s' derived from '%s' file: %s",
+                              vfid, iokind, fpath)
+                break
+        else:
+            raise CmdException("No VFID found in dice-report!").
+
+        self.projects_db.proj_add(vfid)
+
+        return report
+
+    def _sign_report(self):
+        project = self.projects_db.current_project()
+        assert isinstance(project.result, str)
+
+        ok = project.do_report()
+        if ok:
+            result = project.result
+            key_uid = project.extract_uid_from_report(result)
+            self.log.info("Report has been signed by '%s'.", key_uid)
+        else:
+            raise CmdException("Unexpectedly denied signing of dice-report!")
+
+    def run(self, *args):
+        pfiles = self._parse_files(args)
+        _extract_dice_report(self, refspec)
+        workflow = [
+            ("parsing arguments", lambda: self._parse_files(args)),
+        ]
+
+        for msg, func in workflow:
+            ok = False
+            try:
+                func()
+                ok = True
+            finally:
+                self.log.info("%s %s.", "Completed" if ok else "Failed", msg)
+
+
+
+        yield from self.append_and_report(pfiles)
+
+
 class TstampCmd(_SubCmd):
     """Deprecated: renamed as `tsend`!"""
     def run(self, *args):
@@ -2721,6 +2871,7 @@ class BackupCmd(_SubCmd):
 all_subcmds = (LsCmd, InitCmd, OpenCmd,
                AppendCmd, ReportCmd,
                TstampCmd,  # TODO: delete deprecated `projext tsend` cmd
+               WsendCmd,
                TsendCmd,
                TrecvCmd, TparseCmd,
                StatusCmd,
