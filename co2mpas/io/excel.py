@@ -109,7 +109,7 @@ _re_input_sheet_name = regex.compile(
     regex.IGNORECASE | regex.X | regex.DOTALL
 )
 
-_re_space_dot = regex.compile('(\s*\.\s*|\s+)')
+_re_space_dot = regex.compile(r'(\s*\.\s*|\s+)')
 
 _xl_ref = {
     'pa': '#%s!B2:C_:["pipe", ["dict", "recurse"]]',
@@ -582,7 +582,7 @@ def _add_named_ranges(df, writer, shname, startrow, startcol, named_ranges, k0):
 
 
 def _ref_name(*names):
-    return '_{}'.format(regex.sub("[\W]", "_", '.'.join(names)))
+    return '_{}'.format(regex.sub(r"[\W]", "_", '.'.join(names)))
 
 
 def _index_levels(index):

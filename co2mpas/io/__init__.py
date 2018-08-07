@@ -518,7 +518,7 @@ def _dd2df(dd, index=None, depth=0, col_key=None, row_key=None):
     return df
 
 
-_re_units = regex.compile('(\[.*\])')
+_re_units = regex.compile(r'(\[.*\])')
 
 
 @functools.lru_cache(None)
