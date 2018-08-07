@@ -21,10 +21,10 @@
 :license:       `EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_
 
 |co2mpas| is backward-looking longitudinal-dynamics |CO2| and
-fuel-consumption simulator for light-duty M1 & N1 vehicles (cars and vans), specially crafted to
-*estimate and type-approve CO2 emissions* of vehicles undergoing NEDC testing
-based on the emissions produced during WLTP tests, according to the
-:term:`EU legislation`\s *1152/EUR/2017 and 1153/EUR/2017*
+fuel-consumption simulator for light-duty M1 & N1 vehicles (cars and vans),
+specially crafted to *estimate the CO2 emissions of vehicles undergoing NEDC* testing
+based on the emissions produced during *WLTP type-approval testing*,
+according to the :term:`EU legislation`\s *1152/EUR/2017 and 1153/EUR/2017*
 (see `History`_ section, below).
 
 It is an open-source project(`EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_)
