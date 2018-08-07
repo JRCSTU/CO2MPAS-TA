@@ -5,8 +5,9 @@ CO2MPAS Changes
 .. _changes:
 
 
-Changes since 1.7.4
-===================
+v1.9.0 XX Aug 2018: "Unleash"
+=============================
+Changes since 1.7.4.post0:
 
 Model:
 ------
@@ -160,7 +161,8 @@ Fix
 - (co2_emission): Disable `define_idle_fuel_consumption_model` when
   `idle_fuel_consumption` is not given.
 
-- (vehicle): Add `vehicle_mass` as output of `vehicle` model.
+- (vehicle): Add function to calculate the `vehicle_mass` from `curb mass`,
+  `cargo_mass`, `curb_mass`, `fuel_mass`, `passenger_mass`, and `n_passengers`.
 
 - (final_drive): Correct type of `n_gears` bug.
 
@@ -171,22 +173,93 @@ Fix
 
 - (requirements): Update `dill!=0.2.7` requirement.
 
-- (gearbox): Find the best factors to design the gearbox ratios
-  excluding invalid results.
+- (gerbox): Add utility to design gearbox ratios if they cannot be identified
+  based on `maximum_velocity` and `maximum_vehicle_laden_mass`. This is not
+  affecting the TA mode.
+
+  This is not affecting the TA mode.
 
 - (clutch): Correct bug when `LOCKUP_SPEED_RATIO == 0`.
 
+IO Data
+-------
+- BREAK: Bumped input-file version from ``2.2.8 --> 2.3.0``.  And improved
+  file-version comparison (:term:`Semantic Versioning`)
+
+- CHANGE: Changed :term:`vehicle_family_id` format, but old format is still
+  supported (:gh:`473`)::
+
+        OLD: FT-TA-WMI-yyyy-nnnn
+        NEW: FT-nnnnnnnnnnnnnnn-WMI-x
+
+- feat: Input-template provide separate H/L fields for both *ki multiplicative* and
+  *Ki additive* parameters.
+
 Dice
 ----
-- TODO
+- feat(:gh:`466`, :gh:`467`, io, dice):
+  Add ``--with-inputs`` on ``report`` commands that override flag in
+  user-data `.xlsx` file, and attached all inputs encrypted in dice.
+- feat: add 2 sub-commands in `report` standalone command::
+
+      co2dice report extract  # that's the old `co2dice report`
+      co2dice report unlock   # unlocks encrypted inputs in dice/stamps
+
+- feat(dice): teach the options ``--write-fpath/-W`` and ``--shrink`` to the commands::
+
+      co2dice project (init|append|report|parse|trecv)
+
+  so they can write directly results (i.e. report) in local files, and avoid
+  printing big output to the console (see :gh:`466`).
+
+  *WebStamper* also works now with files, since files can potentially be Mbs
+  in size.
+- feat(dice): teach dice commands ``--quiet/-q`` option that along with ``--verbose/-v``
+  they control logging-level.
+
+  It is now possible to give multiple `-q` / `-v` in the command line,
+  and the verbose level is an algebraic additions of all of them, starting
+  from *INFO* level.
+
+  BUT if any -v is given, the `Spec.verbosed` trait-parameter is set to true.
+  (see :gh:`476`, :gh:`479`).
+- feat(dice): prepare the new-dice functionality of taring everything
+  (see :gh:`480`).
+  The new ``flag.encrypt_inputs`` in input-xlsx file, configured
+  by :envvar:`ENCRYPTION_KEYS_PATH`, works for dice-2 but not yet respected
+  by the old-dice commands;
+  must revive :git:`4de77ea1e`.
+
+- fix: completed transition to *polyversion* monorepo scheme.
+
+
+Various
+-------
+- FIX: Support `pip >= 10+` (see :ghp:`26`).
+- Pinned versions of dependencies affecting the accuracy of the calculations,
+  to achieve stronger reproducibility; these dependent libraries are shiped
+  with AIO (see :gh:`427`).
+- Accurate versioning of project with :term:`polyvers`.
+- feat: provide a *docker* script, ensuring correct *numpy-base+MKL* installed
+  in *conda* requirements.
+- WebStamp: split-off `v1.9.0a1` as separate sub-project in sources.
+
+Known Limitations
+-----------------
+Almost all "known limitations" from `v1.7.3` still apply.
 
 
 Intermediate releases:
 ----------------------
 
+v1.9.0b2 2 Aug 2018
+~~~~~~~~~~~~~~~~~~~
+Mostly doc-changes for final release, released in *PyPi*
+
 v1.9.0b1 2 Aug 2018
 ~~~~~~~~~~~~~~~~~~~
 More changes at input-data, new-dice code and small model changes.
+Not released in *PyPi*.
 
 - feat(dice): teach the options ``--write-fpath/-W`` and ``--shrink`` to the commands::
 
@@ -215,7 +288,7 @@ More changes at input-data, new-dice code and small model changes.
   by :envvar:`ENCRYPTION_KEYS_PATH`, but not yet respected by the dice commands;
   must revive :git:`4de77ea1e`.
 
-- feat(WebStamper): Suport Upload dice-reports from local-files & Download
+- feat(WebStamper): Support Upload dice-reports from local-files & Download
   Stamp to local-files.
 
 - fix(dice): fix redirection/piping of commands.
@@ -237,8 +310,8 @@ v1.9.0a2 11 Jul 2018
 ~~~~~~~~~~~~~~~~~~~~
 - WebStamp: split-off `v1.9.0a1` as separate sub-project in sources.
 
-Model:
-^^^^^^
+IO Data:
+^^^^^^^^
 - IO: Input-template provide separate H/L fields for both *ki multiplicative* and
   *Ki additive* parameters.
 
@@ -260,7 +333,7 @@ have changed forward-incompatibly.  Very roughly tested (see :gh:`472`).
 
 - fix: completed transition to *polyversion* monorepo scheme.
 
-- docker: ensure correct *numpy-base+MKL* installed in conda requirements.
+- docker: ensure correct *numpy-base+MKL* installed in *conda* requirements.
 
 Model:
 ^^^^^^
@@ -274,8 +347,8 @@ Tagged as ``co2mpas_v1.8.1a0`` just to switch *polyversion* repo-scheme,
 from `mono-project --> monorepo` (switch will complete in next tag).
 
 - feat(:gh:`466`, :gh:`467`, io, dice):
-  - Add ``--with-inputs`` on ``report`` commands that override flag in
-    user-data `.xlsx` file, and attached all inputs encrypted in dice.
+  Add ``--with-inputs`` on ``report`` commands that override flag in
+  user-data `.xlsx` file, and attached all inputs encrypted in dice.
 
 - Add 2 sub-commands in `report` standalone command::
 
@@ -332,10 +405,10 @@ pre v1.8.0.dev0, 15 Nov 2017
 
 v1.7.4.post1, 3 Aug 2018
 ========================
-Backport fixes to facilitate comparisons with forthcoming release 1.9+.
+Backport fixes from 1.9+ to facilitate comparisons with forthcoming release.
 
-- Support `pip >= 10+` (fixes :ghp:`26`).
-- Fix conflicting `dill` requirement.
+- FIX: Support `pip >= 10+` (see :ghp:`26`).
+- Fix conflicting `dill` requirement, preventing downgrades of |co2mpas|.
 - Fix piping dice-commands to stdout.
 
 
