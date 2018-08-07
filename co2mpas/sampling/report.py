@@ -126,7 +126,7 @@ class ReporterSpec(baseapp.Spec):
         return val is None or val is True or str(val).lower() == 'true'
 
     def _check_is_ta(self, fpath, report):
-        ta_flags = report.ix['TA_mode', :]
+        ta_flags = report.loc['TA_mode', :]
         self.log.debug("TA flags for file('%s'): %s" % (fpath, ta_flags))
         is_ta_mode = all(self.is_excel_true_or_null(f) for f in ta_flags)
         if not is_ta_mode:
@@ -136,7 +136,7 @@ class ReporterSpec(baseapp.Spec):
         import numpy as np
         import pandas as pd
 
-        deviations = report.ix['CO2MPAS_deviation', :]
+        deviations = report.loc['CO2MPAS_deviation', :]
         is_ok = False
         self.log.debug("Deviations for file('%s'): %s" % (fpath, deviations))
         try:
