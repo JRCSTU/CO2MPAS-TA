@@ -37,12 +37,18 @@ input & output data.
 
 Quick Start
 ===========
+.. Attention::
+   Installing and using :term:`ALLINONE` is the official procedure for
+   running |co2mpas| for Type Approval (TA).
+
+   The quick-start below is just for evaluating the latest release.
+
 You may find usage Guidelines in the wiki:
 https://github.com/JRCSTU/CO2MPAS-TA/wiki/CO2MPAS-user-guidelines
 
 IF you are familiar with Python, AND
 IF you already have a full-blown *python-3 environment*
-(i.e. *Linux* or the *all-in-one* archive), AND
+(i.e. *Linux* or the :term:`ALLINONE` archive), AND
 IF you have familiarity with previous releases, THEN
 you can immediately start working with the following *bash* commands;
 otherwise follow the detailed instructions under sections :ref:`co2mpas-install` and
@@ -115,7 +121,7 @@ Licensing
 The European Commission (JRC) compiles and distributes 2 "packages":
 
 1. the CO2MPAS python package,
-2. the ALLINONE archive (AIO).
+2. the :term:`ALLINONE` archive (AIO).
 
 |co2mpas|\'s package licensing terms
 ------------------------------------
@@ -132,7 +138,7 @@ with all major open-source licenses, whether "permissive"[1]_ or "copylefted"[2]
 but *usually* EUPL must be applied on the resulting combination (one certain
 exception is the GPL family of licenses, where GPL takes precedence).
 
-The *ALLINONE archive* contains many python libraries installed in its standard python -folder,
+The :term:`ALLINONE` archive contains many python libraries installed in its standard python -folder,
 (``co2mpas_ALLINONE-XXX\Apps\WinPython\python-YYY.amd64\Lib\``)
 so |co2mpas| only `"links dynamically"
 <https://joinup.ec.europa.eu/community/eupl/og_page/eupl-compatible-open-source-licences#section-3>`_ to them.
@@ -140,13 +146,13 @@ plus those manually installed by JRC when installing |co2mpas| in ALLINONE.
 We are certain that all of them are open-source and can be freely re-distributed.
 
 
-AIO archive's licensing terms
------------------------------
-The AIO is a "fat" archive (~1.4GB when inflated) containing a myriad
+ALLINONE archive's licensing terms
+----------------------------------
+The :term:`ALLINONE` is a "fat" archive (~1.4GB when inflated) containing a myriad
 of *3rd-party* applications and python packages (e.g. see folder
 ``co2mpas_ALLINONE-XXX\Apps\WinPython\python-YYY.amd64\Lib\``).
 These applications comprise the ecosystem needed to launch CO2MPAS
-for official purposes.  Different licenses apply to each application in AIO,
+for official purposes.  Different licenses apply to each application in ALLINONE,
 but have all been checked to be free for *redistribution*, with "permissive"[1]_
 or "copylefted"[2]_ licenses.
 
@@ -178,7 +184,7 @@ their use without our consent, beyond their intended usage, which is to run |co2
 
 Install
 =======
-On *Windows* you may install the latest *all-In-One* archive and ensure it
+On *Windows* you may install the latest :term:`ALLINONE` archive and ensure it
 contains (or *upgrade* to) the latest |co2mpas| python package; alternatively,
 you may install the developer version.
 
@@ -213,7 +219,7 @@ Requirements
 
 *All-In-One* Installation under Windows
 ---------------------------------------
-- Download **all-in-one archive** from https://github.com/JRCSTU/CO2MPAS-TA/releases/
+- Download :term:`ALLINONE` archive from https://github.com/JRCSTU/CO2MPAS-TA/releases/
   (it only runs on **64bit PCs**).
 
   .. Tip::
