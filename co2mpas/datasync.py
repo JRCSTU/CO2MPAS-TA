@@ -87,9 +87,9 @@ Miscellaneous:
   -v, --verbose          Print more verbosely messages - overridden by --logconf.
   -q, --quiet            Print less verbosely messages (warnings) - overridden by --logconf.
   --logconf=<conf-file>  Path to a logging-configuration file, according to:
-                         See https://docs.python.org/3/library/logging.config.html#configuration-file-format
-                         Uses reads a dict-schema if file ends with '.yaml' or '.yml'.
-                         See https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
+                           https://docs.python.org/3/library/logging.config.html#configuration-file-format
+                         If the file-extension is '.yaml' or '.yml', it reads a dict-schema from YAML:
+                           https://docs.python.org/3/library/logging.config.html#logging-config-dictschema
 
 * For xl-refs see: https://pandalone.readthedocs.org/en/latest/reference.html#module-pandalone.xleash
 

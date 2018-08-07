@@ -130,7 +130,7 @@ EUPL is `"eventually" compatible
 <https://joinup.ec.europa.eu/community/eupl/og_page/eupl-compatible-open-source-licences>`_
 with all major open-source licenses, whether "permissive"[1]_ or "copylefted"[2]_,
 but *usually* EUPL must be applied on the resulting combination (one certain
-exception is GPL family of licenses, where GPLs win over).
+exception is the GPL family of licenses, where GPL takes precedence).
 
 The *ALLINONE archive* contains many python libraries installed in its standard python -folder,
 (``co2mpas_ALLINONE-XXX\Apps\WinPython\python-YYY.amd64\Lib\``)
@@ -424,8 +424,7 @@ you have installed |co2mpas| (see :ref:`co2mpas-install` above) and type::
       -O=<output-folder>          Output folder or file [default: .].
       --download                  Download latest demo files from ALLINONE GitHub project.
       <excel-file-path>           Output file [default: co2mpas_template.xlsx].
-      --modelconf=<yaml-file>     Path to a model-configuration file, according to YAML:
-                                    https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
+      --modelconf=<yaml-file>     Path to a YAMmodel-configuration YAML file.
       --use-cache                 Use the cached input file.
       --override, -D=<key=value>  Input data overrides (e.g., `-D fuel_type=diesel`,
                                   `-D prediction.nedc_h.vehicle_mass=1000`).
@@ -454,7 +453,7 @@ you have installed |co2mpas| (see :ref:`co2mpas-install` above) and type::
       --logconf=<conf-file>       Path to a logging-configuration file, according to:
                                     https://docs.python.org/3/library/logging.config.html#configuration-file-format
                                   If the file-extension is '.yaml' or '.yml', it reads a dict-schema from YAML:
-                                    https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
+                                    https://docs.python.org/3/library/logging.config.html#logging-config-dictschema
 
 
     SUB-COMMANDS:

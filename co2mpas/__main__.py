@@ -47,8 +47,7 @@ OPTIONS:
   -O=<output-folder>          Output folder or file [default: .].
   --download                  Download latest demo files from ALLINONE GitHub project.
   <excel-file-path>           Output file [default: co2mpas_template.xlsx].
-  --modelconf=<yaml-file>     Path to a model-configuration file, according to YAML:
-                                https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
+  --modelconf=<yaml-file>     Path to a model-configuration YAML file.
   --use-cache                 Use the cached input file.
   --co2mparable=<old-yaml>    (internal) Enable co2parable generation in tmp-folder and
                               optionally provide an <old-yaml> file to compare with while executing.
@@ -84,7 +83,7 @@ Miscellaneous:
   --logconf=<conf-file>       Path to a logging-configuration file, according to:
                                 https://docs.python.org/3/library/logging.config.html#configuration-file-format
                               If the file-extension is '.yaml' or '.yml', it reads a dict-schema from YAML:
-                                https://docs.python.org/3.5/library/logging.config.html#logging-config-dictschema
+                                https://docs.python.org/3/library/logging.config.html#logging-config-dictschema
 
 
 SUB-COMMANDS:
