@@ -14,6 +14,7 @@ conda install \
     matplotlib
 
 conda install -c conda-forge \
-    xgboost==0.72.1
+    xgboost==0.72.1 \
+    regex  # Needed if no GCC in linux bc no pre-compiled exists in PyPi.
 
 pip install -r "$mydir/exe.pip" --no-cache-dir
