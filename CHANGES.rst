@@ -12,15 +12,22 @@ Changes since 1.7.4.post0:
 Model:
 ------
 
-- feat(co2_emissions): Add `engine_n_cylinders` as input value and a ta parameter.
+- feat(co2_emissions): Add ``engine_n_cylinders`` as input value and a TA parameter. 
 
 - feat(ta): New ta output file.
+
   Running CO2MPAS in TA mode, will produce an extra file containing the DICE report.
   This file will be used in the new version of DICE.
 
 - feat(core): Improve calibration performances 60%.
 
 - feat(manual): Add a manual prediction model according GTR.
+
+- feat(gearbox): Add utility to design gearbox ratios if they cannot be identified
+  based on `maximum_velocity` and `maximum_vehicle_laden_mass`. This is not
+  affecting the TA mode.
+
+  This is not affecting the TA mode.
 
 - fix(co2mpas_template.xlsx): New version 2.3.0.
 
@@ -29,21 +36,21 @@ Model:
   the user can voluntarily add data related to the all WLTP tests held for
   a specific Interpolation Family ID.
 
-- fix(vehicle): Default `n_dyno_axes` as function of
-  `n_wheel_drive` for wltp (4wd-->2d, 2wd-->1d).
-
-  If nothing is specified, default values now are:
+- fix(vehicle): Default ``n_dyno_axes`` as function of
+  ``n_wheel_drive`` for wltp (4wd-->2d, 2wd-->1d).
+  
+  If nothing is specified, default values now are:  
   ``n_dyno_axes = 1``
   ``n_wheel_drive = 2``
-
+  
   If only ``n_wheel_drive`` is selected, then the default for
-  `n_dyno_axes` is calculated as function of n_wheel_drive for wltp
+  ``n_dyno_axes`` is calculated as function of ``n_wheel_drive`` for wltp 
   (4wd-->2d, 2wd-->1d)
-
+  
   If only n_dyno_axes is selected, then the default for
-  n_wheel_drive is always 2.
+  ``n_wheel_drive`` is always 2.
 
-- fix(vva): Remove `_check_vva`.
+- fix(vva): Remove ``_check_vva``.
 
   ``engine_has_variable_valve_actuation = True`` and ``ignition_type = 'compression'``
   is permitted.
@@ -51,10 +58,10 @@ Model:
 - fix(ki_factor): Rename ``ki_factor`` to ``ki_multiplicative`` and add
   ``ki_additive value``.
 
-- fix(start_stop): Disable `start_stop_activation_time` when
-  `has_start_stop == True`.
+- fix(start_stop): Disable ``start_stop_activation_time`` when
+  ``has_start_stop == True``.
 
-- fix(co2_emission): Disable `define_idle_fuel_consumption_model` when
+- fix(co2_emission): Disable ``define_idle_fuel_consumption_model`` when
   `idle_fuel_consumption` is not given.
 
 - fix(ta): Disable function `define_idle_fuel_consumption_model`
@@ -62,14 +69,9 @@ Model:
 
 - fix(electrics): Improve calculation of state of charges.
 
-- fix(at): Correct `correct_gear_full_load` method using the best gear
-  instead the minimum when there is not sufficient power.
+- fix(at): Correct ``correct_gear_full_load`` method using the best gear
+  instead the minimum when there is not sufficient power. 
 
-- (gerbox): Add utility to design gearbox ratios if they cannot be identified
-  based on `maximum_velocity` and `maximum_vehicle_laden_mass`. This is not
-  affecting the TA mode.
-
-  This is not affecting the TA mode.
 
 IO Data
 -------
