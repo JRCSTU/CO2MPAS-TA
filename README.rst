@@ -23,12 +23,12 @@
 |co2mpas| is backward-looking longitudinal-dynamics |CO2| and
 fuel-consumption simulator for light-duty M1 & N1 vehicles (cars and vans),
 specially crafted to *estimate the CO2 emissions of vehicles undergoing NEDC* testing
-based on the emissions produced during *WLTP type-approval testing*,
+based on the emissions produced *WLTP testing* during :term:`type-approval`,
 according to the :term:`EU legislation`\s *1152/EUR/2017 and 1153/EUR/2017*
 (see `History`_ section, below).
 
 It is an open-source project(`EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_)
-developed for Python-3.6+ using |winpython|_ & |anaconda|_ under Windows 7,
+developed for Python-3.6+ using :term:`WinPython` & :term:`Anaconda` under Windows 7,
 Anaconda under MacOS, and standard python environment & Anaconda under Linux.
 It runs either as a *console command* or as a *desktop GUI application*,
 and it uses Excel-files or pure python structures (dictionary and lists) for its
@@ -1292,19 +1292,15 @@ packages updated to their latest versions, you may skip this 1st stage.
     Therefore we suggest that you download one of the following two
     *scientific-python* distributions:
 
-      #. `WinPython <https://winpython.github.io/>`_ **python-3** (64 bit)
-      #. `Anaconda <http://continuum.io/downloads>`_ **python-3** (64 bit)
+      - :term:`WinPython`: https://winpython.github.io/  for **python-3**, 64 bit
+      - :term:`Anaconda`: http://continuum.io/downloads  for **python-3**, 64 bit)
 
 
 
 Install WinPython
 ~~~~~~~~~~~~~~~~~
-The |winpython|_ distribution is just a collection of the standard pre-compiled
-binaries for *Windows* containing all the scientific packages, and much more.
-It is not update-able, and has a quasi-regular release-cycle of 3 months.
 
-
-1. Install the latest **python-3.4+  64 bit** from https://winpython.github.io/.
+1. Install the latest **python-3.4+  64 bit** from :term:`WinPython`
    Prefer an **installation-folder without any spaces leading to it**.
 
 2. Open the WinPython's command-prompt console, by locating the folder where
@@ -1332,7 +1328,7 @@ It is not update-able, and has a quasi-regular release-cycle of 3 months.
 
 Install Anaconda
 ~~~~~~~~~~~~~~~~
-The |anaconda|_ distribution is a non-standard Python environment that
+The :term:`Anaconda` distribution is a non-standard Python environment that
 for *Windows* containing all the scientific packages we need, and much more.
 It is not update-able, and has a semi-regular release-cycle of 3 months.
 
@@ -1508,7 +1504,7 @@ require the use of ``pip`` command from a *console* to install:
   proxy cmd fails:
 
   1. Use an existing *Python-3.5* environment; that might be an older *ALLINONE*,
-     |winpython|_, |anaconda|_ or Linux's standard python environment.
+     :term:`WinPython`, :term:`Anaconda` or Linux's standard python environment.
 
   2. With with a "regular" browser and when connected to the Internet,
      pre-download locally and unzip the respective ``co2mpas_DEPENDENCIES-vX.X.XXX.7z`` file
@@ -1534,7 +1530,7 @@ The `virtualenv` command creates isolated python-environments ("children-venvs")
 where in each one you can install a different versions of |co2mpas|.
 
 .. Note::
-    The `virtualenv` command does NOT run under the "conda" python-environment.
+    The `virtualenv` command does NOT run under the :term:`conda` python-environment.
     Use the `conda command <http://conda.pydata.org/docs/using/envs.html>`_
     in similar manner to create child *conda-environments* instead.
 
@@ -1684,9 +1680,5 @@ environment (ALLINONE is pre-configured with them):
 .. |CO2| replace:: CO\ :sub:`2`
 .. |clink| replace:: *Clink*
 .. _clink: http://mridgers.github.io/clink/
-.. |winpython| replace:: *WinPython*
-.. _winpython: https://winpython.github.io/
-.. |anaconda| replace:: *Anaconda*
-.. _anaconda: http://continuum.io/downloads
 .. |EUPL| replace:: *EUPL*
 .. _EUPL: https://joinup.ec.europa.eu/page/eupl-text-11-12
