@@ -1790,15 +1790,16 @@ class ShrinkingOutputMixin(trtc.Configurable):
                 (self.shrink or
                 (self.shrink is None and sys.stdout.isatty())))
 
-    def shrink_text(self, txt: Optional[str]) -> Optional[str]:
-        if not (self.shrink_slices and txt):
+    def shrink_text(self, txt: Optional[str], shrink_slices=None) -> Optional[str]:
+        shrink_slices = shrink_slices or self.shrink_slices
+        if not (shrink_slices and txt):
             return txt
 
         txt_lines = txt.splitlines()
 
         if self.should_shrink_text(txt_lines):
             shrinked_txt_lines = _slice_text_lines(txt_lines,
-                                                   self.shrink_slices)
+                                                   shrink_slices)
             self.log.warning("Shrinked result text-lines from %i --> %i."
                              "\n  ATTENTION: result is not valid for stamping/validation!"
                              "\n  Write it to a file with `--write-fpath`(`-W`).",
