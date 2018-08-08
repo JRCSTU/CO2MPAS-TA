@@ -33,7 +33,7 @@ def attach_routes(setup_state):
     StampForm = forms.create_stamp_form_class(app)
 
     @frontend.route('/stamp/', methods=('GET', 'POST'))
-    def stamp():
+    def stamp_with_form():
         log.info("WebStamp URL: %s\n  values: %s",
                  request.url, [str(v)[:1400] for v in request.values.items()])
         try:
@@ -42,3 +42,9 @@ def attach_routes(setup_state):
             log.fatal('WebStamp crashed due to: %s\n  %s',
                       ex, [str(v)[:1400] for v in request.values.items()], exc_info=1)
             raise
+
+    @frontend.route('/api-stamp/', methods=('POST', ))
+    def stamp() {
+        dice_stamp, dice_decision = self._sign_dreport(dreport,
+                                           sender, recipients)
+:

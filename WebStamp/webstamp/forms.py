@@ -15,7 +15,7 @@ import os
 import re
 from typing import List, Text
 
-from flask import flash, request, session
+from flask import flash, request
 import flask
 from flask.ctx import after_this_request
 from markupsafe import escape, Markup
@@ -158,6 +158,32 @@ def create_stamp_form_class(app):
 
         return stamped_projects
 
+    def validate_stamp_recipients(recipients):
+        """Must contain at least 1 non-standard email-address."""
+        skip_check_mx = get_bool_arg('skip_mail_mx_check', os.name == 'nt')
+
+        recipients = re.split(r'[\s,;]+', recipients)
+        recipients = [s and s.strip() for s in recipients]
+        recipients = list(filter(None, recipients))
+
+        ## Prepend "hidden" default-recipients. (JRC & CLIMA?).
+        #
+        default_recipients = config.get('DEFAULT_STAMP_RECIPIENTS', [])
+        recipients = unique_ci(default_recipients + recipients)
+
+        if len(recipients) < len(default_recipients) + 1:
+            raise wtforms.ValidationError(
+                'Specify at least 1 extra recipient! Got: %s' %
+                recipients_str(recipients))
+
+        for i, email in enumerate(recipients, 1):
+            if not validate_email(email, check_mx=not skip_check_mx):
+                raise wtforms.ValidationError(
+                    'Invalid email-address no-%i: `%s`' %
+                    (i, recipients_str(recipients)))
+
+        return recipients
+
     #: The form-keys of stamp-data submitted and processed.
     #: The `recipients` is there bc it may modify on each request roundtrip.
     FData = namedtuple("FData",
@@ -214,35 +240,6 @@ def create_stamp_form_class(app):
         submit = wtff.SubmitField(
             '2: Stamp!',
             render_kw={})
-
-        def validate_stamp_recipients(self, field) -> List[str]:
-            """Must contain at least 1 non-standard email-address."""
-            text = field.data
-            skip_check_mx = get_bool_arg('skip_mail_mx_check', os.name == 'nt')
-
-            recipients = re.split('[\s,;]+', text)
-            recipients = [s and s.strip() for s in recipients]
-            recipients = list(filter(None, recipients))
-
-            ## Prepend "hidden" default-recipients. (JRC & CLIMA?).
-            #
-            default_recipients = config.get('DEFAULT_STAMP_RECIPIENTS', [])
-            recipients = unique_ci(default_recipients + recipients)
-
-            if len(recipients) < len(default_recipients) + 1:
-                raise wtforms.ValidationError(
-                    'Specify at least 1 extra recipient! Got: %s' %
-                    recipients_str(recipients))
-
-            for i, email in enumerate(recipients, 1):
-                if not validate_email(email, check_mx=not skip_check_mx):
-                    raise wtforms.ValidationError(
-                        'Invalid email-address no-%i: `%s`' %
-                        (i, recipients_str(recipients)))
-
-            self.stamp_recipients.data = recipients_str(recipients)
-
-            return recipients
 
         def validate_dice_report(self, field):
             min_dreport_size = config['MIN_DREPORT_SIZE']
@@ -395,7 +392,8 @@ def create_stamp_form_class(app):
 
             try:
                 self._check_key_exists()
-                recipients = self.validate_stamp_recipients(self.stamp_recipients)
+                recipients = validate_stamp_recipients(self.stamp_recipients.data)
+                self.stamp_recipients.data = recipients
 
                 verdict = self.sign_validator.parse_signed_tag(dreport)
                 uid = crypto.uid_from_verdict(verdict)
@@ -500,9 +498,11 @@ def create_stamp_form_class(app):
 
             return mail_err
 
-        def _do_stamp(self):
+        def _do_stamp_form(self):
             sender = self.sender.data
-            recipients = self.validate_stamp_recipients(self.stamp_recipients)
+            recipients = validate_stamp_recipients(self.stamp_recipients.data)
+            self.stamp_recipients = recipients
+
             dreport = self.dice_report.data
             mail_err = None
 
@@ -568,7 +568,7 @@ def create_stamp_form_class(app):
                         if self.check.data:
                             fdata = self._do_check()
                         elif self.submit.data:
-                            fdata = self._do_stamp()
+                            fdata = self._do_stamp_form()
                         else:
                             raise AssertionError("Both submission buttons false!")
 
