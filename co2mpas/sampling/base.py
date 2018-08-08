@@ -48,6 +48,10 @@ class PFiles(namedtuple('PFiles', all_io_kinds)):
     def nfiles(self):
         return sum(len(f) for f in self._asdict().values())
 
+    ## CARE needed e.g. when vali-getting them fromm transitions events.
+    #def __bool__(self):
+    #    return self.nfiles() == 0
+
     def find_nonfiles(self):
         import os.path as osp
         import itertools as itt
