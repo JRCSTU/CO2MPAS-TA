@@ -46,8 +46,12 @@ CLIENT_VALIDATION_LOG_FULL_DREPORT = 600
 #  NOTE: maybe FATAL configured to send emails on Production??
 CLIENT_VALIDATION_LOG_LEVEL = logging.DEBUG
 
-## An optional command that returns 0 if signing-key
-#  is in good shape.
+#: An optional command that returns 0 if signing-key
+#: is in good shape, example::
+#:     #!/bin/sh
+#:
+#:     /usr/bin/gpg-connect-agent 'HAVEKEY 2B299CF5B3C86CDDF8D6F701E36287721175B64B' /bye 2>/dev/null | \
+#:         /bin/grep -q OK
 #CHECK_SIGNING_KEY_SCRIPT = 'check_key'
 
 ## A cmdline as list of args for sending out emails.
