@@ -120,6 +120,17 @@ def wsgi_errors_stream():
     return request.environ['wsgi.errors'] if request else sys.stderr
 
 
+def get_bool_arg(argname, default=None):
+    """
+    True is an arg alone, or any stripped string not one of: ``0|false|no|off``
+    """
+    args = request.args
+    if argname in args:
+        param = args[argname].strip()
+        return param.lower() not in '0 false no off'.split()
+    return default
+
+
 if __name__ == '__main__':
     if __package__ is None:
         __package__ = 'webstamp'  # @ReservedAssignment

@@ -5,31 +5,29 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-from co2mpas._vendor.traitlets import config as traitc
-from co2mpas.sampling import CmdException, crypto, tsigner, tstamp
+from co2mpas.sampling import CmdException, crypto, tstamp
 from collections import namedtuple
 from flask_wtf import FlaskForm
 import json
 import logging
-import os
-import re
 from typing import List, Text
 
-from flask import flash, request, session
+from flask import flash, request
 import flask
 from flask.ctx import after_this_request
 from markupsafe import escape, Markup
-from validate_email import validate_email
-import werkzeug.exceptions
 import wtforms
 import yaml
 
 import pprint as pp
 import subprocess as sbp
 import textwrap as tw
+import textwrap as w
 import traceback as tb
 import wtforms.fields as wtff
 import wtforms.validators as wtfl
+
+from .import frontend
 
 
 STAMPED_PROJECTS_KEY = 'stamped_projects'
@@ -39,73 +37,6 @@ LAST_RECIPIENTS_KEY = 'last_recipients'
 
 logger = logging.getLogger(__name__)
 
-class StampingKeyMissing(werkzeug.exceptions.HTTPException):
-    code = 503
-    description = ("Stamping-key temporarily unavailable! "
-                   "JRC has been notified, please try again later.")
-
-def get_bool_arg(argname, default=None):
-    """
-    True is an arg alone, or any stripped string not one of: ``0|false|no|off``
-    """
-    args = request.args
-    if argname in args:
-        param = args[argname].strip()
-        return param.lower() not in '0 false no off'.split()
-    return default
-
-
-def unique_ci(words):
-    """
-    Eliminate all but 1st duplicate words, case-insensitively.
-
-    >>> words = 'a big A pig In JaPaN in japan JAPAN'.split()
-    >>> unique_ci(words)
-    ['a', 'big', 'pig', 'In', 'JaPaN']
-    """
-    lower_words = set()
-    uniques = []
-    for w in words:
-        lw = w.lower()
-        if lw not in lower_words:
-            lower_words.add(lw)
-            uniques.append(w)
-    return uniques
-
-
-def _remote_sender(request, sender, max_width):
-    """
-    Find request's remote address, even if proxied (return the full list).
-
-    :return:
-        a string with `sender` and a single or CS client IPs, optionally
-        limited by `max_width` with ellipsis.
-
-    Taken From:
-      https://stackoverflow.com/questions/12770950/flask-request-remote-addr-is-wrong-on-webfaction-and-not-showing-real-user-ip
-    Read also the linked article:
-      http://esd.io/blog/flask-apps-heroku-real-ip-spoofing.html
-    """
-    headers_list = request.headers.getlist("X-Forwarded-For")
-    client_ip = str(headers_list) if headers_list else request.remote_addr
-    sender = '(%s) %s' % (sender, client_ip)
-    sender_len = len(sender)
-
-    if max_width and sender_len > max_width:
-        logger.info("Dice has a shortened remote-IP: %s", sender)
-
-        if max_width > 3:
-                sender = tw.shorten(sender, max_width)
-        else:
-            sender = ''
-
-    return sender
-
-
-## TODO: ESCAPE USER-INPUT!!!!
-def recipients_str(recipients):
-    return '; '.join(recipients)
-
 
 def ascii_validator(_form, field):
     value = field.data
@@ -113,7 +44,7 @@ def ascii_validator(_form, field):
         raise wtfl.ValidationError("Field does not accept non-ASCII chars.")
 
 
-def create_stamp_form_class(app):
+def create_stamp_form_class(app, Stamper):
     ## Prepare various config-dependent constants
 
     config = app.config
@@ -168,7 +99,7 @@ def create_stamp_form_class(app):
     FData = namedtuple("FData",
                        'stamp_recipients dice_stamp dice_decision mail_err')
 
-    class StampForm(FlaskForm):
+    class StampForm(FlaskForm, Stamper):
         """
         Form submission boolean args:
 
@@ -222,30 +153,15 @@ def create_stamp_form_class(app):
 
         def validate_stamp_recipients(self, field) -> List[str]:
             """Must contain at least 1 non-standard email-address."""
-            text = field.data
-            skip_check_mx = get_bool_arg('skip_mail_mx_check', os.name == 'nt')
+            recipient_txt = field.data
+            try:
+                recipients = self.parse_recipients_text(recipient_txt)
+            except ValueError as ex:
+                raise wtforms.ValidationError(str(ex))
+            except Exception as ex:
+                raise wtforms.ValidationError("%s: %s" % (type(ex).__name__, ex))
 
-            recipients = re.split('[\s,;]+', text)
-            recipients = [s and s.strip() for s in recipients]
-            recipients = list(filter(None, recipients))
-
-            ## Prepend "hidden" default-recipients. (JRC & CLIMA?).
-            #
-            default_recipients = config.get('DEFAULT_STAMP_RECIPIENTS', [])
-            recipients = unique_ci(default_recipients + recipients)
-
-            if len(recipients) < len(default_recipients) + 1:
-                raise wtforms.ValidationError(
-                    'Specify at least 1 extra recipient! Got: %s' %
-                    recipients_str(recipients))
-
-            for i, email in enumerate(recipients, 1):
-                if not validate_email(email, check_mx=not skip_check_mx):
-                    raise wtforms.ValidationError(
-                        'Invalid email-address no-%i: `%s`' %
-                        (i, recipients_str(recipients)))
-
-            self.stamp_recipients.data = recipients_str(recipients)
+            self.stamp_recipients.data = frontend.recipients_str(recipients)
 
             return recipients
 
@@ -277,7 +193,7 @@ def create_stamp_form_class(app):
                 indent = ' ' * 4
                 app.logger.log(
                     level,
-                    tw.dedent("""\
+                    w.dedent("""\
                         Client error while %s:
                           stamp_recipients:
                         %s
@@ -286,7 +202,7 @@ def create_stamp_form_class(app):
                           error:
                         %s
                     """), action,
-                    tw.indent(self.stamp_recipients.data, indent),
+                    w.indent(self.stamp_recipients.data, indent),
                     tw.indent(dreport, indent),
                     tw.indent(pp.pformat(error), indent),
                     **log_kw)
@@ -330,75 +246,24 @@ def create_stamp_form_class(app):
             self.dice_report.label.text = dreport_label
             ## Notice that `repeat_dice` is not touched here (sticky).
 
-
         @property
-        def traits_config(self):
-            """Convert Flask-config --> trait-config, respecting URL-args. """
-            tconf = getattr(request, 'traitlets_config', None)
-            if tconf is None:
-                tconf = traitc.Config(config['TRAITLETS_CONFIG'])
-
-                ## Allow override only if not in trait-configs.
-                #
-                if 'allow_test_key' not in tconf.GpgSpec:
-                    flag = get_bool_arg('allow_test_key')
-                    if flag is not None:
-                        tconf.GpgSpec.allow_test_key = flag
-
-                flag = get_bool_arg('validate_decision')
-                if flag is not None:
-                    tconf.TsignerService.validate_decision = flag
-
-                flag = get_bool_arg('trim_dreport')
-                if flag is not None:
-                    tconf.TsignerService.trim_dreport = flag
-
-                request.traitlets_config = tconf
-
-                ## Update singletons to be used that may have been
-                #  already created from previous requests!!
-                #
-                #  NOTE: singletons were designed for CLI one-off commands.
-                #
-                crypto.GitAuthSpec.clear_instance()      # @UndefinedVariable
-                crypto.StamperAuthSpec.clear_instance()  # @UndefinedVariable
-
-            return tconf
-
-        @property
-        def allow_test_key(self):
-            return self.traits_config.GpgSpec.allow_test_key
-
-        @property
-        def signer(self) -> tsigner.TsignerService:
-            signer = getattr(request, 'signer', None)
-            if signer is None:
-                request.signer = signer = tsigner.TsignerService(
+        def sign_validator(self) -> tstamp.TstampReceiver:
+            sign_validator = getattr(request, 'sign_validator', None)
+            if sign_validator is None:
+                request.sign_validator = sign_validator = tstamp.TstampReceiver(
                     config=self.traits_config)
 
-            return signer
-
-        def _check_key_exists(self):
-            """Key not hosted locally, maybe missing due to connectivity."""
-            check_key_script = config.get('CHECK_SIGNING_KEY_SCRIPT')
-            if check_key_script:
-                p = sbp.run(check_key_script, stdout=sbp.PIPE, stderr=sbp.PIPE)
-                if p.returncode != 0:
-                    logger.fatal("Stamper-key missing!  retcode(%s)"
-                                 "\n  stdout: %s\n  stderr: %s",
-                                 p.returncode, p.stdout, p.stderr)
-                    raise StampingKeyMissing()
+            return sign_validator
 
         def _do_check(self):
             """
             :return:
                 tuple(dice_stamp, dice_decision)
             """
+            recipients = self.validate_stamp_recipients(self.stamp_recipients)
             dreport = self.dice_report.data
 
             try:
-                recipients = self.validate_stamp_recipients(self.stamp_recipients)
-
                 verdict = self.sign_validator.parse_signed_tag(dreport)
                 uid = crypto.uid_from_verdict(verdict)
 
@@ -430,34 +295,9 @@ def create_stamp_form_class(app):
                     <pre>%s</pre>
                     will be stamped, and mailed to %s recipient(s):
                     <pre>%s</pre>
-                """ % (uid, len(recipients), recipients_str(recipients))))
+                """ % (uid, len(recipients), frontend.recipients_str(recipients))))
 
             return FData(recipients, None, None, None)
-
-        @property
-        def sign_validator(self) -> tstamp.TstampReceiver:
-            sign_validator = getattr(request, 'sign_validator', None)
-            if sign_validator is None:
-                request.sign_validator = sign_validator = tstamp.TstampReceiver(
-                    config=self.traits_config)
-
-            return sign_validator
-
-        def _sign_dreport(self, dreport, sender, recipients):
-            """
-            :return:
-                tuple(dice_stamp, dice_decision)
-            """
-            signer = self.signer
-            signer.recipients = recipients
-            ## Calculate remaining width for IP in parenthesis of::
-            #
-            #     #    (123.456.123.456) user@home.gr
-            max_line_width = 60  # See :meth:`TsignerService.sign_text_as_tstamper()`
-            avail_width = max_line_width - len('#    ()') - len(sender)
-            sender = _remote_sender(request, sender, avail_width)
-            return signer.sign_dreport_as_tstamper(sender,
-                                                   dreport)
 
         def _sendmail(self, mail_cli, txt: Text):
             mail_err = None
@@ -509,7 +349,7 @@ def create_stamp_form_class(app):
             mail_err = None
 
             try:
-                dice_stamp, dice_decision = self._sign_dreport(dreport,
+                dice_stamp, dice_decision = self.sign_dreport(dreport,
                                                                sender, recipients)
             except CmdException as ex:
                 self._log_client_error("Signing", ex)
@@ -540,7 +380,6 @@ def create_stamp_form_class(app):
                 return FData(recipients, dice_stamp, dice_decision, mail_err)
 
         def render(self):
-            self._check_key_exists()
             if not self.is_submitted():
                 ## New session.
                 #
