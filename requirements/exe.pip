@@ -1,15 +1,18 @@
 ## Pip-dependencies for installing before running the project.
 #
-## PINNED for Results Reproducibility
+
+## CO2MPAS PINNED for Results Reproducibility
 #
 asteval==0.9.12
-chardet==3.0.4
 dill==0.2.7.1
-formulas==0.0.10
+formulas==0.1.0
 lmfit==0.9.10
 networkx==2.1
 numpy==1.14.3; sys_platform != 'win32'
-numpy==1.14.3+mkl; sys_platform == 'win32'  # Download from "Python UnofficiaL"
+## Fecth from AIO ("Python UnofficiaL" is way past it)
+#  OR comment-out mkl/version
+#  OR `grep -v numpy`
+numpy==1.14.3+mkl; sys_platform == 'win32'
 openpyxl==2.5.3
 pandas==0.23.0
 schedula[plot]==0.2.3
@@ -25,36 +28,42 @@ XlsxWriter==1.0.5
 ## C-backends (under Anaconda use `conda` to install them)
 #
 matplotlib
+regex
 
 ## Pure python libs.
 #
-rainbow_logging_handler
-setuptools
-graphviz
-docopt
-six
-pandalone>=0.2.0
-tqdm
-PyYAML>=3.12
 boltons
 contextvars             ## for co2mpare, backported for <PY37.
-polyversion>=0.2.2a0    ## Workaround buggy git<2.15, envvar: co2mpas_VERION
+docopt
+graphviz
+pandalone               ## ver boundex by setup.py
+polyversion             ## ver boundex by setup.py
+PyYAML                  ## ver boundex by setup.py
+rainbow_logging_handler
+setuptools
+six
+tqdm
 
 
 ## GUI
 #
 Pillow
 
+
 ## Dice
 #
-ipython_genutils
-python-gnupg
 ## Win+Cygwin support, new packed-ref header format
 #  (gitpython-developers/GitPython#689)
 gitpython >= 2.1.8
-transitions >= 0.5.0    ## prepare/finally cbs
+ipython_genutils
 PySocks >= 1.6.7        ## more proxy-error messages (#7)
+python-gnupg
+transitions >= 0.5.0    ## prepare/finally cbs
 parsedatetime
-validate_email          ## dice: distinguish EWS fields
 Unidecode               ## dice: convert non-ASCII for tstamper.
+validate_email          ## dice: distinguish EWS fields
+
+
+## New-dice
+#
 cryptography            ## for new-dice
