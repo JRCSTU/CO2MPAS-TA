@@ -2020,6 +2020,164 @@ class InitCmd(AppendCmd):
             yield self._append_and_report(pfiles)
 
 
+class WstampCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
+    """
+    Dice a new project in one action through WebStamper
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] [<dice-file>]
+
+    - If '-' is given or no file at all, it reads from STDIN.
+    """
+
+    examples = trt.Unicode("""
+        - In the simplest case, just give input/out files:
+              %(cmd_chain)s --inp input.xlsx --out output.xlsx
+        - To specify more files (e.g. H/L in different runs):
+              %(cmd_chain)s --inp input1.xlsx --out output1.xlsx --inp input2.xlsx --out output2.xlsx
+    """)
+
+    webstamper_url = trt.Unicode(
+        'http://localhost:5000/api-stamp/',
+        help="The u"
+    ).tag(config=True)
+
+    def __init__(self, **kwds):
+        kwds.setdefault('cmd_aliases', _write_fpath_alias_kwd)
+        kwds.setdefault('cmd_flags', _shrink_flags_kwd)
+        super().__init__(**kwds)
+
+    def _stamp_dice(self, dice):
+        import requests
+
+        self.log.info('Contacting WebStamper at: %s', self.webstamper_url)
+        data = {
+            'sender': 'ABC',
+            'recipients': 'ankostis@gmail.com',
+            'dice_report': dice,
+        }
+        response = requests.post(self.webstamper_url, data=data)
+
+        return response.text
+
+    def run(self, *args):
+        if len(args) > 1:
+            raise CmdException('Cmd %r takes one optional filepath, received %d: %r!'
+                               % (self.name, len(args), args))
+
+        file = '-' if not args else args[0]
+
+
+        if file == '-':
+            msg = "Reading STDIN."
+            if getattr(sys.stdin, 'isatty', lambda: False)():
+                msg += ("..paste message verbatim, then [Ctrl+%s] to exit!" %
+                        'Z' if sys.platform == 'win32' else 'D')
+            self.log.info(msg)
+            dice = sys.stdin.read()
+        else:
+            if not osp.exists(file):
+                raise CmdException("File to parse '%s' not found!" % file)
+
+            self.log.info("Reading '%s'...", pndlu.convpath(file))
+            with io.open(file, 'rt') as fin:
+                dice = fin.read()
+
+        stamp = self._stamp_dice(dice)
+
+        if self.write_fpath:
+            self.write_file(stamp)
+        else:
+            return self.shrink_text(stamp)
+
+
+class DiceCmd(AppendCmd, WstampCmd):
+    """
+    Dice a new project in one action through WebStamper
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] (--inp <co2mpas-input>) ... (--out <co2mpas-output>) ...
+                                [<any-other-file>] ...
+
+    - If number of input-files given must match the number of output-file.
+      The files are "paired" in the order they are given.
+    - In case of errors, the project database is left as, and must use
+      the rest sub-commands to examine the situation and continue the dice,
+      eg:
+          co2dice project ls
+          co2dice project report
+    """
+
+    examples = trt.Unicode("""
+        - In the simplest case, just give input/out files:
+              %(cmd_chain)s --inp input.xlsx --out output.xlsx
+        - To specify more files (e.g. H/L in different runs):
+              %(cmd_chain)s --inp input1.xlsx --out output1.xlsx --inp input2.xlsx --out output2.xlsx
+    """)
+
+    def _check_ok(self, ok):
+        if not ok:
+            raise CmdException("Bailing out!")
+
+    def _derrive_vfid(self, pfiles: PFiles) -> str:
+        from . import report
+
+        repspec = report.ReporterSpec(config=self.config)
+        finfos = repspec.extract_dice_report(pfiles)
+        for fpath, data in finfos.items():
+            iokind = data['iokind']
+            if iokind in ('inp', 'out'):
+                vfid = data['report']['vehicle_family_id']
+                self.log.info("Project '%s' derived from '%s' file: %s",
+                              vfid, iokind, fpath)
+
+                return vfid
+        else:
+            raise CmdException("Failed derriving project-id from: %s" % finfos)
+
+    def run(self, *args):
+        ## Kludge: hard-code some flags...
+        self.report = True
+
+        ## Parse cli-args.
+        #
+        pfiles = PFiles(inp=self.inp, out=self.out, other=args)
+        if len(pfiles.inp) != len(pfiles.out) or len(pfiles.inp) < 1:
+            raise CmdException(
+                "Cmd %r must be given at least one *pair* of --inp and --out files! "
+                "n  Received: %s!"
+                % (self.name, pfiles))
+        pfiles.check_files_exist(self.name)
+
+        vfid = self._derrive_vfid(pfiles)
+        proj = self.projects_db.proj_add(vfid)
+        self._check_ok(proj.do_addfiles(pfiles=pfiles))
+        self.log.info("Initiated '%s' with files: %s", vfid, pfiles)
+
+        self._check_ok(proj.do_report())
+        dice = proj.result
+        assert isinstance(dice, str)
+        key_uid = proj.extract_uid_from_report(dice)
+        self.log.info("Created new Dice signed by '%s': \n%s",
+                      key_uid,
+                      self.shrink_text(dice))
+
+        stamp = self._stamp_dice(dice)
+        self.log.info("Stamp was: \n%s",
+                      self.shrink_text(stamp))
+
+        self._check_ok(proj.do_storedice(tstamp_txt=stamp))
+        decision = proj.result
+        assert isinstance(decision, str), decision
+        self.log.info("Imported Decision: \n%s'.",
+                      self.shrink_text(stamp))
+
+        if self.write_fpath:
+            self.write_file(decision)
+        else:
+            return self.shrink_text(decision)
+
+
 class ReportCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
     """
     Prepares or re-prints the signed dice-report that can be sent for timestamping.
@@ -2722,6 +2880,7 @@ class BackupCmd(_SubCmd):
 
 all_subcmds = (LsCmd, InitCmd, OpenCmd,
                AppendCmd, ReportCmd,
+               WstampCmd, DiceCmd,
                TstampCmd,  # TODO: delete deprecated `projext tsend` cmd
                TsendCmd,
                TrecvCmd, TparseCmd,
