@@ -1905,6 +1905,30 @@ class AppendCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
         })
         super().__init__(**kwds)
 
+    def _append_and_report(self, pfiles):
+        proj = self.current_project
+        ok = proj.do_addfiles(pfiles=pfiles)
+
+        if not ok or not self.report:
+            return self._format_result(ok, proj.result)
+        else:
+            ok = proj.do_report()
+
+            assert isinstance(proj.result, str)
+
+            if ok:
+                result = proj.result
+                key_uid = proj.extract_uid_from_report(result)
+                self.log.info("Report has been signed by '%s'.", key_uid)
+
+                if self.write_fpath:
+                    self.write_file(result)
+                    return ok
+                else:
+                    return self.shrink_text(result)
+            else:
+                return False
+
     def run(self, *args):
         from . import report
 
@@ -1924,31 +1948,7 @@ class AppendCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
         pfiles.check_files_exist(self.name)
         self.log.info("Importing report files...\n  %s", pfiles)
 
-        yield from self.append_and_report(pfiles)
-
-    def append_and_report(self, pfiles):
-        proj = self.current_project
-        ok = proj.do_addfiles(pfiles=pfiles)
-
-        if not self.report:
-            yield self._format_result(ok, proj.result)
-        else:
-            ok = proj.do_report()
-
-            assert isinstance(proj.result, str)
-
-            if ok:
-                result = proj.result
-                key_uid = proj.extract_uid_from_report(result)
-                self.log.info("Report has been signed by '%s'.", key_uid)
-
-                if self.write_fpath:
-                    self.write_file(result)
-                    yield ok
-                else:
-                    yield self.shrink_text(result)
-            else:
-                yield False
+        yield self._append_and_report(pfiles)
 
 
 class InitCmd(AppendCmd):
@@ -2015,7 +2015,7 @@ class InitCmd(AppendCmd):
 
             self.projects_db.proj_add(project)
 
-            yield from self.append_and_report(pfiles)
+            yield self._append_and_report(pfiles)
 
 
 class ReportCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
