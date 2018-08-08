@@ -1,48 +1,60 @@
-## Pip-dependencies for installing and running the project.
-
-## C-backends (under Anaconda use `conda` to install them)
+## Pip-dependencies for installing before running the project.
 #
-rainbow_logging_handler
-pandas==0.20.1
+
+## PINNED for Results Reproducibility
+#
+#asteval==0.9.8         # not needed bc `lmfit<0.9.9` vendorizes it.
+dill==0.2.6
+formulas==0.0.7
+## Originally in 1.7.4 was 0.1.14 but
+#  < 0.1.17: `dill` conflict, >0.1.17: missing `open_file()`,
+lmfit==0.9.5
+networkx==1.11
 numpy==1.11.3; sys_platform != 'win32'
-## Fecth from AIO (# "Python UnofficiaL" is way past it)
+## Fecth from AIO ("Python UnofficiaL" is way past it)
 #  OR comment-out mkl/version
 #  OR `grep -v numpy`
 numpy==1.11.3+mkl; sys_platform == 'win32'
+openpyxl==2.4.0
+pandalone==0.2.0
+pandas==0.20.1
+pykalman==0.9.5
+schedula==0.1.17
+scikit-learn==0.18.1
 scipy==0.19.0
-scikit-learn--0.18.1
+wltp==0.1.0a2
+xlrd==1.0.0
+xlsxwriter==0.9.5
+
+## C-backends (under Anaconda use `conda` to install them)
+#
 matplotlib
+regex
 
 ## Pure python libs.
 #
-setuptools
-networkx==1.11
-dill==0.2.6
-graphviz
+boltons
 docopt
-six
-pandalone==0.2.0
-xlsxwriter
-regex
+graphviz
 schema
-lmfit==0.9.5
-tqdm
+six
 pip
 PyYAML==3.12
-boltons
-pykalman
-wltp==0.1.0a2
-openpyxl==2.4.0
-## Originally in 1.7.4 was 0.1.14 but
-#  < 0.1.17: `dill` conflict, >0.1.17: missing `open_file()`,
-schedula==0.1.17
-formulas==0.0.7
+rainbow_logging_handler
+setuptools
+tqdm
+
+
+## GUI
+#
+Pillow
 
 ## Dice
-python-gnupg
 gitpython >= 2.1.0      ## Win+Cygwin support
-transitions >= 0.5.0    ## prepare/finally cbs
-PySocks >= 1.6.7        ## more proxy-error messages (#7)
+ipython_genutils
 parsedatetime
-validate_email          ## dice: distinguish EWS fields
+PySocks >= 1.6.7        ## more proxy-error messages (#7)
+python-gnupg
+transitions >= 0.5.0    ## prepare/finally cbs
 Unidecode               ## dice: convert non-ASCII for tstamper.
+validate_email          ## dice: distinguish EWS fields
