@@ -143,6 +143,13 @@ Almost all "known limitations" from `v1.7.3` still apply.
 Intermediate releases:
 ----------------------
 
+v1.9.1a0 9 Aug 2018
+~~~~~~~~~~~~~~~~~~~
+Not in *PyPi*.
+- FEAT: NEW WEB-API CMDS: ``WstampCmd`` & ``DiceCmd`` that don't require browser.
+- TODO: Add GUI "Stamp" button (see :gh:`378`).
+
+
 v1.9.0b2 7 Aug 2018
 ~~~~~~~~~~~~~~~~~~~
 Version in *PyPi* deemed OK for release.  Mostly doc-changes since `b1`.

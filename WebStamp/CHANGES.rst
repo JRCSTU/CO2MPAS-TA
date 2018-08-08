@@ -7,9 +7,13 @@ NEXT RELEASE
 ======================
 
 
+v1.9.2a0: 2018-XX-YY
+====================
+- Add provisional WEB-API Stamping endpoint, with quick'n'dirty refactorin.
+
 v1.9.1a1: 2018-08-05
 ====================
-Rework GUI-state update logic, minor CSSs.
+Rework UI-state update logic, minor CSSs.
 
 
 v1.9.1a0: 2018-08-05
