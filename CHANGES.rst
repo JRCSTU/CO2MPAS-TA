@@ -12,7 +12,7 @@ Changes since 1.7.4.post0:
 Model:
 ------
 
-- feat(co2_emissions): Add ``engine_n_cylinders`` as input value and a TA parameter. 
+- feat(co2_emissions): Add ``engine_n_cylinders`` as input value and a TA parameter.
 
 - feat(ta): New ta output file.
 
@@ -38,15 +38,15 @@ Model:
 
 - fix(vehicle): Default ``n_dyno_axes`` as function of
   ``n_wheel_drive`` for wltp (4wd-->2d, 2wd-->1d).
-  
-  If nothing is specified, default values now are:  
+
+  If nothing is specified, default values now are:
   ``n_dyno_axes = 1``
   ``n_wheel_drive = 2``
-  
+
   If only ``n_wheel_drive`` is selected, then the default for
-  ``n_dyno_axes`` is calculated as function of ``n_wheel_drive`` for wltp 
+  ``n_dyno_axes`` is calculated as function of ``n_wheel_drive`` for wltp
   (4wd-->2d, 2wd-->1d)
-  
+
   If only n_dyno_axes is selected, then the default for
   ``n_wheel_drive`` is always 2.
 
@@ -70,7 +70,7 @@ Model:
 - fix(electrics): Improve calculation of state of charges.
 
 - fix(at): Correct ``correct_gear_full_load`` method using the best gear
-  instead the minimum when there is not sufficient power. 
+  instead the minimum when there is not sufficient power.
 
 
 IO Data
@@ -292,12 +292,33 @@ pre v1.8.0.dev0, 15 Nov 2017
 - Dice & WebStamper updates...
 
 
-v1.7.4.post1, 3 Aug 2018
+v1.7.4.post2, 8 Aug 2018
 ========================
-Backport fixes from 1.9+ to facilitate comparisons with forthcoming release.
+- Fixed regression by "piping to stdout" of previous broken release `1.7.1.post1`.
+- Pinned dependencies needed for downgrading from `v1.9.x`.
 
-- FIX: Support `pip >= 10+` (see :ghp:`26`).
-- Fix conflicting `dill` requirement, preventing downgrades of |co2mpas|.
+  Transitive dependencies are now served from 2 places:
+
+  - :file:`setup.py`:  contains bounded dependency versions to ensure proper
+    functioning, but not reproducibility.
+
+    These bounded versions apply when installing from *PyPi* with command
+    ``pip instal co2mpas==1.7.4.post2``; then :command:`pip` will install
+    dependencies with as few as possible transitive re-installations.
+
+  - :file:`requirements/exe.pip` & :file:`requirements/install_conda_reqs.sh`:
+    contain the *pinned* versions of all calculation-important dependent libraries
+    (see :gh:`463`).
+
+    You need to get the sources (e.g. git-clone the repo) to access this file,
+    and then run the command ``pip install -r <git-repo>/requirements/exe.pip``.
+
+v1.7.4.post1, 3 Aug 2018 (BROKEN!)
+----------------------------------
+Backport fixes to facilitate comparisons with forthcoming release 1.9+.
+
+- Support `pip >= 10+` (fixes :ghp:`26`).
+- Fix conflicting `dill` requirement.
 - Fix piping dice-commands to stdout.
 
 
