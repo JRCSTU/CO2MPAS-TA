@@ -2171,7 +2171,7 @@ class TparseCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
     Derives *decision* OK/SAMPLE flag from tstamped-response, and store it in current-project.
 
     SYNTAX
-        %(cmd_chain)s [OPTIONS] [<tstamped-file-1> ...]
+        %(cmd_chain)s [OPTIONS] [<stamp-file>]
 
     - If '-' is given or no file at all, it reads from STDIN.
     - If --force, ignores most verification/parsing errors.
