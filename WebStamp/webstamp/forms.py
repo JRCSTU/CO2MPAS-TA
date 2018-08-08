@@ -20,6 +20,7 @@ import flask
 from flask.ctx import after_this_request
 from markupsafe import escape, Markup
 from validate_email import validate_email
+import werkzeug.exceptions
 import wtforms
 import yaml
 
@@ -38,6 +39,10 @@ LAST_RECIPIENTS_KEY = 'last_recipients'
 
 logger = logging.getLogger(__name__)
 
+class StampingKeyMissing(werkzeug.exceptions.HTTPException):
+    code = 503
+    description = ("Stamping-key temporarily unavailable! "
+                   "JRC has been notified, please try again later.")
 
 def get_bool_arg(argname, default=None):
     """
@@ -382,9 +387,7 @@ def create_stamp_form_class(app):
                     logger.fatal("Stamper-key missing!  retcode(%s)"
                                  "\n  stdout: %s\n  stderr: %s",
                                  p.returncode, p.stdout, p.stderr)
-                    raise CmdException(
-                        "Signing temporarily unavailable! "
-                        "JRC has been notified, please try again later.")
+                    raise StampingKeyMissing()
 
         def _do_check(self):
             """
