@@ -1983,13 +1983,14 @@ class InitCmd(AppendCmd):
                 "from --inp or --out files given; received args(%s), %s!"
                 % (self.name, args, pfiles))
 
-        if self.report and not (pfiles.inp and pfiles.out):
+        if self.report and (
+            len(pfiles.inp) != len(pfiles.out) or len(pfiles.inp) < 1):
             raise CmdException(
-                "Cmd %r needs BOTH --inp and --out files when --report given; "
-                "received args(%s), %s!"
-                % (self.name, args, pfiles))
+                "Cmd %r needs one or more *pairs* of --inp and --out files when --report given;"
+                "\n  received: %s!"
+                % (self.name, pfiles))
 
-        if len(args) == 1:
+        if len(args) == 1 and not self.report:
             yield self.projects_db.proj_add(args[0])
         else:
             pfiles.check_files_exist(self.name)
