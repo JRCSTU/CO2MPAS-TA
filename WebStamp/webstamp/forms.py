@@ -394,7 +394,6 @@ def create_stamp_form_class(app):
             dreport = self.dice_report.data
 
             try:
-                self._check_key_exists()
                 recipients = self.validate_stamp_recipients(self.stamp_recipients)
 
                 verdict = self.sign_validator.parse_signed_tag(dreport)
@@ -507,7 +506,6 @@ def create_stamp_form_class(app):
             mail_err = None
 
             try:
-                self._check_key_exists()
                 dice_stamp, dice_decision = self._sign_dreport(dreport,
                                                                sender, recipients)
             except CmdException as ex:
@@ -539,6 +537,7 @@ def create_stamp_form_class(app):
                 return FData(recipients, dice_stamp, dice_decision, mail_err)
 
         def render(self):
+            self._check_key_exists()
             if not self.is_submitted():
                 ## New session.
                 #
