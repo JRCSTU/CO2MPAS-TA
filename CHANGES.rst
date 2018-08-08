@@ -5,8 +5,29 @@ CO2MPAS Changes
 .. _changes:
 
 
-v1.7.4.post1, 3 Aug 2018
+v1.7.4.post2, 8 Aug 2018
 ========================
+- Fixed regression by "piping to stdout" of previous broken release `1.7.1.post1`.
+- Pinned dependencies needed for downgrading from `v1.9.x`.
+
+  Transitive dependencies are now served from 2 places:
+
+  - :file:`setup.py`:  contains bounded dependency versions to ensure proper
+    functioning, but not reprodicibility.
+
+    These bounded versions apply when installing from *PyPi* with command
+    ``pip instal co2mpas==1.7.4.post2``; then :command:`pip` will install
+    dependencies with as few as possible transitive re-installations.
+
+  - :file:`requirements/exe.pip`: contains the *pinned* versions of all
+    calculation-important dependent libraries (see :gh:`463`).
+
+    You need to get the sources (e.g. git-clone the repo) to access this file,
+    and then run the command ``pip install -r <git-repo>/requirements/exe.pip``.
+
+
+v1.7.4.post1, 3 Aug 2018 (BROKEN!)
+----------------------------------
 Backport fixes to facilitate comparisons with forthcoming release 1.9+.
 
 - Support `pip >= 10+` (fixes :ghp:`26`).
