@@ -169,8 +169,10 @@ setup(
         'xlsxwriter',
         'scikit-learn',
         'numpy',
-        'scipy',
-        'lmfit>=0.9.5',
+        'scipy<1.0.0',              # `x must be strictly increasing` in `fitpack2`
+        ## no 'method' in Min|Result in lmfit>=0.9.10 (#496),
+        # no vendorized `asteval` in >=0.9.9
+        'lmfit>=0.9.5,<0.9.9',
         'matplotlib',
         'networkx',
         'dill!=0.2.7',
@@ -189,8 +191,8 @@ setup(
         'openpyxl>=2.4.0',
         'Pillow',           # for tkui
         'toolz',
-        'schedula>=0.1.14',         # Fix str(AbortDispatcher) not to print model
-        'formulas>=0.0.7',
+        'schedula>=0.1.14,<0.1.18',  # missing `open_file()`
+        'formulas==0.0.7',
 
         'ipython_genutils',         # by vendorized `traitlets`
         'python-gnupg',
