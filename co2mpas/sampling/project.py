@@ -2209,13 +2209,6 @@ class ReportCmd(_SubCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
             yield self.shrink_text(result)
 
 
-class TstampCmd(_SubCmd):
-    """Deprecated: renamed as `tsend`!"""
-    def run(self, *args):
-        raise CmdException("Cmd %r has been renamed to %r!"
-                           % (self.name, 'tsend'))
-
-
 class TsendCmd(_SubCmd):
     """
     IRREVOCABLY send report to time-stamp service, or print it for sending it manually (--dry-run).
@@ -2825,7 +2818,6 @@ class BackupCmd(_SubCmd):
 all_subcmds = (LsCmd, InitCmd, OpenCmd,
                AppendCmd, ReportCmd,
                WstampCmd, DiceCmd,
-               TstampCmd,  # TODO: delete deprecated `projext tsend` cmd
                TsendCmd,
                TrecvCmd, TparseCmd,
                StatusCmd,
