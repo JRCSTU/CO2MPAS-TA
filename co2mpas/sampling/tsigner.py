@@ -431,7 +431,7 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
         return signed_text, dice_decision
 
 
-class TsignerCmd(base._FileReadingMixin, baseapp.Cmd):
+class TsignerCmd(base.FileReadingMixin, baseapp.Cmd):
     """
     Private stamper service.
 

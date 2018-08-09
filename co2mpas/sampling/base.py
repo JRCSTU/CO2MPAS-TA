@@ -73,7 +73,7 @@ class PFiles(namedtuple('PFiles', all_io_kinds)):
 PFiles.__new__.__defaults__ = ([], ) * len(all_io_kinds)
 
 
-class _FileReadingMixin(metaclass=trt.MetaHasTraits):
+class FileReadingMixin(metaclass=trt.MetaHasTraits):
     """
     Facilitates commands reading input files given in the command-line.
 
@@ -122,7 +122,7 @@ class _FileReadingMixin(metaclass=trt.MetaHasTraits):
                     continue
 
 
-class _StampParsingCmdMixin(_FileReadingMixin):
+class StampParsingCmdMixin(FileReadingMixin):
     """
     Parses dice-reports & stamps from input files.
     """
@@ -144,11 +144,11 @@ class _StampParsingCmdMixin(_FileReadingMixin):
         flags = kwds.pop('cmd_flags', {})
         flags.update({
             'tag': (
-                {'_StampParsingCmdMixin': {'parse_as_tag': True}},
+                {'StampParsingCmdMixin': {'parse_as_tag': True}},
                 "Parse input as tag."
             ),
             'stamp': (
-                {'_StampParsingCmdMixin': {'parse_as_tag': False}},
+                {'StampParsingCmdMixin': {'parse_as_tag': False}},
                 "Parse input as stamp."
             ),
         })

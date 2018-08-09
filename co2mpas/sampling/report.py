@@ -483,7 +483,7 @@ class ExtractCmd(baseapp.Cmd):
                 yield yaml.dump([drep], indent=2, width=76)
 
 
-class UnlockCmd(baseapp.Cmd, base._StampParsingCmdMixin):
+class UnlockCmd(baseapp.Cmd, base.StampParsingCmdMixin):
     """
     Decrypt data attached in dice-reports (also when wrapped in stamps) into STDOUT.
 

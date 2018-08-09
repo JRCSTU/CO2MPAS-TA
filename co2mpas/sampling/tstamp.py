@@ -1743,7 +1743,7 @@ class TstampCmd(baseapp.Cmd):
         super().__init__(**kwds)
 
 
-class SendCmd(base._FileReadingMixin, baseapp.Cmd):
+class SendCmd(base.FileReadingMixin, baseapp.Cmd):
     """
     Send emails to be timestamped.
 
@@ -1963,7 +1963,7 @@ class RecvCmd(baseapp.Cmd):
                               default_flow_style=default_flow_style)
 
 
-class ParseCmd(base._StampParsingCmdMixin, baseapp.Cmd):
+class ParseCmd(base.StampParsingCmdMixin, baseapp.Cmd):
     """
     Verifies and derives the *decision* OK/SAMPLE flag from tstamped-response email.
 
