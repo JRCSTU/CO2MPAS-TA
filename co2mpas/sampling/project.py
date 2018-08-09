@@ -31,7 +31,7 @@ import textwrap as tw
 from . import base, baseapp, dice, CmdException, slicetrait
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
                 __dice_report_version__)
-from .._vendor import traitlets as trt
+from .._vendor.traitlets import traitlets as trt
 from .._vendor.traitlets import config as trtc
 from .base import PFiles
 
@@ -269,6 +269,7 @@ class ProjectSpec(dice.DiceSpec):
 
 class Project(transitions.Machine, ProjectSpec):
     """The Finite State Machine for the currently checked-out project."""
+    ## TODO: FSM must move to ProjectsDB.
 
     dry_run = trt.Bool(
         help="Process actions but do not actually commit/tag results in the project."
@@ -920,6 +921,16 @@ DRY-RUN: Now you must send the email your self!
         if self.dry_run:
             self.log.warning('DRY-RUN: Not actually registering decision.')
         return not self.dry_run
+
+    def retrieve_tag(self, tag_index: int):
+        tag_refs = list(_yield_dices_tags(self.repo, self.pname))
+        try:
+            tagref = tag_refs[tag_index]
+            return _read_dice_tag(self.repo, tagref)
+        except IndexError:
+            raise CmdException(
+                "Index %s out of range; project '%s' has %i reports."
+                % (tag_index, self.pname, len(tag_refs)))
 
 
 class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
@@ -2046,7 +2057,17 @@ class ReportCmd(_SubCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
 
     SYNTAX
         %(cmd_chain)s [OPTIONS]
+        %(cmd_chain)s [OPTIONS]  <tag-index>
 
+    - The 1st form  tries to generate a report only if project at `wltp_iof` state and
+      no report has ever been generated.  Use --force if you need a new report.
+    - The 2nd form retrieves old report with the given <index>, where usually:
+          0: Dice
+          1: Decision
+          2: Recertified-dice
+          ...
+      To specify a negative index, use: %(cmd_chain)s -- -2
+          -1: last report
     - Eventually the *Dice Report* parameters will be time-stamped and disseminated to
       TA authorities & oversight bodies with an email, to receive back
       the sampling decision.
@@ -2065,43 +2086,60 @@ class ReportCmd(_SubCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
     """)
 
     def __init__(self, **kwds):
-        from . import crypto
-        from . import report
+        from toolz import dicttoolz as dtz
+        from . import crypto, report
 
-        kwds.setdefault('conf_classes', [report.ReporterSpec, crypto.GitAuthSpec])
-        kwds.setdefault('cmd_aliases', base.write_fpath_alias_kwd)
-        kwds.setdefault('cmd_flags', {
-            ('n', 'dry-run'): (
-                {
-                    'Project': {'dry_run': True},
-                },
-                "Verify dice-report do not actually store it in the project."
-            ),
-            'with-inputs': (
-                {
-                    'ReporterSpec': {'include_input_in_dice': True},
-                }, report.ReporterSpec.include_input_in_dice
-                .help),  # @UndefinedVariable
-            **slicetrait.shrink_flags_kwd,
+        kwds = dtz.merge(kwds, {
+            'conf_classes': [report.ReporterSpec, crypto.GitAuthSpec],
+            'cmd_aliases': base.write_fpath_alias_kwd,
+            'cmd_flags': {
+                ('n', 'dry-run'): (
+                    {
+                        'Project': {'dry_run': True},
+                    },
+                    "Verify dice-report do not actually store it in the project."
+                ),
+                'with-inputs': (
+                    {
+                        'ReporterSpec': {'include_input_in_dice': True},
+                    }, report.ReporterSpec.include_input_in_dice
+                    .help),  # @UndefinedVariable
+                **slicetrait.shrink_flags_kwd,
+            },
         })
         super().__init__(**kwds)
 
     def run(self, *args):
-        self.log.info('Tagging project %r...', args)
-        if len(args) > 0:
-            raise CmdException('Cmd %r takes no arguments, received %d: %r!'
-                               % (self.name, len(args), args))
+        tag_index = None
+        nargs = len(args)
+        if nargs > 1:
+            raise CmdException(
+                "Cmd %r takes optionally a single <tag-index> argument, received %d: %r!"
+                % (self.name, nargs, args))
+        elif nargs == 1:
+            try:
+                tag_index = int(args[0])
+            except ValueError:
+                raise CmdException(
+                    "Cmd %r expected an integer for <tag-index> argument, received: %r!"
+                    % (self.name, args[0]))
 
+        proj = self.current_project
         ok = None
+
+        if tag_index is not None:
+            yield proj.retrieve_tag(tag_index)
+            return
 
         ## TODO: move code in project and simplify `do_report()`.
         #
-        proj = self.current_project
         repo = proj.repo
         tagref = _find_dice_tag(repo, proj.pname,
                                 proj.max_dices_per_project)
-        gen_report = proj.state == 'wltp_iof' or not tagref or self.force
+        gen_report = (proj.state == 'wltp_iof' or
+                      not tagref or self.force)
         if gen_report:
+            self.log.info('Tagging project %r...', args)
             ok = proj.do_report()
             assert isinstance(proj.result, str)
             result = ok and proj.result or ok
