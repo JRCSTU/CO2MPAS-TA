@@ -1926,128 +1926,6 @@ class InitCmd(AppendCmd):
             yield self._append_and_report(pfiles)
 
 
-class WstampCmd(_SubCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
-    """
-    Send the given Dice to WebStamper for Stamping.
-
-    SYNTAX
-        %(cmd_chain)s [OPTIONS] [<dice-file>]
-
-    - If '-' is given or no file at all, it reads from STDIN.
-    - If --dry-run, the Dice is sent to WebStamper for validation only.
-    - If no Dice given, connectivity and status of WebStamper are checked
-      (--dry-run is irrelevant).
-    - WARN: Do not use this command directly (unless experimenting)
-      to avoid loosing the generated Stam.
-      Prefer the `project tsend` sub-command.
-    """
-
-    examples = trt.Unicode("""
-        - To send a dice-report the current project (assuming it in 'tagged' state):
-              co2dice project report | %(cmd_chain)s
-        - To send a dice-report for a any 'tagged' project you have its `vehicle_family_id`::
-              git  cat-file  tag  tstamps/RL-12-BM3-2017-0001/1 | %(cmd_chain)s
-    """)
-
-    dry_run = trt.Bool(
-        help="Submit a provisional Dice to WebStamper without actually writting anything."
-    ).tag(config=True)
-
-    webstamper_check_url = trt.Unicode(
-        ## FIXME: Make URLs it configurable to avoid DoS!
-        'http://localhost:5000/api-check/',
-        help="The endpoint URL that Stamps."
-    ).tag(config=True)
-
-    webstamper_stamp_url = trt.Unicode(
-        ## FIXME: Make URLs it configurable to avoid DoS!
-        'http://localhost:5000/api-stamp/',
-        help="The endpoint URL that Stamps."
-    ).tag(config=True)
-
-    def __init__(self, **kwds):
-        from . import crypto, tstamp
-
-        kwds.update({
-            'conf_classes': [ProjectsDB, Project,
-                             crypto.GitAuthSpec,
-                             tstamp.TstampSender,
-                             ],
-            'cmd_aliases': base.write_fpath_alias_kwd,
-            'cmd_flags': {
-                ('n', 'dry-run'): (
-                    {type(self).__name__: {'dry_run': True}},
-                    "Submit a provisional Dice to WebStamper without actually writting anything."
-                ),
-                **slicetrait.shrink_flags_kwd
-            }
-        })
-        super().__init__(**kwds)
-
-    def _stamp_dice(self, dice):
-        import requests
-        from . import tstamp
-
-        endpoint = (self.webstamper_check_url
-                    if self.dry_run or not dice else
-                    self.webstamper_stamp_url)
-
-        if dice:
-            sendspec = tstamp.TstampSender(config=self.config)
-            sender = "%s <%s>" % (sendspec.user_name, sendspec.user_email)
-            recipients = '; '.join(sendspec.tstamp_recipients)
-            data = {
-                'sender': sender,
-                'recipients': recipients,
-                'dice_report': dice,
-            }
-            pretend_prefix = "DRY-RUN:  " if self.dry_run else ''
-            self.log.info(
-                "%sSending %i-char Dice to WebStamper(%s) with contacts: "
-                "\n  sender: %s\n  recipients: %s",
-                pretend_prefix, dice and len(dice) or 0,
-                endpoint, sender, recipients)
-        else:
-            data = None
-            self.log.info(
-                "Checking connectivity with WebStamper(%s)", endpoint)
-
-        response = requests.post(endpoint, data=data)
-
-        return response.text
-
-    def run(self, *args):
-        if len(args) > 1:
-            raise CmdException('Cmd %r takes one optional filepath, received %d: %r!'
-                               % (self.name, len(args), args))
-
-        file = '-' if not args else args[0]
-        if file == '-':
-            msg = "Reading STDIN."
-            if getattr(sys.stdin, 'isatty', lambda: False)():
-                msg += ("..paste message verbatim, then [Ctrl+%s] to exit!" %
-                        'Z' if sys.platform == 'win32' else 'D')
-            self.log.info(msg)
-            dice = sys.stdin.read()
-        else:
-            if not osp.exists(file):
-                raise CmdException("File to parse '%s' not found!" % file)
-
-            self.log.info("Reading '%s'...", pndlu.convpath(file))
-            with io.open(file, 'rt') as fin:
-                dice = fin.read()
-
-        stamp = self._stamp_dice(dice)
-#        try:
-#        except Exception as ex:
-#            log
-
-        if self.write_fpath:
-            self.write_file(stamp)
-        else:
-            return self.shrink_text(stamp)
-
-
 class DiceCmd(AppendCmd):
     """
     Dice a new project in one action through WebStamper
@@ -2852,7 +2730,8 @@ class BackupCmd(_SubCmd):
 
 all_subcmds = (LsCmd, InitCmd, OpenCmd,
                AppendCmd, ReportCmd,
-               WstampCmd, DiceCmd,
+               #WstampCmd,
+               DiceCmd,
                TsendCmd,
                TrecvCmd, TparseCmd,
                StatusCmd,
