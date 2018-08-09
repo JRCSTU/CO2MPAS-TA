@@ -1934,6 +1934,9 @@ class WstampCmd(_SubCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
         %(cmd_chain)s [OPTIONS] [<dice-file>]
 
     - If '-' is given or no file at all, it reads from STDIN.
+    - If --dry-run, the Dice is sent to WebStamper for validation only.
+    - If no Dice given, connectivity and status of WebStamper are checked
+      (--dry-run is irrelevant).
     - WARN: Do not use this command directly (unless experimenting)
       to avoid loosing the generated Stam.
       Prefer the `project tsend` sub-command.
@@ -1985,22 +1988,30 @@ class WstampCmd(_SubCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
         import requests
         from . import tstamp
 
-        sendspec = tstamp.TstampSender(config=self.config)
-        sender = "%s <%s>" % (sendspec.user_name, sendspec.user_email)
-        recipients = '; '.join(sendspec.tstamp_recipients)
         endpoint = (self.webstamper_check_url
-                    if self.dry_run else
+                    if self.dry_run or not dice else
                     self.webstamper_stamp_url)
-        self.log.info(
-            "Contacting WebStamper(%s) with request: "
-            "\n  sender: %s\n  recipients: %s",
-            endpoint, sender, recipients)
 
-        data = {
-            'sender': sender,
-            'recipients': recipients,
-            'dice_report': dice,
-        }
+        if dice:
+            sendspec = tstamp.TstampSender(config=self.config)
+            sender = "%s <%s>" % (sendspec.user_name, sendspec.user_email)
+            recipients = '; '.join(sendspec.tstamp_recipients)
+            data = {
+                'sender': sender,
+                'recipients': recipients,
+                'dice_report': dice,
+            }
+            pretend_prefix = "DRY-RUN:  " if self.dry_run else ''
+            self.log.info(
+                "%sSending %i-char Dice to WebStamper(%s) with contacts: "
+                "\n  sender: %s\n  recipients: %s",
+                pretend_prefix, dice and len(dice) or 0,
+                endpoint, sender, recipients)
+        else:
+            data = None
+            self.log.info(
+                "Checking connectivity with WebStamper(%s)", endpoint)
+
         response = requests.post(endpoint, data=data)
 
         return response.text
@@ -2027,6 +2038,9 @@ class WstampCmd(_SubCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
                 dice = fin.read()
 
         stamp = self._stamp_dice(dice)
+#        try:
+#        except Exception as ex:
+#            log
 
         if self.write_fpath:
             self.write_file(stamp)
