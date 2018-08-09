@@ -2172,7 +2172,7 @@ class WstampCmd(baseapp.Cmd,
                 if self.write_fpath:
                     self.write_file(stamp)
                 else:
-                    return self.shrink_text(stamp)
+                    yield self.shrink_text(stamp)
 
 
 all_subcmds = (
