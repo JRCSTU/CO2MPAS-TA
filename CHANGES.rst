@@ -142,21 +142,27 @@ Almost all "known limitations" from `v1.7.3` still apply.
 
 Intermediate releases:
 ----------------------
+- Releases with ``r`` prefix signify version published in *PyPi*.
+- Releases with ``v`` prefix signify internal markings.
 
-v1.9.1a0 9 Aug 2018
-~~~~~~~~~~~~~~~~~~~
-Not in *PyPi*.
-- FEAT: NEW WEB-API CMDS: ``WstampCmd`` & ``DiceCmd`` that don't require browser.
+v1.9.1a1, 10 Aug 2018
+~~~~~~~~~~~~~~~~~~~~
+- Work started since `v1.9.1a0: 8 Aug 2018`.
+- FEAT: NEW WEB-API CMDS:
+  - ``co2dice project dice``: Dice a new project in one action through WebStamper.
+  - ``tstamp wstamp``: Dice a new project in one action through WebStamper.
+- feat: ``co2dice project report`` command can retrieve older reports.
+  (not just the latest).  For *Stamps*, internal git commands are still needed.
 - TODO: Add GUI "Stamp" button (see :gh:`378`).
 
 
-v1.9.0b2 7 Aug 2018
-~~~~~~~~~~~~~~~~~~~
+r1.9.0b2, 7 Aug 2018
+~~~~~~~~~~~~~~~~~~~~
 Version in *PyPi* deemed OK for release.  Mostly doc-changes since `b1`.
 
 
-v1.9.0b1 2 Aug 2018
-~~~~~~~~~~~~~~~~~~~
+v1.9.0b1, 2 Aug 2018
+~~~~~~~~~~~~~~~~~~~~
 More changes at input-data, new-dice code and small model changes.
 Not released in *PyPi*.
 
@@ -200,13 +206,13 @@ Not released in *PyPi*.
   putting too much code in it, just for :pep:`366` relative-imports to work.
 
 
-v1.9.0b0 31 Jul 2018
-~~~~~~~~~~~~~~~~~~~~
+r1.9.0b0, 31 Jul 2018
+~~~~~~~~~~~~~~~~~~~~~
 1st release with new-dice functionality.
 
 
-v1.9.0a2 11 Jul 2018
-~~~~~~~~~~~~~~~~~~~~
+r1.9.0a2, 11 Jul 2018
+~~~~~~~~~~~~~~~~~~~~~
 - WebStamp: split-off `v1.9.0a1` as separate sub-project in sources.
 
 IO Data:
@@ -215,8 +221,8 @@ IO Data:
   *Ki additive* parameters.
 
 
-v1.9.0a1 5 Jul 2018
-~~~~~~~~~~~~~~~~~~~
+r1.9.0a1, 5 Jul 2018
+~~~~~~~~~~~~~~~~~~~~
 Bumped *minor* number to signify that the :term:`VF_ID` and input-file version
 have changed forward-incompatibly.  Very roughly tested (see :gh:`472`).
 (`v1.9.0a0` was a checkpoint after `VF_ID` preliminary changes).
@@ -240,8 +246,8 @@ Model:
 - fix: remove some pandas warnings
 
 
-v1.8.1a0 12 Jun 2018
-~~~~~~~~~~~~~~~~~~~~
+v1.8.1a0 12, Jun 2018
+~~~~~~~~~~~~~~~~~~~~~
 Tagged as ``co2mpas_v1.8.1a0`` just to switch *polyversion* repo-scheme,
 from `mono-project --> monorepo` (switch will complete in next tag).
 
