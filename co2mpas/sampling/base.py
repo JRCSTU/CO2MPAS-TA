@@ -101,7 +101,8 @@ class _FileReadingMixin(metaclass=trt.MetaHasTraits):
                     msg += ("..paste text, then [Ctrl+%s] to exit!" %
                             'Z' if sys.platform == 'win32' else 'D')
                 self.log.info(msg)
-                yield '<STDIN>', sys.stdin.read()
+                text = sys.stdin.read()
+                yield "<STDIN: %i-chars>" % len(text), text
             else:
                 fpath = convpath(fpath)
                 if not osp.exists(fpath):
