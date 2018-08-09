@@ -1649,6 +1649,70 @@ def wait_IDLE_IMAP_change(srv):
     return ev_reply
 
 
+class WstampSpec(dice.DiceSpec):
+    """Stamp through WebStamper."""
+
+    dry_run = trt.Bool(
+        help="Submit a provisional Dice to WebStamper without actually writting anything."
+    ).tag(config=True)
+
+    webstamper_check_url = trt.Unicode(
+        ## FIXME: Make URLs it configurable to avoid DoS!
+        'http://localhost:5000/api-check/',
+        help="The endpoint URL that Stamps."
+    ).tag(config=True)
+
+    webstamper_stamp_url = trt.Unicode(
+        ## FIXME: Make URLs it configurable to avoid DoS!
+        'http://localhost:5000/api-stamp/',
+        help="The endpoint URL that Stamps."
+    ).tag(config=True)
+
+    tstamp_recipients = trt.List(
+        trt.Unicode(),
+        help="""
+        The plain email-address of the receivers of the timestamped-response.
+        Ask JRC to provide that. You don't have to provide your sender-account here.
+    """).tag(config=True)
+
+    def __init__(self, *args, **kwds):
+        cls = type(self)
+        self.register_validators(
+            cls.tstamp_recipients,
+            cls._is_not_empty, cls._is_pure_email_address)
+        super().__init__(*args, **kwds)
+
+    def stamp_dice(self, dice):
+        import requests
+
+        endpoint = (self.webstamper_check_url
+                    if self.dry_run or not dice else
+                    self.webstamper_stamp_url)
+
+        if dice:
+            sender = "%s <%s>" % (self.user_name, self.user_email)
+            recipients = '; '.join(self.tstamp_recipients)
+            data = {
+                'sender': sender,
+                'recipients': recipients,
+                'dice_report': dice,
+            }
+            pretend_prefix = "DRY-RUN:  " if self.dry_run else ''
+            self.log.info(
+                "%sSending %i-char Dice to WebStamper(%s) with contacts: "
+                "\n  sender: %s\n  recipients: %s",
+                pretend_prefix, dice and len(dice) or 0,
+                endpoint, sender, recipients)
+        else:
+            data = None
+            self.log.info(
+                "Checking connectivity with WebStamper(%s)", endpoint)
+
+        response = requests.post(endpoint, data=data)
+
+        return response.text
+
+
 ###################
 ##    Commands   ##
 ###################
@@ -1712,21 +1776,24 @@ class SendCmd(base.FileReadingMixin, baseapp.Cmd):
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<report-file-1> ...]
 
-    - Do not use this command directly (unless experimenting) - prefer
-      the `project tsend` sub-command.
     - If '-' is given or no files at all, it reads from STDIN.
     - Many options related to sending & receiving the email are expected
       to be stored in the config-file.
     - Use --verbose to print the timestamped email.
+    - WARN: Do not use this command directly (unless experimenting)
+      to avoid loosing the generated Stam.
+      Prefer the `project tsend` sub-command.
     """
 
     examples = trt.Unicode("""
-        - To send a dice-report for a prepared project you have to know the `vehicle_family_id`::
+        - To send a dice-report the current project (assuming it in 'tagged' state):
+              co2dice project report | %(cmd_chain)s
+        - To send a dice-report for a any 'tagged' project you have its `vehicle_family_id`::
               git  cat-file  tag  tstamps/RL-12-BM3-2017-0001/1 | %(cmd_chain)s
     """)
 
     dry_run = trt.Bool(
-        help="Verify dice-report and login to SMTP-server but don'tt actually send email."
+        help="Verify dice-report and login to SMTP-server but don't actually send email."
     ).tag(config=True)
 
     def __init__(self, **kwds):
@@ -2049,10 +2116,70 @@ class LoginCmd(baseapp.Cmd):
         return (s.check_login(self.dry_run) for s in servers)
 
 
+class WstampCmd(baseapp.Cmd,
+                base.FileReadingMixin,
+                slicetrait.ShrinkingOutputMixin,
+                base.FileOutputMixin):
+    """
+    Send the given Dice(s) to WebStamper for Stamping.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] [<dice-file-1> ...]
+
+    - If '-' is given or no file at all, it reads from STDIN.
+    - If --dry-run, the Dice is sent to WebStamper for validation only.
+    - If no Dice given, connectivity and status of WebStamper are checked
+      (--dry-run is irrelevant).
+    - WARN: Do not use this command directly (unless experimenting)
+      to avoid loosing the generated Stam.
+      Prefer the `project tsend` sub-command.
+    """
+
+    examples = trt.Unicode("""
+        - To send a dice-report the current project (assuming it in 'tagged' state):
+              co2dice project report | %(cmd_chain)s
+        - To send a dice-report for a any 'tagged' project you have its `vehicle_family_id`::
+              git  cat-file  tag  tstamps/RL-12-BM3-2017-0001/1 | %(cmd_chain)s
+    """)
+
+    def __init__(self, **kwds):
+        kwds.update({
+            'conf_classes': [WstampSpec],
+            'cmd_aliases': base.write_fpath_alias_kwd,
+            'cmd_flags': {
+                ('n', 'dry-run'): (
+                    {'WstampSpec': {'dry_run': True}},
+                    WstampSpec.dry_run.help
+                ),
+                **slicetrait.shrink_flags_kwd
+            }
+        })
+        super().__init__(**kwds)
+
+    def run(self, *args):
+        wstamper = WstampSpec(config=self.config)
+        for fpath, dice in self.yield_files(*args):
+            try:
+                stamp = wstamper.stamp_dice(dice)
+            except CmdException as ex:
+                self.log.error("Timestamping file '%s' stopped due to: %s",
+                               ex, fpath, exc_info=1)  # one-off event, must not loose ex.
+            except Exception as ex:
+                self.log.error("Timestamping file '%s' failed due to: %r",
+                               ex, fpath, exc_info=1)  # one-off event, must not loose ex.
+
+            else:
+                if self.write_fpath:
+                    self.write_file(stamp)
+                else:
+                    return self.shrink_text(stamp)
+
+
 all_subcmds = (
     LoginCmd,
     SendCmd,
     RecvCmd,
     MailboxCmd,
     ParseCmd,
+    WstampCmd,
 )

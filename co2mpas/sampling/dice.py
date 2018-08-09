@@ -138,6 +138,7 @@ def all_app_configurables() -> Tuple:
         report.ReporterSpec,
         tstamp.TstampSender,
         tstamp.TstampReceiver,
+        tstamp.WstampSpec,
         tsigner.TsignerService,
     )
 
