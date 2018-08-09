@@ -1782,33 +1782,33 @@ class AppendCmd(_SubCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
     ).tag(config=True)
 
     def __init__(self, **kwds):
+        from toolz import dicttoolz as dtz
         from . import report
 
-        aliases = {
-            ('i', 'inp'): ('AppendCmd.inp', AppendCmd.inp.help),
-            ('o', 'out'): ('AppendCmd.out', AppendCmd.out.help),
-        }
-        aliases.update(base.write_fpath_alias_kwd)
-        kwds.setdefault('cmd_aliases', aliases)
-        kwds.setdefault('cmd_flags', {
-            ('n', 'dry-run'): (
-                {'Project': {'dry_run': True}},
-                "Parse files but do not actually store them in the project."
-            ),
-            'report': (
-                {AppendCmd.__name__: {'report': True}},
-                AppendCmd.report.help
-            ),
-            'recertify': (
-                {Project.__name__: {'recertify': True}},
-                Project.recertify.help
-            ),
-            'with-inputs': (
-                {
-                    'ReporterSpec': {'include_input_in_dice': True},
-                }, report.ReporterSpec.include_input_in_dice
-                .help),  # @UndefinedVariable
-            **slicetrait.shrink_flags_kwd,
+        kwds = dtz.merge(kwds, {
+            'cmd_aliases': {
+                ('i', 'inp'): ('AppendCmd.inp', AppendCmd.inp.help),
+                ('o', 'out'): ('AppendCmd.out', AppendCmd.out.help),
+            }, 'cmd_flags': {
+                ('n', 'dry-run'): (
+                    {'Project': {'dry_run': True}},
+                    "Parse files but do not actually store them in the project."
+                ),
+                'report': (
+                    {AppendCmd.__name__: {'report': True}},
+                    AppendCmd.report.help
+                ),
+                'recertify': (
+                    {Project.__name__: {'recertify': True}},
+                    Project.recertify.help
+                ),
+                'with-inputs': (
+                    {
+                        'ReporterSpec': {'include_input_in_dice': True},
+                    }, report.ReporterSpec.include_input_in_dice
+                    .help),  # @UndefinedVariable
+                **slicetrait.shrink_flags_kwd,
+            },
         })
         super().__init__(**kwds)
 
