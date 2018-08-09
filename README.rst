@@ -289,11 +289,11 @@ File Contents
 ::
 
     RUN_CO2MPAS.bat            ## Asks for Input & Output folders, and runs CO2MPAS for all Excel-files in Input.
-    CONSOLE.bat                ## Open a python+cygwin enabled `cmd.exe` console.
+    CONSOLE.bat                ## Open a python+MSYS2 enabled `cmd.exe` console.
 
-    co2mpas-env.bat            ## Sets env-vars for python+cygwin and launches arguments as new command
+    co2mpas-env.bat            ## Sets env-vars for python+MSYS2 and launches arguments as new command
                                ## !!!!! DO NOT MODIFY !!!!! used by Windows StartMenu shortcuts.
-    bash-console.bat           ## Open a python+cygwin enabled `bash` console.
+    bash-console.bat           ## Open a python+MSYS2 enabled `bash` console.
 
 
     CO2MPAS/                   ## User's HOME directory containing release-files and tutorial-folders.
@@ -327,7 +327,7 @@ Generic Tips
   **TotalCommander**, from http://www.ghisler.com/ (no admin-rights needed).
   From inside this file-manager, ``F3`` key-shortcut views files.
 
-- The **Cygwin** POSIX-environment and its accompanying **bash-shell** are
+- The :term:`MSYS2` POSIX-environment and its accompanying **bash-shell** are
   a much better choice to give console-commands compare to `cmd.exe` prompt,
   supporting *auto-completion* for various commands (with ``[TAB]`` key) and
   enhanced history search (with ``[UP]/[DOWN]`` cursor-keys).

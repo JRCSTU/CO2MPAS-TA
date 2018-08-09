@@ -161,6 +161,19 @@ Generic terms
 
         Can be downloaded from: http://continuum.io/downloads
 
+    MSYS2
+    MinGW
+    Cygwin
+        Open-source command-line environments for *Windows*, providing a `POSIX`
+        emulation layer and a software development framework (compilers, etc).
+        *Cygwin* was shipped with older `ALLINONE` archives, `MSYS2
+        <https://www.msys2.org/>`_ since `1.7.3`.
+
+    Unix
+    POSIX
+        The `Portable Operating System Interface <https://en.wikipedia.org/wiki/POSIX>`_
+        family of standards that all variants of *Unix* comply with.
+
 
 Input file terminology
 =========================

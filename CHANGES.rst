@@ -125,6 +125,8 @@ Dice
 Various
 -------
 - FIX: Support `pip >= 10+` (see :ghp:`26`).
+- break: changed cmd-line scripts entry-points; if you install from sources,
+  remember to run first: :code:`pip install -e {co2mpas-dir}`
 - Pinned versions of dependencies affecting the accuracy of the calculations,
   to achieve stronger reproducibility; these dependent libraries are shiped
   with AIO (see :gh:`427`).
@@ -141,9 +143,10 @@ Almost all "known limitations" from `v1.7.3` still apply.
 Intermediate releases:
 ----------------------
 
-v1.9.0b2 2 Aug 2018
+v1.9.0b2 7 Aug 2018
 ~~~~~~~~~~~~~~~~~~~
-Mostly doc-changes for final release, released in *PyPi*
+Version in *PyPi* deemed OK for release.  Mostly doc-changes since `b1`.
+
 
 v1.9.0b1 2 Aug 2018
 ~~~~~~~~~~~~~~~~~~~
