@@ -261,23 +261,11 @@ def create_stamp_form_class(app, Stamper):
                 tuple(dice_stamp, dice_decision)
             """
             recipients = self.validate_stamp_recipients(self.stamp_recipients)
+            sender = self.sender.data
             dreport = self.dice_report.data
 
             try:
-                verdict = self.sign_validator.parse_signed_tag(dreport)
-                uid = crypto.uid_from_verdict(verdict)
-
-                # TODO: move sig-validation check in `crypto` module.
-                if not verdict['valid']:
-                    raise CmdException(
-                        "Cannot validate dice-report signed with %r: %s" %
-                        (uid, verdict['status']))
-
-                ## Check if test-key still used.
-                #
-                git_auth = crypto.get_git_auth(config=self.traits_config)
-                git_auth.check_test_key_missused(verdict['key_id'])
-
+                uid = self.check_dice(dreport, sender, recipients)
             except CmdException as ex:
                 self._log_client_error("Checking", ex)
                 flash(str(ex), 'error')

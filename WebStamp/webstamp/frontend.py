@@ -158,7 +158,26 @@ def attach_routes(setup_state):
 
             return signer
 
-        def sign_dreport(self, dreport, sender, recipients):
+        def check_dice(self, dice: str, sender: str, recipients: str):
+            verdict = self.signer.parse_signed_tag(dice)
+            uid = crypto.uid_from_verdict(verdict)
+
+            # TODO: move sig-validation check in `crypto` module.
+            if not verdict['valid']:
+                raise ValueError(
+                    "Cannot validate dice signed with %r: %s" %
+                    (uid, verdict['status']))
+
+            ## Check if test-key still used.
+            #
+            git_auth = crypto.get_git_auth(config=self.traits_config)
+            git_auth.check_test_key_missused(verdict['key_id'])
+
+            # TODO: API-validate `sender` & `recipients`.
+
+            return uid
+
+        def sign_dreport(self, dreport: str, sender: str, recipients: str):
             """
             :return:
                 tuple(dice_stamp, dice_decision)
@@ -201,6 +220,7 @@ def attach_routes(setup_state):
 
     StampForm = forms.create_stamp_form_class(app, Stamper)
 
+    ## FIXME: Make URLs it configurable to avoid DoS!
     @frontend.route('/stamp/', methods=('GET', 'POST'))
     def stamp_with_form():
         log.info("WebStamp URL: %s\n  values: %s",
@@ -213,6 +233,7 @@ def attach_routes(setup_state):
                       ex, [str(v)[:1400] for v in request.values.items()], exc_info=1)
             raise
 
+    ## FIXME: Make URLs it configurable to avoid DoS!
     @frontend.route('/api-stamp/', methods=('POST', ))
     def stamp():
         check_key_exists()
@@ -225,3 +246,17 @@ def attach_routes(setup_state):
         )
 
         return dice_stamp
+
+    ## FIXME: Make URLs it configurable to avoid DoS!
+    @frontend.route('/api-check/', methods=('POST', ))
+    def check():
+        check_key_exists()
+        stamper = Stamper()
+        params = request.values
+        stamper.check_dice(
+            params['dice_report'],
+            params['sender'],
+            stamper.parse_recipients_text(params['recipients']),
+        )
+
+        return 'ok'
