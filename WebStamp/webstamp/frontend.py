@@ -105,8 +105,8 @@ def attach_routes(setup_state):
             p = sbp.run(check_key_script, stdout=sbp.PIPE, stderr=sbp.PIPE)
             if p.returncode != 0:
                 log.fatal("Stamper-key missing!  retcode(%s)"
-                             "\n  stdout: %s\n  stderr: %s",
-                             p.returncode, p.stdout, p.stderr)
+                          "\n  stdout: %s\n  stderr: %s",
+                          p.returncode, p.stdout, p.stderr)
                 raise StampingKeyMissing()
 
     class Stamper:
@@ -253,10 +253,14 @@ def attach_routes(setup_state):
         check_key_exists()
         stamper = Stamper()
         params = request.values
-        stamper.check_dice(
-            params['dice_report'],
-            params['sender'],
-            stamper.parse_recipients_text(params['recipients']),
-        )
+
+        if 'dice_report' in params:
+            ## Without dice, just connectivity and signing-key checked.
+
+            stamper.check_dice(
+                params['dice_report'],
+                params['sender'],
+                stamper.parse_recipients_text(params['recipients']),
+            )
 
         return 'ok'
