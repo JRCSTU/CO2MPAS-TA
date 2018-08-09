@@ -10,24 +10,24 @@ CO2MPAS UI: predict NEDC CO2 emissions from WLTP for Vehicle Type-Approval.
 
 Layout::
 
-    ######################################################################################################
-    #:  ______________________________               :  ______________________________                  :#
-    #: |                              |              : |_________(Output dir)_________| [ Set Out Dir ] :#
-    #: |                              | [Add files ] :  ______________________________                  :#
-    #: |                              |              : |________(Template file________| [Set Template ] :#
-    #: |                              | [Add folder] :                                                  :#
-    #: |                              |              : [flag-1] [flag-2] [flag-3] [flag-4]              :#
-    #: |                              | [ Del item ] :  ______________________________________________  :#
-    #: |___________(inputs)___________|              : |_________________(extra flags)________________| :#
-    #:                                               :                                                  :#
+    ######################################################################################################  # noqa
+    #:  ______________________________               :  ______________________________                  :#  # noqa
+    #: |                              |              : |_________(Output dir)_________| [ Set Out Dir ] :#  # noqa
+    #: |                              | [Add files ] :  ______________________________                  :#  # noqa
+    #: |                              |              : |________(Template file________| [Set Template ] :#  # noqa
+    #: |                              | [Add folder] :                                                  :#  # noqa
+    #: |                              |              : [flag-1] [flag-2] [flag-3] [flag-4]              :#  # noqa
+    #: |                              | [ Del item ] :  ______________________________________________  :#  # noqa
+    #: |___________(inputs)___________|              : |_________________(extra flags)________________| :#  # noqa
+    #:                                               :                                                  :#  # noqa
     #: [ Help ]     [ Run-1 ]  ...             [ Run-2]
     #: [ PROGRESS BAR ...]
-    #+--------------------------------------------------------------------------------------------------:#
-    #:  ______________________________________________________________________________________________  :#
-    #: |                                                                                              | :#
-    #: |                                                                                              | :#
-    #: |________________________________________(log_frame)___________________________________________| :#
-    ######################################################################################################
+    #+--------------------------------------------------------------------------------------------------:#  # noqa
+    #:  ______________________________________________________________________________________________  :#  # noqa
+    #: |                                                                                              | :#  # noqa
+    #: |                                                                                              | :#  # noqa
+    #: |________________________________________(log_frame)___________________________________________| :#  # noqa
+    ######################################################################################################  # noqa
 
 """
 ## TODO: 5-Nov-2016
@@ -55,16 +55,15 @@ from co2mpas import (__main__ as cmain, __version__,
                      __updated__, __copyright__, __license__, __uri__)  # @UnusedImport
 from co2mpas._vendor import traitlets as trt
 from co2mpas.sampling import baseapp
-from co2mpas.sampling import crypto
 from collections import Counter, OrderedDict, namedtuple, ChainMap
 from datetime import datetime
+from tkinter import StringVar, ttk, filedialog
+from typing import Any, Union, Mapping, Text, Dict, Callable  # @UnusedImport
 import io
 import logging
 import os
 import re
 import sys
-from tkinter import StringVar, ttk, filedialog
-from typing import Any, Union, Mapping, Text, Dict, Callable  # @UnusedImport
 import weakref
 
 from toolz import dicttoolz as dtz
@@ -91,7 +90,8 @@ MOTDs = tw.dedent("""\
     Use [Tab] to navigate to the next field/button; [Space] clicks buttons.
     You cannot `Run TA` when the `Advanced` options are active.
     User mouse's [Right button] to clear the log messages from the popup-menu.
-    You may view more log-messages by Right-cliking on the Log-panel and setting "Log Threshold: Debug".
+    You may view more log-messages by Right-cliking on the Log-panel and
+    setting "Log Threshold: Debug".
     Ensure you run the latest CO2MPAS;\
   click the `About CO2MPAS` menu-item and compare its version with the site's.
     Synchronized *appropriately* the time-series before launching CO2MPAS.
@@ -126,7 +126,8 @@ def define_tooltips():
 
         advanced_link: |-
             Options and flags incompatible with DECLARATION mode (started with the Run TA button).
-            These may be useful for engineering and experimentation purposes, and for facilitating running batches.
+            These may be useful for engineering and experimentation purposes, and
+            for facilitating running batches.
         out_template_entry: |-
             Select a pre-populated Excel file to clone and append CO2MPAS results into it.
             By default, results are appended into an empty excel-file.
@@ -200,13 +201,15 @@ def define_tooltips():
             Runs the Synchronization utility.
 
         sel_ipython_folder_btn: |-
-            Opens an Select-folder dialog to specify where to store the IPython-notebook(`.ipynb`) files.
+            Opens an Select-folder dialog to specify where to store
+            the IPython-notebook(`.ipynb`) files.
         ipython_folder_btn: |-
             The folder where the IPython-notebook(`.ipynb`) files have been stored.
             - Double-click to open it.
 
         sel_demo_folder_btn: |-
-            Opens an Select-folder dialog to specify where to store the demo CO2MPAS Input files.
+            Opens an Select-folder dialog to specify where to store
+            the demo CO2MPAS Input files.
         demo_folder_btn: |-
             The folder where the demo CO2MPAS Input files have been stored.
             - Double-click to open it.
@@ -217,6 +220,7 @@ def define_tooltips():
     import yaml
 
     return yaml.load(all_tooltips)
+
 
 about_txt = """
     {intro}
@@ -242,7 +246,8 @@ def show_about(root, about_txt=about_txt, verbose=False):
     textarea.pack(fill=tk.BOTH, expand=1)
 
     if verbose:
-        extra = 'Verbose versions: \n%s' % tw.indent(cmain.build_version_string(verbose=True), '    ')
+        extra = 'Verbose versions: \n%s' % tw.indent(
+            cmain.build_version_string(verbose=True), '    ')
     else:
         extra = ''
     fields = dict(
@@ -355,7 +360,8 @@ def get_file_infos(fpath):
     return res
 
 
-def run_python_job(job_name, function, cmd_args, cmd_kwds, stdout=None, stderr=None, on_finish=None):
+def run_python_job(job_name, function, cmd_args, cmd_kwds,
+                   stdout=None, stderr=None, on_finish=None):
     """
     Redirects stdout/stderr to logging, and notifies when finished.
 
@@ -430,11 +436,13 @@ def tree_apply_columns(tree, columns):
     tree['columns'] = tuple(c for c, _ in columns if not c.startswith('#'))
     for c, col_kwds in columns:
 
-        h_col_kwds = dtz.keyfilter((lambda k: k in set('text image anchor command'.split())), col_kwds)
+        h_col_kwds = dtz.keyfilter((lambda k: k in set('text image anchor command'.split())),
+                                   col_kwds)
         text = h_col_kwds.pop('text', c.title())
         tree.heading(c, text=text, **h_col_kwds)
 
-        c_col_kwds = dtz.keyfilter((lambda k: k in set('anchor minwidth stretch width'.split())), col_kwds)
+        c_col_kwds = dtz.keyfilter((lambda k: k in set('anchor minwidth stretch width'.split())),
+                                   col_kwds)
         tree.column(c, **c_col_kwds)
 
 
@@ -518,7 +526,7 @@ def add_tooltip(widget, key, allow_misses=False, no_lookup=False):
         If true, uses the `key` as tooltip text.
     """
     try:
-        from idlelib.ToolTip import ToolTip  # @UnusedImport
+        from idlelib.ToolTip import ToolTip  # @UnusedImport @UnresolvedImport
     except Exception:
         from idlelib.tooltip import ToolTip  # @UnresolvedImport @Reimport
 
@@ -534,6 +542,7 @@ def add_tooltip(widget, key, allow_misses=False, no_lookup=False):
 
     tooltip_text = tw.dedent(tooltip_text.strip())
     ToolTip(widget, tooltip_text)
+
 
 _img_in_txt_regex = re.compile(
     r'''
@@ -555,14 +564,16 @@ def add_makdownd_text(text_widget, text, widgets: Mapping[str, tk.Widget]=None, 
     Supported formats:
 
     - Links: ``[<alt-text>](<url>)`` is replaced with a :class:`HyperlinkManager` link.
-    - Images: ``[img:<alt-text>](<filename>)`` is replaced with the image loaded from ``<filename>``.
-    - Widgets: ``[wdg:<alt-text>](<widget-key>)`` where ``<widget-key>`` is use to retrieve the widget
+    - Images: ``[img:<alt-text>](<filename>)`` is replaced with the image
+      loaded from ``<filename>``.
+    - Widgets: ``[wdg:<alt-text>](<widget-key>)`` where ``<widget-key>`` is uses
+      to retrieve the widget
       from the `widgets` mapping passed as argument (must exist).
 
     Example::
 
-        msg = "[Einstein](https://en.wikipedia.org/wiki/Einstein) on the [img:beach](images/keratokampos.png).")
-        add_makdownd_text(text, msg)
+        msg = "[Einstein](https://en.wikipedia.org/wiki/Einstein) on
+        the [img:beach](images/keratokampos.png).") add_makdownd_text(text, msg)
 
     :param widgets:
         Maps ``{url --> Widget-instances}`` to be used by ``[wdg:studd]``
@@ -1143,7 +1154,8 @@ class SimulatePanel(ttk.Frame):
     def _make_inputs_frame(self, parent):
         frame = ttk.Labelframe(parent, text='Inputs')
 
-        (tree, add_files_btn, add_folder_btn, save_templ_btn, del_btn) = self._build_inputs_tree(frame)
+        (tree, add_files_btn, add_folder_btn,
+         save_templ_btn, del_btn) = self._build_inputs_tree(frame)
         tree.grid(column=0, row=0, rowspan=4, sticky='nswe')
         add_files_btn.grid(column=1, row=0, sticky='nswe')
         add_folder_btn.grid(column=1, row=1, sticky='nswe')
@@ -1204,7 +1216,8 @@ class SimulatePanel(ttk.Frame):
         add_icon(btn, 'icons/download-olive-32.png')
         add_tooltip(btn, 'download_tmpl_file_btn')
 
-        del_btn = btn = ttk.Button(parent, state=tk.DISABLED)  # Its state maintained internally in this method.
+        ## Its state maintained internally in this method.
+        del_btn = btn = ttk.Button(parent, state=tk.DISABLED)
         add_icon(btn, 'icons/trash-olive-32.png')
         add_tooltip(btn, 'del_inp_btn')
 
@@ -1254,7 +1267,8 @@ class SimulatePanel(ttk.Frame):
             self._open_dice_btn = btn = ttk.Button(
                 frame,
                 text="Import to Dice...", style='DICE.TButton',
-                command=fnt.partial(self.app.prepare_dice_for_files, self.outputs_tree.get_children()))
+                command=fnt.partial(self.app.prepare_dice_for_files,
+                                    self.outputs_tree.get_children()))
             add_icon(btn, 'icons/to_dice-orange-32.png ')
             btn.pack(side=tk.LEFT, fill=tk.BOTH,)
             add_tooltip(btn, 'open_dice_btn')
@@ -1542,14 +1556,15 @@ class SimulatePanel(ttk.Frame):
 
         inp_paths = cmain.file_finder(inp_paths)
         if not inp_paths:
-            app.estatus("No inputs specified!  Please add files & folders in the Inputs list at the top-left.")
+            app.estatus("No inputs specified!  "
+                        "Please add files & folders in the Inputs list at the top-left.")
             return
 
         mediate_guistate = self.mediate_guistate
 
         class ProgressUpdater:
             """
-            A *tqdm* replacement that cooperates with :func:`run_python_job` to pump stdout/stderr when iterated.
+            A *tqdm* replacement that pumps stdout/stderr when iterated by :func:`run_python_job`.
 
             :ivar i:
                 Enumarates progress calls.
@@ -1705,9 +1720,10 @@ and double-click on the result file to open it,
             rb = ttk.Radiobutton(rb_frame, text=c, value=c, variable=rb_var,
                                  command=self.mediate_guistate)
             rb.pack(side=tk.LEFT)
-            add_tooltip(rb,
-                        'The new template file will work with measured time series for a %r cycle.' % c,
-                        no_lookup=True)
+            add_tooltip(
+                rb,
+                "The new template file will work with measured time series for a %r cycle." % c,
+                no_lookup=True)
 
         def ask_save_template_file():
             from . import datasync
@@ -1810,7 +1826,8 @@ class TemplatesPanel(ttk.Frame):
         - Opens a Select-folder dialog for storing DEMO INPUT files:
         [wdg:demo-files]
 
-        - Opens a Select-folder dialog for storing IPYTHON NOTEBOOKS that may also run CO2MPAS and generate reports:
+        - Opens a Select-folder dialog for storing IPYTHON NOTEBOOKS that
+          may also run CO2MPAS and generate reports:
         [wdg:ipython-files]
         """)
         textarea = tk.Text(self, font='TkDefaultFont',
@@ -1893,9 +1910,11 @@ class DicePanel(ttk.Frame):
         [wdg:projects]
         Clicking the "Dice Now!" button initiates the sampling procedure!
         [wdg:check_internet] [wdg:send_dice]
-        Paste the timestampe email response "as is" below, and click "Decode" to see the OK/SAMPLE decision:
+        Paste the timestampe email response "as is" below, and click "Decode"
+        to see the OK/SAMPLE decision:
         [wdg:tstamp_response][wdg:decode][wdg:decision]
-        When dice has been rolled, print the "TAA Report" and archive the project, to be stored within TAA:
+        When dice has been rolled, print the "TAA Report" and archive the project,
+        to be stored within TAA:
         [wdg:taa_report] [wdg:archive_project]
 
         """)
@@ -1938,7 +1957,7 @@ class DicePanel(ttk.Frame):
             ('author', {'anchor': tk.W, 'width': 102, 'stretch': True}),
             ('last action', {'anchor': tk.W, 'width': 164, 'stretch': True}),
         )
-        tree = make_tree(frame, columns, height=4)
+        _tree = make_tree(frame, columns, height=4)
         widgets['projects'] = frame
 
         btn = ttk.Button(textarea, text="Check Internet Connectivity",
@@ -2141,7 +2160,9 @@ class Co2guiCmd(baseapp.Cmd):
         # Menubar
         #
         menubar = tk.Menu(root)
-        menubar.add_command(label="About %r" % APPNAME, command=fnt.partial(self.show_about_window, slider))
+        menubar.add_command(label="About %r" % APPNAME,
+                            command=fnt.partial(self.show_about_window,
+                                                slider))
 
         def open_console():
             homdedir = os.environ['HOME']
@@ -2203,7 +2224,9 @@ class Co2guiCmd(baseapp.Cmd):
         return self._job_thread and self._job_thread.is_alive()
 
     def is_stop_job_signaled(self):
-        """Returns true if signaled, but job might be already dead; check also :meth:`is_job_alive()`."""
+        """
+        Returns true if signaled, but job may have died earlier; see also :meth:`is_job_alive()`.
+        """
         from schedula import Dispatcher
         return self._job_thread and Dispatcher.stopper.is_set()
 
@@ -2400,7 +2423,7 @@ def main(argv=None, **app_init_kwds):
 
     ## GUI-scripts have no stdout/stderr and
     #  RainbowLogger screams!
-    #  See https://stackoverflow.com/questions/24835155/pyw-and-pythonw-does-not-run-under-windows-7/30310192#30310192
+    #  See https://stackoverflow.com/questions/24835155/pyw-and-pythonw-does-not-run-under-windows-7/30310192#30310192  noqa
     #  Alternative check: if sys.executable.endswith("pythonw.exe"):
     if sys.stdout is None or sys.stderr is None:
         ## Not output, all shown in GUI-console.
@@ -2427,7 +2450,7 @@ def main(argv=None, **app_init_kwds):
         return -1
 
     try:
-        ##Co2diceCmd.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!
+        ##Co2diceCmd.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!  noqa
         cmd = Co2guiCmd.make_cmd(argv, **app_init_kwds)
         return baseapp.pump_cmd(cmd.start() and 0)
     except (baseapp.CmdException, trt.TraitError) as ex:
