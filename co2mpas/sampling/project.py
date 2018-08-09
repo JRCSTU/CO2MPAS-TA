@@ -2048,7 +2048,7 @@ class WstampCmd(_SubCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
             return self.shrink_text(stamp)
 
 
-class DiceCmd(AppendCmd, WstampCmd):
+class DiceCmd(AppendCmd):
     """
     Dice a new project in one action through WebStamper
 
@@ -2060,9 +2060,10 @@ class DiceCmd(AppendCmd, WstampCmd):
       The files are "paired" in the order they are given.
     - In case of errors, the project database is left as, and must use
       the rest sub-commands to examine the situation and continue the dice,
-      eg:
-          co2dice project ls
-          co2dice project report
+      usually:
+          co2dice project ls .        # to examine the situation
+          co2dice project append      # if IO-files were not added
+          co2dice project report | co2dice tstamp wstamp
     """
 
     examples = trt.Unicode("""
@@ -2074,6 +2075,23 @@ class DiceCmd(AppendCmd, WstampCmd):
 
           Tip: In Windows `cmd.exe` shell, the continuation charachter is `^`.
     """)
+
+    def __init__(self, **kwds):
+        from toolz import dicttoolz as dtz
+        from . import tstamp
+
+        kwds = dtz.merge(kwds, {
+            'conf_classes': [tstamp.WstampSpec],
+            'cmd_aliases': base.write_fpath_alias_kwd,
+            'cmd_flags': {
+                ('n', 'dry-run'): (
+                    {'WstampSpec': {'dry_run': True}},
+                    tstamp.WstampSpec.dry_run.help  # @UndefinedVariable
+                ),
+                **slicetrait.shrink_flags_kwd
+            }
+        })
+        super().__init__(**kwds)
 
     def _check_ok(self, ok):
         if not ok:
@@ -2096,6 +2114,8 @@ class DiceCmd(AppendCmd, WstampCmd):
             raise CmdException("Failed derriving project-id from: %s" % finfos)
 
     def run(self, *args):
+        from . import tstamp
+
         ## Kludge: hard-code some flags...
         self.report = True
 
@@ -2122,7 +2142,8 @@ class DiceCmd(AppendCmd, WstampCmd):
                       key_uid,
                       self.shrink_text(dice))
 
-        stamp = self._stamp_dice(dice)
+        wstamper = tstamp.WstampSpec(config=self.config)
+        stamp = wstamper.stamp_dice(dice)
         self.log.info("Stamp was: \n%s",
                       self.shrink_text(stamp))
 
