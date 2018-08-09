@@ -302,6 +302,11 @@ pre v1.8.0.dev0, 15 Nov 2017
 - Dice & WebStamper updates...
 
 
+v1.7.4.post3, 10 Aug 2018
+=========================
+Settled dependencies for :command:`pip` and :command:`conda` environments.
+
+
 v1.7.4.post2, 8 Aug 2018
 ========================
 - Fixed regression by "piping to stdout" of previous broken release `1.7.1.post1`.
