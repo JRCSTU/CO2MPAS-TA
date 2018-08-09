@@ -459,6 +459,7 @@ def make_files_tree(parent, **tree_kwds):
             'minwidth': 96,
             'width': 362}),
         ('type', {'anchor': tk.W, 'width': 56, 'stretch': False}),
+        ('Dice', {'anchor': tk.W, 'width': 56, 'stretch': False}),
         ('size', {'anchor': tk.E, 'width': 64, 'stretch': False}),
         ('modified', {'anchor': tk.W, 'width': 164, 'stretch': False}),
     )
@@ -469,18 +470,20 @@ def make_files_tree(parent, **tree_kwds):
     tree.file_icon = read_image('icons/file-olive-16.png')
     tree.folder_icon = read_image('icons/folder-olive-16.png')
 
-    def insert_path(path, is_folder=False, **kwds):
+    def insert_path(path, is_folder=False, dice_kind='', **kwds):
         try:
             if is_folder:
                 ftype = 'FOLDER'
+                assert not dice_kind or dice_kind == ' OTHER', locals()
                 path += '/'
                 icon = tree.folder_icon
             else:
                 ftype = 'FILE'
                 icon = tree.excel_icon if re.search(r'\.xl\w\w$', path) else tree.file_icon
+
             finfos = get_file_infos(path)
             tree.insert('', 'end', path, text=path,
-                        values=(ftype,) + finfos, image=icon, **kwds)
+                        values=(ftype, dice_kind) + finfos, image=icon, **kwds)
         except Exception as ex:
             log.warning("Cannot add input file %r due to: %s", path, ex)
 
