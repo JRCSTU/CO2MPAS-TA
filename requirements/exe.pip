@@ -39,7 +39,6 @@ graphviz
 pandalone               ## ver boundex by setup.py
 polyversion             ## ver boundex by setup.py
 PyYAML                  ## ver boundex by setup.py
-rainbow_logging_handler
 setuptools
 six
 tqdm

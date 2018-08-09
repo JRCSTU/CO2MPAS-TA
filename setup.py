@@ -158,7 +158,6 @@ setup(
     # ],
     install_requires=[
         polyversion,
-        'rainbow_logging_handler',
         'pandas',
         'xlsxwriter',
         'scikit-learn',

@@ -106,7 +106,7 @@ handlers:
         #stream  : ext://sys.stderr
 
     colored:
-        class: rainbow_logging_handler.RainbowLoggingHandler
+        class: co2mpas._vendor.rainbow_logging_handler.RainbowLoggingHandler
         stream: ext://sys.stderr
         formatter: long
         datefmt: '%Y-%m-%d %H:%M:%S'
