@@ -11,8 +11,11 @@ from collections import namedtuple
 from typing import Text, Tuple
 import re
 
+import os.path as osp
+
 from . import CmdException
-from .._vendor import traitlets as trt
+from .._vendor.traitlets import config as trc
+from .._vendor.traitlets import traitlets as trt
 
 
 _file_arg_regex = re.compile('(inp|out)=(.+)', re.IGNORECASE)
@@ -53,7 +56,6 @@ class PFiles(namedtuple('PFiles', all_io_kinds)):
     #    return self.nfiles() == 0
 
     def find_nonfiles(self):
-        import os.path as osp
         import itertools as itt
 
         return [fpath for fpath in
@@ -88,7 +90,6 @@ class _FileReadingMixin(metaclass=trt.MetaHasTraits):
 
         import io
         import sys
-        import os.path as osp
         from boltons.setutils import IndexedSet as iset
         from pandalone.utils import convpath
 
@@ -208,3 +209,21 @@ class _StampParsingCmdMixin(_FileReadingMixin):
                     ex_handler(fpath, ex)
                 else:
                     raise
+
+
+class FileOutputMixin(trc.Configurable):
+    write_fpath = trt.Unicode(
+        help="Write report into this file, if given; overwriten if it already exists."
+    ).tag(config=True)
+
+    def write_file(self, txt, wfpath=None):
+        if not wfpath:
+            wfpath = self.write_fpath
+        self.log.info('Writting report into: %s', osp.realpath(wfpath))
+        with open(wfpath, 'wt', encoding='utf-8') as fd:
+            fd.write(txt)
+
+
+write_fpath_alias_kwd = {
+    ('W', 'write-fpath'): ('FileOutputMixin.write_fpath', FileOutputMixin.write_fpath.help)
+}
