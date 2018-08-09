@@ -14,13 +14,13 @@ from typing import Text
 import os.path as osp
 
 
-
 ## Spin-loop delay before retrying `mkdir(dir)`.
 DIR_LOCK_WAIT_SEC = 2
 ## Max time to abort wit-lock.
 ABORT_SEC = 7
 
 log = logging.getLogger(__name__)
+
 
 @contextlib.contextmanager
 def locked_on_dir(dpath: Text,

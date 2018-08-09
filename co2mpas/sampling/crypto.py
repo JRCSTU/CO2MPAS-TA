@@ -26,7 +26,8 @@ from .._vendor.traitlets import config as trtc
 
 #: Used for DICE experiments before the legislative enactment 27 Jul 2017.
 _TEST_KEY_ID = 'CBBB52FF'
-_pgp_regex = re.compile(r'^\s*-----[A-Z ]*PGP[A-Z ]*-----.+-----[A-Z ]*PGP[A-Z ]*-----\s*$', re.DOTALL)
+_pgp_regex = re.compile(r'^\s*-----[A-Z ]*PGP[A-Z ]*-----.+-----[A-Z ]*PGP[A-Z ]*-----\s*$',
+                        re.DOTALL)
 
 
 def is_test_key(keyid):
@@ -110,7 +111,7 @@ def pgp_split_clearsigned(text: str) -> Dict:
 
     .. seealso::
         - https://tools.ietf.org/html/rfc4880#page-59
-        - http://gnupg.10057.n7.nabble.com/splitting-up-an-inline-signed-OpenPGP-message-td48681.html#a48715
+        - http://gnupg.10057.n7.nabble.com/splitting-up-an-inline-signed-OpenPGP-message-td48681.html#a48715  # noqa
     """
     m = _pgp_clearsig_regex.search(text)
     if m:
@@ -264,7 +265,7 @@ class GpgSpec(baseapp.Spec):
 
     secret_keyring = trt.Unicode(
         None, allow_none=True,
-        help="""The file-name of alternative secret keyring file to use, or TODO: list of such keyrings.."""
+        help="The file-name of alternative secret keyring file to use, or TODO: list keyrings.."
     ).tag(config=True)
 
     gnupgoptions = trt.List(
@@ -566,7 +567,7 @@ class GpgSpec(baseapp.Spec):
         if not keep_stderr:
             ver.stderr = ''
         ## TODO: sign.verify failures into exceptions.
-        #  see https://bitbucket.org/vinay.sajip/python-gnupg/issues/62/use-proper-pythonic-exceptions
+        #  https://bitbucket.org/vinay.sajip/python-gnupg/issues/62/use-proper-pythonic-exceptions
         #else:
         #    ver.stderr = filter_gpg_stderr(ver.stderr)
 

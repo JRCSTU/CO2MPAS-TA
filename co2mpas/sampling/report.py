@@ -18,7 +18,7 @@ import os.path as osp
 
 from . import baseapp, base, project, CmdException
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
-from .._vendor import traitlets as trt
+from .._vendor.traitlets import traitlets as trt
 from .base import PFiles
 
 
@@ -405,7 +405,7 @@ class ExtractCmd(baseapp.Cmd):
 
     @property
     def projects_db(self):
-        p = project.ProjectsDB.instance(config=self.config)
+        p = project.ProjectsDB.instance(config=self.config)  # @UndefinedVariable
         p.update_config(self.config)
         return p
 
@@ -497,8 +497,8 @@ class UnlockCmd(baseapp.Cmd, base._StampParsingCmdMixin):
 
     examples = trt.Unicode("""
     $ co2dice report unlock tests/sampling/cipherdice.txt
-    2018-06-25 22:43:32: INFO:co2mpas.sampling.report.UnlockCmd:Parsing file '/path/to/cipherdice.txt' as TAG...
-    2018-06-25 22:43:34: INFO:co2mpas.sampling.report.UnlockCmd:Unlocking '/path/to/cipherdice.txt' as TAG
+    2018-06-25 22:43:32: INFO:UnlockCmd:Parsing file '/path/to/cipherdice.txt' as TAG...
+    2018-06-25 22:43:34: INFO:UnlockCmd:Unlocking '/path/to/cipherdice.txt' as TAG
     - /path/to/cipherdice.txt:
       - file: inputs.yaml
         iokind: cipher

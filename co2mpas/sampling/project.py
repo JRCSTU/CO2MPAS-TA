@@ -1901,7 +1901,8 @@ class AppendCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
             'with-inputs': (
                 {
                     'ReporterSpec': {'include_input_in_dice': True},
-                }, report.ReporterSpec.include_input_in_dice.help),
+                }, report.ReporterSpec.include_input_in_dice
+                .help),  # @UndefinedVariable
             **_shrink_flags_kwd,
         })
         super().__init__(**kwds)
@@ -1985,7 +1986,7 @@ class InitCmd(AppendCmd):
                 % (self.name, args, pfiles))
 
         if self.report and (
-            len(pfiles.inp) != len(pfiles.out) or len(pfiles.inp) < 1):
+                len(pfiles.inp) != len(pfiles.out) or len(pfiles.inp) < 1):
             raise CmdException(
                 "Cmd %r needs one or more *pairs* of --inp and --out files when --report given;"
                 "\n  received: %s!"
@@ -2261,7 +2262,8 @@ class ReportCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
             'with-inputs': (
                 {
                     'ReporterSpec': {'include_input_in_dice': True},
-                }, report.ReporterSpec.include_input_in_dice.help),
+                }, report.ReporterSpec.include_input_in_dice
+                .help),  # @UndefinedVariable
             **_shrink_flags_kwd,
         })
         super().__init__(**kwds)
@@ -2337,8 +2339,7 @@ class TsendCmd(_SubCmd):
     """)
 
     def __init__(self, **kwds):
-        from . import crypto
-        from . import tstamp
+        from . import crypto, tstamp
 
         kwds.setdefault('conf_classes', [
             tstamp.TstampSender, crypto.GitAuthSpec])
@@ -2392,8 +2393,7 @@ class TparseCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
     """)
 
     def __init__(self, **kwds):
-        from . import tstamp
-        from . import crypto
+        from . import tstamp, crypto
 
         kwds.setdefault('conf_classes', [
             tstamp.TstampReceiver, crypto.GitAuthSpec, crypto.StamperAuthSpec])
@@ -2513,8 +2513,7 @@ class TrecvCmd(TparseCmd, ShrinkingOutputMixin, FileOutputMixin):
     email_preview_nchars = trt.Int(500).tag(config=True)
 
     def __init__(self, **kwds):
-        from . import tstamp
-        from . import crypto
+        from . import tstamp, crypto
 
         ## Note here cannot update kwds-defaults,
         #  or would cancel baseclass's choices.

@@ -4,22 +4,20 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-"""A *report* contains the co2mpas-run values to time-stamp and disseminate to TA authorities & oversight bodies."""
-
-from collections import (
-    defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
-import io
-import os
-import os.path as osp
-import re
-import stat
-import sys
-from typing import (
-    List, Sequence, Iterable, Text, Tuple, Dict, Callable, Union)  # @UnusedImport
-
-from pandalone import utils as pndlu
+"""
+Stamper of Dices.
+"""
 
 from co2mpas.sampling.dirlock import locked_on_dir
+from collections import (
+    defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
+from typing import (
+    List, Sequence, Iterable, Text, Tuple, Dict, Callable, Union)  # @UnusedImport
+import os
+import re
+import stat
+
+import os.path as osp
 
 from . import CmdException, base, baseapp, crypto, tstamp
 from .._vendor import traitlets as trt

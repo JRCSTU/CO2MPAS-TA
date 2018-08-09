@@ -6,7 +6,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 #
 """
-A *traitlets*[#]_ framework for building hierarchical :class:`Cmd` line tools delegating to backend- :class:`Spec`.
+A *traitlets*[#]_ framework to build hierarchical :class:`Cmd` cli and backend- :class:`Spec`.
 
 
 ## Examples:
@@ -302,7 +302,7 @@ class PeristentMixin(metaclass=trt.MetaHasTraits):
 
     def observe_ptraits(self: trt.HasTraits):
         """
-        Establishes observers for all *persistent* traits to update :attr:`persistent_config` class property.
+        Start observing *persistent* traits to update :attr:`persistent_config` class property.
 
         Invoke this after regular config-values have been installed.
         """
@@ -1172,11 +1172,11 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
 
     def _validate_cipher_traits_against_config_files(self, static_config, persist_config):
         """
-        Check plaintext :class:`crypto.Cipher` config-values and encrypt them if *persistent*, scream if *static*.
+        Check plaintext cipher-configs, encrypt them if *persistent*, scream if *static*.
 
-        TODO: UNTESTABLE :-( to speed-up app start-app, run in 2 "passes" (the 2nd pass is optional):
+        TODO: UNTESTABLE :-( to speed-up app start-app, run in 2 "passes" (2nd pass is optional):
 
-        - Pass-1 checks configs only for current Cmd's :attr:`classes`, and
+        - Pass-1 checks class:`crypto.Cipher` configs only for current Cmd's :attr:`classes`, and
           if any iregularities are detected (un-encrypted persistent or static ciphers),
           then laucnh ...
         - Pass-2 to search :meth:`all_app_configurables()`.
@@ -1411,7 +1411,7 @@ def chain_cmds(app_classes: Sequence[type(trtc.Application)],
                argv: Sequence[Text]=None,
                **root_kwds):
     """
-    Instantiate(optionally) and run a list of ``[cmd, subcmd, ...]``, linking each one as child of its predecessor.
+    Init and run a list of ``[cmd, subcmd, ...]``, linking each one as child of its predecessor.
 
     :param app_classes:
         A list of cmd-classes: ``[root, sub1, sub2, app]``
