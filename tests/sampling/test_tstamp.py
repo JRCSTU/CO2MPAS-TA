@@ -984,61 +984,6 @@ base32(tag): |=0A=\r
             tail = res[-500:]
             self.assertIn('%s:' % k, tail, (k, tail))
 
-    @ddt.data(
-        (None, None),
-        ('', None),
-        (' ', None),
-
-        ('_', False),
-        ('_:_:_', False),
-        ('l', False),
-        ('-', False),
-        ('_6::34', False),
-        ('f:1:3', False),
-        ('3-6:1:3', False),
-        ('- 33', False),
-        (':- 33', False),
-
-        (': :', (None, None, None)),
-        (':', (None, None, None)),
-
-        ('0', (0, 1, None)),
-        ('1', (1, 2, None)),
-        ('-0100', (-100, -99, None)),
-        ('0:', (0, None, None)),
-        ('0: :', (0, None, None)),
-        ('0: 0', (0, 0, None)),
-        (' : 0 ', (None, 0, None)),
-        (':0:0', (None, 0, 0)),
-        (' :1:0', (None, 1, 0)),
-        ('0:0:0 ', (0, 0, 0)),
-        ('::0', (None, None, 0)),
-        ('12 :0', (12, 0, None)),
-        ('12:0 :', (12, 0, None)),
-        ('-12: 0', (-12, 0, None)),
-        ('12:-013:34', (12, -13, 34)),
-        (' -0: -0 :-0', (0, 0, 0)),
-        ('12: :34', (12, None, 34)),
-        ('-12::-34', (-12, None, -34)),
-        ('::34', (None, None, 34)),
-    )
-    def test_parse_slice(self, case):
-        inp, exp = case
-
-        if exp is False:
-            with self.assertRaisesRegex(trt.TraitError,
-                                        'Syntax-error',
-                                        msg=str(inp)):
-                tstamp._parse_slice(inp)
-            return
-
-        page = tstamp._parse_slice(inp)
-
-        if isinstance(exp, tuple):
-            exp = slice(*exp)
-        self.assertEqual(page, exp, inp)
-
-
 @ddt.ddt
 class TstampShell(unittest.TestCase):
     """Set ``TEST_CO2DICE_CONFIG_PATHS`` and optionally HOME env appropriately! to run"""

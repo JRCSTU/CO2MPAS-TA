@@ -17,7 +17,7 @@ from pandalone import utils as pndlu
 
 import functools as fnt
 
-from . import CmdException, base, baseapp, dice, crypto
+from . import CmdException, base, baseapp, dice, crypto, slicetrait
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
                 vehicle_family_id_pattern)
 from .._vendor import traitlets as trt
@@ -739,38 +739,6 @@ _dicetag_in_body_regex = re.compile(
 _dicetag_in_subj_regex = re.compile(r'dices/[^/]+/\d+')
 
 
-def _parse_slice(v: Text):
-    """
-    Parses text like python "slice" expression (ie ``-10::2``).
-
-    :param v:
-        the slice expression or a lone integer
-    :return:
-        - None if input is None/empty
-        - a ``slice()`` instance (even if input a lone numbrt)
-    :raise ValueError:
-        input non-empty but invalid syntax
-    """
-    orig_v = v
-    v = v and v.strip()
-    if not v:
-        return
-
-    try:
-        if ':' not in v:
-            ## A lone number given.
-            v = int(v)
-            return slice(v, v + 1)
-
-        ## From: https://stackoverflow.com/questions/680826/python-create-sli#comment3188450_681949
-        return slice(*map(lambda x: int(x.strip()) if x.strip() else None,
-                          v.split(':')))
-    except Exception:
-        pass
-
-    raise trt.TraitError("Syntax-error in '%s' slice!" % orig_v)
-
-
 class TstampReceiver(TstampSpec):
     """IMAP & timestamp parameters and methods for receiving & parsing dice-report emails."""
 
@@ -889,7 +857,7 @@ class TstampReceiver(TstampSpec):
         help="""Search messages for this day, in human readable form (see `before_date`)"""
     ).tag(config=True)
 
-    email_page = trt.CUnicode(
+    email_page = slicetrait.Slice(
         None, allow_none=True,
         help="""
         Which email(s) to download, "slicing" through the list of old-to-newer emails:
@@ -905,12 +873,6 @@ class TstampReceiver(TstampSpec):
             ::10    # fetch every 10th email
         """
     ).tag(config=True)
-
-    @trt.validate('email_page')
-    def _has_slice_format(self, p):
-        v = p.value and p.value.strip()
-        _parse_slice(v)  # Will scream with trait-error if invalid.
-        return v
 
     email_infos = trt.List(
         trt.Unicode(allow_none=True),
@@ -1451,7 +1413,7 @@ class TstampReceiver(TstampSpec):
         data = reject_IMAP_no_response("search emails", resp)
 
         all_uids = data[0].split()
-        page = _parse_slice(self.email_page)
+        page = self.email_page
         if page is not None:
             uids = all_uids[page]
             self.log.info("From %s matched emails '%s'-paging %s: %s",
