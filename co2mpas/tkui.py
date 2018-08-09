@@ -78,7 +78,7 @@ APPNAME = 'co2mpas'
 
 log = logging.getLogger(APPNAME)
 
-show_dice = False
+show_dice_panel = False
 
 user_guidelines_url = 'https://co2mpas.io/usage.html'
 issues_url = 'https://github.com/JRCSTU/CO2MPAS-TA/issues'
@@ -1262,16 +1262,14 @@ class SimulatePanel(ttk.Frame):
         self.outputs_tree = tree
         add_tooltip(tree, 'out_files_tree')
 
-        ## TODO: selectively add dice GUI.
-        if show_dice:
-            self._open_dice_btn = btn = ttk.Button(
-                frame,
-                text="Import to Dice...", style='DICE.TButton',
-                command=fnt.partial(self.app.prepare_dice_for_files,
-                                    self.outputs_tree.get_children()))
-            add_icon(btn, 'icons/to_dice-orange-32.png ')
-            btn.pack(side=tk.LEFT, fill=tk.BOTH,)
-            add_tooltip(btn, 'open_dice_btn')
+        self._open_dice_btn = btn = ttk.Button(
+            frame,
+            text="Dice!", style='DICE.TButton',
+            command=fnt.partial(self.app.prepare_dice_for_files,
+                                self.outputs_tree.get_children()))
+        add_icon(btn, 'icons/to_dice-orange-32.png ')
+        btn.pack(side=tk.LEFT, fill=tk.BOTH,)
+        add_tooltip(btn, 'open_dice_btn')
 
         return frame
 
@@ -1493,8 +1491,7 @@ class SimulatePanel(ttk.Frame):
 
         ## Update Open-DICE-button.
         #
-        if show_dice:
-            self._open_dice_btn.state((bang(self.outputs_tree.get_children()) + tk.DISABLED,))
+        self._open_dice_btn.state((bang(self.outputs_tree.get_children()) + tk.DISABLED,))
 
         ## Update cursor for run-buttons.
         for b in (self._run_batch_btn, self._run_ta_btn):
@@ -2143,7 +2140,7 @@ class Co2guiCmd(baseapp.Cmd):
         nb.excel_icon = img
 
         ## TODO: selectively add dice GUI.
-        if show_dice:
+        if show_dice_panel:
             self.dice_tab = tab = DicePanel(nb, app=self)
             img = read_image('icons/dice-orange-16.png')
             nb.add(tab, text='Dice', sticky='nswe',
@@ -2393,7 +2390,10 @@ class Co2guiCmd(baseapp.Cmd):
         show_about(top, verbose=verbose)
 
     def prepare_dice_for_files(self, fpaths):
-        self.tabs.select(self.dice_tab)
+        import subprocess as subp
+
+        cmd = 'co2dice project dice '
+        subp.run()
 
     def mainloop(self):
         try:
