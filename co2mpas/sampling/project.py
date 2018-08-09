@@ -28,7 +28,7 @@ import os.path as osp
 import pandalone.utils as pndlu
 import textwrap as tw
 
-from . import base, baseapp, dice, CmdException, slicetrait
+from . import base, baseapp, dice, CmdException
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
                 __dice_report_version__)
 from .._vendor.traitlets import traitlets as trt
@@ -1755,7 +1755,7 @@ class OpenCmd(_SubCmd):
         return projDB.proj_list(proj.pname, as_text=True) if self.verbose else proj
 
 
-class AppendCmd(_SubCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
+class AppendCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
     """
     Import the specified input/output co2mpas files into the *current project*.
 
@@ -1818,7 +1818,7 @@ class AppendCmd(_SubCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
                         'ReporterSpec': {'include_input_in_dice': True},
                     }, report.ReporterSpec.include_input_in_dice
                     .help),  # @UndefinedVariable
-                **slicetrait.shrink_flags_kwd,
+                **base.shrink_flags_kwd,
             },
         })
         super().__init__(**kwds)
@@ -1977,7 +1977,7 @@ class DiceCmd(AppendCmd):
                     {'WstampSpec': {'dry_run': True}},
                     tstamp.WstampSpec.dry_run.help  # @UndefinedVariable
                 ),
-                **slicetrait.shrink_flags_kwd
+                **base.shrink_flags_kwd
             }
         })
         super().__init__(**kwds)
@@ -2048,7 +2048,7 @@ class DiceCmd(AppendCmd):
             return self.shrink_text(decision)
 
 
-class ReportCmd(_SubCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
+class ReportCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
     """
     Prepares or re-prints the signed dice-report that can be sent for timestamping.
 
@@ -2104,7 +2104,7 @@ class ReportCmd(_SubCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
                         'ReporterSpec': {'include_input_in_dice': True},
                     }, report.ReporterSpec.include_input_in_dice
                     .help),  # @UndefinedVariable
-                **slicetrait.shrink_flags_kwd,
+                **base.shrink_flags_kwd,
             },
         })
         super().__init__(**kwds)
@@ -2214,7 +2214,7 @@ class TsendCmd(_SubCmd):
                                    is_verbose=self.verbose or proj.dry_run)
 
 
-class TparseCmd(_SubCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
+class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
     """
     Derives *decision* OK/SAMPLE flag from tstamped-response, and store it in current-project.
 
@@ -2254,7 +2254,7 @@ class TparseCmd(_SubCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
                 },
                 "Parse the tstamped response without storing it in the project."
             ),
-            **slicetrait.shrink_flags_kwd,
+            **base.shrink_flags_kwd,
         })
         super().__init__(**kwds)
 
@@ -2304,7 +2304,7 @@ class TparseCmd(_SubCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
             return self.shrink_text(result)
 
 
-class TrecvCmd(TparseCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin):
+class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
     """
     Fetch tstamps from IMAP server, derive *decisions* OK/SAMPLE flags and store them.
 
@@ -2380,7 +2380,7 @@ class TrecvCmd(TparseCmd, slicetrait.ShrinkingOutputMixin, base.FileOutputMixin)
                 {type(self).__name__: {'wait': True}},
                 type(self).wait.help
             ),
-            **slicetrait.shrink_flags_kwd,
+            **base.shrink_flags_kwd,
         })
         super().__init__(**kwds)
 

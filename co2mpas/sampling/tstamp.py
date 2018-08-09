@@ -2118,7 +2118,7 @@ class LoginCmd(baseapp.Cmd):
 
 class WstampCmd(baseapp.Cmd,
                 base.FileReadingMixin,
-                slicetrait.ShrinkingOutputMixin,
+                base.ShrinkingOutputMixin,
                 base.FileOutputMixin):
     """
     Send the given Dice(s) to WebStamper for Stamping.
@@ -2151,7 +2151,7 @@ class WstampCmd(baseapp.Cmd,
                     {'WstampSpec': {'dry_run': True}},
                     WstampSpec.dry_run.help
                 ),
-                **slicetrait.shrink_flags_kwd
+                **base.shrink_flags_kwd
             }
         })
         super().__init__(**kwds)
