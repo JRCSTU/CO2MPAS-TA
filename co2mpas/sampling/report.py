@@ -113,9 +113,10 @@ class ReporterSpec(baseapp.Spec):
         from pandalone import xleash
 
         df = xleash.lasso(self.dice_report_xlref, url_file=fpath)
-        assert isinstance(df, pd.DataFrame), (
-            "The *dice_report* xlref(%s) must resolve to a DataFrame, not type(%r): %s" %
-            (self.dice_report_xlref, type(df), df))
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError(
+                "The param '%s.%s' must resolve to a DataFrame, not type(%r): %s" %
+                (type(self).__name__, self.dice_report_xlref, type(df), df))
 
         df = df.where((pd.notnull(df)), None)
         vfid = df.at[self.output_vfid_coords]
@@ -226,6 +227,7 @@ class ReporterSpec(baseapp.Spec):
 
         """
         import pandalone.utils as pndlu
+        import pandalone.pandata as pndat
 
         def check_vfid_missmatch(fpath, file_vfid):
             nonlocal expected_vfid
@@ -241,39 +243,53 @@ class ReporterSpec(baseapp.Spec):
 
         input_report = []  # a list of dicts {file: ..., input_data: raw_data}
         for fpath in iofiles.inp:
-            fpath = pndlu.convpath(fpath)
-            file_vfid, inp_data = self._parse_input_xlsx(fpath)
-            msg = check_vfid_missmatch(fpath, file_vfid)
-            if msg:
-                msg = "File('%s') %s!" % (fpath, msg)
-                if self.force:
-                    self.log.warning(msg)
-                else:
-                    raise CmdException(msg)
-            rtuples.append((fpath, 'inp', OrderedDict([
-                ('vehicle_family_id', file_vfid),
-                ('timestamp', int(osp.getmtime(fpath))),
-            ])))
+            try:
+                fpath = pndlu.convpath(fpath)
+                file_vfid, inp_data = self._parse_input_xlsx(fpath)
+                msg = check_vfid_missmatch(fpath, file_vfid)
+                if msg:
+                    msg = "File('%s') %s!" % (fpath, msg)
+                    if self.force:
+                        self.log.warning(msg)
+                    else:
+                        raise CmdException(msg)
+                rtuples.append((fpath, 'inp', OrderedDict([
+                    ('vehicle_family_id', file_vfid),
+                    ('timestamp', int(osp.getmtime(fpath))),
+                ])))
 
-            if inp_data:
-                input_report.append({'file': fpath, 'input_data': inp_data})
-
+                if inp_data:
+                    input_report.append({'file': fpath, 'input_data': inp_data})
+            except CmdException:
+                raise
+            except pndat.RefResolutionError as ex:
+                raise CmdException("Cannot parse '%s' as INPUT-file due to: %s" %
+                                   (fpath, ex))
+            except Exception as ex:
+                raise CmdException("Cannot parse '%s' as INPUT-file due to: %s: %s" %
+                                   (fpath, type(ex).__name__, ex)) from ex
         for fpath in iofiles.out:
-            fpath = pndlu.convpath(fpath)
-            file_vfid, dice_report = self._extract_dice_report_from_output(fpath)
-            msg1 = self._check_is_ta(fpath, dice_report)
-            msg2 = check_vfid_missmatch(fpath, file_vfid)
-            msg3 = self._check_deviations_are_valid(fpath, dice_report)
-            msgs = [m for m in [msg1, msg2, msg3] if m]
-            if any(msgs):
-                msg = ';\n  also '.join(msgs)
-                msg = "File('%s') %s!" % (fpath, msg)
-                if self.force:
-                    self.log.warning(msg)
-                else:
-                    raise CmdException(msg)
+            try:
+                fpath = pndlu.convpath(fpath)
+                file_vfid, dice_report = self._extract_dice_report_from_output(fpath)
+                msg1 = self._check_is_ta(fpath, dice_report)
+                msg2 = check_vfid_missmatch(fpath, file_vfid)
+                msg3 = self._check_deviations_are_valid(fpath, dice_report)
+                msgs = [m for m in [msg1, msg2, msg3] if m]
+                if any(msgs):
+                    msg = ';\n  also '.join(msgs)
+                    msg = "File('%s') %s!" % (fpath, msg)
+                    if self.force:
+                        self.log.warning(msg)
+                    else:
+                        raise CmdException(msg)
 
-            rtuples.append((fpath, 'out', dice_report))
+                rtuples.append((fpath, 'out', dice_report))
+            except CmdException:
+                raise
+            except Exception as ex:
+                raise CmdException("Cannot parse '%s' as OUTPUT-file due to: %s: %s" %
+                                   (fpath, type(ex).__name__, ex)) from ex
 
         for fpath in iofiles.other:
             fpath = pndlu.convpath(fpath)
