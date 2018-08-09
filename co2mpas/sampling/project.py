@@ -2022,41 +2022,80 @@ class InitCmd(AppendCmd):
 
 class WstampCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
     """
-    Dice a new project in one action through WebStamper
+    Send the given Dice to WebStamper for Stamping.
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<dice-file>]
 
     - If '-' is given or no file at all, it reads from STDIN.
+    - WARN: Do not use this command directly (unless experimenting)
+      to avoid loosing the generated Stam.
+      Prefer the `project tsend` sub-command.
     """
 
     examples = trt.Unicode("""
-        - In the simplest case, just give input/out files:
-              %(cmd_chain)s --inp input.xlsx --out output.xlsx
-        - To specify more files (e.g. H/L in different runs):
-              %(cmd_chain)s --inp input1.xlsx --out output1.xlsx --inp input2.xlsx --out output2.xlsx
+        - To send a dice-report the current project (assuming it in 'tagged' state):
+              co2dice project report | %(cmd_chain)s
+        - To send a dice-report for a any 'tagged' project you have its `vehicle_family_id`::
+              git  cat-file  tag  tstamps/RL-12-BM3-2017-0001/1 | %(cmd_chain)s
     """)
 
-    webstamper_url = trt.Unicode(
+    dry_run = trt.Bool(
+        help="Submit a provisional Dice to WebStamper without actually writting anything."
+    ).tag(config=True)
+
+    webstamper_check_url = trt.Unicode(
+        ## FIXME: Make URLs it configurable to avoid DoS!
+        'http://localhost:5000/api-check/',
+        help="The endpoint URL that Stamps."
+    ).tag(config=True)
+
+    webstamper_stamp_url = trt.Unicode(
+        ## FIXME: Make URLs it configurable to avoid DoS!
         'http://localhost:5000/api-stamp/',
-        help="The u"
+        help="The endpoint URL that Stamps."
     ).tag(config=True)
 
     def __init__(self, **kwds):
-        kwds.setdefault('cmd_aliases', _write_fpath_alias_kwd)
-        kwds.setdefault('cmd_flags', _shrink_flags_kwd)
+        from . import crypto, tstamp
+
+        kwds.update({
+            'conf_classes': [ProjectsDB, Project,
+                             crypto.GitAuthSpec,
+                             tstamp.TstampSender,
+                             ],
+            'cmd_aliases': _write_fpath_alias_kwd,
+            'cmd_flags': {
+                ('n', 'dry-run'): (
+                    {type(self).__name__: {'dry_run': True}},
+                    "Submit a provisional Dice to WebStamper without actually writting anything."
+                ),
+                **_shrink_flags_kwd
+            }
+        })
         super().__init__(**kwds)
 
     def _stamp_dice(self, dice):
         import requests
+        from . import tstamp
 
-        self.log.info('Contacting WebStamper at: %s', self.webstamper_url)
+        sendspec = tstamp.TstampSender(config=self.config)
+        sender = "%s <%s>" % (sendspec.user_name, sendspec.user_email)
+        recipients = '; '.join(sendspec.tstamp_recipients)
+        endpoint = (self.webstamper_check_url
+                    if self.dry_run else
+                    self.webstamper_stamp_url)
+        self.log.info(
+            "Contacting WebStamper(%s) with request: "
+            "\n  sender: %s\n  recipients: %s",
+            endpoint, sender, recipients)
+
         data = {
-            'sender': 'ABC',
-            'recipients': 'ankostis@gmail.com',
+            'sender': sender,
+            'recipients': recipients,
             'dice_report': dice,
         }
-        response = requests.post(self.webstamper_url, data=data)
+        response = requests.post(endpoint, data=data)
 
         return response.text
 
@@ -2066,8 +2105,6 @@ class WstampCmd(_SubCmd, ShrinkingOutputMixin, FileOutputMixin):
                                % (self.name, len(args), args))
 
         file = '-' if not args else args[0]
-
-
         if file == '-':
             msg = "Reading STDIN."
             if getattr(sys.stdin, 'isatty', lambda: False)():
@@ -2112,7 +2149,10 @@ class DiceCmd(AppendCmd, WstampCmd):
         - In the simplest case, just give input/out files:
               %(cmd_chain)s --inp input.xlsx --out output.xlsx
         - To specify more files (e.g. H/L in different runs):
-              %(cmd_chain)s --inp input1.xlsx --out output1.xlsx --inp input2.xlsx --out output2.xlsx
+              %(cmd_chain)s --inp input1.xlsx --out output1.xlsx \
+                      --inp input2.xlsx --out output2.xlsx
+
+          Tip: In Windows `cmd.exe` shell, the continuation charachter is `^`.
     """)
 
     def _check_ok(self, ok):
