@@ -1682,11 +1682,13 @@ class WstampSpec(dice.DiceSpec):
             cls._is_not_empty, cls._is_pure_email_address)
         super().__init__(*args, **kwds)
 
-    def stamp_dice(self, dice):
+    def stamp_dice(self, dice, dry_run=None):
         import requests
 
+        dry_run = self.dry_run if dry_run is None else dry_run
+
         endpoint = (self.check_url
-                    if self.dry_run or not dice else
+                    if dry_run or not dice else
                     self.stamp_url)
 
         if dice:
@@ -1697,7 +1699,7 @@ class WstampSpec(dice.DiceSpec):
                 'recipients': recipients,
                 'dice_report': dice,
             }
-            pretend_prefix = "DRY-RUN:  " if self.dry_run else ''
+            pretend_prefix = "DRY-RUN:  " if dry_run else ''
             self.log.info(
                 "%sSending %i-char Dice to WebStamper(%s) with contacts: "
                 "\n  sender: %s\n  recipients: %s",

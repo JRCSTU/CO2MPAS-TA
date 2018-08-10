@@ -79,6 +79,22 @@ APPNAME = 'co2mpas'
 log = logging.getLogger(APPNAME)
 
 show_dice_panel = False
+_is_dice_installed = None
+
+
+def is_dice_installed():
+    global _is_dice_installed
+
+    if _is_dice_installed is None:
+        try:
+            from co2mpas.sampling import tstamp  # noqa
+            _is_dice_installed = True
+        except ImportError:
+            _is_dice_installed = False
+            log.info("`co2dice` is not installed or is not working.")
+
+    return _is_dice_installed
+
 
 user_guidelines_url = 'https://co2mpas.io/usage.html'
 issues_url = 'https://github.com/JRCSTU/CO2MPAS-TA/issues'
@@ -1132,6 +1148,7 @@ class SimulatePanel(ttk.Frame):
     """
     The state of all widgets is controlled by :meth:`mediate_guistate()`.
     """
+
     def __init__(self, parent, app, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.app = app
@@ -1270,37 +1287,38 @@ class SimulatePanel(ttk.Frame):
         self.outputs_tree = tree
         add_tooltip(tree, 'out_files_tree')
 
-        def collect_dice_files_and_notify(do_dice=None):
-            "When not `do_dice`, it reports weather dice-files exist."
-            fpath_kind_pairs = []  # [(fpath, kind)]
-            for fpath in tree.get_children():
-                values = tree.item(fpath, 'values')
+        if is_dice_installed():
+            def collect_dice_files_and_notify(do_dice=None):
+                "When not `do_dice`, it reports weather dice-files exist."
+                fpath_kind_pairs = []  # [(fpath, kind)]
+                for fpath in tree.get_children():
+                    values = tree.item(fpath, 'values')
 
-                ## Sample of a non-dice item:
-                #    ('FILE', '', '1432399', '2018-06-07T17:34:08.623143'):
-                ## Sample of Dice item
-                #    ('FILE', 'inp', '1432399', '2018-06-07T17:34:08.623143'):
-                ## where possible "kinds" are from :class:`sampling.base.PFile`:
-                #    inp | out | other
+                    ## Sample of a non-dice item:
+                    #    ('FILE', '', '1432399', '2018-06-07T17:34:08.623143'):
+                    ## Sample of Dice item
+                    #    ('FILE', 'inp', '1432399', '2018-06-07T17:34:08.623143'):
+                    ## where possible "kinds" are from :class:`sampling.base.PFile`:
+                    #    inp | out | other
 
-                kind = values[1]
-                if kind:
-                    fpath_kind_pairs.append((fpath, kind))
+                    kind = values[1]
+                    if kind:
+                        fpath_kind_pairs.append((fpath, kind))
 
-            if fpath_kind_pairs:
-                if do_dice:
-                    self.app.do_run_dice(fpath_kind_pairs)
-                else:
-                    return True
-        tree.has_dice_files = collect_dice_files_and_notify
+                if fpath_kind_pairs:
+                    if do_dice:
+                        self.app.do_run_dice(fpath_kind_pairs)
+                    else:
+                        return True
+            tree.has_dice_files = collect_dice_files_and_notify
 
-        self._dice_btn = btn = ttk.Button(
-            frame,
-            text="Dice!", style='DICE.TButton',
-            command=fnt.partial(collect_dice_files_and_notify, do_dice=True))
-        add_icon(btn, 'icons/to_dice-orange-32.png ')
-        btn.pack(side=tk.LEFT, fill=tk.BOTH,)
-        add_tooltip(btn, 'dice_btn')
+            self._dice_btn = btn = ttk.Button(
+                frame,
+                text="Dice!", style='DICE.TButton',
+                command=fnt.partial(collect_dice_files_and_notify, do_dice=True))
+            add_icon(btn, 'icons/to_dice-orange-32.png ')
+            btn.pack(side=tk.LEFT, fill=tk.BOTH,)
+            add_tooltip(btn, 'dice_btn')
 
         return frame
 
@@ -1481,7 +1499,8 @@ class SimulatePanel(ttk.Frame):
                          static_msg: Union[bool, Text]=None,
                          progr_step=None, progr_max=None,
                          new_out_file_tuple=None,
-                         check_outfiles_exist=False):
+                         check_outfiles_exist=False,
+                         wstamper_ok=None):
         """
         Handler of states for all panel's widgets and progressbar/status.
 
@@ -1525,7 +1544,9 @@ class SimulatePanel(ttk.Frame):
 
         ## Update Open-DICE-button.
         #
-        self._dice_btn.state((bang(self.outputs_tree.has_dice_files()) + tk.DISABLED,))
+        if is_dice_installed():
+            is_dice_btn_enabled = wstamper_ok and self.outputs_tree.has_dice_files()
+            self._dice_btn.state((bang(is_dice_btn_enabled) + tk.DISABLED, ))
 
         ## Update cursor for run-buttons.
         for b in (self._run_batch_btn, self._run_ta_btn):
@@ -1674,9 +1695,23 @@ class SimulatePanel(ttk.Frame):
                 mediate_guistate(progr_step=-1, progr_max=self.len + 1)  # +1 finalization job-work.
                 return self
 
+            def _check_webstamper_alive(self):
+                if is_ta and is_dice_installed():
+                    from co2mpas.sampling import tstamp
+                    try:
+                        wstampsepc = tstamp.WstampSpec(config=app.config)
+                        wstampsepc.stamp_dice('', dry_run=True)
+
+                        return True
+                    except Exception as ex:
+                        log.error("Conection to WebStamper failed due to: %s"
+                                  "\n  Disabling \"Stamp\" button.",
+                                  ex, exc_info=True)
+
             def on_finish(self, out, err, ex):
                 app._job_thread = None
                 args = [job_name]
+                wstamper_ok = None
                 if ex:
                     msg = "Failed job %s due to: %s %s%s"
                     args.append(ex)
@@ -1686,16 +1721,18 @@ class SimulatePanel(ttk.Frame):
                     level = logging.ERROR
                 else:
                     msg = "Finished job %s. %s%s"
+                    wstamper_ok = self._check_webstamper_alive()
                     ## Status a temporary success msg.
                     #
-                    static_msg = ''
                     level = None
+                    static_msg = ''
                 try:
                     args.extend(self.pump_std_streams())
                 finally:
                     mediate_guistate(msg, *args,
                                      static_msg=static_msg, level=level,
-                                     progr_max=0, check_outfiles_exist=True)
+                                     progr_max=0, check_outfiles_exist=True,
+                                     wstamper_ok=wstamper_ok)
 
         updater = ProgressUpdater()
         user_cmd_kwds = cmd_kwds.copy()
