@@ -231,8 +231,6 @@ class FileOutputMixin(trc.Configurable):
         return 'at' if self.write_append else 'wt'
 
     def write_file(self, txt, wfpath=None):
-        from pandalone import utils as pndlu
-
         if not wfpath:
             wfpath = self.write_fpath
         if not wfpath:

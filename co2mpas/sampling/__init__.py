@@ -5,15 +5,17 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-co2dice: prepare/sign/send/receive/validate/archive Type Approval sampling emails of *co2mpas*.
+co2dice: Distributed Impromptu type-Certificate Evaluation of *co2mpas* results.
+
 
 This is an articulated application comprised of the following:
 
-- A GUI application, based on the :mod:`tkinter` framework;
-- a library performing the backend-tasks,
-  implemented with :class:`baseapp.Spec` instances;
+- A library implemented with :class:`baseapp.Spec` instances performing
+  the backend-tasks: prepare/sign/send/receive/decide/archive of
+  *co2mpas* results.
 - the ``co2dice`` hierarchical cmd-line tool,
   implemented with :class:`baseapp.Cmd` instances.
+- A GUI adaptor, based on the :mod:`tkinter` framework;
 
 ::
            .------------.
