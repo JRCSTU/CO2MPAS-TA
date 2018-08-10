@@ -148,12 +148,16 @@ def define_tooltips():
             Runs the CO2MPAS TA command in DECLARATION mode.
             - Incompatible with any other flags and options;
             - Make sure the indicated output-folder exists.
-        open_dice_btn: |-
-            Switches to the `Dice` tab and imports all output files generated
-            during the most recent `Run TA` command.
-            - Enabled only when output files have been generated.
-            - You can still switch to `Dice` tab and select manually
-              which files to import.
+        dice_btn: |-
+            Dice the result-files in one action through WebStamper.
+            - Enabled only when output files have been generated, AND
+              they were run as `TA`, AND WebStamper connectivity is working.
+            - If it fails, co2dice's project database is left as is; probable
+              sub-commands that can examine the situation and continue
+              the diceing from where it is left-over are:
+                  co2dice project ls .        # to examine the situation
+                  co2dice project append      # if IO-files were not in db
+                  co2dice project report | co2dice tstamp wstamp | co2dice project parse tparse
         stop_job_btn: |-
             Aborts a "job" that has started with the Run or Run TA buttons.
 
@@ -1290,13 +1294,13 @@ class SimulatePanel(ttk.Frame):
                     return True
         tree.has_dice_files = collect_dice_files_and_notify
 
-        self._open_dice_btn = btn = ttk.Button(
+        self._dice_btn = btn = ttk.Button(
             frame,
             text="Dice!", style='DICE.TButton',
             command=fnt.partial(collect_dice_files_and_notify, do_dice=True))
         add_icon(btn, 'icons/to_dice-orange-32.png ')
         btn.pack(side=tk.LEFT, fill=tk.BOTH,)
-        add_tooltip(btn, 'open_dice_btn')
+        add_tooltip(btn, 'dice_btn')
 
         return frame
 
@@ -1521,7 +1525,7 @@ class SimulatePanel(ttk.Frame):
 
         ## Update Open-DICE-button.
         #
-        self._open_dice_btn.state((bang(self.outputs_tree.has_dice_files()) + tk.DISABLED,))
+        self._dice_btn.state((bang(self.outputs_tree.has_dice_files()) + tk.DISABLED,))
 
         ## Update cursor for run-buttons.
         for b in (self._run_batch_btn, self._run_ta_btn):
