@@ -1666,6 +1666,9 @@ class ProjectCmd(_SubCmd):
         - To list all existing projects, try::
               %(cmd_chain)s  ls
 
+        - To dice with WebStamper appropriately configured, in one step,
+          use the `dice` command::
+              %(cmd_chain)s  dice --inp input.xlsx  --out output.xlsx
         - To make a new project, type::
               %(cmd_chain)s  init RL-77-AAA-2016-0000
 
