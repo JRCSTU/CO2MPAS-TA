@@ -1952,10 +1952,11 @@ class DiceCmd(AppendCmd):
 
     - If number of input-files given must match the number of output-file.
       The files are "paired" in the order they are given.
-    - This command defaults to ``--write-file='~/co2dice.reports.txt'`, and
-      every time it runs, it *APPENDS* into this file these 3 items:
+    - By default, --write-file='~/co2dice.reports.txt', so
+      every time this cmd runs, it *APPENDS* into the file above
+      these 3 items generated:
         1. Dice
-        2. Stamp
+        2. Stamp (or any error received)
         3. Decision
     - ATTENTION: If it fails, co2dice's project database is left as is; probable
       sub-commands that can examine the situation and continue
@@ -1982,6 +1983,25 @@ class DiceCmd(AppendCmd):
     @trt.default('write_append')
     def _append_into_fpath(self):
         return True
+
+    _help_in_case_of_failure = tw.dedent("""
+        INFO: the current-project in `co2dice` db is left as is.
+        Use console commands to examine the situation and continue::
+
+            co2dice project ls .                   # to examine the situation
+            co2dice project append                 # if IO-files were not added
+            co2dice project report -- -1           # print the last generated report
+
+            co2dice project report  -W dice.txt    # generate dice if not done yet
+            cat dice.txt | co2dice tstamp wstamp  -W stamp.txt
+            co2dice project parse tparse  stamp.txt
+
+        or the last 3 *irrevocable* commands without the intermediate files::
+
+          co2dice project report | co2dice tstamp wstamp | co2dice project parse tparse
+
+        You may find stamps & dices generated in your '~/co2dice.reports.txt' file.
+    """)
 
     def __init__(self, **kwds):
         from toolz import dicttoolz as dtz
@@ -2030,36 +2050,45 @@ class DiceCmd(AppendCmd):
 
         vfid = self._derrive_vfid(pfiles)
         proj = self.projects_db.proj_add(vfid)
-        self._check_ok(proj.do_addfiles(pfiles=pfiles))
-        self.log.info("Initiated '%s' with files: %s", vfid, pfiles)
 
-        self._check_ok(proj.do_report())
-        dice = proj.result
-        assert isinstance(dice, str)
-        key_uid = proj.extract_uid_from_report(dice)
-        self.log.info("Created new Dice signed by '%s': \n%s",
-                      key_uid,
-                      self.shrink_text(dice))
-        if self.write_fpath:
-            self.write_file(dice)
+        ok = False
+        try:
+            self._check_ok(proj.do_addfiles(pfiles=pfiles))
+            self.log.info("Initiated '%s' with files: %s", vfid, pfiles)
 
-        wstamper = tstamp.WstampSpec(config=self.config)
-        stamp = wstamper.stamp_dice(dice)
-        self.log.info("Stamp was: \n%s",
-                      self.shrink_text(stamp))
-        if self.write_fpath:
-            self.write_file(stamp)
+            self._check_ok(proj.do_report())
+            dice = proj.result
+            assert isinstance(dice, str)
+            key_uid = proj.extract_uid_from_report(dice)
+            self.log.info("Created new Dice signed by '%s': \n%s",
+                          key_uid,
+                          self.shrink_text(dice))
+            if self.write_fpath:
+                self.write_file(dice)
 
-        self._check_ok(proj.do_storedice(tstamp_txt=stamp))
-        decision = proj.result
-        assert isinstance(decision, str), decision
-        self.log.info("Imported Decision: \n%s'.",
-                      self.shrink_text(stamp))
+            wstamper = tstamp.WstampSpec(config=self.config)
+            stamp = wstamper.stamp_dice(dice)
+            self.log.info("Stamp was: \n%s",
+                          self.shrink_text(stamp))
+            if self.write_fpath:
+                self.write_file(stamp)
 
-        if self.write_fpath:
-            self.write_file(decision)
-        else:
-            return self.shrink_text(decision)
+            self._check_ok(proj.do_storedice(tstamp_txt=stamp))
+            decision = proj.result
+            assert isinstance(decision, str), decision
+            self.log.info("Imported Decision: \n%s'.",
+                          self.shrink_text(stamp))
+            ok = True
+
+            if self.write_fpath:
+                self.write_file(decision)
+            else:
+                return self.shrink_text(decision)
+        finally:
+            if not ok:
+                self.log.error(
+                    "Diceing in a single-step has failed (see error below)!\n%s",
+                    self._help_in_case_of_failure)
 
 
 class ReportCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
@@ -2176,7 +2205,7 @@ class ReportCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
 
 class TsendCmd(_SubCmd):
     """
-    (DEPCRECATED) IRREVOCABLY send report to time-stamp service.
+    (DEPRECATED) IRREVOCABLY send report to time-stamp service.
 
     SYNTAX
         %(cmd_chain)s [OPTIONS]
@@ -2338,7 +2367,7 @@ class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
     - The fetching of emails can happen in one-shot or waiting mode.
     - For terms are searched in the email-subject - tip: use the project name(s).
     - If --write-fpath given, mails are written in separate files derrived from the
-      filepath like <basename>-1<.ext>, ...
+      filepath like <basename>-1<.ext>, ...  and not printed.
     - If --force, ignores most verification/parsing errors.
       that is, when you don't have the files of the projects in the repo.
       With this option, tstamp-response get, it extracts the dice-repot and adds it
