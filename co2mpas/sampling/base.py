@@ -231,9 +231,17 @@ class FileOutputMixin(trc.Configurable):
         return 'at' if self.write_append else 'wt'
 
     def write_file(self, txt, wfpath=None):
+        from pandalone import utils as pndlu
+
         if not wfpath:
             wfpath = self.write_fpath
-        self.log.info('Writing report into: %s', osp.realpath(wfpath))
+        if not wfpath:
+            self.log.warning('Cannot write output file when no fpath given!')
+            return
+
+        wfpath = pndlu.convpath(wfpath)
+        self.log.info('%s report into: %s',
+                      'Writing' if self.write_append else 'Appending', wfpath)
         file_mode = self._open_file_mode()
         with open(wfpath, file_mode, **self.write_kwds) as fd:
             fd.write(txt)
