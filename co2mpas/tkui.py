@@ -1265,11 +1265,35 @@ class SimulatePanel(ttk.Frame):
         self.outputs_tree = tree
         add_tooltip(tree, 'out_files_tree')
 
+        def collect_dice_files_and_notify(do_dice=None):
+            "When not `do_dice`, it reports weather dice-files exist."
+            files_to_dice = {}  # fpath --> kind
+            for fpath in tree.get_children():
+                values = tree.item(fpath, 'values')
+
+                ## Sample of a non-dice item:
+                #    ('FILE', '', '1432399', '2018-06-07T17:34:08.623143'):
+                ## Sample of Dice item
+                #    ('FILE', 'inp', '1432399', '2018-06-07T17:34:08.623143'):
+                ## where possible "kinds" are from :class:`sampling.base.PFile`:
+                #    inp | out | other
+
+                kind = values[1]
+                if kind:
+                    files_to_dice[fpath] = kind
+
+            if files_to_dice:
+                if do_dice:
+                    self.app.prepare_dice_for_files(files_to_dice)
+                else:
+                    return True
+        tree.has_dice_files = collect_dice_files_and_notify
+
+
         self._open_dice_btn = btn = ttk.Button(
             frame,
             text="Dice!", style='DICE.TButton',
-            command=fnt.partial(self.app.prepare_dice_for_files,
-                                self.outputs_tree.get_children()))
+            command=fnt.partial(collect_dice_files_and_notify, do_dice=True))
         add_icon(btn, 'icons/to_dice-orange-32.png ')
         btn.pack(side=tk.LEFT, fill=tk.BOTH,)
         add_tooltip(btn, 'open_dice_btn')
@@ -1494,7 +1518,7 @@ class SimulatePanel(ttk.Frame):
 
         ## Update Open-DICE-button.
         #
-        self._open_dice_btn.state((bang(self.outputs_tree.get_children()) + tk.DISABLED,))
+        self._open_dice_btn.state((bang(self.outputs_tree.has_dice_files()) + tk.DISABLED,))
 
         ## Update cursor for run-buttons.
         for b in (self._run_batch_btn, self._run_ta_btn):
@@ -2395,6 +2419,7 @@ class Co2guiCmd(baseapp.Cmd):
     def prepare_dice_for_files(self, fpaths):
         import subprocess as subp
 
+        print(fpaths)
         cmd = 'co2dice project dice '
         subp.run()
 
