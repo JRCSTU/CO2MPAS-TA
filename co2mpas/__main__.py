@@ -32,7 +32,6 @@ USAGE:
                       (--list | [--graph-depth=<levels>] [<models> ...])
   co2mpas modelconf   [-v | -q | --logconf=<conf-file>] [-f]
                       [--modelconf=<yaml-file>] [-O=<output-folder>]
-  co2mpas gui         [-v | -q | --logconf=<conf-file>]
   co2mpas             [-v | -q | --logconf=<conf-file>] (--version | -V)
   co2mpas             --help
 
@@ -87,7 +86,6 @@ Miscellaneous:
 
 
 SUB-COMMANDS:
-    gui             Launches co2mpas GUI (DEPRECATED: Use `co2gui` command).
     ta              Simulate vehicle in type approval mode for all <input-path>
                     excel-files & folder. If no <input-path> given, reads all
                     excel-files from current-dir. It reads just the declaration
@@ -562,7 +560,7 @@ def _run_batch(opts, **kwargs):
         raise CmdException("Specify at least one <input-path>!"
                            "\n    read: co2mpas --help"
                            "\n  or try: co2mpas %s <input-fpath>"
-                           "\n      or: co2mpas gui" % cmd)
+                           "\n      or: co2gui" % cmd)
 
     if not osp.isdir(output_folder):
         if opts['--force']:
@@ -607,13 +605,6 @@ def _cmd_modelconf(opts):
     defaults = _init_defaults(opts['--modelconf'])
     defaults.dump(fname)
     log.info('Default model config written into yaml-file(%s)...', fname)
-
-
-def _cmd_gui(opts):
-    from co2mpas import tkui
-    log.warning("`co2mpas gui` cmd has been Deprecated, and will be removed in from the next release!"
-                "\n  Please use the dedicated `co2gui` command to pass any command-lines options.")
-    tkui.main([])
 
 
 def _main(*args):
@@ -661,8 +652,6 @@ def _main(*args):
         _cmd_modelgraph(opts)
     elif opts['modelconf']:
         _cmd_modelconf(opts)
-    elif opts['gui']:
-        _cmd_gui(opts)
     elif opts['ta']:
         _run_batch(opts, type_approval_mode=True, overwrite_cache=True)
     else:
