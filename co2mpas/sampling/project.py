@@ -1846,9 +1846,8 @@ class AppendCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
 
                 if self.write_fpath:
                     self.write_file(result)
-                    return ok
-                else:
-                    return self.shrink_text(result)
+
+                return self.shrink_text(result)
             else:
                 return False
 
@@ -2082,8 +2081,8 @@ class DiceCmd(AppendCmd):
 
             if self.write_fpath:
                 self.write_file(decision)
-            else:
-                return self.shrink_text(decision)
+
+            return self.shrink_text(decision)
         finally:
             if not ok:
                 self.log.error(
@@ -2198,9 +2197,7 @@ class ReportCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
         if self.write_fpath:
             self.write_file(result)
 
-            yield ok
-        else:
-            yield self.shrink_text(result)
+        yield self.shrink_text(result)
 
 
 class TsendCmd(_SubCmd):
@@ -2338,8 +2335,8 @@ class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
             ## That's parsed decision.
             if self.write_fpath:
                 self.write_file(report)
-            else:
-                return self.shrink_text(report)
+
+            return self.shrink_text(report)
 
         from toolz import dicttoolz as dtz
 
@@ -2349,8 +2346,8 @@ class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
 
         if self.write_fpath:
             self.write_file(result)
-        else:
-            return self.shrink_text(result)
+
+        return self.shrink_text(result)
 
 
 class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
