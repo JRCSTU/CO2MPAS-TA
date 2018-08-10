@@ -1681,12 +1681,10 @@ class ProjectCmd(_SubCmd):
         - A typical workflow is this::
               %(cmd_chain)s  init RL-12-BM3-2016-0000
               %(cmd_chain)s  append  --inp input.xlsx  --out output.xlsx   summary.xlsx  co2mpas.log
-              %(cmd_chain)s  report
-              %(cmd_chain)s  tstamp
-              cat <tstamp-response-text> | %(cmd_chain)s  tparse
+              %(cmd_chain)s  report | co2dice tstamp wstamp | %(cmd_chain)s  tparse
               %(cmd_chain)s  export
 
-        - You may enquiry the status the projects database::
+        - You may enquire the health of the projects database with this::
               %(cmd_chain)s  status --vlevel 2
     """)
 
