@@ -1656,19 +1656,19 @@ class WstampSpec(dice.DiceSpec):
         help="Submit a provisional Dice to WebStamper without actually writting anything."
     ).tag(config=True)
 
-    webstamper_check_url = trt.Unicode(
+    check_url = trt.Unicode(
         ## FIXME: Make URLs it configurable to avoid DoS!
         'http://localhost:5000/api-check/',
-        help="The endpoint URL that Stamps."
+        help="The WebStamper's endpoint URL that Stamps."
     ).tag(config=True)
 
-    webstamper_stamp_url = trt.Unicode(
+    stamp_url = trt.Unicode(
         ## FIXME: Make URLs it configurable to avoid DoS!
         'http://localhost:5000/api-stamp/',
-        help="The endpoint URL that Stamps."
+        help="The WebStamper's endpoint URL that checks connectivity & validates Dice."
     ).tag(config=True)
 
-    tstamp_recipients = trt.List(
+    recipients = trt.List(
         trt.Unicode(),
         help="""
         The plain email-address of the receivers of the timestamped-response.
@@ -1678,20 +1678,20 @@ class WstampSpec(dice.DiceSpec):
     def __init__(self, *args, **kwds):
         cls = type(self)
         self.register_validators(
-            cls.tstamp_recipients,
+            cls.recipients,
             cls._is_not_empty, cls._is_pure_email_address)
         super().__init__(*args, **kwds)
 
     def stamp_dice(self, dice):
         import requests
 
-        endpoint = (self.webstamper_check_url
+        endpoint = (self.check_url
                     if self.dry_run or not dice else
-                    self.webstamper_stamp_url)
+                    self.stamp_url)
 
         if dice:
             sender = "%s <%s>" % (self.user_name, self.user_email)
-            recipients = '; '.join(self.tstamp_recipients)
+            recipients = '; '.join(self.recipients)
             data = {
                 'sender': sender,
                 'recipients': recipients,
