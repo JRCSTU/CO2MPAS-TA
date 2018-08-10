@@ -1771,11 +1771,13 @@ class TstampCmd(baseapp.Cmd):
 
 class SendCmd(base.FileReadingMixin, baseapp.Cmd):
     """
-    Send emails to be timestamped.
+    (DEPRECATED.) Send emails to be timestamped.
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<report-file-1> ...]
 
+    - SINCE co2mpas-1.9.x (summer 2018) EmailStamper IS DEPRECATED.
+      Please migrate to WebStamper.
     - If '-' is given or no files at all, it reads from STDIN.
     - Many options related to sending & receiving the email are expected
       to be stored in the config-file.
@@ -1809,6 +1811,10 @@ class SendCmd(base.FileReadingMixin, baseapp.Cmd):
         super().__init__(**kwds)
 
     def run(self, *args):
+        self.log.warning(
+            "SINCE co2mpas-1.9.x (summer 2018) THIS COMMAND IS DEPRECATED."
+            "Please migrate to WebStamper.")
+
         sender = TstampSender(config=self.config)
         for fpath, mail_text in self.yield_files(*args):
             self.log.info("Timestamping '%s'...", fpath)
@@ -1826,13 +1832,21 @@ class SendCmd(base.FileReadingMixin, baseapp.Cmd):
 
 
 class MailboxCmd(baseapp.Cmd):
-    """Lists mailboxes in IMAP server. """
+    """Lists mailboxes in IMAP server.
+
+    - SINCE co2mpas-1.9.x (summer 2018) EmailStamper IS DEPRECATED.
+      Please migrate to WebStamper.
+    """
 
     def __init__(self, **kwds):
         kwds.setdefault('conf_classes', [TstampReceiver])
         super().__init__(**kwds)
 
     def run(self, *args):
+        self.log.warning(
+            "SINCE co2mpas-1.9.x (summer 2018) THIS COMMAND IS DEPRECATED."
+            "Please migrate to WebStamper.")
+
         ## If `verbose`, too many small details, need flow.
         rcver = TstampReceiver(config=self.config)
         return rcver.list_mailbox(*args)
@@ -1854,11 +1868,13 @@ recv_cmd_aliases = {
 
 class RecvCmd(baseapp.Cmd):
     """
-    Fetch tstamps (and/or dice-reports) from IMAP server and derive *decisions* OK/SAMPLE flags.
+    (DEPRECATED.) Fetch Stamps/Dices from IMAP server and derive *decisions* OK/SAMPLE flags.
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<search-term-1> ...]
 
+    - SINCE co2mpas-1.9.x (summer 2018) EmailStamper IS DEPRECATED.
+      Please migrate to WebStamper.
     - Use --view to just fetch and view emails, not validate.
     - Fetch of emails in one-shot search, or use --wait.
     - The terms are ORed and searched within the email's subject-line;
@@ -1944,6 +1960,10 @@ class RecvCmd(baseapp.Cmd):
         super().__init__(**kwds)
 
     def run(self, *args):
+        self.log.warning(
+            "SINCE co2mpas-1.9.x (summer 2018) THIS COMMAND IS DEPRECATED."
+            "Please migrate to WebStamper.")
+
         ## If `verbose`, too many small details, need flow.
         default_flow_style = False
         rcver = TstampReceiver(config=self.config)
@@ -2071,7 +2091,15 @@ class ParseCmd(base.StampParsingCmdMixin, baseapp.Cmd):
 
 
 class LoginCmd(baseapp.Cmd):
-    """Attempts to login into SMTP server. """
+    """
+    (DEPRECATED.) Attempts to login into SMTP server.
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS]
+
+    - SINCE co2mpas-1.9.x (summer 2018) EmailStamper IS DEPRECATED.
+      Please migrate to WebStamper.
+    """
 
     dry_run = trt.Bool(
         help="Verify dice-report and login to SMTP-server but don't actually send email."
@@ -2101,6 +2129,10 @@ class LoginCmd(baseapp.Cmd):
         super().__init__(**kwds)
 
     def run(self, *args):
+        self.log.warning(
+            "SINCE co2mpas-1.9.x (summer 2018) THIS COMMAND IS DEPRECATED."
+            "Please migrate to WebStamper.")
+
         nargs = len(args)
         if nargs > 0:
             raise CmdException("Cmd '%s' takes no arguments, received %d: %r!"
@@ -2176,10 +2208,10 @@ class WstampCmd(baseapp.Cmd,
 
 
 all_subcmds = (
+    WstampCmd,
+    ParseCmd,
     LoginCmd,
     SendCmd,
     RecvCmd,
     MailboxCmd,
-    ParseCmd,
-    WstampCmd,
 )
