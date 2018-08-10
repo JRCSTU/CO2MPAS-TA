@@ -2161,6 +2161,9 @@ class WstampCmd(baseapp.Cmd,
         %(cmd_chain)s [OPTIONS] [<dice-file-1> ...]
 
     - If '-' is given or no file at all, it reads from STDIN.
+    - By default, --write-file='~/co2dice.reports.txt', so
+      every time this cmd runs, it *APPENDS* into the file above
+      any Dice received (or any errors).
     - If --dry-run, the Dice is sent to WebStamper for validation only.
     - If no Dice given, connectivity and status of WebStamper are checked
       (--dry-run is irrelevant).
@@ -2175,6 +2178,14 @@ class WstampCmd(baseapp.Cmd,
         - To send a dice-report for a any 'tagged' project you have its `vehicle_family_id`::
               git  cat-file  tag  tstamps/RL-12-BM3-2017-0001/1 | %(cmd_chain)s
     """)
+
+    @trt.default('write_fpath')
+    def _enable_write_fpath(self):
+        return "~/co2dice.reports.txt"
+
+    @trt.default('write_append')
+    def _append_into_fpath(self):
+        return True
 
     def __init__(self, **kwds):
         kwds.update({
@@ -2205,8 +2216,7 @@ class WstampCmd(baseapp.Cmd,
             else:
                 if self.write_fpath:
                     self.write_file(stamp)
-                else:
-                    yield self.shrink_text(stamp)
+                yield self.shrink_text(stamp)
 
 
 all_subcmds = (
