@@ -1481,7 +1481,7 @@ class SimulatePanel(ttk.Frame):
         add_tooltip(btn, 'run_ta_btn')
 
         def stop_job_clicked():
-            self.app.signal_job_to_stop()
+            self.app.signal_schedula_job_to_stop()
             self.mediate_guistate()
         self._stop_job_btn = btn = ttk.Button(frame, text="Stop", command=stop_job_clicked)
         add_icon(btn, 'icons/hand-red-32.png')
@@ -1753,7 +1753,7 @@ class SimulatePanel(ttk.Frame):
         ## Monkeypatch *tqdm* on co2mpas-batcher.
         cbatch._custom_tqdm = updater.tqdm_replacement
         self.outputs_tree.clear()
-        app.start_job(t, updater.result_generated)
+        app.start_schedula_job(t, updater.result_generated)
 
         msg = 'Launched %s job: %s'
         self.mediate_guistate(msg, job_name,
@@ -2280,7 +2280,7 @@ class Co2guiCmd(baseapp.Cmd):
 
         root.bind("<Configure>", save_geometry)
 
-    def start_job(self, thread, result_listener):
+    def start_schedula_job(self, thread, result_listener):
         from . import batch as cbatch, plan
         from schedula import Dispatcher
 
@@ -2294,7 +2294,7 @@ class Co2guiCmd(baseapp.Cmd):
 
         thread.start()
 
-    def signal_job_to_stop(self):
+    def signal_schedula_job_to_stop(self):
         from . import batch as cbatch, plan
         from schedula import Dispatcher
 
@@ -2432,7 +2432,7 @@ class Co2guiCmd(baseapp.Cmd):
     def progress(self, step=None, maximum=None):
         """
         :param step:
-            Positives, increment step, <=0, set absolute step, None ignored
+            >0: increment step, <=0: set absolute step, None: ignored
         :param maximum:
             0 disables progressbar, negatives, set `indeterminate` mode, None ignored.
         """
