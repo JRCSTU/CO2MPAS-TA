@@ -1797,10 +1797,12 @@ class AppendCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
         from . import report
 
         kwds = dtz.merge(kwds, {
-            'cmd_aliases': {
-                ('i', 'inp'): ('AppendCmd.inp', AppendCmd.inp.help),
-                ('o', 'out'): ('AppendCmd.out', AppendCmd.out.help),
-            }, 'cmd_flags': {
+            'cmd_aliases': dtz.merge(
+                base.write_fpath_alias_kwd, {
+                    ('i', 'inp'): ('AppendCmd.inp', AppendCmd.inp.help),
+                    ('o', 'out'): ('AppendCmd.out', AppendCmd.out.help),
+                }
+            ), 'cmd_flags': {
                 ('n', 'dry-run'): (
                     {'Project': {'dry_run': True}},
                     "Parse files but do not actually store them in the project."
@@ -1971,14 +1973,6 @@ class DiceCmd(AppendCmd):
 
         kwds = dtz.merge(kwds, {
             'conf_classes': [tstamp.WstampSpec],
-            'cmd_aliases': base.write_fpath_alias_kwd,
-            'cmd_flags': {
-                ('n', 'dry-run'): (
-                    {'WstampSpec': {'dry_run': True}},
-                    tstamp.WstampSpec.dry_run.help  # @UndefinedVariable
-                ),
-                **base.shrink_flags_kwd
-            }
         })
         super().__init__(**kwds)
 
