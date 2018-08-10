@@ -1657,7 +1657,6 @@ class SimulatePanel(ttk.Frame):
             def result_generated(self, result_tuple):
                 fpath, solution = result_tuple
 
-                is_ta = solution.get('type_approval_mode')
                 ## FIXME: Hack to search "summary" in fnames....
                 #
                 if is_ta and 'summary' not in fpath and '.xlsx' in fpath:
@@ -1674,7 +1673,7 @@ class SimulatePanel(ttk.Frame):
                     mediate_guistate(
                         "Job %s generated file: %s",
                         job_name, fpath, level=logging.debug,
-                        new_out_file_tuple=(fpath, ))
+                        new_out_file_tuple=(fpath, False, 'other'))
 
             def pump_std_streams(self):
                 new_out = self.stdout.getvalue()[self.out_i:]
