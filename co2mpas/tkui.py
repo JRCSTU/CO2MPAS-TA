@@ -482,8 +482,9 @@ def make_files_tree(parent, **tree_kwds):
                 icon = tree.excel_icon if re.search(r'\.xl\w\w$', path) else tree.file_icon
 
             finfos = get_file_infos(path)
+            values = (ftype, dice_kind) + finfos
             tree.insert('', 'end', path, text=path,
-                        values=(ftype, dice_kind) + finfos, image=icon, **kwds)
+                        values=values, image=icon, **kwds)
         except Exception as ex:
             log.warning("Cannot add input file %r due to: %s", path, ex)
 
@@ -1289,7 +1290,6 @@ class SimulatePanel(ttk.Frame):
                     return True
         tree.has_dice_files = collect_dice_files_and_notify
 
-
         self._open_dice_btn = btn = ttk.Button(
             frame,
             text="Dice!", style='DICE.TButton',
@@ -1476,7 +1476,8 @@ class SimulatePanel(ttk.Frame):
                          level=None,
                          static_msg: Union[bool, Text]=None,
                          progr_step=None, progr_max=None,
-                         new_out_file=None, check_outfiles_exist=False):
+                         new_out_file_tuple=None,
+                         check_outfiles_exist=False):
         """
         Handler of states for all panel's widgets and progressbar/status.
 
@@ -1484,6 +1485,8 @@ class SimulatePanel(ttk.Frame):
             if true, message becomes the new static-status message,
             if a string, that string becomes the "static" message
             (usefull to set a temporary status-msg and clear the "static" one).
+        :param new_out_file_tuple:
+            (fpath, is_folder, dice_kind)  with the last 2 optional
         """
         ## Update progress/status bars.
         #
@@ -1524,8 +1527,8 @@ class SimulatePanel(ttk.Frame):
         for b in (self._run_batch_btn, self._run_ta_btn):
             b['cursor'] = 'watch' if job_alive else 'arrow'
 
-        if new_out_file:
-            self.outputs_tree.insert_path(new_out_file, tags=['ro'])
+        if new_out_file_tuple:
+            self.outputs_tree.insert_path(*new_out_file_tuple, tags=['ro'])
 
         if check_outfiles_exist:
             ## Delete files not actually there.
@@ -1627,9 +1630,27 @@ class SimulatePanel(ttk.Frame):
                 return item
 
             def result_generated(self, result_tuple):
-                fpath, _ = result_tuple
-                mediate_guistate('Job %s generated file: %s', job_name, fpath,
-                                 level=logging.debug, new_out_file=fpath)
+                fpath, solution = result_tuple
+
+                is_ta = solution.get('type_approval_mode')
+                ## FIXME: Hack to search "summary" in fnames....
+                #
+                if is_ta and 'summary' not in fpath and '.xlsx' in fpath:
+                    input_file = solution['input_file_name']
+                    mediate_guistate(
+                        "Job %s matched inp-file: %s",
+                        job_name, fpath, level=logging.debug,
+                        new_out_file_tuple=(input_file, False, 'inp'))
+                    mediate_guistate(
+                        "Job %s generated file: %s",
+                        job_name, fpath, level=logging.debug,
+                        new_out_file_tuple=(fpath, False, 'out'))
+                else:
+                    mediate_guistate(
+                        "Job %s generated file: %s",
+                        job_name, fpath, level=logging.debug,
+                        new_out_file_tuple=(fpath, False,
+                                            'other' if is_ta else ''))
 
             def pump_std_streams(self):
                 new_out = self.stdout.getvalue()[self.out_i:]
