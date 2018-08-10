@@ -1268,7 +1268,7 @@ class SimulatePanel(ttk.Frame):
 
         def collect_dice_files_and_notify(do_dice=None):
             "When not `do_dice`, it reports weather dice-files exist."
-            files_to_dice = {}  # fpath --> kind
+            fpath_kind_pairs = []  # [(fpath, kind)]
             for fpath in tree.get_children():
                 values = tree.item(fpath, 'values')
 
@@ -1281,11 +1281,11 @@ class SimulatePanel(ttk.Frame):
 
                 kind = values[1]
                 if kind:
-                    files_to_dice[fpath] = kind
+                    fpath_kind_pairs.append((fpath, kind))
 
-            if files_to_dice:
+            if fpath_kind_pairs:
                 if do_dice:
-                    self.app.prepare_dice_for_files(files_to_dice)
+                    self.app.do_run_dice(fpath_kind_pairs)
                 else:
                     return True
         tree.has_dice_files = collect_dice_files_and_notify
@@ -1446,14 +1446,14 @@ class SimulatePanel(ttk.Frame):
         add_tooltip(btn, 'help_btn')
 
         self._run_batch_btn = btn = ttk.Button(frame, text="Run",
-                                               command=fnt.partial(self._do_run_job, is_ta=False))
+                                               command=fnt.partial(self.do_run_co2mpas, is_ta=False))
         add_icon(btn, 'icons/play-olive-32.png')
         btn.grid(column=1, row=4, sticky='nswe')
         add_tooltip(btn, 'run_batch_btn')
 
         self._run_ta_btn = btn = ttk.Button(frame,
                                             text="Run TA", style='TA.TButton',
-                                            command=fnt.partial(self._do_run_job, is_ta=True))
+                                            command=fnt.partial(self.do_run_co2mpas, is_ta=True))
         add_icon(btn, 'icons/play_doc-orange-32.png')
         btn.grid(column=2, row=4, sticky='nswe')
         add_tooltip(btn, 'run_ta_btn')
@@ -1570,7 +1570,7 @@ class SimulatePanel(ttk.Frame):
 
         return inp_paths, out_folder, cmd_kwds
 
-    def _do_run_job(self, is_ta):
+    def do_run_co2mpas(self, is_ta):
         from threading import Thread
         from . import batch as cbatch
 
@@ -1649,8 +1649,7 @@ class SimulatePanel(ttk.Frame):
                     mediate_guistate(
                         "Job %s generated file: %s",
                         job_name, fpath, level=logging.debug,
-                        new_out_file_tuple=(fpath, False,
-                                            'other' if is_ta else ''))
+                        new_out_file_tuple=(fpath, ))
 
             def pump_std_streams(self):
                 new_out = self.stdout.getvalue()[self.out_i:]
@@ -2437,12 +2436,15 @@ class Co2guiCmd(baseapp.Cmd):
         verbose = logging.getLogger().level <= logging.DEBUG
         show_about(top, verbose=verbose)
 
-    def prepare_dice_for_files(self, fpaths):
+    def do_run_dice(self, pfile_pairs):
         import subprocess as subp
 
-        print(fpaths)
-        cmd = 'co2dice project dice '
-        subp.run()
+        cmd = 'co2dice tstamp wstamp -n'.split()
+        subp.run(cmd, input='')
+
+        cli_opts = sum((['--%s' % kind, fpath] for fpath, kind in pfile_pairs), [])
+        cmd = 'co2dice project dice -n'.split() + cli_opts
+        subp.run(cmd)
 
     def mainloop(self):
         try:
