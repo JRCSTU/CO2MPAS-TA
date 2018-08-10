@@ -2173,12 +2173,14 @@ class ReportCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
 
 class TsendCmd(_SubCmd):
     """
-    IRREVOCABLY send report to time-stamp service, or print it for sending it manually (--dry-run).
+    (DEPCRECATED) IRREVOCABLY send report to time-stamp service.
 
     SYNTAX
         %(cmd_chain)s [OPTIONS]
 
     - THIS COMMAND IS IREVOCABLE!
+    - SINCE co2mpas-1.9.x (summer 2018) EmailStamper IS DEPRECATED.
+      Please migrate to WebStamper.
     - Use --dry-run if you want to send the email yourself.
       Remember to set the 'To', 'Subject' & 'Cc` fields.
     - The --dry-run option prints the email as it would have been sent; you may
@@ -2214,6 +2216,10 @@ class TsendCmd(_SubCmd):
         super().__init__(**kwds)
 
     def run(self, *args):
+        self.log.warning(
+            "SINCE co2mpas-1.9.x (summer 2018) THIS COMMAND IS DEPRECATED."
+            "Please migrate to WebStamper.")
+
         if len(args) > 0:
             raise CmdException('Cmd %r takes no arguments, received %d: %r!'
                                % (self.name, len(args), args))
@@ -2317,13 +2323,15 @@ class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
 
 class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
     """
-    Fetch tstamps from IMAP server, derive *decisions* OK/SAMPLE flags and store them.
+    (DEPRECATED.) Fetch Stamps from IMAP server, derive OK/SAMPLE flag and store Decision.
 
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<search-term-1> ...]
 
 
+    - SINCE co2mpas-1.9.x (summer 2018) EmailStamper IS DEPRECATED.
+      Please migrate to WebStamper.
     - The fetching of emails can happen in one-shot or waiting mode.
     - For terms are searched in the email-subject - tip: use the project name(s).
     - If --write-fpath given, mails are written in separate files derrived from the
@@ -2401,6 +2409,10 @@ class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
         warn = self.log.warning
         info = self.log.info
         error = self.log.error
+
+        self.log.warning(
+            "SINCE co2mpas-1.9.x (summer 2018) THIS COMMAND IS DEPRECATED."
+            "Please migrate to WebStamper.")
 
         info("Receiving emails for projects(s) %s: ...", args)
 
@@ -2777,10 +2789,12 @@ class BackupCmd(_SubCmd):
                 "\n  Use --force to create it." % ex)
 
 
-all_subcmds = (LsCmd, InitCmd, OpenCmd,
-               AppendCmd, ReportCmd,
-               DiceCmd,
-               TsendCmd,
-               TrecvCmd, TparseCmd,
-               StatusCmd,
-               ExportCmd, ImportCmd, BackupCmd)
+all_subcmds = (
+    DiceCmd,
+    LsCmd, OpenCmd, InitCmd,
+    AppendCmd, ReportCmd,
+    TparseCmd,
+    StatusCmd,
+    ExportCmd, ImportCmd, BackupCmd,
+    TsendCmd, TrecvCmd,  # TODO: drop project TsendCmd, TrecvCmd cmds.
+)
