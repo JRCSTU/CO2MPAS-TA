@@ -1949,12 +1949,17 @@ class DiceCmd(AppendCmd):
 
     - If number of input-files given must match the number of output-file.
       The files are "paired" in the order they are given.
-    - In case of errors, the project database is left as, and must use
-      the rest sub-commands to examine the situation and continue the dice,
-      usually:
+    - This command defaults to ``--write-file='~/co2dice.reports.txt'`, and
+      every time it runs, it *APPENDS* into this file these 3 items:
+        1. Dice
+        2. Stamp
+        3. Decision
+    - ATTENTION: If it fails, co2dice's project database is left as is; probable
+      sub-commands that can examine the situation and continue
+      the diceing from where it is left-over are:
           co2dice project ls .        # to examine the situation
           co2dice project append      # if IO-files were not added
-          co2dice project report | co2dice tstamp wstamp
+          co2dice project report | co2dice tstamp wstamp | co2dice project parse tparse
     """
 
     examples = trt.Unicode("""
@@ -1966,6 +1971,14 @@ class DiceCmd(AppendCmd):
 
           Tip: In Windows `cmd.exe` shell, the continuation charachter is `^`.
     """)
+
+    @trt.default('write_fpath')
+    def _enable_write_fpath(self):
+        return "~/co2dice.reports.txt"
+
+    @trt.default('write_append')
+    def _append_into_fpath(self):
+        return True
 
     def __init__(self, **kwds):
         from toolz import dicttoolz as dtz
@@ -2024,11 +2037,15 @@ class DiceCmd(AppendCmd):
         self.log.info("Created new Dice signed by '%s': \n%s",
                       key_uid,
                       self.shrink_text(dice))
+        if self.write_fpath:
+            self.write_file(dice)
 
         wstamper = tstamp.WstampSpec(config=self.config)
         stamp = wstamper.stamp_dice(dice)
         self.log.info("Stamp was: \n%s",
                       self.shrink_text(stamp))
+        if self.write_fpath:
+            self.write_file(stamp)
 
         self._check_ok(proj.do_storedice(tstamp_txt=stamp))
         decision = proj.result
@@ -2762,7 +2779,6 @@ class BackupCmd(_SubCmd):
 
 all_subcmds = (LsCmd, InitCmd, OpenCmd,
                AppendCmd, ReportCmd,
-               #WstampCmd,
                DiceCmd,
                TsendCmd,
                TrecvCmd, TparseCmd,
