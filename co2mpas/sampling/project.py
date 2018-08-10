@@ -2352,7 +2352,7 @@ class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
 
 class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
     """
-    (DEPRECATED.) Fetch Stamps from IMAP server, derive OK/SAMPLE flag and store Decision.
+    (DEPRECATED) Fetch Stamps from IMAP server, derive OK/SAMPLE flag and store Decision.
 
 
     SYNTAX

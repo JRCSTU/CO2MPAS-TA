@@ -1773,7 +1773,7 @@ class TstampCmd(baseapp.Cmd):
 
 class SendCmd(base.FileReadingMixin, baseapp.Cmd):
     """
-    (DEPRECATED.) Send emails to be timestamped.
+    (DEPRECATED) Send emails to be timestamped.
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<report-file-1> ...]
@@ -1870,7 +1870,7 @@ recv_cmd_aliases = {
 
 class RecvCmd(baseapp.Cmd):
     """
-    (DEPRECATED.) Fetch Stamps/Dices from IMAP server and derive *decisions* OK/SAMPLE flags.
+    (DEPRECATED) Fetch Stamps/Dices from IMAP server and derive *decisions* OK/SAMPLE flags.
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] [<search-term-1> ...]
@@ -2094,7 +2094,7 @@ class ParseCmd(base.StampParsingCmdMixin, baseapp.Cmd):
 
 class LoginCmd(baseapp.Cmd):
     """
-    (DEPRECATED.) Attempts to login into SMTP server.
+    (DEPRECATED) Attempts to login into SMTP server.
 
     SYNTAX
         %(cmd_chain)s [OPTIONS]
