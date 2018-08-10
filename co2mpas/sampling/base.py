@@ -218,14 +218,28 @@ class FileOutputMixin(trc.Configurable):
         help="Write report into this file, if given; overwriten if it already exists."
     ).tag(config=True)
 
+    write_append = trt.Bool(
+        help="If true, do not overwrite existing files - append into them."
+    ).tag(config=True)
+
+    write_kwds = trt.Dict(
+        {'encoding': 'utf-8}'},
+        help="Keywords sent to `open()`, like encoding and encoding-errors, etc."
+    ).tag(config=True)
+
+    def _open_file_mode(self):
+        return 'at' if self.write_append else 'wt'
+
     def write_file(self, txt, wfpath=None):
         if not wfpath:
             wfpath = self.write_fpath
-        self.log.info('Writting report into: %s', osp.realpath(wfpath))
-        with open(wfpath, 'wt', encoding='utf-8') as fd:
+        self.log.info('Writing report into: %s', osp.realpath(wfpath))
+        file_mode = self._open_file_mode()
+        with open(wfpath, file_mode, **self.write_kwds) as fd:
             fd.write(txt)
 
 
+## TODO: enforce --write aliase from mixin-constructor.
 write_fpath_alias_kwd = {
     ('W', 'write-fpath'): ('FileOutputMixin.write_fpath', FileOutputMixin.write_fpath.help)
 }
@@ -284,6 +298,7 @@ class ShrinkingOutputMixin(trc.Configurable):
         return txt
 
 
+## TODO: enforcethe --shrink flags from mixin-constructor.
 shrink_flags_kwd = {
     'shrink': (
         {'ShrinkingOutputMixin': {'shrink': True}},
