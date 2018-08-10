@@ -387,7 +387,7 @@ def run_python_job(job_name, function, cmd_args, cmd_kwds,
 
     Suitable to be run within a thread.
     """
-    from .utils import stds_redirected, logconfutils as lcu
+    from ..utils import stds_redirected, logconfutils as lcu
     import schedula
 
     ## Numpy error-config is on per-thread basis:
@@ -1566,7 +1566,7 @@ class SimulatePanel(ttk.Frame):
 
     def reconstruct_cmd_args_from_gui(self):
         from pandalone import utils as putils
-        from .utils import parse_key_value_pair
+        from ..utils import parse_key_value_pair
 
         cmd_kwds = OrderedDict()
 
@@ -1597,7 +1597,7 @@ class SimulatePanel(ttk.Frame):
 
     def do_run_co2mpas(self, is_ta):
         from threading import Thread
-        from . import batch as cbatch
+        from .. import batch as cbatch
 
         app = self.app
         job_name = "CO2MPAS-TA" if is_ta else "CO2MPAS"
@@ -1810,7 +1810,7 @@ and double-click on the result file to open it,
                 no_lookup=True)
 
         def ask_save_template_file():
-            from . import datasync
+            from .. import datasync
             import docopt
 
             file = filedialog.asksaveasfilename(
@@ -1863,7 +1863,7 @@ and double-click on the result file to open it,
         widgets['out-file'] = frame
 
         def run_sync():
-            from . import datasync
+            from .. import datasync
 
             inp_file = self.inp_var.get()
             if not osp.isfile(inp_file):
@@ -2096,7 +2096,7 @@ class DicePanel(ttk.Frame):
         show_decisions(default_texts)
 
         def parse_tstamp_response():
-            from .sampling import tstamp
+            from ..sampling import tstamp
 
             tstamp_response = self.response_pastearea.get(1.0, tk.END)
             if tstamp_response.strip():
@@ -2281,7 +2281,7 @@ class Co2guiCmd(baseapp.Cmd):
         root.bind("<Configure>", save_geometry)
 
     def start_schedula_job(self, thread, result_listener):
-        from . import batch as cbatch, plan
+        from .. import batch as cbatch, plan
         from schedula import Dispatcher
 
         self._job_thread = thread
@@ -2295,7 +2295,7 @@ class Co2guiCmd(baseapp.Cmd):
         thread.start()
 
     def signal_schedula_job_to_stop(self):
-        from . import batch as cbatch, plan
+        from .. import batch as cbatch, plan
         from schedula import Dispatcher
 
         Dispatcher.stopper.set()
@@ -2508,8 +2508,13 @@ def show_gui_logfile(log_fpath):
 default_logconf_file = osp.expanduser(osp.join('~', '.co2gui_logconf.yaml'))
 
 
-def main(argv=None, **app_init_kwds):
-    """Handles some exceptions politely and returns the exit-code."""
+def run(argv=(), **app_init_kwds):
+    """
+    Handles some exceptions politely and returns the exit-code.
+
+    :param argv:
+        Cmd-line arguments, nothing assumed if nothing given.
+    """
     import tempfile
 
     ## GUI-scripts have no stdout/stderr and
@@ -2560,10 +2565,3 @@ def main(argv=None, **app_init_kwds):
         show_gui_logfile(log_fpath)
 
         return -1
-
-
-if __name__ == '__main__':
-    if __package__ is None:
-        __package__ = "co2mpas"  # @ReservedAssignment
-
-    sys.exit(main())

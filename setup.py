@@ -181,7 +181,7 @@ setup(
         'wltp',
         'cryptography',
         'openpyxl>=2.4.0',
-        'Pillow',           # for tkui
+        'Pillow',                   # for co2gui
         'toolz',
         'schedula[plot]>=0.2.3',     # Fix description.
         'formulas>=0.0.10',
@@ -224,12 +224,12 @@ setup(
             '%(p)s = %(p)s.__main__:main' % {'p': PROJECT},
             '%(p)s-autocompletions = %(p)s.__main__:print_autocompletions' % {'p': PROJECT},
             'datasync = co2mpas.datasync:main',
-            'co2dice = co2mpas.sampling.__main__:main ',
+            'co2dice = co2mpas.sampling.__main__:main',
             ## Note: launching as gui-scripts DOES NOT WORK
             #  and multiple console-windows flicker on each job launch.
             #  better invoke them with a Windows shortcut "minimized.
             #  Check also: https://github.com/pypa/setuptools/issues/410
-            'co2gui = co2mpas.tkui:main'
+            'co2gui = co2mpas.co2gui.__main__:main'
         ],
     },
     options={

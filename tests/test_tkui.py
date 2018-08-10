@@ -10,7 +10,7 @@ import unittest
 
 import ddt
 
-from co2mpas import tkui, __main__ as cmain
+from co2mpas import co2gui, __main__ as cmain
 import os.path as osp
 import tkinter as tk
 
@@ -75,7 +75,7 @@ class Test(unittest.TestCase):
     def test_makdown_parsing_regex(self, case):
         txt, exp_groups_seq = case
         exp_nmatches = len(exp_groups_seq)
-        regex = tkui._img_in_txt_regex
+        regex = co2gui._img_in_txt_regex
 
         nmatches = 0
         for nmatches, (m, exp_groups) in enumerate(zip(regex.finditer(txt), exp_groups_seq), 1):
@@ -100,14 +100,14 @@ class Test(unittest.TestCase):
         '\\[wdg:escaped](url) 2',
     )
     def test_makdown_parsing_regex_bad(self, txt):
-        regex = tkui._img_in_txt_regex
+        regex = co2gui._img_in_txt_regex
 
         self.assertIsNone(regex.search(txt))
 
 #    def test_smoketest(self):
 #        root = tk.Tk()
 #        try:
-#            app = tkui.TkUI(root)
+#            app = co2gui.TkUI(root)
 #            root.after_idle(app._do_about)
 #            root.after(3000, root.quit)
 #            app.mainloop()
@@ -120,7 +120,7 @@ class Test(unittest.TestCase):
     def test_about(self):
         root = tk.Tk()
         try:
-            tkui.show_about(root, verbose=True)
+            co2gui.show_about(root, verbose=True)
             root.after(700, root.quit)
             root.mainloop()
         finally:

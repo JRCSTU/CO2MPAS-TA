@@ -106,7 +106,7 @@ class Co2diceCmd(Cmd):
 #
 def all_cmds():
     from . import cfgcmd, project, report, tstamp, tsigner
-    from co2mpas import tkui
+    from co2mpas import co2gui
     return (
         (
             baseapp.Cmd,
@@ -116,7 +116,7 @@ def all_cmds():
             tstamp.TstampCmd,
             tsigner.TsignerCmd,
             cfgcmd.ConfigCmd,
-            tkui.Co2guiCmd,
+            co2gui.Co2guiCmd,
         ) +
         cfgcmd.config_subcmds +
         project.all_subcmds +
