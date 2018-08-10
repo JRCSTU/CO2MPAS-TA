@@ -239,7 +239,7 @@ class FileOutputMixin(trc.Configurable):
 
         wfpath = pndlu.convpath(wfpath)
         self.log.info('%s report into: %s',
-                      'Writing' if self.write_append else 'Appending', wfpath)
+                      'Appending' if self.write_append else 'Writing', wfpath)
         file_mode = self._open_file_mode()
         with open(wfpath, file_mode, **self.write_kwds) as fd:
             fd.write(txt)
