@@ -2122,25 +2122,25 @@ class ReportCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
         ok = None
 
         if tag_index is not None:
-            yield proj.retrieve_tag(tag_index)
-            return
-
-        ## TODO: move code in project and simplify `do_report()`.
-        #
-        repo = proj.repo
-        tagref = _find_dice_tag(repo, proj.pname,
-                                proj.max_dices_per_project)
-        gen_report = (proj.state == 'wltp_iof' or
-                      not tagref or self.force)
-        if gen_report:
-            self.log.info('Tagging project %r...', args)
-            ok = proj.do_report()
-            assert isinstance(proj.result, str)
-            result = ok and proj.result or ok
-        else:
-            self.log.debug("Report already generated as '%s'.", tagref.path)
-            result = _read_dice_tag(repo, tagref)
+            result = proj.retrieve_tag(tag_index)
             ok = True
+        else:
+            ## TODO: move code in project and simplify `do_report()`.
+            #
+            repo = proj.repo
+            tagref = _find_dice_tag(repo, proj.pname,
+                                    proj.max_dices_per_project)
+            gen_report = (proj.state == 'wltp_iof' or
+                          not tagref or self.force)
+            if gen_report:
+                self.log.info('Tagging project %r...', args)
+                ok = proj.do_report()
+                assert isinstance(proj.result, str)
+                result = ok and proj.result or ok
+            else:
+                self.log.debug("Report already generated as '%s'.", tagref.path)
+                result = _read_dice_tag(repo, tagref)
+                ok = True
 
         if ok:
             key_uid = proj.extract_uid_from_report(result)
