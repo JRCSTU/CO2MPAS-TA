@@ -1650,6 +1650,158 @@ class _SubCmd(baseapp.Cmd):
         return isinstance(result, str) and result or _mydump(result, **kwds)
 
 
+class DiceCmd(AppendCmd):
+    """
+    Dice a new project in one action through WebStamper
+
+    SYNTAX
+        %(cmd_chain)s [OPTIONS] (--inp <co2mpas-input>) ... (--out <co2mpas-output>) ...
+                                [<any-other-file>] ...
+
+    - If number of input-files given must match the number of output-file.
+      The files are "paired" in the order they are given.
+    - By default, --write-file='~/co2dice.reports.txt', so
+      every time this cmd runs, it *APPENDS* into the file above
+      these 3 items generated:
+        1. Dice
+        2. Stamp (or any error received)
+        3. Decision
+    - ATTENTION: If it fails, co2dice's project database is left as is; probable
+      sub-commands that can examine the situation and continue
+      the dicing from where it is left-over are:
+          co2dice project ls .        # to examine the situation
+          co2dice project append      # if IO-files were not added
+          co2dice project report | co2dice tstamp wstamp | co2dice project parse tparse
+    """
+
+    examples = trt.Unicode("""
+        - In the simplest case, just give input/out files:
+              %(cmd_chain)s --inp input.xlsx --out output.xlsx
+        - To specify more files (e.g. H/L in different runs):
+              %(cmd_chain)s --inp input1.xlsx --out output1.xlsx \
+                      --inp input2.xlsx --out output2.xlsx
+
+          Tip: In Windows `cmd.exe` shell, the continuation charachter is `^`.
+    """)
+
+    @trt.default('write_fpath')
+    def _enable_write_fpath(self):
+        return "~/co2dice.reports.txt"
+
+    @trt.default('write_append')
+    def _append_into_fpath(self):
+        return True
+
+    _help_in_case_of_failure = tw.dedent("""
+        INFO: the current-project in `co2dice` db is left as is.
+        Use console commands to examine the situation and continue::
+
+            co2dice project ls .                   # to examine the situation
+            co2dice project append                 # if IO-files were not added
+            co2dice project report -- -1           # print the last generated report
+
+            co2dice project report  -W dice.txt    # generate dice if not done yet
+            cat dice.txt | co2dice tstamp wstamp  -W stamp.txt
+            co2dice project parse tparse  stamp.txt
+
+        or the last 3 *irrevocable* commands without the intermediate files::
+
+          co2dice project report | co2dice tstamp wstamp | co2dice project parse tparse
+
+        You may find stamps & dices generated in your '~/co2dice.reports.txt' file.
+    """)
+
+    def __init__(self, **kwds):
+        from toolz import dicttoolz as dtz
+        from . import tstamp
+
+        kwds = dtz.merge(kwds, {
+            'conf_classes': [tstamp.WstampSpec],
+        })
+        super().__init__(**kwds)
+
+    def _check_ok(self, ok):
+        if not ok:
+            raise CmdException("Bailing out!")
+
+    def _derrive_vfid(self, pfiles: PFiles) -> str:
+        from . import report
+
+        repspec = report.ReporterSpec(config=self.config)
+        finfos = repspec.extract_dice_report(pfiles)
+        for fpath, data in finfos.items():
+            iokind = data['iokind']
+            if iokind in ('inp', 'out'):
+                vfid = data['report']['vehicle_family_id']
+                self.log.info("Project '%s' derived from '%s' file: %s",
+                              vfid, iokind, fpath)
+
+                return vfid
+        else:
+            raise CmdException("Failed derriving project-id from: %s" % finfos)
+
+    def run(self, *args):
+        from . import tstamp
+
+        ## Kludge: hard-code some flags...
+        self.report = True
+
+        ## Parse cli-args.
+        #
+        pfiles = PFiles(inp=self.inp, out=self.out, other=args)
+        if len(pfiles.inp) != len(pfiles.out) or len(pfiles.inp) < 1:
+            raise CmdException(
+                "Cmd %r must be given at least one *pair* of --inp and --out files! "
+                "n  Received: %s!"
+                % (self.name, pfiles))
+        pfiles.check_files_exist(self.name)
+
+        vfid = self._derrive_vfid(pfiles)
+        proj = self.projects_db.proj_add(vfid)
+
+        ## TODO: cmd should check web-stamper before starting single-step dice.
+
+        ok = False
+        try:
+            self._check_ok(proj.do_addfiles(pfiles=pfiles))
+            self.log.info("Initiated '%s' with files: %s", vfid, pfiles)
+
+            self._check_ok(proj.do_report())
+            dice = proj.result
+            assert isinstance(dice, str)
+            key_uid = proj.extract_uid_from_report(dice)
+            self.log.info("Created new Dice signed by '%s': \n%s",
+                          key_uid,
+                          self.shrink_text(dice))
+            if self.write_fpath:
+                self.write_file(dice)
+
+            wstamper = tstamp.WstampSpec(config=self.config)
+            http_response = wstamper.stamp_dice(dice)
+            http_response.raise_for_status()
+            stamp = http_response.text
+            self.log.info("Stamp was: \n%s", self.shrink_text(stamp))
+            if self.write_fpath:
+                self.write_file(stamp)
+
+            self._check_ok(proj.do_storestamp(tstamp_txt=stamp))
+            decision = proj.result
+            assert isinstance(decision, str), decision
+            self.log.info("Imported Decision: \n%s'.",
+                          self.shrink_text(stamp))
+            ok = True
+
+            if self.write_fpath:
+                self.write_file(decision)
+
+            return self.shrink_text(decision)
+        finally:
+            if not ok:
+                self.log.error(
+                    "Dicing in a single-step has failed (see error below)!\n%s",
+                    self._help_in_case_of_failure)
+
+
 class ProjectCmd(_SubCmd):
     """
     Commands to administer the storage repo of TA *projects*.
@@ -1939,155 +2091,6 @@ class InitCmd(AppendCmd):
             self.projects_db.proj_add(project)
 
             yield self._append_and_report(pfiles)
-
-
-class DiceCmd(AppendCmd):
-    """
-    Dice a new project in one action through WebStamper
-
-    SYNTAX
-        %(cmd_chain)s [OPTIONS] (--inp <co2mpas-input>) ... (--out <co2mpas-output>) ...
-                                [<any-other-file>] ...
-
-    - If number of input-files given must match the number of output-file.
-      The files are "paired" in the order they are given.
-    - By default, --write-file='~/co2dice.reports.txt', so
-      every time this cmd runs, it *APPENDS* into the file above
-      these 3 items generated:
-        1. Dice
-        2. Stamp (or any error received)
-        3. Decision
-    - ATTENTION: If it fails, co2dice's project database is left as is; probable
-      sub-commands that can examine the situation and continue
-      the dicing from where it is left-over are:
-          co2dice project ls .        # to examine the situation
-          co2dice project append      # if IO-files were not added
-          co2dice project report | co2dice tstamp wstamp | co2dice project parse tparse
-    """
-
-    examples = trt.Unicode("""
-        - In the simplest case, just give input/out files:
-              %(cmd_chain)s --inp input.xlsx --out output.xlsx
-        - To specify more files (e.g. H/L in different runs):
-              %(cmd_chain)s --inp input1.xlsx --out output1.xlsx \
-                      --inp input2.xlsx --out output2.xlsx
-
-          Tip: In Windows `cmd.exe` shell, the continuation charachter is `^`.
-    """)
-
-    @trt.default('write_fpath')
-    def _enable_write_fpath(self):
-        return "~/co2dice.reports.txt"
-
-    @trt.default('write_append')
-    def _append_into_fpath(self):
-        return True
-
-    _help_in_case_of_failure = tw.dedent("""
-        INFO: the current-project in `co2dice` db is left as is.
-        Use console commands to examine the situation and continue::
-
-            co2dice project ls .                   # to examine the situation
-            co2dice project append                 # if IO-files were not added
-            co2dice project report -- -1           # print the last generated report
-
-            co2dice project report  -W dice.txt    # generate dice if not done yet
-            cat dice.txt | co2dice tstamp wstamp  -W stamp.txt
-            co2dice project parse tparse  stamp.txt
-
-        or the last 3 *irrevocable* commands without the intermediate files::
-
-          co2dice project report | co2dice tstamp wstamp | co2dice project parse tparse
-
-        You may find stamps & dices generated in your '~/co2dice.reports.txt' file.
-    """)
-
-    def __init__(self, **kwds):
-        from toolz import dicttoolz as dtz
-        from . import tstamp
-
-        kwds = dtz.merge(kwds, {
-            'conf_classes': [tstamp.WstampSpec],
-        })
-        super().__init__(**kwds)
-
-    def _check_ok(self, ok):
-        if not ok:
-            raise CmdException("Bailing out!")
-
-    def _derrive_vfid(self, pfiles: PFiles) -> str:
-        from . import report
-
-        repspec = report.ReporterSpec(config=self.config)
-        finfos = repspec.extract_dice_report(pfiles)
-        for fpath, data in finfos.items():
-            iokind = data['iokind']
-            if iokind in ('inp', 'out'):
-                vfid = data['report']['vehicle_family_id']
-                self.log.info("Project '%s' derived from '%s' file: %s",
-                              vfid, iokind, fpath)
-
-                return vfid
-        else:
-            raise CmdException("Failed derriving project-id from: %s" % finfos)
-
-    def run(self, *args):
-        from . import tstamp
-
-        ## Kludge: hard-code some flags...
-        self.report = True
-
-        ## Parse cli-args.
-        #
-        pfiles = PFiles(inp=self.inp, out=self.out, other=args)
-        if len(pfiles.inp) != len(pfiles.out) or len(pfiles.inp) < 1:
-            raise CmdException(
-                "Cmd %r must be given at least one *pair* of --inp and --out files! "
-                "n  Received: %s!"
-                % (self.name, pfiles))
-        pfiles.check_files_exist(self.name)
-
-        vfid = self._derrive_vfid(pfiles)
-        proj = self.projects_db.proj_add(vfid)
-
-        ok = False
-        try:
-            self._check_ok(proj.do_addfiles(pfiles=pfiles))
-            self.log.info("Initiated '%s' with files: %s", vfid, pfiles)
-
-            self._check_ok(proj.do_report())
-            dice = proj.result
-            assert isinstance(dice, str)
-            key_uid = proj.extract_uid_from_report(dice)
-            self.log.info("Created new Dice signed by '%s': \n%s",
-                          key_uid,
-                          self.shrink_text(dice))
-            if self.write_fpath:
-                self.write_file(dice)
-
-            wstamper = tstamp.WstampSpec(config=self.config)
-            stamp = wstamper.stamp_dice(dice)
-            self.log.info("Stamp was: \n%s",
-                          self.shrink_text(stamp))
-            if self.write_fpath:
-                self.write_file(stamp)
-
-            self._check_ok(proj.do_storestamp(tstamp_txt=stamp))
-            decision = proj.result
-            assert isinstance(decision, str), decision
-            self.log.info("Imported Decision: \n%s'.",
-                          self.shrink_text(stamp))
-            ok = True
-
-            if self.write_fpath:
-                self.write_file(decision)
-
-            return self.shrink_text(decision)
-        finally:
-            if not ok:
-                self.log.error(
-                    "Dicing in a single-step has failed (see error below)!\n%s",
-                    self._help_in_case_of_failure)
 
 
 class ReportCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
