@@ -145,15 +145,39 @@ Intermediate releases:
 - Releases with ``r`` prefix signify version published in *PyPi*.
 - Releases with ``v`` prefix signify internal markings.
 
+
+v1.9.1a2, 10 Aug 2018
+~~~~~~~~~~~~~~~~~~~~
+Fixes and features for the GUI *Stamp-button* and supporting ``project dice`` command.
+
+- FEAT: ``co2dice project dice|init|append|report|recv|parse`` and
+  the ``co2dice tstamp wstamp`` commands, they have by default
+  ``--write-file='~/co2dice.reports.txt'`` file, so every time they run,
+  they *APPENDED* into this file these 3 items:
+
+    1. :term:`Dice report`;
+    2. :term:`Stamp`  (or any errors received from :term:`WebStamper`;
+    3. :term:`Decision`.
+
+- doc: deprecate all email-stamper commands.
+- drop: remove deprecated  ``co2mpas gui`` cmd - `co2gui` is the norm since Jan 2017.
+- fix: small fixes on help-text of project commands.
+- refact: extract dice-cmd functionality into its own Spec class.
+- sources: move ``tkui.py`` into it's own package. (needs re-install from sources).
+- WIP: Add GUI "Stamp" button that appends also new-dice *tar* (see :gh:`378`).
+
+
 v1.9.1a1, 10 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~
+Implement the new ``project dice`` command.
+
 - Work started since `v1.9.1a0: 8 Aug 2018`.
 - FEAT: NEW WEB-API CMDS:
   - ``co2dice project dice``: Dice a new project in one action through WebStamper.
   - ``tstamp wstamp``: Dice a new project in one action through WebStamper.
 - feat: ``co2dice project report`` command can retrieve older reports.
   (not just the latest).  For *Stamps*, internal git commands are still needed.
-- TODO: Add GUI "Stamp" button (see :gh:`378`).
+- WIP: Add GUI "Stamp" button.
 
 
 r1.9.0b2, 7 Aug 2018
@@ -211,7 +235,7 @@ r1.9.0b0, 31 Jul 2018
 1st release with new-dice functionality.
 
 
-r1.9.0a2, 11 Jul 2018
+v1.9.0a2, 11 Jul 2018
 ~~~~~~~~~~~~~~~~~~~~~
 - WebStamp: split-off `v1.9.0a1` as separate sub-project in sources.
 
@@ -221,7 +245,7 @@ IO Data:
   *Ki additive* parameters.
 
 
-r1.9.0a1, 5 Jul 2018
+v1.9.0a1, 5 Jul 2018
 ~~~~~~~~~~~~~~~~~~~~
 Bumped *minor* number to signify that the :term:`VF_ID` and input-file version
 have changed forward-incompatibly.  Very roughly tested (see :gh:`472`).
@@ -246,7 +270,7 @@ Model:
 - fix: remove some pandas warnings
 
 
-v1.8.1a0 12, Jun 2018
+v1.8.1a2, 12 Jun 2018
 ~~~~~~~~~~~~~~~~~~~~~
 Tagged as ``co2mpas_v1.8.1a0`` just to switch *polyversion* repo-scheme,
 from `mono-project --> monorepo` (switch will complete in next tag).
@@ -265,15 +289,15 @@ from `mono-project --> monorepo` (switch will complete in next tag).
   - dice: cannot run all tests together, only one module by one.  All pass
 
 
-v1.8.0a1, 12 Jun 2018
-~~~~~~~~~~~~~~~~~~~~~
+v1.8.0a1, 7 Jun 2018
+~~~~~~~~~~~~~~~~~~~~
 - FIX dice, did not start due to `polyversion` not being engraved.
 - The :envvar:`CO2MPARE_ENABLED` fails with::
 
       ERROR:co2mpas_main:Invalid value '1' for env-var[CO2MPARE_ENABLED]!
         Should be one of (0 f false n no off 1 t true y yes on).
 
-v1.8.0a1, 7 Jun 2018
+v1.8.0a0, 6 Jun 2018
 ~~~~~~~~~~~~~~~~~~~~
 PINNED REQUIRED VERSIONS, served with AIO-1.8.1a1
 
@@ -345,6 +369,8 @@ Backport fixes to facilitate comparisons with forthcoming release 1.9+.
 
 v1.7.4.post0, 11 Dec 2017
 =========================
+Never released in *PyPi*, just for fixes for WebStamper and the site for "Toketos".
+
 - feat(wstamp): cache last sender+recipient in cookies.
 
 
