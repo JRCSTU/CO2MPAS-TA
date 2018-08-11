@@ -43,6 +43,7 @@ Of course you can mix'n match.
 
 .. [#] http://traitlets.readthedocs.io/
 """
+## TODO: rename to `cmdlets`
 from collections import OrderedDict, defaultdict
 import contextlib
 import copy

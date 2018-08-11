@@ -10,6 +10,7 @@ Main CO2MPAS dice command to prepare/sign/send/receive/validate/archive ...
 
 Type Approval sampling emails of *co2mpas*.
 """
+## TODO: rename to `cli`
 from co2mpas._vendor import traitlets as trt
 from . import (
     __version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport

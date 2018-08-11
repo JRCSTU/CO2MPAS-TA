@@ -46,6 +46,8 @@ Layout::
 ## Icons from:
 #    - http://www.iconsdb.com/
 #    - https://material.io/icons/#
+## - Rename back to `co2gui.tkui`
+#
 ## Music: melancholic dubstep & ambient jazz
 #    - `Zeds Dead: Out for Blood <https://www.youtube.com/watch?v=2AQr06ZUlR0>`_
 #    - `Bohren & Der Club Of Gore <https://www.youtube.com/watch?v=aVnLon8TvXk>`_
@@ -1468,7 +1470,8 @@ class SimulatePanel(ttk.Frame):
         add_tooltip(btn, 'help_btn')
 
         self._run_batch_btn = btn = ttk.Button(frame, text="Run",
-                                               command=fnt.partial(self.do_run_co2mpas, is_ta=False))
+                                               command=fnt.partial(self.do_run_co2mpas,
+                                                                   is_ta=False))
         add_icon(btn, 'icons/play-olive-32.png')
         btn.grid(column=1, row=4, sticky='nswe')
         add_tooltip(btn, 'run_batch_btn')
