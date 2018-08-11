@@ -934,6 +934,10 @@ DRY-RUN: Now you must send the email your self!
                 % (tag_index, self.pname, len(tag_refs)))
 
 
+class ProjectExistError(CmdException):
+    pass
+
+
 class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
     r"""A git-based repository storing the TA projects (containing signed-files and sampling-responses).
 
@@ -1483,7 +1487,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
         prefname = _pname2ref_name(pname)
         if prefname in self.repo.heads:
-            raise CmdException('Project %r already exists!' % pname)
+            raise ProjectExistError('Project %r already exists!' % pname)
 
         p = self._conceive_new_project(pname)
         self.repo.git.checkout(prefname, orphan=True, force=self.force)
