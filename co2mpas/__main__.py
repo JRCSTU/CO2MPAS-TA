@@ -136,7 +136,7 @@ EXAMPLES::
     co2gui
 
     # View all model defaults in yaml format:
-    co2maps modelconf -O output
+    co2mpas modelconf -O output
 """
 
 from co2mpas import (__version__ as proj_ver, __file__ as proj_file,
