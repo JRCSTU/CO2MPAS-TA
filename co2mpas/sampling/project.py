@@ -1625,6 +1625,8 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
 
 class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
+    """A sequencer for dicing new or existing projects through WebStamper."""
+
     def _check_ok(self, ok):
         if not ok:
             raise CmdException("Bailing out!")
@@ -1883,7 +1885,20 @@ class DiceCmd(_SubCmd):
 
         ## Parse cli-args.
         pfiles = PFiles(inp=self.inp, out=self.out, other=args)
-        return dicer.do_dice_in_one_step(pfiles)
+
+        cstep = 0
+
+        def progress_write_file(msg: str=None, step=1, nsteps=None):
+            nonlocal cstep
+
+            cstep += step
+            progress = '(%s out of %s) %s' % (cstep, nsteps, msg)
+            if dicer.write_fpath and dicer.write_append:
+                dicer.write_file(progress)
+
+            self.log.info(progress)
+
+        yield dicer.do_dice_in_one_step(pfiles, progress_write_file)
 
 
 class ProjectCmd(_SubCmd):
