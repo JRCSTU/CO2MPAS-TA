@@ -418,6 +418,7 @@ class Project(transitions.Machine, ProjectSpec):
             'BORN', 'INVALID', 'empty', 'wltp_out', 'wltp_inp', 'wltp_iof', 'tagged',
             'mailed', 'nosample', 'sample', 'nedc',
         ]
+        ## TODO: Unify sample/nosample, conditions too early / inappropriate for deciding that.
         trans = yaml.load(
             # Trigger        Source     Dest-state    Conditions? unless before after prepare
             """
@@ -456,13 +457,13 @@ class Project(transitions.Machine, ProjectSpec):
             - [do_sendmail,  tagged,     mailed                         ]
             - [do_sendmail,  mailed,     mailed,     _is_dry_run        ]
 
-            - trigger:    do_storedice
+            - trigger:    do_storestamp
               source:     [tagged, mailed]
               dest:       nosample
               prepare:    _parse_response
               conditions:     [_is_not_decision_sample, _is_not_dry_run_dicing]
 
-            - trigger:    do_storedice
+            - trigger:    do_storestamp
               source:     [tagged, mailed]
               dest:       sample
               prepare:    _parse_response
@@ -852,7 +853,7 @@ DRY-RUN: Now you must send the email your self!
 
     def _parse_response(self, event) -> bool:
         """
-        Triggered by `do_storedice(verdict=<dict> | tstamp_txt=<str>)` in PREPARE `sample/nosample`.
+        Triggered by `do_storestamp(verdict=<dict> | tstamp_txt=<str>)` in PREPARE `sample/nosample`.
 
         :param verdict:
             The result of verifying timestamped-response.
@@ -2070,7 +2071,7 @@ class DiceCmd(AppendCmd):
             if self.write_fpath:
                 self.write_file(stamp)
 
-            self._check_ok(proj.do_storedice(tstamp_txt=stamp))
+            self._check_ok(proj.do_storestamp(tstamp_txt=stamp))
             decision = proj.result
             assert isinstance(decision, str), decision
             self.log.info("Imported Decision: \n%s'.",
@@ -2326,7 +2327,7 @@ class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
             with io.open(file, 'rt') as fin:
                 mail_text = fin.read()
 
-        proj.do_storedice(tstamp_txt=mail_text)  # Ignoring ok/false.
+        proj.do_storestamp(tstamp_txt=mail_text)  # Ignoring ok/false.
         report = proj.result
 
         if isinstance(report, str):
@@ -2501,7 +2502,7 @@ class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
                             "is an advanced operation, which is not enabled.",
                             pname)
                 else:
-                    proj.do_storedice(tstamp_txt=mail_text, verdict=verdict)  # Ignoring ok/false.
+                    proj.do_storestamp(tstamp_txt=mail_text, verdict=verdict)  # Ignoring ok/false.
 
                 ## Respect --verbose and --email-infos for print-outs.
                 infos = rcver.get_recved_email_infos(mail, verdict)

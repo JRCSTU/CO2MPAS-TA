@@ -481,12 +481,12 @@ class TStraightStory(unittest.TestCase):
         p.update_config(cfg)
 
         with pytest.raises(baseapp.CmdException) as exinfo:
-            p.do_storedice(tstamp_txt=test_tstamp.tstamp_responses[-1][-1])
+            p.do_storestamp(tstamp_txt=test_tstamp.tstamp_responses[-1][-1])
         exinfo.match("different from current one")
         exinfo.match("is different from last tag on current project")
         self.assertEqual(p.state, 'mailed')
 
-        res = p.do_storedice(tstamp_txt=self.stamp)
+        res = p.do_storestamp(tstamp_txt=self.stamp)
         assert res is True
         assert p.state in ('sample', 'nosample')
         decision = p.state
@@ -495,8 +495,8 @@ class TStraightStory(unittest.TestCase):
         self.assertIs(p, p2)
 
         with pytest.raises(transitions.MachineError,
-                           match="Can't trigger event do_storedice from state"):
-            p.do_storedice(tstamp_txt=self.stamp)
+                           match="Can't trigger event do_storestamp from state"):
+            p.do_storestamp(tstamp_txt=self.stamp)
 
         ## Out-of-order stamps fail.
         #
@@ -505,7 +505,7 @@ class TStraightStory(unittest.TestCase):
         assert p.state == 'mailed'
         with pytest.raises(baseapp.CmdException,
                            match="is different from last tag on current project"):
-            p.do_storedice(tstamp_txt=test_tstamp.tstamp_responses[-1][-1])
+            p.do_storestamp(tstamp_txt=test_tstamp.tstamp_responses[-1][-1])
 
         ## STAMP from 'tagged'
         #
@@ -515,7 +515,7 @@ class TStraightStory(unittest.TestCase):
         p = reset_git('HEAD~', pdb, cfg)
         assert p.state == 'tagged'
 
-        res = p.do_storedice(tstamp_txt=self.stamp)
+        res = p.do_storestamp(tstamp_txt=self.stamp)
         assert res is True
         assert p.state == decision
 
