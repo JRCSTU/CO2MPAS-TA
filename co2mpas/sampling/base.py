@@ -120,6 +120,38 @@ class PFiles(namedtuple('PFiles', all_io_kinds)):
 
         return args
 
+    def compare(many, some: 'PFiles',  # @NoSelf
+                manydir='.', somedir='.'):
+        """
+        For each kind match paths based on filename-part and compare their contents.
+
+        :param many:
+            Compares only those matching with `some`.
+            Results are indeterminate if filename-parts are not unique/null
+            fail if files do not exist.
+        :param some:
+            Compares them all.
+            Results are indeterminate if filename-parts are not unique/null.
+        :return:
+            the 1st non-match pair, if any, prefixed by the kind as a 3-tuple;
+            fail if files do not exist.
+        """
+        import filecmp
+
+        paragoni = zip(many._asdict().items(), some._asdict().items())
+        for mkp, skp in paragoni:  # mkp := Big Kind-Path pairs
+            mnames = {osp.split(path)[1]: path for path in mkp[1]}
+            for spath in skp[1]:
+                sname = osp.split(spath)[1]
+
+                if sname not in mnames:
+                    return skp[0], None, spath
+
+                mpath = mnames[sname]
+                if not filecmp.cmp(osp.join(manydir, mpath),
+                                   osp.join(somedir, spath)):
+                    return skp[0], mpath, spath
+
 
 #: Allow creation of PFiles with partial arguments.
 PFiles.__new__.__defaults__ = ([], ) * len(all_io_kinds)
