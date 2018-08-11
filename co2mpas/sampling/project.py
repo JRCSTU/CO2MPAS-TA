@@ -1692,11 +1692,11 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
         :param observer:
             a callable like that::
 
-                def progress_updated(self, msg: str, step=1, maximum=None):
+                def progress_updated(msg=None: str, step=1, nsteps=None):
                     """
                     :param step:
                         >0: increment step, <=0: set absolute step, None: ignored
-                    :param maximum:
+                    :param nsteps:
                         0 disables progressbar, negatives, set `indeterminate` mode, None ignored.
                     """
         '''
@@ -1709,7 +1709,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
         else:
             notify = lambda *_, **__: None
 
-        nsteps = 7
+        nsteps = 8
 
         notify("checking files...", max_step=nsteps)
         if len(pfiles.inp) != len(pfiles.out) or len(pfiles.inp) < 1:
@@ -1725,6 +1725,12 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
             http_session = self._http_session
             if not http_session:
                 http_session = self._http_session = requests.Session()
+
+        notify("checking WebStamper is live before modifying stuff....", max_step=nsteps)
+        wstamper = tstamp.WstampSpec(config=self.config)
+        wstamper.stamp_dice(None,
+                            dry_run=True,
+                            http_session=http_session)
 
         notify("initiating new project...", max_step=nsteps)
         proj = self.projects_db.proj_add(vfid)
