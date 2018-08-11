@@ -1633,7 +1633,9 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
 
     def _check_ok(self, ok):
         if not ok:
-            raise CmdException("Bailing out!")
+            raise CmdException(
+                "Bailing out (probably) due to forbidden state-transition!"
+                "\n  (look above in the logs)")
 
     def _derrive_vfid(self, pfiles: PFiles) -> str:
         from . import report
@@ -1667,7 +1669,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
 
             and then visit WebStamper with your browser to submit the Dice.
 
-            Power users can use commands like this to web-stamp through the console:
+            Powerusers can use commands like this to web-stamp through the console:
 
                 co2dice project report  -W dice.txt    # generate dice if not done yet
                 cat dice.txt | co2dice tstamp wstamp  -W stamp.txt
@@ -1675,7 +1677,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
 
             or stamp without intermediate files::
 
-              co2dice project report | co2dice tstamp wstamp | co2dice project parse tparse
+                co2dice project report | co2dice tstamp wstamp | co2dice project parse tparse
 
             You may find stamps & dices generated in your '~/co2dice.reports.txt' file.
         """)).tag(config=True)
