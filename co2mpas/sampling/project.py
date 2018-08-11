@@ -1633,7 +1633,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
 
     help_in_case_of_failure = trt.Unicode(
         tw.dedent("""
-            INFO: the current-project in `co2dice` db is left as is.
+            INFO: project '%(vfid)s' stopped in '%(state)s' state.
             Use console commands to examine the situation and continue::
 
                 ## Examine the current project
@@ -1655,7 +1655,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
 
             or stamp without intermediate files::
 
-                co2dice project report | co2dice tstamp wstamp | co2dice project parse tparse
+                co2dice project report | co2dice tstamp wstamp | co2dice project tparse
 
             You may find stamps & dices generated in your '~/.co2dice/reports.txt' file.
         """)).tag(config=True)
@@ -1800,6 +1800,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
                     "Dicing in a single-step has failed (see error below)!\n%s",
                     self.help_in_case_of_failure %
                     {'vfid': vfid,
+                     'state': proj.state,
                      'iofiles': pfiles.build_cmd_line()})
 
 
