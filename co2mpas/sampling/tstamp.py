@@ -1660,13 +1660,13 @@ class WstampSpec(dice.DiceSpec):
         ## FIXME: Make URLs it configurable to avoid DoS!
         'http://localhost:5000/api-check/',
         help="The WebStamper's endpoint URL that Stamps."
-    ).tag(config=True)
+    ).tag(config=True, envvar='WEBSTAMPER_CHECK_URL')
 
     stamp_url = trt.Unicode(
         ## FIXME: Make URLs it configurable to avoid DoS!
         'http://localhost:5000/api-stamp/',
         help="The WebStamper's endpoint URL that checks connectivity & validates Dice."
-    ).tag(config=True)
+    ).tag(config=True, envvar='WEBSTAMPER_STAMP_URL')
 
     recipients = trt.List(
         trt.Unicode(),
@@ -1683,6 +1683,7 @@ class WstampSpec(dice.DiceSpec):
         super().__init__(*args, **kwds)
 
     def stamp_dice(self, dice, dry_run=None):
+        "Invokes `check` API (not `stamp`) if --dry-run or not dice"
         import requests
 
         dry_run = self.dry_run if dry_run is None else dry_run

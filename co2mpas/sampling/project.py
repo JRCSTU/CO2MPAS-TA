@@ -1650,9 +1650,14 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
             INFO: the current-project in `co2dice` db is left as is.
             Use console commands to examine the situation and continue::
 
-                co2dice project ls . -v                # to examine the current project
-                co2dice project append                 # if IO-files were not added
-                co2dice project report                 # print Dice (or Decision)
+                ## Examine the current project
+                co2dice project ls  -v  %(vfid)s
+
+                ## Add IO-files (if not added)
+                co2dice project append  %(iofiles)s
+
+                ## Generate Dice (or Decision)
+                co2dice project report
 
             and then visit WebStamper with your browser to submit the Dice.
 
@@ -1759,7 +1764,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
                     "Dicing in a single-step has failed (see error below)!\n%s",
                     self.help_in_case_of_failure %
                     {'vfid': vfid,
-                     'files': pfiles.build_cmd_line()})
+                     'iofiles': pfiles.build_cmd_line()})
 
 
 ###################
