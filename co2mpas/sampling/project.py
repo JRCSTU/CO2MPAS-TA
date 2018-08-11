@@ -1624,6 +1624,148 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             yield to_yield
 
 
+class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
+    def _check_ok(self, ok):
+        if not ok:
+            raise CmdException("Bailing out!")
+
+    def _derrive_vfid(self, pfiles: PFiles) -> str:
+        from . import report
+
+        repspec = report.ReporterSpec(config=self.config)
+        finfos = repspec.extract_dice_report(pfiles)
+        for fpath, data in finfos.items():
+            iokind = data['iokind']
+            if iokind in ('inp', 'out'):
+                vfid = data['report']['vehicle_family_id']
+                self.log.info("Project '%s' derived from '%s' file: %s",
+                              vfid, iokind, fpath)
+
+                return vfid
+        else:
+            raise CmdException("Failed derriving project-id from: %s" % finfos)
+
+    help_in_case_of_failure = trt.Unicode(
+        tw.dedent("""
+            INFO: the current-project in `co2dice` db is left as is.
+            Use console commands to examine the situation and continue::
+
+                co2dice project ls . -v                # to examine the current project
+                co2dice project append                 # if IO-files were not added
+                co2dice project report                 # print Dice (or Decision)
+
+            and then visit WebStamper with your browser to submit the Dice.
+
+            Power users can use commands like this to web-stamp through the console:
+
+                co2dice project report  -W dice.txt    # generate dice if not done yet
+                cat dice.txt | co2dice tstamp wstamp  -W stamp.txt
+                co2dice project parse tparse  stamp.txt
+
+            or stamp without intermediate files::
+
+              co2dice project report | co2dice tstamp wstamp | co2dice project parse tparse
+
+            You may find stamps & dices generated in your '~/co2dice.reports.txt' file.
+        """)).tag(config=True)
+
+    @property
+    def projects_db(self) -> ProjectsDB:
+        p = ProjectsDB.instance(config=self.config)
+        p.update_config(self.config)  # Above is not enough, if already inited.
+
+        return p
+
+    def do_dice_in_one_step(self, pfiles: PFiles, observer=None):
+        '''
+        Run all dice-steps in one run.
+
+        :param observer:
+            a callable like that::
+
+                def progress_updated(self, msg: str, step=1, maximum=None):
+                    """
+                    :param step:
+                        >0: increment step, <=0: set absolute step, None: ignored
+                    :param maximum:
+                        0 disables progressbar, negatives, set `indeterminate` mode, None ignored.
+                    """
+        '''
+        from . import tstamp
+
+        if observer:
+            def notify(msg: str, step=1, max_step=None):
+                observer(msg, step, max_step)
+        else:
+            notify = lambda *_, **__: None
+
+        nsteps = 7
+
+        notify("checking files...", max_step=nsteps)
+        if len(pfiles.inp) != len(pfiles.out) or len(pfiles.inp) < 1:
+            raise CmdException(
+                "At least one *pair* of INP/OUT files needed for single-step Dicing! "
+                "n  Received: %s!"
+                % (self.name, pfiles))
+        pfiles.check_files_exist("dicer")
+
+
+        notify("extracting project-id from files...", max_step=nsteps)
+        vfid = self._derrive_vfid(pfiles)
+
+        notify("initiating new project...", max_step=nsteps)
+        proj = self.projects_db.proj_add(vfid)
+
+        ## TODO: cmd should check web-stamper before starting single-step dice.
+
+        ok = False
+        try:
+            notify("appending files into project...", max_step=nsteps)
+            self._check_ok(proj.do_addfiles(pfiles=pfiles))
+            self.log.info("Initiated '%s' with files: %s", vfid, pfiles)
+
+            notify("creating and signing dice-report...", max_step=nsteps)
+            self._check_ok(proj.do_report())
+            dice = proj.result
+            assert isinstance(dice, str)
+            key_uid = proj.extract_uid_from_report(dice)
+            self.log.info("Created new Dice signed by '%s': \n%s",
+                          key_uid,
+                          self.shrink_text(dice))
+            if self.write_fpath:
+                self.write_file(dice)
+
+            notify("stamping Dice through WebStamper...", max_step=nsteps)
+            wstamper = tstamp.WstampSpec(config=self.config)
+            http_response = wstamper.stamp_dice(dice)
+            http_response.raise_for_status()
+            stamp = http_response.text
+            self.log.info("Stamp was: \n%s", self.shrink_text(stamp))
+            if self.write_fpath:
+                self.write_file(stamp)
+
+            notify("storing Stamp in project, and creating & signing Decision-report...",
+                   max_step=nsteps)
+            self._check_ok(proj.do_storestamp(tstamp_txt=stamp))
+            decision = proj.result
+            assert isinstance(decision, str), decision
+            self.log.info("Imported Decision: \n%s'.",
+                          self.shrink_text(stamp))
+            ok = True
+
+            if self.write_fpath:
+                self.write_file(decision)
+
+            return self.shrink_text(decision)
+        finally:
+            if not ok:
+                self.log.error(
+                    "Dicing in a single-step has failed (see error below)!\n%s",
+                    self.help_in_case_of_failure %
+                    {'vfid': vfid,
+                     'files': pfiles.build_cmd_line()})
+
+
 ###################
 ##    Commands   ##
 ###################
@@ -1713,32 +1855,12 @@ class DiceCmd(AppendCmd):
 
     def __init__(self, **kwds):
         from toolz import dicttoolz as dtz
-        from . import tstamp
+        from . import report, tstamp
 
         kwds = dtz.merge(kwds, {
-            'conf_classes': [tstamp.WstampSpec],
+            'conf_classes': [report.ReporterSpec, DicerSpec, tstamp.WstampSpec],
         })
         super().__init__(**kwds)
-
-    def _check_ok(self, ok):
-        if not ok:
-            raise CmdException("Bailing out!")
-
-    def _derrive_vfid(self, pfiles: PFiles) -> str:
-        from . import report
-
-        repspec = report.ReporterSpec(config=self.config)
-        finfos = repspec.extract_dice_report(pfiles)
-        for fpath, data in finfos.items():
-            iokind = data['iokind']
-            if iokind in ('inp', 'out'):
-                vfid = data['report']['vehicle_family_id']
-                self.log.info("Project '%s' derived from '%s' file: %s",
-                              vfid, iokind, fpath)
-
-                return vfid
-        else:
-            raise CmdException("Failed derriving project-id from: %s" % finfos)
 
     def run(self, *args):
         from . import tstamp
@@ -1746,60 +1868,11 @@ class DiceCmd(AppendCmd):
         ## Kludge: hard-code some flags...
         self.report = True
 
+        dicer = DicerSpec(config=self.config)
+
         ## Parse cli-args.
-        #
         pfiles = PFiles(inp=self.inp, out=self.out, other=args)
-        if len(pfiles.inp) != len(pfiles.out) or len(pfiles.inp) < 1:
-            raise CmdException(
-                "Cmd %r must be given at least one *pair* of --inp and --out files! "
-                "n  Received: %s!"
-                % (self.name, pfiles))
-        pfiles.check_files_exist(self.name)
-
-        vfid = self._derrive_vfid(pfiles)
-        proj = self.projects_db.proj_add(vfid)
-
-        ## TODO: cmd should check web-stamper before starting single-step dice.
-
-        ok = False
-        try:
-            self._check_ok(proj.do_addfiles(pfiles=pfiles))
-            self.log.info("Initiated '%s' with files: %s", vfid, pfiles)
-
-            self._check_ok(proj.do_report())
-            dice = proj.result
-            assert isinstance(dice, str)
-            key_uid = proj.extract_uid_from_report(dice)
-            self.log.info("Created new Dice signed by '%s': \n%s",
-                          key_uid,
-                          self.shrink_text(dice))
-            if self.write_fpath:
-                self.write_file(dice)
-
-            wstamper = tstamp.WstampSpec(config=self.config)
-            http_response = wstamper.stamp_dice(dice)
-            http_response.raise_for_status()
-            stamp = http_response.text
-            self.log.info("Stamp was: \n%s", self.shrink_text(stamp))
-            if self.write_fpath:
-                self.write_file(stamp)
-
-            self._check_ok(proj.do_storestamp(tstamp_txt=stamp))
-            decision = proj.result
-            assert isinstance(decision, str), decision
-            self.log.info("Imported Decision: \n%s'.",
-                          self.shrink_text(stamp))
-            ok = True
-
-            if self.write_fpath:
-                self.write_file(decision)
-
-            return self.shrink_text(decision)
-        finally:
-            if not ok:
-                self.log.error(
-                    "Dicing in a single-step has failed (see error below)!\n%s",
-                    self._help_in_case_of_failure)
+        return dicer.do_dice_in_one_step(pfiles)
 
 
 class ProjectCmd(_SubCmd):
