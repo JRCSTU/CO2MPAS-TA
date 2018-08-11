@@ -10,3 +10,7 @@ validate_email
 py3DNS; os_name != 'nt'
 boltons             ## for boltons.setutils.IndexedSet
 raven[flask]        ## For Sentry error-mail aggregation
+## Twisted client-hostname verification
+#  Without it, dev-server issues:
+#    UserWarning: You do not have a working installation of service_...
+service_identity
