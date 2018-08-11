@@ -20,6 +20,28 @@ from .._vendor.traitlets import config as trc
 from .._vendor.traitlets import traitlets as trt
 
 
+def convpath(fpath, abs_path=None, exp_user=True, exp_vars=True):
+    """
+    Override `abs_path` functioning..
+
+    :param abs_path:
+        3-state, None: expand if it exists
+        Useful to preserve POSIX fpaths under Windows, e.g. ``/dev/null``.
+    """
+    from pandalone.utils import convpath
+
+    if abs_path is None:
+        fpath = convpath(fpath, False, exp_user, exp_vars)
+        if osp.exists(fpath):
+            afpath = convpath(fpath, True, False, False)
+            if osp.exists(afpath):
+                fpath = afpath
+    else:
+        fpath = convpath(fpath, abs_path, exp_user, exp_vars)
+
+    return fpath
+
+
 _file_arg_regex = re.compile('(inp|out)=(.+)', re.IGNORECASE)
 
 all_io_kinds = tuple('inp out other'.split())
@@ -70,6 +92,34 @@ class PFiles(namedtuple('PFiles', all_io_kinds)):
             raise CmdException("%s: cannot find %i file(s): %s" %
                                (name, len(badfiles), badfiles))
 
+    def build_cmd_line(self, **convpath_kwds):
+        "Build cli-options for `project append` preserving pair-order."
+        import string
+        import itertools as itt
+
+        ok_file_chars = set(string.ascii_letters + string.digits + '-')
+
+        def quote(s):
+            "best-effort that works also on Windows (no single-quote)"
+            if set(s) - ok_file_chars:
+                s = '"%s"' % s
+            return s
+
+        def append_opt(l, opt, fpath):
+            if fpath:
+                l.append(opt)
+                l.append(quote(convpath(fpath, **convpath_kwds)))
+
+        args = []
+        for inp, out in itt.zip_longest(self.inp, self.out, fillvalue=()):
+            append_opt(args, '--inp', inp)
+            append_opt(args, '--out', out)
+
+        args.extend(quote(convpath(f, **convpath_kwds))
+                    for f in self.other)
+
+        return args
+
 
 #: Allow creation of PFiles with partial arguments.
 PFiles.__new__.__defaults__ = ([], ) * len(all_io_kinds)
@@ -93,7 +143,6 @@ class FileReadingMixin(metaclass=trt.MetaHasTraits):
         import io
         import os
         from boltons.setutils import IndexedSet as iset
-        from pandalone.utils import convpath
 
         fpaths = iset(fpaths) or ['-']
         for fpath in fpaths:
@@ -243,7 +292,7 @@ class FileOutputMixin(trc.Configurable):
             self.log.warning('Cannot write output file when no fpath given!')
             return
 
-        wfpath = pndlu.convpath(wfpath)
+        wfpath = convpath(wfpath)
         self.log.info('%s report into: %s',
                       'Appending' if self.write_append else 'Writing', wfpath)
         file_mode = self._open_file_mode()

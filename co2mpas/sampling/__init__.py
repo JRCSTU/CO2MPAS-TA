@@ -5,7 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-co2dice: Distributed Impromptu type-Certificate Evaluation of *co2mpas* results.
+co2DICE: Distributed Impromptu Co2mpas Evaluation.
 
 
 This is an articulated application comprised of the following:
