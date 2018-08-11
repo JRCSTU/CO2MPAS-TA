@@ -108,12 +108,13 @@ def process_folder_files(input_files, output_folder,
     timestamp = start_time.strftime('%Y%m%d_%H%M%S')
 
     summary_xl_file = osp.join(output_folder, '%s-summary.xlsx' % timestamp)
-    notify_result_listener(result_listener, summary, summary_xl_file)
-
     _save_summary(summary_xl_file, start_time, summary)
 
     time_elapsed = (datetime.datetime.today() - start_time).total_seconds()
     log.info('Done! [%s sec]', time_elapsed)
+
+    notify_result_listener(result_listener, summary, summary_xl_file)
+
     _pause_for_sites_shutdown()
 
 
