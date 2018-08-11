@@ -146,11 +146,19 @@ Intermediate releases:
 - Releases with ``v`` prefix signify internal markings.
 
 
+v1.9.1XX, 10 Aug 2018
+~~~~~~~~~~~~~~~~~~~~
+feat: rename:
+  - cmd ``project dice --> dicer`` not to overload the *dice* word; it is
+    a *sequencer* after all.
+  - ``-W=~/co2dice.reports.txt --> ~/.co2dice/reports.txt`` to reuse dice folder.
+
+
 v1.9.1a2, 10 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~
 Fixes and features for the GUI *Stamp-button* and supporting ``project dice`` command.
 
-- FEAT: ``co2dice project dice|init|append|report|recv|parse`` and
+- FEAT: ``co2dice project dicer|init|append|report|recv|parse`` and
   the ``co2dice tstamp wstamp`` commands, they have by default
   ``--write-file='~/.co2dice/reports.txt'`` file, so every time they run,
   they *APPENDED* into this file these 3 items:
@@ -173,7 +181,7 @@ Implement the new ``project dice`` command.
 
 - Work started since `v1.9.1a0: 8 Aug 2018`.
 - FEAT: NEW WEB-API CMDS:
-  - ``co2dice project dice``: Dice a new project in one action through WebStamper.
+  - ``co2dice project dicer``: Dice a new project in one action through WebStamper.
   - ``tstamp wstamp``: Dice a new project in one action through WebStamper.
 - feat: ``co2dice project report`` command can retrieve older reports.
   (not just the latest).  For *Stamps*, internal git commands are still needed.

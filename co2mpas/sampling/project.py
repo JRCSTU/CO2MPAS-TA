@@ -1829,7 +1829,7 @@ class _SubCmd(baseapp.Cmd):
         return isinstance(result, str) and result or _mydump(result, **kwds)
 
 
-class DiceCmd(_SubCmd):
+class DicerCmd(_SubCmd):
     """
     Dice a new (or existing) project in one action through WebStamper.
 
@@ -1885,8 +1885,8 @@ class DiceCmd(_SubCmd):
             'conf_classes': [report.ReporterSpec, DicerSpec, tstamp.WstampSpec],
             'cmd_aliases': dtz.merge(
                 base.write_fpath_alias_kwd, {
-                    ('i', 'inp'): ('DiceCmd.inp', DiceCmd.inp.help),
-                    ('o', 'out'): ('DiceCmd.out', DiceCmd.out.help),
+                    ('i', 'inp'): ('DicerCmd.inp', DicerCmd.inp.help),
+                    ('o', 'out'): ('DicerCmd.out', DicerCmd.out.help),
                 }
             ), 'cmd_flags': {
                 'with-inputs': (
@@ -2940,7 +2940,7 @@ class BackupCmd(_SubCmd):
 
 
 all_subcmds = (
-    DiceCmd,
+    DicerCmd,
     LsCmd, OpenCmd, InitCmd,
     AppendCmd, ReportCmd,
     TparseCmd,
