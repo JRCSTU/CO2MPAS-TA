@@ -1631,6 +1631,14 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
     """A sequencer for dicing new or existing projects through WebStamper."""
 
+    @trt.default('write_fpath')
+    def _enable_write_fpath(self):
+        return "~/co2dice.reports.txt"
+
+    @trt.default('write_append')
+    def _append_into_fpath(self):
+        return True
+
     def _check_ok(self, ok):
         if not ok:
             raise CmdException(
