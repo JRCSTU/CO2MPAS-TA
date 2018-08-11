@@ -91,6 +91,7 @@ class FileReadingMixin(metaclass=trt.MetaHasTraits):
         """
 
         import io
+        import os
         from boltons.setutils import IndexedSet as iset
         from pandalone.utils import convpath
 
@@ -105,9 +106,14 @@ class FileReadingMixin(metaclass=trt.MetaHasTraits):
                 text = sys.stdin.read()
                 yield "<STDIN: %i-chars>" % len(text), text
             else:
-                fpath = convpath(fpath)
-                if not osp.exists(fpath):
-                    self.log.error("File to read '%s' not found!", fpath)
+                fpath = convpath(fpath, abs_path=False)
+                if osp.exists(fpath):
+                    afpath = convpath(fpath, abs_path=True)
+                    if osp.exists(afpath):
+                        fpath = afpath
+                else:
+                    self.log.error("File to read '%s' not found!"
+                                   "\n  CWD: %s", fpath, os.curdir)
                     continue
 
                 try:
