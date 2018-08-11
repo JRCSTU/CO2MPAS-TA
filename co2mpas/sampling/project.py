@@ -1799,6 +1799,7 @@ class AppendCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
         from . import report
 
         kwds = dtz.merge(kwds, {
+            'conf_classes': [report.ReporterSpec],
             'cmd_aliases': dtz.merge(
                 base.write_fpath_alias_kwd, {
                     ('i', 'inp'): ('AppendCmd.inp', AppendCmd.inp.help),
