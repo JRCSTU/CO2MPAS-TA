@@ -152,7 +152,7 @@ Fixes and features for the GUI *Stamp-button* and supporting ``project dice`` co
 
 - FEAT: ``co2dice project dice|init|append|report|recv|parse`` and
   the ``co2dice tstamp wstamp`` commands, they have by default
-  ``--write-file='~/co2dice.reports.txt'`` file, so every time they run,
+  ``--write-file='~/.co2dice/reports.txt'`` file, so every time they run,
   they *APPENDED* into this file these 3 items:
 
     1. :term:`Dice report`;

@@ -2184,7 +2184,7 @@ class WstampCmd(baseapp.Cmd,
         %(cmd_chain)s [OPTIONS] [<dice-file-1> ...]
 
     - If '-' is given or no file at all, it reads from STDIN.
-    - By default, --write-file='~/co2dice.reports.txt', so
+    - By default, --write-file='~/.co2dice/reports.txt', so
       every time this cmd runs, it *APPENDS* into the file above
       any Dice received (or any errors).
     - If --dry-run, the Dice is sent to WebStamper for validation only.
@@ -2204,7 +2204,7 @@ class WstampCmd(baseapp.Cmd,
 
     @trt.default('write_fpath')
     def _enable_write_fpath(self):
-        return "~/co2dice.reports.txt"
+        return "~/.co2dice/reports.txt"
 
     @trt.default('write_append')
     def _append_into_fpath(self):

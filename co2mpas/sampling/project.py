@@ -1633,7 +1633,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
 
     @trt.default('write_fpath')
     def _enable_write_fpath(self):
-        return "~/co2dice.reports.txt"
+        return "~/.co2dice/reports.txt"
 
     @trt.default('write_append')
     def _append_into_fpath(self):
@@ -1687,7 +1687,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
 
                 co2dice project report | co2dice tstamp wstamp | co2dice project parse tparse
 
-            You may find stamps & dices generated in your '~/co2dice.reports.txt' file.
+            You may find stamps & dices generated in your '~/.co2dice/reports.txt' file.
         """)).tag(config=True)
 
     @property
@@ -1841,7 +1841,7 @@ class DiceCmd(_SubCmd):
       and "paired" in the order they are given.
     - The project (VFID) is extracted from the given files - if it exists
       in projects db, it must be in `tagged` or earlier state.
-    - By default, --write-file='~/co2dice.reports.txt', so
+    - By default, --write-file='~/.co2dice/reports.txt', so
       every time this cmd runs, it *APPENDS* into the file above
       these 3 items generated:
         1. Dice
@@ -1871,7 +1871,7 @@ class DiceCmd(_SubCmd):
 
     @trt.default('write_fpath')
     def _enable_write_fpath(self):
-        return "~/co2dice.reports.txt"
+        return "~/.co2dice/reports.txt"
 
     @trt.default('write_append')
     def _append_into_fpath(self):
