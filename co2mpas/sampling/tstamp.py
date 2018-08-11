@@ -1850,10 +1850,10 @@ class SendCmd(base.FileReadingMixin, baseapp.Cmd):
                     return str(mail)
             except CmdException as ex:
                 self.log.error("Timestamping file '%s' stopped due to: %s",
-                               ex, fpath, exc_info=1)  # one-off event, must not loose ex.
+                               fpath, ex, exc_info=1)  # one-off event, must not loose ex.
             except Exception as ex:
                 self.log.error("Timestamping file '%s' failed due to: %r",
-                               ex, fpath, exc_info=1)  # one-off event, must not loose ex.
+                               fpath, ex, exc_info=1)  # one-off event, must not loose ex.
 
 
 class MailboxCmd(baseapp.Cmd):
@@ -2231,10 +2231,10 @@ class WstampCmd(baseapp.Cmd,
                 stamp = wstamper.stamp_dice(dice)
             except CmdException as ex:
                 self.log.error("Timestamping file '%s' stopped due to: %s",
-                               ex, fpath, exc_info=1)  # one-off event, must not loose ex.
+                               fpath, ex, exc_info=1)  # one-off event, must not loose ex.
             except Exception as ex:
                 self.log.error("Timestamping file '%s' failed due to: %r",
-                               ex, fpath, exc_info=1)  # one-off event, must not loose ex.
+                               fpath, ex, exc_info=1)  # one-off event, must not loose ex.
 
             else:
                 if self.write_fpath:
