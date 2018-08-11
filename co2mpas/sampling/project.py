@@ -1738,8 +1738,13 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
                             dry_run=True,
                             http_session=http_session)
 
-        notify("initiating new project...", max_step=nsteps)
-        proj = self.projects_db.proj_add(vfid)
+        notify("preparing project...", max_step=nsteps)
+        try:
+            proj = self.projects_db.proj_add(vfid)
+        except ProjectExistError as ex:
+            err = str(ex)[:-1]  # clip the last '!' of ex-text.
+            self.log.info("%s, opening it." % err)
+            proj = self.projects_db.proj_open(vfid)
 
         ok = False
         try:
