@@ -1631,36 +1631,6 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
     """A sequencer for dicing new or existing projects through WebStamper."""
 
-    @trt.default('write_fpath')
-    def _enable_write_fpath(self):
-        return "~/.co2dice/reports.txt"
-
-    @trt.default('write_append')
-    def _append_into_fpath(self):
-        return True
-
-    def _check_ok(self, ok):
-        if not ok:
-            raise CmdException(
-                "Bailing out (probably) due to forbidden state-transition!"
-                "\n  (look above in the logs)")
-
-    def _derrive_vfid(self, pfiles: PFiles) -> str:
-        from . import report
-
-        repspec = report.ReporterSpec(config=self.config)
-        finfos = repspec.extract_dice_report(pfiles)
-        for fpath, data in finfos.items():
-            iokind = data['iokind']
-            if iokind in ('inp', 'out'):
-                vfid = data['report']['vehicle_family_id']
-                self.log.info("Project '%s' derived from '%s' file: %s",
-                              vfid, iokind, fpath)
-
-                return vfid
-        else:
-            raise CmdException("Failed derriving project-id from: %s" % finfos)
-
     help_in_case_of_failure = trt.Unicode(
         tw.dedent("""
             INFO: the current-project in `co2dice` db is left as is.
@@ -1690,6 +1660,14 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
             You may find stamps & dices generated in your '~/.co2dice/reports.txt' file.
         """)).tag(config=True)
 
+    @trt.default('write_fpath')
+    def _enable_write_fpath(self):
+        return "~/.co2dice/reports.txt"
+
+    @trt.default('write_append')
+    def _append_into_fpath(self):
+        return True
+
     @property
     def projects_db(self) -> ProjectsDB:
         p = ProjectsDB.instance(config=self.config)
@@ -1698,6 +1676,28 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
         return p
 
     _http_session = None
+
+    def _check_ok(self, ok):
+        if not ok:
+            raise CmdException(
+                "Bailing out (probably) due to forbidden state-transition!"
+                "\n  (look above in the logs)")
+
+    def _derrive_vfid(self, pfiles: PFiles) -> str:
+        from . import report
+
+        repspec = report.ReporterSpec(config=self.config)
+        finfos = repspec.extract_dice_report(pfiles)
+        for fpath, data in finfos.items():
+            iokind = data['iokind']
+            if iokind in ('inp', 'out'):
+                vfid = data['report']['vehicle_family_id']
+                self.log.info("Project '%s' derived from '%s' file: %s",
+                              vfid, iokind, fpath)
+
+                return vfid
+        else:
+            raise CmdException("Failed derriving project-id from: %s" % finfos)
 
     def do_dice_in_one_step(self, pfiles: PFiles,
                             observer=None,
