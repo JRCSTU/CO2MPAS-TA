@@ -1758,9 +1758,19 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
 
         ok = False
         try:
-            notify("appending files into project...", max_step=nsteps)
-            self._check_ok(proj.do_addfiles(pfiles=pfiles))
-            self.log.info("Initiated '%s' with files: %s", vfid, pfiles)
+            notify("processing project files...", max_step=nsteps)
+            if proj.state in ('wltpio', 'tagged'):
+                diffs = proj.list_pfiles().compare(pfiles)
+                if diffs:
+                    raise CmdException(
+                        "Missmatch between files already in the project and new ones:"
+                        "\n    %s"
+                        "\n  Project at '%s' state maybe forced manualy to update them."
+                        % (diffs, proj.state))
+                self.log.info("Project '%s' already contained files: %s", vfid, pfiles)
+            else:
+                self._check_ok(proj.do_addfiles(pfiles=pfiles))
+                self.log.info("Initiated '%s' with files: %s", vfid, pfiles)
 
             notify("creating and signing dice-report...", max_step=nsteps)
             self._check_ok(proj.do_report())
