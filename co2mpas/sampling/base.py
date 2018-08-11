@@ -268,7 +268,7 @@ class StampParsingCmdMixin(FileReadingMixin):
                     raise
 
 
-class FileOutputMixin(trc.Configurable):
+class FileWritingMixin(trc.Configurable):
     write_fpath = trt.Unicode(
         help="Write report into this file, if given; overwriten if it already exists."
     ).tag(config=True)
@@ -302,7 +302,7 @@ class FileOutputMixin(trc.Configurable):
 
 ## TODO: enforce --write aliase from mixin-constructor.
 write_fpath_alias_kwd = {
-    ('W', 'write-fpath'): ('FileOutputMixin.write_fpath', FileOutputMixin.write_fpath.help)
+    ('W', 'write-fpath'): ('FileWritingMixin.write_fpath', FileWritingMixin.write_fpath.help)
 }
 
 

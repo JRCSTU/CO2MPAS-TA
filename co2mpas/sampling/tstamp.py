@@ -2176,7 +2176,7 @@ class LoginCmd(baseapp.Cmd):
 class WstampCmd(baseapp.Cmd,
                 base.FileReadingMixin,
                 base.ShrinkingOutputMixin,
-                base.FileOutputMixin):
+                base.FileWritingMixin):
     """
     Send the given Dice(s) to WebStamper for Stamping.
 

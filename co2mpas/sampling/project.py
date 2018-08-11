@@ -1628,7 +1628,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             yield to_yield
 
 
-class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
+class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
     """A sequencer for dicing new or existing projects through WebStamper."""
 
     help_in_case_of_failure = trt.Unicode(
@@ -2027,7 +2027,7 @@ class OpenCmd(_SubCmd):
         return projDB.proj_list(proj.pname, as_text=True) if self.verbose else proj
 
 
-class AppendCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
+class AppendCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
     """
     Import the specified input/output co2mpas files into the *current project*.
 
@@ -2211,7 +2211,7 @@ class InitCmd(AppendCmd):
             yield self._append_and_report(pfiles)
 
 
-class ReportCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
+class ReportCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
     """
     Prepares or re-prints the signed dice-report that can be sent for timestamping.
 
@@ -2381,7 +2381,7 @@ class TsendCmd(_SubCmd):
                                    is_verbose=self.verbose or proj.dry_run)
 
 
-class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
+class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
     """
     Derives *decision* OK/SAMPLE flag from tstamped-response, and store it in current-project.
 
@@ -2471,7 +2471,7 @@ class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
         return self.shrink_text(result)
 
 
-class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.FileOutputMixin):
+class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
     """
     (DEPRECATED) Fetch Stamps from IMAP server, derive OK/SAMPLE flag and store Decision.
 
