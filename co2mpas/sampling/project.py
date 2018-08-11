@@ -1705,10 +1705,8 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
         if len(pfiles.inp) != len(pfiles.out) or len(pfiles.inp) < 1:
             raise CmdException(
                 "At least one *pair* of INP/OUT files needed for single-step Dicing! "
-                "n  Received: %s!"
-                % (self.name, pfiles))
+                "\n  Received: %s!" % (pfiles, ))
         pfiles.check_files_exist("dicer")
-
 
         notify("extracting project-id from files...", max_step=nsteps)
         vfid = self._derrive_vfid(pfiles)
@@ -1737,9 +1735,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
 
             notify("stamping Dice through WebStamper...", max_step=nsteps)
             wstamper = tstamp.WstampSpec(config=self.config)
-            http_response = wstamper.stamp_dice(dice)
-            http_response.raise_for_status()
-            stamp = http_response.text
+            stamp = wstamper.stamp_dice(dice)
             self.log.info("Stamp was: \n%s", self.shrink_text(stamp))
             if self.write_fpath:
                 self.write_file(stamp)
@@ -1792,7 +1788,7 @@ class _SubCmd(baseapp.Cmd):
         return isinstance(result, str) and result or _mydump(result, **kwds)
 
 
-class DiceCmd(AppendCmd):
+class DiceCmd(_SubCmd):
     """
     Dice a new project in one action through WebStamper
 
@@ -1826,6 +1822,16 @@ class DiceCmd(AppendCmd):
           Tip: In Windows `cmd.exe` shell, the continuation charachter is `^`.
     """)
 
+    inp = trt.List(
+        trt.Unicode(),
+        help="Specify co2mpas INPUT files; use this option one or more times."
+    ).tag(config=True)
+
+    out = trt.List(
+        trt.Unicode(),
+        help="Specify co2mpas OUTPUT files; use this option one or more times."
+    ).tag(config=True)
+
     @trt.default('write_fpath')
     def _enable_write_fpath(self):
         return "~/co2dice.reports.txt"
@@ -1834,40 +1840,29 @@ class DiceCmd(AppendCmd):
     def _append_into_fpath(self):
         return True
 
-    _help_in_case_of_failure = tw.dedent("""
-        INFO: the current-project in `co2dice` db is left as is.
-        Use console commands to examine the situation and continue::
-
-            co2dice project ls .                   # to examine the situation
-            co2dice project append                 # if IO-files were not added
-            co2dice project report -- -1           # print the last generated report
-
-            co2dice project report  -W dice.txt    # generate dice if not done yet
-            cat dice.txt | co2dice tstamp wstamp  -W stamp.txt
-            co2dice project parse tparse  stamp.txt
-
-        or the last 3 *irrevocable* commands without the intermediate files::
-
-          co2dice project report | co2dice tstamp wstamp | co2dice project parse tparse
-
-        You may find stamps & dices generated in your '~/co2dice.reports.txt' file.
-    """)
-
     def __init__(self, **kwds):
         from toolz import dicttoolz as dtz
         from . import report, tstamp
 
         kwds = dtz.merge(kwds, {
             'conf_classes': [report.ReporterSpec, DicerSpec, tstamp.WstampSpec],
+            'cmd_aliases': dtz.merge(
+                base.write_fpath_alias_kwd, {
+                    ('i', 'inp'): ('DiceCmd.inp', DiceCmd.inp.help),
+                    ('o', 'out'): ('DiceCmd.out', DiceCmd.out.help),
+                }
+            ), 'cmd_flags': {
+                'with-inputs': (
+                    {
+                        'ReporterSpec': {'include_input_in_dice': True},
+                    }, report.ReporterSpec.include_input_in_dice
+                    .help),  # @UndefinedVariable
+                **base.shrink_flags_kwd,
+            },
         })
         super().__init__(**kwds)
 
     def run(self, *args):
-        from . import tstamp
-
-        ## Kludge: hard-code some flags...
-        self.report = True
-
         dicer = DicerSpec(config=self.config)
 
         ## Parse cli-args.
