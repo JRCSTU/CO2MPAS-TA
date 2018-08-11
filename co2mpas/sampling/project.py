@@ -1681,7 +1681,11 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
 
         return p
 
-    def do_dice_in_one_step(self, pfiles: PFiles, observer=None):
+    _http_session = None
+
+    def do_dice_in_one_step(self, pfiles: PFiles,
+                            observer=None,
+                            http_session=None):
         '''
         Run all dice-steps in one run.
 
@@ -1697,6 +1701,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
                     """
         '''
         from . import tstamp
+        import requests
 
         if observer:
             def notify(msg: str, step=1, max_step=None):
@@ -1716,10 +1721,13 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
         notify("extracting project-id from files...", max_step=nsteps)
         vfid = self._derrive_vfid(pfiles)
 
+        if not http_session:
+            http_session = self._http_session
+            if not http_session:
+                http_session = self._http_session = requests.Session()
+
         notify("initiating new project...", max_step=nsteps)
         proj = self.projects_db.proj_add(vfid)
-
-        ## TODO: cmd should check web-stamper before starting single-step dice.
 
         ok = False
         try:
@@ -1739,7 +1747,8 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileOutputMixin):
                 self.write_file(dice)
 
             notify("stamping Dice through WebStamper...", max_step=nsteps)
-            wstamper = tstamp.WstampSpec(config=self.config)
+            wstamper = tstamp.WstampSpec(config=self.config,
+                                         http_session=http_session)
             stamp = wstamper.stamp_dice(dice)
             self.log.info("Stamp was: \n%s", self.shrink_text(stamp))
             if self.write_fpath:

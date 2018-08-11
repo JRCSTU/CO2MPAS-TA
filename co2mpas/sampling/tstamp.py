@@ -1675,6 +1675,11 @@ class WstampSpec(dice.DiceSpec):
         Ask JRC to provide that. You don't have to provide your sender-account here.
     """).tag(config=True)
 
+    defer_error_response_size_theshold = trt.Int(
+        50 * 1024,  # 50k
+        help="If web fails and not verbose, don't download full response if above this limit"
+    ).tag(config=True)
+
     def __init__(self, *args, **kwds):
         cls = type(self)
         self.register_validators(
@@ -1682,7 +1687,7 @@ class WstampSpec(dice.DiceSpec):
             cls._is_not_empty, cls._is_pure_email_address)
         super().__init__(*args, **kwds)
 
-    def stamp_dice(self, dice, dry_run=None):
+    def stamp_dice(self, dice, dry_run=None, http_session=None):
         "Invokes `check` API (not `stamp`) if --dry-run or not dice"
         import requests
 
@@ -1711,9 +1716,26 @@ class WstampSpec(dice.DiceSpec):
             self.log.info(
                 "Checking connectivity with WebStamper(%s)", endpoint)
 
-        response = requests.post(endpoint, data=data)
+        req = http_session or requests
 
-        return response.text
+        with req.post(endpoint, data=data, stream=True) as r:
+            ok = r.status_code == 200
+            threshold = self.defer_error_response_size_theshold
+            should_fetch_response = (
+                ok or
+                self.verbose or
+                int(r.headers['content-length']) < threshold)
+
+            if should_fetch_response:
+                text = r.text
+
+            if not r.ok:
+                if self.verbose:
+                    raise CmdException(r.text)
+                else:
+                    raise r.raise_for_status()
+
+        return text
 
 
 ###################
