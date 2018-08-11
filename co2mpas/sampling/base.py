@@ -285,7 +285,7 @@ class FileWritingMixin(trc.Configurable):
     def _open_file_mode(self):
         return 'at' if self.write_append else 'wt'
 
-    def write_file(self, txt, wfpath=None):
+    def write_file(self, txt, name='stuff', wfpath=None):
         if not wfpath:
             wfpath = self.write_fpath
         if not wfpath:
@@ -296,8 +296,9 @@ class FileWritingMixin(trc.Configurable):
         file_mode = self._open_file_mode()
         with open(wfpath, file_mode, **self.write_kwds) as fd:
             fd.write(txt)
-        self.log.info('%s stuff into: %s',
-                      'Appended' if self.write_append else 'Created', wfpath)
+        self.log.info(
+            "%s %s into: %s",
+            'Appended' if self.write_append else 'Created', name, wfpath)
 
 
 ## TODO: enforce --write aliase from mixin-constructor.

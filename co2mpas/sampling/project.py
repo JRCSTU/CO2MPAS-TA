@@ -1771,7 +1771,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
                           key_uid,
                           self.shrink_text(dice))
             if self.write_fpath:
-                self.write_file(dice)
+                self.write_file(dice, 'Dice')
 
             notify("stamping Dice through WebStamper...", max_step=nsteps)
             wstamper = tstamp.WstampSpec(config=self.config,
@@ -1779,7 +1779,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
             stamp = wstamper.stamp_dice(dice)
             self.log.info("Stamp was: \n%s", self.shrink_text(stamp))
             if self.write_fpath:
-                self.write_file(stamp)
+                self.write_file(stamp, 'Stamp')
 
             notify("storing Stamp in project, and creating & signing Decision-report...",
                    max_step=nsteps)
@@ -1791,7 +1791,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
             ok = True
 
             if self.write_fpath:
-                self.write_file(decision)
+                self.write_file(decision, 'Decision')
 
             return self.shrink_text(decision)
         finally:
@@ -1913,7 +1913,7 @@ class DicerCmd(_SubCmd):
             cstep += step
             progress = '(%s out of %s) %s' % (cstep, nsteps, msg)
             if dicer.write_fpath and dicer.write_append:
-                dicer.write_file(progress)
+                dicer.write_file(progress, 'progress-line')
 
             self.log.info(progress)
 
@@ -2115,7 +2115,7 @@ class AppendCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
                 self.log.info("Report has been signed by '%s'.", key_uid)
 
                 if self.write_fpath:
-                    self.write_file(result)
+                    self.write_file(result, 'Dice')
 
                 return self.shrink_text(result)
             else:
@@ -2316,7 +2316,7 @@ class ReportCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
             self.log.info("Report has been signed by '%s'.", key_uid)
 
         if self.write_fpath:
-            self.write_file(result)
+            self.write_file(result, 'Report')
 
         yield self.shrink_text(result)
 
@@ -2455,7 +2455,7 @@ class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
         if isinstance(report, str):
             ## That's parsed decision.
             if self.write_fpath:
-                self.write_file(report)
+                self.write_file(report, 'Decision')
 
             return self.shrink_text(report)
 
@@ -2634,7 +2634,9 @@ class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
                 if self.write_fpath:
                     f, e = osp.splitext(self.write_fpath)
                     wfpath = '%s-%i%s' % (f, i, e)
-                    self.write_file(result, wfpath)
+                    self.write_file(result,
+                                    "Email-no%i([%s]%s)" % (i, uid, mid),
+                                    wfpath)
                 else:
                     yield self.shrink_text(result)
 

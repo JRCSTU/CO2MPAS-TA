@@ -2238,7 +2238,7 @@ class WstampCmd(baseapp.Cmd,
 
             else:
                 if self.write_fpath:
-                    self.write_file(stamp)
+                    self.write_file(stamp, 'Stamp')
                 yield self.shrink_text(stamp)
 
 
