@@ -1810,26 +1810,22 @@ class _SubCmd(baseapp.Cmd):
 
 class DiceCmd(_SubCmd):
     """
-    Dice a new project in one action through WebStamper
+    Dice a new (or existing) project in one action through WebStamper.
 
     SYNTAX
         %(cmd_chain)s [OPTIONS] (--inp <co2mpas-input>) ... (--out <co2mpas-output>) ...
                                 [<any-other-file>] ...
 
-    - If number of input-files given must match the number of output-file.
-      The files are "paired" in the order they are given.
+    - The number of input-files given must match the number of output-file,
+      and "paired" in the order they are given.
+    - The project (VFID) is extracted from the given files - if it exists
+      in projects db, it must be in `tagged` or earlier state.
     - By default, --write-file='~/co2dice.reports.txt', so
       every time this cmd runs, it *APPENDS* into the file above
       these 3 items generated:
         1. Dice
         2. Stamp (or any error received)
         3. Decision
-    - ATTENTION: If it fails, co2dice's project database is left as is; probable
-      sub-commands that can examine the situation and continue
-      the dicing from where it is left-over are:
-          co2dice project ls .        # to examine the situation
-          co2dice project append      # if IO-files were not added
-          co2dice project report | co2dice tstamp wstamp | co2dice project parse tparse
     """
 
     examples = trt.Unicode("""
