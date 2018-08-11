@@ -293,11 +293,11 @@ class FileWritingMixin(trc.Configurable):
             return
 
         wfpath = convpath(wfpath)
-        self.log.info('%s report into: %s',
-                      'Appending' if self.write_append else 'Writing', wfpath)
         file_mode = self._open_file_mode()
         with open(wfpath, file_mode, **self.write_kwds) as fd:
             fd.write(txt)
+        self.log.info('%s stuff into: %s',
+                      'Appended' if self.write_append else 'Created', wfpath)
 
 
 ## TODO: enforce --write aliase from mixin-constructor.
