@@ -853,7 +853,7 @@ DRY-RUN: Now you must send the email your self!
 
     def _parse_response(self, event) -> bool:
         """
-        Triggered by `do_storestamp(verdict=<dict> | tstamp_txt=<str>)` in PREPARE `sample/nosample`.
+        Triggered by `do_storestamp(verdict=<dict> | tstamp_txt=<str>)` in PREPARE sample/nosample.
 
         :param verdict:
             The result of verifying timestamped-response.
