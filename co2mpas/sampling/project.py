@@ -1958,7 +1958,7 @@ class DiceCmd(AppendCmd):
         3. Decision
     - ATTENTION: If it fails, co2dice's project database is left as is; probable
       sub-commands that can examine the situation and continue
-      the diceing from where it is left-over are:
+      the dicing from where it is left-over are:
           co2dice project ls .        # to examine the situation
           co2dice project append      # if IO-files were not added
           co2dice project report | co2dice tstamp wstamp | co2dice project parse tparse
@@ -2085,7 +2085,7 @@ class DiceCmd(AppendCmd):
         finally:
             if not ok:
                 self.log.error(
-                    "Diceing in a single-step has failed (see error below)!\n%s",
+                    "Dicing in a single-step has failed (see error below)!\n%s",
                     self._help_in_case_of_failure)
 
 
