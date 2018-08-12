@@ -142,20 +142,36 @@ Almost all "known limitations" from `v1.7.3` still apply.
 
 Intermediate releases:
 ----------------------
-- Releases with ``r`` prefix signify version published in *PyPi*.
-- Releases with ``v`` prefix signify internal markings.
+.. Note::
+  - Releases with ``r`` prefix signify version published in *PyPi*.
+  - Releases with ``v`` prefix signify internal markings.
 
 
-v1.9.1XX, 10 Aug 2018
-~~~~~~~~~~~~~~~~~~~~
-feat: rename:
-  - cmd ``project dice --> dicer`` not to overload the *dice* word; it is
+v1.9.1b0, 10 Aug 2018
+~~~~~~~~~~~~~~~~~~~~~
+- FEAT: Finished implementing the GUI "Stamp" button
+  (it appends also new-dice *tar*, see :gh:`378`).
+  - Retrofitted `project dice` command into a new "DICER" class, working as
+    *a sequencer of commands* to dice new **or existing** projects
+    through *WebStamper* only.
+
+    Specifically now it compares the given files with the ones already in the project.
+    Manual intervention is still needed in abnormal cases
+    (``--recertify``, over-writing files, etc).
+  - Added  WebAPI + `co2dice tstamp wstamp` cli-commands to check stamps 
+    and connectivity to WebStamper.
+  - Renamed cmd ``project dice --> dicer`` not to overload the *dice* word; it is
     a *sequencer* after all.
-  - ``-W=~/co2dice.reports.txt --> ~/.co2dice/reports.txt`` to reuse dice folder.
+
+- feat: rename ``-W=~/co2dice.reports.txt --> ~/.co2dice/reports.txt`` to reuse dice folder.
+- drop: removed `co2dice project tstamp` command, deprecated since 5-may-2017.
+- enh: Use HTTP-sessions when talking to WebStamper.
+- fix: ``-W--write-fpath`` works more reliably, and by defaults it writes into
+  renamed :file:`~/.co2dice/reports.txt`.
 
 
 v1.9.1a2, 10 Aug 2018
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 Fixes and features for the GUI *Stamp-button* and supporting ``project dice`` command.
 
 - FEAT: ``co2dice project dicer|init|append|report|recv|parse`` and
@@ -176,7 +192,7 @@ Fixes and features for the GUI *Stamp-button* and supporting ``project dice`` co
 
 
 v1.9.1a1, 10 Aug 2018
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 Implement the new ``project dice`` command.
 
 - Work started since `v1.9.1a0: 8 Aug 2018`.
