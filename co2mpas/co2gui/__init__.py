@@ -384,15 +384,19 @@ def get_file_infos(fpath):
 
 
 @contextlib.contextmanager
-def stds_redirected(stdout=None, stderr=None):
-    captured_out = io.StringIO() if stdout is None else stdout
-    captured_err = io.StringIO() if stderr is None else stderr
-    orig_out, sys.stdout = sys.stdout, captured_out
-    orig_err, sys.stderr = sys.stderr, captured_err
+def stds_redirected(new_stdout=None, new_stderr=None):
+    "does not switch the streams that are none"
+    if new_stdout:
+        orig_out, sys.stdout = sys.stdout, new_stdout
+    if new_stderr:
+        orig_err, sys.stderr = sys.stderr, new_stderr
     try:
-        yield captured_out, captured_err
+        yield
     finally:
-        sys.stdout, sys.stderr = orig_out, orig_err
+        if new_stdout:
+            sys.stdout = orig_out
+        if new_stderr:
+            sys.stderr = orig_err
 
 
 def run_python_job(job_name, function, cmd_args, cmd_kwds,
