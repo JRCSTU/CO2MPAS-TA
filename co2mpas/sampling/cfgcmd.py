@@ -222,7 +222,6 @@ class PathsCmd(baseapp.Cmd):
                 for trait
                 in cls.class_own_traits(envvar=(lambda ev: bool(ev))).values()]
 
-
     def run(self, *args):
         if len(args) > 0:
             raise CmdException('Cmd %r takes no arguments, received %d: %r!'
@@ -290,7 +289,6 @@ class PathsCmd(baseapp.Cmd):
             for line in lines:
                 yield "    %s" % line
 
-        import git
         import shutil
 
         yield "PROJECTS:"
@@ -298,7 +296,7 @@ class PathsCmd(baseapp.Cmd):
         git_exe = shutil.which(git_exe)
         yield "  git_exe: %s" % git_exe
 
-        repo = project.ProjectsDB.instance(config=self.config)
+        repo = project.ProjectsDB.instance(config=self.config)  # @UndefinedVariable
         yield "  repo_path: %s" % repo.repopath_resolved
 
 
@@ -361,8 +359,6 @@ class ShowCmd(baseapp.Cmd):
     ).tag(config=True)
 
     def __init__(self, **kwds):
-        import pandalone.utils as pndlu
-
         kwds.setdefault('cmd_aliases', {
             ('s', 'source'): ('ShowCmd.source',
                               ShowCmd.source.help)
@@ -474,6 +470,7 @@ class ShowCmd(baseapp.Cmd):
                 except Exception as ex:
                     self.log.warning("Falied initializing class '%s' due to: %r",
                                      clsname, ex)
+
                     ## Assign config-values as dummy-object's attributes.
                     #  Note: no merging of values now!
                     #
@@ -595,8 +592,6 @@ class DescCmd(baseapp.Cmd):
     ).tag(config=True)
 
     def __init__(self, **kwds):
-        import pandalone.utils as pndlu
-
         kwds.setdefault(
             'cmd_flags', {
                 ('l', 'list'): (
