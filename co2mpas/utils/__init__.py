@@ -327,10 +327,10 @@ def stds_redirected(stdout=None, stderr=None):
     captured_err = io.StringIO() if stderr is None else stderr
     orig_out, sys.stdout = sys.stdout, captured_out
     orig_err, sys.stderr = sys.stderr, captured_err
-
-    yield captured_out, captured_err
-
-    sys.stdout, sys.stderr = orig_out, orig_err
+    try:
+        yield captured_out, captured_err
+    finally:
+        sys.stdout, sys.stderr = orig_out, orig_err
 
 
 _key_value_regex = re.compile(r'^\s*([/_A-Za-z][\w/\.]*)\s*([+*?:@]?)=\s*(.*?)\s*$')
