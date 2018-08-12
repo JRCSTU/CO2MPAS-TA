@@ -363,7 +363,7 @@ class Project(transitions.Machine, ProjectSpec):
         accepted = event.kwargs.get('force', self.force)
         if not accepted:
             self.log.warning('Transition %s-->%s denied!\n  Use force if you must.',
-                           event.transition.source, event.transition.dest)
+                             event.transition.source, event.transition.dest)
         return accepted
 
     def _is_recertify(self, event):
@@ -1633,7 +1633,8 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
 
     help_in_case_of_failure = trt.Unicode(
         tw.dedent("""
-            INFO: project '%(vfid)s' stopped in '%(state)s' state.
+            Dicing project '%(vfid)s' has stopped in '%(state)s' state!
+
             Use console commands to examine the situation and continue::
 
                 ## Examine the current project
@@ -1808,12 +1809,10 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
             if self._http_session:
                 self._http_session.close()
             if not ok:
-                self.log.error(
-                    "Dicing in a single-step has failed (see error below)!\n%s",
-                    self.help_in_case_of_failure %
-                    {'vfid': vfid,
-                     'state': proj.state,
-                     'iofiles': pfiles.build_cmd_line()})
+                self.log.error(self.help_in_case_of_failure %
+                               {'vfid': vfid,
+                                'state': proj.state,
+                                'iofiles': pfiles.build_cmd_line()})
 
 
 ###################
