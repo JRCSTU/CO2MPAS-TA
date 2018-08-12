@@ -890,7 +890,6 @@ def ask_password_UI(parent, prompt, ):
 
 
 class LogPanel(ttk.Labelframe):
-
     """
     Instantiate only once(!), or logging and Tk's ex-handling will get borged.
     """
@@ -2262,6 +2261,9 @@ class Co2guiCmd(baseapp.Cmd):
 
     def run(self, *args):
         self.build_GUI_app()
+        if debug_dice_btn_enabled:
+            self. log.info("DEV-dice_btn: if out-folder->file, lists dummy dice-iofiles")
+
         self.mainloop()
 
     def build_GUI_app(self, root=None):
