@@ -2548,6 +2548,9 @@ class Co2guiCmd(baseapp.Cmd):
                                      jobname, cstep,
                                      static_msg='')
                 except Exception as ex:
+                    if not isinstance(ex, baseapp.CmdException, trt.TraitError):
+                        dicer.log.error("Dicer failed on step %s due to: %s",
+                                        ex, exc_info=1)
                     mediate_guistate("%s FAILED ON STEP %s DUE TO: %s",
                                      jobname, cstep, ex,
                                      level=logging.ERROR,
