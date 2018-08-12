@@ -82,7 +82,13 @@ APPNAME = 'co2mpas'
 log = logging.getLogger(APPNAME)
 
 show_dice_panel = False
+#: Caches if import succedded.
 _is_dice_installed = None
+
+#: NOTE: enable this when developing dice-btn
+#: When true, the `co2mpas ta` btn populates the `outputs_tree`
+#: with entries contained in a file speced by the `out_folder` field.
+debug_dice_btn_enabled = os.environ.get('DEBUG_DICE_BTN') or False
 
 
 def is_dice_installed():
@@ -544,7 +550,8 @@ def make_files_tree(parent, **tree_kwds):
             tree.insert('', 'end', path, text=path,
                         values=values, image=icon, **kwds)
         except Exception as ex:
-            log.warning("Cannot add input file %r due to: %s", path, ex)
+            log.warning("Cannot add input file %r due to: %s",
+                        path, ex, exc_info=1)
 
     tree.insert_path = insert_path
     tree.clear = lambda: tree.delete(*tree.get_children())
@@ -1635,9 +1642,35 @@ class SimulatePanel(ttk.Frame):
 
         return inp_paths, out_folder, cmd_kwds
 
+    def _debug_dice_btn(self):
+        """Populate output-tree with entries contained in a file speced by "out_folder" field.
+
+        file syntax::
+
+            (inp|out|other) <fpath>
+        """
+
+        global _is_dice_installed
+
+        _is_dice_installed = True
+        entries_fpath = self.out_folder_var.get()
+        log.info("DEV-dice_btn: populating `output_tree` with entries from: %s",
+                 entries_fpath)
+        with open(entries_fpath, 'rt') as fp:
+            for l in fp:
+                if l:
+                    kind, fpath = l.split(maxsplit=1)
+                    fpath = fpath.strip()  # \r\n?
+                    self.outputs_tree.insert_path(fpath, False, kind,
+                                                  tags=['ro'])
+        self.mediate_guistate(wstamper_ok=True)
+
     def do_run_co2mpas(self, is_ta):
         from threading import Thread
         from .. import batch as cbatch
+
+        if debug_dice_btn_enabled:
+            return self._debug_dice_btn()
 
         app = self.app
         job_name = "CO2MPAS-TA" if is_ta else "CO2MPAS"
