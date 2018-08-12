@@ -1649,6 +1649,9 @@ class SimulatePanel(ttk.Frame):
         file syntax::
 
             (inp|out|other) <fpath>
+
+        :return:
+            true to signify not to run normal-co2mpas
         """
 
         global _is_dice_installed
@@ -1657,8 +1660,13 @@ class SimulatePanel(ttk.Frame):
 
         tree = self.outputs_tree
         entries_fpath = self.out_folder_var.get()
-        log.warning("DEV-dice_btn: populating `output_tree` with entries from: %s",
+        if osp.isdir(entries_fpath):
+            log.warning("DEV-dice_btn: running co2mpas; not Dice with dummy iofiles.")
+            return False
+
+        log.warning("DEV-dice_btn: populating `output_tree` with dummy-entries from: %s",
                     entries_fpath)
+
         tree.clear()
         with open(entries_fpath, 'rt') as fp:
             for l in fp:
@@ -1668,12 +1676,15 @@ class SimulatePanel(ttk.Frame):
                     tree.insert_path(fpath, False, kind, tags=['ro'])
         self.mediate_guistate(wstamper_ok=True)
 
+        return True
+
     def do_run_co2mpas(self, is_ta):
         from threading import Thread
         from .. import batch as cbatch
 
         if debug_dice_btn_enabled:
-            return self._debug_dice_btn()
+            if self._debug_dice_btn():
+                return
 
         app = self.app
         job_name = "CO2MPAS-TA" if is_ta else "CO2MPAS"
