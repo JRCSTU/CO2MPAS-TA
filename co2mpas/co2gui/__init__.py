@@ -2566,7 +2566,7 @@ class Co2guiCmd(baseapp.Cmd):
         stdpump = StreamsPump(nstreams=2)
         cstep = 0
 
-        def streams_titled(stdout, stderr):
+        def stream_addendums(stdout, stderr):
             if stdout:
                 stdout = "\n  STDOUT: %s" % stdout
             if stderr:
@@ -2578,42 +2578,53 @@ class Co2guiCmd(baseapp.Cmd):
 
             cstep += step
 
-            stdout, stderr = streams_titled(*stdpump.pump_streams())
+            stdout, stderr = stream_addendums(*stdpump.pump_streams())
 
             mediate_guistate("%s step %s of %s: %s%s%s",
                              jobname, cstep, nsteps, msg, stdout, stderr,
                              static_msg=True, progr_step=step, progr_max=nsteps,
                              wstamper_ok=False)
 
-        def dice_task():
-            ## WARN: extra care bc exception in here are not reported!
-
-            with stds_redirected(*stdpump.streams):
-                mediate_guistate("%s LAUNCHED...", jobname,
-                                 static_msg=True)
-                try:
+        def dice_job():
+            try:
+                with stds_redirected(*stdpump.streams):
+                    mediate_guistate("%s LAUNCHED...", jobname,
+                                     static_msg=True)
+                    ## Prepare gui-files for dicer.
                     pfiles = base.PFiles(**pfile_pairs)
+
                     dicer = project.DicerSpec(config=self.config)
 
                     dicer.do_dice_in_one_step(pfiles, progress_listener)
 
-                    stdout, stderr = streams_titled(*stdpump.pump_streams())
+                    stdout, stderr = stream_addendums(*stdpump.pump_streams())
                     mediate_guistate("%s COMPLETED %s STEPS SUCCESSFULY.%s%s",
                                      jobname, cstep, stdout, stderr,
                                      static_msg='', progr_max=0,
                                      wstamper_ok=False)
-                except Exception as ex:
-                    if not isinstance(ex, (baseapp.CmdException, trt.TraitError)):
-                        dicer.log.error("Dicer failed on step %s due to: %s",
-                                        ex, exc_info=1)
-                    mediate_guistate("%s FAILED ON STEP %s DUE TO: %s",
-                                     jobname, cstep, ex,
-                                     level=logging.ERROR,
-                                     static_msg=True, progr_max=0,
-                                     wstamper_ok=True)
+                    #  On success, Dice=btn disabled, not to alow reruns.
 
+            except Exception as ex:
+                stdout, stderr = stream_addendums(*stdpump.pump_streams())
+                mediate_guistate("%s FAILED ON STEP %s DUE TO: %s%s%s",
+                                 jobname, cstep, ex, stdout, stderr, exc_info=1,
+                                 level=logging.ERROR,
+                                 static_msg=True, progr_max=0,
+                                 wstamper_ok=True)
+
+        def job_runner(job, *args, **kwargs):
+            ## WARN: extra care bc exception in threads are lost!
+            #
+            try:
+                job(*args, **kwargs)
+            except Exception as ex:
+                self.log.critical("UNEXPECTED error from %s job: %s",
+                                  jobname, ex, exc_info=1)
+
+        ## Disable btn early to avoid double-clicks.
         mediate_guistate(wstamper_ok=False)
-        Thread(target=dice_task,
+        Thread(target=job_runner,
+               args=(dice_job, ),
                daemon=False).start()
 
     def mainloop(self):
