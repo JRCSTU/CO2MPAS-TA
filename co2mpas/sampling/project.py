@@ -1632,33 +1632,33 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
     """A sequencer for dicing new or existing projects through WebStamper."""
 
     help_in_case_of_failure = trt.Unicode(
-        tw.dedent("""
-            Dicing project '%(vfid)s' has stopped in '%(state)s' state!
+        tw.dedent("""\
+            Dicing '%(vfid)s' will abort in state '%(state)s'.
 
-            Use console commands to examine the situation and continue::
+              -> Intermediate dices & stamps can be found in your '%(write_fpath)s' file.
 
-                ## Examine the current project
-                co2dice project ls  -v  %(vfid)s
+              -> Use console commands to examine the situation and continue::
 
-                ## Add IO-files (if not added)
-                co2dice project append  %(iofiles)s
+                     ## Examine the current project
+                     co2dice project ls  [-v]  %(vfid)s
 
-                ## Generate Dice (or Decision)
-                co2dice project report
+                     ## Add IO-files (if not added)
+                     co2dice project append  %(iofiles)s
 
-            and then visit WebStamper with your browser to submit the Dice.
+                     ## Generate Dice (or Decision)
+                     co2dice project report
 
-            Powerusers can use commands like this to web-stamp through the console:
+                 and then visit WebStamper with your browser to submit the Dice.
 
-                co2dice project report  -W dice.txt    # generate dice if not done yet
-                cat dice.txt | co2dice tstamp wstamp  -W stamp.txt
-                co2dice project parse tparse  stamp.txt
+              -> Powerusers can use commands like this to web-stamp through the console:
 
-            or stamp without intermediate files::
+                     co2dice project report  -W dice.txt    # generate dice if not done yet
+                     cat dice.txt | co2dice tstamp wstamp  -W stamp.txt
+                     co2dice project parse tparse  stamp.txt
 
-                co2dice project report | co2dice tstamp wstamp | co2dice project tparse
+                 or stamp without intermediate files::
 
-            You may find stamps & dices generated in your '~/.co2dice/reports.txt' file.
+                     co2dice project report | co2dice tstamp wstamp | co2dice project tparse
         """)).tag(config=True)
 
     @trt.default('write_fpath')
@@ -1764,7 +1764,8 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
                 diffs = proj.list_pfiles().compare(pfiles)
                 if diffs:
                     raise CmdException(
-                        "Missmatch between files already in the project and new ones:"
+                        "Missmatch between files already in the projects-db and new ones: "
+                        "\n    ('KIND', 'DB_FILE', 'NEW_FILE')"
                         "\n    %s"
                         "\n  Project at '%s' state maybe forced manualy to update them."
                         % (diffs, proj.state))
@@ -1808,10 +1809,12 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
             if self._http_session:
                 self._http_session.close()
             if not ok:
-                self.log.error(self.help_in_case_of_failure %
-                               {'vfid': vfid,
-                                'state': proj.state,
-                                'iofiles': pfiles.build_cmd_line()})
+                self.log.warning(self.help_in_case_of_failure % {
+                    'vfid': vfid,
+                    'state': proj.state,
+                    'iofiles': pfiles.build_cmd_line(),
+                    'write_fpath': self.write_fpath,
+                })
 
 
 ###################
