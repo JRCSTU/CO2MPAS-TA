@@ -1546,7 +1546,8 @@ class SimulatePanel(ttk.Frame):
                          progr_step=None, progr_max=None,
                          new_out_file_tuple=None,
                          check_outfiles_exist=False,
-                         wstamper_ok=None):
+                         wstamper_ok=None,
+                         **log_kwds):
         """
         Handler of states for all panel's widgets and progressbar/status.
 
@@ -1562,10 +1563,10 @@ class SimulatePanel(ttk.Frame):
         if msg is not None:
             delay = None
             if isinstance(static_msg, str):
-                self.app.lstatus(static_msg, level=level, delay=0)
+                self.app.lstatus(static_msg, level=level, delay=0, **log_kwds)
             else:
                 delay = 0 if static_msg else None
-            self.app.lstatus(msg, *args, level=level, delay=delay)
+            self.app.lstatus(msg, *args, level=level, delay=delay, **log_kwds)
         if progr_step is not None or progr_max is not None:
             self.app.progress(progr_step, progr_max)
 
@@ -2425,7 +2426,7 @@ class Co2guiCmd(baseapp.Cmd):
     _clear_cb_id = None
     _motd_cb_id = None
 
-    def status(self, msg, *args, level: Union[Text, int]=None, delay=None, kwds={}):
+    def status(self, msg, *args, level: Union[Text, int]=None, delay=None, **kwds):
         """
         :param level:
             logging-level(int) or tag(str), if None, defaults to INFO.
