@@ -150,6 +150,13 @@ Intermediate releases:
   - Releases with ``v`` prefix signify internal markings.
 
 
+v1.9.1rc0, 10 Aug 2018
+~~~~~~~~~~~~~~~~~~~~~
+- doc: Update DICE-changes since previous major release.
+- doc: Add glossary terms for links from new data in the excel input-file .
+- fix: minor fixes in GUI<-->Dicer interface and error-reporting.
+
+
 v1.9.1b0, 10 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~
 - FEAT: Finished implementing the GUI "Stamp" button
@@ -168,7 +175,8 @@ v1.9.1b0, 10 Aug 2018
 
 - feat: rename ``-W=~/co2dice.reports.txt --> ~/.co2dice/reports.txt`` to reuse dice folder.
 - drop: removed `co2dice project tstamp` command, deprecated since 5-may-2017.
-- enh: Use HTTP-sessions when talking to WebStamper.
+- enh: `project dicer` cmd uses HTTP-sessions when talking to WebStamper, but
+  not the GUI button yet.
 - fix: ``-W--write-fpath`` works more reliably, and by defaults it writes into
   renamed :file:`~/.co2dice/reports.txt`.
 
