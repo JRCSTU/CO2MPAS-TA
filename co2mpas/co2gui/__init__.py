@@ -61,6 +61,7 @@ from collections import Counter, OrderedDict, namedtuple, ChainMap, defaultdict
 from datetime import datetime
 from tkinter import StringVar, ttk, filedialog
 from typing import Any, Union, Mapping, Text, Dict, Callable  # @UnusedImport
+import contextlib
 import io
 import logging
 import os
@@ -382,6 +383,18 @@ def get_file_infos(fpath):
     return res
 
 
+@contextlib.contextmanager
+def stds_redirected(stdout=None, stderr=None):
+    captured_out = io.StringIO() if stdout is None else stdout
+    captured_err = io.StringIO() if stderr is None else stderr
+    orig_out, sys.stdout = sys.stdout, captured_out
+    orig_err, sys.stderr = sys.stderr, captured_err
+    try:
+        yield captured_out, captured_err
+    finally:
+        sys.stdout, sys.stderr = orig_out, orig_err
+
+
 def run_python_job(job_name, function, cmd_args, cmd_kwds,
                    stdout=None, stderr=None, on_finish=None):
     """
@@ -389,7 +402,7 @@ def run_python_job(job_name, function, cmd_args, cmd_kwds,
 
     Suitable to be run within a thread.
     """
-    from ..utils import stds_redirected, logconfutils as lcu
+    from ..utils import logconfutils as lcu
     import schedula
 
     ## Numpy error-config is on per-thread basis:
@@ -399,7 +412,7 @@ def run_python_job(job_name, function, cmd_args, cmd_kwds,
     lcu._set_numpy_logging()
 
     ex = None
-    with stds_redirected(stdout, stderr) as (stdout, stderr):
+    with stds_redirected(stdout, stderr):
         try:
             function(*cmd_args, **cmd_kwds)
         except (cmain.CmdException, schedula.DispatcherAbort) as ex1:
@@ -2537,15 +2550,18 @@ class Co2guiCmd(baseapp.Cmd):
         def dice_task():
             ## WARN: extra care bc exception in here are not reported!
 
-            with utils.stds_redirected(*stdpump.streams):
+            with stds_redirected(*stdpump.streams):
                 mediate_guistate("%s LAUNCHED...", jobname,
                                  static_msg=True)
                 try:
                     pfiles = base.PFiles(**pfile_pairs)
                     dicer = project.DicerSpec(config=self.config)
+
                     dicer.do_dice_in_one_step(pfiles, progress_listener)
-                    mediate_guistate("%s COMPLETED %s STEPS SUCCESSFULY",
-                                     jobname, cstep,
+
+                    stdout, stderr = streams_titled(*stdpump.pump_streams())
+                    mediate_guistate("%s COMPLETED %s STEPS SUCCESSFULY.%s%s",
+                                     jobname, cstep, stdout, stderr,
                                      static_msg='', progr_max=0,
                                      wstamper_ok=False)
                 except Exception as ex:
