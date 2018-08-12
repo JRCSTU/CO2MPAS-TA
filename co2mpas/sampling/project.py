@@ -363,7 +363,7 @@ class Project(transitions.Machine, ProjectSpec):
         accepted = event.kwargs.get('force', self.force)
         if not accepted:
             self.log.warning('Transition %s-->%s denied!\n  Use force if you must.',
-                             event.transition.source, event.transition.dest)
+                           event.transition.source, event.transition.dest)
         return accepted
 
     def _is_recertify(self, event):
