@@ -2622,11 +2622,14 @@ class Co2guiCmd(baseapp.Cmd):
                                      static_msg='', progr_max=0,
                                      wstamper_ok=False)
                     #  On success, Dice=btn disabled, not to alow reruns.
-
             except Exception as ex:
                 stdout, stderr = stream_addendums(*stdpump.pump_streams())
+                polite = isinstance(ex, baseapp.CmdException)
+                err = ex if polite else '%s: %s' % (type(ex).__name__, ex)
+                exc_info = logging.getLogger().isEnabledFor(logging.DEBUG) or not polite
                 mediate_guistate("%s FAILED ON STEP %s DUE TO: %s%s%s",
-                                 jobname, cstep, ex, stdout, stderr, exc_info=1,
+                                 jobname, cstep, err, stdout, stderr,
+                                 exc_info=exc_info,
                                  level=logging.ERROR,
                                  static_msg=True, progr_max=0,
                                  wstamper_ok=True)
@@ -2637,11 +2640,11 @@ class Co2guiCmd(baseapp.Cmd):
             try:
                 job(*args, **kwargs)
             except Exception as ex:
-                self.log.critical("UNEXPECTED error from %s job: %s",
+                self.log.critical("UNEXPECTED error from job '%s': %s",
                                   jobname, ex, exc_info=1)
 
         ## Disable btn early to avoid double-clicks.
-        mediate_guistate(wstamper_ok=False)
+        mediate_guistate(wstamper_ok=False, progr_step=0)
         Thread(target=job_runner,
                args=(dice_job, ),
                daemon=False).start()
