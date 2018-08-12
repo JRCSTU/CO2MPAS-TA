@@ -28,12 +28,16 @@ Model:
 
   This is not affecting the TA mode.
 
-- fix(co2mpas_template.xlsx): New version 2.3.0.
+- fix(co2mpas_template.xlsx): The parameter "Vehicle Family ID" changes to 
+  "Interpolation Family ID".
+
+- fix(co2mpas_template.xlsx): Meta data.
 
   Add additional sheets for meta data.
   As for September 2018,
   the user can voluntarily add data related to the all WLTP tests held for
   a specific Interpolation Family ID.
+  Since this addition is optional, the cells are colored orange. 
 
 - fix(vehicle): Default ``n_dyno_axes`` as function of
   ``n_wheel_drive`` for wltp (4wd-->2d, 2wd-->1d).
