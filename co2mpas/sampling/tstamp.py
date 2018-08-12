@@ -1687,6 +1687,13 @@ class WstampSpec(dice.DiceSpec):
             cls._is_not_empty, cls._is_pure_email_address)
         super().__init__(*args, **kwds)
 
+    def _content_legth(self, response):
+        try:
+            return int(response.headers['Content-length'])
+        except Exception as ex:
+            self.log.warning("Could not get http content-length due to: %s", ex)
+            return 0
+
     def stamp_dice(self, dice, dry_run=None, http_session=None):
         "Invokes `check` API (not `stamp`) if --dry-run or not dice"
         import requests
@@ -1721,10 +1728,9 @@ class WstampSpec(dice.DiceSpec):
         with req.post(endpoint, data=data, stream=True) as r:
             ok = r.status_code == 200
             threshold = self.defer_error_response_size_theshold
-            should_fetch_response = (
-                ok or
-                self.verbose or
-                int(r.headers['content-length']) < threshold)
+            should_fetch_response = (ok or
+                                     self.verbose or
+                                     self._content_legth(r) < threshold)
 
             if should_fetch_response:
                 text = r.text
