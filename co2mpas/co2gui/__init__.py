@@ -1574,9 +1574,10 @@ class SimulatePanel(ttk.Frame):
         for b in (self._run_batch_btn, self._run_ta_btn):
             b['cursor'] = 'watch' if job_alive else 'arrow'
 
+        ## Update Outputs-tree.
+        #
         if new_out_file_tuple:
             self.outputs_tree.insert_path(*new_out_file_tuple, tags=['ro'])
-
         if check_outfiles_exist:
             ## Delete files not actually there.
             #
@@ -2514,39 +2515,45 @@ class Co2guiCmd(baseapp.Cmd):
         stdpump = StreamsPump(nstreams=2)
         cstep = 0
 
+        def streams_titled(stdout, stderr):
+            if stdout:
+                stdout = "\n  STDOUT: %s" % stdout
+            if stderr:
+                stderr = "\n  STDERR: %s" % stderr
+            return stdout, stderr
+
         def progress_listener(msg: str=None, step=1, nsteps=None):
             nonlocal cstep
 
             cstep += step
 
-            stdout, stderr = stdpump.pump_streams()
-            if stdout:
-                stdout = "\n  STDOUT: %s" % stdout
-            if stderr:
-                stderr = "\n  STDERR: %s" % stderr
+            stdout, stderr = streams_titled(*stdpump.pump_streams())
 
-            mediate_guistate("%s %s of %s: %s%s%s",
+            mediate_guistate("%s step %s of %s: %s%s%s",
                              jobname, cstep, nsteps, msg, stdout, stderr,
-                             progr_step=step, progr_max=nsteps,
+                             static_msg=True, progr_step=step, progr_max=nsteps,
                              wstamper_ok=False)
 
         def dice_task():
+            ## WARN: extra care bc exception in here are not reported!
+
             with utils.stds_redirected(*stdpump.streams):
                 mediate_guistate("%s LAUNCHED...", jobname,
-                                 progr_step=0, progr_max=-1)
+                                 static_msg=True)
                 try:
                     pfiles = base.PFiles(**pfile_pairs)
                     dicer = project.DicerSpec(config=self.config)
                     dicer.do_dice_in_one_step(pfiles, progress_listener)
                     mediate_guistate("%s COMPLETED %s STEPS SUCCESSFULY",
-                                     jobname, cstep)
+                                     jobname, cstep,
+                                     static_msg='')
                 except Exception as ex:
-                    mediate_guistate("%s FAILED ON %s STEP DUE TO: %s",
+                    mediate_guistate("%s FAILED ON STEP %s DUE TO: %s",
                                      jobname, cstep, ex,
                                      level=logging.ERROR,
                                      static_msg=True)
                 finally:
-                    mediate_guistate(progr_step=0, progr_max=-1,
+                    mediate_guistate(progr_max=0,
                                      wstamper_ok=True)
 
         mediate_guistate(wstamper_ok=False)
