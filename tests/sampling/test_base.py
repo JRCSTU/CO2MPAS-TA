@@ -76,33 +76,28 @@ _fileset = [
 ]
 
 
-@pytest.fixture(scope='session')
-def cmpdirs(tmpdir_factory):
-    mdir = tmpdir_factory.mktemp('M')
-    sdir = tmpdir_factory.mktemp('S')
-    return mdir, sdir
-
-
 @pytest.mark.parametrize('many, some, exp', _fileset)
 def test_compare_pfiles_empty(many: PFiles, some: PFiles, exp,
-                              cmpdirs):
-    mdir, sdir = cmpdirs
+                              tmpdir_factory):
+    mdir = tmpdir_factory.mktemp('M')
+    sdir = tmpdir_factory.mktemp('S')
     mdir.ensure('a')
     sdir.ensure('a')
     mdir.ensure('b')
     sdir.ensure('b')
-    assert many.compare(some, *cmpdirs) == exp
+    assert many.compare(some, mdir, sdir) == exp
 
 
 @pytest.mark.parametrize('many, some, exp', _fileset)
 def test_compare_pfiles_equals(many: PFiles, some: PFiles, exp,
-                               cmpdirs):
-    mdir, sdir = cmpdirs
+                               tmpdir_factory):
+    mdir = tmpdir_factory.mktemp('M')
+    sdir = tmpdir_factory.mktemp('S')
     (mdir / 'a').write('abc')
     (sdir / 'a').write('abc')
     (mdir / 'b').write('123')
     (sdir / 'b').write('123')
-    assert many.compare(some, *cmpdirs) == exp
+    assert many.compare(some, mdir, sdir) == exp
 
 
 @pytest.mark.parametrize('many, some, exp', [
@@ -114,10 +109,11 @@ def test_compare_pfiles_equals(many: PFiles, some: PFiles, exp,
     (PFiles(_, ['a', 'b']), PFiles(_, ['b']), ('out', 'b', 'b')),
 ])
 def test_compare_pfiles_diff(many: PFiles, some: PFiles, exp,
-                             cmpdirs):
-    mdir, sdir = cmpdirs
+                             tmpdir_factory):
+    mdir = tmpdir_factory.mktemp('M')
+    sdir = tmpdir_factory.mktemp('S')
     (mdir / 'a').write('abc')
     (sdir / 'a').write('ABC')
     (mdir / 'b').write('123')
     (sdir / 'b').ensure()
-    assert many.compare(some, *cmpdirs) == exp
+    assert many.compare(some, mdir, sdir) == exp
