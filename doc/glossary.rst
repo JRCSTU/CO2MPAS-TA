@@ -316,6 +316,10 @@ Vehicle general characteristics
     ``engine fuel lower heating value``
         Lower heating value of the fuel used in the test, expressed in [kJ/kg] of fuel.
 
+    ``fuel_heating_value``
+        Fuel heating value in kwh/l: Value according to the Table A6.App2/1 
+        in Regulation (EU) No [2017/1151][WLTP] (Optional).
+
     ``fuel_carbon_content_percentage``
         The amount of carbon present in the fuel by weight, expressed in [%].
 
@@ -386,6 +390,14 @@ Vehicle general characteristics
 
     ``battery_capacity``
         Battery capacity [Ah].
+        
+    ``battery_voltage``
+        For low voltage battery as described in Appendix 2 
+        to Sub-Annex 6 to Annex XXI to Regulation (EU) No [2017/1151][WLTP] (Optional).
+
+    ``atct_family_correction_factor``
+        family correction factor for correcting for representative regional 
+        temperature conditions (ATCT) (Optional).
 
     ``calibration.initial_temperature.WLTP-H``
         Initial temperature of the test cell during the WLTP-H test. It is used to calibrate the thermal model.
@@ -674,7 +686,8 @@ If no input is provided, the |co2mpas| model will use the default value.
 Dyno configuration
 ------------------
 .. glossary::
-    ``n_dyno_axes.WLTP-H``
+
+    ``n_dyno_axes.WLTP-H``  
         The WLTP regulation states that WLTP tests should be performed using a dyno with 2 rotating axis.
         Therefore, the default value for this variable is 2.
         Setit to 1 in case a 1 rotating axis dyno was used during the WLTP-H test.
@@ -684,6 +697,19 @@ Dyno configuration
         Therefore, the default value for this variable is 2.
         Set it to 1 in case a 1 rotating axis dyno was used during the WLTP-L test.
 
+
+Meta
+---------
+.. glossary::
+
+    ``fuel_consumption_combined``
+        Combined fuel consumption for WLTP-H test [l/100 km].
+
+    ``rcb_correction``
+        Correction performed? (To be edited).
+        
+    ``speed_distance_correction``
+        Correction performed? (To be edited).
 
 DICE
 ====

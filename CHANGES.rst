@@ -14,27 +14,30 @@ Model:
 
 - feat(co2_emissions): Add ``engine_n_cylinders`` as input value and a TA parameter.
 
-- feat(ta): New ta output file.
+- feat(ta): New TA output file.
 
   Running CO2MPAS in TA mode, will produce an extra file containing the DICE report.
-  This file will be used in the new version of DICE.
+  This file will be used in the feature version of DICE.
 
 - feat(core): Improve calibration performances 60%.
 
 - feat(manual): Add a manual prediction model according GTR.
 
 - feat(gearbox): Add utility to design gearbox ratios if they cannot be identified
-  based on `maximum_velocity` and `maximum_vehicle_laden_mass`. This is not
-  affecting the TA mode.
+  based on ``maximum_velocity`` and ``maximum_vehicle_laden_mass``.
 
   This is not affecting the TA mode.
 
-- fix(co2mpas_template.xlsx): New version 2.3.0.
+- fix(co2mpas_template.xlsx): The parameter "Vehicle Family ID" changes to
+  "Interpolation Family ID".
+
+- fix(co2mpas_template.xlsx): Meta data.
 
   Add additional sheets for meta data.
   As for September 2018,
   the user can voluntarily add data related to the all WLTP tests held for
   a specific Interpolation Family ID.
+  Since this addition is optional, the cells are colored orange.
 
 - fix(vehicle): Default ``n_dyno_axes`` as function of
   ``n_wheel_drive`` for wltp (4wd-->2d, 2wd-->1d).
@@ -158,7 +161,7 @@ v1.9.1b0, 10 Aug 2018
     Specifically now it compares the given files with the ones already in the project.
     Manual intervention is still needed in abnormal cases
     (``--recertify``, over-writing files, etc).
-  - Added  WebAPI + `co2dice tstamp wstamp` cli-commands to check stamps 
+  - Added  WebAPI + `co2dice tstamp wstamp` cli-commands to check stamps
     and connectivity to WebStamper.
   - Renamed cmd ``project dice --> dicer`` not to overload the *dice* word; it is
     a *sequencer* after all.
