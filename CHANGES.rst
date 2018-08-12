@@ -14,18 +14,17 @@ Model:
 
 - feat(co2_emissions): Add ``engine_n_cylinders`` as input value and a TA parameter.
 
-- feat(ta): New ta output file.
+- feat(ta): New TA output file.
 
   Running CO2MPAS in TA mode, will produce an extra file containing the DICE report.
-  This file will be used in the new version of DICE.
+  This file will be used in the feature version of DICE.
 
 - feat(core): Improve calibration performances 60%.
 
 - feat(manual): Add a manual prediction model according GTR.
 
 - feat(gearbox): Add utility to design gearbox ratios if they cannot be identified
-  based on `maximum_velocity` and `maximum_vehicle_laden_mass`. This is not
-  affecting the TA mode.
+  based on ``maximum_velocity`` and ``maximum_vehicle_laden_mass``.
 
   This is not affecting the TA mode.
 
