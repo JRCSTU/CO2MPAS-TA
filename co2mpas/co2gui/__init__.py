@@ -2546,17 +2546,16 @@ class Co2guiCmd(baseapp.Cmd):
                     dicer.do_dice_in_one_step(pfiles, progress_listener)
                     mediate_guistate("%s COMPLETED %s STEPS SUCCESSFULY",
                                      jobname, cstep,
-                                     static_msg='')
+                                     static_msg='', progr_max=0,
+                                     wstamper_ok=False)
                 except Exception as ex:
-                    if not isinstance(ex, baseapp.CmdException, trt.TraitError):
+                    if not isinstance(ex, (baseapp.CmdException, trt.TraitError)):
                         dicer.log.error("Dicer failed on step %s due to: %s",
                                         ex, exc_info=1)
                     mediate_guistate("%s FAILED ON STEP %s DUE TO: %s",
                                      jobname, cstep, ex,
                                      level=logging.ERROR,
-                                     static_msg=True)
-                finally:
-                    mediate_guistate(progr_max=0,
+                                     static_msg=True, progr_max=0,
                                      wstamper_ok=True)
 
         mediate_guistate(wstamper_ok=False)
