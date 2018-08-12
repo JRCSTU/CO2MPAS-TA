@@ -57,7 +57,7 @@ from co2mpas import (__main__ as cmain, __version__,
                      __updated__, __copyright__, __license__, __uri__)  # @UnusedImport
 from co2mpas._vendor import traitlets as trt
 from co2mpas.sampling import baseapp
-from collections import Counter, OrderedDict, namedtuple, ChainMap
+from collections import Counter, OrderedDict, namedtuple, ChainMap, defaultdict
 from datetime import datetime
 from tkinter import StringVar, ttk, filedialog
 from typing import Any, Union, Mapping, Text, Dict, Callable  # @UnusedImport
@@ -385,7 +385,7 @@ def get_file_infos(fpath):
 def run_python_job(job_name, function, cmd_args, cmd_kwds,
                    stdout=None, stderr=None, on_finish=None):
     """
-    Redirects stdout/stderr to logging, and notifies when finished.
+    Redirects stdout/stderr to (log-panel-logged) logging, and notifies when finished.
 
     Suitable to be run within a thread.
     """
@@ -427,6 +427,25 @@ def run_python_job(job_name, function, cmd_args, cmd_kwds,
         stderr = stderr.getvalue()
         if stderr:
             log.error("Job %s stderr: %s", job_name, stderr)
+
+
+class StreamsPump:
+    """
+    To provide eg the 2 stdout/stderr streams required by :func:`..utils.stds_redirected()`.
+    """
+    def __init__(self, nstreams):
+        self.streams = tuple(io.StringIO() for _ in range(nstreams))
+
+    def pump_streams(self):
+        "Returns collected streams (or '') and empties them afterwards."
+        def pump(s):
+            val = s.getvalue()
+            s.seek(0)
+            s.truncate()
+
+            return val
+
+        return [pump(s) for s in self.streams]
 
 
 _loaded_icons = weakref.WeakValueDictionary()
@@ -1292,7 +1311,7 @@ class SimulatePanel(ttk.Frame):
         if is_dice_installed():
             def collect_dice_files_and_notify(do_dice=None):
                 "When not `do_dice`, it reports weather dice-files exist."
-                fpath_kind_pairs = []  # [(fpath, kind)]
+                pfiles = defaultdict(list)
                 for fpath in tree.get_children():
                     values = tree.item(fpath, 'values')
 
@@ -1305,11 +1324,11 @@ class SimulatePanel(ttk.Frame):
 
                     kind = values[1]
                     if kind:
-                        fpath_kind_pairs.append((fpath, kind))
+                        pfiles[kind].append(fpath)
 
-                if fpath_kind_pairs:
+                if pfiles:
                     if do_dice:
-                        self.app.do_run_dice(fpath_kind_pairs)
+                        self.app.do_run_dice(pfiles, self.mediate_guistate)
                     else:
                         return True
             tree.has_dice_files = collect_dice_files_and_notify
@@ -1621,6 +1640,9 @@ class SimulatePanel(ttk.Frame):
             """
             A *tqdm* replacement that pumps stdout/stderr when iterated by :func:`run_python_job`.
 
+            Cannot not use :class:`StreamsPump` bc it needs full stringIO.value
+            on finish.
+
             :ivar i:
                 Enumarates progress calls.
             :ivar out_i:
@@ -1702,6 +1724,9 @@ class SimulatePanel(ttk.Frame):
                     from co2mpas.sampling import tstamp
                     try:
                         wstampsepc = tstamp.WstampSpec(config=app.config)
+                        app.log.info(
+                            "Enable Dice button if WebStamper(%s) is live.",
+                            wstampsepc.check_url)
                         wstampsepc.stamp_dice('', dry_run=True)
 
                         return True
@@ -2432,22 +2457,23 @@ class Co2guiCmd(baseapp.Cmd):
 
         self._motd_cb_id = self._status_text.after(delay, show)
 
-    def progress(self, step=None, maximum=None):
+    def progress(self, step=None, nsteps=None):
         """
         :param step:
             >0: increment step, <=0: set absolute step, None: ignored
-        :param maximum:
+        :param nsteps:
             0 disables progressbar, negatives, set `indeterminate` mode, None ignored.
         """
+        ## FIXME: Why is progressbar-gui code in App?? (Aug 2018)
         progr_bar = self._progr_bar
         progr_var = self._progr_var
 
-        if maximum is not None:
-            if maximum == 0:
+        if nsteps is not None:
+            if nsteps == 0:
                 progr_bar.grid_forget()
             else:
-                mode = 'determinate' if maximum > 0 else 'indeterminate'
-                progr_bar.configure(mode=mode, maximum=maximum)
+                mode = 'determinate' if nsteps > 0 else 'indeterminate'
+                progr_bar.configure(mode=mode, maximum=nsteps)
                 progr_bar.grid(column=1, row=1, sticky='nswe')
 
         if step is not None:
@@ -2479,15 +2505,53 @@ class Co2guiCmd(baseapp.Cmd):
         verbose = logging.getLogger().level <= logging.DEBUG
         show_about(top, verbose=verbose)
 
-    def do_run_dice(self, pfile_pairs):
-        import subprocess as subp
+    def do_run_dice(self, pfile_pairs, mediate_guistate):
+        from threading import Thread
+        from ..sampling import base, project
+        from .. import utils
 
-        cmd = 'co2dice tstamp wstamp -n'.split()
-        subp.run(cmd, input='')
+        jobname = 'DICER'
+        stdpump = StreamsPump(nstreams=2)
+        cstep = 0
 
-        cli_opts = sum((['--%s' % kind, fpath] for fpath, kind in pfile_pairs), [])
-        cmd = 'co2dice project dice -n'.split() + cli_opts
-        subp.run(cmd)
+        def progress_listener(msg: str=None, step=1, nsteps=None):
+            nonlocal cstep
+
+            cstep += step
+
+            stdout, stderr = stdpump.pump_streams()
+            if stdout:
+                stdout = "\n  STDOUT: %s" % stdout
+            if stderr:
+                stderr = "\n  STDERR: %s" % stderr
+
+            mediate_guistate("%s %s of %s: %s%s%s",
+                             jobname, cstep, nsteps, msg, stdout, stderr,
+                             progr_step=step, progr_max=nsteps,
+                             wstamper_ok=False)
+
+        def dice_task():
+            with utils.stds_redirected(*stdpump.streams):
+                mediate_guistate("%s LAUNCHED...", jobname,
+                                 progr_step=0, progr_max=-1)
+                try:
+                    pfiles = base.PFiles(**pfile_pairs)
+                    dicer = project.DicerSpec(config=self.config)
+                    dicer.do_dice_in_one_step(pfiles, progress_listener)
+                    mediate_guistate("%s COMPLETED %s STEPS SUCCESSFULY",
+                                     jobname, cstep)
+                except Exception as ex:
+                    mediate_guistate("%s FAILED ON %s STEP DUE TO: %s",
+                                     jobname, cstep, ex,
+                                     level=logging.ERROR,
+                                     static_msg=True)
+                finally:
+                    mediate_guistate(progr_step=0, progr_max=-1,
+                                     wstamper_ok=True)
+
+        mediate_guistate(wstamper_ok=False)
+        Thread(target=dice_task,
+               daemon=False).start()
 
     def mainloop(self):
         try:
