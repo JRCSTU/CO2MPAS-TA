@@ -89,6 +89,7 @@ _is_dice_installed = None
 #: When true, the `co2mpas ta` btn populates the `outputs_tree`
 #: with entries contained in a file speced by the `out_folder` field.
 debug_dice_btn_enabled = os.environ.get('DEBUG_DICE_BTN') or False
+motd_repeat_interval_ms = 0 if debug_dice_btn_enabled else (256 * 1000)
 
 
 def is_dice_installed():
@@ -2492,7 +2493,8 @@ class Co2guiCmd(baseapp.Cmd):
         status['state'] = tk.DISABLED
         status.update()
 
-    def show_motd(self, delay=21 * 1000, motd_ix=None):
+    def show_motd(self, delay=motd_repeat_interval_ms,
+                  motd_ix=None):
         def show():
             # Do not hide static msgs; reschedule in case they leave.
             #
@@ -2505,9 +2507,11 @@ class Co2guiCmd(baseapp.Cmd):
                     msg = random.choice(MOTDs)
                 self.status('Tip: %s', msg, level='help')
 
-            self.show_motd()  # Re-schedule motd.
+            # Re-schedule motd.
+            self.show_motd()
 
-        self._motd_cb_id = self._status_text.after(delay, show)
+        if delay:
+            self._motd_cb_id = self._status_text.after(delay, show)
 
     def progress(self, step=None, nsteps=None):
         """
