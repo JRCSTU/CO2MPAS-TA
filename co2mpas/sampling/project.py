@@ -1785,9 +1785,8 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
                 self.write_file(dice, 'Dice')
 
             notify("stamping Dice through WebStamper...", max_step=nsteps)
-            wstamper = tstamp.WstampSpec(config=self.config,
-                                         http_session=http_session)
-            stamp = wstamper.stamp_dice(dice)
+            wstamper = tstamp.WstampSpec(config=self.config)
+            stamp = wstamper.stamp_dice(dice, http_session=http_session)
             self.log.info("Stamp was: \n%s", self.shrink_text(stamp))
             if self.write_fpath:
                 self.write_file(stamp, 'Stamp')
