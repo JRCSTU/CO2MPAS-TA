@@ -1654,16 +1654,18 @@ class SimulatePanel(ttk.Frame):
         global _is_dice_installed
 
         _is_dice_installed = True
+
+        tree = self.outputs_tree
         entries_fpath = self.out_folder_var.get()
-        log.info("DEV-dice_btn: populating `output_tree` with entries from: %s",
-                 entries_fpath)
+        log.warning("DEV-dice_btn: populating `output_tree` with entries from: %s",
+                    entries_fpath)
+        tree.clear()
         with open(entries_fpath, 'rt') as fp:
             for l in fp:
                 if l:
                     kind, fpath = l.split(maxsplit=1)
                     fpath = fpath.strip()  # \r\n?
-                    self.outputs_tree.insert_path(fpath, False, kind,
-                                                  tags=['ro'])
+                    tree.insert_path(fpath, False, kind, tags=['ro'])
         self.mediate_guistate(wstamper_ok=True)
 
     def do_run_co2mpas(self, is_ta):
