@@ -1805,6 +1805,8 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
 
             return self.shrink_text(decision)
         finally:
+            if self._http_session:
+                self._http_session.close()
             if not ok:
                 self.log.error(
                     "Dicing in a single-step has failed (see error below)!\n%s",
