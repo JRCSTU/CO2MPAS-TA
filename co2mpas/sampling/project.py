@@ -594,7 +594,7 @@ class Project(transitions.Machine, ProjectSpec):
         cmsg = self._make_commitMsg(action, report)
         report_txt = cmsg.dump_commit_msg(width=self.git_desc_width)
 
-        self.log.info('Committing %s: %s', self, action)
+        self.log.debug('Committing %s: %s', self, action)
         self._commit(repo, report_txt, cmsg.p)
 
         ## Update result if not any cb previous has done it first
@@ -614,7 +614,6 @@ class Project(transitions.Machine, ProjectSpec):
                     tagname = _find_dice_tag(repo, self.pname,
                                              self.max_dices_per_project,
                                              fetch_next=True)
-                    self.log.info('Tagging %s: %s', self, tagname)
                     assert isinstance(tagname, str), tagname
 
                     with self._make_msg_tmpfile(report_txt.encode()) as msg_fpath:
@@ -625,6 +624,8 @@ class Project(transitions.Machine, ProjectSpec):
                             local_user=git_auth.master_key_resolved)
 
                     self.result = _read_dice_tag(repo, tagref)
+                    key_uid = self.extract_uid_from_report(self.result)
+                    self.log.info("Tagged '%s' with key %s.", tagname, key_uid)
 
                     ok = True
                 finally:
