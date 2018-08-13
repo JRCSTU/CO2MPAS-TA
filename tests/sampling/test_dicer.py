@@ -96,12 +96,21 @@ def test_dicer_new(dicerspec):
     dicerspec.do_dice_in_one_step(pfiles)
 
 
-def test_dicer_rerun(dicerspec):
+def test_dicer_rerun(dicerspec, tmpdir):
+    from py.path import local
+
     pdb = ProjectsDB.instance(config=traitcfg)  # @UndefinedVariable
     cid = pdb.repo.head.commit.binsha
 
-    pfiles = PFiles([test_inp_fpath], [test_out_fpath],
-                    [osp.join(osp.dirname(__file__), '__init__.py')])
+    ## Apoend files for comparison from different folders.
+    #
+    ifile = tmpdir.mkdir('inp') / 'inp.xlsx'
+    local(test_inp_fpath).copy(ifile)
+    ofile = tmpdir.mkdir('out') / 'out.xlsx'
+    local(test_out_fpath).copy(ofile)
+    pfiles = PFiles([ifile], [ofile],
+                    ## FIXME: should fail if LESS files appended!??
+                    )
 
     ## State: decided
     #
@@ -111,22 +120,18 @@ def test_dicer_rerun(dicerspec):
     assert pdb.current_project().state in ('sample', 'nosample')
     assert pdb.repo.head.commit.binsha == cid
 
+    ## Rewind to 'tagged'.
     reset_git(pdb, 'HEAD~')
-    #
-    ## Start-state: tagged
-    #
-    pfiles = PFiles([test_inp_fpath], [test_out_fpath],
-                    [osp.join(osp.dirname(__file__), '__init__.py')])
     dicerspec.do_dice_in_one_step(pfiles)
     assert pdb.current_project().state in ('sample', 'nosample')
     assert pdb.repo.head.commit.binsha != cid
 
+    ## Rewind to 'wltp_iof'.
     reset_git(pdb, 'HEAD~~')
+    ## Relative paths:
     #
-    ## Start-state: wltp_iof
-    #
-    pfiles = PFiles([test_inp_fpath], [test_out_fpath],
-                    [osp.join(osp.dirname(__file__), '__init__.py')])
+    ifile.dirpath().chdir()
+    pfiles = PFiles(['inp.xlsx'], ['../out/out.xlsx'])
     dicerspec.do_dice_in_one_step(pfiles)
     assert pdb.current_project().state in ('sample', 'nosample')
     assert pdb.repo.head.commit.binsha != cid

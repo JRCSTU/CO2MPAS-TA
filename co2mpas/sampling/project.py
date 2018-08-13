@@ -1438,7 +1438,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         wd_fpath = self.repo.working_tree_dir
         for io_kind, fpaths in pfiles._asdict().items():
             for fp in fpaths:
-                src_fpath = osp.join(io_kind, fp)
+                src_fpath = fp
                 dest_fpath = osp.join(wd_fpath, io_kind,
                                       osp.split(fp)[1])
                 shutil.copy(src_fpath, dest_fpath)
