@@ -314,7 +314,7 @@ class Project(transitions.Machine, ProjectSpec):
         return cls('<zygote>', None)
 
     @classmethod
-    def new_instance(cls, pname, repo, config) -> 'Project':
+    def new_instance(cls, pname, pdb: 'ProjectsDB', config) -> 'Project':
         """
         Avoid repeated FSM constructions by forking :meth:`Project._project_zygote()`.
 
@@ -327,7 +327,8 @@ class Project(transitions.Machine, ProjectSpec):
         clone = copy.deepcopy(p)
         clone.pname = pname
         clone.id = pname + ": "
-        clone.repo = repo
+        clone.pdb = pdb
+        clone.repo = pdb.repo
         clone.update_config(config)
 
         return clone
@@ -1432,7 +1433,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
     def _conceive_new_project(self, pname):  # -> Project:
         """Returns a "BORN" :class:`Project`; its state must be triggered immediately."""
-        return Project.new_instance(pname, self.repo, self.config)
+        return Project.new_instance(pname, self, self.config)
 
     _current_project = None
 
