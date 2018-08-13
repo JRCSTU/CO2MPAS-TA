@@ -5,8 +5,8 @@ CO2MPAS Changes
 .. _changes:
 
 
-v1.9.0 XX Aug 2018: "Unleash"
-=============================
+``v1.9.0``, XX Aug 2018: "Unleash"
+==================================
 Changes since 1.7.4.post0:
 
 Model:
@@ -143,22 +143,22 @@ Known Limitations
 Almost all "known limitations" from `v1.7.3` still apply.
 
 
-Intermediate releases:
+Intermediate releases for ``1.9.x``:
 ----------------------
 .. Note::
   - Releases with ``r`` prefix signify version published in *PyPi*.
-  - Releases with ``v`` prefix signify internal markings.
+  - Releases with ``v`` prefix signify internal milestones.
 
 
-v1.9.1rc0, 10 Aug 2018
-~~~~~~~~~~~~~~~~~~~~~
+``v1.9.1rc0``, 10 Aug 2018
+~~~~~~~~~~~~~~~~~~~~~~~~~
 - doc: Update DICE-changes since previous major release.
 - doc: Add glossary terms for links from new data in the excel input-file .
 - fix: minor fixes in GUI<-->Dicer interface and error-reporting.
 
 
-v1.9.1b0, 10 Aug 2018
-~~~~~~~~~~~~~~~~~~~~~
+``v1.9.1b0``, 10 Aug 2018
+~~~~~~~~~~~~~~~~~~~~~~~~~
 - FEAT: Finished implementing the GUI "Stamp" button
   (it appends also new-dice *tar*, see :gh:`378`).
   - Retrofitted `project dice` command into a new "DICER" class, working as
@@ -181,8 +181,8 @@ v1.9.1b0, 10 Aug 2018
   renamed :file:`~/.co2dice/reports.txt`.
 
 
-v1.9.1a2, 10 Aug 2018
-~~~~~~~~~~~~~~~~~~~~~
+``v1.9.1a2``, 10 Aug 2018
+~~~~~~~~~~~~~~~~~~~~~~~~~
 Fixes and features for the GUI *Stamp-button* and supporting ``project dice`` command.
 
 - FEAT: ``co2dice project dicer|init|append|report|recv|parse`` and
@@ -202,8 +202,8 @@ Fixes and features for the GUI *Stamp-button* and supporting ``project dice`` co
 - WIP: Add GUI "Stamp" button that appends also new-dice *tar* (see :gh:`378`).
 
 
-v1.9.1a1, 10 Aug 2018
-~~~~~~~~~~~~~~~~~~~~~
+``v1.9.1a1``, 10 Aug 2018
+~~~~~~~~~~~~~~~~~~~~~~~~~
 Implement the new ``project dice`` command.
 
 - Work started since `v1.9.1a0: 8 Aug 2018`.
@@ -215,13 +215,13 @@ Implement the new ``project dice`` command.
 - WIP: Add GUI "Stamp" button.
 
 
-r1.9.0b2, 7 Aug 2018
-~~~~~~~~~~~~~~~~~~~~
+``r1.9.0b2``, 7 Aug 2018
+~~~~~~~~~~~~~~~~~~~~~~~~
 Version in *PyPi* deemed OK for release.  Mostly doc-changes since `b1`.
 
 
-v1.9.0b1, 2 Aug 2018
-~~~~~~~~~~~~~~~~~~~~
+``v1.9.0b1``, 2 Aug 2018
+~~~~~~~~~~~~~~~~~~~~~~~~
 More changes at input-data, new-dice code and small model changes.
 Not released in *PyPi*.
 
@@ -265,13 +265,13 @@ Not released in *PyPi*.
   putting too much code in it, just for :pep:`366` relative-imports to work.
 
 
-r1.9.0b0, 31 Jul 2018
-~~~~~~~~~~~~~~~~~~~~~
+``r1.9.0b0``, 31 Jul 2018
+~~~~~~~~~~~~~~~~~~~~~~~~~
 1st release with new-dice functionality.
 
 
-v1.9.0a2, 11 Jul 2018
-~~~~~~~~~~~~~~~~~~~~~
+``v1.9.0a2``, 11 Jul 2018
+~~~~~~~~~~~~~~~~~~~~~~~~~
 - WebStamp: split-off `v1.9.0a1` as separate sub-project in sources.
 
 IO Data:
@@ -280,8 +280,8 @@ IO Data:
   *Ki additive* parameters.
 
 
-v1.9.0a1, 5 Jul 2018
-~~~~~~~~~~~~~~~~~~~~
+``v1.9.0a1``, 5 Jul 2018
+~~~~~~~~~~~~~~~~~~~~~~~~
 Bumped *minor* number to signify that the :term:`VF_ID` and input-file version
 have changed forward-incompatibly.  Very roughly tested (see :gh:`472`).
 (`v1.9.0a0` was a checkpoint after `VF_ID` preliminary changes).
@@ -305,8 +305,8 @@ Model:
 - fix: remove some pandas warnings
 
 
-v1.8.1a2, 12 Jun 2018
-~~~~~~~~~~~~~~~~~~~~~
+``v1.8.1a2``, 12 Jun 2018
+~~~~~~~~~~~~~~~~~~~~~~~~~
 Tagged as ``co2mpas_v1.8.1a0`` just to switch *polyversion* repo-scheme,
 from `mono-project --> monorepo` (switch will complete in next tag).
 
@@ -324,28 +324,28 @@ from `mono-project --> monorepo` (switch will complete in next tag).
   - dice: cannot run all tests together, only one module by one.  All pass
 
 
-v1.8.0a1, 7 Jun 2018
-~~~~~~~~~~~~~~~~~~~~
+``v1.8.0a1``, 7 Jun 2018
+~~~~~~~~~~~~~~~~~~~~~~~~
 - FIX dice, did not start due to `polyversion` not being engraved.
 - The :envvar:`CO2MPARE_ENABLED` fails with::
 
       ERROR:co2mpas_main:Invalid value '1' for env-var[CO2MPARE_ENABLED]!
         Should be one of (0 f false n no off 1 t true y yes on).
 
-v1.8.0a0, 6 Jun 2018
-~~~~~~~~~~~~~~~~~~~~
+``v1.8.0a0``, 6 Jun 2018
+~~~~~~~~~~~~~~~~~~~~~~~~
 PINNED REQUIRED VERSIONS, served with AIO-1.8.1a1
 
 
-v1.8.0.dev1, 29 May 2018
-~~~~~~~~~~~~~~~~~~~~~~~~
+``v1.8.0.dev1``, 29 May 2018
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - chore:(build, :gh:`408`, :git:`0761ba9d6`):
   Start versioning project with `polyvers` tool, as *mono-project*.
 - feat(data, :gh:`???`):
   Implemented *co2mparable* generation for ex-post reproducibility studies.
 
-v1.8.0.dev0, 22 May 2018
-~~~~~~~~~~~~~~~~~~~~~~~~
+``v1.8.0.dev0``, 22 May 2018
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Included in 1st AIO-UpgradePack (see :gh:`463`).
 
 - chore(build, :git:`e90680fae`):
@@ -356,8 +356,8 @@ Included in 1st AIO-UpgradePack (see :gh:`463`).
 
 - feat(deps): Add `xgboost` native-lib dependency, for speed.
 
-pre v1.8.0.dev0, 15 Nov 2017
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Pre-``v1.8.0.dev0``, 15 Nov 2017
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - feat(model): Add utility to design gearbox ratios if they cannot be identified
   based on `maximum_velocity` and `maximum_vehicle_laden_mass`. This is not
   affecting the TA mode.
@@ -367,13 +367,15 @@ pre v1.8.0.dev0, 15 Nov 2017
 - Dice & WebStamper updates...
 
 
-v1.7.4.post3, 10 Aug 2018
-=========================
+
+
+``v1.7.4.post3``, 10 Aug 2018
+=============================
 Settled dependencies for :command:`pip` and :command:`conda` environments.
 
 
-v1.7.4.post2, 8 Aug 2018
-========================
+``v1.7.4.post2``, 8 Aug 2018
+============================
 - Fixed regression by "piping to stdout" of previous broken release `1.7.1.post1`.
 - Pinned dependencies needed for downgrading from `v1.9.x`.
 
@@ -393,8 +395,8 @@ v1.7.4.post2, 8 Aug 2018
     You need to get the sources (e.g. git-clone the repo) to access this file,
     and then run the command ``pip install -r <git-repo>/requirements/exe.pip``.
 
-v1.7.4.post1, 3 Aug 2018 (BROKEN!)
-----------------------------------
+``v1.7.4.post1``, 3 Aug 2018 (BROKEN!)
+--------------------------------------
 Backport fixes to facilitate comparisons with forthcoming release 1.9+.
 
 - Support `pip >= 10+` (fixes :ghp:`26`).
