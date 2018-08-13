@@ -1766,7 +1766,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
         ok = False
         try:
             notify("processing project files...", max_step=nsteps)
-            if proj.state in ('wltpio', 'tagged'):
+            if proj.state in ('wltp_iof', 'tagged'):
                 diffs = proj.list_pfiles().compare(pfiles)
                 if diffs:
                     raise CmdException(
