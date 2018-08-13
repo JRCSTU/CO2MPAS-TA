@@ -1893,10 +1893,12 @@ class DicerCmd(_SubCmd):
 
     def __init__(self, **kwds):
         from toolz import dicttoolz as dtz
-        from . import report, tstamp
+        from . import crypto, report, tstamp
 
         kwds = dtz.merge(kwds, {
-            'conf_classes': [report.ReporterSpec, DicerSpec, tstamp.WstampSpec],
+            'conf_classes': [
+                crypto.GitAuthSpec, crypto.StamperAuthSpec, crypto.EncrypterSpec,
+                report.ReporterSpec, DicerSpec, tstamp.WstampSpec],
             'cmd_aliases': dtz.merge(
                 base.write_fpath_alias_kwd, {
                     ('i', 'inp'): ('DicerCmd.inp', DicerCmd.inp.help),
