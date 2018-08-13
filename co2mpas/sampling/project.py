@@ -1781,10 +1781,6 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
             self._check_ok(proj.do_report(), proj)
             dice = proj.result
             assert isinstance(dice, str)
-            key_uid = proj.extract_uid_from_report(dice)
-            self.log.info("Created new Dice signed by '%s': \n%s",
-                          key_uid,
-                          self.shrink_text(dice))
             if self.write_fpath:
                 self.write_file(dice, 'Dice')
 
@@ -2130,8 +2126,6 @@ class AppendCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
 
             if ok:
                 result = proj.result
-                key_uid = proj.extract_uid_from_report(result)
-                self.log.info("Report has been signed by '%s'.", key_uid)
 
                 if self.write_fpath:
                     self.write_file(result, 'Dice')
@@ -2329,10 +2323,6 @@ class ReportCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
                 self.log.debug("Report already generated as '%s'.", tagref.path)
                 result = _read_dice_tag(repo, tagref)
                 ok = True
-
-        if ok:
-            key_uid = proj.extract_uid_from_report(result)
-            self.log.info("Report has been signed by '%s'.", key_uid)
 
         if self.write_fpath:
             self.write_file(result, 'Report')
