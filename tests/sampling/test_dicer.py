@@ -74,6 +74,15 @@ def traitcfg(repodir, gpgdir):
 
 
 @pytest.fixture()
+def pdb(traitcfg):
+    return ProjectsDB.instance(config=traitcfg)  # @UndefinedVariable
+
+
+def head_sha1(pdb):
+    return pdb.repo.head.commit.hexsha[:10]
+
+
+@pytest.fixture()
 def cryptos(traitcfg):
     crypto.GpgSpec(config=traitcfg)
 
@@ -86,52 +95,69 @@ def cryptos(traitcfg):
 
 @pytest.fixture()
 @pytest.mark.usefixtures("cryptos")
-def dicerspec(traitcfg):
+def dicer(traitcfg):
     return DicerSpec(config=traitcfg)
 
 
-def test_dicer_new(dicerspec):
+#: Sentinel rest TCs will crash if not assigned by A below.
+_decided_sha1 = None
+
+
+def test_dicer_A_new(dicer, pdb):
+    global _decided_sha1
+
     pfiles = PFiles([test_inp_fpath], [test_out_fpath],
                     [osp.join(osp.dirname(__file__), '__init__.py')])
-    dicerspec.do_dice_in_one_step(pfiles)
+    dicer.do_dice_in_one_step(pfiles)
+    assert pdb.current_project().state in ('sample', 'nosample')
+    _decided_sha1 = head_sha1(pdb)
 
 
-def test_dicer_rerun(dicerspec, tmpdir):
+@pytest.fixture()
+def iofiles(tmpdir):
+    "Files served from different folders."
     from py.path import local
 
-    pdb = ProjectsDB.instance(config=traitcfg)  # @UndefinedVariable
-    cid = pdb.repo.head.commit.binsha
-
-    ## Apoend files for comparison from different folders.
-    #
     ifile = tmpdir.mkdir('inp') / 'inp.xlsx'
     local(test_inp_fpath).copy(ifile)
     ofile = tmpdir.mkdir('out') / 'out.xlsx'
     local(test_out_fpath).copy(ofile)
+
+    return ifile, ofile
+
+
+def test_dicer_B_fail_DECIDED(dicer, iofiles, pdb):
+    ifile, ofile = iofiles
     pfiles = PFiles([ifile], [ofile],
                     ## FIXME: should fail if LESS files appended!??
                     )
 
-    ## State: decided
-    #
+    ## State: 'decided' from A above
+
     with pytest.raises(CmdException,
-                       message="to forbidden state-transition from 'nosample'!"):
-        dicerspec.do_dice_in_one_step(pfiles)
+                       match="to forbidden state-transition from 'nosample'!"):
+        dicer.do_dice_in_one_step(pfiles)
     assert pdb.current_project().state in ('sample', 'nosample')
-    assert pdb.repo.head.commit.binsha == cid
+    assert head_sha1(pdb) == _decided_sha1
 
-    ## Rewind to 'tagged'.
-    reset_git(pdb, 'HEAD~')
-    dicerspec.do_dice_in_one_step(pfiles)
+
+def test_dicer_B_ok_TAGGED(dicer, iofiles, pdb):
+    reset_git(pdb, '%s~' % _decided_sha1)
+    ifile, ofile = iofiles
+    pfiles = PFiles([ifile], [ofile])
+    dicer.do_dice_in_one_step(pfiles)
     assert pdb.current_project().state in ('sample', 'nosample')
-    assert pdb.repo.head.commit.binsha != cid
+    assert head_sha1(pdb) != _decided_sha1
 
-    ## Rewind to 'wltp_iof'.
-    reset_git(pdb, 'HEAD~~')
+
+def test_dicer_B_ok_WLTPIOF_relpaths(dicer, iofiles, pdb):
+    reset_git(pdb, '%s~~' % _decided_sha1)
+    ifile, _ofile = iofiles
+
     ## Relative paths:
     #
     ifile.dirpath().chdir()
     pfiles = PFiles(['inp.xlsx'], ['../out/out.xlsx'])
-    dicerspec.do_dice_in_one_step(pfiles)
+    dicer.do_dice_in_one_step(pfiles)
     assert pdb.current_project().state in ('sample', 'nosample')
-    assert pdb.repo.head.commit.binsha != cid
+    assert head_sha1(pdb) != _decided_sha1
