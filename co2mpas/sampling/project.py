@@ -780,8 +780,10 @@ class Project(transitions.Machine, ProjectSpec):
             event.kwargs['report'] = report
         else:
             assert tagref
-            self.log.debug("Report already generated as '%s'.", tagref.path)
             self.result = _read_dice_tag(repo, tagref)
+            key_uid = self.extract_uid_from_report(self.result)
+            self.log.info("Dice '%s already existed, signed by %s.",
+                          tagref.path, key_uid)
 
     def _cb_send_email(self, event):
         """
