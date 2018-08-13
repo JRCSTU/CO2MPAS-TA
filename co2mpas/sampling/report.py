@@ -433,7 +433,7 @@ class ExtractCmd(baseapp.Cmd):
 
     def _build_io_files_from_project(self, args) -> PFiles:
         project = self.projects_db.current_project()
-        pfiles = project.list_pfiles(*PFiles._fields, _as_index_paths=True)  # @UndefinedVariable
+        pfiles = project.list_pfiles(*PFiles._fields, as_wdir_paths=True)  # @UndefinedVariable
         if not pfiles:
             raise CmdException(
                 "Current %s contains no input/output files!" % project)

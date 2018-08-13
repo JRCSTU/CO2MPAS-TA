@@ -711,7 +711,7 @@ class Project(transitions.Machine, ProjectSpec):
         ## Commit/tag callback expects `action` on event.
         event.kwargs['action'] = 'add'
 
-    def list_pfiles(self, *io_kinds, _as_index_paths=False) -> PFiles or None:
+    def list_pfiles(self, *io_kinds, as_wdir_paths=False) -> PFiles or None:
         """
         List project's imported files.
 
@@ -722,7 +722,7 @@ class Project(transitions.Machine, ProjectSpec):
 
                 self.list_io_files('inp', 'out')
 
-        :param _as_index_paths:
+        :param as_wdir_paths:
             When true, filepaths are prefixed with repo's working-dir
             like ``~/.co2dice/repo/inp/inp1.xlsx``.
 
@@ -736,7 +736,7 @@ class Project(transitions.Machine, ProjectSpec):
         def collect_kind_files(io_kind):
             wd_fpath = osp.join(repo.working_tree_dir, io_kind)
             io_pathlist = os.listdir(wd_fpath) if osp.isdir(wd_fpath) else []
-            if _as_index_paths:
+            if as_wdir_paths:
                 io_pathlist = [osp.join(wd_fpath, f) for f in io_pathlist]
             return io_pathlist
 
@@ -765,7 +765,8 @@ class Project(transitions.Machine, ProjectSpec):
             self.log.info('Preparing %s report: %s...',
                           'ANEW' if self.force else '', event.kwargs)
             repspec = self._report_spec()
-            pfiles = self.list_pfiles(*PFiles._fields, _as_index_paths=True)  # @UndefinedVariable
+            pfiles = self.list_pfiles(*PFiles._fields,  # @UndefinedVariable
+                                          as_wdir_paths=True)
             report = list(repspec.extract_dice_report(pfiles).values())
 
             if self.dry_run:
