@@ -415,7 +415,7 @@ class TStraightStory(unittest.TestCase):
         pdb.update_config(cfg)
         p = pdb.current_project()
 
-        iof = p.list_pfiles()
+        iof = pdb.get_wdir_pfiles()
         self.assertIsNotNone(iof)
         self.assertEqual(len(iof.inp), 1)
         self.assertEqual(len(iof.out), 1)

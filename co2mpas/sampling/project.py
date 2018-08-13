@@ -712,39 +712,6 @@ class Project(transitions.Machine, ProjectSpec):
         ## Commit/tag callback expects `action` on event.
         event.kwargs['action'] = 'add'
 
-    def list_pfiles(self, *io_kinds, as_wdir_paths=False) -> PFiles or None:
-        """
-        List project's imported files.
-
-        :param io_kinds:
-            What files to fetch; by default if none specified,
-            fetches all: inp,  out, other
-            Use this to fetch some::
-
-                self.list_io_files('inp', 'out')
-
-        :param as_wdir_paths:
-            When true, filepaths are prefixed with repo's working-dir
-            like ``~/.co2dice/repo/inp/inp1.xlsx``.
-
-        :return:
-            A class:`PFiles` containing list of working-dir paths
-            for any WLTP files, or none if none exists.
-        """
-        io_kinds = PFiles.io_kinds_list(*io_kinds)
-        repo = self.repo
-
-        def collect_kind_files(io_kind):
-            wd_fpath = osp.join(repo.working_tree_dir, io_kind)
-            io_pathlist = os.listdir(wd_fpath) if osp.isdir(wd_fpath) else []
-            if as_wdir_paths:
-                io_pathlist = [osp.join(wd_fpath, f) for f in io_pathlist]
-            return io_pathlist
-
-        iofpaths = {io_kind: collect_kind_files(io_kind) for io_kind in io_kinds}
-        if any(iofpaths.values()):
-            return PFiles(**iofpaths)
-
     def _cb_pepare_email(self, event):
         """
         Triggered by `do_report()` on ENTER of `tagged` state.
@@ -766,8 +733,8 @@ class Project(transitions.Machine, ProjectSpec):
             self.log.info('Preparing %s report: %s...',
                           'ANEW' if self.force else '', event.kwargs)
             repspec = self._report_spec()
-            pfiles = self.list_pfiles(*PFiles._fields,  # @UndefinedVariable
-                                          as_wdir_paths=True)
+            pfiles = self.pdb.get_wdir_pfiles(*PFiles._fields,  # @UndefinedVariable
+                                              as_wdir_paths=True)
             report = list(repspec.extract_dice_report(pfiles).values())
 
             if self.dry_run:
@@ -1430,6 +1397,39 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             infos = _mydump(OrderedDict(infos), default_flow_style=False)
 
         return infos
+
+    def get_wdir_pfiles(self, *io_kinds, as_wdir_paths=False) -> PFiles or None:
+        """
+        Collects any :class:`PFile` paths from `HEAD`.
+
+        :param io_kinds:
+            What files to fetch; by default if none specified,
+            fetches all: inp,  out, other
+            Use this to fetch some::
+
+                self.list_io_files('inp', 'out')
+
+        :param as_wdir_paths:
+            When true, filepaths are prefixed with repo's working-dir
+            like ``~/.co2dice/repo/inp/inp1.xlsx``.
+
+        :return:
+            A class:`PFiles` containing list of working-dir paths
+            for any WLTP files, or none if none exists.
+        """
+        repo = self.repo
+        io_kinds = PFiles.io_kinds_list(*io_kinds)
+
+        def collect_kind_files(io_kind):
+            wd_fpath = osp.join(repo.working_tree_dir, io_kind)
+            io_pathlist = os.listdir(wd_fpath) if osp.isdir(wd_fpath) else []
+            if as_wdir_paths:
+                io_pathlist = [osp.join(wd_fpath, f) for f in io_pathlist]
+            return io_pathlist
+
+        iofpaths = {io_kind: collect_kind_files(io_kind) for io_kind in io_kinds}
+        if any(iofpaths.values()):
+            return PFiles(**iofpaths)
 
     def _conceive_new_project(self, pname):  # -> Project:
         """Returns a "BORN" :class:`Project`; its state must be triggered immediately."""
