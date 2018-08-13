@@ -1753,12 +1753,13 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
                             http_session=http_session)
 
         notify("preparing project...", max_step=nsteps)
+        pdb = self.projects_db
         try:
-            proj = self.projects_db.proj_add(vfid)
+            proj = pdb.proj_add(vfid)
         except ProjectExistError as ex:
             err = str(ex)[:-1]  # clip the last '!' of ex-text.
             self.log.info("%s, opening it." % err)
-            proj = self.projects_db.proj_open(vfid)
+            proj = pdb.proj_open(vfid)
 
         ok = False
         try:
