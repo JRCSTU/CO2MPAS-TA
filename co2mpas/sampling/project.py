@@ -1678,11 +1678,11 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
 
     _http_session = None
 
-    def _check_ok(self, ok):
+    def _check_ok(self, ok, project):
         if not ok:
             raise CmdException(
-                "Bailing out (probably) due to forbidden state-transition!"
-                "\n  (look above in the logs)")
+                "Bailing out (probably) due to forbidden state-transition from '%s'!"
+                "\n  (look above in the logs)" % project.state)
 
     def _derrive_vfid(self, pfiles: PFiles) -> str:
         from . import report
@@ -1771,11 +1771,11 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
                         % (diffs, proj.state))
                 self.log.info("Project '%s' already contained files: %s", vfid, pfiles)
             else:
-                self._check_ok(proj.do_addfiles(pfiles=pfiles))
+                self._check_ok(proj.do_addfiles(pfiles=pfiles), proj)
                 self.log.info("Initiated '%s' with files: %s", vfid, pfiles)
 
-            notify("creating and signing dice-report...", max_step=nsteps)
-            self._check_ok(proj.do_report())
+            notify("creating or retrieving dice-report...", max_step=nsteps)
+            self._check_ok(proj.do_report(), proj)
             dice = proj.result
             assert isinstance(dice, str)
             key_uid = proj.extract_uid_from_report(dice)
@@ -1794,7 +1794,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
 
             notify("storing Stamp in project, and creating & signing Decision-report...",
                    max_step=nsteps)
-            self._check_ok(proj.do_storestamp(tstamp_txt=stamp))
+            self._check_ok(proj.do_storestamp(tstamp_txt=stamp), proj)
             decision = proj.result
             assert isinstance(decision, str), decision
             self.log.info("Imported Decision: \n%s'.",
