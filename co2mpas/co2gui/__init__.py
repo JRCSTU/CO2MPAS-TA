@@ -169,7 +169,6 @@ def define_tooltips():
             Launches the CO2MPAS BATCH command.
             - Populate the "Inputs" list with (at least one) files & folders;
             - Compatible with all flags and options (including ENGINEERING/DECLARATION mode);
-            - Make sure the indicated output-folder exists.
         run_ta_btn: |-
             Runs the CO2MPAS TA command in DECLARATION mode.
             - Incompatible with any other flags and options;
@@ -1587,7 +1586,7 @@ class SimulatePanel(ttk.Frame):
 
         ## Update Run-button.
         #
-        is_run_batch_btn_enabled = not job_alive and self.out_folder_var.get()
+        is_run_batch_btn_enabled = not job_alive
         self._run_batch_btn.state((bang(is_run_batch_btn_enabled) + tk.DISABLED,))
 
         ## Update Run-TA-button.
@@ -1702,7 +1701,14 @@ class SimulatePanel(ttk.Frame):
         inp_paths = cmain.file_finder(inp_paths)
         if not inp_paths:
             app.estatus("No inputs specified!  "
-                        "Please add files & folders in the Inputs list at the top-left.")
+                        "\n  Please add files & folders in the Inputs list at the top-left.")
+            return
+
+        if not out_folder or not osp.isdir(out_folder):
+            app.estatus("Out-folder is %s!  "
+                        "\n  Please specify a folder where co2mpas-results will be written.",
+                        ("(%s) is not a folder or does not exist!" % out_folder)
+                        if out_folder else 'is missing')
             return
 
         mediate_guistate = self.mediate_guistate
