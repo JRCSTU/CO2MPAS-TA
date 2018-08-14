@@ -90,15 +90,36 @@ IO Data
 - feat: Input-template provide separate H/L fields for both *ki multiplicative* and
   *Ki additive* parameters.
 
+- drop: remove deprecated  ``co2mpas gui`` sub-command - ``co2gui`` top-level command
+  is the norm since January 2017.
+
+
 Dice
 ----
-- feat(:gh:`466`, :gh:`467`, io, dice):
-  Add ``--with-inputs`` on ``report`` commands that override flag in
-  user-data `.xlsx` file, and attached all inputs encrypted in dice.
-- feat: add 2 sub-commands in `report` standalone command::
+- FEAT: Added a new **"Stamp" button** on the GUI, stamping with *WebStamper*
+  in the background in one step; internally it invokes the new ``dicer`` command
+  (see below)(:gh:`378`).
 
-      co2dice report extract  # that's the old `co2dice report`
-      co2dice report unlock   # unlocks encrypted inputs in dice/stamps
+- FEAT: Added the simplified command ``co2dice project dicer`` which
+  executes *a sequencer of commands* to dice new **or existing** project
+  through *WebStamper*, in a single step.::
+
+      co2dice project dicer -i co2mpas_demo-1.xlsx -o O/20180812_213917-co2mpas_demo-1.xlsx
+
+  Specifically when the project exists, e.g. when clicking again the *GUI-button,
+  it compares the given files *bit-by-bit* with the ones present already in the project,
+  and proceeds *only when there are no differences.
+
+  Otherwise (or on network error), falling back to cli commands is needed,
+  similar to what is done with abnormal cases such as ``--recertify``,
+  over-writing files, etc.
+
+  *WebStamper* also works now with files, since files can potentially be Mbs
+  in size.
+
+- Added low-level ``co2dice tstamp wstamp`` cli-command that Stamps a given
+  :term:`Dice` through *WebStamper*.
+
 
 - feat(dice): teach the options ``--write-fpath/-W`` and ``--shrink`` to the commands::
 
@@ -107,23 +128,54 @@ Dice
   so they can write directly results (i.e. report) in local files, and avoid
   printing big output to the console (see :gh:`466`).
 
-  *WebStamper* also works now with files, since files can potentially be Mbs
-  in size.
-- feat(dice): teach dice commands ``--quiet/-q`` option that along with ``--verbose/-v``
-  they control logging-level.
+- FEAT: The commands ``co2dice project dicer|init|append|report|recv|parse`` and
+  ``co2dice tstamp wstamp``, by default,  they accept the new option
+  ``--write-file <path>`` (default ``<path>``: ``'~/.co2dice/reports.txt'``).
+  Eventually, every time they run,  they *APPENDED* into this file
+  any of these 3 items exchanged:
 
-  It is now possible to give multiple `-q` / `-v` in the command line,
+    1. :term:`Dice report`;
+    2. :term:`Stamp`  (or any errors received from :term:`WebStamper`;
+    3. :term:`Decision`.
+
+
+- feat: command ``co2dice project report <report-index>`` can retrieve older reports
+  (not just the latest one).  Negative indexes count from the end, and
+  need a trick to use them::
+
+       co2dice project report -- -2
+
+  There is still no higher-level command to retrieveing *Stamps*
+  (an old *known limitation*); internal git commands can do this.
+
+- drop: deprecate all email-stamper commands; few new enhancements were applied
+  on them.
+
+- feat(:gh:`466`, :gh:`467`, io, dice):
+  Add ``--with-inputs`` on ``co2dice project init|append|report|dicer`` commands
+  that override flag in user-data `.xlsx` file, and attached all inputs encrypted in dice.
+- feat: add 2 sub-commands in `report` standalone command::
+
+      co2dice report extract  # that's the old `co2dice report`
+      co2dice report unlock   # unlocks encrypted inputs in dice/stamps
+
+- feat: It is now possible to give multiple `-q` / `-v` in the command line,
   and the verbose level is an algebraic additions of all of them, starting
   from *INFO* level.
 
   BUT if any -v is given, the `Spec.verbosed` trait-parameter is set to true.
   (see :gh:`476`, :gh:`479`).
-- feat(dice): prepare the new-dice functionality of taring everything
+
+- doc: small fixes on help-text of project commands.
+
+- feat(dice): prepare the new-dice functionality of ``tar``\ing everything
   (see :gh:`480`).
+
   The new ``flag.encrypt_inputs`` in input-xlsx file, configured
   by :envvar:`ENCRYPTION_KEYS_PATH`, works for dice-2 but not yet respected
   by the old-dice commands;
   must revive :git:`4de77ea1e`.
+
 
 Various
 -------
@@ -138,23 +190,30 @@ Various
   in *conda* requirements.
 - WebStamp: split-off `v1.9.0a1` as separate sub-project in sources.
 
+
 Known Limitations
 -----------------
 Almost all "known limitations" from `v1.7.3` still apply.
 
 
 Intermediate releases for ``1.9.x``:
-----------------------
+------------------------------------
 .. Note::
   - Releases with ``r`` prefix signify version published in *PyPi*.
   - Releases with ``v`` prefix signify internal milestones.
 
 
-``v1.9.1rc0``, 10 Aug 2018
+``v1.9.1b1``, 13 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~
+- FIX: ``project dicer`` command and GUI new *Dice-button* were failing to compare
+  correctly existing files in project with new ones.
+
+  Enhanced error-reporting of the button.
+
 - doc: Update DICE-changes since previous major release.
 - doc: Add glossary terms for links from new data in the excel input-file .
-- fix: minor fixes in GUI<-->Dicer interface and error-reporting.
+- doc: updated the dice changes for the forthcoming major-release, above
+- dev: add "scafolding" to facilitate developing dice-button.
 
 
 ``v1.9.1b0``, 10 Aug 2018
@@ -194,9 +253,10 @@ Fixes and features for the GUI *Stamp-button* and supporting ``project dice`` co
     2. :term:`Stamp`  (or any errors received from :term:`WebStamper`;
     3. :term:`Decision`.
 
-- doc: deprecate all email-stamper commands.
+- doc: deprecate all email-stamper commands; few new enhancements were applied
+  on them.
 - drop: remove deprecated  ``co2mpas gui`` cmd - `co2gui` is the norm since Jan 2017.
-- fix: small fixes on help-text of project commands.
+- doc: small fixes on help-text of project commands.
 - refact: extract dice-cmd functionality into its own Spec class.
 - sources: move ``tkui.py`` into it's own package. (needs re-install from sources).
 - WIP: Add GUI "Stamp" button that appends also new-dice *tar* (see :gh:`378`).
