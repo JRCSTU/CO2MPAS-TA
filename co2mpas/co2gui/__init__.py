@@ -174,16 +174,13 @@ def define_tooltips():
             Runs the CO2MPAS TA command in DECLARATION mode.
             - Incompatible with any other flags and options;
             - Make sure the indicated output-folder exists.
-        dice_btn: |-
-            Dice the result-files in one action through WebStamper.
-            - Enabled only when output files have been generated, AND
-              they were run as `TA`, AND WebStamper connectivity is working.
-            - If it fails, co2dice's project database is left as is; probable
-              sub-commands that can examine the situation and continue
-              the diceing from where it is left-over are:
-                  co2dice project ls .        # to examine the situation
-                  co2dice project append      # if IO-files were not in db
-                  co2dice project report | co2dice tstamp wstamp | co2dice project parse tparse
+        run_dice_btn: |-
+            Dice the Output-files in one action through WebStamper.
+            - Enabled only when Output-files exist AND generated as `TA`.
+            - Before clicking it, inspect the Output-files to be confident they are correct.
+            - In case of errors, fall-back to `co2dice project` commands from the console
+              and submit Dice through the WebStamper site.
+            - All intermediate Dices & Stamps are logged in your '%(reports_file)s' file.
         stop_job_btn: |-
             Aborts a "job" that has started with the Run or Run TA buttons.
 
@@ -590,10 +587,13 @@ def make_tree(parent, columns, **tree_kwds):
     return tree
 
 
-def add_tooltip(widget, key, allow_misses=False, no_lookup=False):
+def add_tooltip(widget, key, allow_misses=False, no_lookup=False,
+                **txt_kwds):
     """
     :param no_lookup:
         If true, uses the `key` as tooltip text.
+    :param txt_kwds:
+        interpolation values for patterns in the tooltip-text like ``%(key)s``
     """
     try:
         from idlelib.ToolTip import ToolTip  # @UnusedImport @UnresolvedImport
@@ -611,6 +611,9 @@ def add_tooltip(widget, key, allow_misses=False, no_lookup=False):
             return
 
     tooltip_text = tw.dedent(tooltip_text.strip())
+    if txt_kwds:
+        tooltip_text %= txt_kwds
+
     ToolTip(widget, tooltip_text)
 
 
@@ -1357,13 +1360,16 @@ class SimulatePanel(ttk.Frame):
                         return True
             tree.has_dice_files = collect_dice_files_and_notify
 
-            self._dice_btn = btn = ttk.Button(
+            self._run_dice_btn = btn = ttk.Button(
                 frame,
                 text="Dice!", style='DICE.TButton',
                 command=fnt.partial(collect_dice_files_and_notify, do_dice=True))
             add_icon(btn, 'icons/to_dice-orange-32.png ')
             btn.pack(side=tk.LEFT, fill=tk.BOTH,)
-            add_tooltip(btn, 'dice_btn')
+
+            from co2mpas.sampling import base
+            add_tooltip(btn, 'run_dice_btn',
+                        reports_file=self.app.get_reports_fpath())
 
         return frame
 
@@ -1593,7 +1599,7 @@ class SimulatePanel(ttk.Frame):
         #
         if is_dice_installed():
             is_dice_btn_enabled = wstamper_ok and self.outputs_tree.has_dice_files()
-            self._dice_btn.state((bang(is_dice_btn_enabled) + tk.DISABLED, ))
+            self._run_dice_btn.state((bang(is_dice_btn_enabled) + tk.DISABLED, ))
 
         ## Update cursor for run-buttons.
         for b in (self._run_batch_btn, self._run_ta_btn):
@@ -2559,6 +2565,10 @@ class Co2guiCmd(baseapp.Cmd):
         top.protocol("WM_DELETE_WINDOW", close_win)
         verbose = logging.getLogger().level <= logging.DEBUG
         show_about(top, verbose=verbose)
+
+    def get_reports_fpath(self):
+        from co2mpas.sampling.base import FileWritingMixin
+        return FileWritingMixin(config=self.config).default_reports_fpath
 
     def do_run_dice(self, pfile_pairs, mediate_guistate):
         from threading import Thread
