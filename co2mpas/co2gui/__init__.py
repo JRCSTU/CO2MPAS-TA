@@ -1784,22 +1784,6 @@ class SimulatePanel(ttk.Frame):
                 mediate_guistate(progr_step=-1, progr_max=self.len + 1)  # +1 finalization job-work.
                 return self
 
-            def _check_webstamper_alive(self):
-                if is_ta and is_dice_installed():
-                    from co2mpas.sampling import tstamp
-                    try:
-                        wstampsepc = tstamp.WstampSpec(config=app.config)
-                        app.log.info(
-                            "Enable Dice button if WebStamper(%s) is live.",
-                            wstampsepc.check_url)
-                        wstampsepc.stamp_dice('', dry_run=True)
-
-                        return True
-                    except Exception as ex:
-                        log.error("Conection to WebStamper failed due to: %s"
-                                  "\n  Disabling \"Stamp\" button.",
-                                  ex, exc_info=True)
-
             def on_finish(self, out, err, ex):
                 app._job_thread = None
                 args = [job_name]
@@ -1813,7 +1797,7 @@ class SimulatePanel(ttk.Frame):
                     level = logging.ERROR
                 else:
                     msg = "Finished job %s. %s%s"
-                    wstamper_ok = self._check_webstamper_alive()
+                    wstamper_ok = True
                     ## Status a temporary success msg.
                     #
                     level = None
