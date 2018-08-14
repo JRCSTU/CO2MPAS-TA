@@ -100,11 +100,11 @@ Dice
   in the background in one step; internally it invokes the new ``dicer`` command
   (see below)(:gh:`378`).
 
-- FEAT: Added the simplified command ``co2dice project dicer`` which
+- FEAT: Added the simplified top-level sub-command ``co2dice dicer`` which
   executes *a sequencer of commands* to dice new **or existing** project
   through *WebStamper*, in a single step.::
 
-      co2dice project dicer -i co2mpas_demo-1.xlsx -o O/20180812_213917-co2mpas_demo-1.xlsx
+      co2dice dicer -i co2mpas_demo-1.xlsx -o O/20180812_213917-co2mpas_demo-1.xlsx
 
   Specifically when the project exists, e.g. when clicking again the *GUI-button,
   it compares the given files *bit-by-bit* with the ones present already in the project,
@@ -114,8 +114,8 @@ Dice
   similar to what is done with abnormal cases such as ``--recertify``,
   over-writing files, etc.
 
-  *WebStamper* also works now with files, since files can potentially be Mbs
-  in size.
+- All dice-commands and *WebStamper* now also work with files, since *Dices*
+  can potentially be MBs in size; **Copy + Paste** becomes problematic in these cases.
 
 - Added low-level ``co2dice tstamp wstamp`` cli-command that Stamps a given
   :term:`Dice` through *WebStamper*.
@@ -128,16 +128,22 @@ Dice
   so they can write directly results (i.e. report) in local files, and avoid
   printing big output to the console (see :gh:`466`).
 
-- FEAT: The commands ``co2dice project dicer|init|append|report|recv|parse`` and
-  ``co2dice tstamp wstamp``, by default,  they accept the new option
-  ``--write-file <path>`` (default ``<path>``: ``'~/.co2dice/reports.txt'``).
-  Eventually, every time they run,  they *APPENDED* into this file
-  any of these 3 items exchanged:
+- FEAT: The commands ``co2dice dicer|init|append|report|recv|parse`` and
+  ``co2dice tstamp wstamp``, support one or more ``--write-file <path>/-W`` options,
+  to and every time they run,  they *APPEND* into these all given ``<path>``
+  these 3 items created/exchanged:
 
     1. :term:`Dice report`;
     2. :term:`Stamp`  (or any errors received from :term:`WebStamper`;
     3. :term:`Decision`.
 
+  By default, one ``<path>`` is always ``~/.co2dice/reports.txt``, so this becomes
+  the de-facto "keeper" of all reports exchanged (to mitigate a *known limitation*
+  about not being able to retrieve old *stamps*).
+  The location of the *reports.txt* file is configurable with
+
+    - ``c.ReportsKeeper.default_reports_fpath`` configuration property, and/or
+    - :envvar:`CO2DICE_REPORTS_FPATH` (the env-var takes precedence).
 
 - feat: command ``co2dice project report <report-index>`` can retrieve older reports
   (not just the latest one).  Negative indexes count from the end, and
@@ -159,7 +165,10 @@ Dice
       co2dice report extract  # that's the old `co2dice report`
       co2dice report unlock   # unlocks encrypted inputs in dice/stamps
 
-- feat: It is now possible to give multiple `-q` / `-v` in the command line,
+- feat(dice): all dice commands accept ``--quiet/-q`` option that
+  along with ``--verbose/-v`` they control the eventual logging-level.
+
+  It is actually possible to give multiple `-q` / `-v` in the command line,
   and the verbose level is an algebraic additions of all of them, starting
   from *INFO* level.
 
@@ -175,6 +184,8 @@ Dice
   by :envvar:`ENCRYPTION_KEYS_PATH`, works for dice-2 but not yet respected
   by the old-dice commands;
   must revive :git:`4de77ea1e`.
+
+- refact: renamed various internal classes and modules for clarity.
 
 
 Various
@@ -203,7 +214,32 @@ Intermediate releases for ``1.9.x``:
   - Releases with ``v`` prefix signify internal milestones.
 
 
-``v1.9.1b1``, 13 Aug 2018
+``v1.9.2ZZ``, 14 Aug 2018
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- ENH: Add logging-timestamps in ``~/.co2dice/reports.txt`` maintained by
+  the :class:`ReportsKeeper`(renamed from ``FileWritingMixin``) which now supports
+  writing to multiple files through the tested *logging* library.
+
+- enh: make location of the `reports.txt` file configurable with:
+    - ``c.ReportsKeeper.default_reports_fpath`` property and
+    - :envvar:`CO2DICE_REPORTS_FPATH` (env-var takes precedence).
+
+- REFACT: move DicerCMD (& DicerSpec) in their own files and render them
+  top-level sub-commands.
+
+  Also renamed modules:
+
+    - ``baseapp --> cmdlets`` not to confuse with ``base`` module.
+    - ``dice --> cli`` not to confuse with ``dicer`` module and
+    the too-overloaded :term;`dice`.
+
+- enh: replace old output-clipping machinery in ``tstamp recv`` with
+  shrink-slice.
+
+- enh: teach GUI to also use HTTP-sessions (like ``dicer`` command does).
+
+
+``r1.9.1b1``, 13 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 - FIX: ``project dicer`` command and GUI new *Dice-button* were failing to compare
   correctly existing files in project with new ones.
@@ -246,7 +282,7 @@ Fixes and features for the GUI *Stamp-button* and supporting ``project dice`` co
 
 - FEAT: ``co2dice project dicer|init|append|report|recv|parse`` and
   the ``co2dice tstamp wstamp`` commands, they have by default
-  ``--write-file='~/.co2dice/reports.txt'`` file, so every time they run,
+  ``--write-file=~/.co2dice/reports.txt`` file, so every time they run,
   they *APPENDED* into this file these 3 items:
 
     1. :term:`Dice report`;
@@ -298,7 +334,7 @@ Not released in *PyPi*.
 - feat(dice): teach dice commands ``--quiet/-q`` option that along with ``--verbose/-v``
   they control logging-level.
 
-  It is now possible to give multiple `-q` / `-v` in the command line,
+  It is actually possible to give multiple `-q` / `-v` in the command line,
   and the verbose level is an algebraic additions of all of them, starting
   from *INFO* level.
 
