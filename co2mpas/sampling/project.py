@@ -1431,6 +1431,13 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         if any(iofpaths.values()):
             return PFiles(**iofpaths)
 
+    def clean_wdir_pfiles(self, **rmtree_kwds):
+        import shutil
+
+        wd_fpath = self.repo.working_tree_dir
+        for f in PFiles._fields:  # @UndefinedVariable
+            shutil.rmtree(osp.join(wd_fpath, f), **rmtree_kwds)
+
     def update_wdir_pfiles(self, pfiles):
         """Add `pfiles` to git-repo's working-dir."""
         import shutil
@@ -1444,12 +1451,13 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
                 shutil.copy(src_fpath, dest_fpath)
 
     def diff_wdir_pfiles(self, pfiles):
-        """Comparse `pfiles` with git-repo's working-dir (SIDE-EFFECT: reset WDir)."""
+        """Compare `pfiles` with git-repo's working-dir (SIDE-EFFECT: reset WDir)."""
         repo = self.repo
-        self.update_wdir_pfiles(pfiles)
         try:
-            res = self.repo.index.diff(repo.head.commit)
-            return res
+            self.clean_wdir_pfiles
+            self.update_wdir_pfiles(pfiles)
+            diffs = repo.untracked_files + self.repo.index.diff(None)
+            return diffs
         finally:
             repo.head.reset(working_tree=True)
 
@@ -1792,11 +1800,8 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
                 diffs = pdb.diff_wdir_pfiles(pfiles)
                 if diffs:
                     raise CmdException(
-                        "Missmatch between files already in the projects-db and new ones: "
-                        "\n    ('KIND', 'DB_FILE', 'NEW_FILE')"
-                        "\n    %s"
-                        "\n  Project at '%s' state maybe forced manualy to update them."
-                        % (diffs, proj.state))
+                        "Project files missmatched with new ones!%s" %
+                        ''.join('\n    %s' % i for i in diffs))
                 self.log.info("Project '%s' already contained files: %s", vfid, pfiles)
             else:
                 self._check_ok(proj.do_addfiles(pfiles=pfiles), proj)

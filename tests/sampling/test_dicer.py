@@ -197,24 +197,24 @@ def test_dicer_B_fail_DIFF_files(dicer, iofiles_mov, iofiles_diff,
     ## Different content `inp`
     pfiles = PFiles([iofiles_diff[0]], [ofile])
     with pytest.raises(CmdException,
-                       match="^Missmatch between files"):
+                       match="^Project files missmatched"):
         dicer.do_dice_in_one_step(pfiles)
 
     ## Different name 'out'
     pfiles = PFiles([ifile], [ofileRen])
     with pytest.raises(CmdException,
-                       match="^Missmatch between files"):
+                       match="^Project files missmatched"):
         dicer.do_dice_in_one_step(pfiles)
 
     ## Different content `other`
     pfiles = PFiles([ifile], [ofile],
                     [osp.join(osp.dirname(__file__), '..', '__init__.py')])
     with pytest.raises(CmdException,
-                       match="^Missmatch between files"):
+                       match="^Project files missmatched"):
         dicer.do_dice_in_one_step(pfiles)
 
     ## Less 'other' files
     pfiles = PFiles([ifile], [ofile])
     with pytest.raises(CmdException,
-                       match="^Missmatch between files"):
+                       match="^Project files missmatched"):
         dicer.do_dice_in_one_step(pfiles)
