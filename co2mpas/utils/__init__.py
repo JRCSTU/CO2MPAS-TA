@@ -372,6 +372,16 @@ def chdir(path):
         os.chdir(opath)
 
 
-def joinstuff(items, joiner=', '):
-    return joiner.join(str(s) for s in items)
+def joinstuff(items, delimeter=', ', frmt='%s'):
+    """
+    Prefixes ALL items (not in-metween only) and then join them.
 
+    :param frmt:
+        must have one and only ``%s``
+
+    For example, to create separate lines::
+
+        joinstuff(items, '', '\n  %s')
+
+    """
+    return delimeter.join(frmt % (i, ) for i in items)
