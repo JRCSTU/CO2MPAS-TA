@@ -1660,14 +1660,14 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
             yield to_yield
 
 
-class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
+class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.ReportsKeeper):
     """A sequencer for dicing new or existing projects through WebStamper."""
 
     help_in_case_of_failure = trt.Unicode(
         tw.dedent("""\
             Dicing '%(vfid)s' will abort in state '%(state)s'.
 
-              -> Intermediate dices & stamps can be found in your '%(write_fpath)s' file.
+              -> Intermediate Dices & Stamps can be found in your '%(reports_fpath)s' file.
 
               -> Use console commands to examine the situation and continue::
 
@@ -1692,14 +1692,6 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
 
                      co2dice project report | co2dice tstamp wstamp | co2dice project tparse
         """)).tag(config=True)
-
-    @trt.default('write_fpath')
-    def _enable_write_fpath(self):
-        return "~/.co2dice/reports.txt"
-
-    @trt.default('write_append')
-    def _append_into_fpath(self):
-        return True
 
     @property
     def projects_db(self) -> ProjectsDB:
@@ -1808,15 +1800,13 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
             self._check_ok(proj.do_report(), proj)
             dice = proj.result
             assert isinstance(dice, str)
-            if self.write_fpath:
-                self.write_file(dice, 'Dice')
+            self.store_report(dice, 'dice for %s' % proj.pname)
 
             notify("stamping Dice through WebStamper...", max_step=nsteps)
             wstamper = tstamp.WstampSpec(config=self.config)
             stamp = wstamper.stamp_dice(dice, http_session=http_session)
             self.log.info("Stamp was: \n%s", self.shrink_text(stamp))
-            if self.write_fpath:
-                self.write_file(stamp, 'Stamp')
+            self.store_report(stamp, 'stamp for %s' % proj.pname)
 
             notify("storing Stamp in project, and creating & signing Decision-report...",
                    max_step=nsteps)
@@ -1827,8 +1817,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
                           self.shrink_text(stamp))
             ok = True
 
-            if self.write_fpath:
-                self.write_file(decision, 'Decision')
+            self.store_report(decision, 'decision for %s' % proj.pname)
 
             return self.shrink_text(decision)
         finally:
@@ -1839,7 +1828,7 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.FileWritingMixin):
                     'vfid': vfid,
                     'state': proj.state,
                     'iofiles': pfiles.build_cmd_line(),
-                    'write_fpath': self.write_fpath,
+                    'reports_fpath': self.default_reports_fpath,
                 })
 
 
@@ -1909,14 +1898,6 @@ class DicerCmd(_SubCmd):
         help="Specify co2mpas OUTPUT files; use this option one or more times."
     ).tag(config=True)
 
-    @trt.default('write_fpath')
-    def _enable_write_fpath(self):
-        return "~/.co2dice/reports.txt"
-
-    @trt.default('write_append')
-    def _append_into_fpath(self):
-        return True
-
     def __init__(self, **kwds):
         from toolz import dicttoolz as dtz
         from . import crypto, report, tstamp
@@ -1926,7 +1907,7 @@ class DicerCmd(_SubCmd):
                 crypto.GitAuthSpec, crypto.StamperAuthSpec, crypto.EncrypterSpec,
                 report.ReporterSpec, DicerSpec, tstamp.WstampSpec],
             'cmd_aliases': dtz.merge(
-                base.write_fpath_alias_kwd, {
+                base.reports_keeper_alias_kwd, {
                     ('i', 'inp'): ('DicerCmd.inp', DicerCmd.inp.help),
                     ('o', 'out'): ('DicerCmd.out', DicerCmd.out.help),
                 }
@@ -1954,8 +1935,7 @@ class DicerCmd(_SubCmd):
 
             cstep += step
             progress = '(%s out of %s) %s' % (cstep, nsteps, msg)
-            if dicer.write_fpath and dicer.write_append:
-                dicer.write_file(progress, 'progress-line')
+            dicer.store_report(progress)
 
             self.log.info(progress)
 
@@ -2069,7 +2049,7 @@ class OpenCmd(_SubCmd):
         return projDB.proj_list(proj.pname, as_text=True) if self.verbose else proj
 
 
-class AppendCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
+class AppendCmd(_SubCmd, base.ShrinkingOutputMixin, base.ReportsKeeper):
     """
     Import the specified input/output co2mpas files into the *current project*.
 
@@ -2113,7 +2093,7 @@ class AppendCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
         kwds = dtz.merge(kwds, {
             'conf_classes': [report.ReporterSpec],
             'cmd_aliases': dtz.merge(
-                base.write_fpath_alias_kwd, {
+                base.reports_keeper_alias_kwd, {
                     ('i', 'inp'): ('AppendCmd.inp', AppendCmd.inp.help),
                     ('o', 'out'): ('AppendCmd.out', AppendCmd.out.help),
                 }
@@ -2154,8 +2134,7 @@ class AppendCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
             if ok:
                 result = proj.result
 
-                if self.write_fpath:
-                    self.write_file(result, 'Dice')
+                self.store_report(result, 'dice for %s' % proj.pname)
 
                 return self.shrink_text(result)
             else:
@@ -2251,7 +2230,7 @@ class InitCmd(AppendCmd):
             yield self._append_and_report(pfiles)
 
 
-class ReportCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
+class ReportCmd(_SubCmd, base.ShrinkingOutputMixin, base.ReportsKeeper):
     """
     Prepares or re-prints the signed dice-report that can be sent for timestamping.
 
@@ -2294,7 +2273,7 @@ class ReportCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
 
         kwds = dtz.merge(kwds, {
             'conf_classes': [report.ReporterSpec, crypto.GitAuthSpec],
-            'cmd_aliases': base.write_fpath_alias_kwd,
+            'cmd_aliases': base.reports_keeper_alias_kwd,
             'cmd_flags': {
                 ('n', 'dry-run'): (
                     {
@@ -2351,8 +2330,7 @@ class ReportCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
                 result = _read_dice_tag(repo, tagref)
                 ok = True
 
-        if self.write_fpath:
-            self.write_file(result, 'Report')
+        self.store_report(result, 'report for %s' % proj.pname)
 
         yield self.shrink_text(result)
 
@@ -2417,7 +2395,7 @@ class TsendCmd(_SubCmd):
                                    is_verbose=self.verbose or proj.dry_run)
 
 
-class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
+class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.ReportsKeeper):
     """
     Derives *decision* OK/SAMPLE flag from tstamped-response, and store it in current-project.
 
@@ -2449,7 +2427,7 @@ class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
 
         kwds.setdefault('conf_classes', [
             tstamp.TstampReceiver, crypto.GitAuthSpec, crypto.StamperAuthSpec])
-        kwds.setdefault('cmd_aliases', base.write_fpath_alias_kwd)
+        kwds.setdefault('cmd_aliases', base.reports_keeper_alias_kwd)
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
                 {
@@ -2490,8 +2468,7 @@ class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
 
         if isinstance(report, str):
             ## That's parsed decision.
-            if self.write_fpath:
-                self.write_file(report, 'Decision')
+            self.store_report(report, 'decision for %s' % proj.pname)
 
             return self.shrink_text(report)
 
@@ -2501,13 +2478,12 @@ class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
 
         result = self._format_result(short, report, default_flow_style=False)
 
-        if self.write_fpath:
-            self.write_file(result)
+        self.store_report(result, 'parse-result for %s' % proj.pname)
 
         return self.shrink_text(result)
 
 
-class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
+class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.ReportsKeeper):
     """
     (DEPRECATED) Fetch Stamps from IMAP server, derive OK/SAMPLE flag and store Decision.
 
@@ -2520,8 +2496,7 @@ class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
       Please migrate to WebStamper.
     - The fetching of emails can happen in one-shot or waiting mode.
     - For terms are searched in the email-subject - tip: use the project name(s).
-    - If --write-fpath given, mails are written in separate files derrived from the
-      filepath like <basename>-1<.ext>, ...  and not printed.
+    - If --write-fpath given, mails are written in this files and not printed in console.
     - If --force, ignores most verification/parsing errors.
       that is, when you don't have the files of the projects in the repo.
       With this option, tstamp-response get, it extracts the dice-repot and adds it
@@ -2573,7 +2548,7 @@ class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
             tstamp.TstampSender, tstamp.TstampReceiver,
             crypto.GitAuthSpec, crypto.StamperAuthSpec])
         self.cmd_aliases.update(tstamp.recv_cmd_aliases)
-        self.cmd_aliases.update(base.write_fpath_alias_kwd)
+        self.cmd_aliases.update(base.reports_keeper_alias_kwd)
         self.cmd_flags.update({
             ('n', 'dry-run'): (
                 {'Project': {'dry_run': True}},
@@ -2662,10 +2637,9 @@ class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
                 result = _mydump({'[%s]%s' % (uid, mid): infos},
                                  default_flow_style=default_flow_style)
 
-                if self.write_fpath:
-                    email_id = "Email-no%i([%s]%s)" % (i, uid, mid)
-                    self.write_file(result, email_id)
-                else:
+                email_id = "Email-no%i([%s]%s)" % (i, uid, mid)
+                self.store_report(result, email_id)
+                if not self.get_non_default_fpaths():
                     yield self.shrink_text(result)
 
             except CmdException as ex:

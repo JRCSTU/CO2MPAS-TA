@@ -268,47 +268,160 @@ class StampParsingCmdMixin(FileReadingMixin):
                     raise
 
 
-class FileWritingMixin(trc.Configurable):
-    write_fpath = trt.Unicode(
-        help="Write report into this file, if given; overwriten if it already exists."
+class ReportsKeeper(trc.Configurable):
+    """
+    Practically it manages a list of loggers and writes content into.
+    """
+
+    default_reports_fpath = trt.Unicode(
+        '~/.co2dice/reports.txt',
+        allow_none=True,
+        help="""
+        The log-file where to keep a record of all intermediate Dices & Stamps exchanged.
+
+        This value gets appended in the `write_fpaths` list by certain dice commands.
+        If set to defined/empty, no log is kept.
+        """
+
+    ).tag(config=True, envvar='CO2DICE_REPORTS_FPATH')
+
+    write_fpaths = trt.List(
+        trt.Unicode(),
+        help="Log stuff (Dices, Stamps & Decisions) in files."
     ).tag(config=True)
 
-    write_append = trt.Bool(
-        help="If true, do not overwrite existing files - append into them."
+    @trt.validate('write_fpaths')
+    def _ensure_default_reports_fpath(self, p):
+        v = p.value
+        default_fpath = self.default_reports_fpath
+        if default_fpath and default_fpath not in v:
+            v.append(default_fpath)
+
+        return v
+
+    report_log_format = trt.Unicode(
+        "%(asctime)s:%(module)s.%(funcName)s:%(msg)s",
+        help="""
+        The logging formatting of a message written (`log_format` was taken by traits).
+
+        https://docs.python.org/3/library/logging.html#logrecord-attributes
+
+        WARN: DON'T USE ``%(message)s`` (interpolated)!!
+        """,
     ).tag(config=True)
 
-    write_kwds = trt.Dict(
-        {'encoding': 'utf-8}'},
-        help="Keywords sent to `open()`, like encoding and encoding-errors, etc."
+    report_date_format = trt.Unicode(
+        None, allow_none=True,
+        help="""
+        The logging formatting for date-times for the messages written.
+
+        https://docs.python.org/3/howto/logging.html#displaying-the-date-time-in-messages
+        """
     ).tag(config=True)
 
-    def _open_file_mode(self):
-        return 'at' if self.write_append else 'wt'
+    rotating_handler_cstor_kwds = trt.Dict(
+        {
+            "maxBytes": 2 * 1024 * 1024,
+            "backupCount": 0,
+            "encoding": 'utf-8',
+            #"delay": False  # may leave it to default
+        },
+        help="""
+        Cstor kwds for `RotatingFileHandler`, except the `filename` and `mode`.
 
-    def write_file(self, txt, name='stuff', wfpath=None):
-        if not wfpath:
-            wfpath = self.write_fpath
-        if not wfpath or not txt:
-            self.log.warning("Cannot write output file, no fpath(%s) of text(%s) given!",
-                             wfpath, txt)
+        https://docs.python.org/3/library/logging.handlers.html#logging.handlers.RotatingFileHandler"  # noqa
+        """
+    ).tag(config=True)
+
+    def _collect_wfpaths(self, *extra_fpaths):
+        wfpaths = list(self.write_fpaths)
+        wfpaths.extend(extra_fpaths)
+
+        return wfpaths
+
+    def get_non_default_fpaths(self, *extra_fpaths):
+        """Return any other write-fpaths given, except :field:`default_reports_fpath`."""
+        wfpaths = set(self._collect_wfpaths(*extra_fpaths))
+        wfpaths.discard(self.default_reports_fpath)
+
+        return wfpaths
+
+    def _logger_configed(self, log):
+        """The ``log.name`` becomes the (expanded) filename to write into."""
+        from logging import Formatter
+        from logging.handlers import RotatingFileHandler
+
+        wfpath = convpath(log.name, True)
+        roll_handler = RotatingFileHandler(
+            wfpath, 'a', **self.rotating_handler_cstor_kwds)
+
+        formatter = Formatter(self.report_log_format, self.report_date_format)
+        roll_handler.setFormatter(formatter)
+        roll_handler.setLevel(0)
+
+        log.addHandler(roll_handler)
+        log.setLevel(0)
+        log.propagate = False
+
+        return log
+
+    def _get_logger(self, wfpath):
+        import logging
+
+        if wfpath in logging.Logger.manager.loggerDict:  # @UndefinedVariable
+            return logging.getLogger(wfpath)
+
+        return self._logger_configed(logging.getLogger(wfpath))
+
+    def store_report(self, txt, title=None, *extra_fpaths):
+        """
+        Append text in all `write_fpaths` using customized file-rolling loggers.
+
+        :param title:
+            Without it, write-notification is not written in main-program's logs.
+        :return:
+            the number of written files
+
+        - By default, in the customized loggers it is always added
+          the :field:`default_reports_fpath` (if defined).
+        """
+        from ..utils import joinstuff
+
+        wfpaths = self._collect_wfpaths(*extra_fpaths)
+        if not txt:
+            if title:
+                self.log.warning(
+                    "Given empty '%s' report to store in filepaths: %s",
+                    title, joinstuff(wfpaths))
             return
 
-        wfpath = convpath(wfpath)
-        file_mode = self._open_file_mode()
-        with open(wfpath, file_mode, **self.write_kwds) as fd:
-            fd.write(txt)
+        txt = "  ----((%s))----  \n%s" % (title, txt)
 
-        ## Don't inform about header-lines.
+        written = 0
+        for wfpath in wfpaths:
+            if not wfpath:
+                self.log.warning(
+                    "Cannot store report '%s', missing filepaths!",
+                    title, txt and txt[:32])
+                continue
+
+            log = self._get_logger(wfpath)
+            log.info(txt)
+            written += 1
+
+        ## Don't inform about title-lines.
         #
-        if txt.count('\n') > 1:
+        if title:
             self.log.info(
-                "%s %s into: %s",
-                'Appended' if self.write_append else 'Created', name, wfpath)
+                "Stored %i-lines %s into %i file(s): %s",
+                txt.count('\n'), title, len(wfpaths), joinstuff(wfpaths))
+
+        return written
 
 
 ## TODO: enforce --write aliase from mixin-constructor.
-write_fpath_alias_kwd = {
-    ('W', 'write-fpath'): ('FileWritingMixin.write_fpath', FileWritingMixin.write_fpath.help)
+reports_keeper_alias_kwd = {
+    ('W', 'write-fpath'): ('ReportsKeeper.write_fpaths', ReportsKeeper.write_fpaths.help)
 }
 
 
@@ -331,7 +444,7 @@ class ShrinkingOutputMixin(trc.Configurable):
 
     shrink_slices = trt.Union(
         (slicetrait.Slice(), trt.List(slicetrait.Slice())),
-        default_value=[':64', '-32:'],
+        default_value=[':48', '-32:'],
         help="""
         A slice or a list-of-slices applied when shrinking results printed.
 

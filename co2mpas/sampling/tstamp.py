@@ -2171,7 +2171,7 @@ class LoginCmd(baseapp.Cmd):
 class WstampCmd(baseapp.Cmd,
                 base.FileReadingMixin,
                 base.ShrinkingOutputMixin,
-                base.FileWritingMixin):
+                base.ReportsKeeper):
     """
     Send the given Dice(s) to WebStamper for Stamping.
 
@@ -2197,18 +2197,10 @@ class WstampCmd(baseapp.Cmd,
               git  cat-file  tag  tstamps/RL-12-BM3-2017-0001/1 | %(cmd_chain)s
     """)
 
-    @trt.default('write_fpath')
-    def _enable_write_fpath(self):
-        return "~/.co2dice/reports.txt"
-
-    @trt.default('write_append')
-    def _append_into_fpath(self):
-        return True
-
     def __init__(self, **kwds):
         kwds.update({
             'conf_classes': [WstampSpec],
-            'cmd_aliases': base.write_fpath_alias_kwd,
+            'cmd_aliases': base.reports_keeper_alias_kwd,
             'cmd_flags': {
                 ('n', 'dry-run'): (
                     {'WstampSpec': {'dry_run': True}},
@@ -2232,8 +2224,7 @@ class WstampCmd(baseapp.Cmd,
                                fpath, ex, exc_info=1)  # one-off event, must not loose ex.
 
             else:
-                if self.write_fpath:
-                    self.write_file(stamp, 'Stamp')
+                self.store_report(stamp, "stamp for dice '%s'" % fpath)
                 yield self.shrink_text(stamp)
 
 

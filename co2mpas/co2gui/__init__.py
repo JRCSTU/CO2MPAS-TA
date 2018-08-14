@@ -2567,8 +2567,8 @@ class Co2guiCmd(baseapp.Cmd):
         show_about(top, verbose=verbose)
 
     def get_reports_fpath(self):
-        from co2mpas.sampling.base import FileWritingMixin
-        return FileWritingMixin(config=self.config).default_reports_fpath
+        from co2mpas.sampling.base import ReportsKeeper
+        return ReportsKeeper(config=self.config).default_reports_fpath
 
     def do_run_dice(self, pfile_pairs, mediate_guistate):
         from threading import Thread
