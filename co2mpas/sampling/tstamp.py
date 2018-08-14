@@ -1961,14 +1961,6 @@ class RecvCmd(baseapp.Cmd):
         help="""If not none, skip tstamp verification and print raw email or `email_infos`."""
     ).tag(config=True)
 
-    email_preview_nchars = trt.Int(
-        500,
-        help="""
-        On tstamp-parsing errors, preview that many chars from the
-        received email body.
-        """
-    ).tag(config=True)
-
     def __init__(self, **kwds):
         kwds.setdefault('conf_classes', [
             TstampSender, TstampReceiver,
@@ -2031,9 +2023,6 @@ class RecvCmd(baseapp.Cmd):
                                        uid, mid, ex, exc_info=self.verbose)
 
                 if isinstance(verdict, Exception):
-                    preview = ('\n%s\n' % mail_text
-                               if self.verbose else
-                               '\n%s\n...\n' % mail_text[:self.email_preview_nchars])
                     self.log.info("[%s]%s: skipping unparseable tstamp-email.\n%s",
                                   uid, mid, preview)
 
