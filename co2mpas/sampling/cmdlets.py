@@ -1157,8 +1157,8 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         even if the cmd has been created temporarilly (e.g. for some TC).
         """
         ## INFO: Circular-dep instead of abstract-method, so need not override in TCs.
-        from . import dice
-        return iset(itt.chain(dice.all_app_configurables(), self.classes))
+        from . import cli
+        return iset(itt.chain(cli.all_app_configurables(), self.classes))
 
     def _make_vault_from_configs(self, static_config, persist_config):
         from . import crypto

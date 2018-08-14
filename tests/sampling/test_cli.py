@@ -8,7 +8,7 @@
 
 from co2mpas.__main__ import init_logging
 from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import cmdlets, dice, cfgcmd
+from co2mpas.sampling import cmdlets, cli, cfgcmd
 import logging
 import os
 import tempfile
@@ -41,7 +41,7 @@ class TApp(unittest.TestCase):
     def test_app(self, meth):
         c = trtc.get_config()
         c.Co2dice.raise_config_file_errors = True
-        cmd = dice.Co2diceCmd(config=c)
+        cmd = cli.Co2diceCmd(config=c)
         meth(cmd)
 
     def test_config_init(self):
@@ -86,7 +86,7 @@ class TApp(unittest.TestCase):
         ncmdlines = sum(1 for r in res if r[0] != ' ')
         self.assertGreaterEqual(ncmdlines, len(cmd.all_app_configurables()), res)
 
-    @ddt.data(*dice.all_cmds())
+    @ddt.data(*cli.all_cmds())
     def test_all_cmds_help_smoketest(self, cmd: cmdlets.Cmd):
         cmd.class_get_help()
         cmd.class_config_section()

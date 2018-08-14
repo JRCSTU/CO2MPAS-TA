@@ -23,8 +23,8 @@ def main():
             "Sorry, Python >= %s is required, found: %s" %
             (req_ver, sys.version_info))
 
-    from co2mpas.sampling import dice
-    dice.run(argv=sys.argv[1:])
+    from co2mpas.sampling import cli
+    cli.run(argv=sys.argv[1:])
 
 
 if __name__ == '__main__':

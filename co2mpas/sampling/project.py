@@ -28,7 +28,7 @@ import os.path as osp
 import pandalone.utils as pndlu
 import textwrap as tw
 
-from . import base, cmdlets, dice, CmdException
+from . import base, cmdlets, cli, CmdException
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
                 __dice_report_version__)
 from .._vendor.traitlets import traitlets as trt
@@ -249,7 +249,7 @@ def _evarg(event, dname, dtype=None, none_ok=False, missing_ok=False):
 ##     Specs     ##
 ###################
 
-class ProjectSpec(dice.DiceSpec):
+class ProjectSpec(cli.DiceSpec):
     """Common configurations for both ProjectsDB & ProjectFSM."""
 
     max_dices_per_project = trt.Int(

@@ -413,7 +413,7 @@ class TStraightStory(unittest.TestCase):
         cfg = self._config
         pdb = project.ProjectsDB.instance(config=cfg)
         pdb.update_config(cfg)
-        p = pdb.current_project()
+        pdb.current_project()
 
         iof = pdb.get_wdir_pfiles()
         self.assertIsNotNone(iof)

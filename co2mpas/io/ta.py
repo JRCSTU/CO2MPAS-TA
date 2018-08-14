@@ -150,7 +150,7 @@ def generate_keys(key_folder, passwords=None):
         )
 
     it = (
-        ('dice.co2mpas.keys', (('public', 'secret'), ('public', 'server'))),
+        ('cli.co2mpas.keys', (('public', 'secret'), ('public', 'server'))),
         ('server.co2mpas.keys',
          (('public', 'secret'), ('public', 'server'), ('private', 'server'))),
         ('secret.co2mpas.keys',

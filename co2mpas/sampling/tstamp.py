@@ -17,7 +17,7 @@ from pandalone import utils as pndlu
 
 import functools as fnt
 
-from . import CmdException, base, cmdlets, dice, crypto, slicetrait
+from . import CmdException, base, cmdlets, cli, crypto, slicetrait
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
                 vehicle_family_id_pattern)
 from .._vendor import traitlets as trt
@@ -76,7 +76,7 @@ def num_to_dice100(num: int, is_randomize: bool) -> (int, int):
 STARTTLS_PORTS = (587, 143)
 
 
-class TstampSpec(dice.DiceSpec):
+class TstampSpec(cli.DiceSpec):
     """Common parameters and methods for both SMTP(sending emails) & IMAP(receiving emails)."""
 
     log_lines_limit = trt.Int(
@@ -1649,7 +1649,7 @@ def wait_IDLE_IMAP_change(srv):
     return ev_reply
 
 
-class WstampSpec(dice.DiceSpec):
+class WstampSpec(cli.DiceSpec):
     """Stamp through WebStamper."""
 
     dry_run = trt.Bool(
