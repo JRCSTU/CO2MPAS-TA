@@ -11,6 +11,7 @@ If not running a WebStamper on your localhost, set these 2 env-vars::
     WEBSTAMPER_STAMP_URL
     WEBSTAMPER_CHECK_URL
 
+- All :func:`..._B_...()`` TCs required :func:`..._A_...()` to have run.
 """
 from co2mpas.__main__ import init_logging
 from co2mpas._vendor.traitlets import config as trtc
@@ -18,12 +19,13 @@ from co2mpas.sampling import CmdException, crypto
 from co2mpas.sampling.base import PFiles
 from co2mpas.sampling.project import DicerSpec, ProjectsDB
 from tests.sampling import (
-    test_inp_fpath, test_out_fpath,
     test_pgp_fingerprint, test_pgp_keys, test_pgp_trust,
 )
 import logging
+
 import pytest
 
+from py.path import local
 import os.path as osp
 
 
@@ -70,6 +72,8 @@ def traitcfg(repodir, gpgdir):
     cfg.Spec.verbose = cfg.ProjectsDB.verbose = 0
     cfg.WstampSpec.recipients = ["test@gel.bourdien.com"]
 
+    cfg.Project.max_dices_per_project = 10  # due to resets
+
     return cfg
 
 
@@ -99,35 +103,55 @@ def dicer(traitcfg):
     return DicerSpec(config=traitcfg)
 
 
+@pytest.fixture()
+def iofiles():
+    from tests.sampling import test_inp_fpath, test_out_fpath
+
+    ifile = local(test_inp_fpath)
+    ofile = local(test_out_fpath)
+
+    return ifile, ofile
+
+
+@pytest.fixture()
+def iofiles_mov(iofiles, tmpdir):
+    "Same files served from different folders."
+    ifile, ofile = iofiles
+    ifile2 = tmpdir.mkdir('inp') / ifile.basename
+    ifile.copy(ifile2)
+    ofile2 = tmpdir.mkdir('out') / ofile.basename
+    ofile.copy(ofile2)
+
+    return ifile2, ofile2
+
+
+@pytest.fixture()
+def iofiles_diff(iofiles):
+    "filenames, different content (& folders, how else?)."
+    ifile, ofile = iofiles
+    ifile2 = osp.join(mydir, 'diff_pfiles', ifile.basename)
+    ofile2 = osp.join(mydir, 'diff_pfiles', ofile.basename)
+
+    return ifile2, ofile2
+
+
 #: Sentinel rest TCs will crash if not assigned by A below.
 _decided_sha1 = None
 
 
-def test_dicer_A_new(dicer, pdb):
+def test_dicer_A_new(dicer, pdb, iofiles):
     global _decided_sha1
 
-    pfiles = PFiles([test_inp_fpath], [test_out_fpath],
+    ifile, ofile = iofiles
+    pfiles = PFiles([ifile], [ofile],
                     [osp.join(osp.dirname(__file__), '__init__.py')])
     dicer.do_dice_in_one_step(pfiles)
     assert pdb.current_project().state in ('sample', 'nosample')
     _decided_sha1 = head_sha1(pdb)
 
 
-@pytest.fixture()
-def iofiles(tmpdir):
-    "Files served from different folders."
-    from py.path import local
-
-    ifile = tmpdir.mkdir('inp') / 'inp.xlsx'
-    local(test_inp_fpath).copy(ifile)
-    ofile = tmpdir.mkdir('out') / 'out.xlsx'
-    local(test_out_fpath).copy(ofile)
-
-    return ifile, ofile
-
-
-def test_dicer_B_fail_DECIDED(dicer, iofiles, pdb):
-    ifile, ofile = iofiles
+def test_dicer_B_fail_DECIDED(dicer, iofiles_mov, pdb):
+    ifile, ofile = iofiles_mov
     pfiles = PFiles([ifile], [ofile],
                     ## FIXME: should fail if LESS files appended!??
                     )
@@ -141,23 +165,56 @@ def test_dicer_B_fail_DECIDED(dicer, iofiles, pdb):
     assert head_sha1(pdb) == _decided_sha1
 
 
-def test_dicer_B_ok_TAGGED(dicer, iofiles, pdb):
+def test_dicer_B_ok_TAGGED(dicer, iofiles_mov, pdb):
     reset_git(pdb, '%s~' % _decided_sha1)
-    ifile, ofile = iofiles
+    ifile, ofile = iofiles_mov
     pfiles = PFiles([ifile], [ofile])
     dicer.do_dice_in_one_step(pfiles)
     assert pdb.current_project().state in ('sample', 'nosample')
     assert head_sha1(pdb) != _decided_sha1
 
 
-def test_dicer_B_ok_WLTPIOF_relpaths(dicer, iofiles, pdb):
+def test_dicer_B_ok_WLTPIOF_relpaths(dicer, iofiles_mov, pdb):
     reset_git(pdb, '%s~~' % _decided_sha1)
-    ifile, _ofile = iofiles
+    ifile, ofile = iofiles_mov
 
     ## Relative paths:
     #
     ifile.dirpath().chdir()
-    pfiles = PFiles(['inp.xlsx'], ['../out/out.xlsx'])
+    pfiles = PFiles([ifile.basename], [local('../out') / ofile.basename])
     dicer.do_dice_in_one_step(pfiles)
     assert pdb.current_project().state in ('sample', 'nosample')
     assert head_sha1(pdb) != _decided_sha1
+
+
+def test_dicer_B_fail_DIFF_files(dicer, iofiles_mov, iofiles_diff,
+                                 pdb, tmpdir):
+    reset_git(pdb, '%s~~' % _decided_sha1)
+    ifile, ofile = iofiles_mov
+    ofileRen = tmpdir.mkdir('ren') / 'foo.xlsx'
+    ofile.copy(ofileRen)
+
+    ## Different content `inp`
+    pfiles = PFiles([iofiles_diff[0]], [ofile])
+    with pytest.raises(CmdException,
+                       match="^Missmatch between files"):
+        dicer.do_dice_in_one_step(pfiles)
+
+    ## Different name 'out'
+    pfiles = PFiles([ifile], [ofileRen])
+    with pytest.raises(CmdException,
+                       match="^Missmatch between files"):
+        dicer.do_dice_in_one_step(pfiles)
+
+    ## Different content `other`
+    pfiles = PFiles([ifile], [ofile],
+                    [osp.join(osp.dirname(__file__), '..', '__init__.py')])
+    with pytest.raises(CmdException,
+                       match="^Missmatch between files"):
+        dicer.do_dice_in_one_step(pfiles)
+
+    ## Less 'other' files
+    pfiles = PFiles([ifile], [ofile])
+    with pytest.raises(CmdException,
+                       match="^Missmatch between files"):
+        dicer.do_dice_in_one_step(pfiles)
