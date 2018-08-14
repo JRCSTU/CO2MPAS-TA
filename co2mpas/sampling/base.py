@@ -395,7 +395,8 @@ class ReportsKeeper(trc.Configurable):
                     title, joinstuff(wfpaths))
             return
 
-        txt = "  ----((%s))----  \n%s" % (title, txt)
+        if title:
+            txt = "  ----((%s))----  \n%s" % (title, txt)
 
         written = 0
         for wfpath in wfpaths:
