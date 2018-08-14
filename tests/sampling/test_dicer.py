@@ -135,6 +135,8 @@ def iofiles_diff(iofiles):
     return ifile2, ofile2
 
 
+other = osp.join(osp.dirname(__file__), '__init__.py')
+
 #: Sentinel rest TCs will crash if not assigned by A below.
 _decided_sha1 = None
 
@@ -143,8 +145,7 @@ def test_dicer_A_new(dicer, pdb, iofiles):
     global _decided_sha1
 
     ifile, ofile = iofiles
-    pfiles = PFiles([ifile], [ofile],
-                    [osp.join(osp.dirname(__file__), '__init__.py')])
+    pfiles = PFiles([ifile], [ofile], [other])
     dicer.do_dice_in_one_step(pfiles)
     assert pdb.current_project().state in ('sample', 'nosample')
     _decided_sha1 = head_sha1(pdb)
@@ -152,14 +153,13 @@ def test_dicer_A_new(dicer, pdb, iofiles):
 
 def test_dicer_B_fail_DECIDED(dicer, iofiles_mov, pdb):
     ifile, ofile = iofiles_mov
-    pfiles = PFiles([ifile], [ofile],
-                    ## FIXME: should fail if LESS files appended!??
-                    )
+    pfiles = PFiles([ifile], [ofile], [other])
 
     ## State: 'decided' from A above
 
-    with pytest.raises(CmdException,
-                       match="to forbidden state-transition from 'nosample'!"):
+    with pytest.raises(
+            CmdException,
+            match="to forbidden state-transition from '(no)?sample'!"):
         dicer.do_dice_in_one_step(pfiles)
     assert pdb.current_project().state in ('sample', 'nosample')
     assert head_sha1(pdb) == _decided_sha1
@@ -168,7 +168,7 @@ def test_dicer_B_fail_DECIDED(dicer, iofiles_mov, pdb):
 def test_dicer_B_ok_TAGGED(dicer, iofiles_mov, pdb):
     reset_git(pdb, '%s~' % _decided_sha1)
     ifile, ofile = iofiles_mov
-    pfiles = PFiles([ifile], [ofile])
+    pfiles = PFiles([ifile], [ofile], [other])
     dicer.do_dice_in_one_step(pfiles)
     assert pdb.current_project().state in ('sample', 'nosample')
     assert head_sha1(pdb) != _decided_sha1
@@ -214,7 +214,7 @@ def test_dicer_B_fail_DIFF_files(dicer, iofiles_mov, iofiles_diff,
         dicer.do_dice_in_one_step(pfiles)
 
     ## Less 'other' files
-    pfiles = PFiles([ifile], [ofile])
+    pfiles = PFiles([ifile], [ofile], [other])
     with pytest.raises(CmdException,
                        match="^Project files missmatched"):
         dicer.do_dice_in_one_step(pfiles)
