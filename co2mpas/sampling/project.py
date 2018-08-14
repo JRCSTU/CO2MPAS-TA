@@ -1740,6 +1740,11 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.ReportsKeeper):
                     :param nsteps:
                         0 disables progressbar, negatives, set `indeterminate` mode, None ignored.
                     """
+
+        :param http_session:
+            remember to close it at some point
+            if not used, a session is created and utilized within this method
+            for the 2 calls (check & stamp)
         '''
         from . import tstamp
         import requests
@@ -1766,70 +1771,70 @@ class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.ReportsKeeper):
             http_session = self._http_session
             if not http_session:
                 http_session = self._http_session = requests.Session()
-
-        notify("checking WebStamper is live before modifying stuff....", max_step=nsteps)
-        wstamper = tstamp.WstampSpec(config=self.config)
-        wstamper.stamp_dice(None,
-                            dry_run=True,
-                            http_session=http_session)
-
-        notify("preparing project...", max_step=nsteps)
-        pdb = self.projects_db
         try:
-            proj = pdb.proj_add(vfid)
-        except ProjectExistError as ex:
-            err = str(ex)[:-1]  # clip the last '!' of ex-text.
-            self.log.info("%s, opening it." % err)
-            proj = pdb.proj_open(vfid)
-
-        ok = False
-        try:
-            notify("processing project files...", max_step=nsteps)
-            if proj.state in ('wltp_iof', 'tagged'):
-                diffs = pdb.diff_wdir_pfiles(pfiles)
-                if diffs:
-                    raise CmdException(
-                        "Project files missmatched with new ones!%s" %
-                        ''.join('\n    %s' % i for i in diffs))
-                self.log.info("Project '%s' already contained files: %s", vfid, pfiles)
-            else:
-                self._check_ok(proj.do_addfiles(pfiles=pfiles), proj)
-                self.log.info("Initiated '%s' with files: %s", vfid, pfiles)
-
-            notify("creating or retrieving dice-report...", max_step=nsteps)
-            self._check_ok(proj.do_report(), proj)
-            dice = proj.result
-            assert isinstance(dice, str)
-            self.store_report(dice, 'dice for %s' % proj.pname)
-
-            notify("stamping Dice through WebStamper...", max_step=nsteps)
+            notify("checking WebStamper is live before modifying stuff....", max_step=nsteps)
             wstamper = tstamp.WstampSpec(config=self.config)
-            stamp = wstamper.stamp_dice(dice, http_session=http_session)
-            self.log.info("Stamp was: \n%s", self.shrink_text(stamp))
-            self.store_report(stamp, 'stamp for %s' % proj.pname)
+            wstamper.stamp_dice(None,
+                                dry_run=True,
+                                http_session=http_session)
+            notify("preparing project...", max_step=nsteps)
+            pdb = self.projects_db
+            try:
+                proj = pdb.proj_add(vfid)
+            except ProjectExistError as ex:
+                err = str(ex)[:-1]  # clip the last '!' of ex-text.
+                self.log.info("%s, opening it." % err)
+                proj = pdb.proj_open(vfid)
 
-            notify("storing Stamp in project, and creating & signing Decision-report...",
-                   max_step=nsteps)
-            self._check_ok(proj.do_storestamp(tstamp_txt=stamp), proj)
-            decision = proj.result
-            assert isinstance(decision, str), decision
-            self.log.info("Imported Decision: \n%s'.",
-                          self.shrink_text(stamp))
-            ok = True
+            ok = False
+            try:
+                notify("processing project files...", max_step=nsteps)
+                if proj.state in ('wltp_iof', 'tagged'):
+                    diffs = pdb.diff_wdir_pfiles(pfiles)
+                    if diffs:
+                        raise CmdException(
+                            "Project files missmatched with new ones!%s" %
+                            ''.join('\n    %s' % i for i in diffs))
+                    self.log.info("Project '%s' already contained files: %s", vfid, pfiles)
+                else:
+                    self._check_ok(proj.do_addfiles(pfiles=pfiles), proj)
+                    self.log.info("Initiated '%s' with files: %s", vfid, pfiles)
 
-            self.store_report(decision, 'decision for %s' % proj.pname)
+                notify("creating or retrieving dice-report...", max_step=nsteps)
+                self._check_ok(proj.do_report(), proj)
+                dice = proj.result
+                assert isinstance(dice, str)
+                self.store_report(dice, 'dice for %s' % proj.pname)
 
-            return self.shrink_text(decision)
+                notify("stamping Dice through WebStamper...", max_step=nsteps)
+                wstamper = tstamp.WstampSpec(config=self.config)
+                stamp = wstamper.stamp_dice(dice, http_session=http_session)
+                self.log.info("Stamp was: \n%s", self.shrink_text(stamp))
+                self.store_report(stamp, 'stamp for %s' % proj.pname)
+
+                notify("storing Stamp in project, and creating & signing Decision-report...",
+                       max_step=nsteps)
+                self._check_ok(proj.do_storestamp(tstamp_txt=stamp), proj)
+                decision = proj.result
+                assert isinstance(decision, str), decision
+                self.log.info("Imported Decision: \n%s'.",
+                              self.shrink_text(stamp))
+                ok = True
+
+                self.store_report(decision, 'decision for %s' % proj.pname)
+
+                return self.shrink_text(decision)
+            finally:
+                if not ok:
+                    self.log.warning(self.help_in_case_of_failure % {
+                        'vfid': vfid,
+                        'state': proj.state,
+                        'iofiles': pfiles.build_cmd_line(),
+                        'reports_fpath': self.default_reports_fpath,
+                    })
         finally:
             if self._http_session:
                 self._http_session.close()
-            if not ok:
-                self.log.warning(self.help_in_case_of_failure % {
-                    'vfid': vfid,
-                    'state': proj.state,
-                    'iofiles': pfiles.build_cmd_line(),
-                    'reports_fpath': self.default_reports_fpath,
-                })
 
 
 ###################
