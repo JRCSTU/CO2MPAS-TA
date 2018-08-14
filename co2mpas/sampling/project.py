@@ -1431,31 +1431,28 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         if any(iofpaths.values()):
             return PFiles(**iofpaths)
 
-    def clean_wdir_pfiles(self, **rmtree_kwds):
-        import shutil
-
-        wd_fpath = self.repo.working_tree_dir
-        for f in PFiles._fields:  # @UndefinedVariable
-            shutil.rmtree(osp.join(wd_fpath, f), **rmtree_kwds)
-
-    def update_wdir_pfiles(self, pfiles):
+    def update_wdir_pfiles(self, pfiles, clean_old=None):
         """Add `pfiles` to git-repo's working-dir."""
         import shutil
+        from pathlib import Path
 
-        wd_fpath = self.repo.working_tree_dir
-        for io_kind, fpaths in pfiles._asdict().items():
-            for fp in fpaths:
-                src_fpath = fp
-                dest_fpath = osp.join(wd_fpath, io_kind,
-                                      osp.split(fp)[1])
-                shutil.copy(src_fpath, dest_fpath)
+        wdir = Path(self.repo.working_tree_dir)
+        for kind, fpaths in pfiles._asdict().items():
+            kdir = wdir / kind
+
+            if clean_old:
+                shutil.rmtree(kdir, ignore_errors=True)
+            kdir.mkdir(exist_ok=True)
+
+            for src in fpaths:
+                src = Path(src)
+                shutil.copy(src, kdir / src.name)
 
     def diff_wdir_pfiles(self, pfiles):
         """Compare `pfiles` with git-repo's working-dir (SIDE-EFFECT: reset WDir)."""
         repo = self.repo
         try:
-            self.clean_wdir_pfiles
-            self.update_wdir_pfiles(pfiles)
+            self.update_wdir_pfiles(pfiles, clean_old=True)
             diffs = repo.untracked_files + self.repo.index.diff(None)
             return diffs
         finally:
