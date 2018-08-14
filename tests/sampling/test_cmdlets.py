@@ -9,7 +9,7 @@
 from co2mpas.__main__ import init_logging
 from co2mpas._vendor import traitlets as trt
 from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import baseapp, crypto
+from co2mpas.sampling import cmdlets, crypto
 from unittest import mock
 import io
 import json
@@ -51,7 +51,7 @@ class TCfgFilesRegistry(unittest.TestCase):
             ('d:\\apps\\cygwin64\\home\\anastkn\\work\\compas.vinz\\co2mpas\\sampling', None),
             ('d:\\apps\\cygwin64\\home\\anastkn\\work\\compas.vinz\\co2mpas\\sampling', None),
         ]
-        c = baseapp.CfgFilesRegistry()
+        c = cmdlets.CfgFilesRegistry()
         cons = c._consolidate(visited)
 
         exp = [
@@ -72,7 +72,7 @@ class TCfgFilesRegistry(unittest.TestCase):
             ('D:\\Work\\compas.vinz\\co2mpas\\sampling', None),
             ('D:\\Work\\compas.vinz\\co2mpas\\sampling', None),
         ]
-        c = baseapp.CfgFilesRegistry()
+        c = cmdlets.CfgFilesRegistry()
         cons = c._consolidate(visited)
 
         exp = [
@@ -83,12 +83,12 @@ class TCfgFilesRegistry(unittest.TestCase):
         self.assertListEqual(cons, exp, visited)
 
     def test_default_loaded_paths(self):
-        f = '%s.py' % baseapp.default_config_fpaths()[0]
+        f = '%s.py' % cmdlets.default_config_fpaths()[0]
 
         ## Ensure at least one default home config-file.
         if not osp.isfile(f):
             io.open(f, 'w').close()
-        cmd = baseapp.Cmd()
+        cmd = cmdlets.Cmd()
         cmd.initialize([])
         self.assertGreaterEqual(len(cmd.loaded_config_files), 1)
         print(cmd._cfgfiles_registry.config_tuples)
@@ -99,7 +99,7 @@ class TPConfFiles(unittest.TestCase):
     def check_cmd_params(self, cmd, values):
         self.assertSequenceEqual([cmd.a, cmd.b, cmd.c], values)
 
-    @mock.patch('co2mpas.sampling.baseapp.default_config_fname', lambda: 'c')
+    @mock.patch('co2mpas.sampling.cmdlets.default_config_fname', lambda: 'c')
     @ddt.data(
         (None, None, []),
         (['cc', 'cc.json'], None, []),
@@ -145,7 +145,7 @@ class TPConfFiles(unittest.TestCase):
 
             exp = [osp.join(tdir, f) for f in exp]
 
-            cmd = baseapp.Cmd()
+            cmd = cmdlets.Cmd()
             if param is not None:
                 cmd.config_paths = [osp.join(tdir, ff)
                                     for f in param
@@ -163,7 +163,7 @@ class TPConfFiles(unittest.TestCase):
                     self.assertListEqual(paths, exp)
 
     def test_move_both_config_persist_files(self):
-        class MyCmd(baseapp.Cmd):
+        class MyCmd(cmdlets.Cmd):
             "Ok Cmd"
             a = trt.Int().tag(config=True)
             b = trt.Int().tag(config=True)
@@ -217,7 +217,7 @@ class TPConfFiles(unittest.TestCase):
             self.check_cmd_params(cmd, (1, 1, 1))
 
     def test_check_non_encrypted_in_config_files(self):
-        class MyCmd(baseapp.Cmd):
+        class MyCmd(cmdlets.Cmd):
             "Ok Cmd"
             enc = crypto.Cipher().tag(config=True, persist=True)
 
@@ -308,7 +308,7 @@ class TPTraits(TBase):
         pfile = osp.join(self._tdir, 'foo.json')
         prepare_persistent_config_file(pfile)
 
-        class MySpec(baseapp.Spec):
+        class MySpec(cmdlets.Spec):
             "Ok Spec"
             ptrait = trt.Bool().tag(config=True, persist=True)
 
@@ -330,7 +330,7 @@ class TPTraits(TBase):
         pfile = osp.join(self._tdir, 'foo.json')
         prepare_persistent_config_file(pfile)
 
-        class MyCmd(baseapp.Cmd):
+        class MyCmd(cmdlets.Cmd):
             "Ok Cmd"
             ptrait = trt.Bool().tag(config=True, persist=True)
 
@@ -349,7 +349,7 @@ class TPTraits(TBase):
     @ddt.data(
         {}, {'config': False}, {'config': None}, {'config': 0}, {'config': 1}, {'config': -2})
     def test_invalid_ptraits_on_spec(self, tags):
-        class MySpec(baseapp.Spec):
+        class MySpec(cmdlets.Spec):
             "Spec with invalid ptrait"
             bad_ptrait = trt.Bool().tag(persist=True, **tags)
 
@@ -360,7 +360,7 @@ class TPTraits(TBase):
     @ddt.data(
         {}, {'config': False}, {'config': None}, {'config': 0}, {'config': 1}, {'config': -2})
     def test_invalid_ptraits_on_cmd(self, tags):
-        class MyCmd(baseapp.Cmd):
+        class MyCmd(cmdlets.Cmd):
             "Cmd with invalid ptrait"
             bad_ptrait = trt.Bool().tag(persist=True, **tags)
 
@@ -403,7 +403,7 @@ class TCipherTraits(TBase):
         pfile = osp.join(self._tdir, 'foo.json')
         prepare_persistent_config_file(pfile, {'MySpec': {'ctrait': plainval}})
 
-        class MySpec(baseapp.Spec):
+        class MySpec(cmdlets.Spec):
             "OK Spec"
 
             ctrait = crypto.Cipher(None, allow_none=True).tag(config=True, persist=True)
@@ -439,7 +439,7 @@ class TCipherTraits(TBase):
         pfile = osp.join(self._tdir, 'foo.json')
         prepare_persistent_config_file(pfile, {'MyCmd': {'ctrait': plainval}})
 
-        class MyCmd(baseapp.Cmd):
+        class MyCmd(cmdlets.Cmd):
             "OK Cmd"
 
             ctrait = crypto.Cipher(None, allow_none=True).tag(config=True, persist=True)

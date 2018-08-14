@@ -14,7 +14,7 @@ import unittest
 from co2mpas.__main__ import init_logging
 from co2mpas._vendor.traitlets import config as trtc
 from co2mpas.sampling import crypto, tsigner
-from co2mpas.sampling.baseapp import Cmd
+from co2mpas.sampling.cmdlets import Cmd
 import ddt
 
 from git.util import rmtree as gutil_rmtree

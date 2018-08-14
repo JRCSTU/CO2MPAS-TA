@@ -8,7 +8,7 @@
 
 from co2mpas.__main__ import init_logging
 from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import baseapp, dice, cfgcmd
+from co2mpas.sampling import cmdlets, dice, cfgcmd
 import logging
 import os
 import tempfile
@@ -60,7 +60,7 @@ class TApp(unittest.TestCase):
     def test_config_paths(self):
         c = trtc.get_config()
         c.Co2dice.raise_config_file_errors = True
-        cmd = baseapp.chain_cmds([cfgcmd.PathsCmd], [], config=c)
+        cmd = cmdlets.chain_cmds([cfgcmd.PathsCmd], [], config=c)
         res = cmd.start()
         res = list(res)
         self.assertGreaterEqual(len(res), 2, res)
@@ -68,7 +68,7 @@ class TApp(unittest.TestCase):
     def test_config_show(self):
         c = trtc.get_config()
         c.Co2dice.raise_config_file_errors = True
-        cmd = baseapp.chain_cmds([cfgcmd.ShowCmd], [], config=c)
+        cmd = cmdlets.chain_cmds([cfgcmd.ShowCmd], [], config=c)
         res = cmd.start()
         res = list(res)
         ## Count Cmd-lines not starting with '  +--trait'.
@@ -87,7 +87,7 @@ class TApp(unittest.TestCase):
         self.assertGreaterEqual(ncmdlines, len(cmd.all_app_configurables()), res)
 
     @ddt.data(*dice.all_cmds())
-    def test_all_cmds_help_smoketest(self, cmd: baseapp.Cmd):
+    def test_all_cmds_help_smoketest(self, cmd: cmdlets.Cmd):
         cmd.class_get_help()
         cmd.class_config_section()
         cmd.class_config_rst_doc()

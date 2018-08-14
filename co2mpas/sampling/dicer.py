@@ -9,11 +9,11 @@ New base sub-cmd to simplify Stamping through WebStamper in one step.
 """
 import textwrap as tw
 
-from . import CmdException, base, baseapp
+from . import CmdException, base, cmdlets
 from .._vendor import traitlets as trt
 
 
-class DicerSpec(baseapp.Spec, base.ShrinkingOutputMixin, base.ReportsKeeper):
+class DicerSpec(cmdlets.Spec, base.ShrinkingOutputMixin, base.ReportsKeeper):
     """A sequencer for dicing new or existing projects through WebStamper."""
 
     help_in_case_of_failure = trt.Unicode(

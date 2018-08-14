@@ -10,11 +10,11 @@ co2DICE: Distributed Impromptu Co2mpas Evaluation.
 
 This is an articulated application comprised of the following:
 
-- A library implemented with :class:`baseapp.Spec` instances performing
+- A library implemented with :class:`cmdlets.Spec` instances performing
   the backend-tasks: prepare/sign/send/receive/decide/archive of
   *co2mpas* results.
 - the ``co2dice`` hierarchical cmd-line tool,
-  implemented with :class:`baseapp.Cmd` instances.
+  implemented with :class:`cmdlets.Cmd` instances.
 - A GUI adaptor, based on the :mod:`tkinter` framework;
 
 ::
@@ -30,7 +30,7 @@ This is an articulated application comprised of the following:
 The ``Spec`` and ``Cmd`` classes are build on top of the
 `traitlets framework <http://traitlets.readthedocs.io/>`
 to read and validate configuration parameters found in files
-and/or cmd-line arguments (see :mod:`baseapp`).
+and/or cmd-line arguments (see :mod:`cmdlets`).
 
 For usage examples read the "Random Sampling" section in the manual (http://co2mpas.io).
 """

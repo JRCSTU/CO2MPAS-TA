@@ -17,7 +17,7 @@ from pandalone import utils as pndlu
 
 import functools as fnt
 
-from . import CmdException, base, baseapp, dice, crypto, slicetrait
+from . import CmdException, base, cmdlets, dice, crypto, slicetrait
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
                 vehicle_family_id_pattern)
 from .._vendor import traitlets as trt
@@ -1748,7 +1748,7 @@ class WstampSpec(dice.DiceSpec):
 ##    Commands   ##
 ###################
 
-class TstampCmd(baseapp.Cmd):
+class TstampCmd(cmdlets.Cmd):
     """
     Commands to manage the communications with the Timestamp server.
 
@@ -1796,11 +1796,11 @@ class TstampCmd(baseapp.Cmd):
     """)
 
     def __init__(self, **kwds):
-        kwds.setdefault('subcommands', baseapp.build_sub_cmds(*all_subcmds))
+        kwds.setdefault('subcommands', cmdlets.build_sub_cmds(*all_subcmds))
         super().__init__(**kwds)
 
 
-class SendCmd(base.FileReadingMixin, baseapp.Cmd):
+class SendCmd(base.FileReadingMixin, cmdlets.Cmd):
     """
     (DEPRECATED) Send emails to be timestamped.
 
@@ -1862,7 +1862,7 @@ class SendCmd(base.FileReadingMixin, baseapp.Cmd):
                                fpath, ex, exc_info=1)  # one-off event, must not loose ex.
 
 
-class MailboxCmd(baseapp.Cmd):
+class MailboxCmd(cmdlets.Cmd):
     """Lists mailboxes in IMAP server.
 
     - SINCE co2mpas-1.9.x (summer 2018) EmailStamper IS DEPRECATED.
@@ -1897,7 +1897,7 @@ recv_cmd_aliases = {
 }
 
 
-class RecvCmd(baseapp.Cmd, base.ShrinkingOutputMixin):
+class RecvCmd(cmdlets.Cmd, base.ShrinkingOutputMixin):
     """
     (DEPRECATED) Fetch Stamps/Dices from IMAP server and derive *decisions* OK/SAMPLE flags.
 
@@ -2032,7 +2032,7 @@ class RecvCmd(baseapp.Cmd, base.ShrinkingOutputMixin):
                               default_flow_style=default_flow_style)
 
 
-class ParseCmd(base.StampParsingCmdMixin, baseapp.Cmd):
+class ParseCmd(base.StampParsingCmdMixin, cmdlets.Cmd):
     """
     Verifies and derives the *decision* OK/SAMPLE flag from tstamped-response email.
 
@@ -2110,7 +2110,7 @@ class ParseCmd(base.StampParsingCmdMixin, baseapp.Cmd):
                           default_flow_style=None if self.verbose else False)
 
 
-class LoginCmd(baseapp.Cmd):
+class LoginCmd(cmdlets.Cmd):
     """
     (DEPRECATED) Attempts to login into SMTP server.
 
@@ -2168,7 +2168,7 @@ class LoginCmd(baseapp.Cmd):
         return (s.check_login(self.dry_run) for s in servers)
 
 
-class WstampCmd(baseapp.Cmd,
+class WstampCmd(cmdlets.Cmd,
                 base.FileReadingMixin,
                 base.ShrinkingOutputMixin,
                 base.ReportsKeeper):

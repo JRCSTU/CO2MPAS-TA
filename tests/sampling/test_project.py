@@ -8,9 +8,9 @@
 
 from co2mpas.__main__ import init_logging
 from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import baseapp, crypto, project
+from co2mpas.sampling import cmdlets, crypto, project
 from co2mpas.sampling.base import PFiles
-from co2mpas.sampling.baseapp import pump_cmd, collect_cmd
+from co2mpas.sampling.cmdlets import pump_cmd, collect_cmd
 from co2mpas.utils import chdir
 from tests.sampling import (
     gitpython_cleanup, test_inp_fpath, test_out_fpath, test_vfid,
@@ -191,7 +191,7 @@ class TProjectsDBStory(unittest.TestCase):
         self.assertEqual(collect_cmd(cmd.run()), None)
 
         cmd = project.ReportCmd(config=cfg)
-        with self.assertRaisesRegex(baseapp.CmdException, exp_log_msg):
+        with self.assertRaisesRegex(cmdlets.CmdException, exp_log_msg):
             pump_cmd(cmd.run())
         self.assertIsNone(cmd.projects_db._current_project)
 
@@ -261,7 +261,7 @@ class TProjectsDBStory(unittest.TestCase):
     def test_3a_add_same_project__fail(self):
         cfg = self._config
         cmd = project.InitCmd(config=cfg)
-        with self.assertRaisesRegex(baseapp.CmdException,
+        with self.assertRaisesRegex(cmdlets.CmdException,
                                     r"Project '%s' already exists!" % proj1):
             pump_cmd(cmd.run(proj1))
 
@@ -334,7 +334,7 @@ class TProjectsDBStory(unittest.TestCase):
 
     def test_6_open_non_existing(self):
         cmd = project.OpenCmd(config=self._config)
-        with self.assertRaisesRegex(baseapp.CmdException, "Project 'who' not found!"):
+        with self.assertRaisesRegex(cmdlets.CmdException, "Project 'who' not found!"):
             cmd.run('who')
 
 
@@ -480,7 +480,7 @@ class TStraightStory(unittest.TestCase):
         p = pdb.current_project()
         p.update_config(cfg)
 
-        with pytest.raises(baseapp.CmdException) as exinfo:
+        with pytest.raises(cmdlets.CmdException) as exinfo:
             p.do_storestamp(tstamp_txt=test_tstamp.tstamp_responses[-1][-1])
         exinfo.match("different from current one")
         exinfo.match("is different from last tag on current project")
@@ -503,7 +503,7 @@ class TStraightStory(unittest.TestCase):
         ## Move back to `mailed` state to retry.
         p = reset_git('HEAD~', pdb, cfg)
         assert p.state == 'mailed'
-        with pytest.raises(baseapp.CmdException,
+        with pytest.raises(cmdlets.CmdException,
                            match="is different from last tag on current project"):
             p.do_storestamp(tstamp_txt=test_tstamp.tstamp_responses[-1][-1])
 
@@ -596,7 +596,7 @@ class TParseCheck(unittest.TestCase):
         self.assertIn(test_vfid,
                       collect_cmd(project.LsCmd(config=cfg).run(test_vfid)))
         with self.assertRaisesRegex(
-                baseapp.CmdException,
+                cmdlets.CmdException,
                 r"Stamp's tag"
                 "\('dices/IP-10-AAA-2017-0000/0: ad5f4eb331ba5067a2e82422a1ffafdec8ea09d4'\) "
                 "is different from last tag on current project"
@@ -738,7 +738,7 @@ class TBackupCmd(unittest.TestCase):
         cmd = project.BackupCmd(config=cfg)
         with tempfile.TemporaryDirectory() as td:
             with self.assertRaisesRegex(
-                    baseapp.CmdException,
+                    cmdlets.CmdException,
                     r"Folder '.+__BAD_FOLDER' to store archive does not exist!"):
                 pump_cmd(cmd.run(osp.join(td, '__BAD_FOLDER', 'foo')))
 

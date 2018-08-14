@@ -14,8 +14,8 @@ Type Approval sampling emails of *co2mpas*.
 from co2mpas._vendor import traitlets as trt
 from . import (
     __version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
-    baseapp, CmdException)
-from .baseapp import (APPNAME, Cmd,
+    cmdlets, CmdException)
+from .cmdlets import (APPNAME, Cmd,
                       chain_cmds)  # @UnusedImport
 from collections import OrderedDict
 from typing import Sequence, Text, List, Tuple  # @UnusedImport
@@ -35,7 +35,7 @@ except Exception:
     _mydir = '.'
 
 
-class DiceSpec(baseapp.Spec):
+class DiceSpec(cmdlets.Spec):
     """Common parameters dice functionality."""
 
     user_name = trt.Unicode(
@@ -112,7 +112,7 @@ def all_cmds():
     from co2mpas import co2gui
     return (
         (
-            baseapp.Cmd,
+            cmdlets.Cmd,
             Co2diceCmd,
             dicercmd.DicerCmd,
             project.ProjectCmd,
@@ -135,7 +135,7 @@ def all_app_configurables() -> Tuple:
     from . import crypto, project, dicer, report, tstamp, tsigner
     ## TODO: specs maybe missing from all-config-classes.
     all_config_classes = all_cmds() + (
-        baseapp.Spec,
+        cmdlets.Spec,
         dicer.DicerSpec,
         project.ProjectSpec, project.Project, project.ProjectsDB,
         crypto.VaultSpec, crypto.GitAuthSpec,
@@ -194,7 +194,7 @@ def run(argv=(), **app_init_kwds):
         ## NOTE: HACK to fail early on first AIO launch.
         Cmd.configs_required = True
         cmd = Co2diceCmd.make_cmd(argv, **app_init_kwds)
-        return baseapp.pump_cmd(cmd.start()) and 0
+        return cmdlets.pump_cmd(cmd.start()) and 0
     except (CmdException,
             trt.TraitError,
             transitions.MachineError,

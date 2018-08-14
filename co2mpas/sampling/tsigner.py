@@ -19,7 +19,7 @@ import stat
 
 import os.path as osp
 
-from . import CmdException, base, baseapp, crypto, tstamp
+from . import CmdException, base, cmdlets, crypto, tstamp
 from .._vendor import traitlets as trt
 
 
@@ -36,7 +36,7 @@ def pgp_sig_to_hex(sig_id: Text) -> int:
     return binascii.hexlify(sig_bytes).decode()
 
 
-class TsignerSpec(baseapp.Spec):
+class TsignerSpec(cmdlets.Spec):
     stamper_name = trt.Unicode(
         'JRC-stamper',
         help="By default, that `stamp_chain_dir` is derived from this name. ",
@@ -63,7 +63,7 @@ class SigChain(TsignerSpec):
     @trt.default('stamp_chain_dir')
     def _default_chain_dir(self):
         service_fname = re.sub(r'\W', '_', self.stamper_name)
-        return osp.join(baseapp.default_config_dir(), service_fname)
+        return osp.join(cmdlets.default_config_dir(), service_fname)
 
     read_only_files = trt.Bool(
         True,
@@ -431,7 +431,7 @@ class TsignerService(SigChain, tstamp.TstampReceiver):
         return signed_text, dice_decision
 
 
-class TsignerCmd(base.FileReadingMixin, baseapp.Cmd):
+class TsignerCmd(base.FileReadingMixin, cmdlets.Cmd):
     """
     Private stamper service.
 

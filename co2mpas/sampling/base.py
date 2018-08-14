@@ -174,7 +174,7 @@ class FileReadingMixin(metaclass=trt.MetaHasTraits):
                     self.log.error(
                         "Reading file-path '%s' failed due to: %r",
                         fpath, ex,
-                        exc_info=self.verbose)  # WARN: from `baseapp.Spec`
+                        exc_info=self.verbose)  # WARN: from `cmdlets.Spec`
                     continue
 
 

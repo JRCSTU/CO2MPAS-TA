@@ -16,7 +16,7 @@ from typing import (
 
 import os.path as osp
 
-from . import baseapp, base, project, CmdException
+from . import cmdlets, base, project, CmdException
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 from .._vendor.traitlets import traitlets as trt
 from .base import PFiles
@@ -69,7 +69,7 @@ def _report_tuple_2_dict(fpath, iokind, report) -> dict:
     return d
 
 
-class ReporterSpec(baseapp.Spec):
+class ReporterSpec(cmdlets.Spec):
     """Mines reported-parameters from co2mpas excel-files and serves them as a pandas dataframes."""
 
     input_head_xlref = trt.Unicode(
@@ -346,17 +346,17 @@ class ReporterSpec(baseapp.Spec):
 ###################
 
 
-class ReportCmd(baseapp.Cmd):
+class ReportCmd(cmdlets.Cmd):
     """
     Subcommands to extract dice-reports from co2mpas files or unlock encrypted reports.
     """
 
     def __init__(self, **kwds):
-        kwds.setdefault('subcommands', baseapp.build_sub_cmds(*all_subcmds))
+        kwds.setdefault('subcommands', cmdlets.build_sub_cmds(*all_subcmds))
         super().__init__(**kwds)
 
 
-class ExtractCmd(baseapp.Cmd):
+class ExtractCmd(cmdlets.Cmd):
     """
     Extract dice-report from the input/output/other files, or from *current-project*.
 
@@ -484,7 +484,7 @@ class ExtractCmd(baseapp.Cmd):
                 yield yaml.dump([drep], indent=2, width=76)
 
 
-class UnlockCmd(baseapp.Cmd, base.StampParsingCmdMixin):
+class UnlockCmd(cmdlets.Cmd, base.StampParsingCmdMixin):
     """
     Decrypt data attached in dice-reports (also when wrapped in stamps) into STDOUT.
 

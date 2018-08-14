@@ -12,7 +12,7 @@ The general idea is to use a PGP key to securely store many passwords in configu
 The code using these passwords must never store them as is, but use and immediately discard them.
 """
 
-from co2mpas.sampling import baseapp
+from co2mpas.sampling import cmdlets
 from collections import OrderedDict
 import io
 import os
@@ -227,7 +227,7 @@ def uid_from_verdict(verdict: Union[dict, any]) -> Text:
     return ': '.join(v for v in vals if v)
 
 
-class GpgSpec(baseapp.Spec):
+class GpgSpec(cmdlets.Spec):
     """
     Configurable parameters for instantiating a GnuPG instance
 
@@ -447,7 +447,7 @@ class GpgSpec(baseapp.Spec):
 
     def check_test_key_missused(self, keyid):
         if not self.allow_test_key and is_test_key(keyid):
-            raise baseapp.CmdException(GpgSpec.allow_test_key.help)
+            raise cmdlets.CmdException(GpgSpec.allow_test_key.help)
 
     def __init__(self, **kwds):
         super().__init__(**kwds)
@@ -661,7 +661,7 @@ def get_encrypter(config: trtc.Config) -> EncrypterSpec:
 
 class Cipher(trt.TraitType):
     """A trait that auto-dencrypts its value using PGP (can be anything that is pickled-ed)."""
-    ## See also :class:`baseapp.HasCiphersMixin`
+    ## See also :class:`cmdlets.HasCiphersMixin`
 
     info_text = 'any value (will be PGP-encrypted)'
     allow_none = True

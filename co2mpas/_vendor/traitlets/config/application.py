@@ -90,12 +90,12 @@ def catch_config_error(method, app, *args, **kwargs):
     except (TraitError, ArgumentError) as e:
         ## NOTE: CO2MPAS -specific code HERE!
         from .... import __main__ as cmain
-        from ....sampling import baseapp
+        from ....sampling import cmdlets
 
         log = app.log
         #log.info('\n'.join(app.emit_help()))
         log.debug("Config at app-exit time: %s", app.config)
-        cmd_chain = baseapp.cmd_line_chain(app)
+        cmd_chain = cmdlets.cmd_line_chain(app)
         epilogue = '\n'.join(app.emit_help_epilogue(classes=None))
         sys.exit(cmain.exit_with_pride(
             "%s: encountered invalid configs: %s\n\n%s" %

@@ -7,11 +7,11 @@
 """
 New cmd to simplify stamping through WebStamper in one step.
 """
-from . import baseapp, base
+from . import cmdlets, base
 from .._vendor import traitlets as trt
 
 
-class DicerCmd(baseapp.Cmd):
+class DicerCmd(cmdlets.Cmd):
     """
     Dice a new (or existing) project in one action through WebStamper.
 

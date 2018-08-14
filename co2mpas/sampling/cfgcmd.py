@@ -16,7 +16,7 @@ from toolz import dicttoolz as dtz
 import functools as fnt
 import os.path as osp
 
-from . import baseapp, CmdException
+from . import cmdlets, CmdException
 from .._vendor import traitlets as trt
 
 
@@ -121,7 +121,7 @@ def prepare_help_selector(only_class_in_values, verbose):
     return selector
 
 
-class ConfigCmd(baseapp.Cmd):
+class ConfigCmd(cmdlets.Cmd):
     """
     Commands to manage configuration-options loaded from filesystem, cmd-line or defaults.
     """
@@ -142,11 +142,11 @@ class ConfigCmd(baseapp.Cmd):
 
     def __init__(self, **kwds):
             super().__init__(
-                subcommands=baseapp.build_sub_cmds(*config_subcmds),
+                subcommands=cmdlets.build_sub_cmds(*config_subcmds),
                 **kwds)
 
 
-class WriteCmd(baseapp.Cmd):
+class WriteCmd(cmdlets.Cmd):
     """
     Store config defaults into specified path(s); '{confpath}' assumed if none specified.
 
@@ -159,8 +159,8 @@ class WriteCmd(baseapp.Cmd):
 
     ## Class-docstring CANNOT contain string-interpolations!
     description = trt.Unicode(__doc__.format(
-        confpath=baseapp.default_config_fpaths()[0],
-        appname=baseapp.APPNAME))
+        confpath=cmdlets.default_config_fpaths()[0],
+        appname=cmdlets.APPNAME))
 
     examples = trt.Unicode("""
         - Generate a config-file at your home folder::
@@ -179,7 +179,7 @@ class WriteCmd(baseapp.Cmd):
             self.write_default_config(fpath, self.force)
 
 
-class PathsCmd(baseapp.Cmd):
+class PathsCmd(cmdlets.Cmd):
     """
     List paths and variables used to load configurations (1st override those below).
 
@@ -300,7 +300,7 @@ class PathsCmd(baseapp.Cmd):
         yield "  repo_path: %s" % repo.repopath_resolved
 
 
-class ShowCmd(baseapp.Cmd):
+class ShowCmd(cmdlets.Cmd):
     """
     Print configurations (defaults | files | merged) before any validations.
 
@@ -523,7 +523,7 @@ class ShowCmd(baseapp.Cmd):
         yield from func(config, args)
 
 
-class DescCmd(baseapp.Cmd):
+class DescCmd(cmdlets.Cmd):
     """
     List and print help for configurable classes and parameters.
 

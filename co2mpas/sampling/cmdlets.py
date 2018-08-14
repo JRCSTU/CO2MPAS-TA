@@ -16,10 +16,10 @@ To run a base command, use this code::
     cd = MainCmd.make_cmd(argv, **app_init_kwds)  ## `sys.argv` used if `argv` is `None`!
     cmd.start()
 
-To run nested commands and print its output, use :func:`baseapp.chain_cmds()` like that::
+To run nested commands and print its output, use :func:`cmdlets.chain_cmds()` like that::
 
     cmd = chain_cmds([MainCmd, Sub1Cmd, Sub2Cmd], argv)  ## `argv` without sub-cmds
-    sys.exit(baseapp.pump_cmd(cmd.start()) and 0)
+    sys.exit(cmdlets.pump_cmd(cmd.start()) and 0)
 
 Of course you can mix'n match.
 
@@ -69,7 +69,7 @@ from .._vendor.traitlets import config as trtc
 
 ################################################
 ## INFO: Modify the following variables on a different application.
-APPNAME = 'co2dice'  # TODO: Cannot use baseapp with different app-names.
+APPNAME = 'co2dice'  # TODO: Cannot use cmdlets with different app-names.
 CONFIG_VAR_NAME = '%s_CONFIG_PATHS' % APPNAME.upper()
 PERSIST_VAR_NAME = '%s_PERSIST_PATH' % APPNAME.upper()
 

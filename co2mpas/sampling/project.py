@@ -28,7 +28,7 @@ import os.path as osp
 import pandalone.utils as pndlu
 import textwrap as tw
 
-from . import base, baseapp, dice, CmdException
+from . import base, cmdlets, dice, CmdException
 from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
                 __dice_report_version__)
 from .._vendor.traitlets import traitlets as trt
@@ -931,11 +931,11 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
     """
 
     repo_path = trt.Unicode(
-        osp.join(baseapp.default_config_dir(), 'repo'),
+        osp.join(cmdlets.default_config_dir(), 'repo'),
         help="""
         The path to the Git repository to store TA files (signed and exchanged).
         If relative, it joined against default config-dir: '{confdir}'
-        """.format(confdir=baseapp.default_config_dir())
+        """.format(confdir=cmdlets.default_config_dir())
     ).tag(config=True, envvar='CO2DICE_REPO_PATH')
 
     preserved_git_settings = trt.List(
@@ -972,7 +972,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         """Used internally AND for printing configurations."""
         repo_path = self.repo_path
         if not osp.isabs(repo_path):
-            repo_path = osp.join(baseapp.default_config_dir(), repo_path)
+            repo_path = osp.join(cmdlets.default_config_dir(), repo_path)
         repo_path = pndlu.convpath(repo_path)
 
         return repo_path
@@ -1664,7 +1664,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 ##    Commands   ##
 ###################
 
-class _SubCmd(baseapp.Cmd):
+class _SubCmd(cmdlets.Cmd):
     @property
     def projects_db(self) -> ProjectsDB:
         p = ProjectsDB.instance(config=self.config)
@@ -1728,7 +1728,7 @@ class ProjectCmd(_SubCmd):
     def __init__(self, **kwds):
         dkwds = {
             'conf_classes': [ProjectsDB, Project],
-            'subcommands': baseapp.build_sub_cmds(*all_subcmds),
+            'subcommands': cmdlets.build_sub_cmds(*all_subcmds),
         }
         dkwds.update(kwds)
         super().__init__(**dkwds)
@@ -2682,7 +2682,7 @@ class BackupCmd(_SubCmd):
                 erase_afterwards=self.erase_afterwards,
                 **kwds)
         except FileNotFoundError as ex:
-            raise baseapp.CmdException(
+            raise cmdlets.CmdException(
                 "Folder '%s' to store archive does not exist!"
                 "\n  Use --force to create it." % ex)
 

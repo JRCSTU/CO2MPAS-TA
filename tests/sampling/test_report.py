@@ -9,7 +9,7 @@
 from co2mpas.__main__ import init_logging
 from co2mpas._vendor.traitlets import config as trtc
 from co2mpas.sampling import CmdException, report, project, crypto
-from co2mpas.sampling.baseapp import pump_cmd
+from co2mpas.sampling.cmdlets import pump_cmd
 import logging
 import os
 import re

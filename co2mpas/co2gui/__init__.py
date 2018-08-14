@@ -56,7 +56,7 @@ Layout::
 from co2mpas import (__main__ as cmain, __version__,
                      __updated__, __copyright__, __license__, __uri__)  # @UnusedImport
 from co2mpas._vendor import traitlets as trt
-from co2mpas.sampling import baseapp
+from co2mpas.sampling import cmdlets
 from collections import Counter, OrderedDict, namedtuple, ChainMap, defaultdict
 from datetime import datetime
 from tkinter import StringVar, ttk, filedialog
@@ -2239,7 +2239,7 @@ class DicePanel(ttk.Frame):
         return frame
 
 
-class Co2guiCmd(baseapp.Cmd):
+class Co2guiCmd(cmdlets.Cmd):
     """
     Run CO2MPAS GUI to simulate and (optionally) dice the results.
 
@@ -2629,7 +2629,7 @@ class Co2guiCmd(baseapp.Cmd):
                     #  On success, Dice=btn disabled, not to alow reruns.
             except Exception as ex:
                 stdout, stderr = stream_addendums(*stdpump.pump_streams())
-                polite = isinstance(ex, baseapp.CmdException)
+                polite = isinstance(ex, cmdlets.CmdException)
                 err = ex if polite else '%s: %s' % (type(ex).__name__, ex)
                 exc_info = logging.getLogger().isEnabledFor(logging.DEBUG) or not polite
                 mediate_guistate("%s FAILED ON STEP %s DUE TO: %s%s%s",
@@ -2704,7 +2704,7 @@ def run(argv=(), **app_init_kwds):
         log_fpath = None
 
     ## At these early stages, any log cmd-line option
-    #  enable DEBUG logging ; later will be set by `baseapp` traits.
+    #  enable DEBUG logging ; later will be set by `cmdlets` traits.
     log_level = logging.DEBUG if cmain.is_any_log_option(argv) else None
 
     cmain.init_logging(level=log_level, filename=log_fpath,
@@ -2722,8 +2722,8 @@ def run(argv=(), **app_init_kwds):
     try:
         ##Co2diceCmd.launch_instance(argv or None, **app_init_kwds) ## NO No, does not return `start()`!  noqa
         cmd = Co2guiCmd.make_cmd(argv, **app_init_kwds)
-        return baseapp.pump_cmd(cmd.start() and 0)
-    except (baseapp.CmdException, trt.TraitError) as ex:
+        return cmdlets.pump_cmd(cmd.start() and 0)
+    except (cmdlets.CmdException, trt.TraitError) as ex:
         log.debug('App exited due to: %r', ex, exc_info=1)
         ## Suppress stack-trace for "expected" errors but exit-code(1).
         log.error('App exited due to: %s', ex)
