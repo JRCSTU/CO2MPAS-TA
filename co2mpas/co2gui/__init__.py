@@ -2570,10 +2570,13 @@ class Co2guiCmd(baseapp.Cmd):
         from co2mpas.sampling.base import ReportsKeeper
         return ReportsKeeper(config=self.config).default_reports_fpath
 
+    _http_session = None
+
     def do_run_dice(self, pfile_pairs, mediate_guistate):
-        from threading import Thread
-        from ..sampling import base, project
         from .. import utils
+        from ..sampling import base, project
+        from threading import Thread
+        import requests
 
         jobname = 'DICER'
         stdpump = StreamsPump(nstreams=2)
@@ -2608,7 +2611,9 @@ class Co2guiCmd(baseapp.Cmd):
 
                     dicer = project.DicerSpec(config=self.config)
 
-                    dicer.do_dice_in_one_step(pfiles, progress_listener)
+                    if not self._http_session:
+                        self._http_session = requests.Session()
+                    dicer.do_dice_in_one_step(pfiles, progress_listener,)
 
                     stdout, stderr = stream_addendums(*stdpump.pump_streams())
                     mediate_guistate("%s COMPLETED %s STEPS SUCCESSFULY.%s%s",
@@ -2647,6 +2652,12 @@ class Co2guiCmd(baseapp.Cmd):
         try:
             self.root.mainloop()
         finally:
+            try:
+                if self._http_session:
+                    self._http_session.close()
+            except tk.TclError:
+                pass
+
             try:
                 self.root.destroy()
             except tk.TclError:
