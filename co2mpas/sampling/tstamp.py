@@ -1897,7 +1897,7 @@ recv_cmd_aliases = {
 }
 
 
-class RecvCmd(baseapp.Cmd):
+class RecvCmd(baseapp.Cmd, base.ShrinkingOutputMixin):
     """
     (DEPRECATED) Fetch Stamps/Dices from IMAP server and derive *decisions* OK/SAMPLE flags.
 
@@ -2024,7 +2024,7 @@ class RecvCmd(baseapp.Cmd):
 
                 if isinstance(verdict, Exception):
                     self.log.info("[%s]%s: skipping unparseable tstamp-email.\n%s",
-                                  uid, mid, preview)
+                                  uid, mid, self.shrink_text(mail_text))
 
                 infos = rcver.get_recved_email_infos(mail, verdict)
 
