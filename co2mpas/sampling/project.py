@@ -2668,11 +2668,8 @@ class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.FileWritingMixin):
                                  default_flow_style=default_flow_style)
 
                 if self.write_fpath:
-                    f, e = osp.splitext(self.write_fpath)
-                    wfpath = '%s-%i%s' % (f, i, e)
-                    self.write_file(result,
-                                    "Email-no%i([%s]%s)" % (i, uid, mid),
-                                    wfpath)
+                    email_id = "Email-no%i([%s]%s)" % (i, uid, mid)
+                    self.write_file(result, email_id)
                 else:
                     yield self.shrink_text(result)
 
