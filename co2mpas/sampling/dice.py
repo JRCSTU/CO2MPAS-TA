@@ -88,6 +88,8 @@ class Co2diceCmd(Cmd):
     """)
 
     subcommands = OrderedDict([
+        ('dicer', ('co2mpas.sampling.dicercmd.DicerCmd',
+                   "Dice a new (or existing) project in one action through WebStamper.")),
         ('project', ('co2mpas.sampling.project.ProjectCmd',
                      "Commands to administer the storage repo of TA *projects*.")),
         ('report', ('co2mpas.sampling.report.ReportCmd',
@@ -106,12 +108,13 @@ class Co2diceCmd(Cmd):
 ## INFO: Add all CMDs here.
 #
 def all_cmds():
-    from . import cfgcmd, project, report, tstamp, tsigner
+    from . import cfgcmd, project, dicercmd, report, tstamp, tsigner
     from co2mpas import co2gui
     return (
         (
             baseapp.Cmd,
             Co2diceCmd,
+            dicercmd.DicerCmd,
             project.ProjectCmd,
             report.ReportCmd,
             tstamp.TstampCmd,
@@ -129,10 +132,11 @@ def all_cmds():
 ## INFO: Add all SPECs here.
 #
 def all_app_configurables() -> Tuple:
-    from . import crypto, project, report, tstamp, tsigner
+    from . import crypto, project, dicer, report, tstamp, tsigner
     ## TODO: specs maybe missing from all-config-classes.
     all_config_classes = all_cmds() + (
         baseapp.Spec,
+        dicer.DicerSpec,
         project.ProjectSpec, project.Project, project.ProjectsDB,
         crypto.VaultSpec, crypto.GitAuthSpec,
         crypto.StamperAuthSpec, crypto.EncrypterSpec,

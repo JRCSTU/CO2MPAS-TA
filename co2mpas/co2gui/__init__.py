@@ -2580,7 +2580,7 @@ class Co2guiCmd(baseapp.Cmd):
 
     def do_run_dice(self, pfile_pairs, mediate_guistate):
         from .. import utils
-        from ..sampling import base, project
+        from ..sampling import base, dicer
         from threading import Thread
         import requests
 
@@ -2615,7 +2615,7 @@ class Co2guiCmd(baseapp.Cmd):
                     ## Prepare gui-files for dicer.
                     pfiles = base.PFiles(**pfile_pairs)
 
-                    dicer = project.DicerSpec(config=self.config)
+                    dicer = dicer.DicerSpec(config=self.config)
 
                     if not self._http_session:
                         self._http_session = requests.Session()
