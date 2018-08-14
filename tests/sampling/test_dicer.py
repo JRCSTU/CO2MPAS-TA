@@ -181,18 +181,23 @@ def test_dicer_B_ok_WLTPIOF_relpaths(dicer, iofiles_mov, pdb):
     ## Relative paths:
     #
     ifile.dirpath().chdir()
-    pfiles = PFiles([ifile.basename], [local('../out') / ofile.basename])
+    pfiles = PFiles([ifile.basename], [local('../out') / ofile.basename], [other])
     dicer.do_dice_in_one_step(pfiles)
     assert pdb.current_project().state in ('sample', 'nosample')
     assert head_sha1(pdb) != _decided_sha1
 
 
-def test_dicer_B_fail_DIFF_files(dicer, iofiles_mov, iofiles_diff,
+def test_dicer_B_fail_DIFF_files(dicer, iofiles, iofiles_mov, iofiles_diff,
                                  pdb, tmpdir):
     reset_git(pdb, '%s~~' % _decided_sha1)
-    ifile, ofile = iofiles_mov
+
+    ifile, ofile = iofiles
+    okfiles = PFiles([ifile], [ofile], [other])
+
     ofileRen = tmpdir.mkdir('ren') / 'foo.xlsx'
     ofile.copy(ofileRen)
+
+    ifile, ofile = iofiles_mov
 
     ## Different content `inp`
     pfiles = PFiles([iofiles_diff[0]], [ofile])
@@ -200,11 +205,19 @@ def test_dicer_B_fail_DIFF_files(dicer, iofiles_mov, iofiles_diff,
                        match="^Project files missmatched"):
         dicer.do_dice_in_one_step(pfiles)
 
+    ## Check if diff-check had leftovers.
+    dicer.do_dice_in_one_step(okfiles)
+    reset_git(pdb, '%s~~' % _decided_sha1)
+
     ## Different name 'out'
     pfiles = PFiles([ifile], [ofileRen])
     with pytest.raises(CmdException,
                        match="^Project files missmatched"):
         dicer.do_dice_in_one_step(pfiles)
+
+    ## Check if diff-check had leftovers.
+    dicer.do_dice_in_one_step(okfiles)
+    reset_git(pdb, '%s~' % _decided_sha1)
 
     ## Different content `other`
     pfiles = PFiles([ifile], [ofile],
@@ -214,7 +227,11 @@ def test_dicer_B_fail_DIFF_files(dicer, iofiles_mov, iofiles_diff,
         dicer.do_dice_in_one_step(pfiles)
 
     ## Less 'other' files
-    pfiles = PFiles([ifile], [ofile], [other])
+    pfiles = PFiles([ifile], [ofile])
     with pytest.raises(CmdException,
                        match="^Project files missmatched"):
         dicer.do_dice_in_one_step(pfiles)
+
+    ## Check if diff-check had leftovers.
+    dicer.do_dice_in_one_step(okfiles)
+    reset_git(pdb, '%s~' % _decided_sha1)
