@@ -231,7 +231,7 @@ def init_logging(level=None, frmt=None, logconf_file=None,
                 color_message_error=('red', None, True),
                 color_message_critical=('white', 'red', True),
             )
-            formatter = formatter = logging.Formatter(frmt)
+            formatter = logging.Formatter(frmt)
             color_handler.setFormatter(formatter)
 
             ## Be conservative and apply color only when
