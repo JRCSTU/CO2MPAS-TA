@@ -327,7 +327,7 @@ class Project(transitions.Machine, ProjectSpec):
         clone = copy.deepcopy(p)
         clone.pname = pname
         clone.id = pname + ": "
-        clone.pdb = pdb
+        clone.pdb: 'ProjectsDB' = pdb
         clone.repo = pdb.repo
         clone.update_config(config)
 
@@ -525,8 +525,6 @@ class Project(transitions.Machine, ProjectSpec):
     def _cb_clear_result(self, event):
         """
         Executed on GLOBAL PREPARE, and clears any results from previous transitions.
-
-        TODO: REQUIRES ankostis transitions!!
         """
         self.result = None
 
@@ -664,6 +662,10 @@ class Project(transitions.Machine, ProjectSpec):
         ## Commit/tag callback expects `action` on event.
         event.kwargs['action'] = 'init'
 
+    clean_old_files = trt.Bool(
+        help="When True, eliminates any old files in project and keeps only recent ones"
+    ).tag(config=True)
+
     def _cb_stage_pfiles(self, event):
         """
         Triggered by `do_addfiles(pfiles=<PFiles>)` on ENTER for all `wltp_XX` & 'nedc' states.
@@ -698,6 +700,21 @@ class Project(transitions.Machine, ProjectSpec):
 
         repo = self.repo
         index = repo.index
+
+        if not self.clean_old_files:
+            from ..utils import joinstuff
+
+            all_kinds = set(base.PFiles.io_kinds_list())
+            to_del = [path
+                      for path, _ in index.entries
+                      if any(path.startswith(k) for k in all_kinds)
+                      ]
+            self.log.debug('Deleting pre-existing files: %s',
+                           joinstuff(to_del, '', '\n  %s'))
+
+            for p in to_del:
+                index.remove(p)
+
         for io_kind, fpaths in pfiles._asdict().items():
             for ext_fpath in fpaths:
                 self.log.debug('Importing %s-file: %s', io_kind, ext_fpath)
@@ -2120,6 +2137,10 @@ class AppendCmd(_SubCmd, base.ShrinkingOutputMixin, base.ReportsKeeper):
                         'ReporterSpec': {'include_input_in_dice': True},
                     }, report.ReporterSpec.include_input_in_dice
                     .help),  # @UndefinedVariable
+                'clean-old': (
+                    {
+                        'Project': {'clean_old_files': True},
+                    }, Project.clean_old_files.help),
                 **base.shrink_flags_kwd,
             },
         })
