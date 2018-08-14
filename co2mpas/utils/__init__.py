@@ -370,3 +370,8 @@ def chdir(path):
         yield
     finally:
         os.chdir(opath)
+
+
+def joinstuff(items, joiner=', '):
+    return joiner.join(str(s) for s in items)
+
