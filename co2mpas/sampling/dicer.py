@@ -112,9 +112,9 @@ class DicerSpec(cmdlets.Spec, base.ShrinkingOutputMixin, base.ReportsKeeper):
         nsteps = 8
 
         notify("checking files...", max_step=nsteps)
-        if len(pfiles.inp) != len(pfiles.out) or len(pfiles.inp) < 1:
+        if not (pfiles.inp and pfiles.out):
             raise CmdException(
-                "At least one *pair* of INP/OUT files needed for single-step Dicing! "
+                "At least one INP & OUT file needed for single-step Dicing! "
                 "\n  Received: %s!" % (pfiles, ))
         pfiles.check_files_exist("dicer")
 
