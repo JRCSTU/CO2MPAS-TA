@@ -2478,7 +2478,11 @@ class Co2guiCmd(cmdlets.Cmd):
         if isinstance(level, int) and (msg or args):  # Do not log empty static-cleaning msgs.
             log.log(level, msg, *args, **kwds)
 
-        msg = msg % args
+        try:
+            msg = msg % args
+        except Exception as ex:
+            log.critical("GUI-logging error: %s\n  msg: %s\n  args: %s",
+                         ex, msg, args, exc_info=1)
 
         ## Set static message as "clear" text.
         #
