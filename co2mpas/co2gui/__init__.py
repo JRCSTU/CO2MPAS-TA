@@ -2373,7 +2373,7 @@ class Co2guiCmd(cmdlets.Cmd):
         root.bind("<Configure>", save_geometry)
 
     def start_schedula_job(self, thread, result_listener):
-        from .. import batch as cbatch, plan
+        from co2mpas import batch as cbatch, plan
         from schedula import Dispatcher
 
         self._job_thread = thread
@@ -2387,7 +2387,7 @@ class Co2guiCmd(cmdlets.Cmd):
         thread.start()
 
     def signal_schedula_job_to_stop(self):
-        from .. import batch as cbatch, plan
+        from co2mpas import batch as cbatch, plan
         from schedula import Dispatcher
 
         Dispatcher.stopper.set()
