@@ -1817,7 +1817,7 @@ class SimulatePanel(ttk.Frame):
                 try:
                     args.extend(self.pump_std_streams())
                 finally:
-                    mediate_guistate(msg, *args,
+                    mediate_guistate(msg, *args, exc_info=ex,
                                      static_msg=static_msg, level=level,
                                      progr_max=0, check_outfiles_exist=True,
                                      wstamper_ok=wstamper_ok)
