@@ -2124,9 +2124,9 @@ class TsendCmd(_SubCmd):
         super().__init__(**kwds)
 
     def run(self, *args):
-        self.log.warning(
-            "SINCE co2mpas-1.9.x (summer 2018) THIS COMMAND IS DEPRECATED."
-            "Please migrate to WebStamper.")
+        from .base import EmailStamperWarning
+
+        EmailStamperWarning(parent=self)
 
         if len(args) > 0:
             raise CmdException('Cmd %r takes no arguments, received %d: %r!'
@@ -2308,14 +2308,14 @@ class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.ReportsKeeper):
 
     def run(self, *args):
         from . import tstamp
+        from .base import EmailStamperWarning
+
+        EmailStamperWarning(parent=self)
 
         warn = self.log.warning
         info = self.log.info
         error = self.log.error
 
-        self.log.warning(
-            "SINCE co2mpas-1.9.x (summer 2018) THIS COMMAND IS DEPRECATED."
-            "Please migrate to WebStamper.")
 
         info("Receiving emails for projects(s) %s: ...", args)
 

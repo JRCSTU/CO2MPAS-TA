@@ -1842,10 +1842,9 @@ class SendCmd(base.FileReadingMixin, cmdlets.Cmd):
         super().__init__(**kwds)
 
     def run(self, *args):
-        self.log.warning(
-            "SINCE co2mpas-1.9.x (summer 2018) THIS COMMAND IS DEPRECATED."
-            "Please migrate to WebStamper.")
+        from .base import EmailStamperWarning
 
+        EmailStamperWarning(parent=self)
         sender = TstampSender(config=self.config)
         for fpath, mail_text in self.yield_files(*args):
             self.log.info("Timestamping '%s'...", fpath)
@@ -1874,9 +1873,9 @@ class MailboxCmd(cmdlets.Cmd):
         super().__init__(**kwds)
 
     def run(self, *args):
-        self.log.warning(
-            "SINCE co2mpas-1.9.x (summer 2018) THIS COMMAND IS DEPRECATED."
-            "Please migrate to WebStamper.")
+        from .base import EmailStamperWarning
+
+        EmailStamperWarning(parent=self)
 
         ## If `verbose`, too many small details, need flow.
         rcver = TstampReceiver(config=self.config)
@@ -1983,9 +1982,9 @@ class RecvCmd(cmdlets.Cmd, base.ShrinkingOutputMixin):
         super().__init__(**kwds)
 
     def run(self, *args):
-        self.log.warning(
-            "SINCE co2mpas-1.9.x (summer 2018) THIS COMMAND IS DEPRECATED."
-            "Please migrate to WebStamper.")
+        from .base import EmailStamperWarning
+
+        EmailStamperWarning(parent=self)
 
         ## If `verbose`, too many small details, need flow.
         default_flow_style = False
@@ -2149,10 +2148,9 @@ class LoginCmd(cmdlets.Cmd):
         super().__init__(**kwds)
 
     def run(self, *args):
-        self.log.warning(
-            "SINCE co2mpas-1.9.x (summer 2018) THIS COMMAND IS DEPRECATED."
-            "Please migrate to WebStamper.")
+        from .base import EmailStamperWarning
 
+        EmailStamperWarning(parent=self)
         nargs = len(args)
         if nargs > 0:
             raise CmdException("Cmd '%s' takes no arguments, received %d: %r!"
