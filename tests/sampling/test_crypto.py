@@ -16,8 +16,8 @@ import tempfile
 import unittest
 
 from co2mpas.__main__ import init_logging
-from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import crypto, CmdException
+from sampling._vendor.traitlets import config as trtc
+from sampling import crypto, CmdException
 import ddt
 
 import itertools as itt
@@ -343,9 +343,9 @@ class TGpgSpec(unittest.TestCase):
 
         ## Clean memories from past tests
         #
-        crypto.StamperAuthSpec.clear_instance()
-        crypto.GitAuthSpec.clear_instance()
-        crypto.VaultSpec.clear_instance()
+        crypto.StamperAuthSpec.clear_instance()   # @UndefinedVariable
+        crypto.GitAuthSpec.clear_instance()       # @UndefinedVariable
+        crypto.VaultSpec.clear_instance()         # @UndefinedVariable
 
         key = gpg_gen_key(
             gpg_spec.GPG,
@@ -403,7 +403,7 @@ class TGpgSpec(unittest.TestCase):
         else:
             with self.assertRaisesRegex(
                     ValueError,
-                    "-len text is not a PGP-clear-sig!") as exmsg:
+                    "-len text is not a PGP-clear-sig!"):
                 crypto.pgp_split_clearsigned(clearsigned)
 
         ## Check with \r\n at the end.
@@ -418,7 +418,7 @@ class TGpgSpec(unittest.TestCase):
         else:
             with self.assertRaisesRegex(
                     ValueError,
-                    "-len text is not a PGP-clear-sig!") as exmsg:
+                    "-len text is not a PGP-clear-sig!"):
                 crypto.pgp_split_clearsigned(clearsigned)
 
     def test_parse_git_tag_unknown_pubkey(self):
@@ -525,8 +525,8 @@ class TVaultSpec(unittest.TestCase):
 
         ## Clean memories from past tests
         #
-        crypto.VaultSpec.clear_instance()
-        vault = crypto.VaultSpec.instance(config=cfg)
+        crypto.VaultSpec.clear_instance()                   # @UndefinedVariable
+        vault = crypto.VaultSpec.instance(config=cfg)       # @UndefinedVariable
 
         key = gpg_gen_key(
             vault.GPG,
@@ -542,7 +542,7 @@ class TVaultSpec(unittest.TestCase):
     @ddt.idata(itt.product(('user', '&^a09|*(K}'), _objs))
     def test_1_dencrypt(self, case):
         pswdid, obj = case
-        vault = crypto.VaultSpec.instance()
+        vault = crypto.VaultSpec.instance()       # @UndefinedVariable
 
         ciphertext = vault.encryptobj('enc_test', obj)
         msg = ('CASE:', case, ciphertext)
@@ -575,7 +575,7 @@ class TVaultSpec(unittest.TestCase):
         self.assertEqual(crypto.VaultSpec(config=cfg).master_key_resolved,
                          cfg_val)
 
-        vault = crypto.VaultSpec.instance()
+        vault = crypto.VaultSpec.instance()  # @UndefinedVariable
 
         key = gpg_gen_key(
             vault.GPG,
@@ -595,7 +595,7 @@ class TVaultSpec(unittest.TestCase):
     def test_3_no_master_key(self):
         from unittest.mock import patch
 
-        vault = crypto.VaultSpec.instance()
+        vault = crypto.VaultSpec.instance()  # @UndefinedVariable
         gpg_del_key(vault.GPG, vault.master_key)
 
         ## Check GNUPGKEY/master_key interaction.
@@ -628,7 +628,7 @@ class TVaultSpec(unittest.TestCase):
                 name_email='test2@test.com').fingerprint
 
     def test_5_no_sec_key(self):
-        vault = crypto.VaultSpec.instance()
+        vault = crypto.VaultSpec.instance()  # @UndefinedVariable
         key = gpg_gen_key(
             vault.GPG,
             key_length=1024,
@@ -657,8 +657,8 @@ class TestKey(unittest.TestCase):
 
         ## Clean memories from past tests
         #
-        crypto.VaultSpec.clear_instance()
-        vault = crypto.VaultSpec.instance(config=cfg)
+        crypto.VaultSpec.clear_instance()               # @UndefinedVariable
+        vault = crypto.VaultSpec.instance(config=cfg)   # @UndefinedVariable
 
         cls.ok_key = gpg_gen_key(
             vault.GPG,
@@ -672,7 +672,7 @@ class TestKey(unittest.TestCase):
 
     def test_dencrypt(self):
         pswdid, obj = 'fooid', 'bar'
-        vault = crypto.VaultSpec.instance()
+        vault = crypto.VaultSpec.instance()  # @UndefinedVariable
 
         vault.master_key = self.ok_key.fingerprint
         ciphertext = vault.encryptobj(pswdid, obj)
@@ -697,7 +697,7 @@ class TestKey(unittest.TestCase):
         self.assertEqual(obj, plainbytes2, msg)
 
     def test_dencrypt_binary(self):
-        vault = crypto.VaultSpec.instance()
+        vault = crypto.VaultSpec.instance()  # @UndefinedVariable
 
         pswdid = 'fooid'
         plain = b'bar'

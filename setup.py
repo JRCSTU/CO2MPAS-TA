@@ -224,7 +224,7 @@ setup(
             '%(p)s = %(p)s.__main__:main' % {'p': PROJECT},
             '%(p)s-autocompletions = %(p)s.__main__:print_autocompletions' % {'p': PROJECT},
             'datasync = co2mpas.datasync:main',
-            'co2dice = co2mpas.sampling.__main__:main',
+            'co2dice = sampling.__main__:main',
             ## Note: launching as gui-scripts DOES NOT WORK
             #  and multiple console-windows flicker on each job launch.
             #  better invoke them with a Windows shortcut "minimized.

@@ -7,9 +7,9 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
-from co2mpas._vendor import traitlets as trt
-from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import cmdlets, crypto
+from sampling._vendor import traitlets as trt
+from sampling._vendor.traitlets import config as trtc
+from sampling import cmdlets, crypto
 from unittest import mock
 import io
 import json
@@ -99,7 +99,7 @@ class TPConfFiles(unittest.TestCase):
     def check_cmd_params(self, cmd, values):
         self.assertSequenceEqual([cmd.a, cmd.b, cmd.c], values)
 
-    @mock.patch('co2mpas.sampling.cmdlets.default_config_fname', lambda: 'c')
+    @mock.patch('sampling.cmdlets.default_config_fname', lambda: 'c')
     @ddt.data(
         (None, None, []),
         (['cc', 'cc.json'], None, []),
@@ -157,7 +157,7 @@ class TPConfFiles(unittest.TestCase):
                     osp.join(tdir, ff)
                     for f in var
                     for ff in f.split(os.pathsep))
-                with mock.patch.dict('os.environ',
+                with mock.patch.dict('os.environ',  # @UndefinedVariable
                                      {'CO2DICE_CONFIG_PATHS': varvalue}):
                     paths = cmd._collect_static_fpaths()
                     self.assertListEqual(paths, exp)
@@ -230,7 +230,7 @@ class TPConfFiles(unittest.TestCase):
 
             ## Setup vault not to scream.
             #
-            vault = crypto.VaultSpec.instance()
+            vault = crypto.VaultSpec.instance()  # @UndefinedVariable
             vault.gnupghome = tdir
             key = cryptotc.gpg_gen_key(
                 vault.GPG,
@@ -381,8 +381,8 @@ class TCipherTraits(TBase):
         cls._tdir = tdir = tempfile.mkdtemp(prefix='co2cipher-')
         cfg = trtc.Config()
         cfg.VaultSpec.gnupghome = tdir
-        crypto.VaultSpec.clear_instance()
-        vault = crypto.VaultSpec.instance(config=cfg)
+        crypto.VaultSpec.clear_instance()               # @UndefinedVariable
+        vault = crypto.VaultSpec.instance(config=cfg)   # @UndefinedVariable
 
         key = cryptotc.gpg_gen_key(
             vault.GPG,
@@ -393,7 +393,7 @@ class TCipherTraits(TBase):
 
     @classmethod
     def tearDownClass(cls):
-        vault = crypto.VaultSpec.instance()
+        vault = crypto.VaultSpec.instance()  # @UndefinedVariable
         assert vault.gnupghome
         cryptotc.gpg_del_key(vault.GPG, vault.master_key)
         shutil.rmtree(cls._tdir)

@@ -7,9 +7,9 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
-from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import crypto, tstamp
-from co2mpas.sampling.cmdlets import collect_cmd, Cmd
+from sampling._vendor.traitlets import config as trtc
+from sampling import crypto, tstamp
+from sampling.cmdlets import collect_cmd, Cmd
 from collections import Counter
 from pprint import pformat as pf
 import logging
@@ -21,7 +21,7 @@ import unittest
 import ddt
 import yaml
 
-import co2mpas._vendor.traitlets as trt
+import sampling._vendor.traitlets as trt
 import os.path as osp
 import subprocess as sbp
 
@@ -748,9 +748,9 @@ class TRX(unittest.TestCase):
 
         ## Clean memories from past tests
         #
-        crypto.StamperAuthSpec.clear_instance()
-        crypto.GitAuthSpec.clear_instance()
-        crypto.VaultSpec.clear_instance()
+        crypto.StamperAuthSpec.clear_instance()     # @UndefinedVariable
+        crypto.GitAuthSpec.clear_instance()         # @UndefinedVariable
+        crypto.VaultSpec.clear_instance()           # @UndefinedVariable
 
     @classmethod
     def tearDownClass(cls):
@@ -1002,7 +1002,7 @@ class TstampShell(unittest.TestCase):
         """Allow cipher-traits encrypted with the GPG of the user running tests."""
         cmd = Cmd()
         cmd.initialize([])
-        crypto.VaultSpec.clear_instance()
+        crypto.VaultSpec.clear_instance()  # @UndefinedVariable
         vault = crypto.VaultSpec(config=cmd.config)
         return ('--VaultSpec.gnupghome=%s' % vault.gnupghome
                 if vault.gnupghome

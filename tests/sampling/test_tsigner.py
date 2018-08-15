@@ -12,9 +12,9 @@ import tempfile
 import unittest
 
 from co2mpas.__main__ import init_logging
-from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import crypto, tsigner
-from co2mpas.sampling.cmdlets import Cmd
+from sampling._vendor.traitlets import config as trtc
+from sampling import crypto, tsigner
+from sampling.cmdlets import Cmd
 import ddt
 
 from git.util import rmtree as gutil_rmtree
@@ -57,9 +57,9 @@ class TS(unittest.TestCase):
 
         ## Clean memories from past tests
         #
-        crypto.StamperAuthSpec.clear_instance()
-        crypto.GitAuthSpec.clear_instance()
-        crypto.VaultSpec.clear_instance()
+        crypto.StamperAuthSpec.clear_instance()     # @UndefinedVariable
+        crypto.GitAuthSpec.clear_instance()         # @UndefinedVariable
+        crypto.VaultSpec.clear_instance()           # @UndefinedVariable
 
     @classmethod
     def tearDownClass(cls):

@@ -8,7 +8,7 @@
 Stamper of Dices.
 """
 
-from co2mpas.sampling.dirlock import locked_on_dir
+from sampling.dirlock import locked_on_dir
 from collections import (
     defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
 from typing import (
@@ -20,7 +20,7 @@ import stat
 import os.path as osp
 
 from . import CmdException, base, cmdlets, crypto, tstamp
-from .._vendor import traitlets as trt
+from ._vendor import traitlets as trt
 
 
 HEAD_FNAME = 'HEAD'

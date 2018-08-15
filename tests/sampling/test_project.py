@@ -7,10 +7,10 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
-from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import cmdlets, crypto, project
-from co2mpas.sampling.base import PFiles
-from co2mpas.sampling.cmdlets import pump_cmd, collect_cmd
+from sampling._vendor.traitlets import config as trtc
+from sampling import cmdlets, crypto, project
+from sampling.base import PFiles
+from sampling.cmdlets import pump_cmd, collect_cmd
 from co2mpas.utils import chdir
 from tests.sampling import (
     gitpython_cleanup, test_inp_fpath, test_out_fpath, test_vfid,
@@ -157,9 +157,9 @@ class TProjectsDBStory(unittest.TestCase):
 
         ## Clean memories from past tests
         #
-        crypto.StamperAuthSpec.clear_instance()
-        crypto.GitAuthSpec.clear_instance()
-        crypto.VaultSpec.clear_instance()
+        crypto.StamperAuthSpec.clear_instance()     # @UndefinedVariable
+        crypto.GitAuthSpec.clear_instance()         # @UndefinedVariable
+        crypto.VaultSpec.clear_instance()           # @UndefinedVariable
 
     @classmethod
     def tearDownClass(cls):
@@ -195,7 +195,7 @@ class TProjectsDBStory(unittest.TestCase):
             pump_cmd(cmd.run())
         self.assertIsNone(cmd.projects_db._current_project)
 
-        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb = project.ProjectsDB.instance(config=cfg)  # @UndefinedVariable
         pdb.update_config(cfg)
 
         pump_cmd(pdb.proj_list(verbose=1))
@@ -211,7 +211,7 @@ class TProjectsDBStory(unittest.TestCase):
         self.assertIsNotNone(res)
         self.assertIsNone(cmd.projects_db._current_project)
 
-        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb = project.ProjectsDB.instance(config=cfg)  # @UndefinedVariable
         pdb.update_config(cfg)
         self._check_infos_shapes(pdb)
         self.assertIsNone(pdb._current_project)
@@ -235,7 +235,7 @@ class TProjectsDBStory(unittest.TestCase):
         res = collect_cmd(cmd.run())
         self.assertEqual(res, '* %s: empty' % proj1)
 
-        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb = project.ProjectsDB.instance(config=cfg)  # @UndefinedVariable
         pdb.update_config(cfg)
 
         res = collect_cmd(pdb.proj_list(verbose=1))
@@ -254,7 +254,7 @@ class TProjectsDBStory(unittest.TestCase):
         res = collect_cmd(cmd.run())
         self.assertIn(proj1, res)
 
-        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb = project.ProjectsDB.instance(config=cfg)# @UndefinedVariable
         pdb.update_config(cfg)
         self._check_infos_shapes(pdb)
 
@@ -294,7 +294,7 @@ class TProjectsDBStory(unittest.TestCase):
             '* %s: empty' % proj2,
             '  %s: empty' % proj1])
 
-        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb = project.ProjectsDB.instance(config=cfg)# @UndefinedVariable
         pdb.update_config(cfg)
 
         res = collect_cmd(pdb.proj_list(verbose=1))
@@ -319,7 +319,7 @@ class TProjectsDBStory(unittest.TestCase):
         self.assertEqual(res.pname, pname)
         self.assertEqual(res.state, 'empty')
 
-        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb = project.ProjectsDB.instance(config=cfg)# @UndefinedVariable
         pdb.update_config(cfg)
         res = collect_cmd(pdb.proj_list(pname))
         self.assertEqual(res, pname)
@@ -328,7 +328,7 @@ class TProjectsDBStory(unittest.TestCase):
         res = collect_cmd(cmd.run('.'))
         self.assertEqual(str(res), '* %s: empty' % pname)
 
-        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb = project.ProjectsDB.instance(config=cfg)# @UndefinedVariable
         pdb.update_config(cfg)
         self._check_infos_shapes(pdb)
 
@@ -363,13 +363,13 @@ class TStraightStory(unittest.TestCase):
 
         ## Clean memories from past tests
         #
-        crypto.StamperAuthSpec.clear_instance()
-        crypto.GitAuthSpec.clear_instance()
-        crypto.VaultSpec.clear_instance()
+        crypto.StamperAuthSpec.clear_instance()  # @UndefinedVariable
+        crypto.GitAuthSpec.clear_instance()  # @UndefinedVariable
+        crypto.VaultSpec.clear_instance()  # @UndefinedVariable
 
     @classmethod
     def tearDownClass(cls):
-        project.ProjectsDB.clear_instance()
+        project.ProjectsDB.clear_instance()  # @UndefinedVariable
         gitpython_cleanup(cls._project_repo)
         shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
 
@@ -382,7 +382,7 @@ class TStraightStory(unittest.TestCase):
         return c
 
     def test_0_show_paths(self):
-        from co2mpas.sampling import cfgcmd
+        from sampling import cfgcmd
         cmd = cfgcmd.PathsCmd(config=self._config)
         pump_cmd(cmd.run())
 
@@ -396,7 +396,7 @@ class TStraightStory(unittest.TestCase):
 
     def test_2a_import_io(self):
         cfg = self._config
-        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb = project.ProjectsDB.instance(config=cfg)# @UndefinedVariable
         pdb.update_config(cfg)
         p = pdb.current_project()
 
@@ -411,7 +411,7 @@ class TStraightStory(unittest.TestCase):
 
     def test_3_list_iofiles(self):
         cfg = self._config
-        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb = project.ProjectsDB.instance(config=cfg)# @UndefinedVariable
         pdb.update_config(cfg)
         pdb.current_project()
 
@@ -424,7 +424,7 @@ class TStraightStory(unittest.TestCase):
     def test_4_tag(self):
         ## FIXME: Del tmp-repo denied with old pythingit.
         cfg = self._config
-        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb = project.ProjectsDB.instance(config=cfg)# @UndefinedVariable
         pdb.update_config(cfg)
         p = pdb.current_project()
 
@@ -440,7 +440,7 @@ class TStraightStory(unittest.TestCase):
 
         cfg.Project.dry_run = True
 
-        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb = project.ProjectsDB.instance(config=cfg)  # @UndefinedVariable
         pdb.update_config(cfg)
         p = pdb.current_project()
         p.update_config(cfg)
@@ -458,7 +458,7 @@ class TStraightStory(unittest.TestCase):
 
     def test_6_stamp(self):
         "Not actually testing project..."
-        from co2mpas.sampling import tsigner
+        from sampling import tsigner
 
         cfg = self._config
         cfg.Project.dry_run = False  # modifed by prev TC.
@@ -475,7 +475,7 @@ class TStraightStory(unittest.TestCase):
         cfg = self._config
         cfg.Project.dry_run = False  # modifed by prev TC.
         cfg.Project.force = False
-        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb = project.ProjectsDB.instance(config=cfg)  # @UndefinedVariable
         pdb.update_config(cfg)
         p = pdb.current_project()
         p.update_config(cfg)
@@ -521,7 +521,7 @@ class TStraightStory(unittest.TestCase):
 
     def test_8_add_nedc_files(self):
         cfg = self._config
-        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb = project.ProjectsDB.instance(config=cfg)  # @UndefinedVariable
         pdb.update_config(cfg)
         p = pdb.current_project()
         p.update_config(cfg)
@@ -566,9 +566,9 @@ class TParseCheck(unittest.TestCase):
 
         ## Clean memories from past tests
         #
-        crypto.StamperAuthSpec.clear_instance()
-        crypto.GitAuthSpec.clear_instance()
-        crypto.VaultSpec.clear_instance()
+        crypto.StamperAuthSpec.clear_instance()  # @UndefinedVariable
+        crypto.GitAuthSpec.clear_instance()  # @UndefinedVariable
+        crypto.VaultSpec.clear_instance()  # @UndefinedVariable
 
         cls._project_repo = tempfile.TemporaryDirectory()
         log.debug('Temp-repo: %s', cls._project_repo)
@@ -629,7 +629,7 @@ class TInitCmd(unittest.TestCase):
 
     def get_cwp(self):
         cfg = self._config
-        pdb = project.ProjectsDB.instance(config=cfg)
+        pdb = project.ProjectsDB.instance(config=cfg)  # @UndefinedVariable
         pdb.update_config(cfg)
         p = pdb.current_project()
 
@@ -676,9 +676,9 @@ class TBackupCmd(unittest.TestCase):
 
         ## Clean memories from past tests
         #
-        crypto.StamperAuthSpec.clear_instance()
-        crypto.GitAuthSpec.clear_instance()
-        crypto.VaultSpec.clear_instance()
+        crypto.StamperAuthSpec.clear_instance()     # @UndefinedVariable
+        crypto.GitAuthSpec.clear_instance()         # @UndefinedVariable
+        crypto.VaultSpec.clear_instance()           # @UndefinedVariable
 
     @classmethod
     def tearDownClass(cls):

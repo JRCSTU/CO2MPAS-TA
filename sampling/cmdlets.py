@@ -61,10 +61,10 @@ import os.path as osp
 import pandalone.utils as pndlu
 
 from . import CmdException
-from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
-from ..__main__ import init_logging
-from .._vendor import traitlets as trt
-from .._vendor.traitlets import config as trtc
+from . import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
+from co2mpas.__main__ import init_logging
+from ._vendor import traitlets as trt
+from ._vendor.traitlets import config as trtc
 
 
 ################################################

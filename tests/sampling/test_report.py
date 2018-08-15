@@ -7,9 +7,9 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
-from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import CmdException, report, project, crypto
-from co2mpas.sampling.cmdlets import pump_cmd
+from sampling._vendor.traitlets import config as trtc
+from sampling import CmdException, report, project, crypto
+from sampling.cmdlets import pump_cmd
 import logging
 import os
 import re
@@ -89,7 +89,7 @@ def dreport_df():
     YAML file generated with::
 
         import io, json, pandas as pd, yaml
-        from co2mpas.sampling.report import ReporterSpec
+        from sampling.report import ReporterSpec
 
         fpath = 'tests/sampling/output.xlsx'
         _vfid, dreport: pd.DataFrame = ReporterSpec()._extract_dice_report_from_output(fpath)
@@ -97,7 +97,6 @@ def dreport_df():
         dreport.to_json(sink, 'columns')
         print(yaml.dump(json.loads(sink.getvalue()), default_flow_style=False))
     """
-    import yaml
     import pandas as pd
 
     ytext = tw.dedent("""
@@ -187,10 +186,10 @@ class TReportArgs(TReportBase):
     def setUpClass(cls):
         ## Clean memories from past tests
         #
-        crypto.StamperAuthSpec.clear_instance()
-        crypto.GitAuthSpec.clear_instance()
-        crypto.VaultSpec.clear_instance()
-        crypto.EncrypterSpec.clear_instance()
+        crypto.StamperAuthSpec.clear_instance()     # @UndefinedVariable
+        crypto.GitAuthSpec.clear_instance()         # @UndefinedVariable
+        crypto.VaultSpec.clear_instance()           # @UndefinedVariable
+        crypto.EncrypterSpec.clear_instance()       # @UndefinedVariable
 
     def test_extract_input(self):
         c = trtc.Config()
@@ -292,15 +291,15 @@ class TReportProject(TReportBase):
 
         ## Clean memories from past tests
         #
-        crypto.GitAuthSpec.clear_instance()
-        crypto.VaultSpec.clear_instance()
+        crypto.GitAuthSpec.clear_instance()     # @UndefinedVariable
+        crypto.VaultSpec.clear_instance()       # @UndefinedVariable
 
     @classmethod
     def tearDownClass(cls):
         shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
 
     def test_0_show_paths(self):
-        from co2mpas.sampling import cfgcmd
+        from sampling import cfgcmd
         cmd = cfgcmd.PathsCmd(config=self.cfg)
         pump_cmd(cmd.run())
 
@@ -471,4 +470,3 @@ class TReportShell(unittest.TestCase):
                              (fpath1, fpath2, fpath3),
                              env=os.environ)
         self.assertEqual(ret, 0)
-

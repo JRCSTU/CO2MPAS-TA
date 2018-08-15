@@ -36,7 +36,7 @@ For usage examples read the "Random Sampling" section in the manual (http://co2m
 """
 from polyversion import polyversion, polytime
 
-from .._vendor import traitlets as trt
+from ._vendor.traitlets import traitlets as trt
 
 __copyright__ = "Copyright (C) 2015-2018 European Commission (JRC)"
 __license__   = "EUPL 1.1+"             # noqa
@@ -44,12 +44,14 @@ __title__     = "co2dice"               # noqa
 __summary__   = __doc__.splitlines()[0] # noqa
 __uri__       = "https://co2mpas.io"    # noqa
 
-#: Project's PEP 440 version from Git (or env[co2mpas_VERSION])
+#: Project's PEP 440 version from Git (or env[co2dice_VERSION])
 #: FIXME: change co2dice's pname in polyversion() when co2dice graduates to own project.
-__version__ = polyversion(pname='co2mpas')
-__updated__ = polytime(pname='co2mpas')
+__version__ = polyversion(pname='co2dice')
+__updated__ = polytime(pname='co2dice')
 version = __version__
 
+#: The :term:`Semantic Versioning` for Input/Output files.
+__dice_report_version__ = '1.0.2'
 
 class CmdException(trt.TraitError):
     pass

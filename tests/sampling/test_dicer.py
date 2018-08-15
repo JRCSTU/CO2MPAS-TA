@@ -14,11 +14,11 @@ If not running a WebStamper on your localhost, set these 2 env-vars::
 - All :func:`..._B_...()`` TCs required :func:`..._A_...()` to have run.
 """
 from co2mpas.__main__ import init_logging
-from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import CmdException, crypto
-from co2mpas.sampling.base import PFiles
-from co2mpas.sampling.dicer import DicerSpec
-from co2mpas.sampling.project import ProjectsDB
+from sampling._vendor.traitlets import config as trtc
+from sampling import CmdException, crypto
+from sampling.base import PFiles
+from sampling.dicer import DicerSpec
+from sampling.project import ProjectsDB
 from tests.sampling import (
     test_pgp_fingerprint, test_pgp_keys, test_pgp_trust,
 )
@@ -26,7 +26,7 @@ import logging
 
 import pytest
 
-from py.path import local
+from py.path import local   # @UnresolvedImport
 import os.path as osp
 
 

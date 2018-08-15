@@ -6,7 +6,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
-from co2mpas.sampling.base import PFiles
+from sampling.base import PFiles
 import pytest
 
 
