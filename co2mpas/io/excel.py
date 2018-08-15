@@ -303,7 +303,8 @@ def parse_excel_file(file_path):
     for sheet_name in excel_file.sheet_names:
         match = _re_input_sheet_name.match(sheet_name)
         if not match:
-            log.debug("Sheet name '%s' cannot be parsed!", sheet_name)
+            if sheet_name not in ('About', ):
+                log.info("Sheet name '%s' cannot be parsed!", sheet_name)
             continue
         match = {k: v.lower() for k, v in match.groupdict().items() if v}
 
