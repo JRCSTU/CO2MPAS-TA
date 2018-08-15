@@ -1339,8 +1339,8 @@ class SimulatePanel(ttk.Frame):
         add_tooltip(tree, 'out_files_tree')
 
         if is_dice_installed():
-            def collect_dice_files_and_notify(do_dice=None):
-                "When not `do_dice`, it reports weather dice-files exist."
+            def collect_dice_files():
+                """Return pfiles if inp-out matched in paris, or None"""
                 pfiles = defaultdict(list)
                 for fpath in tree.get_children():
                     values = tree.item(fpath, 'values')
@@ -1356,17 +1356,30 @@ class SimulatePanel(ttk.Frame):
                     if kind:
                         pfiles[kind].append(fpath)
 
+                if pfiles and pfiles.get('inp') and pfiles.get('out'):
+                    return pfiles
+
+            def clean_dice_values():
+                for fpath in tree.get_children():
+                    values = list(tree.item(fpath, 'values'))
+                    values[1] = ''
+                    tree.item(fpath, values=values)
+
+            def dice_btn_listener():
+                pfiles = collect_dice_files()
                 if pfiles:
-                    if do_dice:
-                        self.app.do_run_dice(pfiles, self.mediate_guistate)
-                    else:
-                        return True
-            tree.has_dice_files = collect_dice_files_and_notify
+                    self.app.do_run_dice(pfiles, self.mediate_guistate)
+                else:
+                    log.warning("Cannot launch dice!"
+                                "\n  Co2mpas INP or OUT missing from Outputs-files list!")
+
+            tree.collect_dice_files = collect_dice_files
+            tree.clean_dice_values = clean_dice_values
 
             self._run_dice_btn = btn = ttk.Button(
                 frame,
                 text="Dice!", style='DICE.TButton',
-                command=fnt.partial(collect_dice_files_and_notify, do_dice=True))
+                command=dice_btn_listener)
             add_icon(btn, 'icons/to_dice-orange-32.png ')
             btn.pack(side=tk.LEFT, fill=tk.BOTH,)
 
@@ -1555,7 +1568,7 @@ class SimulatePanel(ttk.Frame):
                          progr_step=None, progr_max=None,
                          new_out_file_tuple=None,
                          check_outfiles_exist=False,
-                         wstamper_ok=None,
+                         clean_dice_from_pfiles=None,
                          **log_kwds):
         """
         Handler of states for all panel's widgets and progressbar/status.
@@ -1566,6 +1579,8 @@ class SimulatePanel(ttk.Frame):
             (usefull to set a temporary status-msg and clear the "static" one).
         :param new_out_file_tuple:
             (fpath, is_folder, dice_kind)  with the last 2 optional
+        :param clean_dice_from_pfiles:
+            effect is permanent, and used by dice-btn on success
         """
         ## Update progress/status bars.
         #
@@ -1581,32 +1596,44 @@ class SimulatePanel(ttk.Frame):
 
         ## Update Stop-button.
         #
-        job_alive = self.app.is_job_alive()
-        stop_requested = job_alive and self.app.is_stop_job_signaled()
+        is_co2mpas_job = self.app.is_co2mpas_job_alive()
+        is_co2dice_job = self.app.is_co2dice_job_alive()
+        is_any_job = is_co2mpas_job or is_co2dice_job
+        stop_enabled = is_co2mpas_job
+        stop_requested = is_co2mpas_job and self.app.is_stop_job_signaled()
         self._stop_job_btn.state((
-            bang(job_alive) + tk.DISABLED,
+            bang(stop_enabled) + tk.DISABLED,
             bang(not stop_requested) + 'pressed',
         ))
 
         ## Update Run-button.
         #
-        is_run_batch_btn_enabled = not job_alive
-        self._run_batch_btn.state((bang(is_run_batch_btn_enabled) + tk.DISABLED,))
+        is_run_btn_enabled = not is_any_job
+        self._run_batch_btn.state((bang(is_run_btn_enabled) + tk.DISABLED,))
 
         ## Update Run-TA-button.
         #
-        is_run_ta_enabled = is_run_batch_btn_enabled and self.advanced_flipper.flip_ix == 0
+        is_run_ta_enabled = is_run_btn_enabled and self.advanced_flipper.flip_ix == 0
         self._run_ta_btn.state((bang(is_run_ta_enabled) + tk.DISABLED,))
 
-        ## Update Open-DICE-button.
+        ## Update Run-DICE-button.
         #
         if is_dice_installed():
-            is_dice_btn_enabled = wstamper_ok and self.outputs_tree.has_dice_files()
-            self._run_dice_btn.state((bang(is_dice_btn_enabled) + tk.DISABLED, ))
+            if clean_dice_from_pfiles:
+                self.outputs_tree.clean_dice_values()
+            is_dice_btn_enabled = (not is_any_job and
+                                   self.outputs_tree.collect_dice_files())
+            self._run_dice_btn.state((bang(is_dice_btn_enabled) + tk.DISABLED,))
 
         ## Update cursor for run-buttons.
-        for b in (self._run_batch_btn, self._run_ta_btn):
-            b['cursor'] = 'watch' if job_alive else 'arrow'
+        #
+        btn_jobs = [
+            (self._run_batch_btn, is_co2mpas_job),
+            (self._run_ta_btn, is_co2mpas_job),
+            (self._run_dice_btn, is_co2dice_job),
+        ]
+        for btn, is_job in btn_jobs:
+            btn['cursor'] = 'watch' if is_job else 'arrow'
 
         ## Update Outputs-tree.
         #
@@ -1683,7 +1710,7 @@ class SimulatePanel(ttk.Frame):
                     kind, fpath = l.split(maxsplit=1)
                     fpath = fpath.strip()  # \r\n?
                     tree.insert_path(fpath, False, kind, tags=['ro'])
-        self.mediate_guistate(wstamper_ok=True)
+        self.mediate_guistate()
 
         return True
 
@@ -1698,7 +1725,7 @@ class SimulatePanel(ttk.Frame):
         app = self.app
         job_name = "CO2MPAS-TA" if is_ta else "CO2MPAS"
 
-        assert app._job_thread is None, (app._job_thread, job_name)
+        assert not app.is_co2mpas_job_alive() and not app.is_co2dice_job_alive(), locals()
 
         inp_paths, out_folder, cmd_kwds = self.reconstruct_cmd_args_from_gui()
 
@@ -1809,9 +1836,9 @@ class SimulatePanel(ttk.Frame):
                 ## _stdout/_stderr, above, ignored bc these are the full contents
                 #  and a) already pumped, b) last pump below.
 
-                app._job_thread = None
+                app._co2mpas_job_thread = None
                 args = [job_name]
-                wstamper_ok = None
+                clean_dice_from_pfiles = None
                 if ex:
                     msg = "Failed job %s due to: %s %s%s"
                     args.append(ex)
@@ -1819,9 +1846,9 @@ class SimulatePanel(ttk.Frame):
                     #
                     static_msg = True
                     level = logging.ERROR
+                    clean_dice_from_pfiles = True
                 else:
                     msg = "Finished job %s. %s%s"
-                    wstamper_ok = True
                     ## Status a temporary success msg.
                     #
                     level = None
@@ -1832,7 +1859,7 @@ class SimulatePanel(ttk.Frame):
                     mediate_guistate(msg, *args, exc_info=ex,
                                      static_msg=static_msg, level=level,
                                      progr_max=0, check_outfiles_exist=True,
-                                     wstamper_ok=wstamper_ok)
+                                     clean_dice_from_pfiles=clean_dice_from_pfiles)
 
         updater = ProgressUpdater()
         user_cmd_kwds = cmd_kwds.copy()
@@ -1987,7 +2014,7 @@ and double-click on the result file to open it,
                          style='Filepath.TButton')
         btn.grid(column=1, row=0, sticky='nsw')
         add_tooltip(btn, 'out_sync_btn')
-        btn.bind("<Double-1>", lambda ev: open_file_with_os(self.out_var.get()))
+        btn.bind("<Double-1>", lambda _ev: open_file_with_os(self.out_var.get()))
         attach_open_file_popup(btn, var)
 
         add_makdownd_text(textarea, help_msg.strip(), widgets)
@@ -2278,7 +2305,9 @@ class Co2guiCmd(cmdlets.Cmd):
                    "Commands to manage configuration-options loaded from filesystem.")}
 
     #: semaphore armed when the "red" button pressed
-    _job_thread = None
+    #: FIXME: remove Threading & Job-semaphores from app, move-->gui.
+    _co2mpas_job_thread = None
+    _co2dice_job_thread = None
 
     def run(self, *args):
         self.build_GUI_app()
@@ -2388,7 +2417,10 @@ class Co2guiCmd(cmdlets.Cmd):
         from co2mpas import batch as cbatch, plan
         from schedula import Dispatcher
 
-        self._job_thread = thread
+        assert not (self.is_co2mpas_job_alive() or
+                    self.is_co2dice_job_alive()), vars(self)
+
+        self._co2mpas_job_thread = thread
 
         Dispatcher.stopper.clear()
         cbatch.SITES_STOPPER.clear()
@@ -2408,15 +2440,18 @@ class Co2guiCmd(cmdlets.Cmd):
         #: Cludge for GUI to receive Plan's output filenames.
         plan.plan_listener = None
 
-    def is_job_alive(self):
-        return self._job_thread and self._job_thread.is_alive()
+    def is_co2mpas_job_alive(self):
+        return self._co2mpas_job_thread and self._co2mpas_job_thread.is_alive()
 
     def is_stop_job_signaled(self):
         """
-        Returns true if signaled, but job may have died earlier; see also :meth:`is_job_alive()`.
+        Returns true if signaled, but job may have died earlier; see also :meth:`is_co2mpas_job_alive()`.
         """
         from schedula import Dispatcher
-        return self._job_thread and Dispatcher.stopper.is_set()
+        return self._co2mpas_job_thread and Dispatcher.stopper.is_set()
+
+    def is_co2dice_job_alive(self):
+        return self._co2dice_job_thread and self._co2dice_job_thread.is_alive()
 
     def _add_window_icon(self, win):
         win.tk.call('wm', 'iconphoto', win._w, read_image('icons/CO2MPAS_icon-64.png'))
@@ -2458,6 +2493,7 @@ class Co2guiCmd(cmdlets.Cmd):
             If None, defaults to 7sec, if 0, "static message", can be cleared
             only with ``msg='', delay=0``.
         """
+        ## TODO: move status-bar & progress & about, etc update to GUI.
         if msg is None:  # A '' msg clears the 'static" status.
             return
 
@@ -2601,6 +2637,9 @@ class Co2guiCmd(cmdlets.Cmd):
         from threading import Thread
         import requests
 
+        assert not (self.is_co2mpas_job_alive() or
+                    self.is_co2dice_job_alive()), vars(self)
+
         jobname = 'DICER'
         stdpump = StreamsPump(nstreams=2)
         cstep = 0
@@ -2621,14 +2660,12 @@ class Co2guiCmd(cmdlets.Cmd):
 
             mediate_guistate("%s step %s of %s: %s%s%s",
                              jobname, cstep, nsteps, msg, stdout, stderr,
-                             static_msg=True, progr_step=step, progr_max=nsteps,
-                             wstamper_ok=False)
+                             static_msg=True, progr_step=step, progr_max=nsteps)
 
+        ## TODO: move dice-job-mechanism to GUI, keep only ths func in app.
         def dice_job():
             try:
                 with stds_redirected(*stdpump.streams):
-                    mediate_guistate("%s LAUNCHED...", jobname,
-                                     static_msg=True)
                     ## Prepare gui-files for dicer.
                     pfiles = base.PFiles(**pfile_pairs)
 
@@ -2642,8 +2679,8 @@ class Co2guiCmd(cmdlets.Cmd):
                     mediate_guistate("%s COMPLETED %s STEPS SUCCESSFULY.%s%s",
                                      jobname, cstep, stdout, stderr,
                                      static_msg='', progr_max=0,
-                                     wstamper_ok=False)
-                    #  On success, Dice=btn disabled, not to alow reruns.
+                                     #  On success, Dice=btn disabled, not to alow reruns.
+                                     clean_dice_from_pfiles=True)
             except Exception as ex:
                 stdout, stderr = stream_addendums(*stdpump.pump_streams())
                 polite = isinstance(ex, cmdlets.CmdException)
@@ -2653,23 +2690,26 @@ class Co2guiCmd(cmdlets.Cmd):
                                  jobname, cstep, err, stdout, stderr,
                                  exc_info=exc_info,
                                  level=logging.ERROR,
-                                 static_msg=True, progr_max=0,
-                                 wstamper_ok=True)
+                                 static_msg=True, progr_max=0)
 
         def job_runner(job, *args, **kwargs):
-            ## WARN: extra care bc exception in threads are lost!
+            ## extra care bc exception in threads are lost!
             #
             try:
                 job(*args, **kwargs)
             except Exception as ex:
-                self.log.critical("UNEXPECTED error from job '%s': %s",
+                self.log.critical("Unhandled job '%s' error: %s",
                                   jobname, ex, exc_info=1)
+            finally:
+                self._co2dice_job_thread = None
+                mediate_guistate()
 
-        ## Disable btn early to avoid double-clicks.
-        mediate_guistate(wstamper_ok=False, progr_step=0)
-        Thread(target=job_runner,
-               args=(dice_job, ),
-               daemon=False).start()
+        self._co2dice_job_thread = th = Thread(target=job_runner,
+                                               args=(dice_job, ),
+                                               daemon=False)
+        th.start()
+        mediate_guistate("%s LAUNCHED...", jobname,
+                         static_msg=True, progr_step=0)
 
     def mainloop(self):
         try:
