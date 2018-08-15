@@ -14,7 +14,7 @@ def main():
     """
     Cmd-line entrypoint to `co2dice` master command/
 
-    - Invokes :func:`co2mpas.sampling.run()` with ``sys.argv[1:]``.
+    - Invokes :func:`co2mpas.co2gui.run()` with ``sys.argv[1:]``.
     - In order to set cmd-line arguments, invoke directly the function above.
     """
     req_ver = (3, 6)
@@ -30,6 +30,6 @@ def main():
 if __name__ == '__main__':
     ## Pep366 must always be the 1st thing to run.
     if not globals().get('__package__'):
-        __package__ = 'co2mpas.sampling'  # noqa: A001 F841 @ReservedAssignment
+        __package__ = 'co2mpas.co2gui'  # noqa: A001 F841 @ReservedAssignment
 
     sys.exit(main())
