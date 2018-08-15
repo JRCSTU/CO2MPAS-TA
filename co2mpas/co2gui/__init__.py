@@ -974,6 +974,13 @@ class LogPanel(ttk.Labelframe):
     def _setup_logging_components(self, formatter_specs, log_threshold):
         from queue import Queue
 
+        def last_defence():
+            """When everything else has failed..."""
+            import traceback
+
+            print("Failed emitting log into UI: %s" %
+                  traceback.format_exc(), file=sys.stderr)
+
         log_panel = self
         log_textarea = self._log_text
 
@@ -1008,10 +1015,7 @@ class LogPanel(ttk.Labelframe):
                             except Exception:
                                 ## Must not raise any errors, or
                                 #  infinite recursion here.
-                                import traceback
-
-                                print("Failed emitting log into UI: %s" %
-                                      traceback.format_exc(), file=sys.stderr)
+                                last_defence()
 
                         log_textarea['state'] = tk.DISABLED
                         # Scroll to the bottom, if
@@ -1023,7 +1027,7 @@ class LogPanel(ttk.Labelframe):
                         log_panel._log_counters.update(['Total', record.levelname])
                         log_panel._update_title()
                     except Exception:
-                        self.handleError(record)
+                        last_defence()
 
                 self.reschedule()
 
