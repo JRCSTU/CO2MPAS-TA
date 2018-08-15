@@ -1761,21 +1761,26 @@ class SimulatePanel(ttk.Frame):
 
                 ## FIXME: Hack to search "summary" in fnames....
                 #
-                if is_ta and 'summary' not in fpath and '.xlsx' in fpath:
-                    input_file = solution['input_file_name']
-                    mediate_guistate(
-                        "Job %s matched inp-file: %s",
-                        job_name, fpath, level=logging.debug,
-                        new_out_file_tuple=(input_file, False, 'inp'))
-                    mediate_guistate(
-                        "Job %s generated file: %s",
-                        job_name, fpath, level=logging.debug,
-                        new_out_file_tuple=(fpath, False, 'out'))
+                if is_ta:
+                    if 'summary' not in fpath and '.xlsx' in fpath:
+                        # We have an OUT-file
+                        #
+                        ## DicerSpec needs out-files paired with inp ones.
+                        input_file = solution['input_file_name']
+                        mediate_guistate(
+                            "Job %s matched inp-file: %s",
+                            job_name, fpath, level=logging.debug,
+                            new_out_file_tuple=(input_file, False, 'inp'))
+                        kind = 'out'
+                    else:
+                        kind = 'other'
                 else:
-                    mediate_guistate(
-                        "Job %s generated file: %s",
-                        job_name, fpath, level=logging.debug,
-                        new_out_file_tuple=(fpath, False, 'other'))
+                    kind = ''
+
+                mediate_guistate(
+                    "Job %s generated file: %s",
+                    job_name, fpath, level=logging.debug,
+                    new_out_file_tuple=(fpath, False, kind))
 
             def pump_std_streams(self):
                 new_out = self.stdout.getvalue()[self.out_i:]
@@ -1796,7 +1801,10 @@ class SimulatePanel(ttk.Frame):
                 mediate_guistate(progr_step=-1, progr_max=self.len + 1)  # +1 finalization job-work.
                 return self
 
-            def on_finish(self, out, err, ex):
+            def on_finish(self, _stdout, _stderr, ex):
+                ## _stdout/_stderr, above, ignored bc these are the full contents
+                #  and a) already pumped, b) last pump below.
+
                 app._job_thread = None
                 args = [job_name]
                 wstamper_ok = None
