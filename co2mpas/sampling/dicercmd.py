@@ -79,7 +79,7 @@ class DicerCmd(cmdlets.Cmd):
     def run(self, *args):
         from . import dicer
 
-        dicer = dicer.DicerSpec(config=self.config)
+        dicerspec = dicer.DicerSpec(config=self.config)
 
         ## Parse cli-args.
         pfiles = base.PFiles(inp=self.inp, out=self.out, other=args)
@@ -91,8 +91,8 @@ class DicerCmd(cmdlets.Cmd):
 
             cstep += step
             progress = '(%s out of %s) %s' % (cstep, nsteps, msg)
-            dicer.store_report(progress)
+            dicerspec.store_report(progress)
 
             self.log.info(progress)
 
-        yield dicer.do_dice_in_one_step(pfiles, progress_write_file)
+        yield dicerspec.do_dice_in_one_step(pfiles, progress_write_file)

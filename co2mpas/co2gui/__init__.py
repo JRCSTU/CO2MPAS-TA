@@ -2615,11 +2615,11 @@ class Co2guiCmd(cmdlets.Cmd):
                     ## Prepare gui-files for dicer.
                     pfiles = base.PFiles(**pfile_pairs)
 
-                    dicer = dicer.DicerSpec(config=self.config)
+                    dicerspec = dicer.DicerSpec(config=self.config)
 
                     if not self._http_session:
                         self._http_session = requests.Session()
-                    dicer.do_dice_in_one_step(pfiles, progress_listener,)
+                    dicerspec.do_dice_in_one_step(pfiles, progress_listener,)
 
                     stdout, stderr = stream_addendums(*stdpump.pump_streams())
                     mediate_guistate("%s COMPLETED %s STEPS SUCCESSFULY.%s%s",
