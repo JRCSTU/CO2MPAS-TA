@@ -988,20 +988,22 @@ class LogPanel(ttk.Labelframe):
 
         class MyHandler(logging.Handler):
             refresh_delay_ms = 140
+            _log_cb_id = None
 
             def __init__(self, **kws):
                 logging.Handler.__init__(self, **kws)
                 self.lrq = Queue()
-                self.reschedule()
 
             def emit(self, record):
                 self.lrq.put(record)
+                self._schedule_log_pump()
 
-            def reschedule(self):
-                self.gui_cb_id = log_textarea.after(self.refresh_delay_ms,
-                                                    self.pump_logqueue_into_gui)
+            def _schedule_log_pump(self):
+                if not self._log_cb_id:
+                    self._log_cb_id = log_textarea.after(self.refresh_delay_ms,
+                                                         self._pump_logqueue_into_gui)
 
-            def pump_logqueue_into_gui(self):
+            def _pump_logqueue_into_gui(self):
                 lrq = self.lrq
 
                 if not lrq.empty():
@@ -1030,8 +1032,8 @@ class LogPanel(ttk.Labelframe):
                         log_panel._update_title()
                     except Exception:
                         last_log_defence()
-
-                self.reschedule()
+                    finally:
+                        self._log_cb_id = None
 
         self._handler = MyHandler()
 
