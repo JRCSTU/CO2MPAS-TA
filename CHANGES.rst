@@ -117,7 +117,7 @@ Dice
 - All dice-commands and *WebStamper* now also work with files, since *Dices*
   can potentially be MBs in size; **Copy + Paste** becomes problematic in these cases.
 
-- Added low-level ``co2dice tstamp wstamp`` cli-command that Stamps a given
+- Added low-level ``co2dice tstamp wstamp`` cli-command that Stamps a pre-generated
   :term:`Dice` through *WebStamper*.
 
 
@@ -214,8 +214,16 @@ Intermediate releases for ``1.9.x``:
   - Releases with ``v`` prefix signify internal milestones.
 
 
-``v1.9.2ZZ``, 14 Aug 2018
+``v1.9.2rc1``, 16 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+- FIX: GUI mechanincs for logs and jobs.
+- fix: finalized behavior for button-states.
+- enh: possible to mute email-stamper deprecations with ``EmailStamperWarning.mute``.
+- enh: RELAX I/O file-pairing rule for ``dicer`` cmd, any 2 io-files is now ok.
+
+
+``v1.9.2rc0``, 14 Aug 2018 (BROKEN GUI)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - ENH: Add logging-timestamps in ``~/.co2dice/reports.txt`` maintained by
   the :class:`ReportsKeeper`(renamed from ``FileWritingMixin``) which now supports
   writing to multiple files through the tested *logging* library.
@@ -237,6 +245,8 @@ Intermediate releases for ``1.9.x``:
   shrink-slice.
 
 - enh: teach GUI to also use HTTP-sessions (like ``dicer`` command does).
+
+- GUI-state behavior was still not mature.
 
 
 ``r1.9.1b1``, 13 Aug 2018
@@ -305,7 +315,7 @@ Implement the new ``project dice`` command.
 - Work started since `v1.9.1a0: 8 Aug 2018`.
 - FEAT: NEW WEB-API CMDS:
   - ``co2dice project dicer``: Dice a new project in one action through WebStamper.
-  - ``tstamp wstamp``: Dice a new project in one action through WebStamper.
+  - ``tstamp wstamp``: Stamp pre-generated Dice through WebStamper.
 - feat: ``co2dice project report`` command can retrieve older reports.
   (not just the latest).  For *Stamps*, internal git commands are still needed.
 - WIP: Add GUI "Stamp" button.
