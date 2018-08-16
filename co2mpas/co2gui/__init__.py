@@ -2608,7 +2608,7 @@ class Co2guiCmd(cmdlets.Cmd):
                 progr_bar.grid(column=1, row=1, sticky='nswe')
 
         if step is not None:
-            if step < 0:
+            if step <= 0:
                 progr_var.set(-step)
             else:
                 progr_var.set(progr_var.get() + step)
