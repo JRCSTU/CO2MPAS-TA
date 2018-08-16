@@ -126,20 +126,17 @@ PFiles.__new__.__defaults__ = ([], ) * len(all_io_kinds)
 
 
 class EmailStamperWarning(trc.Configurable):
-    mute_deprecation_warning = trt.Bool().tag(config=True)
+    mute = trt.Bool().tag(config=True)
 
     def __init__(self, **kwds):
         import logging
 
         super().__init__(**kwds)
 
-        if not self.mute_deprecation_warning:
+        if not self.mute:
             logging.getLogger('EmailStamping').warning(
                 "SINCE co2mpas-1.9.x (summer 2018) THIS COMMAND IS DEPRECATED."
                 "\n  Please migrate to WebStamper.")
-
-
-
 
 
 class FileReadingMixin(metaclass=trt.MetaHasTraits):
