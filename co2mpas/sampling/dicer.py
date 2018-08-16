@@ -102,6 +102,7 @@ class DicerSpec(cmdlets.Spec, base.ShrinkingOutputMixin, base.ReportsKeeper):
         '''
         from . import project, tstamp
         import requests
+        from co2mpas.utils import joinstuff
 
         if observer:
             def notify(msg: str, step=1, max_step=None):
@@ -147,8 +148,8 @@ class DicerSpec(cmdlets.Spec, base.ShrinkingOutputMixin, base.ReportsKeeper):
                     diffs = pdb.diff_wdir_pfiles(pfiles)
                     if diffs:
                         raise CmdException(
-                            "Project files missmatched with new ones!%s" %
-                            ''.join('\n    %s' % i for i in diffs))
+                            "Project %s files mismatched with new ones!%s" %
+                            (proj.pname, joinstuff(diffs, '', '\n    %s')))
                     self.log.info("Project '%s' already contained files: %s", vfid, pfiles)
                 else:
                     self._check_ok(proj.do_addfiles(pfiles=pfiles), proj)
