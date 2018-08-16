@@ -1657,19 +1657,18 @@ class WstampSpec(cli.DiceSpec):
     ).tag(config=True)
 
     check_url = trt.Unicode(
-        ## FIXME: Make URLs it configurable to avoid DoS!
         'http://localhost:5000/api-check/',
         help="The WebStamper's endpoint URL that Stamps."
     ).tag(config=True, envvar='WEBSTAMPER_CHECK_URL')
 
     stamp_url = trt.Unicode(
-        ## FIXME: Make URLs it configurable to avoid DoS!
         'http://localhost:5000/api-stamp/',
         help="The WebStamper's endpoint URL that checks connectivity & validates Dice."
     ).tag(config=True, envvar='WEBSTAMPER_STAMP_URL')
 
     recipients = trt.List(
         trt.Unicode(),
+        default_value=[],
         help="""
         The plain email-address of the receivers of the timestamped-response.
         Ask JRC to provide that. You don't have to provide your sender-account here.
