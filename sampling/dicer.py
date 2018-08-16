@@ -10,7 +10,7 @@ New base sub-cmd to simplify Stamping through WebStamper in one step.
 import textwrap as tw
 
 from . import CmdException, base, cmdlets
-from .._vendor import traitlets as trt
+from ._vendor import traitlets as trt
 
 
 class DicerSpec(cmdlets.Spec, base.ShrinkingOutputMixin, base.ReportsKeeper):

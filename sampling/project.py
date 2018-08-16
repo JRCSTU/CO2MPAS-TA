@@ -6,7 +6,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 #
 """A *project* stores all CO2MPAS files for a single vehicle, and tracks its sampling procedure. """
-from co2mpas._vendor.traitlets.traitlets import TraitError
+from sampling._vendor.traitlets.traitlets import TraitError
 from collections import (defaultdict, OrderedDict, namedtuple)  # @UnusedImport
 from typing import (
     Any, Union, List, Dict, Sequence, Iterable, Optional, Text, Tuple, Callable)  # @UnusedImport
@@ -29,10 +29,10 @@ import pandalone.utils as pndlu
 import textwrap as tw
 
 from . import base, cmdlets, cli, CmdException
-from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
+from . import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
                 __dice_report_version__)
-from .._vendor.traitlets import traitlets as trt
-from .._vendor.traitlets import config as trtc
+from ._vendor.traitlets import traitlets as trt
+from ._vendor.traitlets import config as trtc
 from .base import PFiles
 
 
@@ -1498,7 +1498,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         return self._current_project
 
     def validate_project_name(self, pname: Text) -> Project:
-        from ..io import schema
+        from co2mpas.io import schema
 
         if not pname or not git_project_regex.match(pname):
             raise CmdException(schema.invalid_vehicle_family_id_msg % pname)
@@ -2447,7 +2447,7 @@ class ExportCmd(_SubCmd):
         import tempfile
         import git
         from git.util import rmtree
-        from ..utils import chdir
+        from co2mpas.utils import chdir
 
         arch_format = 'zip'
         repo = self.projects_db.repo

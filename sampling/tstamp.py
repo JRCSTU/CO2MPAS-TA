@@ -5,22 +5,21 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 "Send & parse co2mpas dice/stamps to TAAs/oversight bodies."
+from co2mpas import vehicle_family_id_pattern
 from collections import (
     defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
+from pandalone import utils as pndlu
 import random
 import re
 import sys
 from typing import (
     List, Sequence, Iterable, Text, Tuple, Dict, Callable, Union)  # @UnusedImport
 
-from pandalone import utils as pndlu
-
 import functools as fnt
 
 from . import CmdException, base, cmdlets, cli, crypto, slicetrait
-from .. import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
-                vehicle_family_id_pattern)
-from .._vendor import traitlets as trt
+from . import __version__, __updated__, __uri__, __copyright__, __license__  # @UnusedImport
+from ._vendor.traitlets import traitlets as trt
 
 
 _undefined = object()

@@ -7,8 +7,8 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
-from co2mpas._vendor.traitlets import config as trtc
-from co2mpas.sampling import cmdlets, cli, cfgcmd
+from sampling._vendor.traitlets import config as trtc
+from sampling import cmdlets, cli, cfgcmd
 import logging
 import os
 import tempfile
@@ -80,7 +80,7 @@ class TApp(unittest.TestCase):
         c.ShowCmd.verbose = 1
         c.Co2dice.raise_config_file_errors = True
         cmd = cfgcmd.ShowCmd(config=c)
-        res = cmd.initialize([])
+        cmd.initialize([])
         res = list(cmd.run())
         ## Count Cmd-lines not starting with '  +--trait'.
         ncmdlines = sum(1 for r in res if r[0] != ' ')

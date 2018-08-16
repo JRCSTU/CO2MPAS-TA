@@ -17,8 +17,8 @@ from typing import (
 import os.path as osp
 
 from . import cmdlets, base, project, CmdException
-from .. import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
-from .._vendor.traitlets import traitlets as trt
+from . import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
+from ._vendor.traitlets import traitlets as trt
 from .base import PFiles
 
 

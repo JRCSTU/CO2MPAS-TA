@@ -17,7 +17,7 @@ import functools as fnt
 import os.path as osp
 
 from . import cmdlets, CmdException
-from .._vendor import traitlets as trt
+from ._vendor import traitlets as trt
 
 
 def prepare_matcher(terms, is_regex):
@@ -74,7 +74,7 @@ def prepare_search_map(all_classes, own_traits):
 
 
 def prepare_help_selector(only_class_in_values, verbose):
-    from .._vendor.traitlets import config as trtc
+    from ._vendor.traitlets import config as trtc
 
     if only_class_in_values:
         if verbose:
@@ -228,7 +228,7 @@ class PathsCmd(cmdlets.Cmd):
                                % (self.name, len(args), args))
 
         import sys
-        from .. import __version__, __updated__, __dice_report_version__
+        from . import __version__, __updated__, __dice_report_version__
         from . import project
         from . import crypto
 

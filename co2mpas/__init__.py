@@ -40,9 +40,6 @@ version       = __version__                         # noqa
 #: The :term:`Semantic Versioning` for Input/Output files.
 __file_version__        = "2.3.0"                   # noqa
 
-#: The :term:`Semantic Versioning` for Input/Output files.
-__dice_report_version__ = '1.0.2'
-
 
 #: Define VehicleFamilyId (aka ProjectId) pattern here not to import the world on use.
 #: Referenced by :meth:`.sampling.tstamp.TstampReceiver.extract_dice_tag_name()`.

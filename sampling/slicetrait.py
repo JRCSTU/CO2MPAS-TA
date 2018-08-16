@@ -11,7 +11,7 @@ from typing import Iterable, List, Text, Union
 
 from toolz import itertoolz as itz
 
-from .._vendor.traitlets import traitlets as trt
+from ._vendor.traitlets import traitlets as trt
 
 
 def _parse_slice(v: Union[Text, int]):

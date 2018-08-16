@@ -8,7 +8,7 @@
 New cmd to simplify stamping through WebStamper in one step.
 """
 from . import cmdlets, base
-from .._vendor import traitlets as trt
+from ._vendor import traitlets as trt
 
 
 class DicerCmd(cmdlets.Cmd):

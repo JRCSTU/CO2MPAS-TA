@@ -55,8 +55,8 @@ Layout::
 
 from co2mpas import (__main__ as cmain, __version__,
                      __updated__, __copyright__, __license__, __uri__)  # @UnusedImport
-from co2mpas._vendor import traitlets as trt
-from co2mpas.sampling import cmdlets
+from sampling._vendor import traitlets as trt
+from sampling import cmdlets
 from collections import Counter, OrderedDict, namedtuple, ChainMap, defaultdict
 from datetime import datetime
 from tkinter import StringVar, ttk, filedialog
@@ -98,7 +98,7 @@ def is_dice_installed():
 
     if _is_dice_installed is None:
         try:
-            from co2mpas.sampling import tstamp  # noqa
+            from sampling import tstamp  # noqa
             _is_dice_installed = True
         except ImportError:
             _is_dice_installed = False
@@ -418,7 +418,7 @@ def run_python_job(job_name, function, cmd_args, cmd_kwds,
 
     Suitable to be run within a thread.
     """
-    from ..utils import logconfutils as lcu
+    from co2mpas.utils import logconfutils as lcu
     import schedula
 
     ## Numpy error-config is on per-thread basis:
@@ -460,7 +460,7 @@ def run_python_job(job_name, function, cmd_args, cmd_kwds,
 
 class StreamsPump:
     """
-    To provide eg the 2 stdout/stderr streams required by :func:`..utils.stds_redirected()`.
+    To provide eg the 2 stdout/stderr streams required by :func:`co2mpas.utils.stds_redirected()`.
     """
     def __init__(self, nstreams):
         self.streams = tuple(io.StringIO() for _ in range(nstreams))
@@ -1390,7 +1390,7 @@ class SimulatePanel(ttk.Frame):
             add_icon(btn, 'icons/to_dice-orange-32.png ')
             btn.pack(side=tk.LEFT, fill=tk.BOTH,)
 
-            from co2mpas.sampling import base
+            from sampling import base
             add_tooltip(btn, 'run_dice_btn',
                         reports_file=self.app.get_reports_fpath())
 
@@ -1657,7 +1657,7 @@ class SimulatePanel(ttk.Frame):
 
     def reconstruct_cmd_args_from_gui(self):
         from pandalone import utils as putils
-        from ..utils import parse_key_value_pair
+        from co2mpas.utils import parse_key_value_pair
 
         cmd_kwds = OrderedDict()
 
@@ -2231,7 +2231,7 @@ class DicePanel(ttk.Frame):
         show_decisions(default_texts)
 
         def parse_tstamp_response():
-            from ..sampling import tstamp
+            from sampling import tstamp
 
             tstamp_response = self.response_pastearea.get(1.0, tk.END)
             if tstamp_response.strip():
@@ -2308,7 +2308,7 @@ class Co2guiCmd(cmdlets.Cmd):
     ).tag(config=True, persist=True)
 
     subcommands = {
-        'config': ('co2mpas.sampling.cfgcmd.ConfigCmd',
+        'config': ('sampling.cfgcmd.ConfigCmd',
                    "Commands to manage configuration-options loaded from filesystem.")}
 
     #: semaphore armed when the "red" button pressed
@@ -2637,14 +2637,14 @@ class Co2guiCmd(cmdlets.Cmd):
         show_about(top, verbose=verbose)
 
     def get_reports_fpath(self):
-        from co2mpas.sampling.base import ReportsKeeper
+        from sampling.base import ReportsKeeper
         return ReportsKeeper(config=self.config).default_reports_fpath
 
     _http_session = None
 
     def do_run_dice(self, pfile_pairs, mediate_guistate):
-        from .. import utils
-        from ..sampling import base, dicer
+        from co2mpas import utils
+        from sampling import base, dicer
         from threading import Thread
         import requests
 

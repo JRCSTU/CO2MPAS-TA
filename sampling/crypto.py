@@ -12,7 +12,7 @@ The general idea is to use a PGP key to securely store many passwords in configu
 The code using these passwords must never store them as is, but use and immediately discard them.
 """
 
-from co2mpas.sampling import cmdlets
+from sampling import cmdlets
 from collections import OrderedDict
 import io
 import os
@@ -20,8 +20,8 @@ import re
 from typing import Text, Tuple, Union, Dict  # @UnusedImport
 
 import os.path as osp
-from .._vendor import traitlets as trt
-from .._vendor.traitlets import config as trtc
+from ._vendor import traitlets as trt
+from ._vendor.traitlets import config as trtc
 
 
 #: Used for DICE experiments before the legislative enactment 27 Jul 2017.

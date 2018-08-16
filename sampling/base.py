@@ -16,8 +16,8 @@ import sys
 import os.path as osp
 
 from . import CmdException, slicetrait
-from .._vendor.traitlets import config as trc
-from .._vendor.traitlets import traitlets as trt
+from ._vendor.traitlets import config as trc
+from ._vendor.traitlets import traitlets as trt
 
 
 def convpath(fpath, abs_path=None, exp_user=True, exp_vars=True):
@@ -399,7 +399,7 @@ class ReportsKeeper(trc.Configurable):
         - By default, in the customized loggers it is always added
           the :field:`default_reports_fpath` (if defined).
         """
-        from ..utils import joinstuff
+        from co2mpas.utils import joinstuff
 
         wfpaths = self._collect_wfpaths(*extra_fpaths)
         if not txt:
