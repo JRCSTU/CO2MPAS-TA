@@ -2766,7 +2766,9 @@ def run(argv=(), **app_init_kwds):
 
     cmain.init_logging(level=log_level, filename=log_fpath,
                        default_logconf_file=default_logconf_file)
-    log = logging.getLogger(__name__)
+    ## IMPORTANT: re-enable module-logger in case logconf file
+    #  had ``disable_existing_loggers: true`` (but e.g. trait-loggers ...).
+    logging.getLogger(APPNAME).disabled = False
 
     if sys.version_info < (3, 5):
         log.error(
