@@ -2554,8 +2554,9 @@ class Co2guiCmd(cmdlets.Cmd):
         """Actually prints the "static" message, if any."""
         status = self._status_text
 
-        status.after_cancel(self._clear_cb_id)
-        self._clear_cb_id = None
+        if self._clear_cb_id:
+            status.after_cancel(self._clear_cb_id)
+            self._clear_cb_id = None
         status['state'] = tk.NORMAL
         status.delete('1.0', tk.END)
         status.insert('1.0', *self._status_static_msg)
