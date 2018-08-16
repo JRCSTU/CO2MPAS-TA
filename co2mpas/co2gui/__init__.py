@@ -918,7 +918,7 @@ class LogPanel(ttk.Labelframe):
 
     initted = False
 
-    def __init__(self, master, app, *args,
+    def __init__(self, master, app, sim, *args,
                  log_threshold=logging.INFO, logger_name='', formatter_specs=None,
                  log_level_cb=None, **kw):
         """
@@ -934,6 +934,7 @@ class LogPanel(ttk.Labelframe):
             An optional ``func(level)`` invoked when log-threshold is modified from popup-menu.
         """
         self.app = app
+        self.sim = sim
         self._log_level_cb = log_level_cb
         if LogPanel.initted:
             raise RuntimeError("I said instantiate me only ONCE!!!")
@@ -995,44 +996,65 @@ class LogPanel(ttk.Labelframe):
                 self.reschedule()
 
             def emit(self, record):
-                self.lrq.put(record)
+                self.lrq.put(('log', record))
 
             def reschedule(self):
                 self.gui_cb_id = log_textarea.after(self.refresh_delay_ms,
-                                                    self.pump_logqueue_into_gui)
+                                                    self.pump_gui_queue)
 
-            def pump_logqueue_into_gui(self):
-                lrq = self.lrq
+            def update_log_panel(self, records):
+                log_textarea.update()
+                was_bottom = (log_textarea.yview()[1] == 1)
+                log_textarea['state'] = tk.NORMAL
 
-                if not lrq.empty():
+                for rec in records:
                     try:
-                        log_textarea.update()
-                        was_bottom = (log_textarea.yview()[1] == 1)
-                        log_textarea['state'] = tk.NORMAL
+                        log_panel._write_log_record(rec)
 
-                        while not lrq.empty():
-                            try:
-                                record = lrq.get()
-                                log_panel._write_log_record(record)
-                            except Exception:
-                                ## Must not raise any errors, or
-                                #  infinite recursion here.
-                                last_log_defence()
-
-                        log_textarea['state'] = tk.DISABLED
                         # Scroll to the bottom, if
                         #    log serious or log was already at the bottom.
                         #
-                        if record.levelno >= logging.ERROR or was_bottom:
+                        if rec.levelno >= logging.ERROR or was_bottom:
                             log_textarea.see(tk.END)
+                        log_panel._log_counters.update(['Total', rec.levelname])
+                    except Exception:
+                        ## Must not raise any errors, or
+                        #  infinite recursion here.
+                        last_log_defence()
 
-                        log_panel._log_counters.update(['Total', record.levelname])
-                        log_panel._update_title()
+                log_textarea['state'] = tk.DISABLED
+                log_panel._update_title()
+
+            def send_sim_states(self, simstates):
+                try:
+                    args, kwds = simstates
+                    self.sim.mediate_guistate(*args, **kwds)
+                except Exception as ex:
+                    log.critical("GUI-state has problems: %s", ex, exc_info=1)
+
+            def pump_gui_queue(self):
+                lrq = self.lrq
+                messages = defaultdict(list)
+
+                if not lrq.empty():
+                    try:
+                        while not lrq.empty():
+                            category, data = lrq.get()
+                            messages[category].append(data)
+
+                        logs = messages.get('log')
+                        if logs:
+                            self.update_log_panel(logs)
+
+                        simstates = messages.get('sim')
+                        if simstates:
+                            self.send_sim_states(simstates)
                     except Exception:
                         last_log_defence()
 
                 self.reschedule()
 
+        ## TODO: gui-pump only for threads, add to-log-panel handler fom gui-loggers hierarchy.
         self._handler = MyHandler()
 
         if not formatter_specs:
@@ -2347,7 +2369,7 @@ class Co2guiCmd(cmdlets.Cmd):
         self.tabs = nb = ttk.Notebook(slider, height=460)
         slider.add(nb, weight=1)
 
-        tab = SimulatePanel(nb, app=self)
+        sim_tab = tab = SimulatePanel(nb, app=self)
         img = read_image('icons/car-olive-16.png')
         nb.add(tab, text='Simulate', sticky='nswe',
                image=img, compound='top')
@@ -2373,7 +2395,8 @@ class Co2guiCmd(cmdlets.Cmd):
                    image=img, compound='top')
             nb.dice_icon = img
 
-        frame = LogPanel(slider, self, height=160, log_level_cb=cmain.init_logging)
+        frame = LogPanel(slider, self, sim_tab,
+                         height=160, log_level_cb=cmain.init_logging)
         slider.add(frame, weight=2)
 
         root.columnconfigure(0, weight=1)
