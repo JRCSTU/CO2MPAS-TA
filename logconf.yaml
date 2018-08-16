@@ -6,7 +6,8 @@
 #
 version: 1
 
-## https://fangpenlin.com/posts/2012/08/26/good-logging-practice-in-python/#capture-exceptions-and-record-them-with-traceback
+## MUST set to false, or many logs are lost,
+#  see https://fangpenlin.com/posts/2012/08/26/good-logging-practice-in-python/#do-not-get-logger-at-the-module-level-unless-disable_existing_loggers-is-false
 disable_existing_loggers: false
 
 root:
@@ -16,6 +17,7 @@ root:
     handlers: [colored]
 
 loggers:
+    # co2gui: {}
     # co2mpas: {}
     # co2mpas_main: {}
     # co2mpas.batch: {}
