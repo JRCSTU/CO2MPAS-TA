@@ -1014,19 +1014,20 @@ class LogPanel(ttk.Labelframe):
                             try:
                                 record = lrq.get()
                                 log_panel._write_log_record(record)
+
+                                # Scroll to the bottom, if
+                                #    log serious or log was already at the bottom.
+                                #
+                                if record.levelno >= logging.ERROR or was_bottom:
+                                    log_textarea.see(tk.END)
+
+                                log_panel._log_counters.update(['Total', record.levelname])
                             except Exception:
                                 ## Must not raise any errors, or
                                 #  infinite recursion here.
                                 last_log_defence()
 
                         log_textarea['state'] = tk.DISABLED
-                        # Scroll to the bottom, if
-                        #    log serious or log was already at the bottom.
-                        #
-                        if record.levelno >= logging.ERROR or was_bottom:
-                            log_textarea.see(tk.END)
-
-                        log_panel._log_counters.update(['Total', record.levelname])
                         log_panel._update_title()
                     except Exception:
                         last_log_defence()
