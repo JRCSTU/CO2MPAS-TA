@@ -2692,13 +2692,19 @@ class Co2guiCmd(cmdlets.Cmd):
                                      #  On success, Dice=btn disabled, not to alow reruns.
                                      clean_dice_from_pfiles=True)
             except Exception as ex:
+                import transitions
+                import schema
+
                 stdout, stderr = stream_addendums(*stdpump.pump_streams())
-                polite = isinstance(ex, cmdlets.CmdException)
+                polite = isinstance(ex, (cmdlets.CmdException,
+                                         trt.TraitError,
+                                         transitions.MachineError,
+                                         schema.SchemaError))
                 err = ex if polite else '%s: %s' % (type(ex).__name__, ex)
-                exc_info = logging.getLogger().isEnabledFor(logging.DEBUG) or not polite
+                self.log.debug('Job %s failed due: %s', jobname, ex, exc_info=1)
                 mediate_guistate("%s FAILED ON STEP %s DUE TO: %s%s%s",
                                  jobname, cstep, err, stdout, stderr,
-                                 exc_info=exc_info,
+                                 exc_info=not polite,
                                  level=logging.ERROR,
                                  static_msg=True, progr_max=0)
 
