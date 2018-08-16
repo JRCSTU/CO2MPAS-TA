@@ -1167,6 +1167,7 @@ class LogPanel(ttk.Labelframe):
         wtext['state'] = tk.DISABLED
         self._log_counters.clear()
         self._update_title()
+        self.app.clear_status(clear_static=True)
 
     def save_log(self):
         now = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -2550,8 +2551,11 @@ class Co2guiCmd(cmdlets.Cmd):
             self._clear_cb_id = status.after(delay, self.clear_status)
         status.update()
 
-    def clear_status(self):
+    def clear_status(self, clear_static=None):
         """Actually prints the "static" message, if any."""
+        if clear_static:
+            self._status_static_msg = type(self)._status_static_msg
+
         status = self._status_text
 
         if self._clear_cb_id:
