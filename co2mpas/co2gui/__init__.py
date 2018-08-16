@@ -79,7 +79,8 @@ import tkinter as tk
 
 APPNAME = 'co2mpas'
 
-log = logging.getLogger(APPNAME)
+#: use distinctive name for logs, APPNAME on GUI is for users.
+log = logging.getLogger(__name__)
 
 show_dice_panel = False
 #: Caches if import succedded.
@@ -2768,7 +2769,7 @@ def run(argv=(), **app_init_kwds):
                        default_logconf_file=default_logconf_file)
     ## IMPORTANT: re-enable module-logger in case logconf file
     #  had ``disable_existing_loggers: true`` (but e.g. trait-loggers ...).
-    logging.getLogger(APPNAME).disabled = False
+    logging.getLogger(__name__).disabled = False
 
     if sys.version_info < (3, 5):
         log.error(
