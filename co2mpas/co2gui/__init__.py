@@ -342,6 +342,14 @@ def labelize_str(s):
     return s.title()
 
 
+def last_log_defence():
+    """When everything else has failed..."""
+    import traceback
+
+    print("Failed emitting log into UI: %s" %
+          traceback.format_exc(), file=sys.stderr)
+
+
 def open_file_with_os(fpath):
     from pandalone import utils as putils
 
@@ -975,13 +983,6 @@ class LogPanel(ttk.Labelframe):
     def _setup_logging_components(self, formatter_specs, log_threshold):
         from queue import Queue
 
-        def last_defence():
-            """When everything else has failed..."""
-            import traceback
-
-            print("Failed emitting log into UI: %s" %
-                  traceback.format_exc(), file=sys.stderr)
-
         log_panel = self
         log_textarea = self._log_text
 
@@ -1016,7 +1017,7 @@ class LogPanel(ttk.Labelframe):
                             except Exception:
                                 ## Must not raise any errors, or
                                 #  infinite recursion here.
-                                last_defence()
+                                last_log_defence()
 
                         log_textarea['state'] = tk.DISABLED
                         # Scroll to the bottom, if
@@ -1028,7 +1029,7 @@ class LogPanel(ttk.Labelframe):
                         log_panel._log_counters.update(['Total', record.levelname])
                         log_panel._update_title()
                     except Exception:
-                        last_defence()
+                        last_log_defence()
 
                 self.reschedule()
 
