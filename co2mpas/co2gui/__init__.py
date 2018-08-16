@@ -1049,12 +1049,15 @@ class LogPanel(ttk.Labelframe):
 
     def _intercept_tinker_exceptions(self):
         def my_ex_interceptor(*args):
-            log.critical('Unhandled TkUI exception:', exc_info=True)
+            import traceback as tb
+
             try:
-                self.app.cstatus('Unhandled TkUI exception: %s', args, delay=0)
+                self.app.cstatus('Unhandled TkUI exception: %s',
+                                 tb.format_exc(), delay=0)
             except Exception:
                 # Must not raise any errors, or infinite recursion here.
-                pass
+                last_log_defence()
+
             self._original_tk_ex_handler(*args)
 
         self._original_tk_ex_handler = tk.Tk.report_callback_exception
