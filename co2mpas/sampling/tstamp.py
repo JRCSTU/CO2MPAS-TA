@@ -1657,13 +1657,11 @@ class WstampSpec(cli.DiceSpec):
     ).tag(config=True)
 
     check_url = trt.Unicode(
-        ## FIXME: Make URLs it configurable to avoid DoS!
         'http://localhost:5000/api-check/',
         help="The WebStamper's endpoint URL that Stamps."
     ).tag(config=True, envvar='WEBSTAMPER_CHECK_URL')
 
     stamp_url = trt.Unicode(
-        ## FIXME: Make URLs it configurable to avoid DoS!
         'http://localhost:5000/api-stamp/',
         help="The WebStamper's endpoint URL that checks connectivity & validates Dice."
     ).tag(config=True, envvar='WEBSTAMPER_STAMP_URL')
