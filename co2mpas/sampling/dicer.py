@@ -108,16 +108,18 @@ class DicerSpec(cmdlets.Spec, base.ShrinkingOutputMixin, base.ReportsKeeper):
             def notify(msg: str, step=1, max_step=None):
                 observer(msg, step, max_step)
         else:
-            notify = lambda *_, **__: None
+            notify = lambda *_, **__: None  # noqa: E731
 
         nsteps = 8
 
-        notify("checking files...", max_step=nsteps)
+        notify("checking configurations and files...", max_step=nsteps)
         if not (pfiles.inp and pfiles.out):
             raise CmdException(
                 "At least one INP & OUT file needed for single-step Dicing! "
                 "\n  Received: %s!" % (pfiles, ))
         pfiles.check_files_exist("dicer")
+        wstamper = tstamp.WstampSpec(config=self.config)
+        wstamper.recipients  # trait-validations scream on access
 
         notify("extracting project-id from files...", max_step=nsteps)
         vfid = self._derrive_vfid(pfiles)
@@ -162,7 +164,6 @@ class DicerSpec(cmdlets.Spec, base.ShrinkingOutputMixin, base.ReportsKeeper):
                 self.store_report(dice, 'dice for %s' % proj.pname)
 
                 notify("stamping Dice through WebStamper...", max_step=nsteps)
-                wstamper = tstamp.WstampSpec(config=self.config)
                 stamp = wstamper.stamp_dice(dice, http_session=http_session)
                 self.log.info("Stamp was: \n%s", self.shrink_text(stamp))
                 self.store_report(stamp, 'stamp for %s' % proj.pname)
