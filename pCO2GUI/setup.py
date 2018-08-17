@@ -148,8 +148,8 @@ setup(
         'Topic :: Scientific/Engineering',
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
-    test_suite='tests',
-    #python_requires='>=3.6',
+    obsoletes=['co2mpas (< 2.0)'],
+    python_requires='>=3.5',
     setup_requires=['setuptools', 'wheel', 'polyversion >= 0.2.0a2'],
     install_requires=[
         'co2sim',                   # Actually `co2simio` would be needed.
