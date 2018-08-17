@@ -109,7 +109,7 @@ class Co2diceCmd(Cmd):
 #
 def all_cmds():
     from . import cfgcmd, project, dicercmd, report, tstamp, tsigner
-    from co2mpas import co2gui
+    #import co2gui
     return (
         (
             cmdlets.Cmd,
@@ -120,7 +120,7 @@ def all_cmds():
             tstamp.TstampCmd,
             tsigner.TsignerCmd,
             cfgcmd.ConfigCmd,
-            co2gui.Co2guiCmd,
+            #co2gui.Co2guiCmd,  # FIXME: should dice-CfgCmd refer to gui??
         ) +
         cfgcmd.config_subcmds +
         project.all_subcmds +
