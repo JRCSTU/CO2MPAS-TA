@@ -91,7 +91,7 @@ def dreport_df():
         import io, json, pandas as pd, yaml
         from co2dice.report import ReporterSpec
 
-        fpath = 'tests/sampling/output.xlsx'
+        fpath = 'tests/co2dice/output.xlsx'
         _vfid, dreport: pd.DataFrame = ReporterSpec()._extract_dice_report_from_output(fpath)
         sink = io.StringIO()
         dreport.to_json(sink, 'columns')
@@ -401,9 +401,9 @@ class TReportProject(TReportBase):
             for rec in rpt:
                 f = rec['file']
                 if f == 'input.xlsx':
-                    path, iokind, rpt = "tests\sampling\input.xlsx", 'inp', False
+                    path, iokind, rpt = "tests\co2dice\input.xlsx", 'inp', False
                 elif f == 'output.xlsx':
-                    path, iokind, rpt = "tests\sampling\output.xlsx", 'out', True
+                    path, iokind, rpt = "tests\co2dice\output.xlsx", 'out', True
                 self.check_report_tuple(rec, test_vfid, path, iokind, rpt)
 
     def test_both(self):

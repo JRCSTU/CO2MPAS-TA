@@ -486,7 +486,7 @@ def read_image(fpath):
 
     icon = _loaded_icons.get(fpath)
     if not icon:
-        with pkg.resource_stream('co2mpas', fpath) as fd:  # @UndefinedVariable
+        with pkg.resource_stream('co2gui', fpath) as fd:  # @UndefinedVariable
             img = Image.open(fd)
             icon = ImageTk.PhotoImage(img)
         _loaded_icons[fpath] = icon

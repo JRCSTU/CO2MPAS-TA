@@ -842,7 +842,7 @@ def define_data_schema(read=True):
     return Schema(schema)
 
 
-#: Aka "ProjectId", referenced also by :mod:`.sampling.project`.
+#: Aka "ProjectId", referenced also by :mod:`.co2dice.project`.
 _vehicle_family_id_regex = re.compile('(?x)^%s$' % vehicle_family_id_pattern)
 invalid_vehicle_family_id_msg = (
     "Invalid VF_ID '%s'!"
