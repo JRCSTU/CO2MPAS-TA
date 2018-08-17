@@ -6,6 +6,7 @@
 ##		pip install -r requirements.txt
 ## and then just code from inside this folder.
 #
+from os import path as osp
 import io
 import os
 import re
@@ -97,11 +98,36 @@ def yield_rst_only_markup(lines):
     for line in lines:
         yield clean_line(line)
 
+def read_pinned_deps(fpath):
+    comment_regex = re.compile('^ *#')
+    rstrip_regex = re.compile(' *(#.*)?$')
+
+    def procline(line):
+        line = line.strip()
+        if line and not comment_regex.match(line):
+            return line
+
+        return rstrip_regex.sub('', line)
+
+    pinned_deps = []
+    with open(fpath) as fp:
+        for line in fp:
+            if 'CO2MPAS PINNED STOP' in line:
+                break
+
+            line = procline(line)
+            if line:
+                pinned_deps.append(line)
+
+    return pinned_deps
 
 polyversion = 'polyversion >= 0.2.2a0'  # Workaround buggy git<2.15, envvar: co2mpas_VERION
 readme_lines = read_text_lines('README.rst')
 description = readme_lines[1]
 long_desc = ''.join(yield_rst_only_markup(readme_lines))
+pinned_deps = read_pinned_deps(osp.join(mydir, 'pCO2SIM', 'requirements', 'exe.pip'))
+
+
 setup(
     name=PROJECT,
     ## Include a default for robustness (eg to work on shallow git -clones)
@@ -143,7 +169,7 @@ setup(
         'Topic :: Scientific/Engineering',
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
-    python_requires='>=3.5',  # http://www.python3statement.org/practicalities/
+    python_requires='>=3.5',
     setup_requires=[
         # PEP426-field actually not used by `pip`, hence
         # included also in /requirements/developmnet.pip.
@@ -162,7 +188,7 @@ setup(
         'co2sim',
         'co2gui',
         'co2dice',
-    ],
+    ] + pinned_deps,
     extras_require={
         'pindeps': ['co2sim[pindeps]'],
     },
