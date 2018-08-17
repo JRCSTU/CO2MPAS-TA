@@ -12,7 +12,7 @@ The general idea is to use a PGP key to securely store many passwords in configu
 The code using these passwords must never store them as is, but use and immediately discard them.
 """
 
-from sampling import cmdlets
+from co2dice import cmdlets
 from collections import OrderedDict
 import io
 import os

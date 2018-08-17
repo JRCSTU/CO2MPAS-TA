@@ -5,7 +5,7 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-from sampling import CmdException, crypto, tstamp
+from co2dice import CmdException, crypto, tstamp
 from collections import namedtuple
 from flask_wtf import FlaskForm
 import json

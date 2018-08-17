@@ -7,8 +7,8 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
-from sampling import cfgcmd
-from sampling.cmdlets import collect_cmd
+from co2dice import cfgcmd
+from co2dice.cmdlets import collect_cmd
 import logging
 import os
 import unittest

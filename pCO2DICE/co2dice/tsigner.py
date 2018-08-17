@@ -8,7 +8,7 @@
 Stamper of Dices.
 """
 
-from sampling.dirlock import locked_on_dir
+from co2dice.dirlock import locked_on_dir
 from collections import (
     defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
 from typing import (

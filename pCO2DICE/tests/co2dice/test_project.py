@@ -7,12 +7,12 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
-from sampling._vendor.traitlets import config as trtc
-from sampling import cmdlets, crypto, project
-from sampling.base import PFiles
-from sampling.cmdlets import pump_cmd, collect_cmd
+from co2dice._vendor.traitlets import config as trtc
+from co2dice import cmdlets, crypto, project
+from co2dice.base import PFiles
+from co2dice.cmdlets import pump_cmd, collect_cmd
 from co2mpas.utils import chdir
-from tests.sampling import (
+from tests.co2dice import (
     gitpython_cleanup, test_inp_fpath, test_out_fpath, test_vfid,
     test_pgp_fingerprint, test_pgp_keys, test_pgp_trust,
 )
@@ -382,7 +382,7 @@ class TStraightStory(unittest.TestCase):
         return c
 
     def test_0_show_paths(self):
-        from sampling import cfgcmd
+        from co2dice import cfgcmd
         cmd = cfgcmd.PathsCmd(config=self._config)
         pump_cmd(cmd.run())
 
@@ -458,7 +458,7 @@ class TStraightStory(unittest.TestCase):
 
     def test_6_stamp(self):
         "Not actually testing project..."
-        from sampling import tsigner
+        from co2dice import tsigner
 
         cfg = self._config
         cfg.Project.dry_run = False  # modifed by prev TC.

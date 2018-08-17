@@ -90,7 +90,7 @@ def catch_config_error(method, app, *args, **kwargs):
     except (TraitError, ArgumentError) as e:
         ## NOTE: CO2MPAS -specific code HERE!
         from co2mpas import __main__ as cmain
-        from sampling import cmdlets
+        from co2dice import cmdlets
 
         log = app.log
         #log.info('\n'.join(app.emit_help()))

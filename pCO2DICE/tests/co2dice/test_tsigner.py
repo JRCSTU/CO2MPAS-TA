@@ -12,9 +12,9 @@ import tempfile
 import unittest
 
 from co2mpas.__main__ import init_logging
-from sampling._vendor.traitlets import config as trtc
-from sampling import crypto, tsigner
-from sampling.cmdlets import Cmd
+from co2dice._vendor.traitlets import config as trtc
+from co2dice import crypto, tsigner
+from co2dice.cmdlets import Cmd
 import ddt
 
 from git.util import rmtree as gutil_rmtree

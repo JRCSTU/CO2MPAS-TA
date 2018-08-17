@@ -7,9 +7,9 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
-from sampling._vendor.traitlets import config as trtc
-from sampling import CmdException, report, project, crypto
-from sampling.cmdlets import pump_cmd
+from co2dice._vendor.traitlets import config as trtc
+from co2dice import CmdException, report, project, crypto
+from co2dice.cmdlets import pump_cmd
 import logging
 import os
 import re
@@ -89,7 +89,7 @@ def dreport_df():
     YAML file generated with::
 
         import io, json, pandas as pd, yaml
-        from sampling.report import ReporterSpec
+        from co2dice.report import ReporterSpec
 
         fpath = 'tests/sampling/output.xlsx'
         _vfid, dreport: pd.DataFrame = ReporterSpec()._extract_dice_report_from_output(fpath)
@@ -299,7 +299,7 @@ class TReportProject(TReportBase):
         shutil.rmtree(cls.cfg.GpgSpec.gnupghome)
 
     def test_0_show_paths(self):
-        from sampling import cfgcmd
+        from co2dice import cfgcmd
         cmd = cfgcmd.PathsCmd(config=self.cfg)
         pump_cmd(cmd.run())
 

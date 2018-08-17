@@ -55,8 +55,8 @@ Layout::
 
 from co2mpas import (__main__ as cmain, __version__,
                      __updated__, __copyright__, __license__, __uri__)  # @UnusedImport
-from sampling._vendor import traitlets as trt
-from sampling import cmdlets
+from co2dice._vendor import traitlets as trt
+from co2dice import cmdlets
 from collections import Counter, OrderedDict, namedtuple, ChainMap, defaultdict
 from datetime import datetime
 from tkinter import StringVar, ttk, filedialog
@@ -98,7 +98,7 @@ def is_dice_installed():
 
     if _is_dice_installed is None:
         try:
-            from sampling import tstamp  # noqa
+            from co2dice import tstamp  # noqa
             _is_dice_installed = True
         except ImportError:
             _is_dice_installed = False
@@ -1356,7 +1356,7 @@ class SimulatePanel(ttk.Frame):
                     #    ('FILE', '', '1432399', '2018-06-07T17:34:08.623143'):
                     ## Sample of Dice item
                     #    ('FILE', 'inp', '1432399', '2018-06-07T17:34:08.623143'):
-                    ## where possible "kinds" are from :class:`sampling.base.PFile`:
+                    ## where possible "kinds" are from :class:`co2dice.base.PFile`:
                     #    inp | out | other
 
                     kind = values[1]
@@ -1390,7 +1390,7 @@ class SimulatePanel(ttk.Frame):
             add_icon(btn, 'icons/to_dice-orange-32.png ')
             btn.pack(side=tk.LEFT, fill=tk.BOTH,)
 
-            from sampling import base
+            from co2dice import base
             add_tooltip(btn, 'run_dice_btn',
                         reports_file=self.app.get_reports_fpath())
 
@@ -1723,7 +1723,7 @@ class SimulatePanel(ttk.Frame):
 
     def do_run_co2mpas(self, is_ta):
         from threading import Thread
-        from .. import batch as cbatch
+        from co2mpas import batch as cbatch
 
         if debug_dice_btn_enabled:
             if self._debug_dice_btn():
@@ -1945,7 +1945,7 @@ and double-click on the result file to open it,
                 no_lookup=True)
 
         def ask_save_template_file():
-            from .. import datasync
+            from co2mpas import datasync
             import docopt
 
             file = filedialog.asksaveasfilename(
@@ -1998,7 +1998,7 @@ and double-click on the result file to open it,
         widgets['out-file'] = frame
 
         def run_sync():
-            from .. import datasync
+            from co2mpas import datasync
 
             inp_file = self.inp_var.get()
             if not osp.isfile(inp_file):
@@ -2231,7 +2231,7 @@ class DicePanel(ttk.Frame):
         show_decisions(default_texts)
 
         def parse_tstamp_response():
-            from sampling import tstamp
+            from co2dice import tstamp
 
             tstamp_response = self.response_pastearea.get(1.0, tk.END)
             if tstamp_response.strip():
@@ -2308,7 +2308,7 @@ class Co2guiCmd(cmdlets.Cmd):
     ).tag(config=True, persist=True)
 
     subcommands = {
-        'config': ('sampling.cfgcmd.ConfigCmd',
+        'config': ('co2dice.cfgcmd.ConfigCmd',
                    "Commands to manage configuration-options loaded from filesystem.")}
 
     #: semaphore armed when the "red" button pressed
@@ -2637,14 +2637,14 @@ class Co2guiCmd(cmdlets.Cmd):
         show_about(top, verbose=verbose)
 
     def get_reports_fpath(self):
-        from sampling.base import ReportsKeeper
+        from co2dice.base import ReportsKeeper
         return ReportsKeeper(config=self.config).default_reports_fpath
 
     _http_session = None
 
     def do_run_dice(self, pfile_pairs, mediate_guistate):
         from co2mpas import utils
-        from sampling import base, dicer
+        from co2dice import base, dicer
         from threading import Thread
         import requests
 

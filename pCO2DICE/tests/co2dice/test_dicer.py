@@ -14,12 +14,12 @@ If not running a WebStamper on your localhost, set these 2 env-vars::
 - All :func:`..._B_...()`` TCs required :func:`..._A_...()` to have run.
 """
 from co2mpas.__main__ import init_logging
-from sampling._vendor.traitlets import config as trtc
-from sampling import CmdException, crypto
-from sampling.base import PFiles
-from sampling.dicer import DicerSpec
-from sampling.project import ProjectsDB
-from tests.sampling import (
+from co2dice._vendor.traitlets import config as trtc
+from co2dice import CmdException, crypto
+from co2dice.base import PFiles
+from co2dice.dicer import DicerSpec
+from co2dice.project import ProjectsDB
+from tests.co2dice import (
     test_pgp_fingerprint, test_pgp_keys, test_pgp_trust,
 )
 import logging
@@ -106,7 +106,7 @@ def dicer(traitcfg):
 
 @pytest.fixture()
 def iofiles():
-    from tests.sampling import test_inp_fpath, test_out_fpath
+    from tests.co2dice import test_inp_fpath, test_out_fpath
 
     ifile = local(test_inp_fpath)
     ofile = local(test_out_fpath)

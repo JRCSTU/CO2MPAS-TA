@@ -6,7 +6,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 #
 """A *project* stores all CO2MPAS files for a single vehicle, and tracks its sampling procedure. """
-from sampling._vendor.traitlets.traitlets import TraitError
+from co2dice._vendor.traitlets.traitlets import TraitError
 from collections import (defaultdict, OrderedDict, namedtuple)  # @UnusedImport
 from typing import (
     Any, Union, List, Dict, Sequence, Iterable, Optional, Text, Tuple, Callable)  # @UnusedImport

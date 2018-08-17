@@ -5,8 +5,8 @@
 # You can find out more about blueprints at
 # http://flask.pocoo.org/docs/blueprints/
 
-from sampling._vendor.traitlets import config as traitc
-from sampling import crypto, tsigner
+from co2dice._vendor.traitlets import config as traitc
+from co2dice import crypto, tsigner
 import os
 import re
 

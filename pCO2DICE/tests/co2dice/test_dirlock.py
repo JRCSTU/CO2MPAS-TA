@@ -11,7 +11,7 @@ import time
 import unittest
 
 from co2mpas.__main__ import init_logging
-from sampling import dirlock
+from co2dice import dirlock
 import ddt
 
 import multiprocessing as mp
@@ -42,7 +42,7 @@ def cmd_task_factory(label, tdir, **lock_kw):
     with open(prog_path, 'wt') as f:
         f.write(tw.dedent("""
             import time
-            from sampling import dirlock;
+            from co2dice import dirlock;
 
             lock_kw = %r
             with dirlock.locked_on_dir(%r, 0.2, **lock_kw):

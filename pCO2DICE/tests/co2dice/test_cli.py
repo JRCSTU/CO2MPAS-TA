@@ -7,8 +7,8 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
-from sampling._vendor.traitlets import config as trtc
-from sampling import cmdlets, cli, cfgcmd
+from co2dice._vendor.traitlets import config as trtc
+from co2dice import cmdlets, cli, cfgcmd
 import logging
 import os
 import tempfile

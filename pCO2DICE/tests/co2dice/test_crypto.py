@@ -16,15 +16,15 @@ import tempfile
 import unittest
 
 from co2mpas.__main__ import init_logging
-from sampling._vendor.traitlets import config as trtc
-from sampling import crypto, CmdException
+from co2dice._vendor.traitlets import config as trtc
+from co2dice import crypto, CmdException
 import ddt
 
 import itertools as itt
 import os.path as osp
 import textwrap as tw
 
-from tests.sampling import test_pgp_keys, test_pgp_trust
+from tests.co2dice import test_pgp_keys, test_pgp_trust
 
 
 init_logging(level=logging.DEBUG)

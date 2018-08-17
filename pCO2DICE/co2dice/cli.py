@@ -11,7 +11,7 @@ Main CO2MPAS dice command to prepare/sign/send/receive/validate/archive ...
 Type Approval sampling emails of *co2mpas*.
 """
 ## TODO: rename to `cli`
-from sampling._vendor.traitlets import traitlets as trt
+from co2dice._vendor.traitlets import traitlets as trt
 from . import (
     __version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
     cmdlets, CmdException)
@@ -88,18 +88,18 @@ class Co2diceCmd(Cmd):
     """)
 
     subcommands = OrderedDict([
-        ('dicer', ('sampling.dicercmd.DicerCmd',
+        ('dicer', ('co2dice.dicercmd.DicerCmd',
                    "Dice a new (or existing) project in one action through WebStamper.")),
-        ('project', ('sampling.project.ProjectCmd',
+        ('project', ('co2dice.project.ProjectCmd',
                      "Commands to administer the storage repo of TA *projects*.")),
-        ('report', ('sampling.report.ReportCmd',
+        ('report', ('co2dice.report.ReportCmd',
                     "Extract the report parameters from the co2mpas input/output files, "
                     "or from *current-project*.")),
-        ('tstamp', ('sampling.tstamp.TstampCmd',
+        ('tstamp', ('co2dice.tstamp.TstampCmd',
                     "Commands to manage the communications with the Timestamp server.")),
-        ('config', ('sampling.cfgcmd.ConfigCmd',
+        ('config', ('co2dice.cfgcmd.ConfigCmd',
                     "Commands to manage configuration-options loaded from filesystem.")),
-        ('tsigner', ('sampling.tsigner.TsignerCmd',
+        ('tsigner', ('co2dice.tsigner.TsignerCmd',
                      "A command that time-stamps dice-reports.")),
     ])
 

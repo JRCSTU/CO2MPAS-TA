@@ -7,9 +7,9 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 from co2mpas.__main__ import init_logging
-from sampling._vendor.traitlets import config as trtc
-from sampling import crypto, tstamp
-from sampling.cmdlets import collect_cmd, Cmd
+from co2dice._vendor.traitlets import config as trtc
+from co2dice import crypto, tstamp
+from co2dice.cmdlets import collect_cmd, Cmd
 from collections import Counter
 from pprint import pformat as pf
 import logging
@@ -21,7 +21,7 @@ import unittest
 import ddt
 import yaml
 
-import sampling._vendor.traitlets as trt
+import co2dice._vendor.traitlets as trt
 import os.path as osp
 import subprocess as sbp
 

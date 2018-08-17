@@ -236,8 +236,8 @@ setup(
     tests_require=['pytest', 'nose>=1.0', 'ddt'],
     entry_points={
         'console_scripts': [
-            '%(p)s = %(p)s.__main__:main' % {'p': PROJECT},
-            '%(p)s-autocompletions = %(p)s.__main__:print_autocompletions' % {'p': PROJECT},
+            'co2mpas = co2mpas.__main__:main',
+            'co2mpas-autocompletions = co2mpas.__main__:print_autocompletions',
             'datasync = co2mpas.datasync:main',
         ],
     },

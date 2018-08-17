@@ -37,14 +37,13 @@ loggers:
     # co2mpas.plan: {}
 
     # co2dice: {}
-    # sampling: {}
-    # sampling.cmdlets: {}
-    # sampling.cfgcmd: {}
-    # sampling.crypto: {}
-    # sampling.project: {}
-    # sampling.report: {}
-    # sampling.tstamp: {}
-    # sampling.tsigner: {}
+    # co2dice.cmdlets: {}
+    # co2dice.cfgcmd: {}
+    # co2dice.crypto: {}
+    # co2dice.project: {}
+    # co2dice.report: {}
+    # co2dice.tstamp: {}
+    # co2dice.tsigner: {}
 
     ## DICE libs:
     #
