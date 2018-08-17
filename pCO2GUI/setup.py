@@ -90,17 +90,16 @@ long_desc = ''.join(yield_rst_only_markup(readme))
 test_requirements = [
     'pytest',
     'pytest-runner',
-    'pytest-cov',
     'flake8',
     'flake8-builtins',
     'flake8-mutable',
     #'mypy',
+    'ddt',
 ]
-PROJECT = 'co2gui'
 
 
 setup(
-    name=PROJECT,
+    name='co2gui',
     ## Provide a `default_version` for installing eg. in shallow clones,
     #  and `pname` or else it would be `__main__`.
     version='0.0.0',
@@ -117,9 +116,6 @@ setup(
         'Source': 'https://github.com/JRCSTU/CO2MPAS-TA',
         'Tracker': 'https://github.com/JRCSTU/CO2MPAS-TA/issues',
     },
-    packages=find_packages(exclude=['tests', 'tests.*']),
-    zip_safe=True,
-    platforms=['any'],
     keywords="""
         CO2 fuel-consumption WLTP NEDC vehicle automotive
         EU JRC IET STU correlation back-translation policy monitoring
@@ -169,6 +165,8 @@ setup(
     extras_require={
         'test': test_requirements,
     },
+    packages=find_packages(exclude=['tests', 'tests.*']),
+    test_suite='tests',
     entry_points={
         'console_scripts':
             ## Note: launching as gui-scripts DOES NOT WORK
@@ -177,4 +175,7 @@ setup(
             #  Check also: https://github.com/pypa/setuptools/issues/410
             'co2gui = co2gui.__main__:main'
     },
+    zip_safe=True,
+    options={'bdist_wheel': {'universal': True}},
+    platforms=['any'],
 )

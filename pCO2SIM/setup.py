@@ -6,6 +6,7 @@
 ##		pip install -r requirements.txt
 ## and then just code from inside this folder.
 #
+from os import path as osp
 import io
 import os
 import re
@@ -98,9 +99,7 @@ def yield_rst_only_markup(lines):
         yield clean_line(line)
 
 
-def read_pinned_deps():
-    import os.path as osp
-
+def read_pinned_deps(fpath):
     comment_regex = re.compile('^ *#')
     rstrip_regex = re.compile(' *(#.*)?$')
 
@@ -112,7 +111,7 @@ def read_pinned_deps():
         return rstrip_regex.sub('', line)
 
     pinned_deps = []
-    with open(osp.join(mydir, 'requirements', 'exe.pip')) as fp:
+    with open(fpath) as fp:
         for line in fp:
             if 'CO2MPAS PINNED STOP' in line:
                 break
@@ -128,7 +127,19 @@ polyversion = 'polyversion >= 0.2.2a0'  # Workaround buggy git<2.15, envvar: co2
 readme_lines = read_text_lines('README.rst')
 description = readme_lines[1]
 long_desc = ''.join(yield_rst_only_markup(readme_lines))
-pinned_deps = read_pinned_deps()
+pinned_deps = read_pinned_deps(osp.join(mydir, 'requirements', 'exe.pip'))
+
+test_requirements = [
+    'pytest',
+    'pytest-runner',
+    'flake8',
+    'flake8-builtins',
+    'flake8-mutable',
+    #'mypy',
+    'ddt',
+]
+
+
 setup(
     name=PROJECT,
     ## Include a default for robustness (eg to work on shallow git -clones)
@@ -218,7 +229,9 @@ setup(
     ],
     extras_require={
         'pindeps': [pinned_deps],
+        'test': test_requirements,
     },
+    tests_require=test_requirements,
     package_dir={'': 'src'},
     packages=find_packages('src', exclude=['tests', 'tests.*']),
 #    package_data={
@@ -231,21 +244,15 @@ setup(
 #            'co2mpas_output_template.xlsx',
 #        ]
 #    },
-    include_package_data=True,
-    zip_safe=True,
-    test_suite='nose.collector',
-    tests_require=['pytest', 'nose>=1.0', 'ddt'],
+    test_suite='tests',
     entry_points={
         'console_scripts': [
             'co2mpas = co2mpas.__main__:main',
-            'co2mpas-autocompletions = co2mpas.__main__:print_autocompletions',
             'datasync = co2mpas.datasync:main',
         ],
     },
-    options={
-        'bdist_wheel': {
-            'universal': True,
-        },
-    },
+    include_package_data=True,
+    zip_safe=True,
+    options={'bdist_wheel': {'universal': True}},
     platforms=['any'],
 )
