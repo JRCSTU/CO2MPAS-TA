@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Setup script *polyversion-lib*."""
+"""Setup script *CO2DICE*."""
 from __future__ import print_function
 
 import re
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 import os.path as osp
 
@@ -96,7 +96,7 @@ test_requirements = [
     'flake8-mutable',
     #'mypy',
 ]
-PROJECT = 'polyversion'
+PROJECT = 'co2dice'
 
 
 setup(
@@ -107,56 +107,77 @@ setup(
     polyversion=True,
     description="Polyvers's lib to derive subproject versions from tags on Git monorepos.",
     long_description=long_desc,
-    author="Kostis Anagnostopoulos",
-    author_email='ankostis@gmail.com',
-    url='https://github.com/jrcstu/polyvers',
-    download_url='https://pypi.org/project/polyversion/',
+    license='EUPL 1.1+',
+    author='CO2MPAS-Team',
+    author_email='JRC-CO2MPAS@ec.europa.eu',
+    url='https://co2mpas.io/',
+    download_url='https://pypi.org/project/co2dice/',
     project_urls={
-        'Documentation':
-        'http://polyvers.readthedocs.io/en/latest/usage-pvlib.html',
-        'Source': 'https://github.com/jrcstu/polyvers',
-        'Tracker': 'https://github.com/jrcstu/polyvers/issues',
+        'Documentation': 'Https://co2mpas.io',
+        'Source': 'https://github.com/JRCSTU/CO2MPAS-TA',
+        'Tracker': 'https://github.com/JRCSTU/CO2MPAS-TA/issues',
     },
-    ## The ``package_dir={'': <sub-dir>}`` arg is needed for `py_modules` to work
-    #  when packaging sub-projects. But ``<sub-dir>`` must be relative to launch cwd,
-    #  or else, ``pip install -e <subdir>`` and/or ``python setup.py develop``
-    #  break.
-    #  Also tried chdir(mydir) at the top, but didn't work.
-    package_dir={'': osp.relpath(mydir)},
-    # packages=find_packages(osp.realpath(osp.join(mydir, 'polyversion')),
-    #                        exclude=['tests', 'tests.*']),
-    packages=['polyversion'],
-    license='MIT',
+    packages=find_packages(exclude=['tests', 'tests.*']),
     zip_safe=True,
     platforms=['any'],
-    keywords="version-management configuration-management versioning "
-             "git monorepo tool library".split(),
+    keywords="""
+        CO2 fuel-consumption WLTP NEDC vehicle automotive
+        EU JRC IET STU correlation back-translation policy monitoring
+        M1 N1 simulator engineering scientific
+    """.split(),
     classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Development Status :: 4 - Beta",
         'Natural Language :: English',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Manufacturing",
+        'Environment :: Console',
+        'License :: OSI Approved :: European Union Public Licence 1.1 (EUPL 1.1)',
+        'Natural Language :: English',
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX",
+        "Operating System :: Unix",
+        "Operating System :: OS Independent",
+        'Topic :: Scientific/Engineering',
+        "Topic :: Scientific/Engineering :: Information Analysis",
     ],
     test_suite='tests',
     #python_requires='>=3.6',
     setup_requires=['setuptools', 'wheel', 'polyversion >= 0.2.0a2'],
+    install_requires=[
+        'co2sim',                  # Actually `co2simio` would be needed.
+        'pandas',                   # by report (one line)
+        'numpy',
+        'pandalone[xlrd]>=0.2.0',   # For datasync pascha-fixes and openpyxl version.
+        'schema',                   # used only for vfid check & for exception checking.
+        'PyYAML>=3.12',
+        'boltons',                  # for its sorted set
+        'toolz',
+        'schedula[plot]>=0.2.3',    # for repo status
+
+        'ipython_genutils',         # by vendorized `traitlets`
+        'python-gnupg',
+        ## Win+Cygwin support, new packed-ref header format
+        #  (gitpython-developers/GitPython#689)
+        'gitpython >= 2.1.8',
+        'transitions >= 0.5.0',     # prepare/finally cbs
+        'PySocks >= 1.6.7',         # more proxy-error messages (#7)
+        'parsedatetime',
+        'validate_email',           # dice: distinguish EWS fields
+        'Unidecode',                # dice: convert non-ASCII for tstamper.
+    ],
     tests_require=test_requirements,
     extras_require={
         'test': test_requirements,
     },
     entry_points={
-        'distutils.setup_keywords': [
-            'polyversion = polyversion.setuplugin:init_plugin_kw',
-            'polyversion_check_bdist_enabled = polyversion.setuplugin:check_bdist_kw',
-        ],
-        'console_scripts':
-            ['%(p)s = %(p)s.__main__:main' % {'p': PROJECT}]
+        'console_scripts': ['co2dice = co2dice.__main__:main']
     },
 )

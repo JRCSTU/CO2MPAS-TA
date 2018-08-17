@@ -14,7 +14,7 @@ import sys
 from setuptools import setup, find_packages
 
 
-PROJECT = 'co2mpas'
+PROJECT = 'co2sim'
 
 if sys.version_info < (3, 5):
     sys.exit("Sorry, Python >= 3.5 is required to install %s, found: %s" %
@@ -98,10 +98,37 @@ def yield_rst_only_markup(lines):
         yield clean_line(line)
 
 
+def read_pinned_deps():
+    import os.path as osp
+
+    comment_regex = re.compile('^ *#')
+    rstrip_regex = re.compile(' *(#.*)?$')
+
+    def procline(line):
+        line = line.strip()
+        if line and not comment_regex.match(line):
+            return line
+
+        return rstrip_regex.sub('', line)
+
+    pinned_deps = []
+    with open(osp.join(mydir, 'requirements', 'exe.pip')) as fp:
+        for line in fp:
+            if 'CO2MPAS PINNED STOP' in line:
+                break
+
+            line = procline(line)
+            if line:
+                pinned_deps.append(line)
+
+    return pinned_deps
+
+
 polyversion = 'polyversion >= 0.2.2a0'  # Workaround buggy git<2.15, envvar: co2mpas_VERION
 readme_lines = read_text_lines('README.rst')
 description = readme_lines[1]
 long_desc = ''.join(yield_rst_only_markup(readme_lines))
+pinned_deps = read_pinned_deps()
 setup(
     name=PROJECT,
     ## Include a default for robustness (eg to work on shallow git -clones)
@@ -110,7 +137,7 @@ setup(
     polyversion=True,
     description="The Type-Approving vehicle simulator predicting NEDC CO2 emissions from WLTP",
     long_description=long_desc,
-    download_url='https://github.com/JRCSTU/ALLINONE/releases/',
+    download_url='https://pypi.org/project/co2sim/',
     keywords="""
         CO2 fuel-consumption WLTP NEDC vehicle automotive
         EU JRC IET STU correlation back-translation policy monitoring
@@ -159,14 +186,61 @@ setup(
     # ],
     install_requires=[
         polyversion,
-        'co2sim',
-        'co2gui',
-        'co2dice',
+        'pandas',
+        'xlsxwriter',
+        'scikit-learn',
+        'numpy',
+        'scipy',
+        'lmfit>=0.9.7',
+        'matplotlib',
+        'networkx',
+        'dill!=0.2.7',
+        'graphviz',
+        'docopt',
+        'six',
+        'pandalone[xlrd]>=0.2.0',  # For datasync pascha-fixes and openpyxl version.
+        'regex',
+        'schema',
+        'tqdm',
+        'openpyxl>=2.4.0',
+        'PyYAML>=3.12',
+        'pip',
+        'boltons',
+        'wltp',
+        'cryptography',
+        'openpyxl>=2.4.0',
+        'toolz',
+        'schedula[plot]>=0.2.3',     # Fix description.
+        'formulas>=0.0.10',
+        'contextvars',              # for co2mpare, backported for <PY37.
+        'xgboost',                  # Pure-python boost also works.
     ],
     extras_require={
-        'pindeps': ['co2sim[pindeps]'],
+        'pindeps': [pinned_deps],
     },
+    package_dir={'': 'src'},
+    packages=find_packages('src', exclude=['tests', 'tests.*']),
+#    package_data={
+#        'co2mpas': [
+#            'demos/*.xlsx',
+#            'ipynbs/*.ipynb',
+#            'icons/*.png',
+#            'co2mpas_template.xlsx',
+#            'datasync_template.xlsx',
+#            'co2mpas_output_template.xlsx',
+#        ]
+#    },
+    include_package_data=True,
     zip_safe=True,
+    test_suite='nose.collector',
+    tests_require=['pytest', 'nose>=1.0', 'ddt'],
+    entry_points={
+        'console_scripts': [
+            '%(p)s = %(p)s.__main__:main' % {'p': PROJECT},
+            '%(p)s-autocompletions = %(p)s.__main__:print_autocompletions' % {'p': PROJECT},
+            'datasync = co2mpas.datasync:main',
+        ],
+    },
     options={
         'bdist_wheel': {
             'universal': True,
