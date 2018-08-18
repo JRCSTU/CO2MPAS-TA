@@ -58,9 +58,3 @@ doc/_build/
 
 .*cache*
 *scratch*
-
-
-## SIM SPECIFIC
-/tests/data
-/tests/dispatcher/docs
-/tests/load_inputs
