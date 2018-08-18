@@ -233,7 +233,7 @@ setup(
     },
     tests_require=test_requirements,
     package_dir={'': 'src'},
-    packages=find_packages('src', exclude=['tests', 'tests.*']),
+    packages=find_packages('src'),
 #    package_data={
 #        'co2mpas': [
 #            'demos/*.xlsx',

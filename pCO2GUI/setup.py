@@ -165,7 +165,8 @@ setup(
     extras_require={
         'test': test_requirements,
     },
-    packages=find_packages(exclude=['tests', 'tests.*']),
+    package_dir={'': 'src'},
+    packages=find_packages('src'),
     test_suite='tests',
     entry_points={
         'console_scripts':
