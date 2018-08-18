@@ -150,7 +150,7 @@ class HighSync(unittest.TestCase):
 
     @ddt.data(
         'linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'spline2',
-        'polynomial2', 'polynomial3', 'spline4', 'pchip', 'integral',
+        'polynomial2', 'polynomial3', 'spline3', 'pchip', 'integral',
     )
     def test_main_methods(self, method):
         with tempfile.TemporaryDirectory(prefix='co2mpas_%s_' % __name__) as d:
