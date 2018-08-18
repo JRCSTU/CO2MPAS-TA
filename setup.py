@@ -12,7 +12,7 @@ import os
 import re
 import sys
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 
 PROJECT = 'co2mpas'
@@ -98,6 +98,7 @@ def yield_rst_only_markup(lines):
     for line in lines:
         yield clean_line(line)
 
+
 def read_pinned_deps(fpath):
     comment_regex = re.compile('^ *#')
     rstrip_regex = re.compile(' *(#.*)?$')
@@ -120,6 +121,7 @@ def read_pinned_deps(fpath):
                 pinned_deps.append(line)
 
     return pinned_deps
+
 
 polyversion = 'polyversion >= 0.2.2a0'  # Workaround buggy git<2.15, envvar: co2mpas_VERION
 readme_lines = read_text_lines('README.rst')

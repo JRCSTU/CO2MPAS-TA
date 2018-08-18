@@ -191,11 +191,6 @@ setup(
         'wheel',
         polyversion,
     ],
-    # dev_requires=[
-    #     # PEP426-field actually not used by `pip`, hence
-    #     # included in /requirements/developmnet.pip.
-    #     'sphinx',
-    # ],
     install_requires=[
         polyversion,
         'pandas',
@@ -210,7 +205,7 @@ setup(
         'graphviz',
         'docopt',
         'six',
-        'pandalone[xlrd]>=0.2.0',  # For datasync pascha-fixes and openpyxl version.
+        'pandalone[xlrd]>=0.2.0',  # for datasync pascha-fixes and openpyxl version
         'regex',
         'schema',
         'tqdm',
@@ -222,10 +217,10 @@ setup(
         'cryptography',
         'openpyxl>=2.4.0',
         'toolz',
-        'schedula[plot]>=0.2.3',     # Fix description.
+        'schedula[plot]>=0.2.3',
         'formulas>=0.0.10',
-        'contextvars',              # for co2mpare, backported for <PY37.
-        'xgboost',                  # Pure-python boost also works.
+        'contextvars',              # for co2mpare, backported for <PY37
+        'xgboost',                  # Pure-python boost would be also ok.
     ],
     extras_require={
         'pindeps': [pinned_deps],
@@ -234,16 +229,6 @@ setup(
     tests_require=test_requirements,
     package_dir={'': 'src'},
     packages=find_packages('src'),
-#    package_data={
-#        'co2mpas': [
-#            'demos/*.xlsx',
-#            'ipynbs/*.ipynb',
-#            'icons/*.png',
-#            'co2mpas_template.xlsx',
-#            'datasync_template.xlsx',
-#            'co2mpas_output_template.xlsx',
-#        ]
-#    },
     test_suite='tests',
     entry_points={
         'console_scripts': [
