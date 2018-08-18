@@ -12,7 +12,7 @@ from co2dice import cmdlets, crypto, project
 from co2dice.base import PFiles
 from co2dice.cmdlets import pump_cmd, collect_cmd
 from co2mpas.utils import chdir
-from tests.co2dice import (
+from . import (
     gitpython_cleanup, test_inp_fpath, test_out_fpath, test_vfid,
     test_pgp_fingerprint, test_pgp_keys, test_pgp_trust,
 )

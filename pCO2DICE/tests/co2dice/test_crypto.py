@@ -24,7 +24,7 @@ import itertools as itt
 import os.path as osp
 import textwrap as tw
 
-from tests.co2dice import test_pgp_keys, test_pgp_trust
+from . import test_pgp_keys, test_pgp_trust
 
 
 init_logging(level=logging.DEBUG)
@@ -32,7 +32,7 @@ init_logging(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 mydir = osp.dirname(__file__)
-myproj = osp.join(mydir, '..', '..')
+myproj = osp.realpath(osp.join(mydir, '..', '..', '..'))
 
 _texts = ('', ' ', 'a' * 2048, '123', 'asdfasd|*(KJ|KL97GDk;')
 _objs = ('', ' ', None, 'a' * 2048, 1244, b'\x22', {1: 'a', '2': {3, b'\x04'}})
@@ -708,7 +708,7 @@ class TestKey(unittest.TestCase):
 
 
 class TCipherTrait(unittest.TestCase):
-    """See :class:`tests.sampling.test_baseapp`."""
+    """See :class:`co2dice.test_baseapp`."""
 
 
 #class TDice(unittest.TestCase):

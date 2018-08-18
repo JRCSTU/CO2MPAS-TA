@@ -19,9 +19,7 @@ from co2dice import CmdException, crypto
 from co2dice.base import PFiles
 from co2dice.dicer import DicerSpec
 from co2dice.project import ProjectsDB
-from tests.co2dice import (
-    test_pgp_fingerprint, test_pgp_keys, test_pgp_trust,
-)
+from . import test_pgp_fingerprint, test_pgp_keys, test_pgp_trust
 import logging
 
 import pytest
@@ -36,6 +34,7 @@ log = logging.getLogger(__name__)
 
 
 def reset_git(pdb: ProjectsDB, ref):
+    assert ref, "empty ref!  Pobably earlier failures."
     pdb.repo.git.reset(ref, hard=True)
     pdb._current_project = None
     p = pdb.current_project()
@@ -106,7 +105,7 @@ def dicer(traitcfg):
 
 @pytest.fixture()
 def iofiles():
-    from tests.co2dice import test_inp_fpath, test_out_fpath
+    from . import test_inp_fpath, test_out_fpath
 
     ifile = local(test_inp_fpath)
     ofile = local(test_out_fpath)
