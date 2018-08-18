@@ -21,3 +21,21 @@ co2dice: TODO
 :license:       `EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_
 
 All project's documentation hosted at https://co2mpas.io/
+
+
+Development
+===========
+To run Test-Cases you may set these env-vars:
+
+- :envvar:`WEBSTAMPER_CHECK_URL`
+- :envvar:`WEBSTAMPER_STAMP_URL`
+- :envvar:`STAMP_CHAIN_DIR`
+
+or create a traits-configuration file on  ``~/co2dice_config.py`` by default,
+or specify more files with :envvar:`CO2DICE_VAR_NAME`.
+
+Also you need to  contain in oyur :envvar:`PATH`:
+- the project installed (e.g. in "develop" mode) for the executable commands to work;
+- GnuPG-2;
+- Git (Git MinGW for Windows, either the official or the one in *MSYS2*);
+- Python
