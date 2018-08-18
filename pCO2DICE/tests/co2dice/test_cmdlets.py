@@ -99,7 +99,7 @@ class TPConfFiles(unittest.TestCase):
     def check_cmd_params(self, cmd, values):
         self.assertSequenceEqual([cmd.a, cmd.b, cmd.c], values)
 
-    @mock.patch('sampling.cmdlets.default_config_fname', lambda: 'c')
+    @mock.patch('co2dice.cmdlets.default_config_fname', lambda: 'c')
     @ddt.data(
         (None, None, []),
         (['cc', 'cc.json'], None, []),

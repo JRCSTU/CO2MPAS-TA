@@ -10,7 +10,8 @@ import unittest
 
 import ddt
 
-from co2mpas import co2gui, __main__ as cmain
+from co2mpas import __main__ as cmain
+import co2gui
 import os.path as osp
 import tkinter as tk
 
