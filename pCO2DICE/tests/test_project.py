@@ -744,7 +744,10 @@ class TBackupCmd(unittest.TestCase):
 
     def test_export_import(self):
         import git
-        import subprocess as sbp
+        import zipfile
+
+        def suffix_exist(sufix, words):
+            return any(w.endswith(sufix) for w in words)
 
         cfg = self._config
         pump_cmd(project.InitCmd(config=cfg,
@@ -761,11 +764,12 @@ class TBackupCmd(unittest.TestCase):
                                        erase_afterwards=True).run())
             self.assertIsNone(collect_cmd(project.LsCmd(config=cfg).run()))
 
-            file_list = sbp.check_output(['unzip', '-t', archive_fpath],
-                                         universal_newlines=True)
-            self.assertIn('refs/heads/projects/%s' % test_vfid, file_list)
-            self.assertIn('refs/tags/new_tag', file_list)
-            self.assertNotIn('refs/remotes/projects', file_list)
+            with zipfile.ZipFile(archive_fpath) as zfile:
+                file_list = [f.filename for f in zfile.infolist()]
+
+            assert suffix_exist('refs/heads/projects/%s' % test_vfid, file_list)
+            assert suffix_exist('refs/tags/new_tag', file_list)
+            assert not suffix_exist('refs/remotes/projects', file_list)
 
             pump_cmd(project.ImportCmd(config=cfg).run(archive_fpath))
             self.assertIn(test_vfid,
