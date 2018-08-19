@@ -1,27 +1,27 @@
 ## monorepo utilities for the developers
 #
 PNAME			:= co2mpas
-
 SUBPROJECTS 	:= pCO2SIM pCO2DICE pCO2GUI
-TOPTARGETS		:= wheels develop uninstall clean
+
+include Makefile.defs
+BUILDALL		:= wheel-all develop-all uninstall-all clean-all
 
 
-wheel: $(SUBPROJECTS)
-	python setup.py bdist_wheel
+wheel-all: $(SUBPROJECTS) wheel
 
 ## Install all projects in "develop" mode.
-develop: 
+develop-all: 
 	pip install $(addprefix -e ./,$(SUBPROJECTS)) -e .
 
-uninstall:
+uninstall-all:
 	pip uninstall -y $(SUBPROJECTS) $(PNAME)
 
-clean: $(SUBPROJECTS)
+clean-all: $(SUBPROJECTS)
 
 
 
 $(SUBPROJECTS):
-	$(MAKE) -C $@ $(MAKECMDGOALS)
+	$(MAKE) -C $@ $(MAKECMDGOALS:-all=)
 
 
-.PHONY: default $(TOPTARGETS) $(SUBPROJECTS)
+.PHONY: default $(BUILDCMDS) $(BUILDALL) $(SUBPROJECTS)
