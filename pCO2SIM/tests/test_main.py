@@ -6,6 +6,9 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
+from co2mpas import __main__ as cmain
+from co2mpas import __version__ as proj_ver
+from co2mpas.__main__ import init_logging
 import glob
 import io
 import logging
@@ -17,10 +20,8 @@ from unittest.mock import patch
 
 import ddt
 
-from co2mpas import __main__ as cmain
-from co2mpas import __version__ as proj_ver
-from co2mpas.__main__ import init_logging
 import co2mpas.plot as co2plot
+import os.path as osp
 
 
 mydir = os.path.dirname(__file__)
@@ -61,9 +62,11 @@ class Main(unittest.TestCase):
             self.assertSetEqual(set(files), set(exp_files))
 
     def test_Gen_ipynbs(self):
-        exp_path = (mydir, '..', 'co2mpas', 'ipynbs', '*.ipynb')
+        import co2mpas  # checking *installed* package
+
+        exp_glob = osp.join(osp.dirname(co2mpas.__file__), 'ipynbs', '*.ipynb')
         exp_files = [os.path.basename(f)
-                     for f in glob.glob(os.path.join(*exp_path))]
+                     for f in glob.glob(exp_glob)]
 
         with tempfile.TemporaryDirectory() as d:
             cmd = "ipynb %s" % d
@@ -72,9 +75,11 @@ class Main(unittest.TestCase):
             self.assertSetEqual(set(files), set(exp_files))
 
     def test_Gen_demo_inputs(self):
-        exp_path = (mydir, '..', 'co2mpas', 'demos', '*.xlsx')
+        import co2mpas  # checking *installed* package
+
+        exp_glob = osp.join(osp.dirname(co2mpas.__file__), 'demos', '*.xlsx')
         exp_files = [os.path.basename(f)
-                     for f in glob.glob(os.path.join(*exp_path))]
+                     for f in glob.glob(exp_glob)]
 
         with tempfile.TemporaryDirectory() as d:
             cmd = "demo %s" % d
