@@ -403,7 +403,7 @@ class TGpgSpec(unittest.TestCase):
         else:
             with self.assertRaisesRegex(
                     ValueError,
-                    "-len text is not a PGP-clear-sig!"):
+                    "-line text is not a PGP-clear-sig!"):
                 crypto.pgp_split_clearsigned(clearsigned)
 
         ## Check with \r\n at the end.
@@ -418,7 +418,7 @@ class TGpgSpec(unittest.TestCase):
         else:
             with self.assertRaisesRegex(
                     ValueError,
-                    "-len text is not a PGP-clear-sig!"):
+                    "-line text is not a PGP-clear-sig!"):
                 crypto.pgp_split_clearsigned(clearsigned)
 
     def test_parse_git_tag_unknown_pubkey(self):

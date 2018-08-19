@@ -123,7 +123,8 @@ def pgp_split_clearsigned(text: str) -> Dict:
 
         return groups
 
-    raise ValueError("%i-len text is not a PGP-clear-sig!" % len(text))
+    raise ValueError("%s-line text is not a PGP-clear-sig!" %
+                     (text and text.count('\n'), ))
 
 
 def pgp_split_sig(git_content: bytes) -> (bytes, bytes):
@@ -182,7 +183,8 @@ def pgp_split_sig(git_content: bytes) -> (bytes, bytes):
             ('sigarmor', git_content[split_pos:]),
         ])
 
-    raise ValueError("%i-len text is not a PGP-sig!" % len(git_content))
+    raise ValueError("%s-line text is not a PGP-sig!" %
+                     git_content and git_content.count('\n'))
 
 
 def filter_gpg_stderr(stderr: Text) -> Text:

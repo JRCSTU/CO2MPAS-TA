@@ -705,8 +705,8 @@ class TstampSender(TstampSpec):
 
         if dry_run:
             self.log.warning("DRY-RUN:  No email has been sent!\n  "
-                             "the printed %d-char TEXT-email from '%s' to %s-->%s",
-                             len(msg), self._from_address_resolved,
+                             "the printed %s-line TEXT-email from '%s' to %s-->%s",
+                             msg and msg.count('\n'), self._from_address_resolved,
                              self._tstamper_address_resolved,
                              self.tstamp_recipients + self.x_recipients)
         else:
@@ -715,8 +715,8 @@ class TstampSender(TstampSpec):
                                self.user_account_resolved,
                                self.decipher('user_pswd'))
 
-                self.log.info("Timestamping %d-char email from %s-->%s through %s",
-                              len(msg), self._from_address_resolved,
+                self.log.info("Timestamping %s-line email from %s-->%s through %s",
+                              msg and msg.count('\n'), self._from_address_resolved,
                               self.tstamp_recipients + self.x_recipients,
                               self._tstamper_address_resolved)
                 srv.send_message(mail)
@@ -1711,9 +1711,9 @@ class WstampSpec(cli.DiceSpec):
             }
             pretend_prefix = "DRY-RUN:  " if dry_run else ''
             self.log.info(
-                "%sSending %i-char Dice to WebStamper(%s) with contacts: "
+                "%sSending %s-line Dice to WebStamper(%s) with contacts: "
                 "\n  sender: %s\n  recipients: %s",
-                pretend_prefix, dice and len(dice) or 0,
+                pretend_prefix, dice and dice.count('\n') or 0,
                 endpoint, sender, recipients)
         else:
             data = None

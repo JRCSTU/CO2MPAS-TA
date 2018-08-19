@@ -775,7 +775,7 @@ class TRX(unittest.TestCase):
     def test_send_timestamp(self):
         snd = tstamp.TstampSender(config=self.cfg)
         ex_msg = ("Failed to extract signed dice-report from tstamp!\\s+"
-                  "0-len text is not a PGP-sig!")
+                  "0-line text is not a PGP-sig!")
         with self.assertRaisesRegex(tstamp.CmdException, ex_msg):
             snd.send_timestamped_email("", dry_run=True)
 

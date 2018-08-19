@@ -487,8 +487,8 @@ class TsignerCmd(base.FileReadingMixin, cmdlets.Cmd):
 
                 yield sig_text
             except Exception as ex:
-                self.log.error("%s: signing %i-char message failed due to: %s",
-                               fpath, len(ftext), ex, exc_info=1)
+                self.log.error("%s: signing %s-line message failed due to: %s",
+                               fpath, ftext and ftext.count('\n'), ex, exc_info=1)
 
     def run(self, *args):
         if self.list:
