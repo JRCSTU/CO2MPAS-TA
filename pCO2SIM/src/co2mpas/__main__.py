@@ -607,6 +607,31 @@ def _cmd_modelconf(opts):
     log.info('Default model config written into yaml-file(%s)...', fname)
 
 
+def _check_if_old_co2mpas_is_still_installed():
+    try:
+        import pkg_resources as pr
+
+        co2_dist = pr.get_distribution('co2mpas')
+        co2_major_ver = int(co2_dist.version.split('.', maxsplit=1)[0])
+    except Exception as ex:
+        log.warning(
+            "Could not check if old co2mpas 1.x is still installed, due to: ",
+            ex, exc_info=1)
+        co2_major_ver = 2
+    else:
+        print('sdfsdffsd', co2_major_ver)
+        if co2_major_ver < 2:
+            raise CmdException(
+                "Old co2mpas v1.x is still installed!"
+                "\n  To uninstall it, run a couple of times the command:"
+                "\n      pip uninstall  co2mpas -y"
+                "\n\n  and then, either reinstall co2mpas v2.x:"
+                "\n      pip install  co2mpas>=2.0"
+                "\n  or install *selectively* any of these 3 sub-projects:"
+                "\n      pip install  co2sim co2gui co2dice"
+            )
+
+
 def _main(*args):
     """Throws any exception or (optionally) return an exit-code."""
     argv = args or sys.argv[1:]
@@ -634,6 +659,8 @@ def _main(*args):
     if warns:
         for w in warns:
             log.warning(w)
+
+    _check_if_old_co2mpas_is_still_installed()
 
     if opts['--version']:
         v = build_version_string(verbose)
