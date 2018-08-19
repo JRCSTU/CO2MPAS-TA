@@ -28,13 +28,16 @@ log = logging.getLogger(__name__)
 mydir = osp.dirname(__file__)
 
 lock_duration = 2.
+spin_span = 0.2
 
 
 def lock_n_sleep(label, tdir, *,
                  lock_duration=lock_duration, **lock_kw):
-    log.info('Started %s', label)
-    with dirlock.locked_on_dir(tdir, 0.2, **lock_kw):
+    log.info('Trying lock %s', label)
+    with dirlock.locked_on_dir(tdir, spin_span, **lock_kw):
+        log.info('Acquired lock %s', label)
         time.sleep(lock_duration)
+    log.info('Released %s', label)
 
 
 def cmd_task_factory(label, tdir, **lock_kw):
@@ -107,8 +110,8 @@ class TDirlock(unittest.TestCase):
                 w.join()
         elapsed = time.clock() - start_t
 
-        exp_total_duration = nprocs * lock_duration
-        assert abs(elapsed - exp_total_duration) <= lock_duration
+        exp_total_duration = nprocs * (lock_duration + spin_span) + 1
+        assert abs(elapsed - lock_duration) <= exp_total_duration
 
 #     @ddt.data('thread', 'proc')
 #     def test_timeout(self, worker_type):
