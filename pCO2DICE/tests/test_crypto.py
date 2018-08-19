@@ -32,7 +32,7 @@ init_logging(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 mydir = osp.dirname(__file__)
-myproj = osp.realpath(osp.join(mydir, '..', '..', '..'))
+my_repo = osp.realpath(osp.join(mydir, '..', '..'))
 
 _texts = ('', ' ', 'a' * 2048, '123', 'asdfasd|*(KJ|KL97GDk;')
 _objs = ('', ' ', None, 'a' * 2048, 1244, b'\x22', {1: 'a', '2': {3, b'\x04'}})
@@ -426,7 +426,7 @@ class TGpgSpec(unittest.TestCase):
         from unittest.mock import patch
         import git
 
-        repo = git.Repo(myproj)
+        repo = git.Repo(my_repo)
 
         tagref = repo.tag('refs/tags/test_tag')
         tag = tagref.tag
@@ -460,7 +460,7 @@ class TGpgSpec(unittest.TestCase):
     def test_parse_git_tag_ok(self):
         import git
 
-        repo = git.Repo(myproj)
+        repo = git.Repo(my_repo)
 
         tagref = repo.tag('refs/tags/tests/signed_by_CBBB52FF')
         tag = tagref.tag
