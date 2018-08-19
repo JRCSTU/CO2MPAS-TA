@@ -4,10 +4,14 @@ PNAME			:= co2mpas
 SUBPROJECTS 	:= pCO2SIM pCO2DICE pCO2GUI
 
 include Makefile.defs
-BUILDALL		:= wheel-all develop-all uninstall-all clean-all
+BUILDALL		:= $(addsuffix -all,$(BUILDCMDS))
 
 
-wheel-all: $(SUBPROJECTS) wheel
+wheel-all		: $(SUBPROJECTS) $(MAKECMDGOALS:-all=)
+install-all		: _installwarn $(SUBPROJECTS) $(MAKECMDGOALS:-all=)
+clean-build-all	: $(SUBPROJECTS) $(MAKECMDGOALS:-all=)
+clean-doc-all	: $(SUBPROJECTS) $(MAKECMDGOALS:-all=)
+clean-all		: $(SUBPROJECTS) $(MAKECMDGOALS:-all=)
 
 ## Install all projects in "develop" mode.
 develop-all: 
@@ -16,7 +20,6 @@ develop-all:
 uninstall-all:
 	pip uninstall -y $(SUBPROJECTS) $(PNAME)
 
-clean-all: $(SUBPROJECTS)
 
 
 

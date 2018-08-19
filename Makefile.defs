@@ -1,6 +1,10 @@
-## monorepo utilities for the developers
+## Rules & vars for all sub-projects an top-level project importing this file.
 #
-BUILDCMDS		:= wheel develop uninstall clean
+# Variables needed:
+#    PNAME: the name of python package
+#
+BUILDCMDS		:= wheel develop install uninstall \
+					clean-build clean-doc clean
 
 default:
 	@echo Specify one of: $(BUILDCMDS)
@@ -12,12 +16,23 @@ wheel:
 ## Install all projects in "develop" mode.
 develop:
 	pip install -e .
+	
+_installwarn:
+	$(warning installing '$(PNAME)' wheel. --(( ATTENTION: Did you mean `develop`? ))--)
+
+install: _installwarn  clean-build  wheel
+	pip install dist/*.whl -I --no-deps
 
 uninstall:
 	pip uninstall -y $(PNAME)
 
-clean:
-	rm -rf build/* dist/* doc/_build
+clean-build:
+	rm -rf build/* dist/*
+	
+clean-doc:
+	rm -rf doc/_build
+
+clean: clean-build clean-doc
 
 
-.PHONY: default $(BUILDCMDS)
+.PHONY: default $(BUILDCMDS) _installwarn
