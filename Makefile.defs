@@ -10,7 +10,16 @@ default:
 	@echo Specify one of: $(BUILDCMDS)
 
 
-wheel:
+clean-build:
+	rm -rf build/* dist/*
+	
+clean-doc:
+	rm -rf doc/_build
+
+clean: clean-build clean-doc
+
+
+wheel: clean-build
 	python setup.py bdist_wheel
 
 ## Install all projects in "develop" mode.
@@ -20,19 +29,11 @@ develop:
 _installwarn:
 	$(warning installing '$(PNAME)' wheel. --(( ATTENTION: Did you mean `develop`? ))--)
 
-install: _installwarn  clean-build  wheel
+install: _installwarn  wheel
 	pip install dist/*.whl -I --no-deps
 
 uninstall:
 	pip uninstall -y $(PNAME)
-
-clean-build:
-	rm -rf build/* dist/*
-	
-clean-doc:
-	rm -rf doc/_build
-
-clean: clean-build clean-doc
 
 
 .PHONY: default $(BUILDCMDS) _installwarn
