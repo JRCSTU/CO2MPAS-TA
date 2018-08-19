@@ -1,0 +1,23 @@
+## monorepo utilities for the developers
+#
+TOPTARGETS		:= wheel develop uninstall clean
+
+default:
+	@echo Specify one of: $(TOPTARGETS)
+
+
+wheel: 
+	python setup.py bdist_wheel
+
+## Install all projects in "develop" mode.
+develop:
+	pip install -e .
+
+uninstall:
+	pip uninstall -y $(PNAME)
+
+clean:
+	rm -rf build/* dist/* doc/_build
+
+
+.PHONY: default $(TOPTARGETS)
