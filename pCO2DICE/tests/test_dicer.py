@@ -70,7 +70,7 @@ def traitcfg(repodir, gpgdir):
 
     cfg.ProjectsDB.repo_path = str(repodir)
     cfg.Spec.verbose = cfg.ProjectsDB.verbose = 0
-    cfg.WstampSpec.recipients = ["test@gel.bourdien.com"]
+    cfg.WstampSpec.recipients = ["test@gmail.com"]
 
     cfg.Project.max_dices_per_project = 10  # due to resets
 
