@@ -189,6 +189,7 @@ def test_dicer_B_ok_WLTPIOF_relpaths(dicer, iofiles_mov, pdb):
 
 def test_dicer_B_fail_DIFF_files(dicer, iofiles, iofiles_mov, iofiles_diff,
                                  pdb, tmpdir):
+    tmpdir.chdir()
     reset_git(pdb, '%s~~' % _decided_sha1)
 
     ifile, ofile = iofiles
@@ -202,7 +203,7 @@ def test_dicer_B_fail_DIFF_files(dicer, iofiles, iofiles_mov, iofiles_diff,
     ## Different content `inp`
     pfiles = PFiles([iofiles_diff[0]], [ofile])
     with pytest.raises(CmdException,
-                       match="^Project files missmatched"):
+                       match=r"^Project [-\w]+ files mismatched"):
         dicer.do_dice_in_one_step(pfiles)
 
     ## Check if diff-check had leftovers.
@@ -212,7 +213,7 @@ def test_dicer_B_fail_DIFF_files(dicer, iofiles, iofiles_mov, iofiles_diff,
     ## Different name 'out'
     pfiles = PFiles([ifile], [ofileRen])
     with pytest.raises(CmdException,
-                       match="^Project files missmatched"):
+                       match=r"^Project [-\w]+ files mismatched"):
         dicer.do_dice_in_one_step(pfiles)
 
     ## Check if diff-check had leftovers.
@@ -220,16 +221,16 @@ def test_dicer_B_fail_DIFF_files(dicer, iofiles, iofiles_mov, iofiles_diff,
     reset_git(pdb, '%s~' % _decided_sha1)
 
     ## Different content `other`
-    pfiles = PFiles([ifile], [ofile],
-                    [osp.join(osp.dirname(__file__), '..', '__init__.py')])
+    empty_init = (tmpdir / '__init__.py').ensure()
+    pfiles = PFiles([ifile], [ofile], [empty_init])
     with pytest.raises(CmdException,
-                       match="^Project files missmatched"):
+                       match=r"^Project [-\w]+ files mismatched"):
         dicer.do_dice_in_one_step(pfiles)
 
     ## Less 'other' files
     pfiles = PFiles([ifile], [ofile])
     with pytest.raises(CmdException,
-                       match="^Project files missmatched"):
+                       match=r"^Project [-\w]+ files mismatched"):
         dicer.do_dice_in_one_step(pfiles)
 
     ## Check if diff-check had leftovers.
