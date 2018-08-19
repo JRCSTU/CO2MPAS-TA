@@ -461,7 +461,7 @@ def _sort_key(
 
 def _param_parts(param_id):
     match = excel._re_params_name.match(param_id).groupdict().items()
-    return {i: regex.sub("[\W]", "_", (j or '').lower()) for i, j in match}
+    return {i: regex.sub(r"[\W]", "_", (j or '').lower()) for i, j in match}
 
 
 def _time_series2df(data, data_descriptions):
