@@ -5,9 +5,45 @@ CO2MPAS Changes
 .. _changes:
 
 
-``v1.9.0``, XX Aug 2018: "Unleash"
+``v2.0.0X``, XX Aug 2018: "Unleash"
 ==================================
 Changes since 1.7.4.post0:
+
+BREAKING:
+---------
+The co2mpas python package has been splitted:gh:`408`), and is now served by 4 sub-projects:
+
+1. ``co2sim``: the simulator, for standalone/engineering wwork. Now all IO-libraries
+   are optional, and you need this command to install it::
+
+       pip install co2sim[io]
+
+2. ``co2deps``: all calculation-related dependencies are contained with
+   their versions "pinned", to ensure reproducibility(:gh:`427`).
+
+   This package gets installed by default if you run::
+
+       pip install co2mpas[pindeps]
+
+3. ``co2dice``: the backend & commands for :abbr:`DICE (Distributed Impromptu Co2mpas Evaluation)`.
+
+4. ``co2gui``: the GUI.
+
+Their relationship between the projects is depicted below::
+
+         co2sim[io]
+          /|\    \
+         / | \ co2dice
+        /  |  \ /   \
+    co2deps|co2gui WebStamper
+        \  |  /
+         \ | /
+     co2mpas[pindeps]
+
+.. Note::
+  ``co2sim`` on startup checks if the old ``co2mpas-v1.x`` is still installed,
+  and aborts In that case, uninstall everything and re-install, to be on the safe side.
+
 
 Model:
 ------
@@ -207,12 +243,33 @@ Known Limitations
 Almost all "known limitations" from `v1.7.3` still apply.
 
 
-Intermediate releases for ``1.9.x``:
+Intermediate releases for ``2.0.x``:
 ------------------------------------
 .. Note::
   - Releases with ``r`` prefix signify version published in *PyPi*.
   - Releases with ``v`` prefix signify internal milestones.
 
+``v2.0.0b0``, 20 Aug 2018
+~~~~~~~~~~~~~~~~~~~~~~~~~
+- BREAK: SPLIT CO2MPAS(:gh:`408`) and moved packages in :file:`.{sub-dir}/src/`:
+
+    1. ``co2sim[io]``: :file:`{root}/pCO2SIM`
+    2. ``co2dice``: :file:`{root}/pCO2DICE`
+    3. ``co2gui``: :file:`{root}/pCO2GUI`
+    4. ``co2deps``: :file:`{root}/pCO2DEPS`
+    5. ``co2mpas[pindeps]``: :file:`{root}`
+    - ``WebStamper``: :file:`{root}/pWebStamper`
+
+  https://github.com/sgerrand/alpine-pkg-glibc.
+- enh: use *GNU Makefile* for developers to manage sub-projects.
+- enh: Dice-button reloads configurations when clicked (e.g. to read
+  ``WstampSpec.recpients`` parameter if modified by the user-on-the-spot).
+- enh: dice log-messages denote reports with line-numberss (not char-nums).
+
+
+
+Intermediate releases for ``1.9.x``:
+------------------------------------
 
 ``v1.9.2rc1``, 16 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
