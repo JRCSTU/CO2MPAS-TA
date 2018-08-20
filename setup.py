@@ -162,7 +162,7 @@ setup(
     # ],
     install_requires=[
         polyversion,
-        'co2sim',
+        'co2sim[io]',
         'co2gui',
         'co2dice',
     ],

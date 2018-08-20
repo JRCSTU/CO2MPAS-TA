@@ -174,27 +174,26 @@ setup(
         'scipy',
         'wltp',
         'xgboost',                  # Pure-python boost would be also ok.
-
-        ## IO-deps
-        #
-        'boltons',
-        'contextvars',              # for co2mpare, backported for <PY37
-        'cryptography',
-        'dill!=0.2.7',
-        'docopt',
-        'graphviz',                 # TODO: graphviz needed only for `mkdirs()` util.
-        'openpyxl>=2.4.0',
-        'pandalone[xlrd]>=0.2.0',   # for datasync pascha-fixes and openpyxl version
-        'pip',
-        'PyYAML>=3.12',
-        'toolz',
-        'tqdm',
-        'xlsxwriter',
     ],
     extras_require={
         ## Just repeating here deps with pinned-versions wouldn't work
         #  bc they already exist in requirements, *without* them!!
         'pindeps': ['co2deps==%s' % polyversion('co2deps')],
+        'io': [
+            'boltons',
+            'contextvars',              # for co2mpare, backported for <PY37
+            'cryptography',
+            'dill!=0.2.7',
+            'docopt',
+            'graphviz',                 # TODO: graphviz needed only for `mkdirs()` util.
+            'openpyxl>=2.4.0',
+            'pandalone[xlrd]>=0.2.0',   # for datasync pascha-fixes and openpyxl version
+            'pip',
+            'PyYAML>=3.12',
+            'toolz',
+            'tqdm',
+            'xlsxwriter',
+        ],
         'test': test_requirements,
     },
     tests_require=test_requirements,
