@@ -12,8 +12,8 @@ co2deps: simply pins `co2sim` versions for reproducibility
 
 .. _coord-start:
 
-:version:       |version|
-:updated:       |today|
+:version:       2.0.0b0
+:updated:       2018-08-20T05:07:52.953589
 :Documentation: http://co2mpas.io/
 :repository:    https://github.com/JRCSTU/CO2MPAS-TA/
 :pypi-repo:     https://pypi.org/project/co2deps/

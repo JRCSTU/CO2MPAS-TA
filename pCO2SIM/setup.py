@@ -113,7 +113,7 @@ setup(
     name=PROJECT,
     ## Include a default for robustness (eg to work on shallow git -clones)
     #  but also for engraves to have their version visible.
-    version='0.0.0',
+    version='2.0.0b0',
     polyversion=True,
     description="The Type-Approving vehicle simulator predicting NEDC CO2 emissions from WLTP",
     long_description=long_desc,
