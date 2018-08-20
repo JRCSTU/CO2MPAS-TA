@@ -6,6 +6,10 @@ SUBPROJECTS 	:= pCO2SIM pCO2DEPS pCO2DICE pCO2GUI
 include Makefile.defs
 BUILDALL		:= $(addsuffix -all,$(BUILDCMDS))
 
+default2:
+	@echo Specify one of: $(BUILDALL)
+default: default2
+
 
 wheel-all		: $(SUBPROJECTS) $(MAKECMDGOALS:-all=)
 install-all		: _installwarn $(SUBPROJECTS) $(MAKECMDGOALS:-all=)
