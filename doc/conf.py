@@ -28,9 +28,9 @@ proj_ver = polyversion(pname='co2mpas', basepath='..')
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-prj_dir = abspath(join(dirname(__file__), '..'))
-
-sys.path.insert(0, prj_dir)
+sys.path.insert(0, abspath(join(dirname(__file__), '..', 'pCO2SIM', 'src')))
+sys.path.insert(0, abspath(join(dirname(__file__), '..', 'pCO2DICE', 'src')))
+sys.path.insert(0, abspath(join(dirname(__file__), '..', 'pCO2GUI', 'src')))
 
 # -- General configuration ------------------------------------------------
 
