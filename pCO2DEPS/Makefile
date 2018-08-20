@@ -1,5 +1,5 @@
 ## monorepo utilities for the developers
 #
-PNAME			:= co2gui
+PNAME			:= co2deps
 
 include ../Makefile.defs
