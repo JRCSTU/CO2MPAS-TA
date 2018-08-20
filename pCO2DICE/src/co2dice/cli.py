@@ -12,22 +12,22 @@ Type Approval sampling emails of *co2mpas*.
 """
 ## TODO: rename to `cli`
 from co2dice._vendor.traitlets import traitlets as trt
-from . import (
-    __version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
-    cmdlets, CmdException)
-from .cmdlets import (APPNAME, Cmd,
-                      chain_cmds)  # @UnusedImport
 from collections import OrderedDict
 from typing import Sequence, Text, List, Tuple  # @UnusedImport
 import logging
 import sys
 
 import os.path as osp
-import pandalone.utils as pndlu
+
+from . import (
+    __version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
+    cmdlets, CmdException, utils)
+from .cmdlets import (APPNAME, Cmd,
+                      chain_cmds)  # @UnusedImport
 
 
 __title__ = APPNAME
-__summary__ = pndlu.first_line(__doc__)
+__summary__ = utils.first_line(__doc__)
 
 try:
     _mydir = osp.dirname(__file__)

@@ -25,12 +25,11 @@ import yaml  # TODO: Upgrade unaintained yaml to ruamel
 
 import functools as fnt
 import os.path as osp
-import pandalone.utils as pndlu
 import textwrap as tw
 
 from . import base, cmdlets, cli, CmdException
 from . import (__version__, __updated__, __uri__, __copyright__, __license__,  # @UnusedImport
-                __dice_report_version__)
+               __dice_report_version__)
 from ._vendor.traitlets import traitlets as trt
 from ._vendor.traitlets import config as trtc
 from .base import PFiles
@@ -672,6 +671,7 @@ class Project(transitions.Machine, ProjectSpec):
             what to import
         """
         import shutil
+        import pandalone.utils as pndlu
 
         pfiles = _evarg(event, 'pfiles', PFiles)
         self.log.info('Importing files: %s...', pfiles)
@@ -970,6 +970,8 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
     @property
     def repopath_resolved(self):
         """Used internally AND for printing configurations."""
+        import pandalone.utils as pndlu
+
         repo_path = self.repo_path
         if not osp.isabs(repo_path):
             repo_path = osp.join(cmdlets.default_config_dir(), repo_path)
@@ -979,6 +981,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
     def _setup_repo(self):
         import git  # From: pip install gitpython
+        import pandalone.utils as pndlu
 
         repo_path = self.repopath_resolved
         pndlu.ensure_dir_exists(repo_path)
@@ -1141,6 +1144,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         """
         import tarfile
         from datetime import datetime
+        import pandalone.utils as pndlu
 
         if force is None:
             force = self.force
@@ -1175,6 +1179,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
 
     @fnt.lru_cache()  # x6(!) faster!
     def _infos_dsp(self, fallback_value='<invalid>'):
+        import pandalone.utils as pndlu
         from schedula import Dispatcher
         from schedula.utils.dsp import DFun
 
@@ -2200,6 +2205,8 @@ class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.ReportsKeeper):
             self.log.info(msg)
             mail_text = sys.stdin.read()
         else:
+            import pandalone.utils as pndlu
+
             if not osp.exists(file):
                 raise CmdException("File to parse '%s' not found!" % file)
 
@@ -2315,7 +2322,6 @@ class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.ReportsKeeper):
         warn = self.log.warning
         info = self.log.info
         error = self.log.error
-
 
         info("Receiving emails for projects(s) %s: ...", args)
 
@@ -2448,6 +2454,7 @@ class ExportCmd(_SubCmd):
         import git
         from git.util import rmtree
         from .utils.cntxtutils import chdir
+        import pandalone.utils as pndlu
 
         arch_format = 'zip'
         repo = self.projects_db.repo
@@ -2586,6 +2593,7 @@ class ImportCmd(_SubCmd):
     def run(self, *args):
         import tempfile
         import zipfile
+        import pandalone.utils as pndlu
 
         files = iset(pndlu.convpath(pndlu.ensure_file_ext(a, '.zip'))
                      for a in args) or ['-']

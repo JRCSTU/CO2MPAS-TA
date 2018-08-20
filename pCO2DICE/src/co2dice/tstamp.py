@@ -7,16 +7,15 @@
 "Send & parse co2mpas dice/stamps to TAAs/oversight bodies."
 from collections import (
     defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
-from pandalone import utils as pndlu
+from typing import (
+    List, Sequence, Iterable, Text, Tuple, Dict, Callable, Union)  # @UnusedImport
 import random
 import re
 import sys
-from typing import (
-    List, Sequence, Iterable, Text, Tuple, Dict, Callable, Union)  # @UnusedImport
 
 import functools as fnt
 
-from . import CmdException, base, cmdlets, cli, crypto, slicetrait
+from . import CmdException, base, utils, cmdlets, cli, crypto, slicetrait
 from . import __version__, __updated__, __uri__, __copyright__, __license__  # @UnusedImport
 from ._vendor.traitlets import traitlets as trt
 
@@ -1832,7 +1831,7 @@ class SendCmd(base.FileReadingMixin, cmdlets.Cmd):
                 {
                     type(self).__name__: {'dry_run': True},
                 },
-                pndlu.first_line(type(self).dry_run.help)
+                utils.first_line(type(self).dry_run.help)
             ),
         })
         super().__init__(**kwds)
@@ -2130,7 +2129,7 @@ class LoginCmd(cmdlets.Cmd):
         kwds.setdefault('cmd_flags', {
             ('n', 'dry-run'): (
                 {type(self).__name__: {'dry_run': True}},
-                pndlu.first_line(type(self).dry_run.help)
+                utils.first_line(type(self).dry_run.help)
             ),
             'smtp': (
                 {type(self).__name__: {'srv': 'SMTP'}},

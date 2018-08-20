@@ -58,14 +58,13 @@ import yaml
 
 import itertools as itt
 import os.path as osp
-import pandalone.utils as pndlu
 
 from . import CmdException
 from . import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
 from co2mpas.__main__ import init_logging
 from ._vendor import traitlets as trt
 from ._vendor.traitlets import config as trtc
-
+from . import utils
 
 ################################################
 ## INFO: Modify the following variables on a different application.
@@ -86,6 +85,7 @@ def default_config_fname():
 
 def default_config_dir():
     """The folder of to user's config-file."""
+    import pandalone.utils as pndlu
     return pndlu.convpath('~/.%s' % APPNAME)
 
 
@@ -244,6 +244,7 @@ class PeristentMixin(metaclass=trt.MetaHasTraits):
             an already merged :class:`trtc.Config` instance.
         """
         import json
+        import pandalone.utils as pndlu
 
         cfg = None
         fpath = pndlu.ensure_file_ext(fpath, '.json')
@@ -268,6 +269,8 @@ class PeristentMixin(metaclass=trt.MetaHasTraits):
         :param cls:
             This mixin where updated ptrait-values are to be stored *globally*.
         """
+        import pandalone.utils as pndlu
+
         cfg = cls._pconfig
         if cfg and cfg != cls._pconfig_orig:
             import json
@@ -526,10 +529,12 @@ class Spec(trtc.LoggingConfigurable, PeristentMixin, HasCiphersMixin):
 
 def cmd_class_short_help(app_class):
     desc = app_class.description
-    return pndlu.first_line(isinstance(desc, str) and desc or app_class.__doc__)
+    return utils.first_line(isinstance(desc, str) and desc or app_class.__doc__)
 
 
 def class2cmd_name(cls):
+    import pandalone.utils as pndlu
+
     name = cls.__name__
     if name.lower().endswith('cmd') and len(name) > 3:
         name = name[:-3]
@@ -630,6 +635,8 @@ class CfgFilesRegistry(contextlib.ContextDecorator):
         :return:
             fully-normalized paths, with ext
         """
+        import pandalone.utils as pndlu
+
         new_paths = iset()
         default_cfg = default_config_fname()
 
@@ -875,6 +882,8 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
     @property
     def persist_file_resolved(self):
         """Returns the 1st value in config, env, or default-value (might contain ``.json``)."""
+        import pandalone.utils as pndlu
+
         persist_path = self.persist_path
         if persist_path:
             persist_path = pndlu.convpath(persist_path)
@@ -929,6 +938,8 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         return static_config, persist_config
 
     def write_default_config(self, config_file=None, force=False):
+        import pandalone.utils as pndlu
+
         if not config_file:
             config_file = default_config_fpaths()[0]
         else:
@@ -1069,6 +1080,8 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
 
     @trt.observe('log_level')
     def _init_logging(self, change):
+        from .utils import logconfutils as lcu
+
         log_level = change['new']
         if isinstance(log_level, str):
             log_level = getattr(logging, log_level)
@@ -1090,13 +1103,13 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
             'cmd_aliases': {
                 'config-paths': (
                     'Cmd.config_paths',
-                    pndlu.first_line(Cmd.config_paths.help)),
+                    utils.first_line(Cmd.config_paths.help)),
                 'persist-path': (
                     'Cmd.persist_path',
-                    pndlu.first_line(Cmd.persist_path.help)),
+                    utils.first_line(Cmd.persist_path.help)),
                 'vlevel': (
                     'Spec.verbose',
-                    pndlu.first_line(Spec.verbose.help)),
+                    utils.first_line(Spec.verbose.help)),
             },
             'conf_classes': [crypto.VaultSpec],
             'cmd_flags': {
@@ -1119,25 +1132,25 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
                     {
                         'Spec': {'verbose': True},
                     },
-                    pndlu.first_line(Spec.verbose.help)
+                    utils.first_line(Spec.verbose.help)
                 ),
                 ('f', 'force'): (
                     {
                         'Spec': {'force': True},
                     },
-                    pndlu.first_line(Spec.force.help)
+                    utils.first_line(Spec.force.help)
                 ),
                 'config-show': (
                     {
                         'Cmd': {'config_show': True},
                     },
-                    pndlu.first_line(Cmd.config_show.help),
+                    utils.first_line(Cmd.config_show.help),
                 ),
                 'encrypt': (
                     {
                         'Cmd': {'encrypt': True},
                     },
-                    pndlu.first_line(Cmd.encrypt.help)
+                    utils.first_line(Cmd.encrypt.help)
                 )
             },
         }
