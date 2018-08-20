@@ -86,7 +86,7 @@ with open(osp.join(mydir, 'README.rst')) as readme_file:
     readme = readme_file.readlines()
 
 long_desc = ''.join(yield_rst_only_markup(readme))
-
+polyversion = 'polyversion >= 0.2.2a0'
 test_requirements = [
     'pytest',
     'pytest-runner',
@@ -146,8 +146,9 @@ setup(
     ],
     obsoletes=['co2mpas (< 2.0)'],
     python_requires='>=3.5',
-    setup_requires=['setuptools', 'wheel', 'polyversion >= 0.2.0a2'],
+    setup_requires=['setuptools', 'wheel', polyversion],
     install_requires=[
+        polyversion,
         'co2sim',                   # Actually `co2simio` would be needed.
         'co2dice',                  # FIXME: retrofit to extra
         'Pillow',                   # for About panel
