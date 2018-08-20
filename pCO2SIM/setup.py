@@ -93,7 +93,7 @@ def yield_rst_only_markup(lines):
         yield clean_line(line)
 
 
-polyversion = 'polyversion >= 0.2.2a0'  # Workaround buggy git<2.15, envvar: co2mpas_VERION
+polyver = 'polyversion >= 0.2.2a0'  # Workaround buggy git<2.15, envvar: co2mpas_VERION
 readme_lines = read_text_lines('README.rst')
 description = readme_lines[1]
 long_desc = ''.join(yield_rst_only_markup(readme_lines))
@@ -158,10 +158,10 @@ setup(
         'setuptools',
         'setuptools-git>=0.3',  # Example given like that in PY docs.
         'wheel',
-        polyversion,
+        polyver,
     ],
     install_requires=[
-        polyversion,
+        polyver,
         'formulas>=0.0.10',
         'lmfit>=0.9.7',
         'matplotlib',               # TODO: refactor matplotlib as sim-extras

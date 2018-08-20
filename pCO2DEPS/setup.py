@@ -38,7 +38,7 @@ def read_pinned_deps(fpath):
 
 
 long_desc = ''.join(readme_lines)
-polyversion = 'polyversion >= 0.2.2a0'
+polyver = 'polyversion >= 0.2.2a0'
 pindeps = read_pinned_deps(osp.join(
     mydir, '..', 'pCO2SIM', 'requirements', 'exe.pip'))
 
@@ -89,8 +89,8 @@ setup(
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
     obsoletes=['co2mpas (< 2.0)'],
-    setup_requires=['setuptools', 'wheel', polyversion],
-    install_requires=[polyversion, pindeps],
+    setup_requires=['setuptools', 'wheel', polyver],
+    install_requires=[polyver, pindeps],
     zip_safe=True,
     options={'bdist_wheel': {'universal': True}},
     platforms=['any'],
