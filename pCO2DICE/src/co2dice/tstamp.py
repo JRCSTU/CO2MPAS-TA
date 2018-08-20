@@ -5,7 +5,6 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 "Send & parse co2mpas dice/stamps to TAAs/oversight bodies."
-from co2mpas import vehicle_family_id_pattern
 from collections import (
     defaultdict, OrderedDict, namedtuple, Mapping)  # @UnusedImport
 from pandalone import utils as pndlu
@@ -747,7 +746,7 @@ class TstampReceiver(TstampSpec):
     ).tag(config=True)
 
     vfid_extraction_regex = trt.CRegExp(
-        r'(?x)vehicle_family_id[^\n]+(%s)' % vehicle_family_id_pattern,
+        r'(?x)vehicle_family_id[^\n]+(%s)' % base.vehicle_family_id_pattern,
         help="""
             An approximate way to get a *well-formed* project-id if timestamp parsing has failed.
         """

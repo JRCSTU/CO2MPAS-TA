@@ -41,19 +41,6 @@ version       = __version__                         # noqa
 __file_version__        = "2.3.0"                   # noqa
 
 
-#: Define VehicleFamilyId (aka ProjectId) pattern here not to import the world on use.
-#: Referenced by :meth:`.sampling.tstamp.TstampReceiver.extract_dice_tag_name()`.
-vehicle_family_id_pattern = r'''
-    (?:
-        (IP|RL|RM|PR) - (\d{2}) - ([A-Z0-9_]{2,3}) - (\d{4}) - (\d{4})
-    )
-    |
-    (?:
-        IP - ([A-Z0-9_]{2,15}) - ([A-Z0-9_]{3}) - ([01])
-    )
-'''
-
-
 if __name__ == '__main__':
     """
     Print ``module.__<attr_name>__` for any cmd-line args like ``<attr-name>``

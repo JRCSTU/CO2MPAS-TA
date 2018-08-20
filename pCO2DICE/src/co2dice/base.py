@@ -20,6 +20,21 @@ from ._vendor.traitlets import config as trc
 from ._vendor.traitlets import traitlets as trt
 
 
+#: Define VehicleFamilyId (aka ProjectId) pattern here not to import the world on use.
+#: Referenced by :meth:`.sampling.tstamp.TstampReceiver.extract_dice_tag_name()`.
+#:
+#: NOTE: keep synced with ``in pCO2SIM/src/co2sim/__init__.py``!
+vehicle_family_id_pattern = r'''
+    (?:
+        (IP|RL|RM|PR) - (\d{2}) - ([A-Z0-9_]{2,3}) - (\d{4}) - (\d{4})
+    )
+    |
+    (?:
+        IP - ([A-Z0-9_]{2,15}) - ([A-Z0-9_]{3}) - ([01])
+    )
+'''
+
+
 def convpath(fpath, abs_path=None, exp_user=True, exp_vars=True):
     """
     Override `abs_path` functioning..

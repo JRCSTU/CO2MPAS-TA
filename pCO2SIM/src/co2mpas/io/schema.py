@@ -22,8 +22,6 @@ import numpy as np
 import os.path as osp
 import schedula as sh
 
-from .. import vehicle_family_id_pattern
-
 log = logging.getLogger(__name__)
 
 
@@ -840,6 +838,21 @@ def define_data_schema(read=True):
         schema = {k: And(v, Or(f, Use(str))) for k, v in schema.items()}
 
     return Schema(schema)
+
+
+#: Define VehicleFamilyId (aka ProjectId) pattern here not to import the world on use.
+#: Referenced by :meth:`.sampling.tstamp.TstampReceiver.extract_dice_tag_name()`.
+#:
+#: NOTE: keep synced with ``pCO2DICE/src/co2dice/base.py``!
+vehicle_family_id_pattern = r'''
+    (?:
+        (IP|RL|RM|PR) - (\d{2}) - ([A-Z0-9_]{2,3}) - (\d{4}) - (\d{4})
+    )
+    |
+    (?:
+        IP - ([A-Z0-9_]{2,15}) - ([A-Z0-9_]{3}) - ([01])
+    )
+'''
 
 
 #: Aka "ProjectId", referenced also by :mod:`.co2dice.project`.
