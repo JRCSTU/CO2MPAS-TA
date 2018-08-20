@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Setup script *CO2DICE*."""
-from __future__ import print_function
-
 import re
 
 from setuptools import setup, find_packages

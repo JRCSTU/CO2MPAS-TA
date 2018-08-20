@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Setup script *CO2GUI*."""
-from __future__ import print_function
-
 import re
 
 from setuptools import setup, find_packages
 
 import os.path as osp
+
 
 mydir = osp.dirname(osp.realpath(__file__))
 
