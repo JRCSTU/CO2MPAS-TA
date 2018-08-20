@@ -162,31 +162,34 @@ setup(
     ],
     install_requires=[
         polyversion,
-        'pandas',
-        'xlsxwriter',
-        'scikit-learn',
-        'numpy',
-        'scipy',
-        'lmfit>=0.9.7',
-        'matplotlib',
-        'dill!=0.2.7',
-        'graphviz',
-        'docopt',
-        'pandalone[xlrd]>=0.2.0',  # for datasync pascha-fixes and openpyxl version
-        'regex',
-        'schema',
-        'tqdm',
-        'openpyxl>=2.4.0',
-        'PyYAML>=3.12',
-        'pip',
-        'boltons',
-        'wltp',
-        'cryptography',
-        'toolz',
-        'schedula[plot]>=0.2.3',
         'formulas>=0.0.10',
-        'contextvars',              # for co2mpare, backported for <PY37
+        'lmfit>=0.9.7',
+        'matplotlib',               # TODO: refactor matplotlib as sim-extras
+        'numpy',
+        'pandas',
+        'regex',
+        'schedula[plot]>=0.2.3',
+        'schema',
+        'scikit-learn',
+        'scipy',
+        'wltp',
         'xgboost',                  # Pure-python boost would be also ok.
+
+        ## IO-deps
+        #
+        'boltons',
+        'contextvars',              # for co2mpare, backported for <PY37
+        'cryptography',
+        'dill!=0.2.7',
+        'docopt',
+        'graphviz',                 # TODO: graphviz needed only for `mkdirs()` util.
+        'openpyxl>=2.4.0',
+        'pandalone[xlrd]>=0.2.0',   # for datasync pascha-fixes and openpyxl version
+        'pip',
+        'PyYAML>=3.12',
+        'toolz',
+        'tqdm',
+        'xlsxwriter',
     ],
     extras_require={
         ## Just repeating here deps with pinned-versions wouldn't work
