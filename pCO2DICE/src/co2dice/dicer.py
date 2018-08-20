@@ -102,7 +102,7 @@ class DicerSpec(cmdlets.Spec, base.ShrinkingOutputMixin, base.ReportsKeeper):
         '''
         from . import project, tstamp
         import requests
-        from co2mpas.utils import joinstuff
+        from .utils import joinstuff
 
         if observer:
             def notify(msg: str, step=1, max_step=None):

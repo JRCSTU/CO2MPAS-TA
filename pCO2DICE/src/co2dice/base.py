@@ -414,7 +414,7 @@ class ReportsKeeper(trc.Configurable):
         - By default, in the customized loggers it is always added
           the :field:`default_reports_fpath` (if defined).
         """
-        from co2mpas.utils import joinstuff
+        from .utils import joinstuff
 
         wfpaths = self._collect_wfpaths(*extra_fpaths)
         if not txt:

@@ -2447,7 +2447,7 @@ class ExportCmd(_SubCmd):
         import tempfile
         import git
         from git.util import rmtree
-        from co2mpas.utils import chdir
+        from .utils.cntxtutils import chdir
 
         arch_format = 'zip'
         repo = self.projects_db.repo
