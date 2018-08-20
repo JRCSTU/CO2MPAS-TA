@@ -61,7 +61,6 @@ import os.path as osp
 
 from . import CmdException
 from . import (__version__, __updated__, __uri__, __copyright__, __license__)  # @UnusedImport
-from co2mpas.__main__ import init_logging
 from ._vendor import traitlets as trt
 from ._vendor.traitlets import config as trtc
 from . import utils
@@ -1086,7 +1085,7 @@ class Cmd(TolerableSingletonMixin, trtc.Application, Spec):
         if isinstance(log_level, str):
             log_level = getattr(logging, log_level)
 
-        init_logging(level=log_level)
+        lcu.init_logging(level=log_level)
 
     def __init__(self, **kwds):
         from . import crypto

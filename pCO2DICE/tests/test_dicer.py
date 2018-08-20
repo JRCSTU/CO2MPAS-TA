@@ -13,7 +13,7 @@ If not running a WebStamper on your localhost, set these 2 env-vars::
 
 - All :func:`..._B_...()`` TCs required :func:`..._A_...()` to have run.
 """
-from co2mpas.__main__ import init_logging
+from co2dice.utils.logconfutils import init_logging
 from co2dice._vendor.traitlets import config as trtc
 from co2dice import CmdException, crypto
 from co2dice.base import PFiles

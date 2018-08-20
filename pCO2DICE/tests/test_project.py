@@ -6,7 +6,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
-from co2mpas.__main__ import init_logging
+from co2dice.utils.logconfutils import init_logging
 from co2dice._vendor.traitlets import config as trtc
 from co2dice import cmdlets, crypto, project
 from co2dice.base import PFiles

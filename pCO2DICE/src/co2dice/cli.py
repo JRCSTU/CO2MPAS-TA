@@ -165,12 +165,12 @@ def run(argv=(), **app_init_kwds):
     :param argv:
         Cmd-line arguments, nothing assumed if nothing given.
     """
-    from co2mpas import __main__ as cmain
+    from .utils import launchutils as lnu
 
     log = logging.getLogger(APPNAME)
 
     if sys.version_info < (3, 5):
-        return cmain.exit_with_pride(
+        return lnu.exit_with_pride(
             "Sorry, Python >= 3.5 is required, found: %s" % sys.version_info,
             logger=log)
 
@@ -181,13 +181,17 @@ def run(argv=(), **app_init_kwds):
     #  NOTE that the use of any `--verbose` option,
     #  will override log-level, by setting :attr:`Spec.verbose` trait to True.
     #
-    from co2mpas .utils import logconfutils as lcu
+    from .utils import logconfutils as lcu
     log_level, argv = lcu.log_level_from_argv(
         argv,
         start_level=20,  # 10=DEBUG, 20=INFO, 30=WARNING, ...
         eliminate_verbose=False, eliminate_quiet=True)
 
-    cmain.init_logging(level=log_level, color=True, not_using_numpy=True)
+    lcu.init_logging(level=log_level, color=True, not_using_numpy=True,
+                     # Load  this file automatically if it exists in HOME and configure logging,
+                     # unless overridden with --logconf.
+                     default_logconf_file=osp.expanduser(osp.join('~', '.co2_logconf.yaml'))
+                     )
     log = logging.getLogger(APPNAME)
 
     try:
@@ -201,10 +205,10 @@ def run(argv=(), **app_init_kwds):
             schema.SchemaError) as ex:
         log.debug('App exited due to: %r', ex, exc_info=1)
         ## Suppress stack-trace for "expected" errors but exit-code(1).
-        return cmain.exit_with_pride(str(ex), logger=log)
+        return lnu.exit_with_pride(str(ex), logger=log)
     except Exception as ex:
         ## Log in DEBUG not to see exception x2, but log it anyway,
         #  in case log has been redirected to a file.
         log.debug('App failed due to: %r', ex, exc_info=1)
         ## Print stacktrace to stderr and exit-code(-1).
-        return cmain.exit_with_pride(ex, logger=log)
+        return lnu.exit_with_pride(ex, logger=log)

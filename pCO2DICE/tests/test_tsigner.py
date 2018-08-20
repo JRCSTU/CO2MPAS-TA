@@ -11,7 +11,7 @@ import shutil
 import tempfile
 import unittest
 
-from co2mpas.__main__ import init_logging
+from co2dice.utils.logconfutils import init_logging
 from co2dice._vendor.traitlets import config as trtc
 from co2dice import crypto, tsigner
 from co2dice.cmdlets import Cmd
