@@ -6,6 +6,9 @@ PolyversCmd:
     - pname: co2sim
       basepath: pCO2SIM
 
+    - pname: co2deps
+      basepath: pCO2DEPS
+
     - pname: co2gui
       basepath: pCO2GUI
 

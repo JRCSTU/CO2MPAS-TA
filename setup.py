@@ -99,35 +99,10 @@ def yield_rst_only_markup(lines):
         yield clean_line(line)
 
 
-def read_pinned_deps(fpath):
-    comment_regex = re.compile('^ *#')
-    rstrip_regex = re.compile(' *(#.*)?$')
-
-    def procline(line):
-        line = line.strip()
-        if line and not comment_regex.match(line):
-            return line
-
-        return rstrip_regex.sub('', line)
-
-    pinned_deps = []
-    with open(fpath) as fp:
-        for line in fp:
-            if 'CO2MPAS PINNED STOP' in line:
-                break
-
-            line = procline(line)
-            if line:
-                pinned_deps.append(line)
-
-    return pinned_deps
-
-
 polyversion = 'polyversion >= 0.2.2a0'  # Workaround buggy git<2.15, envvar: co2mpas_VERION
 readme_lines = read_text_lines('README.rst')
 description = readme_lines[1]
 long_desc = ''.join(yield_rst_only_markup(readme_lines))
-pinned_deps = read_pinned_deps(osp.join(mydir, 'pCO2SIM', 'requirements', 'exe.pip'))
 
 
 setup(
@@ -190,9 +165,11 @@ setup(
         'co2sim',
         'co2gui',
         'co2dice',
-    ] + pinned_deps,
+    ],
     extras_require={
-        'pindeps': ['co2sim[pindeps]'],
+        ## Just repeating here deps with pinned-versions wouldn't work
+        #  bc they already exist in requirements, *without* them!!
+        'pindeps': ['co2deps==%s' % polyversion(pname='co2deps')],
     },
     zip_safe=True,
     options={
