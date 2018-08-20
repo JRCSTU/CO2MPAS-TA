@@ -11,38 +11,43 @@ Changes since 1.7.4.post0:
 
 BREAKING:
 ---------
-The co2mpas python package has been splitted:gh:`408`), and is now served by 4 sub-projects:
+The co2mpas python package has been splitted:gh:`408`), and is now served
+by 4 python packages.  In practice this means that you can still receive
+bug-fixes and new features for the DICE or the GUI, while keeping the simulation-model
+intact.
 
 1. ``co2sim``: the simulator, for standalone/engineering wwork. Now all IO-libraries
-   are optional, and you need this command to install it::
+   and graph-drawing are optional, specified the ``io`` & ``plot`` "extras".
+   If you need just the simulator to experiment, you need this command
+   to install it::
 
-       pip install co2sim[io]
+       pip install co2sim[io,plot]
 
-2. ``co2deps``: all calculation-related dependencies are contained with
-   their versions "pinned", to ensure reproducibility(:gh:`427`).
+2. ``co2dice``: the backend & commands for :abbr:`DICE (Distributed Impromptu Co2mpas Evaluation)`.
 
-   This package gets installed by default if you run::
+3. ``co2gui``: the GUI.
 
-       pip install co2mpas[pindeps]
+4. ``co2mpas``: installs all of the above, and all extras.
 
-3. ``co2dice``: the backend & commands for :abbr:`DICE (Distributed Impromptu Co2mpas Evaluation)`.
-
-4. ``co2gui``: the GUI.
 
 Their relationship between the projects is depicted below::
 
-         co2sim[io]
-          /|\    \
-         / | \ co2dice
-        /  |  \ /   \
-    co2deps|co2gui WebStamper
-        \  |  /
-         \ | /
-     co2mpas[pindeps]
+    co2sim[io]
+      |    |
+      |  co2dice
+      |  /  \
+     co2gui  WebStamper
+       |
+       |
+    co2mpas
 
 .. Note::
   ``co2sim`` on startup checks if the old ``co2mpas-v1.x`` is still installed,
-  and aborts In that case, uninstall everything and re-install, to be on the safe side.
+  and aborts In that case, uninstall all projects and re-install them,
+  to be on the safe side, with this commands::
+
+      pip uninstall co2sim co2dice co2gui co2mpas -y
+      pip install co2mpas
 
 
 Model:
@@ -249,18 +254,55 @@ Intermediate releases for ``2.0.x``:
   - Releases with ``r`` prefix signify version published in *PyPi*.
   - Releases with ``v`` prefix signify internal milestones.
 
+
+``v2.0.0rc0``, 24 Aug 2018
+~~~~~~~~~~~~~~~~~~~~~~~~~
+- DROP: make ``co2deps`` pinning-versions project disappear into the void,
+  from where it came from, last milestone.
+
+  Adding a moribund co2-project into PyPi (until `pip bug pypa/pip#3878
+  <https://github.com/pypa/pip#3878>`_ gets fixed) is a waste of effort.
+
+- ENH: extracted ``plot`` extras from ``co2sim`` dependencies.
+  Significant work on all project dependencies (:gh:`408`, :gh:`427` & :gh:`463`).
+
+  Coupled with the new ``wltp-0.1.0a3`` & ``pandalone-0.2.4.post1`` releases,
+  now it is possible to use co2mpas-simulator with narrowed-down dependencies
+  (see docker-image size reduction, above).
+
+- REFACT: separated DICE from SIM subprojects until really necessary
+  (e.g. when extracting data from appended files).  Some code-repetition needed,
+  started moving utilities from ``__main__.py`` into own util-modules, at least
+  for `co2dice`.
+
+- ENH: update alpine-GCC in *docker* with recent instructions,and eventually
+  used the debian image, which ends up the same size with less fuzz.
+  Docker-image  `co2sim` wheel is now created *outside of docker* with
+  its proper version-id of visible; paths updated, scripts enhanced,
+  files documented.
+
+- ENH: `setup.py` does not prevent from running in old Python versions
+  (e.g to build *wheels* in Py-2, also in :gh:`408`).
+
+- feat: dice-report encryption supports multiple recipients.
+- feat: gui re-reads configurations on each DICE-button click.
+- chore: add *GNU Makefiles* for rudimentary support to clean, build and
+  maintain the new sub-projectrs.
+
+
 ``v2.0.0b0``, 20 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 - BREAK: SPLIT CO2MPAS(:gh:`408`) and moved packages in :file:`.{sub-dir}/src/`:
 
-    1. ``co2sim[io]``: :file:`{root}/pCO2SIM`
-    2. ``co2dice``: :file:`{root}/pCO2DICE`
-    3. ``co2gui``: :file:`{root}/pCO2GUI`
-    4. ``co2deps``: :file:`{root}/pCO2DEPS`
-    5. ``co2mpas[pindeps]``: :file:`{root}`
-    - ``WebStamper``: :file:`{root}/pWebStamper`
+   1. ``co2sim[io]``: :file:`{root}/pCO2SIM`
+   2. ``co2dice``: :file:`{root}/pCO2DICE`
+   3. ``co2gui``: :file:`{root}/pCO2GUI`
+   4. ``co2deps``: :file:`{root}/pCO2DEPS`
+   5. ``co2mpas[pindeps]``: :file:`{root}`
+   - ``WebStamper``: :file:`{root}/pWebStamper`
 
-  https://github.com/sgerrand/alpine-pkg-glibc.
+  - Also extracted ``io`` extras from ``co2sim`` dependencies.
+
 - enh: use *GNU Makefile* for developers to manage sub-projects.
 - enh: Dice-button reloads configurations when clicked (e.g. to read
   ``WstampSpec.recpients`` parameter if modified by the user-on-the-spot).
