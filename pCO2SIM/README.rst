@@ -1,5 +1,5 @@
 ==================================================================
-co2sim: TODO
+co2SIM: Vehicle simulator predicting NEDC CO2 emissions from WLTP
 ==================================================================
 
 .. image:: https://img.shields.io/pypi/v/co2sim.svg

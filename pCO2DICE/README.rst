@@ -1,5 +1,5 @@
 ==================================================================
-co2dice: TODO
+co2DICE: Distributed Impromptu Co2mpas Evaluation
 ==================================================================
 
 .. image:: https://img.shields.io/pypi/v/co2dice.svg

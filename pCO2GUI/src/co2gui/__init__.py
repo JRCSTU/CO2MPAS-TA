@@ -6,7 +6,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-CO2MPAS UI: predict NEDC CO2 emissions from WLTP for Vehicle Type-Approval.
+co2GUI: tk-GUI for cCo2SIM + co2DICE
 
 Layout::
 
