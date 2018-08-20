@@ -2648,6 +2648,12 @@ class Co2guiCmd(cmdlets.Cmd):
         from threading import Thread
         import requests
 
+        ## Reload configs
+        #
+        sconfig, _pconfigs = self.load_configurables_from_files()
+        #sconfig.merge(self.cli_config) # even if priorities fail, no cmdlines.
+        self.update_config(sconfig)
+
         assert not (self.is_co2mpas_job_alive() or
                     self.is_co2dice_job_alive()), vars(self)
 
