@@ -1,11 +1,5 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-##
-## Installs co2mpas:
-## 		python setup.py install
-## or
-##		pip install -r requirements.txt
-## and then just code from inside this folder.
-#
 from os import path as osp
 import io
 import os
