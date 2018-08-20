@@ -176,9 +176,6 @@ setup(
         'xgboost',                  # Pure-python boost would be also ok.
     ],
     extras_require={
-        ## Just repeating here deps with pinned-versions wouldn't work
-        #  bc they already exist in requirements, *without* them!!
-        'pindeps': ['co2deps==%s' % polyversion('co2deps')],
         'io': [
             'boltons',
             'contextvars',              # for co2mpare, backported for <PY37

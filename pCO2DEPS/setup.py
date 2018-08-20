@@ -5,7 +5,7 @@ import re
 from setuptools import setup, find_packages
 
 import os.path as osp
-
+from polyversion import polyversion
 
 mydir = osp.dirname(osp.realpath(__file__))
 
@@ -90,7 +90,11 @@ setup(
     ],
     obsoletes=['co2mpas (< 2.0)'],
     setup_requires=['setuptools', 'wheel', polyver],
-    install_requires=[polyver, pindeps],
+    install_requires=[
+        polyver,
+        'co2sim==%s' % polyversion(pname='co2sim'),
+        pindeps,
+    ],
     zip_safe=True,
     options={'bdist_wheel': {'universal': True}},
     platforms=['any'],
