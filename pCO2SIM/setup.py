@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from os import path as osp
 import io
 import os
 import re
 import sys
+from os import path as osp
 
-from setuptools import setup, find_packages
-
+from setuptools import find_packages, setup
 
 PROJECT = 'co2sim'
 
-mydir = os.path.dirname(__file__)
+mydir = osp.dirname(osp.abspath(__file__))
+os.chdir(mydir)
 
 
 def read_text_lines(fname):
-    with io.open(os.path.join(mydir, fname), encoding='utf-8') as fd:
+    with io.open(osp.join(mydir, fname), encoding='utf-8') as fd:
         return fd.readlines()
 
 

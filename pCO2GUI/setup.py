@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
+import os.path as osp
 import re
 
-from setuptools import setup, find_packages
-
-import os.path as osp
+from setuptools import find_packages, setup
 
 
-mydir = osp.dirname(osp.realpath(__file__))
+mydir = osp.dirname(osp.abspath(__file__))
+os.chdir(mydir)
 
 
 def yield_rst_only_markup(lines):

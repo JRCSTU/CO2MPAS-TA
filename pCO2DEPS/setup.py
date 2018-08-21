@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
+import os.path as osp
 import re
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
-import os.path as osp
 from polyversion import polyversion
 
-mydir = osp.dirname(osp.realpath(__file__))
+
+mydir = osp.dirname(osp.abspath(__file__))
+os.chdir(mydir)
 
 
 with open(osp.join(mydir, 'README.rst')) as rfp:

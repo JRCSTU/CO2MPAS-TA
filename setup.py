@@ -6,19 +6,18 @@
 ##		pip install -r requirements.txt
 ## and then just code from inside this folder.
 #
-from os import path as osp
 import io
 import os
-from polyversion import polyversion
 import re
 import sys
+from os import path as osp
 
 from setuptools import setup
 
+from polyversion import polyversion
 
-PROJECT = 'co2mpas'
-
-mydir = os.path.dirname(__file__)
+mydir = osp.dirname(osp.abspath(__file__))
+os.chdir(mydir)
 
 
 def read_text_lines(fname):
@@ -102,7 +101,7 @@ long_desc = ''.join(yield_rst_only_markup(readme_lines))
 
 
 setup(
-    name=PROJECT,
+    name='co2mpas',
     ## Include a default for robustness (eg to work on shallow git -clones)
     #  but also for engraves to have their version visible.
     version='0.0.0',
