@@ -18,11 +18,6 @@ from setuptools import setup
 
 PROJECT = 'co2mpas'
 
-if sys.version_info < (3, 5):
-    sys.exit("Sorry, Python >= 3.5 is required to install %s, found: %s" %
-             (sys.version_info, PROJECT))
-
-
 mydir = os.path.dirname(__file__)
 
 
