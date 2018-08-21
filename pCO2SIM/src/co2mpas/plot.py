@@ -11,8 +11,6 @@ It contains plotting functions for models and/or output results.
 import importlib
 import logging
 import sys
-import matplotlib.pyplot as plt
-import schedula as sh
 
 log = logging.getLogger(__name__)
 
@@ -184,6 +182,8 @@ def plot_time_series(
         Optional plot kwargs.
     :type y_label: dict
     """
+    import matplotlib.pyplot as plt
+    import schedula as sh
 
     x_id = sh.stlp(x_id)
     x, x_id = dsp.get_node(*x_id)
