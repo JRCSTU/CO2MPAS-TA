@@ -177,7 +177,6 @@ setup(
             'cryptography',
             'dill!=0.2.7',
             'docopt',
-            'graphviz',                 # TODO: graphviz needed only for `mkdirs()` util.
             'openpyxl>=2.4.0',
             'pandalone[xlrd]>=0.2.0',   # for datasync pascha-fixes and openpyxl version
             'pip',

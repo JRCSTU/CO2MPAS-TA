@@ -564,10 +564,9 @@ def _run_batch(opts, **kwargs):
 
     if not osp.isdir(output_folder):
         if opts['--force']:
-            from graphviz.tools import mkdirs
             if not ''.endswith('/'):
                 output_folder = '%s/' % output_folder
-            mkdirs(output_folder)
+            os.makedirs(output_folder, ok=True)
         else:
             msg = ("Cannot find '%s' folder!"
                    "\n  Specify an existing folder for '-O' option.")
@@ -590,10 +589,9 @@ def _cmd_modelconf(opts):
     output_folder = opts['-O']
     if not osp.isdir(output_folder):
         if opts['--force']:
-            from graphviz.tools import mkdirs
             if not ''.endswith('/'):
                 output_folder = '%s/' % output_folder
-            mkdirs(output_folder)
+            os.makedirs(output_folder, ok=True)
         else:
             msg = ("Cannot find '%s' folder!"
                    "\n  Specify an existing folder for the '-O' option.")
