@@ -13,6 +13,7 @@ default: default2
 
 wheel-all		: $(SUBPROJECTS) $(MAKECMDGOALS:-all=)
 install-all		: _installwarn $(SUBPROJECTS) $(MAKECMDGOALS:-all=)
+uninstall-all	: $(SUBPROJECTS) $(MAKECMDGOALS:-all=)
 clean-build-all	: $(SUBPROJECTS) $(MAKECMDGOALS:-all=)
 clean-doc-all	: $(SUBPROJECTS) $(MAKECMDGOALS:-all=)
 clean-all		: $(SUBPROJECTS) $(MAKECMDGOALS:-all=)
@@ -20,11 +21,6 @@ clean-all		: $(SUBPROJECTS) $(MAKECMDGOALS:-all=)
 ## Install all projects in "develop" mode.
 develop-all: 
 	pip install $(addprefix -e ./,$(SUBPROJECTS)) -e .
-
-uninstall-all:
-	pip uninstall -y $(SUBPROJECTS) $(PNAME)
-
-
 
 
 $(SUBPROJECTS):
