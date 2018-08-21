@@ -6,6 +6,4 @@ services:
     build:
       context: ..
       dockerfile: ./docker/Dockerfile
-    environment:
-      - co2mpas_VERSION=${co2mpas_VERSION-0.0.0}
     command: ${CO2MPAS_CMD-co2mpas batch ./input -O ./output}

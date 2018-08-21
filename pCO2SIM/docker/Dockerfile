@@ -5,13 +5,13 @@ ENV LANG=C.UTF-8
 # Here we install GNU libc (aka glibc) and set C.UTF-8 locale as default.
 
 RUN ALPINE_GLIBC_BASE_URL="https://github.com/sgerrand/alpine-pkg-glibc/releases/download" && \
-    ALPINE_GLIBC_PACKAGE_VERSION="2.26-r0" && \
+    ALPINE_GLIBC_PACKAGE_VERSION="2.28-r0" && \
     ALPINE_GLIBC_BASE_PACKAGE_FILENAME="glibc-$ALPINE_GLIBC_PACKAGE_VERSION.apk" && \
     ALPINE_GLIBC_BIN_PACKAGE_FILENAME="glibc-bin-$ALPINE_GLIBC_PACKAGE_VERSION.apk" && \
     ALPINE_GLIBC_I18N_PACKAGE_FILENAME="glibc-i18n-$ALPINE_GLIBC_PACKAGE_VERSION.apk" && \
     apk add --no-cache --virtual=.build-dependencies wget ca-certificates && \
     wget \
-        "https://raw.githubusercontent.com/andyshinn/alpine-pkg-glibc/master/sgerrand.rsa.pub" \
+        "https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub" \
         -O "/etc/apk/keys/sgerrand.rsa.pub" && \
     wget \
         "$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_BASE_PACKAGE_FILENAME" \
@@ -75,16 +75,10 @@ COPY ./requirements /tmp/co2mpas/requirements
 RUN cd /tmp/co2mpas/requirements && \
     bash ./install_conda_reqs.sh
 
-# Install CO2MPAS.
-COPY ./co2mpas /tmp/co2mpas/co2mpas
-COPY ./setup.py /tmp/co2mpas/setup.py
-COPY ./README.rst /tmp/co2mpas/README.rst
-COPY ./docker/setup.cfg /tmp/co2mpas/setup.cfg
-
-RUN cd /tmp/co2mpas && \
-    python setup.py bdist_wheel && \
-    WHEEL=$(find /tmp/co2mpas/dist/co2mpas*.whl) && \
-    pip install $WHEEL --no-cache-dir
+## Install pre-build CO2MPAS wheel.
+COPY ./dist/co2sim-*.whl /tmp/co2mpas/
+RUN WHEEL=$(find /tmp/co2mpas/co2sim-*.whl) && \
+    pip install $WHEEL[io] --no-cache-dir
 
 # Clean up.
 RUN apk del --purge .build-dependencies && \
