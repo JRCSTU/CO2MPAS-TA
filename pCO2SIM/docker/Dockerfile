@@ -1,88 +1,39 @@
-FROM alpine:3.7
+FROM debian:latest
 
-ENV LANG=C.UTF-8
+#  $ docker build . -t continuumio/miniconda3:latest -t continuumio/miniconda3:4.5.4
+#  $ docker run --rm -it continuumio/miniconda3:latest /bin/bash
+#  $ docker push continuumio/miniconda3:latest
+#  $ docker push continuumio/miniconda3:4.5.4
 
-# Here we install GNU libc (aka glibc) and set C.UTF-8 locale as default.
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+ENV PATH /opt/conda/bin:$PATH
 
-RUN ALPINE_GLIBC_BASE_URL="https://github.com/sgerrand/alpine-pkg-glibc/releases/download" && \
-    ALPINE_GLIBC_PACKAGE_VERSION="2.28-r0" && \
-    ALPINE_GLIBC_BASE_PACKAGE_FILENAME="glibc-$ALPINE_GLIBC_PACKAGE_VERSION.apk" && \
-    ALPINE_GLIBC_BIN_PACKAGE_FILENAME="glibc-bin-$ALPINE_GLIBC_PACKAGE_VERSION.apk" && \
-    ALPINE_GLIBC_I18N_PACKAGE_FILENAME="glibc-i18n-$ALPINE_GLIBC_PACKAGE_VERSION.apk" && \
-    apk add --no-cache --virtual=.build-dependencies wget ca-certificates && \
-    wget \
-        "https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub" \
-        -O "/etc/apk/keys/sgerrand.rsa.pub" && \
-    wget \
-        "$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_BASE_PACKAGE_FILENAME" \
-        "$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_BIN_PACKAGE_FILENAME" \
-        "$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_I18N_PACKAGE_FILENAME" && \
-    apk add --no-cache \
-        "$ALPINE_GLIBC_BASE_PACKAGE_FILENAME" \
-        "$ALPINE_GLIBC_BIN_PACKAGE_FILENAME" \
-        "$ALPINE_GLIBC_I18N_PACKAGE_FILENAME" && \
-    \
-    rm "/etc/apk/keys/sgerrand.rsa.pub" && \
-    /usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 C.UTF-8 || true && \
-    echo "export LANG=C.UTF-8" > /etc/profile.d/locale.sh && \
-    \
-    apk del glibc-i18n && \
-    \
-    rm "/root/.wget-hsts" && \
-    apk del .build-dependencies && \
-    rm \
-        "$ALPINE_GLIBC_BASE_PACKAGE_FILENAME" \
-        "$ALPINE_GLIBC_BIN_PACKAGE_FILENAME" \
-        "$ALPINE_GLIBC_I18N_PACKAGE_FILENAME"
+RUN apt-get update --fix-missing && \
+    apt-get install -y wget bzip2 ca-certificates curl git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-4.5.4-Linux-x86_64.sh -O ~/miniconda.sh && \
+    /bin/bash ~/miniconda.sh -b -p /opt/conda && \
+    rm ~/miniconda.sh && \
+    /opt/conda/bin/conda clean -tipsy && \
+    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
+    echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
+    echo "conda activate base" >> ~/.bashrc
 
+## Install requirements.
+#
+COPY ./requirements /tmp/co2mpas/
+RUN cd /tmp/co2mpas/ && \
+    bash ./install_conda_reqs.sh && \
+    /opt/conda/bin/conda clean -tipsy && \
+    rm -rf /tmp/co2mpas
 
-ENV CONDA_DIR="/opt/conda"
-ENV PATH="$CONDA_DIR/bin:$PATH"
-
-# Install conda
-RUN CONDA_VERSION="4.5.4" && \
-    CONDA_MD5_CHECKSUM="a946ea1d0c4a642ddf0c3a26a18bb16d" && \
-    \
-    apk add --no-cache --virtual=.build-dependencies wget ca-certificates bash && \
-    \
-    mkdir -p "$CONDA_DIR" && \
-    wget "http://repo.continuum.io/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh" -O miniconda.sh && \
-    echo "$CONDA_MD5_CHECKSUM  miniconda.sh" | md5sum -c && \
-    bash miniconda.sh -f -b -p "$CONDA_DIR" && \
-    echo "export PATH=$CONDA_DIR/bin:\$PATH" > /etc/profile.d/conda.sh && \
-    rm miniconda.sh && \
-    \
-    conda update --all --yes && \
-    conda config --set auto_update_conda False && \
-    rm -r "$CONDA_DIR/pkgs/" && \
-    \
-    apk del --purge .build-dependencies && \
-    \
-    mkdir -p "$CONDA_DIR/locks" && \
-chmod 777 "$CONDA_DIR/locks"
-
-MAINTAINER CO2MPAS <vinci1it2000@gmail.com>
-
-# Add library to compile C-code.
-RUN apk --update --no-cache --virtual=.build-dependencies add gcc libc-dev git bash
-
-# Add tk dependencies
-RUN apk --update --no-cache add tk-dev
-
-# Install CO2MPAS requirements.
-COPY ./requirements /tmp/co2mpas/requirements
-RUN cd /tmp/co2mpas/requirements && \
-    bash ./install_conda_reqs.sh
-
-## Install pre-build CO2MPAS wheel.
+## Install CO2MPAS.
+#
 COPY ./dist/co2sim-*.whl /tmp/co2mpas/
-RUN WHEEL=$(find /tmp/co2mpas/co2sim-*.whl) && \
-    pip install $WHEEL[io] --no-cache-dir
-
-# Clean up.
-RUN apk del --purge .build-dependencies && \
-    conda clean --all && \
-    rm -rf /tmp/co2mpas /opt/conda/pkgs/cache
+RUN WHEEL="$(find /tmp/co2mpas/co2sim-*.whl)" && \
+    pip install --no-cache-dir $WHEEL[io] && \
+    rm -rf /tmp/co2mpas
 
 CMD co2mpas batch /data/input -O /data/output -D flag.engineering_mode=True
