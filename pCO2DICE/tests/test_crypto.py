@@ -640,7 +640,7 @@ class TVaultSpec(unittest.TestCase):
                 chiphered = vault.encryptobj('enc_test', b'foo')
                 with self.assertRaisesRegex(
                         ValueError,
-                        r"PswdId\('enc_test'\): decryption failed"):
+                        r"CipherId\('enc_test'\): decryption failed"):
                     vault.decryptobj('enc_test', chiphered)
         finally:
             vault.GPG.delete_keys(key.fingerprint, secret=0)

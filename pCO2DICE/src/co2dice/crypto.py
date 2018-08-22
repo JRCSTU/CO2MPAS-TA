@@ -481,12 +481,12 @@ class GpgSpec(cmdlets.Spec):
 
         enc_key = self.master_key_resolved
         self.check_test_key_missused(enc_key)
-        assert not is_pgp_encrypted(plainobj), "PswdId('%s'): already encrypted!" % pswdid
+        assert not is_pgp_encrypted(plainobj), "CipherId('%s'): already encrypted!" % pswdid
 
         try:
             plainbytes = plainobj if no_pickle else pickle.dumps(plainobj)  # type: bytes
         except Exception as ex:
-                raise ValueError("PswdId('%s'): encryption failed due to: %s" % (pswdid, ex))
+                raise ValueError("CipherId('%s'): encryption failed due to: %s" % (pswdid, ex))
 
         cipher = self.GPG.encrypt(plainbytes, enc_key, armor=not no_armor,
                                   extra_args=extra_args)
@@ -495,7 +495,7 @@ class GpgSpec(cmdlets.Spec):
             #  and only stderr show infos
             stderr = getattr(cipher, 'stderr', '')
             raise ValueError(
-                "PswdId('%s'): %s\n  %s" %
+                "CipherId('%s'): %s\n  %s" %
                 (pswdid, cipher.status, filter_gpg_stderr(stderr)))
 
         return cipher.data if no_armor else str(cipher)
@@ -520,18 +520,18 @@ class GpgSpec(cmdlets.Spec):
         import pickle
 
         if not is_pgp_encrypted:
-            raise ValueError("PswdId('%s'): cannot encrypt!  Not in pgp-armor format!" % pswdid)
+            raise ValueError("CipherId('%s'): cannot encrypt!  Not in pgp-armor format!" % pswdid)
 
         try:
             plain = self.GPG.decrypt(armor_text, extra_args=extra_args)
         except Exception as ex:
-            raise ValueError("PswdId('%s'): decryption failed due to: %s" % (pswdid, ex))
+            raise ValueError("CipherId('%s'): decryption failed due to: %s" % (pswdid, ex))
 
         if not plain.ok:
             stderr = getattr(plain, 'stderr', '')
-            self.log.debug("PswdId('%s'): decryption stderr: %s", pswdid, stderr)
+            self.log.debug("CipherId('%s'): decryption stderr: %s", pswdid, stderr)
             raise ValueError(
-                "PswdId('%s'): %s\n  %s" %
+                "CipherId('%s'): %s\n  %s" %
                 (pswdid, plain.status, filter_gpg_stderr(stderr)))
         else:
             self.check_test_key_missused(plain.key_id)
