@@ -157,7 +157,7 @@ setup(
     # ],
     install_requires=[
         polyver,
-        'co2sim[io]',
+        'co2sim[io,plot]',
         'co2gui',
         'co2dice',
     ],

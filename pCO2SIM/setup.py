@@ -159,7 +159,6 @@ setup(
         polyver,
         'formulas>=0.0.10',
         'lmfit>=0.9.7',
-        'matplotlib',               # TODO: refactor matplotlib as sim-extras
         'numpy',
         'pandas',
         'regex',
@@ -184,6 +183,10 @@ setup(
             'toolz',
             'tqdm',
             'xlsxwriter',
+        ],
+        'plot': [
+            'matplotlib',
+            'schedula[plot]',
         ],
         'test': test_requirements,
     },
