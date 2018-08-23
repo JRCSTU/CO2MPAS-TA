@@ -22,7 +22,7 @@ schedula[plot]==0.2.3
 schema==0.6.7
 scikit-learn==0.19.1
 scipy==1.1.0
-wltp==0.1.0a2
+wltp==0.1.0a3
 xgboost==0.72.1; sys_platform != 'win32'
 xgboost==0.72; sys_platform == 'win32'
 xlrd==1.1.0
