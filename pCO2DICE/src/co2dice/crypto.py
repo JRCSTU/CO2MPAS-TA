@@ -298,6 +298,11 @@ class GpgSpec(cmdlets.Spec):
         """
     ).tag(config=True, envvar='GNUPGKEY')
 
+    encryption_keys = trt.List(
+        trt.Unicode(),
+        help="""The pgp keys (or name, emails, etc) to encrypt for - master used if undefined"""
+    ).tag(config=True)
+
     allow_test_key = trt.Bool(
         help="""
         After July 27 2017 you cannot use test-key for official runs!
@@ -479,8 +484,9 @@ class GpgSpec(cmdlets.Spec):
         """
         import pickle
 
-        enc_key = self.master_key_resolved
-        self.check_test_key_missused(enc_key)
+        enc_keys = self.encryption_keys or self.master_key_resolved
+
+        self.check_test_key_missused(enc_keys)
         assert not is_pgp_encrypted(plainobj), "CipherId('%s'): already encrypted!" % pswdid
 
         try:
@@ -488,7 +494,7 @@ class GpgSpec(cmdlets.Spec):
         except Exception as ex:
                 raise ValueError("CipherId('%s'): encryption failed due to: %s" % (pswdid, ex))
 
-        cipher = self.GPG.encrypt(plainbytes, enc_key, armor=not no_armor,
+        cipher = self.GPG.encrypt(plainbytes, enc_keys, armor=not no_armor,
                                   extra_args=extra_args)
         if not cipher.ok:
             ## When failing due to untrusted-key, status is '',

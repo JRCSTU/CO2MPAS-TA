@@ -557,6 +557,33 @@ class TVaultSpec(unittest.TestCase):
         plainbytes2 = vault.decryptobj(pswdid, ciphertext)
         self.assertEqual(obj, plainbytes2, msg)
 
+#    def test_1b_dencrypt_to_many_keys(self, case):
+#        pswdid, obj = case
+#        nkeys = 3
+#
+#        vault = crypto.VaultSpec.instance()       # @UndefinedVariable
+#
+#        ## Add more keys.
+#        vault.encryption_keys = [
+#            gpg_gen_key(vault.GPG,
+#                        key_length=1024,
+#                        name_real='test user',
+#                        name_email='test@test.com').fingerprint
+#            for _ in range(nkeys)]
+#
+#        ciphertext = vault.encryptobj('enc_test', obj)
+#        msg = ('CASE:', case, ciphertext)
+#
+#        self.assertTrue(crypto.is_pgp_encrypted(ciphertext), msg)
+#
+#        ## Check not generating indetical ciphers.
+#        #
+#        self.assertNotIn(ciphertext, _ciphertexts)
+#        _ciphertexts.add(ciphertext)
+#
+#        plainbytes2 = vault.decryptobj(pswdid, ciphertext)
+#        self.assertEqual(obj, plainbytes2, msg)
+
     def test_2_many_master_keys(self):
         from unittest.mock import patch
 
