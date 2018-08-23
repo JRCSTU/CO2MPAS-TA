@@ -88,10 +88,37 @@ def yield_rst_only_markup(lines):
         yield clean_line(line)
 
 
+def read_pinned_deps(fpath):
+    comment_regex = re.compile('^ *#')
+    rstrip_regex = re.compile(' *(#.*)?$')
+
+    def procline(line):
+        line = line.strip()
+        if line and not comment_regex.match(line):
+            return line
+
+        return rstrip_regex.sub('', line)
+
+    pinned_deps = []
+    with open(fpath) as fp:
+        for line in fp:
+            if 'CO2MPAS PINNED STOP' in line:
+                break
+
+            line = procline(line)
+            if line:
+                pinned_deps.append(line)
+
+    return pinned_deps
+
+
+
 polyver = 'polyversion >= 0.2.2a0'  # Workaround buggy git<2.15, envvar: co2mpas_VERION
 readme_lines = read_text_lines('README.rst')
 description = readme_lines[1]
 long_desc = ''.join(yield_rst_only_markup(readme_lines))
+pindeps = read_pinned_deps(osp.join(
+    mydir, '..', 'pCO2SIM', 'requirements', 'exe.pip'))
 
 test_requirements = [
     'pytest',
@@ -191,6 +218,8 @@ setup(
             'schedula[plot]',
         ],
         'test': test_requirements,
+        # Not working yet, due to: https://github.com/pypa/pip/pull/3878
+        'pindeps': pindeps,
     },
     tests_require=test_requirements,
     package_dir={'': 'src'},
