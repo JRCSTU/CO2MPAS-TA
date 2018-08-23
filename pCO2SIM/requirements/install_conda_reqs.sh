@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 #
-# NOTE: conda has now MKL support for `numpy`:
-#   https://stackoverflow.com/a/37224954/548792
+## Install dependencies that are hard to find in conda-environments
+#  like those with natvie C++ extensions and in other channels.
 #
+## NOTE: Used for reproducible docker because
+#  conda has MKL support for `numpy`:
+#   https://stackoverflow.com/a/37224954/548792
+
 mydir="${0%/*}"
 
 conda install \
@@ -10,11 +14,13 @@ conda install \
     numpy-base==1.14.3  \
     scikit-learn==0.19.1 \
     scipy==1.1.0 \
-    pandas==0.23.0 \
-    matplotlib
+    pandas==0.23.0
 
-conda install -c conda-forge \
+## Add both channels since `defaults has newer certtifi/ssl
+#
+conda install -c defaults -c conda-forge \
     xgboost==0.72.1 \
     regex  # Needed if no GCC in linux bc no pre-compiled exists in PyPi.
 
-pip install -r "$mydir/exe.pip" --no-cache-dir
+#
+## All the rest are install with `pip install <project>`.
