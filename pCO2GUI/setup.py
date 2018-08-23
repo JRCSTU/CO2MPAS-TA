@@ -157,9 +157,7 @@ setup(
         'PyYAML>=3.12',             # tooltips, logconf
         'boltons',                  # for its sorted set
         'toolz',
-        'schedula[plot]>=0.2.3',    # for its DispatcherAbort exception
-
-        'ipython_genutils',         # by vendorized `traitlets`
+        'schedula[plot]>=0.2.3',    # for DispatcherAbort & status-dispatcher.
     ],
     tests_require=test_requirements,
     extras_require={
