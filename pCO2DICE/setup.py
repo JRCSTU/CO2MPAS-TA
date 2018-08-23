@@ -147,7 +147,7 @@ setup(
     install_requires=[
         polyver,
         'boltons',                  # for its sorted set
-        'co2sim',                  # Actually `co2simio` would be needed.
+        'co2sim[io]',               # Actually `co2simio` would be needed.
         ## Win+Cygwin support, new packed-ref header format
         #  (gitpython-developers/GitPython#689)
         'gitpython >= 2.1.8',
