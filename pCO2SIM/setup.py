@@ -157,8 +157,10 @@ setup(
     ],
     install_requires=[
         polyver,
+        'colorama',
         'formulas>=0.0.10',
         'lmfit>=0.9.7',
+        'logutils',
         'numpy',
         'pandas',
         'regex',
