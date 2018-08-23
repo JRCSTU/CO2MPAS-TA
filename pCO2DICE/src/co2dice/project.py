@@ -1503,6 +1503,7 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
         return self._current_project
 
     def validate_project_name(self, pname: Text) -> Project:
+        ## TODO: drop reference to co2mpas.
         from co2mpas.io import schema
 
         if not pname or not git_project_regex.match(pname):
