@@ -148,7 +148,7 @@ setup(
     setup_requires=['setuptools', 'wheel', polyver],
     install_requires=[
         polyver,
-        'co2sim',                   # Actually `co2simio` would be needed.
+        'co2sim[io]',
         'co2dice',                  # FIXME: retrofit to extra
         'Pillow',                   # for About panel
         'numpy',                    # just for disabling its logging
