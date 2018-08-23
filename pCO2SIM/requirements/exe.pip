@@ -48,26 +48,6 @@ setuptools
 six
 tqdm
 
-
-## GUI
-#
-Pillow
-
-
-## Dice
-#
-## Win+Cygwin support, new packed-ref header format
-#  (gitpython-developers/GitPython#689)
-gitpython >= 2.1.8
-ipython_genutils
-PySocks >= 1.6.7        ## more proxy-error messages (#7)
-python-gnupg
-transitions >= 0.5.0    ## prepare/finally cbs
-parsedatetime
-Unidecode               ## dice: convert non-ASCII for tstamper.
-validate_email          ## dice: distinguish EWS fields
-
-
 ## New-dice
 #
 cryptography            ## for new-dice
