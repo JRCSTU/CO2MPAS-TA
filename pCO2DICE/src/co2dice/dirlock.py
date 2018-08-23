@@ -44,10 +44,5 @@ def locked_on_dir(dpath: Text,
                 time.sleep(lock_wait_sec)
 
         yield
-
     finally:
-        try:
-            os.rmdir(dpath)
-        except Exception as ex:
-            log.warning("I was supposed to delete DirLock '%s', but: %s",
-                        dpath, ex)
+        os.rmdir(dpath)
