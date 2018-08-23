@@ -161,11 +161,6 @@ setup(
         'co2gui',
         'co2dice',
     ],
-    extras_require={
-        ## Just repeating here deps with pinned-versions wouldn't work
-        #  bc they already exist in requirements, *without* them!!
-        'pindeps': ['co2deps==%s' % polyversion(pname='co2deps')],
-    },
     zip_safe=True,
     options={
         'bdist_wheel': {

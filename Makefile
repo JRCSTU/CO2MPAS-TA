@@ -1,7 +1,7 @@
 ## monorepo utilities for the developers
 #
 PNAME			:= co2mpas
-SUBPROJECTS 	:= pCO2SIM pCO2DEPS pCO2DICE pCO2GUI
+SUBPROJECTS 	:= pCO2SIM pCO2DICE pCO2GUI
 
 include Makefile.defs
 BUILDALL		:= $(addsuffix -all,$(BUILDCMDS))

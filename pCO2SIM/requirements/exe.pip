@@ -1,7 +1,7 @@
 ## Pip-dependencies for installing before running the project.
 #
-#  NOTE: remember to bump and publish a new `co2deps` sub-project
-#        when PINNED-deps change, bump version of `co2deps` sub-project
+#  NOTE: remember to bump and publish a new `pindeps` extras
+#        when PINNED-deps change.
 #
 
 ## CO2MPAS PINNED for Results Reproducibility
