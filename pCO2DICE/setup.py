@@ -146,26 +146,25 @@ setup(
     setup_requires=['setuptools', 'wheel', polyver],
     install_requires=[
         polyver,
-        'co2sim',                  # Actually `co2simio` would be needed.
-        'pandas',                   # by report (one line)
-        'numpy',
-        'pandalone[xlrd]>=0.2.0',   # For datasync pascha-fixes and openpyxl version.
-        'schema',                   # used only for vfid check & for exception checking.
-        'PyYAML>=3.12',
         'boltons',                  # for its sorted set
-        'toolz',
-        'schedula[plot]>=0.2.3',    # for repo status
-
-        'ipython_genutils',         # by vendorized `traitlets`
-        'python-gnupg',
+        'co2sim',                  # Actually `co2simio` would be needed.
         ## Win+Cygwin support, new packed-ref header format
         #  (gitpython-developers/GitPython#689)
         'gitpython >= 2.1.8',
-        'transitions >= 0.5.0',     # prepare/finally cbs
-        'PySocks >= 1.6.7',         # more proxy-error messages (#7)
+        'ipython_genutils',         # by vendorized `traitlets`
+        'numpy',
+        'pandalone[xlrd]>=0.2.0',   # For datasync pascha-fixes and openpyxl version.
+        'pandas',                   # by report (one line)
         'parsedatetime',
-        'validate_email',           # dice: distinguish EWS fields
+        'PySocks >= 1.6.7',         # more proxy-error messages (#7)
+        'python-gnupg',
+        'PyYAML>=3.12',
+        'schedula',                 # for repo status
+        'schema',                   # used only for vfid check & for exception checking.
+        'toolz',
+        'transitions >= 0.5.0',     # prepare/finally cbs
         'Unidecode',                # dice: convert non-ASCII for tstamper.
+        'validate_email',           # dice: distinguish EWS fields
     ],
     tests_require=test_requirements,
     extras_require={
