@@ -611,6 +611,8 @@ def _check_if_old_co2mpas_is_still_installed():
 
         co2_dist = pr.get_distribution('co2mpas')
         co2_major_ver = int(co2_dist.version.split('.', maxsplit=1)[0])
+    except pr.DistributionNotFound as ex:
+        pass  # ok, no co2mpas installed at all.
     except Exception as ex:
         log.warning(
             "Could not check if old co2mpas 1.x is still installed, due to: ",
