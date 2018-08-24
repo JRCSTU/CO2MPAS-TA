@@ -43,8 +43,8 @@ import os.path as osp
 import subprocess as sbp
 
 
-__version__ = polyversion(pname='webstamper')
-__updated__ = polytime(pname='webstamper')
+__version__ = '2.0.0rc0+3.gc520a346'
+__updated__ = '2018-08-24T21:59:59.679538'
 
 
 ## NOTE: `configfile` DEPRECATED by `flask-appconfig` in latest dev.
