@@ -3,11 +3,14 @@
 # Prequisite:
 #   Any Python (even Py-2.x) with `setuptools` installed.
 #
-# SYNTAX: 
-#   build.sh [<fallback-version>  [<docker-compose-cli-arg-1>]...]
+# SYNTAX:
+#       build.sh [<fallback-version>  [<docker-compose-cli-arg-1>]...]
 #
 # Example:
-#   ./build.sh  1.2.3b2  --no-cache
+#       ./build.sh  1.2.3b2  --no-cache
+#
+## BUT....better use Makefile, to avoid rebuilding wheel(!):
+#       make docker
 #
 mydir="$(dirname "$0")"
 cd "$mydir"
