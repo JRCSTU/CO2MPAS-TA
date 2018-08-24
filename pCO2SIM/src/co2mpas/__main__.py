@@ -620,7 +620,6 @@ def _check_if_old_co2mpas_is_still_installed():
             ex, exc_info=1)
         co2_major_ver = 2
     else:
-        print('sdfsdffsd', co2_major_ver)
         if co2_major_ver < 2:
             raise CmdException(
                 "Old co2mpas v1.x is still installed!"
