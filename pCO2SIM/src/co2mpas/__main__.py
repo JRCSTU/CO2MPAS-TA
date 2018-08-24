@@ -551,16 +551,17 @@ def _init_defaults(modelconf):
 
 
 def _run_batch(opts, **kwargs):
+    from co2mpas.utils import joinstuff
+
     input_paths = opts['<input-path>'] or ['.']
     output_folder = opts['-O']
     log.info("Processing %r --> %r...", input_paths, output_folder)
-    input_paths = file_finder(input_paths)
-    if not input_paths:
-        cmd = 'ta' if kwargs.get('type_approval_mode') else 'batch'
-        raise CmdException("Specify at least one <input-path>!"
-                           "\n    read: co2mpas --help"
-                           "\n  or try: co2mpas %s <input-fpath>"
-                           "\n      or: co2gui" % cmd)
+    match_paths = file_finder(input_paths)
+    if not match_paths:
+        raise CmdException(
+            "No <input-path> found, searched:%s" %
+            joinstuff((osp.abspath(p) for p in input_paths),
+                      '', '\n  %s'))
 
     if not osp.isdir(output_folder):
         if opts['--force']:
@@ -582,7 +583,7 @@ def _run_batch(opts, **kwargs):
     kw.update(kwargs)
 
     from co2mpas.batch import process_folder_files
-    process_folder_files(input_paths, output_folder, **kw)
+    process_folder_files(match_paths, output_folder, **kw)
 
 
 def _cmd_modelconf(opts):
