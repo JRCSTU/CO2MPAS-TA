@@ -165,7 +165,11 @@ setup(
     },
     package_dir={'': 'src'},
     packages=find_packages('src'),
-    include_package_data=True,
+    package_data={
+        'co2gui': [
+            'icons/*.png',
+        ]
+    },
     test_suite='tests',
     entry_points={
         'console_scripts':
