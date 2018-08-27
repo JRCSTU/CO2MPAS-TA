@@ -255,8 +255,14 @@ Intermediate releases for ``2.0.x``:
   - Releases with ``v`` prefix signify internal milestones.
 
 
+``v2.0.0rc2`` for ``co2sim`` & ``co2gui``, 28 Aug 2018
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- FIX: add data (xlsx-files & icons) to `co2sim` & `co2gui` wheels.
+- ``v2.0.0rc1`` tried but didn't deliver.
+
+
 ``v2.0.0rc0``, 24 Aug 2018
-~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 - DROP: make ``co2deps`` pinning-versions project disappear into the void,
   from where it came from, last milestone.
 
