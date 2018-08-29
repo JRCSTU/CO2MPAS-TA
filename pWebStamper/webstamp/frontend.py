@@ -70,6 +70,11 @@ def attach_routes(setup_state):
     log.propagate = True  # By default, `False`!!!
     config = app.config
 
+    @app.errorhandler(CmdException)
+    def handle_invalid_usage(error):
+        log.info('WebStamper client-error: %s', error, exc_info=1)
+        return str(error), 400  # bad-request see https://www.restapitutorial.com/httpstatuscodes.html
+
     def _remote_sender(request, sender, max_width):
         """
         Find request's remote address, even if proxied (return the full list).
@@ -223,16 +228,16 @@ def attach_routes(setup_state):
     ## FIXME: Make URLs it configurable to avoid DoS!
     @frontend.route('/stamp/', methods=('GET', 'POST'))
     def stamp_with_form():
-        log.info("WebStamp URL: %s\n  values: %s",
+        log.info("WebStamper URL: %s\n  values: %s",
                  request.url, [str(v)[:1400] for v in request.values.items()])
         check_key_exists()
         try:
             return StampForm().render()
         except CmdException as ex:
-            log.info('WebStamp client-error: %s\n  %s',
+            log.info('WebStamper client-error: %s\n  %s',
                       ex, [str(v)[:1400] for v in request.values.items()], exc_info=1)
         except Exception as ex:
-            log.fatal('WebStamp crashed due to: %s\n  %s',
+            log.fatal('WebStamper crashed due to: %s\n  %s',
                       ex, [str(v)[:1400] for v in request.values.items()], exc_info=1)
             raise
 
