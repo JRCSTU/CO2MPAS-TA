@@ -2294,12 +2294,9 @@ class Co2guiCmd(cmdlets.Cmd):
     """
     Run CO2MPAS GUI to simulate and (optionally) dice the results.
 
-    TIP:
-      If you bump into blocking errors, please use the `co2dice project backup` command and
-      send the generated archive-file back to "CO2MPAS-Team <JRC-CO2MPAS@ec.europa.eu>",
-      for examination.
+    envvar: DEBUG_DICE_BTN
 
-    NOTE:
+    Attention:
       Do not run concurrently multiple instances!
     """
 
@@ -2460,7 +2457,7 @@ class Co2guiCmd(cmdlets.Cmd):
 
     def is_stop_job_signaled(self):
         """
-        Returns true if signaled, but job may have died earlier; see also :meth:`is_co2mpas_job_alive()`.
+        Returns true if signaled, but job may have died earlier; see :meth:`is_co2mpas_job_alive()`.
         """
         from schedula import Dispatcher
         return self._co2mpas_job_thread and Dispatcher.stopper.is_set()
@@ -2468,6 +2465,7 @@ class Co2guiCmd(cmdlets.Cmd):
     def is_co2dice_job_alive(self):
         return self._co2dice_job_thread and self._co2dice_job_thread.is_alive()
 
+    ## TODO: move GUI-icons from app-->gui classes.
     def _add_window_icon(self, win):
         win.tk.call('wm', 'iconphoto', win._w, read_image('icons/CO2MPAS_icon-64.png'))
 
@@ -2478,6 +2476,7 @@ class Co2guiCmd(cmdlets.Cmd):
 
         return status
 
+    ## TODO: move GUI-status from app-->gui classes.
     def lstatus(self, msg, *args, level=None, delay=None, **kwds):
         self.status(msg, *args, level=level, delay=delay, **kwds)
 
