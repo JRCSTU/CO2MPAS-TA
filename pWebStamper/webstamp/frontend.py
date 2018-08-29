@@ -6,7 +6,7 @@
 # http://flask.pocoo.org/docs/blueprints/
 
 from co2dice._vendor.traitlets import config as traitc
-from co2dice import crypto, tsigner
+from co2dice import CmdException, crypto, tsigner
 import os
 import re
 
@@ -164,7 +164,7 @@ def attach_routes(setup_state):
 
             # TODO: move sig-validation check in `crypto` module.
             if not verdict['valid']:
-                raise ValueError(
+                raise CmdException(
                     "Cannot validate dice signed with %r: %s" %
                     (uid, verdict['status']))
 
@@ -206,13 +206,13 @@ def attach_routes(setup_state):
             recipients = unique_ci(default_recipients + recipients)
 
             if len(recipients) < len(default_recipients) + 1:
-                raise ValueError(
+                raise CmdException(
                     'Specify at least 1 extra recipient! Got: %s' %
                     recipients_str(recipients))
 
             for i, email in enumerate(recipients, 1):
                 if not validate_email(email, check_mx=not skip_check_mx):
-                    raise ValueError(
+                    raise CmdException(
                         'Invalid email-address no-%i: `%s`' %
                         (i, recipients_str(recipients)))
 
@@ -228,6 +228,9 @@ def attach_routes(setup_state):
         check_key_exists()
         try:
             return StampForm().render()
+        except CmdException as ex:
+            log.info('WebStamp client-error: %s\n  %s',
+                      ex, [str(v)[:1400] for v in request.values.items()], exc_info=1)
         except Exception as ex:
             log.fatal('WebStamp crashed due to: %s\n  %s',
                       ex, [str(v)[:1400] for v in request.values.items()], exc_info=1)
