@@ -28,7 +28,7 @@ class CVT:
 
         # noinspection PyArgumentEqualDefault
         self.model = self.base_model(
-            seed=0,
+            random_state=0,
             max_depth=3,
             n_estimators=int(min(300.0, 0.25 * (len(y) - 1)))
         )

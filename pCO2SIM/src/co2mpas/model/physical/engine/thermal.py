@@ -250,7 +250,7 @@ class ThermalModel(object):
         t_max, t_min = spl[:, -1].max(), spl[:, -1].min()
         spl = spl[(t_max - (t_max - t_min) / 3) <= spl[:, -1]]
 
-        model = xgb.XGBRegressor(seed=0)
+        model = xgb.XGBRegressor(random_state=0)
         model.fit(spl[:, :-1], spl[:, -1])
         ratio = np.arange(1, 1.5, 0.1) * idle_engine_speed[0]
         spl = np.zeros((len(ratio), 4))

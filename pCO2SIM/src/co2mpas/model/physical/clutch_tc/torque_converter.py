@@ -48,7 +48,7 @@ class TorqueConverter(object):
     def _fit_regressor(self, X, y):
         from ..engine.thermal import _SelectFromModel
         model = xgb.XGBRegressor(
-            seed=0,
+            random_state=0,
             max_depth=2,
             n_estimators=int(min(300, 0.25 * (len(y) - 1)))
         )
