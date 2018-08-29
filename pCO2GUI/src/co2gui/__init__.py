@@ -1732,7 +1732,12 @@ class SimulatePanel(ttk.Frame):
         app = self.app
         job_name = "CO2MPAS-TA" if is_ta else "CO2MPAS"
 
-        assert not app.is_co2mpas_job_alive() and not app.is_co2dice_job_alive(), locals()
+        if app.is_co2mpas_job_alive() or app.is_co2dice_job_alive():
+            log.warning(
+                "Only one job can be alive at the same time!"
+                "\n  co2mpas alive? %s, co2dice alive? %s" %
+                (app.is_co2mpas_job_alive(), app.is_co2dice_job_alive()))
+            return
 
         inp_paths, out_folder, cmd_kwds = self.reconstruct_cmd_args_from_gui()
 
@@ -2424,8 +2429,11 @@ class Co2guiCmd(cmdlets.Cmd):
         from co2mpas import batch as cbatch, plan
         from schedula import Dispatcher
 
-        assert not (self.is_co2mpas_job_alive() or
-                    self.is_co2dice_job_alive()), vars(self)
+        if self.is_co2mpas_job_alive() or self.is_co2dice_job_alive():
+            raise cmain.CmdException(
+                "Only one job can be alive at the same time!"
+                "\n  co2mpas alive? %s, co2dice alive? %s" %
+                (self.is_co2mpas_job_alive(), self.is_co2dice_job_alive()))
 
         self._co2mpas_job_thread = thread
 
@@ -2654,8 +2662,11 @@ class Co2guiCmd(cmdlets.Cmd):
         #sconfig.merge(self.cli_config) # even if priorities fail, no cmdlines.
         self.update_config(sconfig)
 
-        assert not (self.is_co2mpas_job_alive() or
-                    self.is_co2dice_job_alive()), vars(self)
+        if self.is_co2mpas_job_alive() or self.is_co2dice_job_alive():
+            raise cmain.CmdException(
+                "Only one job can be alive at the same time!"
+                "\n  co2mpas alive? %s, co2dice alive? %s" %
+                (self.is_co2mpas_job_alive(), self.is_co2dice_job_alive()))
 
         jobname = 'DICER'
         stdpump = StreamsPump(nstreams=2)
