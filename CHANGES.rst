@@ -5,7 +5,7 @@ CO2MPAS Changes
 .. _changes:
 
 
-``v2.0.0X``, XX Aug 2018: "Unleash"
+``v2.0.0``, 31 Aug 2018: "Unleash"
 ==================================
 Changes since 1.7.4.post0:
 
@@ -253,6 +253,11 @@ Intermediate releases for ``2.0.x``:
 .. Note::
   - Releases with ``r`` prefix signify version published in *PyPi*.
   - Releases with ``v`` prefix signify internal milestones.
+
+
+``r2.0.0``, 31 Aug 2018
+~~~~~~~~~~~~~~~~~~~~~~~
+- fix: hide excess warnings.
 
 
 ``co2sim/co2gui: v2.0.0rc3``, ``co2dice/webstamper: v2.0.0rc1``, 30 Aug 2018
