@@ -12,7 +12,7 @@ Changes since 1.7.4.post0:
 BREAKING:
 ---------
 The co2mpas python package has been splitted:gh:`408`), and is now served
-by 4 python packages.  In practice this means that you can still receive
+by 4 python packages listed below.  In practice this means that you can still receive
 bug-fixes and new features for the DICE or the GUI, while keeping the simulation-model
 intact.
 
@@ -27,12 +27,12 @@ intact.
 
 3. ``co2gui``: the GUI.
 
-4. ``co2mpas``: installs all of the above, and all extras.
+4. ``co2mpas``: installs all of the above, and ``[io,plot]`` extras.
 
 
-Their relationship between the projects is depicted below::
+The relationships between the sub-projects are depicted below::
 
-    co2sim[io]
+    co2sim[io,plot]
       |    |
       |  co2dice
       |  /  \
@@ -255,10 +255,18 @@ Intermediate releases for ``2.0.x``:
   - Releases with ``v`` prefix signify internal milestones.
 
 
+``co2sim/co2gui: v2.0.0rc3``, ``co2dice/webstamper: v2.0.0rc1``, 30 Aug 2018
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- FIX: Print remote-errors when WebStamper rejects a Dice.
+- fix: WebStamper had regressed and were reacting violently with http-error=500
+  ("server-failure") even on client mistakes;  now they became http-error=400.
+- fix: eliminate minor deprecation warning about XGBoost(seed=) keyword.
+
+
 ``v2.0.0rc2`` for ``co2sim`` & ``co2gui``, 28 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - FIX: add data (xlsx-files & icons) to `co2sim` & `co2gui` wheels.
-- ``v2.0.0rc1`` tried but didn't deliver.
+- ``v2.0.0rc1`` tried but didn't deliver due to missing package-data folders.
 
 
 ``v2.0.0rc0``, 24 Aug 2018
