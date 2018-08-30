@@ -553,7 +553,6 @@ ct0p7ZWQqb7xn2Q3IFuU/vOiUTc5XZTnrpUr5QkHV00IMOnPnvSnag==
 ]
 
 signed_tag = """\
-grabage sadsa
 object a1875e2a105c594da67e3e899ca153a1a1d38924
 type commit
 tag dices/FT-12-ABC-2016-0001/8
@@ -598,8 +597,6 @@ DIfPzigZsstD4v2X7ltu7DXkXHlwbfOKH+CjzmyZm+WKVh/jlX9jN6c444iqKlhe
 
 missing_pub_key_id = '5124D06F'
 missing_pub_key_tag = """
-MORE
-GARBAGE object 324243423
 object 6beb4f527ee7ed0a1b77dc62a27b12e2fb0da074
 type commit
 tag dices/RL-99-BM3-2017-0001/1

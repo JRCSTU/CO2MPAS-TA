@@ -992,23 +992,11 @@ class TstampReceiver(TstampSpec):
 
         return tag_bytes
 
-    def _trim_tag_head(self, tag: bytes):
-        m = re.match(br'.*?^(object [0-9a-f].+)',
-                     tag,
-                     re.MULTILINE | re.DOTALL)
-        if not m:
-            raise CmdException(
-                "The %s-lines given are not a git-tag"
-                ", no `object b0dcaffe` line found!" %
-                tag.count(b'\n'))
-        return m.group(1)
-
     def _verify_tag(self, tag_text: Text) -> OrderedDict:
         """return verdict (see :meth:`parse_signed_tag` or raise if tag invalid"""
         git_auth = crypto.get_git_auth(self.config)
 
         stag_bytes = self._descramble_tag(tag_text)
-        stag_bytes = self._trim_tag_head(stag_bytes)
         ver = git_auth.verify_git_signed(stag_bytes)
         verdict = OrderedDict(sorted(vars(ver).items()))
         if not ver:
