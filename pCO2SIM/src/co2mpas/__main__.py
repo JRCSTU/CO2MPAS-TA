@@ -242,23 +242,15 @@ def init_logging(level=None, frmt=None, logconf_file=None,
                 rlog.addHandler(color_handler)
         logconf_src = 'explicit(level=%s)' % level
 
-    if not not_using_numpy:
-        lcu._set_numpy_logging()
+    log.debug('Logging-configurations source: %s', logconf_src)
 
-    logging.captureWarnings(True)
+    is_debug = logging.getLogger().isEnabledFor(logging.DEBUG)
+
+    if not not_using_numpy:
+        lcu.set_numpy_errors_enabled(is_debug or not os.environ.get('AIODIR'))
 
     ## Disable warnings on AIO but not when developing.
-    #
-    if os.environ.get('AIODIR'):
-        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
-        warnings.filterwarnings(action="ignore", module="scipy",
-                                message="^internal gelsd")
-        warnings.filterwarnings(action="ignore", module="dill",
-                                message="^unclosed file")
-        warnings.filterwarnings(action="ignore", module="importlib",
-                                message="^can't resolve")
-
-    log.debug('Logging-configurations source: %s', logconf_src)
+    lcu.set_warnings_enabled(is_debug or not os.environ.get('AIODIR'))
 
 
 def is_any_log_option(argv):

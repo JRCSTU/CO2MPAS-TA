@@ -10,11 +10,30 @@ import logging
 import sys
 
 
-def _set_numpy_logging():
-    rlog = logging.getLogger()
-    if not rlog.isEnabledFor(logging.DEBUG):
-        import numpy as np
-        np.seterr(divide='ignore', invalid='ignore')
+def set_numpy_errors_enabled(enabled):
+    import numpy as np
+
+    action = 'warn' if enabled else 'ignore'
+    np.seterr(divide=action, invalid=action)
+
+
+def set_warnings_enabled(enabled):
+    import warnings
+
+    logging.captureWarnings(True)
+
+    if enabled:
+        action = 'default'
+    else:
+        action = 'ignore'
+
+    warnings.filterwarnings(action=action, category=DeprecationWarning)
+    warnings.filterwarnings(action=action, module="scipy",
+                            message="^internal gelsd")
+    warnings.filterwarnings(action=action, module="dill",
+                            message="^unclosed file")
+    warnings.filterwarnings(action=action, module="importlib",
+                            message="^can't resolve")
 
 
 def _colorama_init(autoreset=False, convert=None, strip=None, wrap=True):
