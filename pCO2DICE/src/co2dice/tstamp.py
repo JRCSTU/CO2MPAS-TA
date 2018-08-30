@@ -1734,21 +1734,20 @@ class WstampSpec(cli.DiceSpec):
 
         with req.post(endpoint, data=data, stream=True) as r:
             ok = r.status_code == 200
+
+            ## MUST consume response before raising,
+            #  or `response.text` will be none.
+            #
             threshold = self.defer_error_response_size_theshold
             should_fetch_response = (ok or
                                      self.verbose or
                                      self._content_legth(r) < threshold)
-
-            if should_fetch_response:
-                text = r.text
+            text = r.text if should_fetch_response else None
 
             if not r.ok:
-                if self.verbose:
-                    raise CmdException(r.text)
-                else:
-                    raise r.raise_for_status()
+                raise r.raise_for_status()
 
-        return text
+            return text
 
 
 ###################
