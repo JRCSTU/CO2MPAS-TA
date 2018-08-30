@@ -412,20 +412,26 @@ def stds_redirected(new_stdout=None, new_stderr=None):
 
 
 def run_python_job(job_name, function, cmd_args, cmd_kwds,
-                   stdout=None, stderr=None, on_finish=None):
+                   stdout=None, stderr=None, on_finish=None,
+                   is_debug=False):
     """
     Redirects stdout/stderr to (log-panel-logged) logging, and notifies when finished.
 
     Suitable to be run within a thread.
+
+    :param is_debug:
+        controls hidden warnings and numpy-errors.
     """
     from co2mpas.utils import logconfutils as lcu
     import schedula
 
-    ## Numpy error-config is on per-thread basis:
-    #    https://docs.scipy.org/doc/numpy/reference/ufuncs.html#error-handling
-    #  So replicate :func:`cmain.init_logging()` logic also here.
+    ##  Replicate part of :func:`cmain.init_logging()` logic here.
     #
-    lcu._set_numpy_logging()
+    # Numpy error-config is on per-thread basis:
+    #    https://docs.scipy.org/doc/numpy/reference/ufuncs.html#error-handling
+    lcu.set_numpy_errors_enabled(is_debug)
+    ## Reset warnings, in case dicer has modified them.
+    lcu.set_warnings_enabled(is_debug)
 
     ex = None
     with stds_redirected(stdout, stderr):
@@ -1882,11 +1888,15 @@ class SimulatePanel(ttk.Frame):
             # FIXME: Why `job_must_stop` flag appears True!??
             #'model': cbatch.vehicle_processing_model(),
         })
+        is_debug = logging.getLogger().isEnabledFor(logging.DEBUG) or not os.environ.get('AIODIR')
         t = Thread(
             target=run_python_job,
-            args=(job_name,
-                  cbatch.process_folder_files, (inp_paths, out_folder), cmd_kwds,
-                  updater.stdout, updater.stderr, updater.on_finish),
+            args=(job_name, cbatch.process_folder_files, (inp_paths, out_folder), cmd_kwds),
+            kwargs={
+                'stdout': updater.stdout, 'stderr': updater.stderr,
+                'on_finish': updater.on_finish,
+                'is_debug': is_debug,
+            },
             daemon=True,  # May corrupt output-files, but prefferably UI closes cleanly.
         )
 
