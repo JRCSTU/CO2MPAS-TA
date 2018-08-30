@@ -199,6 +199,10 @@ class ThermalModel(object):
 
         spl = _filter_temperature_samples(spl, on_engine, self.thermostat)
         opt = {
+            ## FIXME: Normally RANSAC sets this from its own `random_state`,
+            #  but strangely, without this `seed`, it fails with:
+            #       Failed DISPATCHING 'engine_model/thermal/calibrate_engine_temperature_regression_model' due to: # noqa
+            #       XGBoostError(b"Invalid Parameter format for seed expect int but value='<mtrand.RandomState",)   # noqa
             'seed': 0,
             'max_depth': 2,
             'n_estimators': int(min(300.0, 0.25 * (len(spl) - 1)))
@@ -229,7 +233,7 @@ class ThermalModel(object):
             return self
         spl = spl[:co2_utl.argmax(np.percentile(spl[:, 0], 60) <= spl[:, 0])]
         opt = {
-            'seed': 0,
+            'random_state': 0,
             'max_depth': 2,
             'n_estimators': int(min(300.0, 0.25 * (len(spl) - 1)))
         }

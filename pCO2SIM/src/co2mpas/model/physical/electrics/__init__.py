@@ -256,7 +256,7 @@ def identify_alternator_initialization_time(
         n, i = len(on_engine), co2_utl.argmax((s[:-1] != s[1:]) & s[:-1])
         i = min(n - 1, i)
         opt = {
-            'seed': 0, 'max_depth': 2
+            'random_state': 0, 'max_depth': 2
         }
 
         from ..engine.thermal import _build_samples
@@ -511,7 +511,7 @@ class AlternatorCurrentModel(object):
 
     def _fit_model(self, spl, in_mask=(), out_mask=()):
         opt = {
-            'seed': 0,
+            'random_state': 0,
             'max_depth': 2,
             'n_estimators': int(min(300.0, 0.25 * (len(spl) - 1))) or 1
         }
