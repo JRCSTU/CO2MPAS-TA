@@ -102,10 +102,14 @@ class PFiles(namedtuple('PFiles', all_io_kinds)):
                 if not osp.isfile(fpath)]
 
     def check_files_exist(self, name):
+        from .utils import joinstuff
+
         badfiles = self.find_nonfiles()
         if badfiles:
             raise CmdException("%s: cannot find %i file(s): %s" %
-                               (name, len(badfiles), badfiles))
+                               (name, len(badfiles),
+                                joinstuff((convpath(f, abs_path=True) for f in badfiles),
+                                          '', '\n  %s')))
 
     def build_cmd_line(self, **convpath_kwds):
         "Build cli-options for `project append` preserving pair-order."
