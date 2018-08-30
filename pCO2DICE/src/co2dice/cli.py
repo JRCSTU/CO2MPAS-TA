@@ -194,6 +194,8 @@ def run(argv=(), **app_init_kwds):
                      )
     log = logging.getLogger(APPNAME)
 
+    from requests import HTTPError
+
     try:
         ## NOTE: HACK to fail early on first AIO launch.
         Cmd.configs_required = True
@@ -206,6 +208,12 @@ def run(argv=(), **app_init_kwds):
         log.debug('App exited due to: %r', ex, exc_info=1)
         ## Suppress stack-trace for "expected" errors but exit-code(1).
         return lnu.exit_with_pride(str(ex), logger=log)
+    except HTTPError as ex:
+        log.debug('App failed due to: %r', ex, exc_info=1)
+        return lnu.exit_with_pride(
+            "%s\n  remote error: %s",
+            ex, ex.response.text,
+            logger=log)
     except Exception as ex:
         ## Log in DEBUG not to see exception x2, but log it anyway,
         #  in case log has been redirected to a file.

@@ -2716,8 +2716,12 @@ class Co2guiCmd(cmdlets.Cmd):
                 polite = isinstance(ex, (cmdlets.CmdException,
                                          trt.TraitError,
                                          transitions.MachineError,
-                                         schema.SchemaError))
-                err = ex if polite else '%s: %s' % (type(ex).__name__, ex)
+                                         schema.SchemaError,
+                                         requests.HTTPError))
+                if isinstance(ex, requests.HTTPError):
+                    err = "%s\n  remote error: %s" % (ex, ex.response.text)
+                else:
+                    err = ex if polite else '%s: %s' % (type(ex).__name__, ex)
                 self.log.debug('Job %s failed due: %s', jobname, ex, exc_info=1)
                 mediate_guistate("%s FAILED ON STEP %s DUE TO: %s%s%s",
                                  jobname, cstep, err, stdout, stderr,

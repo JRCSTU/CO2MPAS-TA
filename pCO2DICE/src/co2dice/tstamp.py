@@ -2217,15 +2217,21 @@ class WstampCmd(cmdlets.Cmd,
         super().__init__(**kwds)
 
     def run(self, *args):
+        from requests import HTTPError
+
         wstamper = WstampSpec(config=self.config)
         for fpath, dice in self.yield_files(*args):
             try:
                 stamp = wstamper.stamp_dice(dice)
             except CmdException as ex:
-                self.log.error("Timestamping file '%s' stopped due to: %s",
+                self.log.error("Timestamping '%s' stopped due to: %s",
                                fpath, ex, exc_info=1)  # one-off event, must not loose ex.
+            except HTTPError as ex:
+                self.log.error("Timestamping '%s' failed due to: %s"
+                               "\n  remote error: %s",
+                               fpath, ex, ex.response.text)  # one-off event, must not loose ex.
             except Exception as ex:
-                self.log.error("Timestamping file '%s' failed due to: %r",
+                self.log.error("Timestamping '%s' failed due to: %r",
                                fpath, ex, exc_info=1)  # one-off event, must not loose ex.
 
             else:
