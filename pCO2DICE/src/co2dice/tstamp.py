@@ -2171,9 +2171,9 @@ class WstampCmd(cmdlets.Cmd,
         %(cmd_chain)s [OPTIONS] [<dice-file-1> ...]
 
     - If '-' is given or no file at all, it reads from STDIN.
-    - By default, --write-file='~/.co2dice/reports.txt', so
+    - The flag `--write-file=+~/.co2dice/reports.txt` is always implied, so
       every time this cmd runs, it *APPENDS* into the file above
-      any Dice received (or any errors).
+      any Stamp received (or any errors).
     - If --dry-run, the Dice is sent to WebStamper for validation only.
     - If no Dice given, connectivity and status of WebStamper are checked
       (--dry-run is irrelevant).

@@ -302,12 +302,10 @@ class StampParsingCmdMixin(FileReadingMixin):
 
 
 class ReportsKeeper(trc.Configurable):
-    """
-    Practically it manages a list of loggers and writes content into.
-    """
+    """Manages a list of loggers to write content into."""
 
     default_reports_fpath = trt.Unicode(
-        '~/.co2dice/reports.txt',
+        '+~/.co2dice/reports.txt',
         allow_none=True,
         help="""
         The log-file where to keep a record of all intermediate Dices & Stamps exchanged.
@@ -320,7 +318,14 @@ class ReportsKeeper(trc.Configurable):
 
     write_fpaths = trt.List(
         trt.Unicode(),
-        help="Log stuff (Dices, Stamps & Decisions) in files."
+        help="""
+        Filepaths where to log stuff (Dices, Stamps & Decisions).
+
+        - For paths starting with '+', stuff is appended, separated with a timestamp
+          and a title.
+        - Otherwise (files without a '+' prefix), any existing files are overwritten,
+          and stuff gets written without separator lines.
+        """
     ).tag(config=True)
 
     @trt.validate('write_fpaths')
@@ -370,7 +375,7 @@ class ReportsKeeper(trc.Configurable):
         wfpaths = list(self.write_fpaths)
         wfpaths.extend(extra_fpaths)
 
-        return wfpaths
+        return [f.strip() for f in wfpaths]
 
     def get_non_default_fpaths(self, *extra_fpaths):
         """Return any other write-fpaths given, except :field:`default_reports_fpath`."""
@@ -382,17 +387,31 @@ class ReportsKeeper(trc.Configurable):
     def _logger_configed(self, log):
         """The ``log.name`` becomes the (expanded) filename to write into."""
         from logging import Formatter
-        from logging.handlers import RotatingFileHandler
 
-        wfpath = convpath(log.name, True)
-        roll_handler = RotatingFileHandler(
-            wfpath, 'a', **self.rotating_handler_cstor_kwds)
+        wfpath = log.name
+        if wfpath.startswith('+'):
+            append = True
+            wfpath = wfpath[1:]
+        else:
+            append = False
+        wfpath = convpath(wfpath, True)
 
-        formatter = Formatter(self.report_log_format, self.report_date_format)
-        roll_handler.setFormatter(formatter)
-        roll_handler.setLevel(0)
+        if append:
+            from logging.handlers import RotatingFileHandler
 
-        log.addHandler(roll_handler)
+            handler = RotatingFileHandler(
+                wfpath, 'a', **self.rotating_handler_cstor_kwds)
+
+            formatter = Formatter(self.report_log_format, self.report_date_format)
+            handler.setFormatter(formatter)
+        else:
+            from logging import FileHandler
+
+            handler = FileHandler(wfpath, 'w', encoding='utf-8')
+
+        handler.setLevel(0)
+
+        log.addHandler(handler)
         log.setLevel(0)
         log.propagate = False
 
@@ -428,8 +447,7 @@ class ReportsKeeper(trc.Configurable):
                     title, joinstuff(wfpaths))
             return
 
-        if title:
-            txt = "  ----((%s))----  \n%s" % (title, txt)
+        titled_txt = "  ----((%s))----  \n%s" % (title, txt) if title else txt
 
         written = 0
         for wfpath in wfpaths:
@@ -440,7 +458,7 @@ class ReportsKeeper(trc.Configurable):
                 continue
 
             log = self._get_logger(wfpath)
-            log.info(txt)
+            log.info(titled_txt if wfpath.startswith('+') else txt)
             written += 1
 
         ## Don't inform about title-lines.

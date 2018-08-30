@@ -23,9 +23,9 @@ class DicerCmd(cmdlets.Cmd):
       and "paired" in the order they are given.
     - The project (VFID) is extracted from the given files - if it exists
       in projects db, it must be in `tagged` or earlier state.
-    - By default, --write-file='~/.co2dice/reports.txt', so
+    - The flag `--write-file=+~/.co2dice/reports.txt` is always implied, so
       every time this cmd runs, it *APPENDS* into the file above
-      these 3 items generated:
+      these 3 items, when generated:
         1. Dice
         2. Stamp (or any error received)
         3. Decision

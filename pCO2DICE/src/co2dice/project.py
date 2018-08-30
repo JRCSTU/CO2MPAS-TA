@@ -1811,6 +1811,8 @@ class AppendCmd(_SubCmd, base.ShrinkingOutputMixin, base.ReportsKeeper):
     - If an input/output are already present in the current project, use --force.
     - Note that any file argument not given with `--inp`, `--out`, will end-up as "other".
     - If `--report` given, generates report if no file is missing.
+    - The flag `--write-file=+~/.co2dice/reports.txt` is always implied, so
+      any Dice generated it is *APPENDED* into that file.
     - Use `--recertify` to re-certify a vehicle-family
       (when a project has reached is `sample/nosample` state).
     """
@@ -1925,6 +1927,8 @@ class InitCmd(AppendCmd):
     - The 2nd form, the project-id gets derrived from the files, and
       it must be identical.
     - If both files given, use `--report` to advance immediately to `tagged` state.
+    - The flag `--write-file=+~/.co2dice/reports.txt` is always implied, so
+      any Dice generated it is *APPENDED* into that file.
     """
 
     examples = trt.Unicode("""
@@ -2000,9 +2004,8 @@ class ReportCmd(_SubCmd, base.ShrinkingOutputMixin, base.ReportsKeeper):
           ...
       To specify a negative index, use: %(cmd_chain)s -- -2
           -1: last report
-    - Eventually the *Dice Report* parameters will be time-stamped and disseminated to
-      TA authorities & oversight bodies with an email, to receive back
-      the sampling decision.
+    - The flag `--write-file=+~/.co2dice/reports.txt` is always implied, so
+      any Dice generated it is *APPENDED* into that file.
     - To send the report to the stamper, use `tsend` sub-command.
     - To get report ready for sending it MANUALLY, use `tsend --dry-run`
       instead.
@@ -2153,6 +2156,8 @@ class TparseCmd(_SubCmd, base.ShrinkingOutputMixin, base.ReportsKeeper):
         %(cmd_chain)s [OPTIONS] [<stamp-file>]
 
     - If '-' is given or no file at all, it reads from STDIN.
+    - The flag `--write-file=+~/.co2dice/reports.txt` is always implied, so
+      any valid Stamp parsed it is *APPENDED* into that file.
     - If --force, ignores most verification/parsing errors.
       that is, when you don't have the files of the projects in the repo.
       With this option, tstamp-response get, it extracts the dice-repot and adds it
@@ -2248,7 +2253,10 @@ class TrecvCmd(TparseCmd, base.ShrinkingOutputMixin, base.ReportsKeeper):
       Please migrate to WebStamper.
     - The fetching of emails can happen in one-shot or waiting mode.
     - For terms are searched in the email-subject - tip: use the project name(s).
-    - If --write-fpath given, mails are written in this files and not printed in console.
+    - If any --write-fpath given, mails are written in this file(s) and not printed
+      in console.
+    - The flag `--write-file=+~/.co2dice/reports.txt` is always implied, so
+      any valid Stamp(s) parsed are is *APPENDED* into that file.
     - If --force, ignores most verification/parsing errors.
       that is, when you don't have the files of the projects in the repo.
       With this option, tstamp-response get, it extracts the dice-repot and adds it
