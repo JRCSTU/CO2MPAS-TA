@@ -444,11 +444,14 @@ class Project(transitions.Machine, ProjectSpec):
             - [do_addfiles,  wltp_iof,   wltp_iof,     _is_force        ]
 
             - [do_addfiles,  [sample,
-                              nosample], wltp_iof,     [_is_inp_out_files, _is_recertify]]
+                              nosample,
+                              nedc], wltp_iof,     [_is_inp_out_files, _is_recertify]]
             - [do_addfiles,  [sample,
-                              nosample], wltp_inp,     [_is_inp_files, _is_recertify]]
+                              nosample,
+                              nedc], wltp_inp,     [_is_inp_files, _is_recertify]]
             - [do_addfiles,  [sample,
-                              nosample], wltp_out,     [_is_out_files, _is_recertify]]
+                              nosample,
+                              nedc], wltp_out,     [_is_out_files, _is_recertify]]
 
             - [do_report,  wltp_iof,   tagged]
             - [do_report,  tagged,     tagged]
