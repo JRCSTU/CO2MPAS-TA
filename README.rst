@@ -7,7 +7,8 @@
 |co2mpas|: Vehicle simulator predicting NEDC |CO2| emissions from WLTP
 ######################################################################
 
-:official:      `AIO-1.7.3 <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v1.7.3>`_ + `co2mpas-1.7.x` (obligatory after 31-Oct-2017)
+:official:      | `AIO-1.7.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v1.7.3>`_: from 31-Oct-2017 to 15-Nov-2018
+                | `AIO-2.0.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r2.0.0>`_: from 24-Sept-2018
 :release:       |version|
 :rel_date:      |today|
 :home:          http://co2mpas.io/
@@ -574,19 +575,19 @@ have the following characteristics:
   id    AT   WLTP   S/S BERS  NEDC   plan NEDC-error metadata
              calib           target
 ------- --- ------- --- ---- ------- ---- ---------- --------
-  --         H   L            H   L       
+  --         H   L            H   L
 ======= === === === === ==== === === ==== ========== ========
-   0         X                X                          X       
-   1     X       X                X                      X    
-   2         X       X   X    X           
-   3         X       X        X           
-   4     X       X       X        X       
-   5         X           X    X           
+   0         X                X                          X
+   1     X       X                X                      X
+   2         X       X   X    X
+   3         X       X        X
+   4     X       X       X        X
+   5         X           X    X
    6     X   X       X        X           4.0 (> 4%)
    7     X   X       X   X    X           -5.65
-   8         X   X            X   X       
-   9     X   X       X   X    X           
-simplan      X                X       X                      
+   8         X   X            X   X
+   9     X   X       X   X    X
+simplan      X                X       X
 ======= === === === === ==== === === ==== ========== ========
 
 
