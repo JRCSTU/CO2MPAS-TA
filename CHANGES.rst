@@ -162,17 +162,10 @@ Dice
   :term:`Dice` through *WebStamper*.
 
 
-- feat(dice): teach the options ``--write-fpath/-W`` and ``--shrink`` to the commands::
-
-      co2dice project (init|append|report|parse|trecv)
-
-  so they can write directly results (i.e. report) in local files, and avoid
-  printing big output to the console (see :gh:`466`).
-
 - FEAT: The commands ``co2dice dicer|init|append|report|recv|parse`` and
   ``co2dice tstamp wstamp``, support one or more ``--write-file <path>/-W`` options,
-  to and every time they run,  they *APPEND* into these all given ``<path>``
-  these 3 items created/exchanged:
+  to and every time they run,  they can *append* or *overwrite* into all given ``<path>``
+  these 3 items as they are generated/received:
 
     1. :term:`Dice report`;
     2. :term:`Stamp`  (or any errors received from :term:`WebStamper`;
