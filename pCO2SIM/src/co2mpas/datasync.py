@@ -105,7 +105,7 @@ Examples::
     datasync times velocities folder/Book.xlsx
 
     ## Sync `Sheet1` using `Sheet3` as reference:
-    datasync times velocities wbook.xlsx#Sheet3!  Sheet1!
+    datasync times velocities wbook.xlsx#Sheet3!  Sheet1
 
     ## The same as above but with integers used to index excel-sheets.
     ## NOTE that sheet-indices are zero based!
