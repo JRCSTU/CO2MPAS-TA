@@ -11,7 +11,7 @@ Changes since 1.7.4.post0:
 
 BREAKING:
 ---------
-The co2mpas python package has been splitted:gh:`408`), and is now served
+The co2mpas python package has been splitted (see :gh:`408`), and is now served
 by 4 python packages listed below.  In practice this means that you can still receive
 bug-fixes and new features for the DICE or the GUI, while keeping the simulation-model
 intact.
@@ -245,7 +245,20 @@ Various
 
 Known Limitations
 -----------------
-Almost all "known limitations" from `v1.7.3` still apply.
+- Reproducibility of results has been greatly enhanced, with quasi-identical results
+  in different platforms (*linux/Windows*).
+- DICE:
+  - Fixed known limitation of `1.7.3` (:gh:`448`) of importing stamps from an older
+    duplicate dice.
+  - It is not possible to ``-recertify`` from ``nedc`` state
+    (when mored files have been appended after stamping).
+  - There is still no high level command to view Stamps (see low-level command
+    in the old known limitation item).
+    But :term:`stamp`\s received are now save in :file:`~/.co2dice/reports.txt`
+    (along with :term:`dice`\s and :term:`decision`\s).
+  - The decision-number generated still never includes the numbers 10, 20, …90.
+  - All previous known limitations regarding :term:`mail-stamper` still apply.
+    But these commands are now *deprecated*.
 
 
 Intermediate releases for ``2.0.x``:
@@ -792,7 +805,7 @@ Known Limitations
 
         cat %HOME%/.co2dice/repo/tstamp.txt
 
-- The decision-number generated never includes the nmumbers 10, 20, ...90.
+- The decision-number generated never includes the numbers 10, 20, ...90.
   This does not change the odds for ``SAMPLE``/``NOSAMPLE`` but it does affect
   the odds for double-testing *Low* vs *High* vehicles (4 vs 5).
 
