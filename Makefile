@@ -22,6 +22,9 @@ clean-all		: $(SUBPROJECTS) $(MAKECMDGOALS:-all=)
 develop-all: 
 	pip install $(addprefix -e ./,$(SUBPROJECTS)) -e .
 
+twine-all: #wheel-all
+	twine upload -su $(USER) $(addsuffix /dist/*.whl,$(SUBPROJECTS)) dist/*.whl
+
 
 $(SUBPROJECTS):
 	$(MAKE) -C $@ $(MAKECMDGOALS:-all=)
