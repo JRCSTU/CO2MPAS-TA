@@ -261,6 +261,11 @@ Intermediate releases for ``2.0.x``:
   - Releases with ``v`` prefix signify internal milestones.
 
 
+``co2mpas-r2.0.0.post0``, 1 Sep 2018
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+doc: Just to fix site and *PyPi* landing page.
+
+
 ``r2.0.0``, 31 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~
 - fix: hide excess warnings.
