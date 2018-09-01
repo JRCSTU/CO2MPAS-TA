@@ -32,9 +32,9 @@ __uri__       = "https://co2mpas.io"                # noqa
 
 #: The Project's PEP 440 and :term:`Semantic Versioning` is retrived
 #: from from Git tags (or env[co2mpas_VERSION]).
-__version__   = '2.0.0'
+__version__   = '2.0.0+8.g5b3144db'
 #: Release date.
-__updated__   = '2018-08-31T14:22:45.246541'
+__updated__   = '2018-09-01T09:52:12.984214'
 version       = __version__                         # noqa
 
 #: The :term:`Semantic Versioning` for Input/Output files.

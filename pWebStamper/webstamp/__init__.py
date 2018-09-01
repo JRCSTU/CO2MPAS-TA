@@ -43,8 +43,8 @@ import os.path as osp
 import subprocess as sbp
 
 
-__version__ = '2.0.0'
-__updated__ = '2018-08-31T14:22:45.271526'
+__version__ = '2.0.0+8.g5b3144db'
+__updated__ = '2018-09-01T09:52:13.001205'
 
 
 ## NOTE: `configfile` DEPRECATED by `flask-appconfig` in latest dev.

@@ -46,8 +46,8 @@ __uri__       = "https://co2mpas.io"    # noqa
 
 #: Project's PEP 440 version from Git (or env[co2dice_VERSION])
 #: FIXME: change co2dice's pname in polyversion() when co2dice graduates to own project.
-__version__ = '2.0.0'
-__updated__ = '2018-08-31T14:22:45.259533'
+__version__ = '2.0.0+8.g5b3144db'
+__updated__ = '2018-09-01T09:52:12.992210'
 version = __version__
 
 #: The :term:`Semantic Versioning` for Input/Output files.

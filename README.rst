@@ -9,8 +9,8 @@
 
 :official:      | `AIO-1.7.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v1.7.3>`_: from 31-Oct-2017 to 15-Nov-2018
                 | `AIO-2.0.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r2.0.0>`_: from 24-Sept-2018
-:version:       |version|
-:rel_date:      |today|
+:version:       2.0.0.post0
+:rel_date:      2018-09-01T09:52:12.980217
 :home:          http://co2mpas.io/
 :repository:    https://github.com/JRCSTU/CO2MPAS-TA
 :pypi-repo:     https://pypi.org/project/co2mpas/
