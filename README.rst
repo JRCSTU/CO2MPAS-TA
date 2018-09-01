@@ -571,24 +571,23 @@ Demo description
 The generated demos above, along with those inside the ``CO2MPAS/Demos`` AIO-folder
 have the following characteristics:
 
-======= === === === === ==== === === ==== ========== ========
-  id    AT   WLTP   S/S BERS  NEDC   plan NEDC-error metadata
-             calib           target
-------- --- ------- --- ---- ------- ---- ---------- --------
-  --         H   L            H   L
-======= === === === === ==== === === ==== ========== ========
-   0         X                X                          X
-   1     X       X                X                      X
-   2         X       X   X    X
-   3         X       X        X
-   4     X       X       X        X
-   5         X           X    X
-   6     X   X       X        X           4.0 (> 4%)
-   7     X   X       X   X    X           -5.65
-   8         X   X            X   X
-   9     X   X       X   X    X
-simplan      X                X       X
-======= === === === === ==== === === ==== ========== ========
+======= === ==== ==== === ==== ==== ==== ==== ========== ========
+  id    AT  WLTPcalib S/S BERS NEDCtarg  plan NEDC-error metadata
+------- --- --------- --- ---- --------- ---- ---------- --------
+             H    L             H    L
+======= === ==== ==== === ==== ==== ==== ==== ========== ========
+   0         X                  X                            X
+   1     X        X                  X                       X
+   2         X        X   X     X
+   3         X        X         X
+   4     X        X       X          X
+   5         X            X     X
+   6     X   X        X         X             4.0 (> 4%)
+   7     X   X        X   X     X             -5.65
+   8         X    X             X    X
+   9     X   X        X   X     X
+simplan      X                  X         X
+======= === ==== ==== === ==== ==== ==== ==== ========== ========
 
 
 Synchronizing time-series
