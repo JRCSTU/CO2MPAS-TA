@@ -1565,6 +1565,12 @@ where in each one you can install a different versions of |co2mpas|.
     in similar manner to create child *conda-environments* instead.
 
 
+Install as a Docker
+~~~~~~~~~~~~~~~~~~~
+New in ``v2.0.x`` releases, there is the :file:`pCO2SIM/docker/` folder that contains
+the dockerfile to build a working |co2mpas| environment for Linux + :term:`Anaconda`.
+
+
 Autocompletion
 --------------
 In order to press ``[Tab]`` and get completions, do the following in your
