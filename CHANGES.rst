@@ -11,43 +11,52 @@ Changes since 1.7.4.post0:
 
 BREAKING:
 ---------
-The co2mpas python package has been splitted (see :gh:`408`), and is now served
-by 4 python packages listed below.  In practice this means that you can still receive
-bug-fixes and new features for the DICE or the GUI, while keeping the simulation-model
-intact.
+1. The ``pip`` utility contained in the old AIO is outdated (9.0.1) and
+   cannot correctly install the transitive dependencies of new ``co2mpas``, even for
+   development purposes.  Please upgrade your ``pip`` before following the installation
+   or upgrade instructions (e.g. in :term:`AIO` use ``../Apps/WinPython/scripts/upgrade_pip.bat``).
 
-1. ``co2sim``: the simulator, for standalone/engineering wwork. Now all IO-libraries
-   and graph-drawing are optional, specified the ``io`` & ``plot`` "extras".
-   If you need just the simulator to experiment, you need this command
-   to install it::
+2. The ``vehicle_family_id`` format has changed (but old format is still supported)::
 
-       pip install co2sim[io,plot]
+       OLD: FT-TA-WMI-yyyy-nnnn
+       NEW: FT-nnnnnnnnnnnnnnn-WMI-x
 
-2. ``co2dice``: the backend & commands for :abbr:`DICE (Distributed Impromptu Co2mpas Evaluation)`.
+3. The co2mpas python package has been splitted (see :gh:`408`), and is now served
+   by 4 python packages listed below.  In practice this means that you can still receive
+   bug-fixes and new features for the DICE or the GUI, while keeping the simulation-model
+   intact.
 
-3. ``co2gui``: the GUI.
+   1. ``co2sim``: the simulator, for standalone/engineering work. Now all IO-libraries
+      and graph-drawing are optional, specified the ``io`` & ``plot`` "extras".
+      If you need just the simulator to experiment, you need this command
+      to install/upgrade it with::
 
-4. ``co2mpas``: installs all of the above, and ``[io,plot]`` extras.
+          pip install co2sim[io,plot] -U
+
+   2. ``co2dice``: the backend & commands for :abbr:`DICE (Distributed Impromptu Co2mpas Evaluation)`.
+
+   3. ``co2gui``: the GUI.
+
+   4. ``co2mpas``: installs all of the above, and ``[io,plot]`` extras.
 
 
-The relationships between the sub-projects are depicted below::
+   The relationships between the sub-projects are depicted below::
 
-    co2sim[io,plot]
-      |    |
-      |  co2dice
-      |  /  \
-     co2gui  WebStamper
-       |
-       |
-    co2mpas
+       co2sim[io,plot]
+         |    |
+         |  co2dice
+         |  /  \
+        co2gui  WebStamper
+          |
+       co2mpas
 
-.. Note::
-  ``co2sim`` on startup checks if the old ``co2mpas-v1.x`` is still installed,
-  and aborts In that case, uninstall all projects and re-install them,
-  to be on the safe side, with this commands::
+   .. Note::
+     ``co2sim`` on startup checks if the old ``co2mpas-v1.x`` is still installed,
+     and aborts In that case, uninstall all projects and re-install them,
+     to be on the safe side, with this commands::
 
-      pip uninstall co2sim co2dice co2gui co2mpas -y
-      pip install co2mpas
+         pip uninstall -y co2sim co2dice co2gui co2mpas
+         pip install co2sim co2dice co2gui co2mpas -U
 
 
 Model:
