@@ -1670,13 +1670,6 @@ environment (ALLINONE is pre-configured with them):
     clink.register_match_generator(words_generator)
 
 
-- For the *bash* shell just add this command in your :file:`~/.bashrc`
-  (or type it every time you open a new console):
-
-  .. code-block:: console
-
-      complete -fdev -W "`co2mpas-autocompletions`" co2mpas
-
 .. _substs:
 
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
