@@ -14,7 +14,8 @@ BREAKING:
 1. The ``pip`` utility contained in the old AIO is outdated (9.0.1) and
    cannot correctly install the transitive dependencies of new ``co2mpas``, even for
    development purposes.  Please upgrade your ``pip`` before following the installation
-   or upgrade instructions (e.g. in :term:`AIO` use ``../Apps/WinPython/scripts/upgrade_pip.bat``).
+   or upgrade instructions for developers (e.g. in :term:`AIO`
+   use ``../Apps/WinPython/scripts/upgrade_pip.bat``).
 
 2. The ``vehicle_family_id`` format has changed (but old format is still supported)::
 
