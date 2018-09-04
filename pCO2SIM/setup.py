@@ -189,7 +189,7 @@ setup(
         'lmfit>=0.9.7',
         'logutils',
         'numpy',
-        'pandas',
+        'pandas>=0.21.0',       # `axis` kw added in e.g. reindex()
         'regex',
         'schedula[plot]>=0.2.3',
         'schema',
