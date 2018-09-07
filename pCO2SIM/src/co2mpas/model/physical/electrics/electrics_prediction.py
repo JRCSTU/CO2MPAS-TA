@@ -43,7 +43,7 @@ def calculate_battery_current(
     :rtype: float
     """
 
-    c = electric_load[on_engine] / alternator_nominal_voltage * 1000.0
+    c = electric_load[int(on_engine)] / alternator_nominal_voltage * 1000.0
     c -= alternator_current
 
     return min(c, max_battery_charging_current)
