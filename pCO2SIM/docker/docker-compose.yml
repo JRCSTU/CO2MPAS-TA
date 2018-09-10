@@ -1,9 +1,21 @@
 version: '3'
 services:
-  co2mpas:
+  co2mpas-alpine:
     container_name: co2mpas
-    image: ${CO2MPAS_TAG-vinci1it2000/co2mpas:latest}
+    image: ${CO2MPAS_TAG_ALPINE-vinci1it2000/co2mpas-alpine:latest}
     build:
       context: ..
-      dockerfile: ./docker/Dockerfile
+      dockerfile: ./docker/alpine/Dockerfile
+      args:
+        - co2sim_VERSION=${CO2MPAS_VERSION-latest}
+    command: ${CO2MPAS_CMD-co2mpas batch ./input -O ./output}
+
+  co2mpas-debian:
+    container_name: co2mpas
+    image: ${CO2MPAS_TAG_DEBIAN-vinci1it2000/co2mpas-debian:latest}
+    build:
+      context: ..
+      dockerfile: ./docker/debian/Dockerfile
+      args:
+        - co2sim_VERSION=${CO2MPAS_VERSION-latest}
     command: ${CO2MPAS_CMD-co2mpas batch ./input -O ./output}

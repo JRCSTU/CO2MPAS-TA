@@ -117,8 +117,7 @@ polyver = 'polyversion >= 0.2.2a0'  # Workaround buggy git<2.15, envvar: co2mpas
 readme_lines = read_text_lines('README.rst')
 description = readme_lines[1]
 long_desc = ''.join(yield_rst_only_markup(readme_lines))
-pindeps = read_pinned_deps(osp.join(
-    mydir, '..', 'pCO2SIM', 'requirements', 'exe.pip'))
+pindeps = read_pinned_deps(osp.join(mydir, 'requirements', 'exe.pip'))
 
 test_requirements = [
     'pytest',
@@ -130,12 +129,11 @@ test_requirements = [
     'ddt',
 ]
 
-
 setup(
     name=PROJECT,
     ## Include a default for robustness (eg to work on shallow git -clones)
     #  but also for engraves to have their version visible.
-    version='0.0.0',
+    version=os.environ.get('co2sim_VERSION' '0.0.0'),
     polyversion=True,
     description="The Type-Approving vehicle simulator predicting NEDC CO2 emissions from WLTP",
     long_description=long_desc,

@@ -1,14 +1,4 @@
 .dockerignore
 *eggs*
 .gitignore
-Makefile
-README.rst
-build
-#dist
-docker
-pyproject.toml
-#requirements
-setup.cfg
-setup.py
-src
 tests
