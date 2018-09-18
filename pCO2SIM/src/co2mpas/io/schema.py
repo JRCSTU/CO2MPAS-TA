@@ -693,7 +693,8 @@ def define_data_schema(read=True):
         'declared_co2_emission_value': positive,
         'n_dyno_axes': positive_int,
         'n_wheel_drive': positive_int,
-
+        'rcb_correction': _bool,
+        'speed_distance_correction': _bool,
         'engine_is_turbo': _bool,
         'has_start_stop': _bool,
         'has_gear_box_thermal_management': _bool,
