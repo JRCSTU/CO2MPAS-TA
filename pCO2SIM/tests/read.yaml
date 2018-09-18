@@ -1,0 +1,921 @@
+!!set
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, data, input, calibration, wltp_h]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, data, input, calibration, wltp_l]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, data, input, prediction, nedc_h]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, data, input, prediction, nedc_l]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, data, target, prediction, nedc_l]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, data, target, prediction, wltp_l]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, encrypt_inputs]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, flag, encrypt_inputs]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, flag, input_version]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, flag, output_folder]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, flag, overwrite_cache]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, flag, run_base]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, flag, run_plan]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, flag, type_approval_mode]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, flag, vehicle_family_id]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, input_file_name]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, input_version]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a, rcb_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a.10hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b, rcb_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.10hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.1hz, alternator_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.1hz, battery_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.1hz, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.1hz, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.1hz, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.1hz, obd_velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.1hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.1hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c, rcb_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.10hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.1hz, alternator_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.1hz, battery_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.1hz, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.1hz, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.1hz, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.1hz, obd_velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.1hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.1hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, output_folder]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, overwrite_cache]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, run_base]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, run_plan]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, type_approval_mode]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, vehicle_family_id]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, input_file_name]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, modelconf]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, output_folder]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, overwrite_cache]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, encrypt_inputs]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, flag, encrypt_inputs]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, flag, input_version]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, flag, output_folder]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, flag, overwrite_cache]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, flag, run_base]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, flag, run_plan]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, flag, type_approval_mode]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, flag, vehicle_family_id]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, input_file_name]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, input_version]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a, rcb_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a.10hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b, rcb_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.10hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.1hz, alternator_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.1hz, battery_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.1hz, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.1hz, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.1hz, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.1hz, obd_velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.1hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.1hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c, rcb_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.10hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.1hz, alternator_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.1hz, battery_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.1hz, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.1hz, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.1hz, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.1hz, obd_velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.1hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.1hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, output_folder]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, overwrite_cache]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, run_base]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, run_plan]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, type_approval_mode]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, vehicle_family_id]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, base, input, calibration, wltp_h]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, base, input, calibration, wltp_l]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, base, input, prediction, nedc_h]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, base, input, prediction, nedc_l]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, base, target, prediction, nedc_l]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, base, target, prediction, wltp_l]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, flag, encrypt_inputs]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, flag, input_version]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, flag, vehicle_family_id]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a, rcb_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a.10hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b, rcb_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.10hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.1hz, alternator_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.1hz, battery_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.1hz, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.1hz, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.1hz, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.1hz, obd_velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.1hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.1hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c, rcb_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.10hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.1hz, alternator_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.1hz, battery_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.1hz, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.1hz, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.1hz, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.1hz, obd_velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.1hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.1hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, plan, columns]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, plan, data]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, plan, index]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, timestamp]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, type_approval_mode]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, data, input, calibration, wltp_h]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, data, input, calibration, wltp_l]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, data, input, prediction, nedc_h]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, data, input, prediction, nedc_l]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, data, target, prediction, nedc_h]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, data, target, prediction, wltp_h]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, encrypt_inputs]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, flag, encrypt_inputs]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, flag, input_version]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, flag, output_folder]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, flag, overwrite_cache]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, flag, run_base]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, flag, run_plan]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, flag, type_approval_mode]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, flag, vehicle_family_id]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, input_file_name]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, input_version]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a, rcb_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a.10hz, times]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b, rcb_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.10hz, times]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.1hz, alternator_currents]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.1hz, battery_currents]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.1hz, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.1hz, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.1hz, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.1hz, obd_velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.1hz, times]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.1hz, velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c, rcb_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.10hz, times]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.1hz, alternator_currents]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.1hz, battery_currents]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.1hz, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.1hz, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.1hz, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.1hz, obd_velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.1hz, times]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.1hz, velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, output_folder]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, overwrite_cache]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, run_base]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, run_plan]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, type_approval_mode]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, vehicle_family_id]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, input_file_name]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, modelconf]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, output_folder]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, overwrite_cache]
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- &id001 !!python/tuple [change base, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_demo-1.xlsx',
+  true]
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- &id002 !!python/tuple [hot_temp, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
+  true]
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- &id003 !!python/tuple [invert_cycles, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
+  true]
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- &id004 !!python/tuple [nedc_cycle, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
+  true]
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.phases_integration_times
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.phases_integration_times
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.phases_integration_times
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.phases_integration_times
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.velocities
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.velocities
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.velocities
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.velocities
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_temperature
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_temperature
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_temperature
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_temperature
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.phases_integration_times
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.phases_integration_times
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.phases_integration_times
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.phases_integration_times
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.velocities
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.velocities
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.velocities
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.velocities
+- *id004
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, encrypt_inputs]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, flag, encrypt_inputs]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, flag, input_version]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, flag, output_folder]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, flag, overwrite_cache]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, flag, run_base]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, flag, run_plan]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, flag, type_approval_mode]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, flag, vehicle_family_id]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, input_file_name]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, input_version]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a, rcb_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a.10hz, times]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b, rcb_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.10hz, times]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.1hz, alternator_currents]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.1hz, battery_currents]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.1hz, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.1hz, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.1hz, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.1hz, obd_velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.1hz, times]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.1hz, velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c, rcb_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.10hz, times]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.1hz, alternator_currents]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.1hz, battery_currents]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.1hz, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.1hz, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.1hz, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.1hz, obd_velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.1hz, times]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.1hz, velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, output_folder]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, overwrite_cache]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, run_base]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, run_plan]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, type_approval_mode]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, vehicle_family_id]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, base, input, calibration, wltp_h]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, base, input, calibration, wltp_l]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, base, input, prediction, nedc_h]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, base, input, prediction, nedc_l]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, base, target, prediction, nedc_h]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, base, target, prediction, wltp_h]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, flag, encrypt_inputs]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, flag, input_version]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, flag, vehicle_family_id]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a, rcb_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a.10hz, times]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b, rcb_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.10hz, times]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.1hz, alternator_currents]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.1hz, battery_currents]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.1hz, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.1hz, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.1hz, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.1hz, obd_velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.1hz, times]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.1hz, velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c, fuel_consumption_combined]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c, rcb_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.10hz, times]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.1hz, alternator_currents]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.1hz, battery_currents]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.1hz, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.1hz, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.1hz, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.1hz, obd_velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.1hz, times]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.1hz, velocities]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, plan, columns]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, plan, data]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, plan, index]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, timestamp]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, type_approval_mode]
+: null
