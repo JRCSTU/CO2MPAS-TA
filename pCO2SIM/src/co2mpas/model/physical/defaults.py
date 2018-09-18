@@ -653,7 +653,7 @@ class Functions(co2_utl.Constants):
         #: Number of dyno axes [-].
         DYNO_AXES = {
             'WLTP': {2: 1, 4: 2},
-            'NEDC': collections.defaultdict(lambda: 1)
+            'NEDC': {2: 1, 4: 1}
         }
 
     class select_phases_integration_times(co2_utl.Constants):

@@ -95,6 +95,11 @@ class Main(unittest.TestCase):
             cmd = "batch %s -O %s" % (inp, out)
             cmain._main(*cmd.split())
 
+    def test_modelconf(self):
+        with tempfile.TemporaryDirectory() as out:
+            cmd = "modelconf -O %s" % out
+            cmain._main(*cmd.split())
+
     #@unittest.skip('Takes too long.')  # DO NOT COMIT AS SKIPPED!!
     def test_run_demos(self):
         with tempfile.TemporaryDirectory() as inp, \
