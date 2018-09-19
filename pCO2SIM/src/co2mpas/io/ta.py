@@ -335,7 +335,7 @@ def extract_dice_report(encrypt_inputs, vehicle_family_id, start_time, report):
     res = copy.deepcopy(res)
     for k, v in list(stack(res)):
         if isinstance(v, np.generic):
-            sh.get_nested_dicts(res, *k[:-1])[k[-1]] = v.item()
+            get_nested(res, *k[:-1])[k[-1]] = v.item()
 
     return res
 
@@ -350,6 +350,12 @@ def stack(d, key=()):
         yield key, d
     for k, v in it:
         yield from stack(v, key=key + (k,))
+
+
+def get_nested(d, *keys):
+    if keys:
+        return get_nested(d[keys[0]], *keys[1:])
+    return d
 
 
 @functools.lru_cache()
