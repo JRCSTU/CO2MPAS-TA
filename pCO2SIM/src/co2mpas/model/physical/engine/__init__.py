@@ -75,7 +75,7 @@ def calculate_engine_heat_capacity(engine_mass):
     par = defaults.dfl.functions.calculate_engine_heat_capacity.PARAMS
     mp, hc = par['heated_mass_percentage'], par['heat_capacity']
 
-    return engine_mass * np.sum(hc[k] * v for k, v in mp.items())
+    return engine_mass * np.sum([hc[k] * v for k, v in mp.items()])
 
 
 def identify_engine_speed_at_max_power(full_load_speeds, full_load_powers):

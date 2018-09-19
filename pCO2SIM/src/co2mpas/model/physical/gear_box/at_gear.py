@@ -590,7 +590,7 @@ def identify_gear_shifting_velocity_limits(gears, velocities, stop_velocity):
     for v, (g0, g1) in zip(velocities, sh.pairwise(gears)):
         if v >= stop_velocity and g0 != g1:
             limits[g0] = limits.get(g0, [[], []])
-            limits[g0][g0 < g1].append(v)
+            limits[g0][int(g0 < g1)].append(v)
 
     def _rjt_out(x, default):
         if x:
