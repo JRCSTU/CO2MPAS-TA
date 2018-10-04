@@ -819,6 +819,7 @@ def define_data_schema(read=True):
         'motive_powers': np_array,
         'on_engine': np_array_bool,
         'clutch_phases': np_array_bool,
+        'cold_start_speeds_phases': np_array_bool,
         'on_idle': np_array_bool,
         'state_of_charges': np_array,
         'times': np_array_sorted,
