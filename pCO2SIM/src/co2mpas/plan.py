@@ -90,8 +90,7 @@ def define_new_inputs(data, base):
             sh.get_nested_dicts(new_base, 'base', *k.split('.'),
                                 default=co2_utl.ret_v(sol[k]))
     else:
-        d = base.get_node('CO2MPAS model', node_attr='function')[0].dsp
-        out_id = set(d.data_nodes)
+        out_id = set(base.dsp.get_node('CO2MPAS model')[0].func.dsp.data_nodes)
 
     for k in remove:
         sh.get_nested_dicts(new_base, *k[:-1]).pop(k[-1])
