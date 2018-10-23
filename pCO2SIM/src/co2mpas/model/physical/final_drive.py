@@ -177,10 +177,11 @@ def calculate_final_drive_efficiencies(
     """
 
     ratio = final_drive_ratio_vector
-    eff = np.where(
-        (final_drive_torques_out == 0) & (final_drive_torques_in == 0),
-        1, final_drive_torques_out / (ratio * final_drive_torques_in)
-    )
+    with np.errstate(divide='ignore', invalid='ignore'):
+        eff = np.where(
+            (final_drive_torques_out == 0) & (final_drive_torques_in == 0),
+            1, final_drive_torques_out / (ratio * final_drive_torques_in)
+        )
 
     return np.nan_to_num(eff)
 

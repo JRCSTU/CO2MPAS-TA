@@ -599,9 +599,9 @@ def identify_gear_shifting_velocity_limits(gears, velocities, stop_velocity):
             # noinspection PyTypeChecker
             m, (n, s) = np.median(x), (len(x), np.std(x))
 
-            y = 2 > (abs(x - m) / s)
+            y = s and 2 > (abs(x - m) / s)
 
-            if y.any():
+            if s and y.any():
                 y = x[y]
 
                 # noinspection PyTypeChecker
@@ -1634,10 +1634,10 @@ def calculate_error_coefficients(
 
     x = engine_speeds[b]
     y = predicted_engine_speeds[b]
-
+    from co2mpas.report import _correlation_coefficient
     res = {
         'mean_absolute_error': sk_met.mean_absolute_error(x, y),
-        'correlation_coefficient': np.corrcoef(x, y)[0, 1],
+        'correlation_coefficient': _correlation_coefficient(x, y),
         'accuracy_score': sk_met.accuracy_score(identified_gears, gears)
     }
 

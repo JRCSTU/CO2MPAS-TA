@@ -165,12 +165,13 @@ def calculate_gear_box_efficiency(
     :rtype: float
     """
 
-    if gear_box_torque_in == gear_box_torque_out:
+    if gear_box_torque_in == gear_box_torque_out or gear_box_power_out == 0:
         eff = 1
     else:
         s_in = gear_box_speed_in
         eff = s_in * gear_box_torque_in / gear_box_power_out * (math.pi / 30000)
-        eff = 1 / eff if gear_box_power_out > 0 else eff
+        if gear_box_power_out > 0:
+            eff = 1 / eff if eff else 1
 
     return max(0, min(1, eff))
 

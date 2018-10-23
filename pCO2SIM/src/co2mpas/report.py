@@ -45,11 +45,13 @@ def _compare(t, o, metrics):
 
 
 def _correlation_coefficient(t, o):
-    return np.corrcoef(t, o)[0, 1] if t.size > 1 else np.nan
+    with np.errstate(divide='ignore', invalid='ignore'):
+        return np.corrcoef(t, o)[0, 1] if t.size > 1 else np.nan
 
 
 def _prediction_target_ratio(t, o):
-    return np.mean(o / t)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        return np.mean(o / t)
 
 
 @functools.lru_cache(None)

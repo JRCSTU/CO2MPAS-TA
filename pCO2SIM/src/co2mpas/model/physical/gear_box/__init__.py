@@ -154,8 +154,8 @@ def calculate_gear_box_torques(
         x = np.where(
             gear_box_powers_out > 0, gear_box_speeds_in, gear_box_speeds_out
         )
-
-        y = gear_box_powers_out / x
+        with np.errstate(divide='ignore', invalid='ignore'):
+            y = gear_box_powers_out / x
         y *= 30000.0 / math.pi
 
         return np.where(x <= min_engine_on_speed, 0, y)
@@ -261,7 +261,7 @@ def _gear_box_torques_in(
 
     tgb, es, ws = gear_box_torques_out, gear_box_speeds_in, gear_box_speeds_out
 
-    b = tgb < 0
+    b = (tgb < 0) & (es != 0)
 
     y = np.zeros_like(tgb)
 

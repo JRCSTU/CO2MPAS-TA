@@ -73,7 +73,8 @@ def calculate_wheel_torques(wheel_powers, wheel_speeds, coef=30000 / math.pi):
         Torque at the wheels [N*m].
     :rtype: numpy.array | float
     """
-    return np.where(wheel_speeds, wheel_powers / wheel_speeds * coef, 0)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        return np.where(wheel_speeds, wheel_powers / wheel_speeds * coef, 0)
 
 
 def calculate_wheel_powers(wheel_torques, wheel_speeds):
