@@ -145,11 +145,7 @@ def define_full_load_curve(
     xp = [idle_engine_speed[0] - idle_engine_speed[1], engine_max_speed]
     xp.extend(full_load_speeds)
     xp = np.unique(xp)
-
-    fp = sci_itp.InterpolatedUnivariateSpline(
-        full_load_speeds, full_load_powers, k=1
-    )(xp)
-
+    fp = np.interp(xp, full_load_speeds, full_load_powers)
     return functools.partial(np.interp, xp=xp, fp=fp, left=0, right=0)
 
 

@@ -60,6 +60,7 @@ def hard_validation(data, usage, stage=None, cycle=None, *args):
             _check_ki_factor,
             _check_prediction_gears_not_mt,
             _check_lean_burn_tech,
+            _check_full_load,
             _warn_vva,
             _check_scr,
             _check_has_torque_converter
@@ -221,6 +222,17 @@ def _check_prediction_gears_not_mt(data, usage, stage, cycle, *args):
 def _get_engine_model(outputs):
     from ..model.physical.engine import engine
     return engine().shrink_dsp(outputs=outputs)
+
+
+def _check_full_load(data, *args):
+    s = ('idle_engine_speed_median', 'full_load_speeds')
+    r = sh.selector(s, _get_engine_model(s)(data, s), output_type='list')
+    if r[0] < r[1][0]:
+        msg = "You have not provided Full Load Curve values below %f RPMs. \n" \
+              "This may cause issues in the simulation. Please start from " \
+              "idle RPM (%f) or correct the " \
+              "`idle_engine_speed_median = full_load_speeds[0]`!"
+        return s, msg % (r[1][0], r[0])
 
 
 def _check_lean_burn_tech(data, usage, stage, cycle, *args):
