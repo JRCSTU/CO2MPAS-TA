@@ -64,8 +64,14 @@ def _ta_mode(data):
 
     if _log_errors_msg(errors):
         return False
-
+    from .ta_mandatory import check_mandatory_inputs
     data['base'], _, diff = _extract_declaration_data(base, {})
+    missing = check_mandatory_inputs(data)
+    if missing:
+        log.info('Since CO2MPAS is launched in type approval mode the '
+                 'following data are mandatory:\n %s\n',
+                 ',\n'.join(map('.'.join, missing)))
+        return False
 
     for k in ('plan', 'flag'):
         diff.update((k,) + tuple(j.split('.')) for j in data.get(k, {}))
