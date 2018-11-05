@@ -226,7 +226,10 @@ def _get_engine_model(outputs):
 
 def _check_full_load(data, *args):
     s = ('idle_engine_speed_median', 'full_load_speeds')
-    r = sh.selector(s, _get_engine_model(s)(data, s), output_type='list')
+    try:
+        r = sh.selector(s, _get_engine_model(s)(data, s), output_type='list')
+    except KeyError:
+        return
     if r[0] < r[1][0]:
         msg = "You have not provided Full Load Curve values below %f RPMs. \n" \
               "This may cause issues in the simulation. Please start from " \
