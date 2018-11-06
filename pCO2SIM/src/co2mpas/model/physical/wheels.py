@@ -168,8 +168,8 @@ def identify_r_dynamic_v1(
     speed_x_r_dyn_ratios = gb_mec.calculate_gear_box_speeds_in(
         gears, velocities, vsr, stop_velocity
     )
-
-    r_dynamic = speed_x_r_dyn_ratios / engine_speeds_out
+    with np.errstate(divide='ignore', invalid='ignore'):
+        r_dynamic = speed_x_r_dyn_ratios / engine_speeds_out
     r_dynamic = r_dynamic[~np.isnan(r_dynamic)]
     r_dynamic = co2_utl.reject_outliers(r_dynamic)[0]
 

@@ -186,8 +186,8 @@ def get_inliers(x, n=1, med=np.median, std=np.std):
     if not x.size:
         return np.zeros_like(x, dtype=bool), np.nan, np.nan
     m, s = med(x), std(x)
-
-    y = n > (np.abs(x - m) / s)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        y = n > (np.abs(x - m) / s)
     return y, m, s
 
 

@@ -121,8 +121,8 @@ def identify_gears(
     """
 
     vsr = [v for v in velocity_speed_ratios.items() if v[0] != 0]
-
-    ratios = velocities / engine_speeds_out
+    with np.errstate(divide='ignore', invalid='ignore'):
+        ratios = velocities / engine_speeds_out
 
     idle_speed = (idle_engine_speed[0] - idle_engine_speed[1],
                   idle_engine_speed[0] + idle_engine_speed[1])
