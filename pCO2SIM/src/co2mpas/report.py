@@ -498,11 +498,13 @@ def get_values(data, keys, tag=(), update=lambda k, v: v, base=None):
 
 def get_summary_results(data):
     res = {}
-    for k in ('declared_co2_emission', 'co2_emission', 'fuel_consumption'):
+    for k in ('declared_co2_emission', 'corrected_co2_emission', 'co2_emission',
+              'fuel_consumption'):
         get_phases_values(data, what=k, base=res)
     keys = ('f0', 'f1', 'f2', 'vehicle_mass', 'gear_box_type', 'has_start_stop',
             'r_dynamic', 'ki_multiplicative', 'ki_addittive', 'fuel_type',
-            'engine_capacity', 'engine_is_turbo')
+            'engine_capacity', 'engine_is_turbo', 'engine_max_power',
+            'engine_speed_at_max_power', 'delta_state_of_charge')
     get_values(data, keys, tag=('vehicle',), base=res)
 
     return res

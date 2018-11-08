@@ -310,9 +310,19 @@ def extract_dice_report(encrypt_inputs, vehicle_family_id, start_time, report):
                 v = (sh.get_nested_dicts(d, *deviation) - 1) * 100
                 sh.get_nested_dicts(res, 'deviation')[cycle] = v
 
+    # gears
+    keys = 'summary', 'comparison', 'calibration'
+    if sh.are_in_nested_dicts(report, *keys):
+        for cycle, d in sh.get_nested_dicts(report, *keys).items():
+            if cycle.startswith('wltp_') and sh.are_in_nested_dicts(d, 'gears'):
+                sh.get_nested_dicts(res, 'gears')[cycle] = sh.get_nested_dicts(d, 'gears')
+
     # vehicle
     keys = [('summary', 'results', 'vehicle'), ('prediction', 'output')]
-    vehicle = 'fuel_type', 'engine_capacity', 'gear_box_type', 'engine_is_turbo'
+    vehicle = (
+        'fuel_type', 'engine_capacity', 'gear_box_type', 'engine_is_turbo',
+        'engine_max_power', 'engine_speed_at_max_power', 'delta_state_of_charge'
+    )
     if sh.are_in_nested_dicts(report, *keys[0]):
         for cycle, d in sh.get_nested_dicts(report, *keys[0]).items():
             if sh.are_in_nested_dicts(d, *keys[1]):
@@ -322,6 +332,39 @@ def extract_dice_report(encrypt_inputs, vehicle_family_id, start_time, report):
                 )
                 if v:
                     sh.get_nested_dicts(res, 'vehicle', cycle).update(v)
+
+    # declared
+    keys = [
+        ('summary', 'results', 'declared_co2_emission'),
+        ('prediction', 'target', 'declared_co2_emission_value')
+    ]
+    declared = {}
+    if sh.are_in_nested_dicts(report, *keys[0]):
+        for cycle, d in sh.get_nested_dicts(report, *keys[0]).items():
+            if sh.are_in_nested_dicts(d, *keys[1]):
+                declared[cycle] = sh.get_nested_dicts(d, *keys[1])
+
+    for k in 'hl':
+        i, j = 'wltp_%s' % k, 'nedc_%s' % k
+        k = 'declared_wltp_%s_vs_declared_nedc_%s' % (k, k)
+        if i in declared and j in declared:
+            sh.get_nested_dicts(res, 'ratios')[k] = declared[i] / declared[j]
+
+    # corrected
+    keys = [
+        ('summary', 'results', 'corrected_co2_emission'),
+        ('prediction', 'target', 'corrected_co2_emission_value')
+    ]
+    corrected = {}
+    if sh.are_in_nested_dicts(report, *keys[0]):
+        for cycle, d in sh.get_nested_dicts(report, *keys[0]).items():
+            if sh.are_in_nested_dicts(d, *keys[1]):
+                corrected[cycle] = sh.get_nested_dicts(d, *keys[1])
+    for k in 'hl':
+        i = 'wltp_%s' % k
+        k = 'declared_wltp_%s_vs_corrected_wltp_%s' % (k, k)
+        if i in declared and i in corrected:
+            sh.get_nested_dicts(res, 'ratios')[k] = declared[i] / corrected[i]
 
     # model scores
     keys = 'data', 'calibration', 'model_scores'
