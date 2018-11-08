@@ -210,7 +210,8 @@ def _parse_key(scope='base', usage='input', **match):
     if scope == 'flag':
         yield scope, match['flag']
     elif scope == 'meta':
-        yield scope, _re_space_dot.sub(match.get('meta', ''), '.'), match['param']
+        meta = _re_space_dot.sub(match.get('meta', ''), '.').replace('-', '_')
+        yield scope, meta, match['param']
     elif scope == 'plan':
         if len(match) == 1 and 'param' in match:
             m = _re_params_name.match('.'.join((scope, match['param'])))
