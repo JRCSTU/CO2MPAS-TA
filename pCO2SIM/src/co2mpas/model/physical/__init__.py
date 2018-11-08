@@ -333,7 +333,7 @@ def physical():
             'electrics_prediction_model', 'initial_state_of_charge',
             'max_battery_charging_current', 'start_demand',
             'state_of_charge_balance', 'state_of_charge_balance_window',
-            'state_of_charges')
+            'state_of_charges', 'delta_state_of_charge')
     )
 
     from .engine import engine

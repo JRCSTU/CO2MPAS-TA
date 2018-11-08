@@ -1395,6 +1395,25 @@ def default_initial_state_of_charge(cycle_type):
     return d[cycle_type]
 
 
+def calculate_delta_state_of_charge(state_of_charges):
+    """
+    Calculates the overall delta state of charge of the battery [%].
+
+    :param state_of_charges:
+        State of charge of the battery [%].
+
+        .. note::
+
+            `state_of_charges` = 99 is equivalent to 99%.
+    :type state_of_charges: numpy.array
+
+    :return:
+        Overall delta state of charge of the battery [%].
+    :rtype: float
+    """
+    return state_of_charges[-1] - state_of_charges[0]
+
+
 def electrics():
     """
     Defines the electrics model.
@@ -1606,5 +1625,12 @@ def electrics():
                 'alternator_efficiency'],
         outputs=['max_alternator_current']
     )
+
+    d.add_function(
+        function=calculate_delta_state_of_charge,
+        inputs=['state_of_charges'],
+        outputs=['delta_state_of_charge']
+    )
+
 
     return d
