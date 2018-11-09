@@ -100,7 +100,21 @@ def _rel_cycle_cond(d, k, stage='calibration', cycle='wltp_l'):
 
 
 _mandatory = lambda *a: True
-meta = ('times', 'velocities')
+
+meta = (
+    'times', 'velocities', 'obd_velocities', 'engine_speeds_out',
+    'engine_coolant_temperatures', 'co2_normalization_references',
+    'alternator_currents', 'battery_currents', 'co2_emission_low',
+    'co2_emission_medium', 'co2_emission_high', 'co2_emission_extra_high',
+    'rcb_correction','speed_distance_correction',
+)
+
+
+def _meta_mandatory(d, k):
+    for i in ('', '.10hz', '.target'):
+        if sh.are_in_nested_dicts(d, *(k[:-2] + (k[-2] + i,))):
+            return True
+
 
 checks = {
     'flag': {
@@ -146,8 +160,40 @@ checks = {
         }
     },
     'meta': {
-        'wltp_h.10hz': dict.fromkeys(meta, [_mandatory]),
-        'wltp_l.10hz': dict.fromkeys(meta, [_rel_cycle_cond])
+        'wltp_h.10hz': dict.fromkeys(('times', 'velocities'), [_mandatory]),
+        'wltp_l.10hz': dict.fromkeys(('times', 'velocities'), [_rel_cycle_cond]),
+        'wltp_h.test_b': dict.fromkeys(meta, [_meta_mandatory]),
+        'wltp_h.test_b.target': dict.fromkeys(
+            ('fuel_consumption_value', 'corrected_co2_emission_value'),
+            [_meta_mandatory]
+        ),
+        'wltp_h.test_b.10hz': dict.fromkeys(
+            ('times', 'velocities'), [_meta_mandatory]
+        ),
+        'wltp_l.test_b': dict.fromkeys(meta, [_meta_mandatory]),
+        'wltp_l.test_b.target': dict.fromkeys(
+            ('fuel_consumption_value', 'corrected_co2_emission_value'),
+            [_meta_mandatory]
+        ),
+        'wltp_l.test_b.10hz': dict.fromkeys(
+            ('times', 'velocities'), [_meta_mandatory]
+        ),
+        'wltp_h.test_c': dict.fromkeys(meta, [_meta_mandatory]),
+        'wltp_h.test_c.target': dict.fromkeys(
+            ('fuel_consumption_value', 'corrected_co2_emission_value'),
+            [_meta_mandatory]
+        ),
+        'wltp_h.test_c.10hz': dict.fromkeys(
+            ('times', 'velocities'), [_meta_mandatory]
+        ),
+        'wltp_l.test_c': dict.fromkeys(meta, [_meta_mandatory]),
+        'wltp_l.test_c.target': dict.fromkeys(
+            ('fuel_consumption_value', 'corrected_co2_emission_value'),
+            [_meta_mandatory]
+        ),
+        'wltp_l.test_c.10hz': dict.fromkeys(
+            ('times', 'velocities'), [_meta_mandatory]
+        ),
     }
 }
 
