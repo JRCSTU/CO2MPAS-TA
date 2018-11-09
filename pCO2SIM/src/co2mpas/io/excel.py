@@ -213,7 +213,7 @@ def _parse_key(scope='base', usage='input', **match):
         meta = _re_space_dot.sub(match.get('meta', ''), '.').replace('-', '_')
         yield scope, meta, match['param']
     elif scope == 'plan':
-        if len(match) == 1 and 'param' in match:
+        if 'param' in match:
             m = _re_params_name.match('.'.join((scope, match['param'])))
             if m:
                 m = {i: j for i, j in m.groupdict().items() if j}
@@ -332,12 +332,14 @@ def parse_excel_file(file_path):
 
 
 def _add_index_plan(plan, file_path):
-    func = functools.partial(osp.join, osp.dirname(file_path))
     if 'base' not in plan:
         plan['base'] = file_path
     else:
-        plan['base'].fillna(file_path)
-        plan['base'] = plan['base'].apply(lambda x: x or file_path).apply(func)
+        d = osp.dirname(file_path)
+        plan['base'].fillna(osp.basename(file_path), inplace=True)
+        plan['base'] = plan['base'].apply(
+            lambda x: osp.isabs(x) and x or osp.join(d, x)
+        )
 
     plan['base'] = plan['base'].apply(osp.normpath)
 
