@@ -69,7 +69,8 @@ def _ta_mode(data):
     missing = check_mandatory_inputs(data)
     if missing:
         log.info('Since CO2MPAS is launched in type approval mode the '
-                 'following data are mandatory:\n %s\n',
+                 'following data are mandatory:\n %s\n'
+                 'If you want to run without it use the cmd batch.',
                  ',\n'.join(map('.'.join, missing)))
         return False
 
@@ -87,13 +88,6 @@ def _ta_mode(data):
                  'following data cannot be used:\n %s\n'
                  'If you want to include these data use the cmd batch.',
                  ',\n'.join(diff))
-        return False
-
-    if not sh.are_in_nested_dicts(data, 'flag', 'vehicle_family_id') \
-            or not data['flag']['vehicle_family_id']:
-        log.info('Since CO2MPAS is launched in type approval mode the '
-                 '`vehicle_family_id` is required!\n'
-                 'If you want to run without it use the cmd batch.')
         return False
     return True
 
