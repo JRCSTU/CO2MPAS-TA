@@ -94,8 +94,8 @@ wltp = extend_checks(base, dict.fromkeys((
 ), _cycle_condition))
 
 
-def _rel_cycle_cond(d, k, cycle='wltp_l'):
-    keys = 'base', 'inputs', 'prediction', cycle, 'vehicle_mass'
+def _rel_cycle_cond(d, k, stage='calibration', cycle='wltp_l'):
+    keys = 'base', 'input', stage, cycle, 'vehicle_mass'
     return sh.are_in_nested_dicts(d, *keys)
 
 
@@ -119,9 +119,9 @@ checks = {
             },
             'prediction': {
                 'nedc_h': {'declared_co2_emission_value': [_mandatory]},
-                'nedc_l': {'declared_co2_emission_value': [
-                    functools.partial(_rel_cycle_cond, cycle='nedc_l')
-                ]},
+                'nedc_l': {'declared_co2_emission_value': [functools.partial(
+                    _rel_cycle_cond, stage='prediction', cycle='nedc_l'
+                )]},
                 'wltp_h': {
                     'declared_co2_emission_value': [_mandatory],
                     'fuel_consumption_value': [_mandatory],
