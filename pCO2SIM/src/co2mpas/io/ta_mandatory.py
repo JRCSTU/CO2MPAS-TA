@@ -70,9 +70,8 @@ base = extend_checks(
         'has_selective_catalytic_reduction',
         'has_gear_box_thermal_management', 'has_exhausted_gas_recirculation',
         'vehicle_mass', 'f0', 'f1', 'f2', 'n_wheel_drive', 'final_drive_ratio',
-        'final_drive_ratios', 'start_stop_activation_time', 'ki_additive',
+        'final_drive_ratios', 'start_stop_activation_time',
         'fuel_saving_at_strategy', 'active_cylinder_ratios',
-        'ki_multiplicative',
     ), _cycle_condition),
     {
         'final_drive_ratio': final_drive_ratio,
@@ -80,9 +79,17 @@ base = extend_checks(
         'start_stop_activation_time': start_stop_activation_time,
         'fuel_saving_at_strategy': fuel_saving_at_strategy,
         'active_cylinder_ratios': active_cylinder_ratios,
+    }
+)
+
+nedc = extend_checks(
+    base,
+    dict.fromkeys(('ki_multiplicative', 'ki_additive'), _cycle_condition),
+    {
         'ki_multiplicative': ki_multiplicative,
         'ki_additive': ki_additive
-    })
+    }
+)
 
 wltp = extend_checks(base, dict.fromkeys((
     'co2_emission_low', 'co2_emission_medium', 'co2_emission_high',
@@ -106,7 +113,7 @@ meta = (
     'engine_coolant_temperatures', 'co2_normalization_references',
     'alternator_currents', 'battery_currents', 'co2_emission_low',
     'co2_emission_medium', 'co2_emission_high', 'co2_emission_extra_high',
-    'rcb_correction','speed_distance_correction',
+    'rcb_correction', 'speed_distance_correction',
 )
 
 
@@ -158,14 +165,15 @@ checks = {
                 'wltp_h': sh.combine_dicts(wltp, {'vehicle_mass': [_mandatory]})
             },
             'prediction': {
-                'nedc_l': base,
-                'nedc_h': sh.combine_dicts(base, {'vehicle_mass': [_mandatory]})
+                'nedc_l': nedc,
+                'nedc_h': sh.combine_dicts(nedc, {'vehicle_mass': [_mandatory]})
             }
         }
     },
     'meta': {
         'wltp_h.10hz': dict.fromkeys(('times', 'velocities'), [_mandatory]),
-        'wltp_l.10hz': dict.fromkeys(('times', 'velocities'), [_rel_cycle_cond]),
+        'wltp_l.10hz': dict.fromkeys(('times', 'velocities'),
+                                     [_rel_cycle_cond]),
         'wltp_h.test_b': dict.fromkeys(meta, [_meta_mandatory]),
         'wltp_h.test_b.target': dict.fromkeys(
             ('fuel_consumption_value', 'corrected_co2_emission_value'),
