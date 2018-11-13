@@ -256,9 +256,15 @@ def save_data(
     if encrypted_data is not None:
         kw['encrypted_data'] = encrypted_data
     from co2mpas.batch import default_output_file_name
-    tar_file = default_output_file_name(
-        output_folder, ta_id['vehicle_family_id'], timestamp, 'co2mpas.ta'
-    )
+    i = 0
+    while True:
+        tar_file = default_output_file_name(
+            output_folder, ta_id['vehicle_family_id'],
+            '%s-%02d' % (timestamp, i), 'co2mpas.ta'
+        )
+        if not osp.isfile(tar_file):
+            break
+        i += 1
     return _save_data(tar_file, **kw)
 
 
