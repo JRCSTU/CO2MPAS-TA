@@ -76,10 +76,9 @@ def load_public_RSA_keys(fpath):
     with tarfile.open(fpath, 'r') as tar:
         for k in itertools.product(('public',), ('secret', 'server')):
             with tar.extractfile(tar.getmember('%s/%s.pem' % k[::-1])) as f:
-                key = serialization.load_pem_public_key(
+                keys[k[-1]] = serialization.load_pem_public_key(
                     f.read(), default_backend()
                 )
-                keys[k[-1]] = key
     return keys
 
 
@@ -92,7 +91,8 @@ def load_private_RSA_keys(fpath, passwords=None):
         it = itertools.product(('private',), ('secret', 'server'))
         for k, p in itertools.zip_longest(it, passwords or ()):
             p = p is not None and p.encode() or None
-            with tar.extractfile(tar.getmember('%s/%s.pem' % k[::-1])) as f:
+            info = tar.getmember('%s/%s.pem' % k[::-1])
+            with tar.extractfile(info) as f:
                 keys[k[-1]] = serialization.load_pem_private_key(
                     f.read(), p, default_backend()
                 )
@@ -150,7 +150,7 @@ def generate_keys(key_folder, passwords=None):
         )
 
     it = (
-        ('cli.co2mpas.keys', (('public', 'secret'), ('public', 'server'))),
+        ('dice.co2mpas.keys', (('public', 'secret'), ('public', 'server'))),
         ('server.co2mpas.keys',
          (('public', 'secret'), ('public', 'server'), ('private', 'server'))),
         ('secret.co2mpas.keys',
@@ -274,7 +274,7 @@ def load_data(fpath):
     return data
 
 
-def define_ta_id(vehicle_family_id, data, report):
+def define_ta_id(vehicle_family_id, data, report, dice):
     key = {
         'vehicle_family_id': vehicle_family_id,
         'hash': {
@@ -285,9 +285,20 @@ def define_ta_id(vehicle_family_id, data, report):
                 dict(_filter_data(report)), default=_json_default,
                 sort_keys=True
             ).encode())
-        }
+        },
+        'extension': int(dice.get('extension', False)),
+        'bifuel': int(dice.get('bifuel', False)),
+        'wltp_retest': dice.get('wltp_retest', '-'),
+        'comments': dice.get('comments', ''),
+        'fuel_type': _get_fuel(report)
     }
     return key
+
+
+def _get_fuel(d):
+    k = ('summary', 'results', 'vehicle', 'nedc_h', 'prediction', 'input',
+         'fuel_type')
+    return sh.are_in_nested_dicts(d, *k) and sh.get_nested_dicts(d, *k)
 
 
 def extract_dice_report(encrypt_inputs, vehicle_family_id, start_time, report):
@@ -419,7 +430,7 @@ def crypto():
 
     dsp.add_function(
         function=define_ta_id,
-        inputs=['vehicle_family_id', 'data', 'report'],
+        inputs=['vehicle_family_id', 'data', 'report', 'dice'],
         outputs=['ta_id']
     )
 
@@ -464,7 +475,7 @@ def write_ta_output():
         crypto(),
         'write_ta_output',
         inputs=['encrypt_inputs', 'path_keys', 'vehicle_family_id',
-                'start_time', 'timestamp', 'data', 'meta', 'report',
+                'start_time', 'timestamp', 'data', 'meta', 'dice', 'report',
                 'output_folder'],
         outputs=['ta_file']
     )
@@ -493,8 +504,8 @@ def define_decrypt_function(path_keys, passwords=None):
 
 
 if __name__ == '__main__':
-    passwords = None  # ('12345', '67890')
-    # generate_keys('.', passwords)
+    passwords = ('p_secret', 'p_server')
+    #generate_keys('.', passwords)
     func = define_decrypt_function('secret.co2mpas.keys', passwords)
-    r = func('20180801_185906-IP-TEST_1234567890-AAA-1.co2mpas.ta')
-    r = 0
+    r = func('./output/20181113_173522-IP-DEMO_1000-ABC-1.co2mpas.ta')
+    c = 0

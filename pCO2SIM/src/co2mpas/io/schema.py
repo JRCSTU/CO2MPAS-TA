@@ -89,7 +89,25 @@ def _ta_mode(data):
                  'If you want to include these data use the cmd batch.',
                  ',\n'.join(diff))
         return False
+
+    if _check_fuel(base):
+        log.info('Since CO2MPAS is launched in type approval mode only one '
+                 'type of fuel can be used.\nIf you want to simulate with '
+                 'different fuels use the cmd batch.')
+        return False
     return True
+
+
+def _check_fuel(base):
+    d = base.get('input', {})
+    fuels = {
+        sh.get_nested_dicts(d, *k, 'fuel_type')
+        for k in (('calibration', 'wlpt_h'), ('calibration', 'wlpt_l'),
+                  ('prediction', 'nedc_h'), ('prediction', 'nedc_l'))
+        if sh.are_in_nested_dicts(d, *k, 'fuel_type')
+    }
+
+    return len(fuels) > 1
 
 
 def _extract_declaration_data(inputs, errors):
@@ -201,6 +219,24 @@ def validate_meta(data, soft_validation):
         return sh.NONE
 
     return i
+
+
+def validate_dice(dice):
+    read_schema = define_dice_schema(read=True)
+    inputs, errors, validate = {}, {}, read_schema.validate
+    for k, v in sorted(dice.items()):
+        _add_validated_input(inputs, validate, ('dice', k), v, errors)
+
+    if inputs.get('extension') and inputs.get('wltp_retest', '-') != '-':
+        sh.get_nested_dicts(errors,'dice')['extension'] = (
+            "Invalid combination `dice.extension == True` and "
+            "`dice.wltp_retest != '-'`. Please set `dice.extension = False` "
+            "or set `dice.wltp_retest = '-'`!"
+        )
+
+    if _log_errors_msg(errors):
+        return sh.NONE
+    return inputs
 
 
 def validate_flags(flags):
@@ -921,3 +957,29 @@ def define_flags_schema(read=True):
         schema = {k: And(v, Or(f, Use(str))) for k, v in schema.items()}
 
     return Schema(schema)
+
+
+@functools.lru_cache(None)
+def define_dice_schema(read=True):
+    string = _string(read=read)
+    _bool = _type(type=bool, read=read)
+
+    schema = {
+        _compare_str('bifuel'): _bool,
+        _compare_str('extension'): _bool,
+        _compare_str('comments'): string,
+        _compare_str('wltp_retest'): _select(
+            types=('-', 'a', 'b', 'c', 'd', 'ab', 'ac', 'ad', 'bc', 'bd', 'cd',
+                   'abc', 'abd', 'abcd'), read=read),
+    }
+
+    schema = {Optional(k): Or(Empty(), v) for k, v in schema.items()}
+
+    if not read:
+        def f(x):
+            return x is sh.NONE
+
+        schema = {k: And(v, Or(f, Use(str))) for k, v in schema.items()}
+
+    return Schema(schema)
+

@@ -23,7 +23,7 @@ import os.path as osp
 
 log = logging.getLogger(__name__)
 
-files_exclude_regex = re.compile('^\w')
+files_exclude_regex = re.compile(r'^\w')
 
 
 def parse_dsp_solution(solution):
@@ -454,6 +454,11 @@ def prepare_data(raw_data, variation, input_file_name, overwrite_cache,
             raw_data.get('flag', {}), r['flag'], depth=1
         )
 
+    if 'dice' in r:
+        r['dice'] = sh.combine_nested_dicts(
+            raw_data.get('dice', {}), r['dice'], depth=1
+        )
+
     if 'meta' in r:
         r['meta'] = sh.combine_nested_dicts(
             raw_data.get('meta', {}), r['meta'], depth=2
@@ -492,6 +497,7 @@ def prepare_data(raw_data, variation, input_file_name, overwrite_cache,
 
     res = {
         'flag': flag,
+        'dice': data.get('dice', {}),
         'meta': data.get('meta', {}),
         'variation': variation,
         'input_file_name': input_file_name,
@@ -654,6 +660,12 @@ def run_base():
     )
 
     d.add_function(
+        function=schema.validate_dice,
+        inputs=['dice'],
+        outputs=['validated_dice']
+    )
+
+    d.add_function(
         function=sh.add_args(schema.validate_base),
         inputs=['run_base', 'data', 'engineering_mode', 'soft_validation',
                 'use_selector'],
@@ -692,8 +704,8 @@ def run_base():
 
     from .model import model
     d.add_function(
-        function=sh.add_args(sh.SubDispatch(model())),
-        inputs=['validated_meta', 'validated_base'],
+        function=sh.add_args(sh.SubDispatch(model()), 2),
+        inputs=['validated_meta', 'validated_dice', 'validated_base'],
         outputs=['dsp_solution']
     )
 
@@ -719,7 +731,7 @@ def run_base():
         function=sh.add_args(write_ta_output()),
         inputs=['type_approval_mode', 'encrypt_inputs', 'encryption_keys',
                 'vehicle_family_id', 'start_time', 'timestamp', 'data', 'meta',
-                'report', 'output_folder'],
+                'validated_dice', 'report', 'output_folder'],
         outputs=['output_ta_file'],
         input_domain=check_first_arg
     )

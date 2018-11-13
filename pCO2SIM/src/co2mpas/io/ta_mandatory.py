@@ -121,6 +121,10 @@ checks = {
         'vehicle_family_id': [_mandatory],
         'input_version': [_mandatory]
     },
+    'dice': {
+        'bifuel': [_mandatory],
+        'extension': [_mandatory],
+    },
     'base': {
         'target': {
             'calibration': {

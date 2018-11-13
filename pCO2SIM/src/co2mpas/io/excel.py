@@ -44,6 +44,8 @@ _base_params = r"""
 
 _flag_params = r"""^(?P<scope>flag)(\.|\s+)(?P<flag>[^\s.]*)\s*$"""
 
+_dice_params = r"""^(?P<scope>dice)(\.|\s+)(?P<dice>[^\s.]*)\s*$"""
+
 _meta_params = r"""
     ^(?P<scope>meta)(\.|\s+)((?P<meta>.+)(\.|\s+))?((?P<param>[^\s.]+))\s*$
 """
@@ -54,6 +56,8 @@ _plan_params = r"""
      |
 """ + _flag_params.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
      |
+""" + _dice_params.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
+     |
 """ + _meta_params.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
      |
 """ + _base_params.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
@@ -63,7 +67,7 @@ _plan_params = r"""
 
 _re_params_name = regex.compile(
     r"""
-        ^(?P<param>((plan|base|flag)|
+        ^(?P<param>((plan|base|flag|dice)|
                     (target|input|output|data|config|meta)|
                     ((precondition|calibration|prediction|selector)s?)|
                     (WLTP([-_]{1}[HLP]{1})?|
@@ -71,6 +75,8 @@ _re_params_name = regex.compile(
                      ALL)(recon)?))\s*$
         |
     """ + _flag_params + r"""
+        |
+    """ + _dice_params + r"""
         |
     """ + _meta_params + r"""
         |
@@ -90,6 +96,8 @@ _base_sheet = r"""
 
 _flag_sheet = r"""^(?P<scope>flag)((\.|\s+)(?P<type>(pa|ts|pl)))?\s*$"""
 
+_dice_sheet = r"""^(?P<scope>dice)((\.|\s+)(?P<type>(pa|ts|pl)))?\s*$"""
+
 _meta_sheet = r"""
     ^(?P<scope>meta)((\.|\s+)(?P<meta>.+))?(\.|\s+)(?P<type>(pa|ts|pl))\s*$
 """
@@ -98,6 +106,8 @@ _plan_sheet = r"""
     ^(?P<scope>plan)((\.|\s+)(
 """ + _flag_sheet.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
      |
+""" + _dice_sheet.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
+     |
 """ + _meta_sheet.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
      |
 """ + _base_sheet.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
@@ -105,7 +115,7 @@ _plan_sheet = r"""
 """
 
 _re_input_sheet_name = regex.compile(
-    r'|'.join((_flag_sheet, _meta_sheet, _plan_sheet, _base_sheet)),
+    r'|'.join((_flag_sheet, _dice_sheet, _meta_sheet, _plan_sheet, _base_sheet)),
     regex.IGNORECASE | regex.X | regex.DOTALL
 )
 
@@ -124,7 +134,7 @@ def _get_sheet_type(
         pass
     elif scope == 'plan':
         type = 'pl'
-    elif scope == 'flag' or not cycle or usage == 'config':
+    elif scope in ('flag', 'dice') or not cycle or usage == 'config':
         type = 'pa'
     else:
         type = 'ts'
@@ -209,6 +219,8 @@ def _get_default_stage(stage=None, cycle=None, usage=None, **kw):
 def _parse_key(scope='base', usage='input', **match):
     if scope == 'flag':
         yield scope, match['flag']
+    elif scope == 'dice':
+        yield scope, match['dice']
     elif scope == 'meta':
         meta = _re_space_dot.sub(match.get('meta', ''), '.').replace('-', '_')
         yield scope, meta, match['param']
