@@ -22,6 +22,10 @@ def fuel_saving_at_strategy(d, k):
     return _get(d, k[:-1] + ('gear_box_type',)) == 'automatic'
 
 
+def gear_box_ratios(d, k):
+    return _get(d, k[:-1] + ('gear_box_type',)) in ('automatic', 'manual')
+
+
 def active_cylinder_ratios(d, k):
     return _get(d, k[:-1] + ('engine_has_cylinder_deactivation',))
 
@@ -79,6 +83,7 @@ base = extend_checks(
         'start_stop_activation_time': start_stop_activation_time,
         'fuel_saving_at_strategy': fuel_saving_at_strategy,
         'active_cylinder_ratios': active_cylinder_ratios,
+        'gear_box_ratios': gear_box_ratios
     }
 )
 
