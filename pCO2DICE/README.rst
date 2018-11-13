@@ -12,8 +12,8 @@ co2DICE: Distributed Impromptu Co2mpas Evaluation
 
 .. _coord-start:
 
-:version:       |version|
-:updated:       |today|
+:version:       2.0.0+44.g7356c023
+:updated:       2018-11-13T18:25:30.712547
 :Documentation: http://co2mpas.io/
 :repository:    https://github.com/JRCSTU/CO2MPAS-TA/
 :pypi-repo:     https://pypi.org/project/co2dice/

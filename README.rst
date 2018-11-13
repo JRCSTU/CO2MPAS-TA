@@ -10,8 +10,8 @@
 :official:      | `AIO-1.7.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v1.7.3>`_: from 31-Oct-2017 to 15-Nov-2018
                 | `AIO-2.0.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r2.0.0>`_: from 24-Sept-2018
 
-:release:       |version|
-:rel_date:      |today|
+:release:       2.0.0+44.g7356c023
+:rel_date:      2018-11-13T18:25:30.686547
 :home:          http://co2mpas.io/
 :repository:    https://github.com/JRCSTU/CO2MPAS-TA
 :pypi-repo:     https://pypi.org/project/co2mpas/
@@ -373,7 +373,7 @@ Alternatively, open the CONSOLE and type the following command:
 
     ## Check co2mpas version.
     $ co2mpas -V
-    co2mpas-|version|
+    co2mpas-2.0.0+44.g7356c023
 
 
 |co2mpas| command syntax
