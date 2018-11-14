@@ -12,8 +12,8 @@ co2SIM: Vehicle simulator predicting NEDC CO2 emissions from WLTP
 
 .. _coord-start:
 
-:version:       |version|
-:updated:       |today|
+:version:       2.1.0b1
+:updated:       2018-11-14T08:36:43.727185
 :Documentation: http://co2mpas.io/
 :repository:    https://github.com/JRCSTU/CO2MPAS-TA/
 :pypi-repo:     https://pypi.org/project/co2sim/
