@@ -324,7 +324,7 @@ def decrypt_data(encrypted_data, path_keys, passwords=None):
 
 
 def _save_data(fpath, **data):
-    with tarfile.open(fpath, 'w') as tar:
+    with tarfile.open(fpath, 'w:bz2') as tar:
         for k, v in data.items():
             write_tar(tar, k, yaml.safe_dump(v).encode())
     log.info('Written into ta-file(%s)...' % fpath)
@@ -351,7 +351,7 @@ def save_data(
 
 def load_data(fpath):
     data = []
-    with tarfile.open(fpath, 'r') as tar:
+    with tarfile.open(fpath, 'r:bz2') as tar:
         for k in ('ta_id', 'dice_report', 'encrypted_data'):
             try:
                 with tar.extractfile(tar.getmember(k)) as f:
