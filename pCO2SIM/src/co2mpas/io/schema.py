@@ -40,9 +40,8 @@ def check_data_version(flag):
         if got_vinfo[:1] != exp_vinfo[:1]:
             msg = ("Input-file version %s is incompatible with expected %s)."
                    "\n  More failures may happen.")
-            return False
-
-        if got_vinfo[:2] > exp_vinfo[:2]:
+            ok = False
+        elif got_vinfo[:2] > exp_vinfo[:2]:
             msg = ("Input-file version %s comes from the (incompatible) future (> %s))."
                    "\n  More failures may happen.")
         else:  # got_vinfo[:2] < exp_vinfo[:2]:
@@ -79,8 +78,8 @@ def _ta_mode(data):
 
     diff -= {('flag', 'input_version'),
              ('flag', 'vehicle_family_id'),
-             ('flag', 'encrypt_inputs'),
-             ('flag', 'encryption_keys')}
+             ('flag', 'encryption_keys'),
+             ('flag', 'sign_key')}
 
     if diff:
         diff = ['.'.join(k) for k in sorted(diff)]
@@ -95,6 +94,13 @@ def _ta_mode(data):
                  'type of fuel can be used.\nIf you want to simulate with '
                  'different fuels use the cmd batch.')
         return False
+
+    if _check_encryption_keys(**data.get('flag', {})):
+        log.info('Since CO2MPAS is launched in type approval mode the '
+                 'encryption keys are mandatory.\nPlease download it and add '
+                 'in the dice keys folder.')
+        return False
+
     return True
 
 
@@ -237,6 +243,16 @@ def validate_dice(dice):
     if _log_errors_msg(errors):
         return sh.NONE
     return inputs
+
+
+def _check_encryption_keys(encrypt_inputs=None, encryption_keys=None, **kwargs):
+    from ..conf import defaults
+    dfl = defaults.io_constants_dfl
+    if encrypt_inputs is None:
+        encrypt_inputs = dfl.ENCRYPT_INPUTS
+    if encryption_keys is None:
+        encryption_keys = dfl.ENCRYPTION_KEYS_PATH
+    return encrypt_inputs and not osp.isfile(encryption_keys)
 
 
 def validate_flags(flags):
@@ -926,6 +942,7 @@ def define_flags_schema(read=True):
         _compare_str('vehicle_family_id'): vehicle_family_id(read=read),
         _compare_str('modelconf'): isfile,
         _compare_str('encryption_keys'): string,
+        _compare_str('sign_key'): string,
 
         _compare_str('encrypt_inputs'): _bool,
         _compare_str('soft_validation'): _bool,
@@ -971,6 +988,7 @@ def define_dice_schema(read=True):
         _compare_str('wltp_retest'): _select(
             types=('-', 'a', 'b', 'c', 'd', 'ab', 'ac', 'ad', 'bc', 'bd', 'cd',
                    'abc', 'abd', 'abcd'), read=read),
+        _compare_str('parent_vehicle_family_id'): vehicle_family_id(read=read),
     }
 
     schema = {Optional(k): Or(Empty(), v) for k, v in schema.items()}
