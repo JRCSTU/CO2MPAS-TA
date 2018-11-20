@@ -116,10 +116,10 @@ def get_best_model(
                 'score': m[0],
                 'errors': {k: v[0] for k, v in m[2].items()},
                 'limits': {k: v[1] for k, v in m[2].items()},
-                'models': tuple(sorted(m[-1].keys()))
+                'models': list(sorted(m[-1].keys()))
             }
         else:
-            scores[m[3]] = {'models': tuple(sorted(m[-1].keys()))}
+            scores[m[3]] = {'models': list(sorted(m[-1].keys()))}
     if not rank:
         m = {}
     else:

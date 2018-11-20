@@ -92,12 +92,15 @@ def sign_ta_id(ta_id, sign_key, password=None):
     if password is None:
         password = os.environ.get('SIGN_KEY_PASSWORD', None)
 
+    if isinstance(password, str):
+        password = password.encode()
+
     if not osp.isfile(sign_key):
         generate_sing_key(sign_key, password)
 
     with open(sign_key, 'rb') as f:
         key = serialization.load_pem_private_key(
-            f.read(), password.encode(), default_backend()
+            f.read(), password, default_backend()
         )
 
     ta_id.pop('signature', None)

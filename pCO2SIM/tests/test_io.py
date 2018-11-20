@@ -50,37 +50,41 @@ class IO(unittest.TestCase):
         )
         dsp = vehicle_processing_model()
         with tempfile.TemporaryDirectory() as d:
-            generate_keys(d, passwords=('p_secret', 'p_server'))
+            passwords = ('p_secret', 'p_server')
+            generate_keys(d, passwords=passwords)
             keys = glob.glob(osp.join(d, '*.co2mpas.keys'))
             self.assertSetEqual(
                 {osp.basename(f)[:-13] for f in keys},
-                {'cli', 'server', 'secret'}
+                {'dice', 'server', 'secret'}
             )
 
             sol = dsp(
                 {'input_file_name': file, 'overwrite_cache': True,
-                 'type_approval_mode': True, 'output_folder': d},
+                 'type_approval_mode': True, 'output_folder': d,
+                 'variation':{
+                     'flag.encryption_keys': osp.join(
+                        d, 'dice.co2mpas.keys'
+                    ),
+                     'flag.sign_key': osp.join(
+                        d, 'sign.co2mpas.key'
+                    )
+                 }},
                 outputs=['base_data', 'plan_data']
-            )
-            sol['base_data']['encryption_keys'] = osp.join(
-                d, 'cli.co2mpas.keys'
             )
             sol['base_data']['only_summary'] = True
 
             res = dsp(sol)
 
             decrypt = define_decrypt_function(
-                osp.join(d, 'secret.co2mpas.keys'),
-                passwords=('p_secret', 'p_server')
+                osp.join(d, 'secret.co2mpas.keys'), passwords=passwords
             )
 
-            self.assertEqual(
-                sh.selector(
-                    ['ta_id', 'dice_report', 'data', 'meta'],
-                    decrypt(res['solution']['output_ta_file'])
-                ),
-                sh.selector(
-                    ['ta_id', 'dice_report', 'data', 'meta'],
-                    res.get_node('run_base', 'write_ta_output')[0]
-                )
-            )
+            r = res.get_node('run_base', 'write_ta_output')[0]
+            s = decrypt(res['solution']['output_ta_file'])
+            self.maxDiff = None
+            for k in ('ta_id', 'dice_report', 'data', 'meta'):
+                it0 = sorted(sh.stack_nested_keys(r[k], key=(k,)))
+                it1 = sorted(sh.stack_nested_keys(s[k], key=(k,)))
+                self.assertEqual(set(i for i, j in it0), set(i for i, j in it1))
+                for i, j in zip(it0, it1):
+                    self.assertEqual(i, j)

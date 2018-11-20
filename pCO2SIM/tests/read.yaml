@@ -7,13 +7,19 @@
 : null
 ? !!python/tuple [co2mpas_demo-1.xlsx, base_data, data, input, prediction, nedc_l]
 : null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, data, target, prediction, nedc_h]
+: null
 ? !!python/tuple [co2mpas_demo-1.xlsx, base_data, data, target, prediction, nedc_l]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, data, target, prediction, wltp_h]
 : null
 ? !!python/tuple [co2mpas_demo-1.xlsx, base_data, data, target, prediction, wltp_l]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, encrypt_inputs]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, dice, bifuel]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, flag, encrypt_inputs]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, dice, extension]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, dice, wltp_retest]
 : null
 ? !!python/tuple [co2mpas_demo-1.xlsx, base_data, flag, input_version]
 : null
@@ -33,91 +39,157 @@
 : null
 ? !!python/tuple [co2mpas_demo-1.xlsx, base_data, input_version]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a, co2_emission_extra_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.10hz, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a, co2_emission_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.10hz, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a, co2_emission_low]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b, alternator_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a, co2_emission_medium]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b, battery_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a, fuel_consumption_combined]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b, co2_emission_extra_high]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a, rcb_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b, co2_emission_high]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a, speed_distance_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b, co2_emission_low]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a.10hz, times]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b, co2_emission_medium]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_a.10hz, velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b, co2_normalization_references]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b, co2_emission_extra_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b, engine_coolant_temperatures]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b, co2_emission_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b, engine_speeds_out]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b, co2_emission_low]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b, obd_velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b, co2_emission_medium]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b, rcb_correction]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b, fuel_consumption_combined]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b, speed_distance_correction]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b, rcb_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b, speed_distance_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.10hz, times]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b.10hz, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.10hz, velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b.10hz, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.1hz, alternator_currents]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b.target, corrected_co2_emission_value]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.1hz, battery_currents]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_b.target, fuel_consumption_value]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.1hz, co2_normalization_references]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c, alternator_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.1hz, engine_coolant_temperatures]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c, battery_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.1hz, engine_speeds_out]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c, co2_emission_extra_high]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.1hz, obd_velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c, co2_emission_high]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.1hz, times]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c, co2_emission_low]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_b.1hz, velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c, co2_emission_medium]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c, co2_emission_extra_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c, co2_normalization_references]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c, co2_emission_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c, engine_coolant_temperatures]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c, co2_emission_low]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c, engine_speeds_out]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c, co2_emission_medium]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c, obd_velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c, fuel_consumption_combined]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c, rcb_correction]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c, rcb_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c, speed_distance_correction]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c, speed_distance_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.10hz, times]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.10hz, velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c.10hz, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.1hz, alternator_currents]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c.10hz, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.1hz, battery_currents]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c.target, corrected_co2_emission_value]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.1hz, co2_normalization_references]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_h.test_c.target, fuel_consumption_value]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.1hz, engine_coolant_temperatures]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.10hz, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.1hz, engine_speeds_out]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.10hz, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.1hz, obd_velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b, alternator_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.1hz, times]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b, battery_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp-l.test_c.1hz, velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b, obd_velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b, rcb_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b.10hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b.target, corrected_co2_emission_value]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_b.target, fuel_consumption_value]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c, alternator_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c, battery_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c, obd_velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c, rcb_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c.10hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c.target, corrected_co2_emission_value]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, base_data, meta, wltp_l.test_c.target, fuel_consumption_value]
 : null
 ? !!python/tuple [co2mpas_demo-1.xlsx, base_data, output_folder]
 : null
@@ -139,9 +211,11 @@
 : null
 ? !!python/tuple [co2mpas_demo-1.xlsx, overwrite_cache]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, encrypt_inputs]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, dice, bifuel]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, flag, encrypt_inputs]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, dice, extension]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, dice, wltp_retest]
 : null
 ? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, flag, input_version]
 : null
@@ -161,91 +235,157 @@
 : null
 ? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, input_version]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a, co2_emission_extra_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.10hz, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a, co2_emission_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.10hz, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a, co2_emission_low]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b, alternator_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a, co2_emission_medium]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b, battery_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a, fuel_consumption_combined]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b, co2_emission_extra_high]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a, rcb_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b, co2_emission_high]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a, speed_distance_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b, co2_emission_low]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a.10hz, times]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b, co2_emission_medium]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_a.10hz, velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b, co2_normalization_references]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b, co2_emission_extra_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b, engine_coolant_temperatures]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b, co2_emission_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b, engine_speeds_out]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b, co2_emission_low]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b, obd_velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b, co2_emission_medium]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b, rcb_correction]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b, fuel_consumption_combined]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b, speed_distance_correction]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b, rcb_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b, speed_distance_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.10hz, times]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b.10hz, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.10hz, velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b.10hz, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.1hz, alternator_currents]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b.target, corrected_co2_emission_value]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.1hz, battery_currents]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_b.target, fuel_consumption_value]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.1hz, co2_normalization_references]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c, alternator_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.1hz, engine_coolant_temperatures]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c, battery_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.1hz, engine_speeds_out]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c, co2_emission_extra_high]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.1hz, obd_velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c, co2_emission_high]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.1hz, times]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c, co2_emission_low]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_b.1hz, velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c, co2_emission_medium]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c, co2_emission_extra_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c, co2_normalization_references]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c, co2_emission_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c, engine_coolant_temperatures]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c, co2_emission_low]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c, engine_speeds_out]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c, co2_emission_medium]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c, obd_velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c, fuel_consumption_combined]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c, rcb_correction]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c, rcb_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c, speed_distance_correction]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c, speed_distance_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.10hz, times]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.10hz, velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c.10hz, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.1hz, alternator_currents]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c.10hz, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.1hz, battery_currents]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c.target, corrected_co2_emission_value]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.1hz, co2_normalization_references]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_h.test_c.target, fuel_consumption_value]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.1hz, engine_coolant_temperatures]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.10hz, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.1hz, engine_speeds_out]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.10hz, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.1hz, obd_velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b, alternator_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.1hz, times]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b, battery_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp-l.test_c.1hz, velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b, obd_velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b, rcb_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b.10hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b.target, corrected_co2_emission_value]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_b.target, fuel_consumption_value]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c, alternator_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c, battery_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c, obd_velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c, rcb_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c.10hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c.target, corrected_co2_emission_value]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, meta, wltp_l.test_c.target, fuel_consumption_value]
 : null
 ? !!python/tuple [co2mpas_demo-1.xlsx, plan_data, output_folder]
 : null
@@ -267,101 +407,175 @@
 : null
 ? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, base, input, prediction, nedc_l]
 : null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, base, target, prediction, nedc_h]
+: null
 ? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, base, target, prediction, nedc_l]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, base, target, prediction, wltp_h]
 : null
 ? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, base, target, prediction, wltp_l]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, flag, encrypt_inputs]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, dice, bifuel]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, dice, extension]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, dice, wltp_retest]
 : null
 ? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, flag, input_version]
 : null
 ? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, flag, vehicle_family_id]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a, co2_emission_extra_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.10hz, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a, co2_emission_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.10hz, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a, co2_emission_low]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b, alternator_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a, co2_emission_medium]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b, battery_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a, fuel_consumption_combined]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b, co2_emission_extra_high]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a, rcb_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b, co2_emission_high]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a, speed_distance_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b, co2_emission_low]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a.10hz, times]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b, co2_emission_medium]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_a.10hz, velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b, co2_normalization_references]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b, co2_emission_extra_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b, engine_coolant_temperatures]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b, co2_emission_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b, engine_speeds_out]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b, co2_emission_low]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b, obd_velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b, co2_emission_medium]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b, rcb_correction]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b, fuel_consumption_combined]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b, speed_distance_correction]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b, rcb_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b, speed_distance_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.10hz, times]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b.10hz, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.10hz, velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b.10hz, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.1hz, alternator_currents]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b.target, corrected_co2_emission_value]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.1hz, battery_currents]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_b.target, fuel_consumption_value]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.1hz, co2_normalization_references]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c, alternator_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.1hz, engine_coolant_temperatures]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c, battery_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.1hz, engine_speeds_out]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c, co2_emission_extra_high]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.1hz, obd_velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c, co2_emission_high]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.1hz, times]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c, co2_emission_low]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_b.1hz, velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c, co2_emission_medium]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c, co2_emission_extra_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c, co2_normalization_references]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c, co2_emission_high]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c, engine_coolant_temperatures]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c, co2_emission_low]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c, engine_speeds_out]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c, co2_emission_medium]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c, obd_velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c, fuel_consumption_combined]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c, rcb_correction]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c, rcb_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c, speed_distance_correction]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c, speed_distance_correction]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.10hz, times]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.10hz, velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c.10hz, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.1hz, alternator_currents]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c.10hz, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.1hz, battery_currents]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c.target, corrected_co2_emission_value]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.1hz, co2_normalization_references]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_h.test_c.target, fuel_consumption_value]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.1hz, engine_coolant_temperatures]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.10hz, times]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.1hz, engine_speeds_out]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.10hz, velocities]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.1hz, obd_velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b, alternator_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.1hz, times]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b, battery_currents]
 : null
-? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp-l.test_c.1hz, velocities]
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b, obd_velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b, rcb_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b.10hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b.target, corrected_co2_emission_value]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_b.target, fuel_consumption_value]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c, alternator_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c, battery_currents]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c, co2_emission_extra_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c, co2_emission_high]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c, co2_emission_low]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c, co2_emission_medium]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c, co2_normalization_references]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c, engine_coolant_temperatures]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c, engine_speeds_out]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c, obd_velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c, rcb_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c, speed_distance_correction]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c.10hz, times]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c.10hz, velocities]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c.target, corrected_co2_emission_value]
+: null
+? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, meta, wltp_l.test_c.target, fuel_consumption_value]
 : null
 ? !!python/tuple [co2mpas_demo-1.xlsx, raw_data, plan, columns]
 : null
@@ -383,11 +597,17 @@
 : null
 ? !!python/tuple [co2mpas_simplan.xlsx, base_data, data, target, prediction, nedc_h]
 : null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, data, target, prediction, nedc_l]
+: null
 ? !!python/tuple [co2mpas_simplan.xlsx, base_data, data, target, prediction, wltp_h]
 : null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, encrypt_inputs]
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, data, target, prediction, wltp_l]
 : null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, flag, encrypt_inputs]
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, dice, bifuel]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, dice, extension]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, base_data, dice, wltp_retest]
 : null
 ? !!python/tuple [co2mpas_simplan.xlsx, base_data, flag, input_version]
 : null
@@ -406,92 +626,6 @@
 ? !!python/tuple [co2mpas_simplan.xlsx, base_data, input_file_name]
 : null
 ? !!python/tuple [co2mpas_simplan.xlsx, base_data, input_version]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a, co2_emission_extra_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a, co2_emission_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a, co2_emission_low]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a, co2_emission_medium]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a, fuel_consumption_combined]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a, rcb_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a, speed_distance_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a.10hz, times]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_a.10hz, velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b, co2_emission_extra_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b, co2_emission_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b, co2_emission_low]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b, co2_emission_medium]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b, fuel_consumption_combined]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b, rcb_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b, speed_distance_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.10hz, times]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.10hz, velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.1hz, alternator_currents]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.1hz, battery_currents]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.1hz, co2_normalization_references]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.1hz, engine_coolant_temperatures]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.1hz, engine_speeds_out]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.1hz, obd_velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.1hz, times]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_b.1hz, velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c, co2_emission_extra_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c, co2_emission_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c, co2_emission_low]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c, co2_emission_medium]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c, fuel_consumption_combined]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c, rcb_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c, speed_distance_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.10hz, times]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.10hz, velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.1hz, alternator_currents]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.1hz, battery_currents]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.1hz, co2_normalization_references]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.1hz, engine_coolant_temperatures]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.1hz, engine_speeds_out]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.1hz, obd_velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.1hz, times]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, base_data, meta, wltp-h.test_c.1hz, velocities]
 : null
 ? !!python/tuple [co2mpas_simplan.xlsx, base_data, output_folder]
 : null
@@ -517,33 +651,2380 @@
 - co2mpas_simplan.xlsx
 - plan_data
 - data
-- base.input.prediction.wltp_h.initial_temperature
-- &id001 !!python/tuple [change base, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_demo-1.xlsx',
+- base.input.prediction.nedc_h.gear_box_ratios
+- &id001 !!python/tuple [alternator_efficiency, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
   true]
 : null
 ? !!python/tuple
 - co2mpas_simplan.xlsx
 - plan_data
 - data
-- base.input.prediction.wltp_h.initial_temperature
-- &id002 !!python/tuple [hot_temp, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
+- base.input.prediction.nedc_h.gear_box_ratios
+- &id002 !!python/tuple [biofuel, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
   true]
 : null
 ? !!python/tuple
 - co2mpas_simplan.xlsx
 - plan_data
 - data
-- base.input.prediction.wltp_h.initial_temperature
-- &id003 !!python/tuple [invert_cycles, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
+- base.input.prediction.nedc_h.gear_box_ratios
+- &id003 !!python/tuple [change base, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_demo-1.xlsx',
   true]
 : null
 ? !!python/tuple
 - co2mpas_simplan.xlsx
 - plan_data
 - data
-- base.input.prediction.wltp_h.initial_temperature
-- &id004 !!python/tuple [nedc_cycle, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
+- base.input.prediction.nedc_h.gear_box_ratios
+- &id004 !!python/tuple [cylinder_deactivation, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
   true]
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_ratios
+- &id005 !!python/tuple [hot, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
+  true]
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_ratios
+- &id006 !!python/tuple [invert_cycles, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
+  true]
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_ratios
+- &id007 !!python/tuple ['lights ', 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
+  true]
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_ratios
+- &id008 !!python/tuple [manual, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
+  true]
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_ratios
+- &id009 !!python/tuple [nedc_cycle, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
+  true]
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_ratios
+- &id010 !!python/tuple [road, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
+  true]
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_ratios
+- &id011 !!python/tuple [rts_cycle, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
+  true]
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_ratios
+- &id012 !!python/tuple [slope, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
+  true]
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_ratios
+- &id013 !!python/tuple [tyre, 'D:\Apps\PycharmProjects\co2mpas\pCO2SIM\src\co2mpas\demos\co2mpas_simplan.xlsx',
+  true]
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_type
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_type
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_type
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_type
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_type
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_type
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_type
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_type
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_type
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_type
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_type
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_type
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.gear_box_type
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.has_torque_converter
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.has_torque_converter
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.has_torque_converter
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.has_torque_converter
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.has_torque_converter
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.has_torque_converter
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.has_torque_converter
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.has_torque_converter
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.has_torque_converter
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.has_torque_converter
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.has_torque_converter
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.has_torque_converter
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.has_torque_converter
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.tyre_code
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.tyre_code
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.tyre_code
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.tyre_code
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.tyre_code
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.tyre_code
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.tyre_code
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.tyre_code
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.tyre_code
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.tyre_code
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.tyre_code
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.tyre_code
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_h.tyre_code
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_ratios
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_ratios
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_ratios
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_ratios
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_ratios
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_ratios
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_ratios
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_ratios
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_ratios
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_ratios
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_ratios
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_ratios
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_ratios
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_type
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_type
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_type
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_type
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_type
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_type
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_type
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_type
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_type
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_type
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_type
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_type
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.gear_box_type
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.has_torque_converter
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.has_torque_converter
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.has_torque_converter
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.has_torque_converter
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.has_torque_converter
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.has_torque_converter
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.has_torque_converter
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.has_torque_converter
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.has_torque_converter
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.has_torque_converter
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.has_torque_converter
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.has_torque_converter
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.has_torque_converter
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.tyre_code
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.tyre_code
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.tyre_code
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.tyre_code
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.tyre_code
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.tyre_code
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.tyre_code
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.tyre_code
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.tyre_code
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.tyre_code
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.tyre_code
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.tyre_code
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.nedc_l.tyre_code
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.active_cylinder_ratios
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.active_cylinder_ratios
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.active_cylinder_ratios
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.active_cylinder_ratios
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.active_cylinder_ratios
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.active_cylinder_ratios
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.active_cylinder_ratios
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.active_cylinder_ratios
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.active_cylinder_ratios
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.active_cylinder_ratios
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.active_cylinder_ratios
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.active_cylinder_ratios
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.active_cylinder_ratios
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.alternator_efficiency
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.alternator_efficiency
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.alternator_efficiency
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.alternator_efficiency
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.alternator_efficiency
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.alternator_efficiency
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.alternator_efficiency
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.alternator_efficiency
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.alternator_efficiency
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.alternator_efficiency
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.alternator_efficiency
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.alternator_efficiency
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.alternator_efficiency
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slope
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slope
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slope
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slope
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slope
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slope
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slope
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slope
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slope
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slope
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slope
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slope
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slope
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slopes
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slopes
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slopes
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slopes
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slopes
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slopes
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slopes
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slopes
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slopes
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slopes
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slopes
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slopes
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.angle_slopes
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.electric_load
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.electric_load
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.electric_load
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.electric_load
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.electric_load
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.electric_load
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.electric_load
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.electric_load
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.electric_load
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.electric_load
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.electric_load
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.electric_load
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.electric_load
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_fuel_lower_heating_value
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_fuel_lower_heating_value
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_fuel_lower_heating_value
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_fuel_lower_heating_value
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_fuel_lower_heating_value
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_fuel_lower_heating_value
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_fuel_lower_heating_value
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_fuel_lower_heating_value
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_fuel_lower_heating_value
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_fuel_lower_heating_value
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_fuel_lower_heating_value
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_fuel_lower_heating_value
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_fuel_lower_heating_value
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_has_cylinder_deactivation
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_has_cylinder_deactivation
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_has_cylinder_deactivation
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_has_cylinder_deactivation
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_has_cylinder_deactivation
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_has_cylinder_deactivation
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_has_cylinder_deactivation
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_has_cylinder_deactivation
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_has_cylinder_deactivation
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_has_cylinder_deactivation
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_has_cylinder_deactivation
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_has_cylinder_deactivation
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.engine_has_cylinder_deactivation
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f0
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f0
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f0
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f0
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f0
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f0
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f0
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f0
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f0
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f0
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f0
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f0
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f0
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f1
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f1
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f1
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f1
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f1
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f1
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f1
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f1
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f1
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f1
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f1
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f1
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f1
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f2
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f2
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f2
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f2
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f2
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f2
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f2
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f2
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f2
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f2
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f2
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f2
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.f2
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.fuel_carbon_content_percentage
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.fuel_carbon_content_percentage
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.fuel_carbon_content_percentage
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.fuel_carbon_content_percentage
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.fuel_carbon_content_percentage
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.fuel_carbon_content_percentage
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.fuel_carbon_content_percentage
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.fuel_carbon_content_percentage
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.fuel_carbon_content_percentage
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.fuel_carbon_content_percentage
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.fuel_carbon_content_percentage
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.fuel_carbon_content_percentage
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.fuel_carbon_content_percentage
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_ratios
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_ratios
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_ratios
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_ratios
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_ratios
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_ratios
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_ratios
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_ratios
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_ratios
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_ratios
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_ratios
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_ratios
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_ratios
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_type
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_type
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_type
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_type
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_type
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_type
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_type
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_type
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_type
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_type
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_type
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_type
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.gear_box_type
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.has_torque_converter
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.has_torque_converter
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.has_torque_converter
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.has_torque_converter
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.has_torque_converter
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.has_torque_converter
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.has_torque_converter
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.has_torque_converter
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.has_torque_converter
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.has_torque_converter
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.has_torque_converter
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.has_torque_converter
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.has_torque_converter
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_gear_box_temperature
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_gear_box_temperature
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_gear_box_temperature
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_gear_box_temperature
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_gear_box_temperature
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_gear_box_temperature
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_gear_box_temperature
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_gear_box_temperature
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_gear_box_temperature
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_gear_box_temperature
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_gear_box_temperature
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_gear_box_temperature
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_gear_box_temperature
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_state_of_charge
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_state_of_charge
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_state_of_charge
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_state_of_charge
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_state_of_charge
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_state_of_charge
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_state_of_charge
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_state_of_charge
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_state_of_charge
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_state_of_charge
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_state_of_charge
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_state_of_charge
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_state_of_charge
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.initial_temperature
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.n_dyno_axes
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.n_dyno_axes
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.n_dyno_axes
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.n_dyno_axes
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.n_dyno_axes
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.n_dyno_axes
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.n_dyno_axes
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.n_dyno_axes
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.n_dyno_axes
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.n_dyno_axes
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.n_dyno_axes
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.n_dyno_axes
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.n_dyno_axes
+- *id013
 : null
 ? !!python/tuple
 - co2mpas_simplan.xlsx
@@ -577,6 +3058,342 @@
 - co2mpas_simplan.xlsx
 - plan_data
 - data
+- base.input.prediction.wltp_h.phases_integration_times
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.phases_integration_times
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.phases_integration_times
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.phases_integration_times
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.phases_integration_times
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.phases_integration_times
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.phases_integration_times
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.phases_integration_times
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.phases_integration_times
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.times
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.times
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.times
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.times
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.times
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.times
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.times
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.times
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.times
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.times
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.times
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.times
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.times
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.tyre_code
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.tyre_code
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.tyre_code
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.tyre_code
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.tyre_code
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.tyre_code
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.tyre_code
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.tyre_code
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.tyre_code
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.tyre_code
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.tyre_code
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.tyre_code
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.tyre_code
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.vehicle_mass
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.vehicle_mass
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.vehicle_mass
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.vehicle_mass
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.vehicle_mass
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.vehicle_mass
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.vehicle_mass
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.vehicle_mass
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.vehicle_mass
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.vehicle_mass
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.vehicle_mass
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.vehicle_mass
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.vehicle_mass
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
 - base.input.prediction.wltp_h.velocities
 - *id001
 : null
@@ -600,6 +3417,1525 @@
 - data
 - base.input.prediction.wltp_h.velocities
 - *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.velocities
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.velocities
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.velocities
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.velocities
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.velocities
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.velocities
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.velocities
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.velocities
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_h.velocities
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.active_cylinder_ratios
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.active_cylinder_ratios
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.active_cylinder_ratios
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.active_cylinder_ratios
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.active_cylinder_ratios
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.active_cylinder_ratios
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.active_cylinder_ratios
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.active_cylinder_ratios
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.active_cylinder_ratios
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.active_cylinder_ratios
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.active_cylinder_ratios
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.active_cylinder_ratios
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.active_cylinder_ratios
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.alternator_efficiency
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.alternator_efficiency
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.alternator_efficiency
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.alternator_efficiency
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.alternator_efficiency
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.alternator_efficiency
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.alternator_efficiency
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.alternator_efficiency
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.alternator_efficiency
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.alternator_efficiency
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.alternator_efficiency
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.alternator_efficiency
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.alternator_efficiency
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slope
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slope
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slope
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slope
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slope
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slope
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slope
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slope
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slope
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slope
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slope
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slope
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slope
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slopes
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slopes
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slopes
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slopes
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slopes
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slopes
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slopes
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slopes
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slopes
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slopes
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slopes
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slopes
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.angle_slopes
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.electric_load
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.electric_load
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.electric_load
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.electric_load
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.electric_load
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.electric_load
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.electric_load
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.electric_load
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.electric_load
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.electric_load
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.electric_load
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.electric_load
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.electric_load
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_fuel_lower_heating_value
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_fuel_lower_heating_value
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_fuel_lower_heating_value
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_fuel_lower_heating_value
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_fuel_lower_heating_value
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_fuel_lower_heating_value
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_fuel_lower_heating_value
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_fuel_lower_heating_value
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_fuel_lower_heating_value
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_fuel_lower_heating_value
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_fuel_lower_heating_value
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_fuel_lower_heating_value
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_fuel_lower_heating_value
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_has_cylinder_deactivation
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_has_cylinder_deactivation
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_has_cylinder_deactivation
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_has_cylinder_deactivation
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_has_cylinder_deactivation
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_has_cylinder_deactivation
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_has_cylinder_deactivation
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_has_cylinder_deactivation
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_has_cylinder_deactivation
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_has_cylinder_deactivation
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_has_cylinder_deactivation
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_has_cylinder_deactivation
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.engine_has_cylinder_deactivation
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f0
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f0
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f0
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f0
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f0
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f0
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f0
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f0
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f0
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f0
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f0
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f0
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f0
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f1
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f1
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f1
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f1
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f1
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f1
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f1
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f1
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f1
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f1
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f1
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f1
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f1
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f2
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f2
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f2
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f2
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f2
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f2
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f2
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f2
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f2
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f2
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f2
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f2
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.f2
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.fuel_carbon_content_percentage
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.fuel_carbon_content_percentage
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.fuel_carbon_content_percentage
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.fuel_carbon_content_percentage
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.fuel_carbon_content_percentage
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.fuel_carbon_content_percentage
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.fuel_carbon_content_percentage
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.fuel_carbon_content_percentage
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.fuel_carbon_content_percentage
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.fuel_carbon_content_percentage
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.fuel_carbon_content_percentage
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.fuel_carbon_content_percentage
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.fuel_carbon_content_percentage
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_ratios
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_ratios
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_ratios
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_ratios
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_ratios
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_ratios
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_ratios
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_ratios
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_ratios
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_ratios
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_ratios
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_ratios
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_ratios
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_type
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_type
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_type
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_type
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_type
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_type
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_type
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_type
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_type
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_type
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_type
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_type
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.gear_box_type
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.has_torque_converter
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.has_torque_converter
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.has_torque_converter
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.has_torque_converter
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.has_torque_converter
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.has_torque_converter
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.has_torque_converter
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.has_torque_converter
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.has_torque_converter
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.has_torque_converter
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.has_torque_converter
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.has_torque_converter
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.has_torque_converter
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_gear_box_temperature
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_gear_box_temperature
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_gear_box_temperature
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_gear_box_temperature
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_gear_box_temperature
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_gear_box_temperature
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_gear_box_temperature
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_gear_box_temperature
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_gear_box_temperature
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_gear_box_temperature
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_gear_box_temperature
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_gear_box_temperature
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_gear_box_temperature
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_state_of_charge
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_state_of_charge
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_state_of_charge
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_state_of_charge
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_state_of_charge
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_state_of_charge
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_state_of_charge
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_state_of_charge
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_state_of_charge
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_state_of_charge
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_state_of_charge
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_state_of_charge
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_state_of_charge
+- *id013
 : null
 ? !!python/tuple
 - co2mpas_simplan.xlsx
@@ -633,6 +4969,160 @@
 - co2mpas_simplan.xlsx
 - plan_data
 - data
+- base.input.prediction.wltp_l.initial_temperature
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_temperature
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_temperature
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_temperature
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_temperature
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_temperature
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_temperature
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_temperature
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.initial_temperature
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.n_dyno_axes
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.n_dyno_axes
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.n_dyno_axes
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.n_dyno_axes
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.n_dyno_axes
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.n_dyno_axes
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.n_dyno_axes
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.n_dyno_axes
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.n_dyno_axes
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.n_dyno_axes
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.n_dyno_axes
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.n_dyno_axes
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.n_dyno_axes
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
 - base.input.prediction.wltp_l.phases_integration_times
 - *id001
 : null
@@ -661,6 +5151,342 @@
 - co2mpas_simplan.xlsx
 - plan_data
 - data
+- base.input.prediction.wltp_l.phases_integration_times
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.phases_integration_times
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.phases_integration_times
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.phases_integration_times
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.phases_integration_times
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.phases_integration_times
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.phases_integration_times
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.phases_integration_times
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.phases_integration_times
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.times
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.times
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.times
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.times
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.times
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.times
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.times
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.times
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.times
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.times
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.times
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.times
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.times
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.tyre_code
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.tyre_code
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.tyre_code
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.tyre_code
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.tyre_code
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.tyre_code
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.tyre_code
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.tyre_code
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.tyre_code
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.tyre_code
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.tyre_code
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.tyre_code
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.tyre_code
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.vehicle_mass
+- *id001
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.vehicle_mass
+- *id002
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.vehicle_mass
+- *id003
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.vehicle_mass
+- *id004
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.vehicle_mass
+- *id005
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.vehicle_mass
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.vehicle_mass
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.vehicle_mass
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.vehicle_mass
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.vehicle_mass
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.vehicle_mass
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.vehicle_mass
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.vehicle_mass
+- *id013
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
 - base.input.prediction.wltp_l.velocities
 - *id001
 : null
@@ -685,9 +5511,74 @@
 - base.input.prediction.wltp_l.velocities
 - *id004
 : null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, encrypt_inputs]
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.velocities
+- *id005
 : null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, flag, encrypt_inputs]
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.velocities
+- *id006
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.velocities
+- *id007
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.velocities
+- *id008
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.velocities
+- *id009
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.velocities
+- *id010
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.velocities
+- *id011
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.velocities
+- *id012
+: null
+? !!python/tuple
+- co2mpas_simplan.xlsx
+- plan_data
+- data
+- base.input.prediction.wltp_l.velocities
+- *id013
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, dice, bifuel]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, dice, extension]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, plan_data, dice, wltp_retest]
 : null
 ? !!python/tuple [co2mpas_simplan.xlsx, plan_data, flag, input_version]
 : null
@@ -706,92 +5597,6 @@
 ? !!python/tuple [co2mpas_simplan.xlsx, plan_data, input_file_name]
 : null
 ? !!python/tuple [co2mpas_simplan.xlsx, plan_data, input_version]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a, co2_emission_extra_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a, co2_emission_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a, co2_emission_low]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a, co2_emission_medium]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a, fuel_consumption_combined]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a, rcb_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a, speed_distance_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a.10hz, times]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_a.10hz, velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b, co2_emission_extra_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b, co2_emission_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b, co2_emission_low]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b, co2_emission_medium]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b, fuel_consumption_combined]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b, rcb_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b, speed_distance_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.10hz, times]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.10hz, velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.1hz, alternator_currents]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.1hz, battery_currents]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.1hz, co2_normalization_references]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.1hz, engine_coolant_temperatures]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.1hz, engine_speeds_out]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.1hz, obd_velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.1hz, times]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_b.1hz, velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c, co2_emission_extra_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c, co2_emission_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c, co2_emission_low]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c, co2_emission_medium]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c, fuel_consumption_combined]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c, rcb_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c, speed_distance_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.10hz, times]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.10hz, velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.1hz, alternator_currents]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.1hz, battery_currents]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.1hz, co2_normalization_references]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.1hz, engine_coolant_temperatures]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.1hz, engine_speeds_out]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.1hz, obd_velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.1hz, times]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, plan_data, meta, wltp-h.test_c.1hz, velocities]
 : null
 ? !!python/tuple [co2mpas_simplan.xlsx, plan_data, output_folder]
 : null
@@ -815,99 +5620,21 @@
 : null
 ? !!python/tuple [co2mpas_simplan.xlsx, raw_data, base, target, prediction, nedc_h]
 : null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, base, target, prediction, nedc_l]
+: null
 ? !!python/tuple [co2mpas_simplan.xlsx, raw_data, base, target, prediction, wltp_h]
 : null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, flag, encrypt_inputs]
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, base, target, prediction, wltp_l]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, dice, bifuel]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, dice, extension]
+: null
+? !!python/tuple [co2mpas_simplan.xlsx, raw_data, dice, wltp_retest]
 : null
 ? !!python/tuple [co2mpas_simplan.xlsx, raw_data, flag, input_version]
 : null
 ? !!python/tuple [co2mpas_simplan.xlsx, raw_data, flag, vehicle_family_id]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a, co2_emission_extra_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a, co2_emission_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a, co2_emission_low]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a, co2_emission_medium]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a, fuel_consumption_combined]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a, rcb_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a, speed_distance_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a.10hz, times]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_a.10hz, velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b, co2_emission_extra_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b, co2_emission_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b, co2_emission_low]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b, co2_emission_medium]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b, fuel_consumption_combined]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b, rcb_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b, speed_distance_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.10hz, times]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.10hz, velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.1hz, alternator_currents]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.1hz, battery_currents]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.1hz, co2_normalization_references]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.1hz, engine_coolant_temperatures]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.1hz, engine_speeds_out]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.1hz, obd_velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.1hz, times]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_b.1hz, velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c, co2_emission_extra_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c, co2_emission_high]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c, co2_emission_low]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c, co2_emission_medium]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c, fuel_consumption_combined]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c, rcb_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c, speed_distance_correction]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.10hz, times]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.10hz, velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.1hz, alternator_currents]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.1hz, battery_currents]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.1hz, co2_normalization_references]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.1hz, engine_coolant_temperatures]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.1hz, engine_speeds_out]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.1hz, obd_velocities]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.1hz, times]
-: null
-? !!python/tuple [co2mpas_simplan.xlsx, raw_data, meta, wltp-h.test_c.1hz, velocities]
 : null
 ? !!python/tuple [co2mpas_simplan.xlsx, raw_data, plan, columns]
 : null
