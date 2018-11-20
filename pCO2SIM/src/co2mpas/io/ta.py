@@ -82,6 +82,64 @@ def load_public_RSA_keys(fpath):
     return keys
 
 
+def sign_ta_id(ta_id, sign_key, password=None):
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import utils
+    from cryptography.hazmat.primitives.asymmetric import padding
+
+    if password is None:
+        password = os.environ.get('SIGN_KEY_PASSWORD', None)
+
+    if not osp.isfile(sign_key):
+        generate_sing_key(sign_key, password)
+
+    with open(sign_key, 'rb') as f:
+        key = serialization.load_pem_private_key(
+            f.read(), password.encode(), default_backend()
+        )
+
+    ta_id.pop('signature', None)
+    ta_id['pub_sign_key'] = key.public_key().public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    message = json.dumps(ta_id, default=_json_default, sort_keys=True).encode()
+    ta_id['signature'] = key.sign(
+        make_hash(message),
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH
+        ),
+        utils.Prehashed(hashes.SHA256())
+    )
+    return ta_id
+
+
+def verify_ta_id(ta_id):
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import utils
+    from cryptography.hazmat.primitives.asymmetric import padding
+    message = json.dumps(
+        {k: v for k, v in ta_id.items() if k != 'signature'},
+        default=_json_default, sort_keys=True
+    ).encode()
+    serialization.load_pem_public_key(
+        ta_id['pub_sign_key'], default_backend()
+    ).verify(
+        ta_id['signature'], make_hash(message),
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH
+        ),
+        utils.Prehashed(hashes.SHA256())
+    )
+    return ta_id
+
+
 def load_private_RSA_keys(fpath, passwords=None):
     from cryptography.hazmat.backends import default_backend
     from cryptography.hazmat.primitives import serialization
@@ -118,6 +176,29 @@ def make_hash(*data):
     for v in data:
         digest.update(v)
     return digest.finalize()
+
+
+def generate_sing_key(sign_key, password=None):
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+        backend=default_backend()
+    )
+
+    if password is None:
+        encrypt_alg = serialization.NoEncryption()
+    else:
+        encrypt_alg = serialization.BestAvailableEncryption(password.encode())
+
+    with open(sign_key, 'wb') as file:
+        file.write(key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=encrypt_alg
+        ))
 
 
 def generate_keys(key_folder, passwords=None):
@@ -280,7 +361,7 @@ def load_data(fpath):
     return data
 
 
-def define_ta_id(vehicle_family_id, data, report, dice):
+def define_ta_id(vehicle_family_id, data, report, dice, meta, sign_key):
     key = {
         'vehicle_family_id': vehicle_family_id,
         'hash': {
@@ -298,6 +379,7 @@ def define_ta_id(vehicle_family_id, data, report, dice):
         'comments': dice.get('comments', ''),
         'fuel_type': _get_fuel(report)
     }
+    sign_ta_id(key, sign_key)
     return key
 
 
@@ -434,9 +516,13 @@ def crypto():
         outputs=['encrypted_data']
     )
 
+    dsp.add_data('ta_id', filters=[verify_ta_id])
+    dsp.add_data('sign_key', './sign.co2mpas.ta')
+
     dsp.add_function(
         function=define_ta_id,
-        inputs=['vehicle_family_id', 'data', 'report', 'dice'],
+        inputs=['vehicle_family_id', 'data', 'report', 'dice', 'meta',
+                'sign_key'],
         outputs=['ta_id']
     )
 
@@ -510,8 +596,12 @@ def define_decrypt_function(path_keys, passwords=None):
 
 
 if __name__ == '__main__':
+    import glob
+    import tqdm
     passwords = ('p_secret', 'p_server')
     #generate_keys('.', passwords)
     func = define_decrypt_function('secret.co2mpas.keys', passwords)
-    r = func('./output/20181113_173522-IP-DEMO_1000-ABC-1.co2mpas.ta')
+    res = []
+    for fpath in tqdm.tqdm(glob.glob('./output/20181120_173744-*co2mpas.ta')):
+        res.append(func(fpath))
     c = 0
