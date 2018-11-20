@@ -521,7 +521,6 @@ def crypto():
     )
 
     dsp.add_data('ta_id', filters=[verify_ta_id])
-    dsp.add_data('sign_key', './sign.co2mpas.ta')
 
     dsp.add_function(
         function=define_ta_id,
@@ -570,7 +569,7 @@ def write_ta_output():
     func = sh.SubDispatchFunction(
         crypto(),
         'write_ta_output',
-        inputs=['encrypt_inputs', 'path_keys', 'vehicle_family_id',
+        inputs=['encrypt_inputs', 'path_keys', 'vehicle_family_id', 'sign_key',
                 'start_time', 'timestamp', 'data', 'meta', 'dice', 'report',
                 'output_folder'],
         outputs=['ta_file']
@@ -606,6 +605,6 @@ if __name__ == '__main__':
     #generate_keys('.', passwords)
     func = define_decrypt_function('secret.co2mpas.keys', passwords)
     res = []
-    for fpath in tqdm.tqdm(glob.glob('./output/20181120_173744-*co2mpas.ta')):
+    for fpath in tqdm.tqdm(glob.glob('./output/20181120_181229-*co2mpas.ta')):
         res.append(func(fpath))
     c = 0

@@ -207,5 +207,10 @@ class Constants(utl.Constants):
         'ENCRYPTION_KEYS_PATH', './dice.co2mpas.keys'
     )
 
+    #: Signature key path.
+    SIGN_KEY_PATH = os.environ.get(
+        'SIGN_KEY_PATH', './sign.co2mpas.key'
+    )
+
 
 con_vals = Constants()

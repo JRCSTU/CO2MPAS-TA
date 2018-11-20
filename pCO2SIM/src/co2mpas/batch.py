@@ -727,11 +727,13 @@ def run_base():
     dfl = defaults.io_constants_dfl
     d.add_data('encrypt_inputs', dfl.ENCRYPT_INPUTS)
     d.add_data('encryption_keys', dfl.ENCRYPTION_KEYS_PATH)
+    d.add_data('sign_key', dfl.SIGN_KEY_PATH)
+
     d.add_function(
         function=sh.add_args(write_ta_output()),
         inputs=['type_approval_mode', 'encrypt_inputs', 'encryption_keys',
-                'vehicle_family_id', 'start_time', 'timestamp', 'data', 'meta',
-                'validated_dice', 'report', 'output_folder'],
+                'vehicle_family_id', 'sign_key', 'start_time', 'timestamp',
+                'data', 'meta', 'validated_dice', 'report', 'output_folder'],
         outputs=['output_ta_file'],
         input_domain=check_first_arg
     )
