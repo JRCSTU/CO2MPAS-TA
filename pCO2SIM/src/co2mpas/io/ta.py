@@ -364,9 +364,13 @@ def load_data(fpath):
 def define_ta_id(vehicle_family_id, data, report, dice, meta, sign_key):
     key = {
         'vehicle_family_id': vehicle_family_id,
+        'parent_vehicle_family_id': dice.get('parent_vehicle_family_id', ''),
         'hash': {
             'inputs': make_hash(json.dumps(
                 data, default=_json_default, sort_keys=True
+            ).encode()),
+            'meta': make_hash(json.dumps(
+                meta, default=_json_default, sort_keys=True
             ).encode()),
             'outputs': make_hash(json.dumps(
                 dict(_filter_data(report)), default=_json_default,
