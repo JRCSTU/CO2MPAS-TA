@@ -58,9 +58,7 @@ def parse_dsp_solution(solution):
 
 def notify_result_listener(result_listener, res, out_fpath=None):
     """Utility func to send to the listener the output-file discovered from the results."""
-    are_in = sh.are_in_nested_dicts
     if result_listener:
-
         if not out_fpath:
             it = []
             for k in ('output_file_name', 'output_ta_file'):
@@ -372,7 +370,8 @@ def check_first_arg(first, *args):
 
 
 def prepare_data(raw_data, variation, input_file_name, overwrite_cache,
-                 output_folder, timestamp, type_approval_mode, modelconf):
+                 output_folder, timestamp, type_approval_mode, modelconf,
+                 input_file=None):
     """
     Prepare the data to be processed.
 
@@ -501,6 +500,7 @@ def prepare_data(raw_data, variation, input_file_name, overwrite_cache,
         'meta': data.get('meta', {}),
         'variation': variation,
         'input_file_name': input_file_name,
+        'input_file': input_file
     }
     res = sh.combine_dicts(flag, res)
     base = sh.combine_dicts(res, {'data': data.get('base', {})})
@@ -555,6 +555,7 @@ def vehicle_processing_model():
         },
         outputs={
             'raw_data': 'raw_data',
+            'input_file': 'input_file',
             sh.SINK: sh.SINK
         }
     )
@@ -593,7 +594,7 @@ def vehicle_processing_model():
         function=prepare_data,
         inputs=['raw_data', 'variation', 'input_file_name', 'overwrite_cache',
                 'output_folder', 'timestamp', 'type_approval_mode',
-                'modelconf'],
+                'modelconf', 'input_file'],
         outputs=['base_data', 'plan_data']
     )
 
@@ -725,15 +726,15 @@ def run_base():
     from .io.ta import write_ta_output
     from .conf import defaults
     dfl = defaults.io_constants_dfl
-    d.add_data('encrypt_inputs', dfl.ENCRYPT_INPUTS)
     d.add_data('encryption_keys', dfl.ENCRYPTION_KEYS_PATH)
     d.add_data('sign_key', dfl.SIGN_KEY_PATH)
 
     d.add_function(
         function=sh.add_args(write_ta_output()),
-        inputs=['type_approval_mode', 'encrypt_inputs', 'encryption_keys',
+        inputs=['type_approval_mode', 'encryption_keys',
                 'vehicle_family_id', 'sign_key', 'start_time', 'timestamp',
-                'data', 'meta', 'validated_dice', 'report', 'output_folder'],
+                'data', 'meta', 'validated_dice', 'report', 'output_folder',
+                'output_file', 'input_file'],
         outputs=['output_ta_file'],
         input_domain=check_first_arg
     )
@@ -754,8 +755,8 @@ def run_base():
     d.add_function(
         function=sh.add_args(write_outputs()),
         inputs=['only_summary', 'output_file_name', 'template_file_name',
-                'report', 'start_time', 'flag'],
-        outputs=[sh.SINK],
+                'report', 'start_time', 'flag', 'type_approval_mode'],
+        outputs=['output_file'],
         input_domain=lambda *args: not args[0]
     )
 

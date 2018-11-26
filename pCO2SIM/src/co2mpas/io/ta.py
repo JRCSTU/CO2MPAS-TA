@@ -82,15 +82,11 @@ def load_public_RSA_keys(fpath):
     return keys
 
 
-def sign_ta_id(ta_id, sign_key, password=None):
-    from cryptography.hazmat.primitives import hashes
+def load_sign_key(sign_key, password=None):
     from cryptography.hazmat.backends import default_backend
     from cryptography.hazmat.primitives import serialization
-    from cryptography.hazmat.primitives.asymmetric import utils
-    from cryptography.hazmat.primitives.asymmetric import padding
-
     if password is None:
-        password = os.environ.get('SIGN_KEY_PASSWORD', None)
+        password = os.environ.get('SIGN_KEY_PASSWORD', 'co2mpas') or None
 
     if isinstance(password, str):
         password = password.encode()
@@ -99,9 +95,18 @@ def sign_ta_id(ta_id, sign_key, password=None):
         generate_sing_key(sign_key, password)
 
     with open(sign_key, 'rb') as f:
-        key = serialization.load_pem_private_key(
+        return serialization.load_pem_private_key(
             f.read(), password, default_backend()
         )
+
+
+def sign_ta_id(ta_id, sign_key, password=None):
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import utils
+    from cryptography.hazmat.primitives.asymmetric import padding
+
+    key = load_sign_key(sign_key, password)
 
     ta_id.pop('signature', None)
     ta_id['pub_sign_key'] = key.public_key().public_bytes(
@@ -302,14 +307,13 @@ def aes_decrypt(data, associated_data, key, iv, tag):
     return decryptor.update(data) + decryptor.finalize()
 
 
-def encrypt_data(encrypt_inputs, data, path_keys):
-    if encrypt_inputs and osp.isfile(path_keys):
-        rsa = load_public_RSA_keys(path_keys)
-        plaintext = zlib.compress(yaml.safe_dump(data).encode())
-        key, data = aes_encrypt(plaintext, define_associated_data(rsa))
-        key = rsa_encrypt(rsa['secret'], yaml.safe_dump(key).encode())
-        verify = rsa_encrypt(rsa['server'], make_hash(key, data))
-        return {'verify': verify, 'encrypted': {'key': key, 'data': data}}
+def encrypt_data(data, path_keys):
+    rsa = load_public_RSA_keys(path_keys)
+    plaintext = zlib.compress(yaml.safe_dump(data).encode())
+    key, data = aes_encrypt(plaintext, define_associated_data(rsa))
+    key = rsa_encrypt(rsa['secret'], yaml.safe_dump(key).encode())
+    verify = rsa_encrypt(rsa['server'], make_hash(key, data))
+    return {'verify': verify, 'encrypted': {'key': key, 'data': data}}
 
 
 def verify_AES_key(private_RSA_keys, verify, encrypted):
@@ -326,30 +330,50 @@ def decrypt_data(encrypted_data, path_keys, passwords=None):
     return yaml.load(zlib.decompress(aes_decrypt(encrypted['data'], ad, **kw)))
 
 
-def _save_data(fpath, **data):
-    with tarfile.open(fpath, 'w:bz2') as tar:
-        for k, v in data.items():
-            write_tar(tar, k, yaml.safe_dump(v).encode())
-    log.info('Written into ta-file(%s)...' % fpath)
-    return fpath
+def _save_data(**data):
+    file = io.BytesIO()
+    tar = tarfile.open(mode='w:bz2', fileobj=file)
+    for k, v in data.items():
+        write_tar(tar, k, yaml.safe_dump(v).encode())
+    return tar, file
 
 
 def save_data(
-        output_folder, timestamp, ta_id, dice_report, encrypted_data=None):
-    kw = dict(ta_id=ta_id, dice_report=dice_report)
-    if encrypted_data is not None:
-        kw['encrypted_data'] = encrypted_data
+        output_folder, timestamp, ta_id, dice_report, encrypted_data,
+        output_file=None, input_file=None):
+    kw = dict(
+        ta_id=ta_id, dice_report=dice_report, encrypted_data=encrypted_data
+    )
+
     from co2mpas.batch import default_output_file_name
     i = 0
     while True:
-        tar_file = default_output_file_name(
+        fpath = default_output_file_name(
             output_folder, ta_id['vehicle_family_id'],
-            '%s-%02d' % (timestamp, i), 'co2mpas.ta'
+            '%s-%02d' % (timestamp, i), 'co2mpas.zip'
         )
-        if not osp.isfile(tar_file):
+        if not osp.isfile(fpath):
             break
         i += 1
-    return _save_data(tar_file, **kw)
+    name = osp.splitext(osp.basename(fpath))[0]
+    import zipfile
+    ta_file = _save_data(**kw)[1]
+    ta_hash = str(make_hash(json.dumps(
+        kw, default=_json_default, sort_keys=True
+    ).encode()))
+    with zipfile.ZipFile(fpath, 'w', zipfile.ZIP_DEFLATED) as zf:
+        if input_file:
+            input_file.seek(0)
+            zf.writestr('%s.input.xlsx' % name, input_file.read())
+        if output_file:
+            output_file.seek(0)
+            zf.writestr('%s.output.xlsx' % name, output_file.read())
+        ta_file.seek(0)
+        zf.writestr('%s.ta' % name, ta_file.read())
+        zf.writestr('%s.hash.txt' % name, ta_hash)
+    log.info('Written into correlation-report-file(%s)'
+             ' hash: %s.' % (fpath, ta_hash))
+    return fpath
 
 
 def load_data(fpath):
@@ -364,7 +388,10 @@ def load_data(fpath):
     return data
 
 
-def define_ta_id(vehicle_family_id, data, report, dice, meta, sign_key):
+def define_ta_id(vehicle_family_id, data, report, dice, meta, dice_report,
+                 encrypted_data, output_file, input_file, sign_key):
+    output_file.seek(0)
+    input_file.seek(0)
     key = {
         'vehicle_family_id': vehicle_family_id,
         'parent_vehicle_family_id': dice.get('parent_vehicle_family_id', ''),
@@ -378,7 +405,15 @@ def define_ta_id(vehicle_family_id, data, report, dice, meta, sign_key):
             'outputs': make_hash(json.dumps(
                 dict(_filter_data(report)), default=_json_default,
                 sort_keys=True
-            ).encode())
+            ).encode()),
+            'dice_report': make_hash(json.dumps(
+                dice_report, default=_json_default, sort_keys=True
+            ).encode()),
+            'encrypted_data': make_hash(json.dumps(
+                encrypted_data, default=_json_default, sort_keys=True
+            ).encode()),
+            'output_file': make_hash(output_file.read()),
+            'input_file': make_hash(input_file.read()),
         },
         'extension': int(dice.get('extension', False)),
         'bifuel': int(dice.get('bifuel', False)),
@@ -396,11 +431,10 @@ def _get_fuel(d):
     return sh.are_in_nested_dicts(d, *k) and sh.get_nested_dicts(d, *k)
 
 
-def extract_dice_report(encrypt_inputs, vehicle_family_id, start_time, report):
+def extract_dice_report(vehicle_family_id, start_time, report):
     from co2mpas import version
     res = {
         'info': {
-            'encrypt_inputs': encrypt_inputs,
             'vehicle_family_id': vehicle_family_id,
             'CO2MPAS_version': version,
             'datetime': start_time.strftime('%Y/%m/%d-%H:%M:%S')
@@ -519,7 +553,7 @@ def crypto():
 
     dsp.add_function(
         function=encrypt_data,
-        inputs=['encrypt_inputs', 'data2encrypt', 'path_keys'],
+        inputs=['data2encrypt', 'path_keys'],
         outputs=['encrypted_data']
     )
 
@@ -528,20 +562,20 @@ def crypto():
     dsp.add_function(
         function=define_ta_id,
         inputs=['vehicle_family_id', 'data', 'report', 'dice', 'meta',
-                'sign_key'],
+                'dice_report', 'encrypted_data', 'output_file', 'input_file', 'sign_key'],
         outputs=['ta_id']
     )
 
     dsp.add_function(
         function=extract_dice_report,
-        inputs=['encrypt_inputs', 'vehicle_family_id', 'start_time', 'report'],
+        inputs=['vehicle_family_id', 'start_time', 'report'],
         outputs=['dice_report']
     )
 
     dsp.add_function(
         function=save_data,
         inputs=['output_folder', 'timestamp', 'ta_id', 'dice_report',
-                'encrypted_data'],
+                'encrypted_data', 'output_file', 'input_file'],
         outputs=['ta_file']
     )
 
@@ -572,9 +606,9 @@ def write_ta_output():
     func = sh.SubDispatchFunction(
         crypto(),
         'write_ta_output',
-        inputs=['encrypt_inputs', 'path_keys', 'vehicle_family_id', 'sign_key',
+        inputs=['path_keys', 'vehicle_family_id', 'sign_key',
                 'start_time', 'timestamp', 'data', 'meta', 'dice', 'report',
-                'output_folder'],
+                'output_folder', 'output_file', 'input_file'],
         outputs=['ta_file']
     )
 

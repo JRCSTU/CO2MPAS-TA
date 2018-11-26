@@ -102,7 +102,7 @@ class ReporterSpec(cmdlets.Spec):
         from co2mpas.io.excel import parse_excel_file
         from pandalone.pandata import resolve_path
 
-        data = parse_excel_file(inp_xlsx_fpath)
+        data = parse_excel_file(inp_xlsx_fpath)[0]
 
         file_vfid = resolve_path(data, self.input_vfid_path)
 

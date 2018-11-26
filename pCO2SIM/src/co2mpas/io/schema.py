@@ -101,6 +101,12 @@ def _ta_mode(data):
                  'in the dice keys folder.')
         return False
 
+    if _check_sign_key(**data.get('flag', {})):
+        log.info('Since CO2MPAS is launched in type approval mode the '
+                 'sign key is mandatory.\nPlease add in the dice keys folder '
+                 'and specify the right password.')
+        return False
+
     return True
 
 
@@ -245,14 +251,32 @@ def validate_dice(dice):
     return inputs
 
 
-def _check_encryption_keys(encrypt_inputs=None, encryption_keys=None, **kwargs):
+def _check_encryption_keys(encryption_keys=None, **kwargs):
     from ..conf import defaults
     dfl = defaults.io_constants_dfl
-    if encrypt_inputs is None:
-        encrypt_inputs = dfl.ENCRYPT_INPUTS
     if encryption_keys is None:
         encryption_keys = dfl.ENCRYPTION_KEYS_PATH
-    return encrypt_inputs and not osp.isfile(encryption_keys)
+    if osp.isfile(encryption_keys):
+        from .ta import load_public_RSA_keys
+        try:
+            load_public_RSA_keys(encryption_keys)
+            return False
+        except Exception:
+            pass
+    return True
+
+
+def _check_sign_key(sign_key=None, **kwargs):
+    from .ta import load_sign_key
+    from ..conf import defaults
+    dfl = defaults.io_constants_dfl
+    if sign_key is None:
+        sign_key = dfl.SIGN_KEY_PATH
+    try:
+        load_sign_key(sign_key)
+    except Exception:
+        return True
+    return not osp.isfile(sign_key)
 
 
 def validate_flags(flags):
@@ -944,7 +968,6 @@ def define_flags_schema(read=True):
         _compare_str('encryption_keys'): string,
         _compare_str('sign_key'): string,
 
-        _compare_str('encrypt_inputs'): _bool,
         _compare_str('soft_validation'): _bool,
         _compare_str('use_selector'): _bool,
         _compare_str('engineering_mode'): _bool,

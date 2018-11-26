@@ -590,11 +590,11 @@ def load_inputs():
         outputs=['raw_data'],
         input_domain=check_cache_fpath_exists
     )
-
+    d.add_data('input_file', None, 10)
     d.add_function(
         function=excel.parse_excel_file,
         inputs=['input_file_name'],
-        outputs=['raw_data'],
+        outputs=['raw_data', 'input_file'],
         input_domain=functools.partial(check_file_format,
                                        extensions=('.xlsx', '.xls')),
         weight=5
@@ -654,10 +654,13 @@ def write_outputs():
 
     d.add_function(
         function=excel.write_to_excel,
-        inputs=['dfs', 'output_file_name', 'template_file_name']
+        inputs=['dfs', 'template_file_name', 'output_file_name',
+                'type_approval_mode'],
+        outputs=['output_file']
     )
 
-    inp = ['output_file_name', 'template_file_name', 'output_data',
-           'start_time', 'main_flags']
 
-    return sh.SubDispatchFunction(d, d.name, inp)
+    inp = ['output_file_name', 'template_file_name', 'output_data',
+           'start_time', 'main_flags', 'type_approval_mode']
+
+    return sh.SubDispatchFunction(d, d.name, inp, ['output_file'])

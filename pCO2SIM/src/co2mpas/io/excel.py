@@ -302,13 +302,16 @@ def parse_excel_file(file_path):
     :rtype: dict, pandas.DataFrame
     """
     import pandas as pd
+    import io
+
     try:
-        excel_file = pd.ExcelFile(file_path)
+        with open(file_path, 'rb') as file:
+            input_file = io.BytesIO(file.read())
     except FileNotFoundError:
         log.error("No such file or directory: '%s'", file_path)
         return sh.NONE
 
-    res, plans = {}, []
+    excel_file, res, plans = pd.ExcelFile(input_file), {}, []
 
     book = excel_file.book
 
@@ -340,7 +343,7 @@ def parse_excel_file(file_path):
 
     res['plan'] = _finalize_plan(res, plans, file_path).to_dict('split')
 
-    return res
+    return res, input_file
 
 
 def _add_index_plan(plan, file_path):
@@ -416,16 +419,18 @@ def _write_sheets(writer, sheet_name, data, down=True, **kw):
         return refs
 
 
-def write_to_excel(data, output_file_name, template_file_name):
+def write_to_excel(data, template_file_name, output_file_name=None,
+                   type_approval_mode=None):
     import pandas as pd
+    import io
+    fd = io.BytesIO()
     if template_file_name:
-        log.debug('Writing into xl-file(%s) based on template(%s)...',
-                  output_file_name, template_file_name)
-        writer = clone_excel(template_file_name, output_file_name)
-
+        log.debug('Writing into xl-file based on template(%s)...',
+                  template_file_name)
+        writer = clone_excel(template_file_name, fd)
     else:
-        log.debug('Writing into xl-file(%s)...', output_file_name)
-        writer = pd.ExcelWriter(output_file_name, engine='xlsxwriter')
+        log.debug('Writing into xl-file...')
+        writer = pd.ExcelWriter(fd, engine='xlsxwriter')
 
     xlref, calculate_sheets, charts = [], sorted(writer.sheets), []
     for k, v in sorted(data.items(), key=_sort_sheets):
@@ -461,31 +466,42 @@ def write_to_excel(data, output_file_name, template_file_name):
     if calculate_sheets:
         import formulas
         xl_model = formulas.ExcelModel()
-        context = xl_model.add_book(
-            writer.book, {'excel': osp.basename(output_file_name)}
-        )[1]
+        context = xl_model.add_book(writer.book, {'excel': 'excel'})[1]
         xl_model.pushes(*calculate_sheets, context=context).finish().calculate()
         xl_model.write(xl_model.books)
-
     writer.save()
+    if not type_approval_mode and output_file_name:
+        save_excel_output(fd, output_file_name)
+    return fd
+
+
+def save_excel_output(file_output, output_file_name):
+    file_output.seek(0)
+    with open(output_file_name, 'wb') as f:
+        f.write(file_output.read())
     log.info('Written into xl-file(%s)...', output_file_name)
 
 
-def clone_excel(file_name, output_file_name):
+def clone_excel(file_name, output_file):
     from urllib.error import URLError
+    import io
+    fd = output_file if isinstance(output_file, io.BytesIO) else io.BytesIO()
+    i = fd.tell()
     try:
         from urllib.request import urlopen
         file = urlopen(file_name)
-        with open(output_file_name, 'wb') as fd:
-            shutil.copyfileobj(file, fd)
+        shutil.copyfileobj(file, fd)
     except (ValueError, URLError):
-        shutil.copy(file_name, output_file_name)
+        with open(file_name, 'rb') as file:
+            shutil.copyfileobj(file, fd)
     import pandas as pd
     import openpyxl
-    book = openpyxl.load_workbook(output_file_name)
-    writer = pd.ExcelWriter(output_file_name, engine='openpyxl',
-                            optimized_write=True, write_only=True)
-
+    fd.seek(i)
+    book = openpyxl.load_workbook(fd)
+    fd.seek(i)
+    writer = pd.ExcelWriter(
+        fd, engine='openpyxl', optimized_write=True, write_only=True
+    )
     writer.book = book
     writer.sheets.update(dict((ws.title, ws) for ws in book.worksheets))
     return writer

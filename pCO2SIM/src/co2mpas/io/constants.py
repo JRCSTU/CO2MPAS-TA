@@ -199,9 +199,6 @@ class Constants(utl.Constants):
     #: Data to be parsed from the input when declaration mode is enabled.
     DECLARATION_SELECTOR_CONFIG = {'config': dict.fromkeys(models_id, value)}
 
-    #: Encrypt inputs?
-    ENCRYPT_INPUTS = True
-
     #: Encryption keys path.
     ENCRYPTION_KEYS_PATH = os.environ.get(
         'ENCRYPTION_KEYS_PATH', './dice.co2mpas.keys'
@@ -209,7 +206,8 @@ class Constants(utl.Constants):
 
     #: Signature key path.
     SIGN_KEY_PATH = os.environ.get(
-        'SIGN_KEY_PATH', './sign.co2mpas.key'
+        'SIGN_KEY_PATH',
+        os.path.join(os.path.dirname(ENCRYPTION_KEYS_PATH), 'sign.co2mpas.key')
     )
 
 
