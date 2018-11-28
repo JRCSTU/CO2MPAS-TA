@@ -101,7 +101,7 @@ setup(
     name='co2gui',
     ## Provide a `default_version` for installing eg. in shallow clones,
     #  and `pname` or else it would be `__main__`.
-    version='0.0.0',
+    version='2.0.0+54.gd99bca0a',
     polyversion=True,
     description="Polyvers's lib to derive subproject versions from tags on Git monorepos.",
     long_description=long_desc,

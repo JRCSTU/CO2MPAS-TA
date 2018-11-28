@@ -12,8 +12,8 @@ co2gui: GUI for cCo2SIM + co2DICE
 
 .. _coord-start:
 
-:version:       |version|
-:updated:       |today|
+:version:       2.0.0+54.gd99bca0a
+:updated:       2018-11-28T13:24:26.168366
 :Documentation: http://co2mpas.io/
 :repository:    https://github.com/JRCSTU/CO2MPAS-TA/
 :pypi-repo:     https://pypi.org/project/co2gui/

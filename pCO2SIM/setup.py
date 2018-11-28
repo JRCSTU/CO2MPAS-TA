@@ -133,7 +133,7 @@ setup(
     name=PROJECT,
     ## Include a default for robustness (eg to work on shallow git -clones)
     #  but also for engraves to have their version visible.
-    version=os.environ.get('co2sim_VERSION' '0.0.0'),
+    version='2.1.0b2',
     polyversion=True,
     description="The Type-Approving vehicle simulator predicting NEDC CO2 emissions from WLTP",
     long_description=long_desc,
