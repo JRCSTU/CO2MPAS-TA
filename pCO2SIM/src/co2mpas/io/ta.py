@@ -88,11 +88,11 @@ def load_sign_key(sign_key, password=None):
     if password is None:
         password = os.environ.get('SIGN_KEY_PASSWORD', 'co2mpas') or None
 
-    if isinstance(password, str):
-        password = password.encode()
-
     if not osp.isfile(sign_key):
         generate_sing_key(sign_key, password)
+
+    if isinstance(password, str):
+        password = password.encode()
 
     with open(sign_key, 'rb') as f:
         return serialization.load_pem_private_key(
