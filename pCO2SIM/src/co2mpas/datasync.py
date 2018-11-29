@@ -562,23 +562,26 @@ def do_datasync(x_label, y_label, ref_xlref, *sync_xlrefs,
     df = synchronize(tables.headers, tables.tables, x_label, y_label,
                      prefix_cols, interpolation_method=interpolation_method,
                      interpolation_methods=interpolation_methods)
-
+    out_file = _ensure_out_file(
+        out_path, tables.ref_fpath, force, synced_file_frmt
+    )
     if no_clone:
-        writer_fact = pd.ExcelWriter
+        import io
+        fd = io.BytesIO()
+        writer = pd.ExcelWriter(fd)
     else:
         from co2mpas.io.excel import clone_excel
-        writer_fact = fnt.partial(clone_excel, tables.ref_fpath)
+        writer, fd = clone_excel(tables.ref_fpath)
+    df.to_excel(writer, tables.ref_sh_name, header=False, index=False)
+    writer.save()
+    fd.seek(0)
+    with open(out_file, 'wb') as f:
+        f.write(fd.read())
 
-    out_file = _ensure_out_file(out_path, tables.ref_fpath, force,
-                                synced_file_frmt)
-    with writer_fact(out_file) as writer:
-        # noinspection PyUnresolvedReferences
-        df.to_excel(writer, tables.ref_sh_name, header=False, index=False)
-        writer.save()
-        log.info(
-            'Data are synchronized and written into the sheet (%r) of xl-file '
-            '(%r) !\n', tables.ref_sh_name, out_file
-        )
+    log.info(
+        'Data are synchronized and written into the sheet (%r) of xl-file '
+        '(%r) !\n', tables.ref_sh_name, out_file
+    )
     return out_file
 
 
