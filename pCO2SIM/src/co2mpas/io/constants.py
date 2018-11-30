@@ -200,14 +200,13 @@ class Constants(utl.Constants):
     DECLARATION_SELECTOR_CONFIG = {'config': dict.fromkeys(models_id, value)}
 
     #: Encryption keys path.
-    ENCRYPTION_KEYS_PATH = os.environ.get(
-        'ENCRYPTION_KEYS_PATH', './dice.co2mpas.keys'
+    ENCRYPTION_KEYS_PATH = os.path.join(
+        os.environ.get('HOME', '.'), 'DICE_KEYS', 'dice.co2mpas.keys'
     )
 
     #: Signature key path.
-    SIGN_KEY_PATH = os.environ.get(
-        'SIGN_KEY_PATH',
-        os.path.join(os.path.dirname(ENCRYPTION_KEYS_PATH), 'sign.co2mpas.key')
+    SIGN_KEY_PATH = os.path.join(
+        os.environ.get('HOME', '.'), 'DICE_KEYS', 'sign.co2mpas.key'
     )
 
 
