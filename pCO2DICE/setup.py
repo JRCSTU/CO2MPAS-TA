@@ -99,7 +99,7 @@ setup(
     name='co2dice',
     ## Provide a `default_version` for installing eg. in shallow clones,
     #  and `pname` or else it would be `__main__`.
-    version='0.0.0',
+    version='2.0.0+60.g61a571ac',
     polyversion=True,
     description="Polyvers's lib to derive subproject versions from tags on Git monorepos.",
     long_description=long_desc,
