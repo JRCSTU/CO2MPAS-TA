@@ -15,6 +15,7 @@ import yaml
 import zlib
 import json
 import lmfit
+import random
 import tarfile
 import logging
 import functools
@@ -101,6 +102,7 @@ def load_sign_key(sign_key, password=None):
     return serialization.load_pem_private_key(
         d['key'].encode(), password, default_backend()
     )
+
 
 def sign_ta_id(ta_id, sign_key, password=None):
     from cryptography.hazmat.primitives import hashes
@@ -422,6 +424,7 @@ def define_ta_id(vehicle_family_id, data, report, dice, meta, dice_report,
             'output_file': make_hash(output_file.read()),
             'input_file': make_hash(input_file.read()),
         },
+        'user_random': random.randint(0, 99),
         'extension': int(dice.get('extension', False)),
         'bifuel': int(dice.get('bifuel', False)),
         'wltp_retest': dice.get('wltp_retest', '-'),
