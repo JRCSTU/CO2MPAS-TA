@@ -378,13 +378,16 @@ def save_data(
 
 def load_data(fpath):
     data = []
-    with tarfile.open(fpath, 'r:bz2') as tar:
-        for k in ('ta_id', 'dice_report', 'encrypted_data'):
-            try:
-                with tar.extractfile(tar.getmember(k)) as f:
-                    data.append(yaml.load(f.read()))
-            except KeyError:
-                data.append(sh.NONE)
+    with zipfile.ZipFile(fpath) as zf:
+        fname = '%s.ta' % osp.splitext(osp.basename(fpath))[0]
+        fileobj = io.BytesIO(zf.read(fname))
+        with tarfile.open(mode='r:bz2', fileobj=fileobj) as tar:
+            for k in ('ta_id', 'dice_report', 'encrypted_data'):
+                try:
+                    with tar.extractfile(tar.getmember(k)) as f:
+                        data.append(yaml.load(f.read()))
+                except KeyError:
+                    data.append(sh.NONE)
     return data
 
 
@@ -562,7 +565,8 @@ def crypto():
     dsp.add_function(
         function=define_ta_id,
         inputs=['vehicle_family_id', 'data', 'report', 'dice', 'meta',
-                'dice_report', 'encrypted_data', 'output_file', 'input_file', 'sign_key'],
+                'dice_report', 'encrypted_data', 'output_file', 'input_file',
+                'sign_key'],
         outputs=['ta_id']
     )
 
@@ -638,10 +642,27 @@ def define_decrypt_function(path_keys, passwords=None):
 if __name__ == '__main__':
     import glob
     import tqdm
+    import zipfile
     passwords = ('p_secret', 'p_server')
     #generate_keys('.', passwords)
     func = define_decrypt_function('secret.co2mpas.keys', passwords)
-    res = []
-    for fpath in tqdm.tqdm(glob.glob('./output/20181120_181229-*co2mpas.ta')):
-        res.append(func(fpath))
+    res = {}
+    for k in ('dimi', 'vins'):
+        r = res[k] = {}
+        for fpath in tqdm.tqdm(glob.glob('./output/demos/%s/*co2mpas.zip' % k)):
+            fname = '%s.ta' % osp.splitext(osp.basename(fpath))[0]
+            sh.get_nested_dicts(
+                res, '-'.join(fname.split('-')[1:])[:-11], k
+            ).update(func(fpath))
+
+    for fname, data in res.items():
+        data = [dict(sh.stack_nested_keys(v['ta_id']))
+                for k, v in sorted(data.items())]
+        for k in data[0]:
+            r = [d[k] for d in data]
+            s = set([json.dumps(v, default=_json_default, sort_keys=True) for v in r])
+            try:
+                assert len(s) == 1
+            except AssertionError:
+                print(fname, len(s), k, s)
     c = 0
