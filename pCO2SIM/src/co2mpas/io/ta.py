@@ -91,14 +91,16 @@ def load_sign_key(sign_key, password=None):
     if not osp.isfile(sign_key):
         generate_sing_key(sign_key, password)
 
+    with open(sign_key) as file:
+        d = json.load(file)
+    password = d.get('password', password)
+
     if isinstance(password, str):
         password = password.encode()
 
-    with open(sign_key, 'rb') as f:
-        return serialization.load_pem_private_key(
-            f.read(), password, default_backend()
-        )
-
+    return serialization.load_pem_private_key(
+        d['key'].encode(), password, default_backend()
+    )
 
 def sign_ta_id(ta_id, sign_key, password=None):
     from cryptography.hazmat.primitives import hashes
@@ -201,12 +203,14 @@ def generate_sing_key(sign_key, password=None):
     else:
         encrypt_alg = serialization.BestAvailableEncryption(password.encode())
 
-    with open(sign_key, 'wb') as file:
-        file.write(key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=encrypt_alg
-        ))
+    key = key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=encrypt_alg
+    ).decode()
+
+    with open(sign_key, 'w') as file:
+        json.dump({'key': key, 'password': password}, file, sort_keys=1)
 
 
 def generate_keys(key_folder, passwords=None):
