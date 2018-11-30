@@ -62,7 +62,8 @@ def notify_result_listener(result_listener, res, out_fpath=None):
         if not out_fpath:
             it = []
             for k in ('output_file_name', 'output_ta_file'):
-                if sh.are_in_nested_dicts(res, 'solution', k):
+                if sh.are_in_nested_dicts(res, 'solution', k) and \
+                        osp.isfile(res['solution'][k]):
                     it.append(res['solution'][k])
         else:
             it = sh.stlp(out_fpath)
