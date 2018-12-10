@@ -195,6 +195,7 @@ def _find_dice_tag(repo, pname, max_dices_per_project,
     """Return None if no tag exists yet."""
     tref = _tname2ref_name(pname)
     tags = repo.tags
+    i=0
     for i in range(max_dices_per_project):
         tagname = '%s/%d' % (tref, i)
         if tagname not in tags:
