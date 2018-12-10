@@ -1183,8 +1183,8 @@ class ProjectsDB(trtc.SingletonConfigurable, ProjectSpec):
     @fnt.lru_cache()  # x6(!) faster!
     def _infos_dsp(self, fallback_value='<invalid>'):
         import pandalone.utils as pndlu
-        from schedula import Dispatcher
-        from schedula.utils.dsp import DFun
+        from schedula.dispatcher import Dispatcher
+        from .utils.schedulafun import DFun
 
         ## see _info_fields()
         P = 'project'
