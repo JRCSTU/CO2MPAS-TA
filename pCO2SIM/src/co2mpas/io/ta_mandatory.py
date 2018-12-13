@@ -64,10 +64,10 @@ base = extend_checks(
         'engine_stroke', 'idle_engine_speed_median', 'engine_n_cylinders',
         'engine_idle_fuel_consumption', 'tyre_code', 'gear_box_type',
         'alternator_nominal_voltage', 'alternator_nominal_power',
-        'battery_capacity', 'battery_voltage', 'atct_family_correction_factor',
-        'alternator_efficiency', 'gear_box_ratios', 'full_load_speeds',
-        'full_load_powers', 'engine_is_turbo', 'has_start_stop',
-        'has_energy_recuperation', 'has_torque_converter', 'has_lean_burn',
+        'battery_capacity', 'battery_voltage', 'alternator_efficiency',
+        'gear_box_ratios', 'full_load_speeds', 'full_load_powers',
+        'engine_is_turbo', 'has_start_stop', 'has_energy_recuperation',
+        'has_torque_converter', 'has_lean_burn',
         'has_periodically_regenerating_systems',
         'engine_has_cylinder_deactivation',
         'engine_has_variable_valve_actuation',
@@ -136,6 +136,7 @@ checks = {
     'dice': {
         'bifuel': [_mandatory],
         'extension': [_mandatory],
+        'atct_family_correction_factor': [_mandatory]
     },
     'base': {
         'target': {

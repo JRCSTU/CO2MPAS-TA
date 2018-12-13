@@ -80,7 +80,6 @@ calibration = {
     'cycle_type': True,
     'battery_voltage': True,
     'fuel_heating_value': True,
-    'atct_family_correction_factor': True,
     'rcb_correction': True,
     'speed_distance_correction': True
 }
@@ -141,8 +140,7 @@ prediction = {
     'cycle_name': True,
     'cycle_type': True,
     'battery_voltage': True,
-    'fuel_heating_value': True,
-    'atct_family_correction_factor': True
+    'fuel_heating_value': True
 }
 
 models_id = (

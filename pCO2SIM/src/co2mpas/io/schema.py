@@ -1003,11 +1003,12 @@ def define_flags_schema(read=True):
 def define_dice_schema(read=True):
     string = _string(read=read)
     _bool = _type(type=bool, read=read)
-
+    _float = _type(type=float, read=read)
     schema = {
         _compare_str('bifuel'): _bool,
         _compare_str('extension'): _bool,
         _compare_str('comments'): string,
+        _compare_str('atct_family_correction_factor'): _float,
         _compare_str('wltp_retest'): _select(
             types=('-', 'a', 'b', 'c', 'd', 'ab', 'ac', 'ad', 'bc', 'bd', 'cd',
                    'abc', 'abd', 'abcd'), read=read),

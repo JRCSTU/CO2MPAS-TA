@@ -429,6 +429,8 @@ def define_ta_id(vehicle_family_id, data, report, dice, meta, dice_report,
         'bifuel': int(dice.get('bifuel', False)),
         'wltp_retest': dice.get('wltp_retest', '-'),
         'comments': dice.get('comments', ''),
+        'atct_family_correction_factor': dice.get(
+            'atct_family_correction_factor', 1),
         'fuel_type': _get_fuel(report)
     }
     sign_ta_id(key, sign_key)
@@ -654,8 +656,7 @@ if __name__ == '__main__':
     #generate_keys('.', passwords)
     func = define_decrypt_function('secret.co2mpas.keys', passwords)
     res = {}
-    for k in ('dimi', 'vins'):
-        r = res[k] = {}
+    for k in ('dimi', 'vins', 'vins1'):
         for fpath in tqdm.tqdm(glob.glob('./output/demos/%s/*co2mpas.zip' % k)):
             fname = '%s.ta' % osp.splitext(osp.basename(fpath))[0]
             sh.get_nested_dicts(
@@ -667,7 +668,7 @@ if __name__ == '__main__':
                 for k, v in sorted(data.items())]
         for k in data[0]:
             r = [d[k] for d in data]
-            s = set([json.dumps(v, default=_json_default, sort_keys=True) for v in r])
+            s = {json.dumps(v, default=_json_default, sort_keys=1) for v in r}
             try:
                 assert len(s) == 1
             except AssertionError:
