@@ -38,7 +38,7 @@ __updated__   = polytime(pname='co2sim')           # noqa
 version       = __version__                         # noqa
 
 #: The :term:`Semantic Versioning` for Input/Output files.
-__file_version__        = "3.0.0"                   # noqa
+__file_version__        = "3.0.1"                   # noqa
 
 
 if __name__ == '__main__':
