@@ -411,6 +411,9 @@ def define_ta_id(vehicle_family_id, data, report, dice, meta, dice_report,
             'meta': make_hash(json.dumps(
                 meta, default=_json_default, sort_keys=True
             ).encode()),
+            'dice': make_hash(json.dumps(
+                dice, default=_json_default, sort_keys=True
+            ).encode()),
             'outputs': make_hash(json.dumps(
                 dict(_filter_data(report)), default=_json_default,
                 sort_keys=True
@@ -431,7 +434,8 @@ def define_ta_id(vehicle_family_id, data, report, dice, meta, dice_report,
         'comments': dice.get('comments', ''),
         'atct_family_correction_factor': dice.get(
             'atct_family_correction_factor', 1),
-        'fuel_type': _get_fuel(report)
+        'fuel_type': _get_fuel(report),
+        'dice': dice
     }
     sign_ta_id(key, sign_key)
     return key
