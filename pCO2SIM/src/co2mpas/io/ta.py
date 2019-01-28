@@ -364,9 +364,9 @@ def save_data(
     name = osp.splitext(osp.basename(fpath))[0]
     import zipfile
     ta_file = _save_data(**kw)[1]
-    ta_hash = str(make_hash(json.dumps(
+    ta_hash = make_hash(json.dumps(
         kw, default=_json_default, sort_keys=True
-    ).encode()))
+    ).encode()).hex()
     with zipfile.ZipFile(fpath, 'w', zipfile.ZIP_DEFLATED) as zf:
         if input_file:
             input_file.seek(0)
