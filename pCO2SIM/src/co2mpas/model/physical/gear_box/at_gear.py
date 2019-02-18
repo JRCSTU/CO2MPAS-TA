@@ -1817,7 +1817,7 @@ def default_specific_gear_shifting():
 def at_domain(method):
     # noinspection PyMissingOrEmptyDocstring
     def domain(kwargs):
-        return kwargs['specific_gear_shifting'] in ('ALL', method)
+        return kwargs.get('specific_gear_shifting') in ('ALL', method)
 
     return domain
 

@@ -27,11 +27,11 @@ import numpy as np
 
 
 def is_nedc(kwargs):
-    return kwargs['cycle_type'] == 'NEDC'
+    return kwargs.get('cycle_type') == 'NEDC'
 
 
 def is_wltp(kwargs):
-    return kwargs['cycle_type'] == 'WLTP'
+    return kwargs.get('cycle_type') == 'WLTP'
 
 
 def cycle_times(frequency, time_length):

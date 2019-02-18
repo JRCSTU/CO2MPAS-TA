@@ -606,23 +606,23 @@ def calculate_equivalent_gear_box_heat_capacity(
 
 # noinspection PyMissingOrEmptyDocstring
 def is_automatic(kwargs):
-    return kwargs['gear_box_type'] == 'automatic'
+    return kwargs.get('gear_box_type') == 'automatic'
 
 
 # noinspection PyMissingOrEmptyDocstring
 def is_manual(kwargs):
-    b = kwargs['gear_box_type'] == 'manual'
-    return b and kwargs['cycle_type'] != 'NEDC'
+    b = kwargs.get('gear_box_type') == 'manual'
+    return b and kwargs.get('cycle_type') != 'NEDC'
 
 
 # noinspection PyMissingOrEmptyDocstring
 def is_cvt(kwargs):
-    return kwargs['gear_box_type'] == 'cvt'
+    return kwargs.get('gear_box_type') == 'cvt'
 
 
 # noinspection PyMissingOrEmptyDocstring
 def not_cvt(kwargs):
-    return kwargs['gear_box_type'] != 'cvt'
+    return kwargs.get('gear_box_type') != 'cvt'
 
 
 # noinspection PyMissingOrEmptyDocstring

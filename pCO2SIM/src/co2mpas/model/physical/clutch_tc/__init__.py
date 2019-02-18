@@ -134,11 +134,13 @@ def default_has_torque_converter(gear_box_type):
 
 
 def clutch_domain(kwargs):
-    return not kwargs['has_torque_converter'] or kwargs['gear_box_type'] == 'cvt'
+    b = not kwargs.get('has_torque_converter')
+    return b or kwargs.get('gear_box_type') == 'cvt'
 
 
 def torque_converter_domain(kwargs):
-    return kwargs['has_torque_converter'] and kwargs['gear_box_type'] != 'cvt'
+    b = kwargs.get('has_torque_converter')
+    return b and kwargs.get('gear_box_type') != 'cvt'
 
 
 def clutch_torque_converter():
