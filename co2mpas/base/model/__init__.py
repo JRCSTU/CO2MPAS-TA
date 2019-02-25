@@ -20,6 +20,13 @@ It contains a comprehensive list of all CO2MPAS software models and sub-models:
 """
 
 import schedula as sh
+from .physical import dsp as _physical
+from .selector import selector
+
+dsp = sh.BlueDispatcher(
+    name='CO2MPAS model',
+    description='Calibrates the models with WLTP data and predicts NEDC cycle.'
+)
 
 _prediction_data = [
     'angle_slope', 'alternator_nominal_voltage', 'alternator_efficiency',
@@ -49,7 +56,91 @@ _prediction_data = [
 
 _prediction_data_ts = ['times', 'velocities', 'gears']
 
+dsp.add_data(
+    data_id='input.precondition.wltp_p',
+    description='Dictionary that has all inputs of the calibration cycle.',
+    default_value={}
+)
 
+physical = sh.SubDispatch(_physical)
+dsp.add_function(
+    function_id='calculate_precondition_output',
+    function=physical,
+    inputs=['input.precondition.wltp_p'],
+    outputs=['output.precondition.wltp_p'],
+    description='Wraps all functions needed to calculate the precondition '
+                'outputs.'
+)
+
+dsp.add_data('input.calibration.wltp_h', {})
+dsp.add_data('input.calibration.wltp_l', {})
+
+
+@sh.add_function(
+    dsp, inputs=['input.calibration.wltp_h', 'output.precondition.wltp_p'],
+    outputs=['data.calibration.wltp_h']
+)
+@sh.add_function(
+    dsp, inputs=['input.calibration.wltp_l', 'output.precondition.wltp_p'],
+    outputs=['data.calibration.wltp_l'],
+)
+def select_calibration_data(cycle_inputs, precondition_outputs):
+    """
+    Updates cycle inputs with the precondition outputs.
+
+    :param cycle_inputs:
+        Dictionary that has inputs of the calibration cycle.
+    :type cycle_inputs: dict
+
+    :param precondition_outputs:
+        Dictionary that has all outputs of the precondition cycle.
+    :type precondition_outputs: dict
+
+    :return:
+        Dictionary that has all inputs of the calibration cycle.
+    :rtype: dict
+    """
+
+    pre = precondition_outputs
+
+    p = ('initial_state_of_charge', 'state_of_charges')
+    if not any(k in cycle_inputs for k in p) and p[1] in pre:
+        inputs = cycle_inputs.copy()
+        inputs['initial_state_of_charge'] = pre['state_of_charges'][-1]
+        return inputs
+    return cycle_inputs
+
+
+dsp.add_function(
+    function_id='calibrate_with_wltp_h',
+    function=physical,
+    inputs=['data.calibration.wltp_h'],
+    outputs=['output.calibration.wltp_h'],
+    description='Wraps all functions needed to calibrate the models to '
+                'predict light-vehicles\' CO2 emissions.'
+)
+
+dsp.add_function(
+    function_id='calibrate_with_wltp_l',
+    function=physical,
+    inputs=['data.calibration.wltp_l'],
+    outputs=['output.calibration.wltp_l'],
+    description='Wraps all functions needed to calibrate the models to '
+                'predict light-vehicles\' CO2 emissions.'
+)
+
+dsp.add_data('input.prediction.wltp_h', {})
+dsp.add_data('input.prediction.wltp_l', {})
+
+
+@sh.add_function(
+    dsp, inputs=['output.calibration.wltp_h', 'data.prediction.models_wltp_h',
+                 'input.prediction.wltp_h'], outputs=['data.prediction.wltp_h']
+)
+@sh.add_function(
+    dsp, inputs=['output.calibration.wltp_l', 'data.prediction.models_wltp_l',
+                 'input.prediction.wltp_l'], outputs=['data.prediction.wltp_l']
+)
 def select_prediction_data(data, *new_data):
     """
     Selects the data required to predict the CO2 emissions with CO2MPAS model.
@@ -80,217 +171,53 @@ def select_prediction_data(data, *new_data):
 
     if 'gears' in data and 'gears' not in new_data:
         if data.get('gear_box_type', 0) == 'automatic' or \
-                        len(data.get('velocities', ())) != len(data['gears']):
+                len(data.get('velocities', ())) != len(data['gears']):
             data.pop('gears')
 
     return data
 
 
-def select_calibration_data(cycle_inputs, precondition_outputs):
-    """
-    Updates cycle inputs with the precondition outputs.
+dsp.add_data('config.selector.all', {})
+dsp.add_data('input.prediction.models', {})
 
-    :param cycle_inputs:
-        Dictionary that has inputs of the calibration cycle.
-    :type cycle_inputs: dict
+pred_cyl_ids = ('nedc_h', 'nedc_l', 'wltp_h', 'wltp_l')
+dsp.add_function(
+    function_id='extract_calibrated_models',
+    function=selector('wltp_h', 'wltp_l', pred_cyl_ids=pred_cyl_ids),
+    inputs=['config.selector.all', 'input.prediction.models',
+            'output.calibration.wltp_h',
+            'output.calibration.wltp_l'],
+    outputs=['data.calibration.model_scores'] +
+            ['data.prediction.models_%s' % k for k in pred_cyl_ids]
+)
 
-    :param precondition_outputs:
-        Dictionary that has all outputs of the precondition cycle.
-    :type precondition_outputs: dict
+dsp.add_function(
+    function_id='predict_wltp_h',
+    function=physical,
+    inputs=['data.prediction.wltp_h'],
+    outputs=['output.prediction.wltp_h'],
+    description='Wraps all functions needed to predict CO2 emissions.'
+)
 
-    :return:
-        Dictionary that has all inputs of the calibration cycle.
-    :rtype: dict
-    """
+dsp.add_function(
+    function_id='predict_wltp_l',
+    function=physical,
+    inputs=['data.prediction.wltp_l'],
+    outputs=['output.prediction.wltp_l'],
+    description='Wraps all functions needed to predict CO2 emissions.'
 
-    pre = precondition_outputs
+)
 
-    p = ('initial_state_of_charge', 'state_of_charges')
-    if not any(k in cycle_inputs for k in p) and p[1] in pre:
-        inputs = cycle_inputs.copy()
-        inputs['initial_state_of_charge'] = pre['state_of_charges'][-1]
-        return inputs
-    return cycle_inputs
+dsp.add_function(
+    function_id='predict_nedc_h',
+    function=physical,
+    inputs=['data.prediction.models_nedc_h', 'input.prediction.nedc_h'],
+    outputs=['output.prediction.nedc_h'],
+)
 
-
-def model():
-    """
-    Defines the CO2MPAS model.
-
-    .. dispatcher:: d
-
-        >>> d = model()
-
-    :return:
-        The CO2MPAS model.
-    :rtype: schedula.Dispatcher
-    """
-
-    from .physical import physical
-    ph = sh.SubDispatch(physical())
-    d = sh.Dispatcher(
-        name='CO2MPAS model',
-        description='Calibrates the models with WLTP data and predicts NEDC '
-                    'cycle.'
-    )
-
-    ############################################################################
-    #                          PRECONDITIONING CYCLE
-    ############################################################################
-
-    d.add_data(
-        data_id='input.precondition.wltp_p',
-        description='Dictionary that has all inputs of the calibration cycle.',
-        default_value={}
-    )
-
-    d.add_function(
-        function_id='calculate_precondition_output',
-        function=ph,
-        inputs=['input.precondition.wltp_p'],
-        outputs=['output.precondition.wltp_p'],
-        description='Wraps all functions needed to calculate the precondition '
-                    'outputs.'
-    )
-
-    ############################################################################
-    #                          WLTP - HIGH CYCLE
-    ############################################################################
-
-    d.add_data(
-        data_id='input.calibration.wltp_h',
-        default_value={}
-    )
-
-    d.add_function(
-        function=select_calibration_data,
-        inputs=['input.calibration.wltp_h', 'output.precondition.wltp_p'],
-        outputs=['data.calibration.wltp_h'],
-    )
-
-    d.add_function(
-        function_id='calibrate_with_wltp_h',
-        function=ph,
-        inputs=['data.calibration.wltp_h'],
-        outputs=['output.calibration.wltp_h'],
-        description='Wraps all functions needed to calibrate the models to '
-                    'predict light-vehicles\' CO2 emissions.'
-    )
-
-    d.add_data(
-        data_id='input.prediction.wltp_h',
-        default_value={}
-    )
-
-    d.add_function(
-        function=select_prediction_data,
-        inputs=['output.calibration.wltp_h', 'data.prediction.models_wltp_h',
-                'input.prediction.wltp_h'],
-        outputs=['data.prediction.wltp_h']
-    )
-
-    d.add_function(
-        function_id='predict_wltp_h',
-        function=ph,
-        inputs=['data.prediction.wltp_h'],
-        outputs=['output.prediction.wltp_h'],
-        description='Wraps all functions needed to predict CO2 emissions.'
-    )
-
-    ############################################################################
-    #                          WLTP - LOW CYCLE
-    ############################################################################
-
-    d.add_data(
-        data_id='input.calibration.wltp_l',
-        default_value={}
-    )
-
-    d.add_function(
-        function=select_calibration_data,
-        inputs=['input.calibration.wltp_l', 'output.precondition.wltp_p'],
-        outputs=['data.calibration.wltp_l'],
-    )
-
-    d.add_function(
-        function_id='calibrate_with_wltp_l',
-        function=ph,
-        inputs=['data.calibration.wltp_l'],
-        outputs=['output.calibration.wltp_l'],
-        description='Wraps all functions needed to calibrate the models to '
-                    'predict light-vehicles\' CO2 emissions.'
-    )
-
-    d.add_data(
-        data_id='input.prediction.wltp_l',
-        default_value={}
-    )
-
-    d.add_function(
-        function=select_prediction_data,
-        inputs=['output.calibration.wltp_l', 'data.prediction.models_wltp_l',
-                'input.prediction.wltp_l'],
-        outputs=['data.prediction.wltp_l']
-    )
-
-    d.add_function(
-        function_id='predict_wltp_l',
-        function=ph,
-        inputs=['data.prediction.wltp_l'],
-        outputs=['output.prediction.wltp_l'],
-        description='Wraps all functions needed to predict CO2 emissions.'
-
-    )
-
-    ############################################################################
-    #                            MODEL SELECTOR
-    ############################################################################
-
-    from .selector import selector
-
-    pred_cyl_ids = ('nedc_h', 'nedc_l', 'wltp_h', 'wltp_l')
-    sel = selector('wltp_h', 'wltp_l', pred_cyl_ids=pred_cyl_ids)
-
-    d.add_data(
-        data_id='config.selector.all',
-        default_value={}
-    )
-
-    d.add_data(
-        data_id='input.prediction.models',
-        default_value={}
-    )
-
-    d.add_function(
-        function_id='extract_calibrated_models',
-        function=sel,
-        inputs=['config.selector.all', 'input.prediction.models',
-                'output.calibration.wltp_h',
-                'output.calibration.wltp_l'],
-        outputs=['data.calibration.model_scores'] +
-                ['data.prediction.models_%s' % k for k in pred_cyl_ids]
-    )
-
-    ############################################################################
-    #                            NEDC - HIGH CYCLE
-    ############################################################################
-
-    d.add_function(
-        function_id='predict_nedc_h',
-        function=ph,
-        inputs=['data.prediction.models_nedc_h', 'input.prediction.nedc_h'],
-        outputs=['output.prediction.nedc_h'],
-    )
-
-    ############################################################################
-    #                            NEDC - LOW CYCLE
-    ############################################################################
-
-    d.add_function(
-        function_id='predict_nedc_l',
-        function=ph,
-        inputs=['data.prediction.models_nedc_l', 'input.prediction.nedc_l'],
-        outputs=['output.prediction.nedc_l'],
-    )
-
-    return d
+dsp.add_function(
+    function_id='predict_nedc_l',
+    function=physical,
+    inputs=['data.prediction.models_nedc_l', 'input.prediction.nedc_l'],
+    outputs=['output.prediction.nedc_l'],
+)
