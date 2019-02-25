@@ -12,16 +12,16 @@ import re
 import sys
 from os import path as osp
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
-from polyversion import polyversion
+PROJECT = 'co2mpas'
 
 mydir = osp.dirname(osp.abspath(__file__))
 os.chdir(mydir)
 
 
 def read_text_lines(fname):
-    with io.open(os.path.join(mydir, fname), encoding='utf-8') as fd:
+    with io.open(osp.join(mydir, fname), encoding='utf-8') as fd:
         return fd.readlines()
 
 
@@ -94,21 +94,56 @@ def yield_rst_only_markup(lines):
         yield clean_line(line)
 
 
+def read_pinned_deps(fpath):
+    comment_regex = re.compile('^ *#')
+    rstrip_regex = re.compile(' *(#.*)?$')
+
+    def procline(line):
+        line = line.strip()
+        if line and not comment_regex.match(line):
+            return line
+
+        return rstrip_regex.sub('', line)
+
+    pinned_deps = []
+    with open(fpath) as fp:
+        for line in fp:
+            if 'CO2MPAS PINNED STOP' in line:
+                break
+
+            line = procline(line)
+            if line:
+                pinned_deps.append(line)
+
+    return pinned_deps
+
+
+
 polyver = 'polyversion >= 0.2.2a0'  # Workaround buggy git<2.15, envvar: co2mpas_VERION
 readme_lines = read_text_lines('README.rst')
 description = readme_lines[1]
 long_desc = ''.join(yield_rst_only_markup(readme_lines))
+pindeps = read_pinned_deps(osp.join(mydir, 'requirements', 'exe.pip'))
 
+test_requirements = [
+    'pytest',
+    'pytest-runner',
+    'flake8',
+    'flake8-builtins',
+    'flake8-mutable',
+    #'mypy',
+    'ddt',
+]
 
 setup(
-    name='co2mpas',
+    name=PROJECT,
     ## Include a default for robustness (eg to work on shallow git -clones)
     #  but also for engraves to have their version visible.
-    version='0.0.0',
+    version=os.environ.get('co2sim_VERSION' '0.0.0'),
     polyversion=True,
     description="The Type-Approving vehicle simulator predicting NEDC CO2 emissions from WLTP",
     long_description=long_desc,
-    download_url='https://github.com/JRCSTU/ALLINONE/releases/',
+    download_url='https://pypi.org/project/co2sim/',
     keywords="""
         CO2 fuel-consumption WLTP NEDC vehicle automotive
         EU JRC IET STU correlation back-translation policy monitoring
@@ -141,6 +176,7 @@ setup(
         'Topic :: Scientific/Engineering',
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
+    obsoletes=['co2mpas (< 2.0)'],
     python_requires='>=3.5',
     setup_requires=[
         # PEP426-field actually not used by `pip`, hence
@@ -150,22 +186,65 @@ setup(
         'wheel',
         polyver,
     ],
-    # dev_requires=[
-    #     # PEP426-field actually not used by `pip`, hence
-    #     # included in /requirements/developmnet.pip.
-    #     'sphinx',
-    # ],
     install_requires=[
         polyver,
-        'co2sim[io,plot]',
-        'co2gui',
-        'co2dice',
+        'colorama',
+        'formulas>=0.0.10',
+        'lmfit>=0.9.7',
+        'logutils',
+        'numpy',
+        'pandas>=0.21.0',       # `axis` kw added in e.g. reindex()
+        'regex',
+        'schedula[plot]>=0.2.3',
+        'schema',
+        'scikit-learn',
+        'scipy',
+        'wltp',
+        'xgboost',                  # Pure-python boost would be also ok.
     ],
-    zip_safe=True,
-    options={
-        'bdist_wheel': {
-            'universal': True,
-        },
+    extras_require={
+        'io': [
+            'boltons',
+            'contextvars',              # for co2mpare, backported for <PY37
+            'cryptography',
+            'dill!=0.2.7',
+            'docopt',
+            'openpyxl>=2.4.0',
+            'pandalone[xlrd]>=0.2.0',   # for datasync pascha-fixes and openpyxl version
+            'pip',
+            'PyYAML>=3.12',
+            'toolz',
+            'tqdm',
+            'xlsxwriter',
+        ],
+        'plot': [
+            'matplotlib',
+            'schedula[plot]',
+        ],
+        'test': test_requirements,
+        # Not working yet, due to: https://github.com/pypa/pip/pull/3878
+        'pindeps': pindeps,
     },
+    tests_require=test_requirements,
+    package_dir={'': 'src'},
+    packages=find_packages('src'),
+    test_suite='tests',
+    entry_points={
+        'console_scripts': [
+            'co2mpas = co2mpas.__main__:main',
+            'datasync = co2mpas.datasync:main',
+        ],
+    },
+    package_data={
+        'co2mpas': [
+            'demos/*.xlsx',
+            'ipynbs/*.ipynb',
+            'co2mpas_template.xlsx',
+            'datasync_template.xlsx',
+            'co2mpas_output_template.xlsx',
+        ]
+    },
+    zip_safe=True,
+    options={'bdist_wheel': {'universal': True}},
     platforms=['any'],
 )

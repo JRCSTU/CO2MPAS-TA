@@ -1,6 +1,0 @@
-## WebStamper config files
-#
-uwsgi.ini
-wsgi.py
-local_config.py
-logconf.yaml
