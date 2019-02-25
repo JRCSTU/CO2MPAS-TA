@@ -28,7 +28,7 @@ import inspect
 import datetime
 import pathlib
 import regex
-from .. import version
+from co2mpas import __version__
 import schedula as sh
 from . import schema, excel, dill
 import functools
@@ -45,7 +45,7 @@ def get_cache_fpath(fpath, ext=('dill',)):
         cache_folder.mkdir()
     except Exception:  # dir exist
         pass
-    return str(cache_folder.joinpath('.'.join((fpath.name, version) + ext)))
+    return str(cache_folder.joinpath('.'.join((fpath.name, __version__) + ext)))
 
 
 def check_cache_fpath_exists(overwrite_cache, fpath, cache_fpath):
@@ -154,7 +154,7 @@ def _co2mpas_info2df(start_time, main_flags=None):
     time_elapsed = (datetime.datetime.today() - start_time).total_seconds()
     hostname = socket.gethostname()
     info = [
-        ('CO2MPAS version', version),
+        ('CO2MPAS version', __version__),
         ('Simulation started', start_time.strftime('%Y/%m/%d-%H:%M:%S')),
         ('Time elapsed', '%.3f sec' % time_elapsed),
         ('Hostname', hostname),
