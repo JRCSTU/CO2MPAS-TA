@@ -24,23 +24,84 @@ Sub-Modules:
 
 import schedula as sh
 import numpy as np
+from ..defaults import dfl
+from .NEDC import dsp as nedc_cycle
+from .WLTP import dsp as wltp_cycle
+
+dsp = sh.BlueDispatcher(
+    name='Cycle model',
+    description='Returns the theoretical times, velocities, and gears.'
+)
+dsp.add_data('time_sample_frequency', dfl.values.time_sample_frequency)
 
 
 def is_nedc(kwargs):
     return kwargs.get('cycle_type') == 'NEDC'
 
 
+dsp.add_dispatcher(
+    include_defaults=True,
+    dsp=nedc_cycle,
+    inputs=(
+        'gear_box_type', 'gears', 'k1', 'k2', 'k5', 'max_gear', 'times',
+        {'cycle_type': sh.SINK}
+    ),
+    outputs=('gears', 'initial_temperature', 'max_time', 'velocities'),
+    input_domain=is_nedc
+)
+
+
 def is_wltp(kwargs):
     return kwargs.get('cycle_type') == 'WLTP'
 
 
-def cycle_times(frequency, time_length):
+dsp.add_dispatcher(
+    include_defaults=True,
+    dsp=wltp_cycle,
+    inputs=(
+        'accelerations', 'climbing_force', 'downscale_factor', 'motive_powers',
+        'downscale_factor_threshold', 'downscale_phases', 'engine_max_power',
+        'engine_speed_at_max_power', 'full_load_curve', 'gear_box_type',
+        'gears', 'idle_engine_speed', 'speed_velocity_ratios', 'max_velocity',
+        'max_speed_velocity_ratio', 'inertial_factor', 'road_loads', 'times',
+        'unladen_mass', 'vehicle_mass', 'velocities', 'wltp_base_model',
+        'engine_max_speed', 'wltp_class', {
+            'cycle_type': sh.SINK
+        }
+    ),
+    outputs=('gears', 'initial_temperature', 'max_time', 'velocities'),
+    input_domain=is_wltp
+)
+
+
+@sh.add_function(dsp, outputs=['time_length'])
+def calculate_time_length(time_sample_frequency, max_time):
+    """
+    Returns the length of the time vector [-].
+
+    :param time_sample_frequency:
+        Time frequency [1/s].
+    :type time_sample_frequency: float
+
+    :param max_time:
+        Maximum time [s].
+    :type max_time: float
+
+    :return:
+        length of the time vector [-].
+    :rtype: int
+    """
+    return np.floor(max_time * time_sample_frequency) + 1
+
+
+@sh.add_function(dsp, outputs=['times'])
+def cycle_times(time_sample_frequency, time_length):
     """
     Returns the time vector with constant time step [s].
 
-    :param frequency:
+    :param time_sample_frequency:
         Time frequency [1/s].
-    :type frequency: float
+    :type time_sample_frequency: float
 
     :param time_length:
         Length of the time vector [-].
@@ -51,46 +112,15 @@ def cycle_times(frequency, time_length):
     :rtype: numpy.array
     """
 
-    dt = 1 / frequency
+    dt = 1 / time_sample_frequency
 
-    return np.arange(0.0, time_length,  dtype=float) * dt
-
-
-def calculate_time_length(frequency, max_time):
-    """
-    Returns the length of the time vector [-].
-
-    :param frequency:
-        Time frequency [1/s].
-    :type frequency: float
-
-    :param max_time:
-        Maximum time [s].
-    :type max_time: float
-
-    :return:
-        length of the time vector [-].
-    :rtype: int
-    """
-    return np.floor(max_time * frequency) + 1
+    return np.arange(0.0, time_length, dtype=float) * dt
 
 
-def select_phases_integration_times(cycle_type):
-    """
-    Selects the cycle phases integration times [s].
-
-    :param cycle_type:
-        Cycle type (WLTP or NEDC).
-    :type cycle_type: str
-
-    :return:
-        Cycle phases integration times [s].
-    :rtype: tuple
-    """
-
-    from ..defaults import dfl
-    v = dfl.functions.select_phases_integration_times.INTEGRATION_TIMES
-    return tuple(sh.pairwise(v[cycle_type.upper()]))
+dsp.add_function(function=len, inputs=['velocities'], outputs=['time_length'])
+dsp.add_function(
+    function=len, inputs=['gears'], outputs=['time_length'], weight=1
+)
 
 
 def _extract_indices(bag_phases):
@@ -102,6 +132,7 @@ def _extract_indices(bag_phases):
     return sorted(pit)
 
 
+@sh.add_function(dsp, outputs=['phases_integration_times'])
 def extract_phases_integration_times(times, bag_phases):
     """
     Extracts the cycle phases integration times [s] from bag phases vector.
@@ -122,95 +153,20 @@ def extract_phases_integration_times(times, bag_phases):
     return tuple((times[i], times[j]) for i, j in _extract_indices(bag_phases))
 
 
-def cycle():
+@sh.add_function(dsp, outputs=['phases_integration_times'], weight=10)
+def select_phases_integration_times(cycle_type):
     """
-    Defines the cycle model.
+    Selects the cycle phases integration times [s].
 
-    .. dispatcher:: d
-
-        >>> d = cycle()
+    :param cycle_type:
+        Cycle type (WLTP or NEDC).
+    :type cycle_type: str
 
     :return:
-        The cycle model.
-    :rtype: schedula.Dispatcher
+        Cycle phases integration times [s].
+    :rtype: tuple
     """
 
-    d = sh.Dispatcher(
-        name='Cycle model',
-        description='Returns the theoretical times, velocities, and gears.'
-    )
-
     from ..defaults import dfl
-    d.add_data(
-        data_id='time_sample_frequency',
-        default_value=dfl.values.time_sample_frequency
-    )
-
-    from .NEDC import nedc_cycle
-    d.add_dispatcher(
-        include_defaults=True,
-        dsp=nedc_cycle(),
-        inputs=(
-            'gear_box_type', 'gears', 'k1', 'k2', 'k5', 'max_gear', 'times',
-            {'cycle_type': sh.SINK}),
-        outputs=('gears', 'initial_temperature', 'max_time', 'velocities'),
-        input_domain=is_nedc
-    )
-
-    from .WLTP import wltp_cycle
-    d.add_dispatcher(
-        include_defaults=True,
-        dsp=wltp_cycle(),
-        inputs=(
-            'accelerations', 'climbing_force', 'downscale_factor',
-            'downscale_factor_threshold', 'downscale_phases',
-            'engine_max_power', 'engine_speed_at_max_power',
-            'full_load_curve', 'gear_box_type', 'gears', 'idle_engine_speed',
-            'inertial_factor', 'max_speed_velocity_ratio', 'max_velocity',
-            'motive_powers', 'road_loads', 'speed_velocity_ratios', 'times',
-            'unladen_mass', 'vehicle_mass', 'velocities', 'wltp_base_model',
-            'engine_max_speed',
-            'wltp_class', {'cycle_type': sh.SINK}),
-        outputs=('gears', 'initial_temperature', 'max_time', 'velocities'),
-        input_domain=is_wltp
-    )
-
-    d.add_function(
-        function=calculate_time_length,
-        inputs=['time_sample_frequency', 'max_time'],
-        outputs=['time_length']
-    )
-
-    d.add_function(
-        function=cycle_times,
-        inputs=['time_sample_frequency', 'time_length'],
-        outputs=['times']
-    )
-
-    d.add_function(
-        function=len,
-        inputs=['velocities'],
-        outputs=['time_length']
-    )
-
-    d.add_function(
-        function=len,
-        inputs=['gears'],
-        outputs=['time_length'],
-        weight=1
-    )
-
-    d.add_function(
-        function=extract_phases_integration_times,
-        inputs=['times', 'bag_phases'],
-        outputs=['phases_integration_times']
-    )
-
-    d.add_function(
-        function=select_phases_integration_times,
-        inputs=['cycle_type'],
-        outputs=['phases_integration_times'],
-        weight=10
-    )
-
-    return d
+    v = dfl.functions.select_phases_integration_times.INTEGRATION_TIMES
+    return tuple(sh.pairwise(v[cycle_type.upper()]))
