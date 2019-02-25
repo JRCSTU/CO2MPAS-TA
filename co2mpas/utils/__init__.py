@@ -33,7 +33,7 @@ except AttributeError:
 
 __all__ = [
     'grouper', 'sliding_window', 'median_filter', 'reject_outliers',
-    'clear_fluctuations', 'argmax', 'derivative'
+    'clear_fluctuations', 'argmax', 'derivative', 'check_first_arg', 'ret_v'
 ]
 
 
@@ -385,3 +385,6 @@ def joinstuff(items, delimeter=', ', frmt='%s'):
 
     """
     return delimeter.join(frmt % (i, ) for i in items)
+
+def check_first_arg(first, *args):
+    return bool(first)
