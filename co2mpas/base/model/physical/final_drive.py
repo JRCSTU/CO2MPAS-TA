@@ -4,19 +4,82 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-
 """
 It contains functions that model the basic mechanics of the final drive.
 """
 
-import schedula as sh
 import logging
 import collections
-import numpy as np
+import schedula as sh
+from .defaults import dfl
 
 log = logging.getLogger(__name__)
 
+dsp = sh.BlueDispatcher(
+    name='Final drive', description='Models the final drive.'
+)
+dsp.add_data('final_drive_ratio', dfl.values.final_drive_ratio)
 
+
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['final_drive_ratios'])
+def calculate_final_drive_ratios(final_drive_ratio, n_gears=1):
+    """
+    Defines final drive ratios for each gear [-].
+
+    :param final_drive_ratio:
+        Final drive ratio [-].
+    :type final_drive_ratio: float
+
+    :param n_gears:
+        Number of gears [-].
+    :type n_gears: int, optional
+
+    :return:
+        Final drive ratios [-].
+    :rtype: dict
+    """
+    d = collections.defaultdict(lambda: final_drive_ratio)
+    d.update(dict.fromkeys(range(0, int(n_gears + 1)), final_drive_ratio))
+    return d
+
+
+# noinspection PyUnusedLocal,PyMissingOrEmptyDocstring
+def is_cvt(gear_box_type, *args):
+    return gear_box_type == 'cvt'
+
+
+dsp.add_function(
+    function=sh.add_args(calculate_final_drive_ratios),
+    inputs=['gear_box_type', 'final_drive_ratio'],
+    outputs=['final_drive_ratios'],
+    input_domain=is_cvt
+)
+
+
+@sh.add_function(dsp, outputs=['final_drive_ratio_vector'])
+def calculate_final_drive_ratio_vector(final_drive_ratios, gears):
+    """
+    Calculates the final drive ratio vector [-].
+
+    :param final_drive_ratios:
+        Final drive ratios [-].
+    :type final_drive_ratios: dict[int | float]
+
+    :param gears:
+        Gear vector [-].
+    :type gears: numpy.array
+
+    :return:
+        Final drive ratio vector [-].
+    :rtype: numpy.array
+    """
+    import numpy as np
+    d = collections.defaultdict(lambda: dfl.values.final_drive_ratio)
+    d.update(final_drive_ratios)
+    return np.vectorize(lambda k: d[k])(np.append([0], gears[:-1]))
+
+
+@sh.add_function(dsp, outputs=['final_drive_speeds_in'])
 def calculate_final_drive_speeds_in(
         final_drive_speeds_out, final_drive_ratio_vector):
     """
@@ -38,6 +101,13 @@ def calculate_final_drive_speeds_in(
     return final_drive_speeds_out * final_drive_ratio_vector
 
 
+dsp.add_data('final_drive_efficiency', dfl.values.final_drive_efficiency)
+dsp.add_data('n_wheel_drive', dfl.values.n_wheel_drive)
+dsp.add_data('final_drive_torque_loss', sh.EMPTY)
+
+
+@sh.add_function(dsp, outputs=['final_drive_torque_losses'],
+                 input_domain=lambda *args: args[1] is not sh.EMPTY)
 def calculate_final_drive_torque_losses(
         final_drive_torques_out, final_drive_torque_loss):
     """
@@ -55,8 +125,33 @@ def calculate_final_drive_torque_losses(
         Final drive torque losses [N*m].
     :rtype: numpy.array
     """
-
+    import numpy as np
     return np.tile((final_drive_torque_loss,), final_drive_torques_out.shape)
+
+
+# noinspection PyUnusedLocal
+def domain_final_drive_torque_losses_v1(n_dyno_axes, n_wheel_drive, *args):
+    """
+    Check the validity of number of wheel drive respect to the dyno axes
+    assuming 2 wheels per axes.
+
+    :param n_dyno_axes:
+        Number of dyno axes [-].
+    :type n_dyno_axes: int
+
+    :param n_wheel_drive:
+        Number of wheel drive [-].
+    :type n_wheel_drive: int
+
+    :return:
+        True and log a waring if `n_wheel_drive` does not respect the domain.
+    :rtype: bool
+    """
+
+    if n_dyno_axes < n_wheel_drive / 2:
+        msg = 'WARNING: n_dyno_axes(%d) < n_wheel_drive(%d) / 2!'
+        log.warning(msg, n_dyno_axes, n_wheel_drive)
+    return True
 
 
 def _compile_torque_losses_function(n_wheel_drive, final_drive_efficiency):
@@ -100,31 +195,17 @@ def calculate_final_drive_torque_losses_v1(
     return fun(final_drive_ratio_vector, final_drive_torques_out)
 
 
-# noinspection PyUnusedLocal
-def domain_final_drive_torque_losses_v1(n_dyno_axes, n_wheel_drive, *args):
-    """
-    Check the validity of number of wheel drive respect to the dyno axes
-    assuming 2 wheels per axes.
-
-    :param n_dyno_axes:
-        Number of dyno axes [-].
-    :type n_dyno_axes: int
-
-    :param n_wheel_drive:
-        Number of wheel drive [-].
-    :type n_wheel_drive: int
-
-    :return:
-        True and log a waring if `n_wheel_drive` does not respect the domain.
-    :rtype: bool
-    """
-
-    if n_dyno_axes < n_wheel_drive / 2:
-        msg = 'WARNING: n_dyno_axes(%d) < n_wheel_drive(%d) / 2!'
-        log.warning(msg, n_dyno_axes, n_wheel_drive)
-    return True
+dsp.add_function(
+    function=sh.add_args(calculate_final_drive_torque_losses_v1),
+    inputs=['n_dyno_axes', 'n_wheel_drive', 'final_drive_torques_out',
+            'final_drive_ratio_vector', 'final_drive_efficiency'],
+    outputs=['final_drive_torque_losses'],
+    weight=5,
+    input_domain=domain_final_drive_torque_losses_v1
+)
 
 
+@sh.add_function(dsp, outputs=['final_drive_torques_in'])
 def calculate_final_drive_torques_in(
         final_drive_torques_out, final_drive_ratio_vector,
         final_drive_torque_losses):
@@ -153,6 +234,7 @@ def calculate_final_drive_torques_in(
     return t + final_drive_torque_losses
 
 
+@sh.add_function(dsp, outputs=['final_drive_efficiencies'])
 def calculate_final_drive_efficiencies(
         final_drive_torques_out, final_drive_ratio_vector,
         final_drive_torques_in):
@@ -175,7 +257,7 @@ def calculate_final_drive_efficiencies(
         Final drive torque efficiency vector [-].
     :rtype: numpy.array
     """
-
+    import numpy as np
     ratio = final_drive_ratio_vector
     with np.errstate(divide='ignore', invalid='ignore'):
         eff = np.where(
@@ -186,6 +268,7 @@ def calculate_final_drive_efficiencies(
     return np.nan_to_num(eff)
 
 
+@sh.add_function(dsp, outputs=['final_drive_powers_in'])
 def calculate_final_drive_powers_in(
         final_drive_powers_out, final_drive_efficiencies):
     """
@@ -207,54 +290,6 @@ def calculate_final_drive_powers_in(
     return final_drive_powers_out / final_drive_efficiencies
 
 
-def calculate_final_drive_ratios(final_drive_ratio, n_gears=1):
-    """
-    Defines final drive ratios for each gear [-].
-
-    :param final_drive_ratio:
-        Final drive ratio [-].
-    :type final_drive_ratio: float
-
-    :param n_gears:
-        Number of gears [-].
-    :type n_gears: int, optional
-
-    :return:
-        Final drive ratios [-].
-    :rtype: dict
-    """
-    d = collections.defaultdict(lambda: final_drive_ratio)
-    d.update(dict.fromkeys(range(0, int(n_gears + 1)), final_drive_ratio))
-    return d
-
-
-def calculate_final_drive_ratio_vector(final_drive_ratios, gears):
-    """
-    Calculates the final drive ratio vector [-].
-
-    :param final_drive_ratios:
-        Final drive ratios [-].
-    :type final_drive_ratios: dict[int | float]
-
-    :param gears:
-        Gear vector [-].
-    :type gears: numpy.array
-
-    :return:
-        Final drive ratio vector [-].
-    :rtype: numpy.array
-    """
-    from .defaults import dfl
-    d = collections.defaultdict(lambda: dfl.values.final_drive_ratio)
-    d.update(final_drive_ratios)
-    return np.vectorize(lambda k: d[k])(np.append([0], gears[:-1]))
-
-
-# noinspection PyUnusedLocal,PyMissingOrEmptyDocstring
-def is_cvt(gear_box_type, *args):
-    return gear_box_type == 'cvt'
-
-
 # noinspection PyMissingOrEmptyDocstring
 class FinalDriveModel:
     key_outputs = [
@@ -270,7 +305,6 @@ class FinalDriveModel:
 
     def __init__(self, final_drive_ratios=None, final_drive_torque_loss=None,
                  n_wheel_drive=None, final_drive_efficiency=None, outputs=None):
-        from .defaults import dfl
         self.final_drive_ratios = collections.defaultdict(
             lambda: dfl.values.final_drive_ratio
         )
@@ -343,6 +377,7 @@ class FinalDriveModel:
                 yield eff, calculate_final_drive_powers_in(po, eff)
 
     def set_outputs(self, n, outputs=None):
+        import numpy as np
         if outputs is None:
             outputs = {}
         outputs.update(self._outputs or {})
@@ -384,6 +419,7 @@ class FinalDriveModel:
             yield r, s, l, t, e, p
 
 
+@sh.add_function(dsp, outputs=['final_drive_prediction_model'])
 def define_fake_final_drive_prediction_model(
         final_drive_ratio_vector, final_drive_speeds_in,
         final_drive_torque_losses, final_drive_torques_in,
@@ -431,6 +467,7 @@ def define_fake_final_drive_prediction_model(
     return model
 
 
+@sh.add_function(dsp, outputs=['final_drive_prediction_model'], weight=4000)
 def define_final_drive_prediction_model(
         final_drive_ratios, final_drive_torque_loss, n_wheel_drive,
         final_drive_efficiency):
@@ -464,126 +501,3 @@ def define_final_drive_prediction_model(
         final_drive_efficiency
     )
     return model
-
-
-def final_drive():
-    """
-    Defines the final drive model.
-
-    .. dispatcher:: d
-
-        >>> d = final_drive()
-
-    :return:
-        The final drive model.
-    :rtype: schedula.Dispatcher
-    """
-
-    d = sh.Dispatcher(
-        name='Final drive',
-        description='Models the final drive.'
-    )
-
-    from .defaults import dfl
-    d.add_data(
-        data_id='final_drive_ratio',
-        default_value=dfl.values.final_drive_ratio
-    )
-
-    d.add_function(
-        function=calculate_final_drive_ratios,
-        inputs=['final_drive_ratio', 'n_gears'],
-        outputs=['final_drive_ratios']
-    )
-
-    d.add_function(
-        function=sh.add_args(calculate_final_drive_ratios),
-        inputs=['gear_box_type', 'final_drive_ratio'],
-        outputs=['final_drive_ratios'],
-        input_domain=is_cvt
-    )
-
-    d.add_function(
-        function=calculate_final_drive_ratio_vector,
-        inputs=['final_drive_ratios', 'gears'],
-        outputs=['final_drive_ratio_vector']
-    )
-
-    d.add_function(
-        function=calculate_final_drive_speeds_in,
-        inputs=['final_drive_speeds_out', 'final_drive_ratio_vector'],
-        outputs=['final_drive_speeds_in']
-    )
-
-    d.add_data(
-        data_id='final_drive_efficiency',
-        default_value=dfl.values.final_drive_efficiency
-    )
-
-    d.add_data(
-        data_id='n_wheel_drive',
-        default_value=dfl.values.n_wheel_drive
-    )
-
-    d.add_data(
-        data_id='final_drive_torque_loss',
-        default_value=sh.EMPTY
-    )
-
-    d.add_function(
-        function=calculate_final_drive_torque_losses,
-        inputs=['final_drive_torques_out', 'final_drive_torque_loss'],
-        outputs=['final_drive_torque_losses'],
-        input_domain=lambda *args: args[1] is not sh.EMPTY
-    )
-
-    d.add_function(
-        function=sh.add_args(calculate_final_drive_torque_losses_v1),
-        inputs=['n_dyno_axes', 'n_wheel_drive', 'final_drive_torques_out',
-                'final_drive_ratio_vector', 'final_drive_efficiency'],
-        outputs=['final_drive_torque_losses'],
-        weight=5,
-        input_domain=domain_final_drive_torque_losses_v1
-    )
-
-    d.add_function(
-        function=calculate_final_drive_torques_in,
-        inputs=['final_drive_torques_out', 'final_drive_ratio_vector',
-                'final_drive_torque_losses'],
-        outputs=['final_drive_torques_in']
-    )
-
-    d.add_function(
-        function=calculate_final_drive_efficiencies,
-        inputs=['final_drive_torques_out', 'final_drive_ratio_vector',
-                'final_drive_torques_in'],
-        outputs=['final_drive_efficiencies']
-    )
-
-    d.add_function(
-        function=calculate_final_drive_powers_in,
-        inputs=['final_drive_powers_out', 'final_drive_efficiencies'],
-        outputs=['final_drive_powers_in']
-    )
-
-    d.add_function(
-        function=define_fake_final_drive_prediction_model,
-        inputs=[
-            'final_drive_ratio_vector', 'final_drive_speeds_in',
-            'final_drive_torque_losses', 'final_drive_torques_in',
-            'final_drive_efficiencies', 'final_drive_powers_in'
-        ],
-        outputs=['final_drive_prediction_model']
-    )
-
-    d.add_function(
-        function=define_final_drive_prediction_model,
-        inputs=[
-            'final_drive_ratios', 'final_drive_torque_loss', 'n_wheel_drive',
-            'final_drive_efficiency'
-        ],
-        outputs=['final_drive_prediction_model'],
-        weight=4000
-    )
-
-    return d
