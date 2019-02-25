@@ -35,8 +35,19 @@ dsp = sh.BlueDispatcher(
 dsp.add_data('time_sample_frequency', dfl.values.time_sample_frequency)
 
 
+# noinspection PyMissingOrEmptyDocstring
 def is_nedc(kwargs):
     return kwargs.get('cycle_type') == 'NEDC'
+
+
+# noinspection PyMissingOrEmptyDocstring
+def is_wltp(kwargs):
+    return kwargs.get('cycle_type') == 'WLTP'
+
+
+# noinspection PyUnusedLocal, PyMissingOrEmptyDocstring
+def is_manual(gear_box_type, *args):
+    return gear_box_type == 'manual'
 
 
 dsp.add_dispatcher(
@@ -49,11 +60,6 @@ dsp.add_dispatcher(
     outputs=('gears', 'initial_temperature', 'max_time', 'velocities'),
     input_domain=is_nedc
 )
-
-
-def is_wltp(kwargs):
-    return kwargs.get('cycle_type') == 'WLTP'
-
 
 dsp.add_dispatcher(
     include_defaults=True,
