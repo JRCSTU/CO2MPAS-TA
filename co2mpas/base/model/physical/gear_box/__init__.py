@@ -28,7 +28,7 @@ from ..defaults import dfl
 from .cvt import dsp as cvt_model
 from .at_gear import dsp as at_gear
 from .mechanical import dsp as mechanical
-from .manual_gear import dsp as manual_gear
+from .manual import dsp as manual
 
 dsp = sh.BlueDispatcher(
     name='Gear box model', description='Models the gear box.'
@@ -723,7 +723,7 @@ dsp.add_dispatcher(
 
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp=manual_gear,
+    dsp=manual,
     dsp_id='manual_gear_shifting',
     inputs=(
         'cycle_type', 'full_load_speeds', 'idle_engine_speed', 'motive_powers',
