@@ -228,7 +228,7 @@ def default_tc_k_factor_curve():
     par = dfl.functions.default_tc_k_factor_curve
     a = par.STAND_STILL_TORQUE_RATIO, par.LOCKUP_SPEED_RATIO
 
-    from . import define_k_factor_curve
+    from .clutch import define_k_factor_curve
     return define_k_factor_curve(*a)
 
 
@@ -288,7 +288,7 @@ def torque_converter():
         outputs=['torque_converter_speeds_delta']
     )
 
-    from . import define_k_factor_curve
+    from .clutch import define_k_factor_curve
     d.add_function(
         function=define_k_factor_curve,
         inputs=['stand_still_torque_ratio', 'lockup_speed_ratio'],
