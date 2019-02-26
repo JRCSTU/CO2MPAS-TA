@@ -4,7 +4,6 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-
 """
 It contains functions that model the electrics of the vehicle.
 
@@ -19,21 +18,20 @@ Sub-Modules:
     electrics_prediction
 """
 
-import functools
-import itertools
 import math
-import lmfit
 import numpy as np
-import xgboost as xgb
-import scipy.stats as sci_stat
-import sklearn.pipeline as sk_pip
-import sklearn.tree as sk_tree
-import sklearn.metrics as sk_met
-import sklearn.cluster as sk_clu
 import schedula as sh
+from ..defaults import dfl
 import co2mpas.utils as co2_utl
 
+dsp = sh.BlueDispatcher(
+    name='Electrics', description='Models the vehicle electrics.'
+)
+dsp.add_data('alternator_efficiency', dfl.values.alternator_efficiency)
+dsp.add_data('delta_time_engine_starter', dfl.values.delta_time_engine_starter)
 
+
+@sh.add_function(dsp, outputs=['start_demand'], weight=100)
 def calculate_engine_start_demand(
         engine_moment_inertia, idle_engine_speed, alternator_efficiency,
         delta_time_engine_starter):
@@ -67,226 +65,14 @@ def calculate_engine_start_demand(
     return engine_moment_inertia / alternator_efficiency * idle ** 2 / 2000 * dt
 
 
-def _set_alt_init_status(times, initialization_time, statuses):
-    if initialization_time > 0:
-        statuses[:co2_utl.argmax(times > (times[0] + initialization_time))] = 3
-    return statuses
-
-
-def identify_charging_statuses_and_alternator_initialization_time(
-        times, alternator_currents, gear_box_powers_in, on_engine,
-        alternator_current_threshold, starts_windows, state_of_charges,
-        accelerations):
-    """
-    Identifies when the alternator statuses [-] and alternator initialization
-    time delta [s].
-
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
-    :param alternator_currents:
-        Alternator current vector [A].
-    :type alternator_currents: numpy.array
-
-    :param gear_box_powers_in:
-        Gear box power vector [kW].
-    :type gear_box_powers_in: numpy.array
-
-    :param on_engine:
-        If the engine is on [-].
-    :type on_engine: numpy.array
-
-    :param alternator_current_threshold:
-        Alternator current threshold [A].
-    :type alternator_current_threshold: float
-
-    :param starts_windows:
-        Alternator starts windows [-].
-    :type starts_windows: numpy.array
-
-    :param state_of_charges:
-        State of charge of the battery [%].
-
-        .. note::
-
-            `state_of_charges` = 99 is equivalent to 99%.
-    :type state_of_charges: numpy.array
-
-    :param accelerations:
-        Acceleration [m/s2].
-    :type accelerations: numpy.array
-
-    :return:
-        The alternator status (0: off, 1: on, due to state of charge, 2: on due
-        to BERS, 3: on and initialize battery) [-] and alternator initialization
-        time delta [s].
-    :rtype: numpy.array, float
-    """
-    statuses = identify_charging_statuses(
-        times, alternator_currents, gear_box_powers_in, on_engine,
-        alternator_current_threshold, starts_windows, 0)
-    alternator_initialization_time = identify_alternator_initialization_time(
-        alternator_currents, gear_box_powers_in, on_engine, accelerations,
-        state_of_charges, statuses, times, alternator_current_threshold
-    )
-    _set_alt_init_status(times, alternator_initialization_time, statuses)
-    return statuses, alternator_initialization_time
-
-
-def _mask_boolean_phases(b):
-    s = np.zeros(len(b) + 2, dtype=bool)
-    s[1:-1] = b
-    mask = np.column_stack((s[1:], s[:-1])) & (s[:-1] != s[1:])[:, None]
-    return np.where(mask)[0].reshape((-1, 2))
-
-
-def identify_charging_statuses(
-        times, alternator_currents, gear_box_powers_in, on_engine,
-        alternator_current_threshold, starts_windows,
-        alternator_initialization_time):
-    """
-    Identifies when the alternator is on due to 1:state of charge or 2:BERS or
-    3: initialization [-].
-
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
-    :param alternator_currents:
-        Alternator current vector [A].
-    :type alternator_currents: numpy.array
-
-    :param gear_box_powers_in:
-        Gear box power vector [kW].
-    :type gear_box_powers_in: numpy.array
-
-    :param on_engine:
-        If the engine is on [-].
-    :type on_engine: numpy.array
-
-    :param alternator_current_threshold:
-        Alternator current threshold [A].
-    :type alternator_current_threshold: float
-
-    :param starts_windows:
-        Alternator starts windows [-].
-    :type starts_windows: numpy.array
-
-    :param alternator_initialization_time:
-        Alternator initialization time delta [s].
-    :type alternator_initialization_time: float
-
-    :return:
-        The alternator status (0: off, 1: on, due to state of charge, 2: on due
-        to BERS, 3: on and initialize battery) [-].
-    :rtype: numpy.array
-    """
-
-    b = (alternator_currents < alternator_current_threshold) & on_engine
-
-    status = b.astype(int, copy=True)
-    status[b & (gear_box_powers_in < 0)] = 2
-
-    off = ~on_engine | starts_windows
-    mask = _mask_boolean_phases(status != 1)
-    for i, j in mask:
-        # noinspection PyUnresolvedReferences
-        if ((status[i:j] == 2) | off[i:j]).all():
-            status[i:j] = 1
-
-    _set_alt_init_status(times, alternator_initialization_time, status)
-
-    return status
-
-
-# noinspection PyPep8
-def identify_alternator_initialization_time(
-        alternator_currents, gear_box_powers_in, on_engine, accelerations,
-        state_of_charges, alternator_statuses, times,
-        alternator_current_threshold):
-    """
-    Identifies the alternator initialization time delta [s].
-
-    :param alternator_currents:
-        Alternator current vector [A].
-    :type alternator_currents: numpy.array
-
-    :param gear_box_powers_in:
-        Gear box power vector [kW].
-    :type gear_box_powers_in: numpy.array
-
-    :param on_engine:
-        If the engine is on [-].
-    :type on_engine: numpy.array
-
-    :param accelerations:
-        Vehicle acceleration [m/s2].
-    :type accelerations: numpy.array
-
-    :param state_of_charges:
-        State of charge of the battery [%].
-
-        .. note::
-
-            `state_of_charges` = 99 is equivalent to 99%.
-    :type state_of_charges: numpy.array
-
-    :param alternator_statuses:
-        The alternator status (0: off, 1: on, due to state of charge, 2: on due
-        to BERS, 3: on and initialize battery) [-].
-    :type alternator_statuses: numpy.array
-
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
-    :param alternator_current_threshold:
-        Alternator current threshold [A].
-    :type alternator_current_threshold: float
-
-    :return:
-        Alternator initialization time delta [s].
-    :rtype: float
-    """
-    alts, gb_p = alternator_statuses, gear_box_powers_in
-    i = co2_utl.argmax(alts != 0)
-    if alts[0] == 1 or (i and ((alts[:i] == 0) & (gb_p[:i] == 0)).all()):
-        s = alternator_currents < alternator_current_threshold
-        n, i = len(on_engine), co2_utl.argmax((s[:-1] != s[1:]) & s[:-1])
-        i = min(n - 1, i)
-        opt = {
-            'random_state': 0, 'max_depth': 2
-        }
-
-        from ..engine.thermal import _build_samples
-        spl = _build_samples(
-            alternator_currents, state_of_charges, alts, gb_p, accelerations
-        )
-
-        j = min(i, int(n / 2))
-        opt['n_estimators'] = int(min(100.0, 0.25 * (n - j))) or 1
-        model = xgb.XGBRegressor(**opt)
-        model.fit(spl[j:][:, :-1], spl[j:][:, -1])
-        err = np.abs(spl[:, -1] - model.predict(spl[:, :-1]))
-        sets = np.array(co2_utl.get_inliers(err)[0], dtype=int)[:i]
-        if sum(sets) / i < 0.5 or i > j:
-            reg = sk_tree.DecisionTreeClassifier(max_depth=1, random_state=0)
-            reg.fit(times[1:i + 1, None], sets)
-            l, r = reg.tree_.children_left[0], reg.tree_.children_right[0]
-            l, r = np.argmax(reg.tree_.value[l]), np.argmax(reg.tree_.value[r])
-            if l == 0 and r == 1:
-                return reg.tree_.threshold[0] - times[0]
-            elif r == 0 and not i > j:
-                return times[i] - times[0]
-
-    elif alts[0] == 3:
-        i = co2_utl.argmax(alts != 3)
-        return times[i] - times[0]
-    return 0.0
+def _starts_windows(times, engine_starts, dt):
+    ts = times[engine_starts]
+    from ..defaults import dfl
+    return np.searchsorted(times, np.column_stack((ts - dt, ts + dt + dfl.EPS)))
 
 
 # noinspection PyPep8Naming,PyPep8
+@sh.add_function(dsp, outputs=['electric_load', 'start_demand'])
 def identify_electric_loads(
         alternator_nominal_voltage, battery_currents, alternator_currents,
         gear_box_powers_in, times, on_engine, engine_starts,
@@ -362,15 +148,731 @@ def identify_electric_loads(
         p = np.trapz(p, x=times[i:j])
 
         if p < 0:
-            l = np.trapz(np.choose(on_engine[i:j], loads), x=times[i:j])
-            if p < l:
-                start_demand.append(p - l)
+            ld = np.trapz(np.choose(on_engine[i:j], loads), x=times[i:j])
+            if p < ld:
+                start_demand.append(p - ld)
 
     start_demand = -rjo(start_demand)[0] if start_demand else 0.0
 
     return (off, on), start_demand
 
 
+@sh.add_function(dsp, outputs=['initial_state_of_charge'])
+def default_initial_state_of_charge(cycle_type):
+    """
+    Return the default initial state of charge of the battery [%].
+
+    :param cycle_type:
+        Cycle type (WLTP or NEDC).
+    :type cycle_type: str
+
+    :return:
+        Initial state of charge of the battery [%].
+
+        .. note::
+
+            `initial_state_of_charge` = 99 is equivalent to 99%.
+    :rtype: float
+    """
+
+    from ..defaults import dfl
+    d = dfl.functions.default_initial_state_of_charge.initial_state_of_charge
+    return d[cycle_type]
+
+
+def _set_alt_init_status(times, initialization_time, statuses):
+    if initialization_time > 0:
+        statuses[:co2_utl.argmax(times > (times[0] + initialization_time))] = 3
+    return statuses
+
+
+def _mask_boolean_phases(b):
+    s = np.zeros(len(b) + 2, dtype=bool)
+    s[1:-1] = b
+    mask = np.column_stack((s[1:], s[:-1])) & (s[:-1] != s[1:])[:, None]
+    return np.where(mask)[0].reshape((-1, 2))
+
+
+@sh.add_function(dsp, outputs=['alternator_statuses'])
+def identify_charging_statuses(
+        times, alternator_currents, gear_box_powers_in, on_engine,
+        alternator_current_threshold, starts_windows,
+        alternator_initialization_time):
+    """
+    Identifies when the alternator is on due to 1:state of charge or 2:BERS or
+    3: initialization [-].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param alternator_currents:
+        Alternator current vector [A].
+    :type alternator_currents: numpy.array
+
+    :param gear_box_powers_in:
+        Gear box power vector [kW].
+    :type gear_box_powers_in: numpy.array
+
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :param alternator_current_threshold:
+        Alternator current threshold [A].
+    :type alternator_current_threshold: float
+
+    :param starts_windows:
+        Alternator starts windows [-].
+    :type starts_windows: numpy.array
+
+    :param alternator_initialization_time:
+        Alternator initialization time delta [s].
+    :type alternator_initialization_time: float
+
+    :return:
+        The alternator status (0: off, 1: on, due to state of charge, 2: on due
+        to BERS, 3: on and initialize battery) [-].
+    :rtype: numpy.array
+    """
+
+    b = (alternator_currents < alternator_current_threshold) & on_engine
+
+    status = b.astype(int, copy=True)
+    status[b & (gear_box_powers_in < 0)] = 2
+
+    off = ~on_engine | starts_windows
+    mask = _mask_boolean_phases(status != 1)
+    for i, j in mask:
+        # noinspection PyUnresolvedReferences
+        if ((status[i:j] == 2) | off[i:j]).all():
+            status[i:j] = 1
+
+    _set_alt_init_status(times, alternator_initialization_time, status)
+
+    return status
+
+
+@sh.add_function(
+    dsp, outputs=['alternator_statuses', 'alternator_initialization_time'],
+    weight=1
+)
+def identify_charging_statuses_and_alternator_initialization_time(
+        times, alternator_currents, gear_box_powers_in, on_engine,
+        alternator_current_threshold, starts_windows, state_of_charges,
+        accelerations):
+    """
+    Identifies when the alternator statuses [-] and alternator initialization
+    time delta [s].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param alternator_currents:
+        Alternator current vector [A].
+    :type alternator_currents: numpy.array
+
+    :param gear_box_powers_in:
+        Gear box power vector [kW].
+    :type gear_box_powers_in: numpy.array
+
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :param alternator_current_threshold:
+        Alternator current threshold [A].
+    :type alternator_current_threshold: float
+
+    :param starts_windows:
+        Alternator starts windows [-].
+    :type starts_windows: numpy.array
+
+    :param state_of_charges:
+        State of charge of the battery [%].
+
+        .. note::
+
+            `state_of_charges` = 99 is equivalent to 99%.
+    :type state_of_charges: numpy.array
+
+    :param accelerations:
+        Acceleration [m/s2].
+    :type accelerations: numpy.array
+
+    :return:
+        The alternator status (0: off, 1: on, due to state of charge, 2: on due
+        to BERS, 3: on and initialize battery) [-] and alternator initialization
+        time delta [s].
+    :rtype: numpy.array, float
+    """
+    statuses = identify_charging_statuses(
+        times, alternator_currents, gear_box_powers_in, on_engine,
+        alternator_current_threshold, starts_windows, 0)
+    alternator_initialization_time = identify_alternator_initialization_time(
+        alternator_currents, gear_box_powers_in, on_engine, accelerations,
+        state_of_charges, statuses, times, alternator_current_threshold
+    )
+    _set_alt_init_status(times, alternator_initialization_time, statuses)
+    return statuses, alternator_initialization_time
+
+
+# noinspection PyPep8
+@sh.add_function(dsp, outputs=['alternator_initialization_time'])
+def identify_alternator_initialization_time(
+        alternator_currents, gear_box_powers_in, on_engine, accelerations,
+        state_of_charges, alternator_statuses, times,
+        alternator_current_threshold):
+    """
+    Identifies the alternator initialization time delta [s].
+
+    :param alternator_currents:
+        Alternator current vector [A].
+    :type alternator_currents: numpy.array
+
+    :param gear_box_powers_in:
+        Gear box power vector [kW].
+    :type gear_box_powers_in: numpy.array
+
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :param accelerations:
+        Vehicle acceleration [m/s2].
+    :type accelerations: numpy.array
+
+    :param state_of_charges:
+        State of charge of the battery [%].
+
+        .. note::
+
+            `state_of_charges` = 99 is equivalent to 99%.
+    :type state_of_charges: numpy.array
+
+    :param alternator_statuses:
+        The alternator status (0: off, 1: on, due to state of charge, 2: on due
+        to BERS, 3: on and initialize battery) [-].
+    :type alternator_statuses: numpy.array
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param alternator_current_threshold:
+        Alternator current threshold [A].
+    :type alternator_current_threshold: float
+
+    :return:
+        Alternator initialization time delta [s].
+    :rtype: float
+    """
+    alts, gb_p = alternator_statuses, gear_box_powers_in
+    i = co2_utl.argmax(alts != 0)
+    if alts[0] == 1 or (i and ((alts[:i] == 0) & (gb_p[:i] == 0)).all()):
+        s = alternator_currents < alternator_current_threshold
+        n, i = len(on_engine), co2_utl.argmax((s[:-1] != s[1:]) & s[:-1])
+        i = min(n - 1, i)
+        opt = {
+            'random_state': 0, 'max_depth': 2
+        }
+
+        import xgboost as xgb
+        # noinspection PyProtectedMember
+        from ..engine.thermal import _build_samples
+
+        spl = _build_samples(
+            alternator_currents, state_of_charges, alts, gb_p, accelerations
+        )
+
+        j = min(i, int(n / 2))
+        opt['n_estimators'] = int(min(100.0, 0.25 * (n - j))) or 1
+        model = xgb.XGBRegressor(**opt)
+        model.fit(spl[j:][:, :-1], spl[j:][:, -1])
+        err = np.abs(spl[:, -1] - model.predict(spl[:, :-1]))
+        sets = np.array(co2_utl.get_inliers(err)[0], dtype=int)[:i]
+        if sum(sets) / i < 0.5 or i > j:
+            from sklearn.tree import DecisionTreeClassifier
+            reg = DecisionTreeClassifier(max_depth=1, random_state=0)
+            reg.fit(times[1:i + 1, None], sets)
+            s, r = reg.tree_.children_left[0], reg.tree_.children_right[0]
+            s, r = np.argmax(reg.tree_.value[s]), np.argmax(reg.tree_.value[r])
+            if s == 0 and r == 1:
+                return reg.tree_.threshold[0] - times[0]
+            elif r == 0 and not i > j:
+                return times[i] - times[0]
+
+    elif alts[0] == 3:
+        i = co2_utl.argmax(alts != 3)
+        return times[i] - times[0]
+    return 0.0
+
+
+@sh.add_function(dsp, outputs=['state_of_charges'])
+def calculate_state_of_charges(
+        battery_capacity, times, initial_state_of_charge, battery_currents,
+        max_battery_charging_current):
+    """
+    Calculates the state of charge of the battery [%].
+
+    :param battery_capacity:
+        Battery capacity [Ah].
+    :type battery_capacity: float
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param initial_state_of_charge:
+        Initial state of charge of the battery [%].
+    :type initial_state_of_charge: float
+
+    :param battery_currents:
+        Low voltage battery current vector [A].
+    :type battery_currents: numpy.array
+
+    :param max_battery_charging_current:
+        Maximum charging current of the battery [A].
+    :type max_battery_charging_current: float
+
+    :return:
+        State of charge of the battery [%].
+
+        .. note::
+
+            `state_of_charges` = 99 is equivalent to 99%.
+    :rtype: numpy.array
+    """
+
+    soc = np.empty_like(times, float)
+    soc[0] = initial_state_of_charge
+    bc = np.minimum(battery_currents, max_battery_charging_current)
+    bc = (bc[:-1] + bc[1:]) * np.diff(times) / (2.0 * battery_capacity * 36.0)
+
+    for i, b in enumerate(bc, 1):
+        soc[i] = min(soc[i - 1] + b, 100.0)
+
+    return soc
+
+
+dsp.add_data('stop_velocity', dfl.values.stop_velocity)
+dsp.add_data('alternator_off_threshold', dfl.values.alternator_off_threshold)
+
+
+@sh.add_function(dsp, outputs=['alternator_current_threshold'])
+def get_alternator_current_threshold(alternator_status_model):
+    """
+    Gets the alternator current threshold [A] that identifies when the
+    alternator is off from the alternator status model.
+
+    :param alternator_status_model:
+        A function that predicts the alternator status.
+    :type alternator_status_model: Alternator_status_model
+
+    :return:
+        Alternator current threshold [A].
+    :rtype: float
+    """
+    return alternator_status_model.current_threshold
+
+
+# noinspection PyPep8
+@sh.add_function(dsp, outputs=['alternator_current_threshold'])
+def identify_alternator_current_threshold(
+        alternator_currents, velocities, on_engine, stop_velocity,
+        alternator_off_threshold):
+    """
+    Identifies the alternator current threshold [A] that identifies when the
+    alternator is off.
+
+    :param alternator_currents:
+        Alternator current vector [A].
+    :type alternator_currents: numpy.array
+
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array
+
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :param stop_velocity:
+        Maximum velocity to consider the vehicle stopped [km/h].
+    :type stop_velocity: float
+
+    :param alternator_off_threshold:
+        Maximum negative current for being considered the alternator off [A].
+    :type alternator_off_threshold: float
+
+    :return:
+        Alternator current threshold [A].
+    :rtype: float
+    """
+    from sklearn.cluster import DBSCAN
+    sample_weight = np.ones_like(alternator_currents, dtype=float)
+    sample_weight[alternator_currents >= alternator_off_threshold] = 2.0
+    sample_weight[velocities < stop_velocity] = 3.0
+    sample_weight[~on_engine] = 4.0
+    model = DBSCAN(eps=-alternator_off_threshold)
+    model.fit(alternator_currents[:, None], sample_weight=sample_weight)
+    c, lb = model.components_, model.labels_[model.core_sample_indices_]
+    sample_weight = sample_weight[model.core_sample_indices_]
+    threshold, w = [], []
+    for i in range(lb.max() + 1):
+        b = lb == i
+        x = c[b].min()
+        if x > alternator_off_threshold:
+            threshold.append(x)
+            w.append(np.sum(sample_weight[b]))
+
+    if threshold:
+        return min(0.0, np.average(threshold, weights=w))
+    return 0.0
+
+
+dsp.add_data(
+    'alternator_start_window_width', dfl.values.alternator_start_window_width
+)
+
+
+@sh.add_function(dsp, outputs=['starts_windows'])
+def identify_alternator_starts_windows(
+        times, engine_starts, alternator_currents,
+        alternator_start_window_width, alternator_current_threshold):
+    """
+    Identifies the alternator starts windows [-].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param engine_starts:
+        When the engine starts [-].
+    :type engine_starts: numpy.array
+
+    :param alternator_currents:
+        Alternator current vector [A].
+    :type alternator_currents: numpy.array
+
+    :param alternator_start_window_width:
+        Alternator start window width [s].
+    :type alternator_start_window_width: float
+
+    :param alternator_current_threshold:
+        Alternator current threshold [A].
+    :type alternator_current_threshold: float
+
+    :return:
+        Alternator starts windows [-].
+    :rtype: numpy.array
+    """
+
+    starts_windows = np.zeros_like(times, dtype=bool)
+    dt = alternator_start_window_width / 2
+    for i, j in _starts_windows(times, engine_starts, dt):
+        b = (alternator_currents[i:j] >= alternator_current_threshold).any()
+        starts_windows[i:j] = b
+    return starts_windows
+
+
+@sh.add_function(dsp, outputs=['alternator_powers_demand'])
+def calculate_alternator_powers_demand(
+        alternator_nominal_voltage, alternator_currents, alternator_efficiency):
+    """
+    Calculates the alternator power demand to the engine [kW].
+
+    :param alternator_nominal_voltage:
+        Alternator nominal voltage [V].
+    :type alternator_nominal_voltage: float
+
+    :param alternator_currents:
+        Alternator current vector [A].
+    :type alternator_currents: numpy.array
+
+    :param alternator_efficiency:
+        Alternator efficiency [-].
+    :type alternator_efficiency: float
+
+    :return:
+        Alternator power demand to the engine [kW].
+    :rtype: numpy.array
+    """
+
+    c = alternator_nominal_voltage / (1000.0 * alternator_efficiency)
+
+    return np.maximum(-alternator_currents * c, 0.0)
+
+
+# noinspection PyPep8Naming
+@sh.add_function(dsp, outputs=['alternator_status_model'])
+def define_alternator_status_model(
+        state_of_charge_balance, state_of_charge_balance_window):
+    """
+    Defines the alternator status model.
+
+    :param state_of_charge_balance:
+        Battery state of charge balance [%].
+
+        .. note::
+
+            `state_of_charge_balance` = 99 is equivalent to 99%.
+    :type state_of_charge_balance: float
+
+    :param state_of_charge_balance_window:
+        Battery state of charge balance window [%].
+
+        .. note::
+
+            `state_of_charge_balance_window` = 2 is equivalent to 2%.
+    :type state_of_charge_balance_window: float
+
+    :return:
+        A function that predicts the alternator status.
+    :rtype: callable
+    """
+
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+    def bers_pred(X):
+        return [X[0][0] < 0]
+
+    model = Alternator_status_model(
+        charge_pred=lambda X: [X[0][0] == 1],
+        bers_pred=bers_pred,
+        min_soc=state_of_charge_balance - state_of_charge_balance_window / 2,
+        max_soc=state_of_charge_balance + state_of_charge_balance_window / 2
+    )
+
+    return model
+
+
+# noinspection PyPep8Naming
+@sh.add_function(
+    dsp, outputs=['state_of_charge_balance', 'state_of_charge_balance_window']
+)
+def identify_state_of_charge_balance_and_window(alternator_status_model):
+    """
+    Identifies the battery state of charge balance and its window [%].
+
+    :param alternator_status_model:
+        A function that predicts the alternator status.
+    :type alternator_status_model: Alternator_status_model
+
+    :return:
+        Battery state of charge balance and its window [%].
+    :rtype: float, float
+    """
+
+    model = alternator_status_model
+    min_soc, max_soc = model.min, model.max
+    X = np.column_stack((np.ones(100), np.linspace(min_soc, max_soc, 100)))
+    s = np.where(model.charge(X))[0]
+    if s.shape[0]:
+        min_soc, max_soc = max(min_soc, X[s[0], 1]), min(max_soc, X[s[-1], 1])
+
+    state_of_charge_balance_window = max_soc - min_soc
+    state_of_charge_balance = min_soc + state_of_charge_balance_window / 2
+    return state_of_charge_balance, state_of_charge_balance_window
+
+
+dsp.add_data('has_energy_recuperation', dfl.values.has_energy_recuperation)
+
+
+def _identify_balance_soc(times, state_of_charges):
+    import lmfit
+    parameters = lmfit.Parameters()
+    parameters.add('B', value=np.median(state_of_charges), min=0.0, max=100.0)
+    parameters.add('A', value=0)
+    parameters.add('X0', value=1.0, min=0.0)
+    x = (times - times[0]) / (times[-1] - times[0])
+    n = len(x)
+
+    # noinspection PyMissingOrEmptyDocstring
+    def func(params):
+        p = params.valuesdict()
+        y = np.tile(p['B'], n)
+        b = x < p['X0']
+        y[b] += p['A'] * (x[b] - p['X0']) ** 2
+        return y
+
+    # noinspection PyMissingOrEmptyDocstring
+    def error(params):
+        return np.mean(np.abs(state_of_charges - func(params)))
+
+    from ..engine.co2_emission import calibrate_model_params
+    return calibrate_model_params(error, parameters)[0].valuesdict()['B']
+
+
+# noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+class Alternator_status_model(object):
+    def __init__(self, bers_pred=None, charge_pred=None, min_soc=0.0,
+                 max_soc=100.0, current_threshold=0.0):
+        self.bers = bers_pred
+        self.charge = charge_pred
+        self.max = max_soc
+        self.min = min_soc
+        self.current_threshold = current_threshold
+
+    def __call__(self, *args, **kwargs):
+        return self.predict(*args, **kwargs)
+
+    def _fit_bers(self, alternator_statuses, gear_box_powers_in):
+        b = alternator_statuses == 2
+        threshold = 0.0
+        if b.any():
+            from sklearn.tree import DecisionTreeClassifier
+            q = dfl.functions.Alternator_status_model.min_percentile_bers
+            m = DecisionTreeClassifier(random_state=0, max_depth=2)
+            c = alternator_statuses != 1
+            # noinspection PyUnresolvedReferences
+            m.fit(gear_box_powers_in[c, None], b[c])
+
+            X = gear_box_powers_in[b, None]
+            if (np.sum(m.predict(X)) / X.shape[0] * 100) >= q:
+                self.bers = m.predict  # shortcut name
+                return self.bers
+
+            # noinspection PyUnresolvedReferences
+            if not b.all():
+                gb_p_s = gear_box_powers_in[_mask_boolean_phases(b)[:, 0]]
+
+                threshold = min(threshold, np.percentile(gb_p_s, q))
+
+        self.bers = lambda x: np.asarray(x) < threshold
+        return self.bers
+
+    # noinspection PyShadowingNames
+    def _fit_charge(self, alternator_statuses, state_of_charges):
+        b = alternator_statuses[1:] == 1
+        if b.any():
+            from sklearn.tree import DecisionTreeClassifier
+            charge = DecisionTreeClassifier(random_state=0, max_depth=3)
+            X = np.column_stack(
+                (alternator_statuses[:-1], state_of_charges[1:])
+            )
+            charge.fit(X, b)
+            self.charge = charge.predict
+        else:
+            self.charge = lambda X: np.zeros(len(X), dtype=bool)
+
+    def _fit_boundaries(self, alternator_statuses, state_of_charges, times):
+        n, b = len(alternator_statuses), alternator_statuses == 1
+        mask = _mask_boolean_phases(b)
+        self.max, self.min = 100.0, 0.0
+        _max, _min, balance = [], [], ()
+        from scipy.stats import linregress
+        min_dt = dfl.functions.Alternator_status_model.min_delta_time_boundaries
+        for i, j in mask:
+            t = times[i:j]
+            if t[-1] - t[0] <= min_dt:
+                continue
+            soc = state_of_charges[i:j]
+            m, q = linregress(t, soc)[:2]
+            if m >= 0:
+                if i > 0:
+                    _min.append(soc.min())
+                if j < n:
+                    _max.append(soc.max())
+
+        min_delta_soc = dfl.functions.Alternator_status_model.min_delta_soc
+        if _min:
+            self.min = _min = max(self.min, min(100.0, min(_min)))
+
+            _max = [m for m in _max if m >= _min]
+            if _max:
+                self.max = min(100.0, min(max(_max), _min + min_delta_soc))
+            else:
+                self.max = min(100.0, _min + min_delta_soc)
+        elif _max:
+            self.max = _max = min(self.max, max(0.0, max(_max)))
+            self.min = _max - min_delta_soc
+        elif b.any():
+            balance = _identify_balance_soc(times, state_of_charges)
+            # noinspection PyTypeChecker
+            std = np.sqrt(np.mean((balance - state_of_charges) ** 2)) * 2
+            std = min(min_delta_soc, std)
+            self.max = min(balance + std, 100.0)
+            self.min = max(balance - std, 0.0)
+
+    def fit(self, times, alternator_statuses, state_of_charges,
+            gear_box_powers_in):
+
+        i = co2_utl.argmax(alternator_statuses != 3)
+
+        status, soc = alternator_statuses[i:], state_of_charges[i:]
+
+        self._fit_bers(status, gear_box_powers_in[i:])
+        self._fit_charge(status, soc)
+        self._fit_boundaries(status, soc, times[i:])
+
+        return self
+
+    def predict(self, has_energy_rec, init_time, time, prev, soc, power):
+        status = 0
+
+        if soc < 100:
+            x = [(prev, soc)]
+            if time < init_time:
+                status = 3
+
+            elif soc < self.min or (soc <= self.max and self.charge(x)[0]):
+                status = 1
+
+            elif has_energy_rec and self.bers([(power,)])[0]:
+                status = 2
+
+        return status
+
+
+@sh.add_function(dsp, outputs=['alternator_status_model'], weight=10)
+def calibrate_alternator_status_model(
+        times, alternator_statuses, state_of_charges, gear_box_powers_in,
+        alternator_current_threshold):
+    """
+    Calibrates the alternator status model.
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param alternator_statuses:
+        The alternator status (0: off, 1: on, due to state of charge, 2: on due
+        to BERS, 3: on and initialize battery) [-].
+    :type alternator_statuses: numpy.array
+
+    :param state_of_charges:
+        State of charge of the battery [%].
+
+        .. note::
+
+            `state_of_charges` = 99 is equivalent to 99%.
+    :type state_of_charges: numpy.array
+
+    :param gear_box_powers_in:
+        Gear box power vector [kW].
+    :type gear_box_powers_in: numpy.array
+
+    :param alternator_current_threshold:
+        Alternator current threshold [A].
+    :type alternator_current_threshold: float
+
+    :return:
+        A function that predicts the alternator status.
+    :rtype: callable
+    """
+
+    model = Alternator_status_model(
+        current_threshold=alternator_current_threshold
+    )
+    model.fit(
+        times, alternator_statuses, state_of_charges, gear_box_powers_in
+    )
+
+    return model
+
+
+@sh.add_function(dsp, outputs=['max_battery_charging_current'])
 def identify_max_battery_charging_current(battery_currents):
     """
     Identifies the maximum charging current of the battery [A].
@@ -387,60 +889,7 @@ def identify_max_battery_charging_current(battery_currents):
     return max(battery_currents)
 
 
-# Not used.
-def identify_alternator_charging_currents(
-        alternator_currents, gear_box_powers_in, on_engine):
-    """
-    Identifies the mean charging currents of the alternator [A].
-
-    :param alternator_currents:
-        Alternator current vector [A].
-    :type alternator_currents: numpy.array
-
-    :param gear_box_powers_in:
-        Gear box power vector [kW].
-    :type gear_box_powers_in: numpy.array
-
-    :param on_engine:
-        If the engine is on [-].
-    :type on_engine: numpy.array
-
-    :return:
-        Mean charging currents of the alternator (for negative and positive
-        power)[A].
-    :rtype: (float, float)
-    """
-
-    a_c = alternator_currents
-    rjo = co2_utl.reject_outliers
-    b = (a_c < 0.0) & on_engine
-    p_neg = b & (gear_box_powers_in < 0)
-    p_pos = b & (gear_box_powers_in > 0)
-
-    # noinspection PyMissingOrEmptyDocstring
-    def get_range(x):
-        on = None
-        for i, s in enumerate(itertools.chain(x, [False])):
-            if not s and on is not None:
-                yield on, i
-                on = None
-
-            elif on is None and s:
-                on = i
-
-    if p_neg.any():
-        p_neg = rjo([rjo(a_c[i:j])[0] for i, j in get_range(p_neg)])[0]
-    else:
-        p_neg = 0.0
-
-    if p_pos.any():
-        p_pos = rjo([rjo(a_c[i:j])[0] for i, j in get_range(p_pos)])[0]
-    else:
-        p_pos = 0.0
-
-    return p_neg, p_pos
-
-
+@sh.add_function(dsp, outputs=['alternator_current_model'])
 def define_alternator_current_model(alternator_charging_currents):
     """
     Defines an alternator current model that predicts alternator current [A].
@@ -459,7 +908,7 @@ def define_alternator_current_model(alternator_charging_currents):
 
 
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-class AlternatorCurrentModel(object):
+class AlternatorCurrentModel:
     def __init__(self, alternator_charging_currents=(0, 0)):
         def default_model(X):
             time, prev_soc, alt_status, gb_power, acc = X.T
@@ -467,6 +916,7 @@ class AlternatorCurrentModel(object):
 
             return np.where(b, *alternator_charging_currents)
 
+        import xgboost as xgb
         self.model = default_model
         self.mask = None
         self.init_model = default_model
@@ -483,7 +933,7 @@ class AlternatorCurrentModel(object):
         curr[b] = self.model(X[b][:, self.model])
         return curr
 
-    # noinspection PyShadowingNames
+    # noinspection PyShadowingNames,PyProtectedMember
     def fit(self, currents, on_engine, times, soc, statuses, *args,
             init_time=0.0):
         b = (statuses[1:] > 0) & on_engine[1:]
@@ -509,15 +959,17 @@ class AlternatorCurrentModel(object):
 
         return self
 
+    # noinspection PyProtectedMember
     def _fit_model(self, spl, in_mask=(), out_mask=()):
         opt = {
             'random_state': 0,
             'max_depth': 2,
             'n_estimators': int(min(300.0, 0.25 * (len(spl) - 1))) or 1
         }
+        from sklearn.pipeline import Pipeline
         from ..engine.thermal import _SelectFromModel
         model = self.base_model(**opt)
-        model = sk_pip.Pipeline([
+        model = Pipeline([
             ('feature_selection', _SelectFromModel(model, '0.8*median',
                                                    in_mask=in_mask,
                                                    out_mask=out_mask)),
@@ -534,6 +986,7 @@ class AlternatorCurrentModel(object):
         return min(0.0, self.model(arr[:, self.mask])[0])
 
 
+@sh.add_function(dsp, outputs=['alternator_current_model'])
 def calibrate_alternator_current_model(
         alternator_currents, on_engine, times, state_of_charges,
         alternator_statuses, gear_box_powers_in, accelerations,
@@ -592,482 +1045,8 @@ def calibrate_alternator_current_model(
     return model
 
 
-def calculate_state_of_charges(
-        battery_capacity, times, initial_soc, battery_currents,
-        max_battery_charging_current):
-    """
-    Calculates the state of charge of the battery [%].
-
-    :param battery_capacity:
-        Battery capacity [Ah].
-    :type battery_capacity: float
-
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
-    :param initial_soc:
-        Initial state of charge of the battery [%].
-    :type initial_soc: float
-
-    :param battery_currents:
-        Low voltage battery current vector [A].
-    :type battery_currents: numpy.array
-
-    :param max_battery_charging_current:
-        Maximum charging current of the battery [A].
-    :type max_battery_charging_current: float
-
-    :return:
-        State of charge of the battery [%].
-
-        .. note::
-
-            `state_of_charges` = 99 is equivalent to 99%.
-    :rtype: numpy.array
-    """
-
-    soc = np.empty_like(times, float)
-    soc[0] = initial_soc
-    bc = np.minimum(battery_currents, max_battery_charging_current)
-    bc = (bc[:-1] + bc[1:]) * np.diff(times) / (2.0 * battery_capacity * 36.0)
-
-    for i, b in enumerate(bc, 1):
-        soc[i] = min(soc[i - 1] + b, 100.0)
-
-    return soc
-
-
-def calculate_alternator_powers_demand(
-        alternator_nominal_voltage, alternator_currents, alternator_efficiency):
-    """
-    Calculates the alternator power demand to the engine [kW].
-
-    :param alternator_nominal_voltage:
-        Alternator nominal voltage [V].
-    :type alternator_nominal_voltage: float
-
-    :param alternator_currents:
-        Alternator current vector [A].
-    :type alternator_currents: numpy.array
-
-    :param alternator_efficiency:
-        Alternator efficiency [-].
-    :type alternator_efficiency: float
-
-    :return:
-        Alternator power demand to the engine [kW].
-    :rtype: numpy.array
-    """
-
-    c = alternator_nominal_voltage / (1000.0 * alternator_efficiency)
-
-    return np.maximum(-alternator_currents * c, 0.0)
-
-
-def calculate_max_alternator_current(
-        alternator_nominal_voltage, alternator_nominal_power,
-        alternator_efficiency):
-    """
-    Calculates the max feasible alternator current [A].
-
-    :param alternator_nominal_voltage:
-        Alternator nominal voltage [V].
-    :type alternator_nominal_voltage: float
-
-    :param alternator_nominal_power:
-        Alternator nominal power [kW].
-    :type alternator_nominal_power: float
-
-    :param alternator_efficiency:
-        Alternator efficiency [-].
-    :type alternator_efficiency: float
-
-    :return:
-        Max feasible alternator current [A].
-    :rtype: float
-    """
-
-    c = alternator_nominal_power * 1000.0 * alternator_efficiency
-
-    return c / alternator_nominal_voltage
-
-
-# noinspection PyPep8
-def identify_alternator_current_threshold(
-        alternator_currents, velocities, on_engine, stop_velocity,
-        alternator_off_threshold):
-    """
-    Identifies the alternator current threshold [A] that identifies when the
-    alternator is off.
-
-    :param alternator_currents:
-        Alternator current vector [A].
-    :type alternator_currents: numpy.array
-
-    :param velocities:
-        Velocity vector [km/h].
-    :type velocities: numpy.array
-
-    :param on_engine:
-        If the engine is on [-].
-    :type on_engine: numpy.array
-
-    :param stop_velocity:
-        Maximum velocity to consider the vehicle stopped [km/h].
-    :type stop_velocity: float
-
-    :param alternator_off_threshold:
-        Maximum negative current for being considered the alternator off [A].
-    :type alternator_off_threshold: float
-
-    :return:
-        Alternator current threshold [A].
-    :rtype: float
-    """
-
-    sample_weight = np.ones_like(alternator_currents, dtype=float)
-    sample_weight[alternator_currents >= alternator_off_threshold] = 2.0
-    sample_weight[velocities < stop_velocity] = 3.0
-    sample_weight[~on_engine] = 4.0
-
-    model = sk_clu.DBSCAN(eps=-alternator_off_threshold)
-    model.fit(alternator_currents[:, None], sample_weight=sample_weight)
-    c, l = model.components_, model.labels_[model.core_sample_indices_]
-    sample_weight = sample_weight[model.core_sample_indices_]
-    threshold, w = [], []
-    for i in range(l.max() + 1):
-        b = l == i
-        x = c[b].min()
-        if x > alternator_off_threshold:
-            threshold.append(x)
-            w.append(np.sum(sample_weight[b]))
-
-    if threshold:
-        return min(0.0, np.average(threshold, weights=w))
-    return 0.0
-
-
-def get_alternator_current_threshold(alternator_status_model):
-    """
-    Gets the alternator current threshold [A] that identifies when the
-    alternator is off from the alternator status model.
-
-    :param alternator_status_model:
-        A function that predicts the alternator status.
-    :type alternator_status_model: Alternator_status_model
-
-    :return:
-        Alternator current threshold [A].
-    :rtype: float
-    """
-    return alternator_status_model.current_threshold
-
-
-def _starts_windows(times, engine_starts, dt):
-    ts = times[engine_starts]
-    from ..defaults import dfl
-    return np.searchsorted(times, np.column_stack((ts - dt, ts + dt + dfl.EPS)))
-
-
-def identify_alternator_starts_windows(
-        times, engine_starts, alternator_currents,
-        alternator_start_window_width, alternator_current_threshold):
-    """
-    Identifies the alternator starts windows [-].
-
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
-    :param engine_starts:
-        When the engine starts [-].
-    :type engine_starts: numpy.array
-
-    :param alternator_currents:
-        Alternator current vector [A].
-    :type alternator_currents: numpy.array
-
-    :param alternator_start_window_width:
-        Alternator start window width [s].
-    :type alternator_start_window_width: float
-
-    :param alternator_current_threshold:
-        Alternator current threshold [A].
-    :type alternator_current_threshold: float
-
-    :return:
-        Alternator starts windows [-].
-    :rtype: numpy.array
-    """
-
-    starts_windows = np.zeros_like(times, dtype=bool)
-    dt = alternator_start_window_width / 2
-    for i, j in _starts_windows(times, engine_starts, dt):
-        b = (alternator_currents[i:j] >= alternator_current_threshold).any()
-        starts_windows[i:j] = b
-    return starts_windows
-
-
-# noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-class Alternator_status_model(object):
-    def __init__(self, bers_pred=None, charge_pred=None, min_soc=0.0,
-                 max_soc=100.0, current_threshold=0.0):
-        self.bers = bers_pred
-        self.charge = charge_pred
-        self.max = max_soc
-        self.min = min_soc
-        self.current_threshold = current_threshold
-
-    def __call__(self, *args, **kwargs):
-        return self.predict(*args, **kwargs)
-
-    def _fit_bers(self, alternator_statuses, gear_box_powers_in):
-        b = alternator_statuses == 2
-        threshold = 0.0
-        if b.any():
-            from ..defaults import dfl
-            q = dfl.functions.Alternator_status_model.min_percentile_bers
-            m = sk_tree.DecisionTreeClassifier(random_state=0, max_depth=2)
-            c = alternator_statuses != 1
-            # noinspection PyUnresolvedReferences
-            m.fit(gear_box_powers_in[c, None], b[c])
-
-            X = gear_box_powers_in[b, None]
-            if (np.sum(m.predict(X)) / X.shape[0] * 100) >= q:
-                self.bers = m.predict  # shortcut name
-                return self.bers
-
-            # noinspection PyUnresolvedReferences
-            if not b.all():
-                gb_p_s = gear_box_powers_in[_mask_boolean_phases(b)[:, 0]]
-
-                threshold = min(threshold, np.percentile(gb_p_s, q))
-
-        self.bers = lambda x: np.asarray(x) < threshold
-        return self.bers
-
-    # noinspection PyShadowingNames
-    def _fit_charge(self, alternator_statuses, state_of_charges):
-        b = alternator_statuses[1:] == 1
-        if b.any():
-            charge = sk_tree.DecisionTreeClassifier(random_state=0, max_depth=3)
-            X = np.column_stack(
-                (alternator_statuses[:-1], state_of_charges[1:])
-            )
-            charge.fit(X, b)
-            self.charge = charge.predict
-        else:
-            self.charge = lambda X: np.zeros(len(X), dtype=bool)
-
-    def _fit_boundaries(self, alternator_statuses, state_of_charges, times):
-        n, b = len(alternator_statuses), alternator_statuses == 1
-        mask = _mask_boolean_phases(b)
-        self.max, self.min = 100.0, 0.0
-        _max, _min, balance = [], [], ()
-        from ..defaults import dfl
-        min_dt = dfl.functions.Alternator_status_model.min_delta_time_boundaries
-        for i, j in mask:
-            t = times[i:j]
-            if t[-1] - t[0] <= min_dt:
-                continue
-            soc = state_of_charges[i:j]
-            m, q = sci_stat.linregress(t, soc)[:2]
-            if m >= 0:
-                if i > 0:
-                    _min.append(soc.min())
-                if j < n:
-                    _max.append(soc.max())
-
-        min_delta_soc = dfl.functions.Alternator_status_model.min_delta_soc
-        if _min:
-            self.min = _min = max(self.min, min(100.0, min(_min)))
-
-            _max = [m for m in _max if m >= _min]
-            if _max:
-                self.max = min(100.0, min(max(_max), _min + min_delta_soc))
-            else:
-                self.max = min(100.0, _min + min_delta_soc)
-        elif _max:
-            self.max = _max = min(self.max, max(0.0, max(_max)))
-            self.min = _max - min_delta_soc
-        elif b.any():
-            balance = _identify_balance_soc(times, state_of_charges)
-            # noinspection PyTypeChecker
-            std = np.sqrt(np.mean((balance - state_of_charges) ** 2)) * 2
-            std = min(min_delta_soc, std)
-            self.max = min(balance + std, 100.0)
-            self.min = max(balance - std, 0.0)
-
-    def fit(self, times, alternator_statuses, state_of_charges,
-            gear_box_powers_in):
-
-        i = co2_utl.argmax(alternator_statuses != 3)
-
-        status, soc = alternator_statuses[i:], state_of_charges[i:]
-
-        self._fit_bers(status, gear_box_powers_in[i:])
-        self._fit_charge(status, soc)
-        self._fit_boundaries(status, soc, times[i:])
-
-        return self
-
-    def predict(self, has_energy_rec, init_time, time, prev, soc, power):
-        status = 0
-
-        if soc < 100:
-            x = [(prev, soc)]
-            if time < init_time:
-                status = 3
-
-            elif soc < self.min or (soc <= self.max and self.charge(x)[0]):
-                status = 1
-
-            elif has_energy_rec and self.bers([(power,)])[0]:
-                status = 2
-
-        return status
-
-
-def _identify_balance_soc(times, state_of_charges):
-    parameters = lmfit.Parameters()
-    parameters.add('B', value=np.median(state_of_charges), min=0.0, max=100.0)
-    parameters.add('A', value=0)
-    parameters.add('X0', value=1.0, min=0.0)
-    x = (times - times[0]) / (times[-1] - times[0])
-    n = len(x)
-
-    # noinspection PyMissingOrEmptyDocstring
-    def func(params):
-        p = params.valuesdict()
-        y = np.tile(p['B'], n)
-        b = x < p['X0']
-        y[b] += p['A'] * (x[b] - p['X0']) ** 2
-        return y
-
-    # noinspection PyMissingOrEmptyDocstring
-    def error(params):
-        return sk_met.mean_absolute_error(state_of_charges, func(params))
-
-    from ..engine.co2_emission import calibrate_model_params
-    return calibrate_model_params(error, parameters)[0].valuesdict()['B']
-
-
-def calibrate_alternator_status_model(
-        times, alternator_statuses, state_of_charges, gear_box_powers_in,
-        alternator_current_threshold):
-    """
-    Calibrates the alternator status model.
-
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
-    :param alternator_statuses:
-        The alternator status (0: off, 1: on, due to state of charge, 2: on due
-        to BERS, 3: on and initialize battery) [-].
-    :type alternator_statuses: numpy.array
-
-    :param state_of_charges:
-        State of charge of the battery [%].
-
-        .. note::
-
-            `state_of_charges` = 99 is equivalent to 99%.
-    :type state_of_charges: numpy.array
-
-    :param gear_box_powers_in:
-        Gear box power vector [kW].
-    :type gear_box_powers_in: numpy.array
-
-    :param alternator_current_threshold:
-        Alternator current threshold [A].
-    :type alternator_current_threshold: float
-
-    :return:
-        A function that predicts the alternator status.
-    :rtype: callable
-    """
-
-    model = Alternator_status_model(
-        current_threshold=alternator_current_threshold
-    )
-    model.fit(
-        times, alternator_statuses, state_of_charges, gear_box_powers_in
-    )
-
-    return model
-
-
-# noinspection PyPep8Naming
-def define_alternator_status_model(
-        state_of_charge_balance, state_of_charge_balance_window):
-    """
-    Defines the alternator status model.
-
-    :param state_of_charge_balance:
-        Battery state of charge balance [%].
-
-        .. note::
-
-            `state_of_charge_balance` = 99 is equivalent to 99%.
-    :type state_of_charge_balance: float
-
-    :param state_of_charge_balance_window:
-        Battery state of charge balance window [%].
-
-        .. note::
-
-            `state_of_charge_balance_window` = 2 is equivalent to 2%.
-    :type state_of_charge_balance_window: float
-
-    :return:
-        A function that predicts the alternator status.
-    :rtype: callable
-    """
-
-    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-    def bers_pred(X):
-        return [X[0][0] < 0]
-
-    model = Alternator_status_model(
-        charge_pred=lambda X: [X[0][0] == 1],
-        bers_pred=bers_pred,
-        min_soc=state_of_charge_balance - state_of_charge_balance_window / 2,
-        max_soc=state_of_charge_balance + state_of_charge_balance_window / 2
-    )
-
-    return model
-
-
-# noinspection PyPep8Naming
-def identify_state_of_charge_balance_and_window(alternator_status_model):
-    """
-    Identifies the battery state of charge balance and its window [%].
-
-    :param alternator_status_model:
-        A function that predicts the alternator status.
-    :type alternator_status_model: Alternator_status_model
-
-    :return:
-        Battery state of charge balance and its window [%].
-    :rtype: float, float
-    """
-
-    model = alternator_status_model
-    min_soc, max_soc = model.min, model.max
-    X = np.column_stack((np.ones(100), np.linspace(min_soc, max_soc, 100)))
-    s = np.where(model.charge(X))[0]
-    if s.shape[0]:
-        min_soc, max_soc = max(min_soc, X[s[0], 1]), min(max_soc, X[s[-1], 1])
-
-    state_of_charge_balance_window = max_soc - min_soc
-    state_of_charge_balance = min_soc + state_of_charge_balance_window / 2
-    return state_of_charge_balance, state_of_charge_balance_window
-
-
 # noinspection PyMissingOrEmptyDocstring
-class ElectricModel(object):
+class ElectricModel:
     key_outputs = [
         'alternator_currents', 'alternator_statuses', 'battery_currents',
         'state_of_charges'
@@ -1130,6 +1109,7 @@ class ElectricModel(object):
                 keys, self._outputs, output_type='list'
             ))
         else:
+            import functools
             from .electrics_prediction import (
                 predict_alternator_status, calculate_engine_start_current,
                 calculate_alternator_current
@@ -1214,6 +1194,7 @@ class ElectricModel(object):
             yield alt_current, alt_status, bat_current, soc
 
 
+@sh.add_function(dsp, outputs=['electrics_prediction_model'], weight=4000)
 def define_electrics_prediction_model(
         battery_capacity, alternator_status_model, max_alternator_current,
         alternator_current_model, max_battery_charging_current,
@@ -1291,6 +1272,7 @@ def define_electrics_prediction_model(
     return model
 
 
+@sh.add_function(dsp, outputs=['electrics_prediction_model'])
 def define_fake_electrics_prediction_model(
         alternator_currents, alternator_statuses, battery_currents,
         state_of_charges):
@@ -1332,6 +1314,11 @@ def define_fake_electrics_prediction_model(
     return model
 
 
+@sh.add_function(
+    dsp,
+    outputs=['alternator_currents', 'alternator_statuses', 'battery_currents',
+             'state_of_charges']
+)
 def predict_vehicle_electrics(
         electrics_prediction_model, times, gear_box_powers_in, on_engine,
         engine_starts, accelerations):
@@ -1373,28 +1360,44 @@ def predict_vehicle_electrics(
     )
 
 
-def default_initial_state_of_charge(cycle_type):
-    """
-    Return the default initial state of charge of the battery [%].
+dsp.add_function(
+    function_id='identify_alternator_nominal_power',
+    function=lambda x: max(x),
+    inputs=['alternator_powers_demand'],
+    outputs=['alternator_nominal_power']
+)
 
-    :param cycle_type:
-        Cycle type (WLTP or NEDC).
-    :type cycle_type: str
+
+@sh.add_function(dsp, outputs=['max_alternator_current'])
+def calculate_max_alternator_current(
+        alternator_nominal_voltage, alternator_nominal_power,
+        alternator_efficiency):
+    """
+    Calculates the max feasible alternator current [A].
+
+    :param alternator_nominal_voltage:
+        Alternator nominal voltage [V].
+    :type alternator_nominal_voltage: float
+
+    :param alternator_nominal_power:
+        Alternator nominal power [kW].
+    :type alternator_nominal_power: float
+
+    :param alternator_efficiency:
+        Alternator efficiency [-].
+    :type alternator_efficiency: float
 
     :return:
-        Initial state of charge of the battery [%].
-
-        .. note::
-
-            `initial_state_of_charge` = 99 is equivalent to 99%.
+        Max feasible alternator current [A].
     :rtype: float
     """
 
-    from ..defaults import dfl
-    d = dfl.functions.default_initial_state_of_charge.initial_state_of_charge
-    return d[cycle_type]
+    c = alternator_nominal_power * 1000.0 * alternator_efficiency
+
+    return c / alternator_nominal_voltage
 
 
+@sh.add_function(dsp, outputs=['delta_state_of_charge'])
 def calculate_delta_state_of_charge(state_of_charges):
     """
     Calculates the overall delta state of charge of the battery [%].
@@ -1412,225 +1415,3 @@ def calculate_delta_state_of_charge(state_of_charges):
     :rtype: float
     """
     return state_of_charges[-1] - state_of_charges[0]
-
-
-def electrics():
-    """
-    Defines the electrics model.
-
-    .. dispatcher:: d
-
-        >>> d = electrics()
-
-    :return:
-        The electrics model.
-    :rtype: schedula.Dispatcher
-    """
-
-    d = sh.Dispatcher(
-        name='Electrics',
-        description='Models the vehicle electrics.'
-    )
-
-    from ..defaults import dfl
-    d.add_data(
-        data_id='alternator_efficiency',
-        default_value=dfl.values.alternator_efficiency
-    )
-
-    d.add_data(
-        data_id='delta_time_engine_starter',
-        default_value=dfl.values.delta_time_engine_starter
-    )
-
-    d.add_function(
-        function=calculate_engine_start_demand,
-        inputs=['engine_moment_inertia', 'idle_engine_speed',
-                'alternator_efficiency', 'delta_time_engine_starter'],
-        outputs=['start_demand'],
-        weight=100
-    )
-
-    d.add_function(
-        function=identify_electric_loads,
-        inputs=['alternator_nominal_voltage', 'battery_currents',
-                'alternator_currents', 'gear_box_powers_in', 'times',
-                'on_engine', 'engine_starts', 'alternator_start_window_width'],
-        outputs=['electric_load', 'start_demand']
-    )
-
-    d.add_function(
-        function=default_initial_state_of_charge,
-        inputs=['cycle_type'],
-        outputs=['initial_state_of_charge']
-    )
-
-    d.add_function(
-        function=identify_charging_statuses,
-        inputs=['times', 'alternator_currents', 'gear_box_powers_in',
-                'on_engine', 'alternator_current_threshold', 'starts_windows',
-                'alternator_initialization_time'],
-        outputs=['alternator_statuses']
-    )
-
-    d.add_function(
-        function=identify_charging_statuses_and_alternator_initialization_time,
-        inputs=['times', 'alternator_currents', 'gear_box_powers_in',
-                'on_engine', 'alternator_current_threshold', 'starts_windows',
-                'state_of_charges', 'accelerations'],
-        outputs=['alternator_statuses', 'alternator_initialization_time'],
-        weight=1
-    )
-
-    d.add_function(
-        function=identify_alternator_initialization_time,
-        inputs=['alternator_currents', 'gear_box_powers_in', 'on_engine',
-                'accelerations', 'state_of_charges', 'alternator_statuses',
-                'times', 'alternator_current_threshold'],
-        outputs=['alternator_initialization_time']
-    )
-
-    d.add_function(
-        function=calculate_state_of_charges,
-        inputs=['battery_capacity', 'times', 'initial_state_of_charge',
-                'battery_currents', 'max_battery_charging_current'],
-        outputs=['state_of_charges']
-    )
-
-    d.add_data(
-        data_id='stop_velocity',
-        default_value=dfl.values.stop_velocity
-    )
-
-    d.add_data(
-        data_id='alternator_off_threshold',
-        default_value=dfl.values.alternator_off_threshold
-    )
-
-    d.add_function(
-        function=get_alternator_current_threshold,
-        inputs=['alternator_status_model'],
-        outputs=['alternator_current_threshold']
-    )
-
-    d.add_function(
-        function=identify_alternator_current_threshold,
-        inputs=['alternator_currents', 'velocities', 'on_engine',
-                'stop_velocity', 'alternator_off_threshold'],
-        outputs=['alternator_current_threshold']
-    )
-
-    d.add_data(
-        data_id='alternator_start_window_width',
-        default_value=dfl.values.alternator_start_window_width
-    )
-
-    d.add_function(
-        function=identify_alternator_starts_windows,
-        inputs=['times', 'engine_starts', 'alternator_currents',
-                'alternator_start_window_width',
-                'alternator_current_threshold'],
-        outputs=['starts_windows']
-    )
-
-    d.add_function(
-        function=calculate_alternator_powers_demand,
-        inputs=['alternator_nominal_voltage', 'alternator_currents',
-                'alternator_efficiency'],
-        outputs=['alternator_powers_demand']
-    )
-
-    d.add_function(
-        function=define_alternator_status_model,
-        inputs=['state_of_charge_balance', 'state_of_charge_balance_window'],
-        outputs=['alternator_status_model']
-    )
-
-    d.add_function(
-        function=identify_state_of_charge_balance_and_window,
-        inputs=['alternator_status_model'],
-        outputs=['state_of_charge_balance', 'state_of_charge_balance_window']
-    )
-
-    d.add_data(
-        data_id='has_energy_recuperation',
-        default_value=dfl.values.has_energy_recuperation
-    )
-
-    d.add_function(
-        function=calibrate_alternator_status_model,
-        inputs=['times', 'alternator_statuses', 'state_of_charges',
-                'gear_box_powers_in', 'alternator_current_threshold'],
-        outputs=['alternator_status_model'],
-        weight=10
-    )
-
-    d.add_function(
-        function=identify_max_battery_charging_current,
-        inputs=['battery_currents'],
-        outputs=['max_battery_charging_current']
-    )
-
-    d.add_function(
-        function=define_alternator_current_model,
-        inputs=['alternator_charging_currents'],
-        outputs=['alternator_current_model']
-    )
-
-    d.add_function(
-        function=calibrate_alternator_current_model,
-        inputs=['alternator_currents', 'on_engine', 'times', 'state_of_charges',
-                'alternator_statuses', 'gear_box_powers_in', 'accelerations',
-                'alternator_initialization_time'],
-        outputs=['alternator_current_model']
-    )
-
-    d.add_function(
-        function=define_electrics_prediction_model,
-        inputs=['battery_capacity', 'alternator_status_model',
-                'max_alternator_current', 'alternator_current_model',
-                'max_battery_charging_current', 'alternator_nominal_voltage',
-                'start_demand', 'electric_load', 'has_energy_recuperation',
-                'alternator_initialization_time', 'times',
-                'initial_state_of_charge'],
-        outputs=['electrics_prediction_model'],
-        weight=4000
-    )
-
-    d.add_function(
-        function=define_fake_electrics_prediction_model,
-        inputs=['alternator_currents', 'alternator_statuses',
-                'battery_currents', 'state_of_charges'],
-        outputs=['electrics_prediction_model']
-    )
-
-    d.add_function(
-        function=predict_vehicle_electrics,
-        inputs=['electrics_prediction_model', 'times', 'gear_box_powers_in',
-                'on_engine', 'engine_starts', 'accelerations'],
-        outputs=['alternator_currents', 'alternator_statuses',
-                 'battery_currents', 'state_of_charges']
-    )
-
-    d.add_function(
-        function_id='identify_alternator_nominal_power',
-        function=lambda x: max(x),
-        inputs=['alternator_powers_demand'],
-        outputs=['alternator_nominal_power']
-    )
-
-    d.add_function(
-        function=calculate_max_alternator_current,
-        inputs=['alternator_nominal_voltage', 'alternator_nominal_power',
-                'alternator_efficiency'],
-        outputs=['max_alternator_current']
-    )
-
-    d.add_function(
-        function=calculate_delta_state_of_charge,
-        inputs=['state_of_charges'],
-        outputs=['delta_state_of_charge']
-    )
-
-
-    return d
