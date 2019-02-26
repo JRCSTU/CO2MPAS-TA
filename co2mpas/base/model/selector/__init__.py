@@ -471,6 +471,55 @@ def tyre_models_selector(models_ids, data):
     return models
 
 
+def calculate_error_coefficients(
+        identified_gears, gears, engine_speeds, predicted_engine_speeds,
+        velocities, stop_velocity):
+    """
+    Calculates the prediction's error coefficients.
+
+    :param identified_gears:
+        Identified gear vector [-].
+    :type identified_gears: numpy.array
+
+    :param gears:
+        Gear vector [-].
+    :type gears: numpy.array
+
+    :param engine_speeds:
+        Engine speed vector [RPM].
+    :type engine_speeds: numpy.array
+
+    :param predicted_engine_speeds:
+        Predicted Engine speed vector [RPM].
+    :type predicted_engine_speeds: numpy.array
+
+    :param velocities:
+        Vehicle velocity [km/h].
+    :type velocities: numpy.array
+
+    :param stop_velocity:
+        Maximum velocity to consider the vehicle stopped [km/h].
+    :type stop_velocity: float
+
+    :return:
+        Correlation coefficient and mean absolute error.
+    :rtype: dict
+    """
+
+    b = velocities > stop_velocity
+
+    x = engine_speeds[b]
+    y = predicted_engine_speeds[b]
+    from co2mpas.base.report import _correlation_coefficient
+    res = {
+        'mean_absolute_error': sk_met.mean_absolute_error(x, y),
+        'correlation_coefficient': _correlation_coefficient(x, y),
+        'accuracy_score': sk_met.accuracy_score(identified_gears, gears)
+    }
+
+    return res
+
+
 def at_models_selector(d, at_pred_inputs, models_ids, data):
     sgs = 'specific_gear_shifting'
     # Namespace shortcuts.
