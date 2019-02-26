@@ -429,14 +429,14 @@ class GearBoxLosses(object):
         base['gear_box_temperature_references'] = \
             gear_box_temperature_references
 
-        # from .thermal import thermal
+        # from .thermal import dsp as thermal
         # inputs = (
         #     'gear_box_temperature', 'delta_time', 'gear_box_power_out',
         #     'gear_box_speed_out','gear_box_speed_in', 'gear_box_torque_out',
         #     'gear'
         # )
-        # _thermal = dsp_utl.SubDispatchPipe(
-        #     dsp=thermal(),
+        # _thermal = sh.DispatchPipe(
+        #     dsp=thermal,
         #     function_id='thermal',
         #     inputs=tuple(base) + inputs,
         #     outputs=('gear_box_temperature', 'gear_box_torque_in',

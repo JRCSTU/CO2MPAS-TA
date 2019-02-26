@@ -4,40 +4,30 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-
 """
 It contains functions to calculate torque losses and the gear box temperature.
 """
 
-import schedula as sh
 import math
+import schedula as sh
+from ..defaults import dfl
+
+dsp = sh.BlueDispatcher(
+    name='Gear box thermal sub model',
+    description='Calculates temperature, efficiency, torque loss of gear box.'
+)
+
+dsp.add_data(
+    data_id='gear_box_temperature_references',
+    default_value=dfl.values.gear_box_temperature_references
+)
 
 
-def evaluate_gear_box_torque_in(
+def _evaluate_gear_box_torque_in(
         gear_box_torque_out, gear_box_speed_in, gear_box_speed_out,
         gear_box_efficiency_parameters):
     """
     Calculates torque required according to the temperature profile [N*m].
-
-    :param gear_box_torque_out:
-        Torque gear_box [N*m].
-    :type gear_box_torque_out: float
-
-    :param gear_box_speed_in:
-        Engine speed [RPM].
-    :type gear_box_speed_in: float
-
-    :param gear_box_speed_out:
-        Wheel speed [RPM].
-    :type gear_box_speed_out: float
-
-    :param gear_box_efficiency_parameters:
-        Parameters of gear box efficiency model (`gbp00`, `gbp10`, `gbp01`).
-    :type gear_box_efficiency_parameters: dict
-
-    :return:
-        Torque required [N*m].
-    :rtype: float
     """
 
     tgb, es, ws = gear_box_torque_out, gear_box_speed_in, gear_box_speed_out
@@ -50,6 +40,8 @@ def evaluate_gear_box_torque_in(
     return 0
 
 
+# noinspection PyPep8Naming
+@sh.add_function(dsp, outputs=['gear_box_torque_in<0>'])
 def calculate_gear_box_torque_in(
         gear_box_torque_out, gear_box_speed_in, gear_box_speed_out,
         gear_box_temperature, gear_box_efficiency_parameters_cold_hot,
@@ -94,17 +86,22 @@ def calculate_gear_box_torque_in(
     t_out = gear_box_torque_out
     e_s, gb_s = gear_box_speed_in, gear_box_speed_out
 
-    t = evaluate_gear_box_torque_in(t_out, e_s, gb_s, par['hot'])
+    t = _evaluate_gear_box_torque_in(t_out, e_s, gb_s, par['hot'])
 
     if not T_cold == T_hot and gear_box_temperature <= T_hot:
-
-        t_cold = evaluate_gear_box_torque_in(t_out, e_s, gb_s, par['cold'])
+        t_cold = _evaluate_gear_box_torque_in(t_out, e_s, gb_s, par['cold'])
 
         t += (T_hot - gear_box_temperature) / (T_hot - T_cold) * (t_cold - t)
 
     return t
 
 
+@sh.add_function(
+    dsp,
+    inputs=['gear_box_torque_out', 'gear_box_torque_in<0>', 'gear',
+            'gear_box_ratios'],
+    outputs=['gear_box_torque_in']
+)
 def correct_gear_box_torque_in(
         gear_box_torque_out, gear_box_torque_in, gear, gear_box_ratios):
     """
@@ -138,6 +135,7 @@ def correct_gear_box_torque_in(
     return gear_box_torque_out if gbr.get(gear, 0) == 1 else gear_box_torque_in
 
 
+@sh.add_function(dsp, outputs=['gear_box_efficiency'])
 def calculate_gear_box_efficiency(
         gear_box_power_out, gear_box_speed_in, gear_box_torque_out,
         gear_box_torque_in):
@@ -176,39 +174,7 @@ def calculate_gear_box_efficiency(
     return max(0, min(1, eff))
 
 
-def calculate_gear_box_temperature(
-        gear_box_heat, starting_temperature, equivalent_gear_box_heat_capacity,
-        thermostat_temperature):
-    """
-    Calculates the gear box temperature not finalized [°C].
-
-    :param gear_box_heat:
-        Gear box heat [W].
-    :type gear_box_heat: float
-
-    :param starting_temperature:
-        Starting temperature [°C].
-    :type starting_temperature: float
-
-    :param equivalent_gear_box_heat_capacity:
-        Equivalent gear box capacity (from cold start model) [W/°C].
-    :type equivalent_gear_box_heat_capacity: float
-
-    :param thermostat_temperature:
-        Engine thermostat temperature [°C].
-    :type thermostat_temperature: float
-
-    :return:
-        Gear box temperature not finalized [°C].
-    :rtype: float
-    """
-
-    temp = starting_temperature
-    temp += gear_box_heat / equivalent_gear_box_heat_capacity
-
-    return min(temp, thermostat_temperature - 5.0)
-
-
+@sh.add_function(dsp, outputs=['gear_box_heat'])
 def calculate_gear_box_heat(
         gear_box_efficiency, gear_box_power_out, delta_time):
     """
@@ -238,68 +204,38 @@ def calculate_gear_box_heat(
     return 0.0
 
 
-def thermal():
+@sh.add_function(dsp, outputs=['gear_box_temperature'])
+def calculate_next_gear_box_temperature(
+        gear_box_heat, gear_box_temperature, equivalent_gear_box_heat_capacity,
+        thermostat_temperature):
     """
-    Defines the gear box thermal sub model.
+    Calculates the gear box temperature not finalized [°C].
 
-    .. dispatcher:: d
+    :param gear_box_heat:
+        Gear box heat [W].
+    :type gear_box_heat: float
 
-        >>> d = thermal()
+    :param gear_box_temperature:
+        Starting gear box temperature not finalized [°C].
+    :type gear_box_temperature: float
+
+    :param equivalent_gear_box_heat_capacity:
+        Equivalent gear box capacity (from cold start model) [W/°C].
+    :type equivalent_gear_box_heat_capacity: float
+
+    :param thermostat_temperature:
+        Engine thermostat temperature [°C].
+    :type thermostat_temperature: float
 
     :return:
-        The gear box thermal sub model.
-    :rtype: schedula.Dispatcher
+        Gear box temperature not finalized [°C].
+    :rtype: float
     """
 
-    d = sh.Dispatcher(
-        name='Gear box thermal sub model',
-        description='Calculates temperature, efficiency, '
-                    'torque loss of gear box'
-    )
+    temp = gear_box_temperature
+    temp += gear_box_heat / equivalent_gear_box_heat_capacity
 
-    from ..defaults import dfl
-    d.add_data(
-        data_id='gear_box_temperature_references',
-        default_value=dfl.values.gear_box_temperature_references
-    )
-
-    d.add_function(
-        function=calculate_gear_box_torque_in,
-        inputs=['gear_box_torque_out', 'gear_box_speed_in',
-                'gear_box_speed_out', 'gear_box_temperature',
-                'gear_box_efficiency_parameters_cold_hot',
-                'gear_box_temperature_references'],
-        outputs=['gear_box_torque_in<0>']
-    )
-
-    d.add_function(
-        function=correct_gear_box_torque_in,
-        inputs=['gear_box_torque_out', 'gear_box_torque_in<0>', 'gear',
-                'gear_box_ratios'],
-        outputs=['gear_box_torque_in']
-    )
-
-    d.add_function(
-        function=calculate_gear_box_efficiency,
-        inputs=['gear_box_power_out', 'gear_box_speed_in',
-                'gear_box_torque_out', 'gear_box_torque_in'],
-        outputs=['gear_box_efficiency'],
-    )
-
-    d.add_function(
-        function=calculate_gear_box_heat,
-        inputs=['gear_box_efficiency', 'gear_box_power_out', 'delta_time'],
-        outputs=['gear_box_heat']
-    )
-
-    d.add_function(
-        function=calculate_gear_box_temperature,
-        inputs=['gear_box_heat', 'gear_box_temperature',
-                'equivalent_gear_box_heat_capacity', 'thermostat_temperature'],
-        outputs=['gear_box_temperature']
-    )
-
-    return d
+    return min(temp, thermostat_temperature - 5.0)
 
 
 def _thermal(
@@ -309,7 +245,6 @@ def _thermal(
         gear_box_temperature_references, gear_box_temperature, delta_time,
         gear_box_power_out, gear_box_speed_out, gear_box_speed_in,
         gear_box_torque_out, gear):
-
     gear_box_torque_in = calculate_gear_box_torque_in(
         gear_box_torque_out, gear_box_speed_in, gear_box_speed_out,
         gear_box_temperature, gear_box_efficiency_parameters_cold_hot,
@@ -325,7 +260,7 @@ def _thermal(
     gear_box_heat = calculate_gear_box_heat(
         gear_box_efficiency, gear_box_power_out, delta_time)
 
-    gear_box_temperature = calculate_gear_box_temperature(
+    gear_box_temperature = calculate_next_gear_box_temperature(
         gear_box_heat, gear_box_temperature, equivalent_gear_box_heat_capacity,
         thermostat_temperature)
 
