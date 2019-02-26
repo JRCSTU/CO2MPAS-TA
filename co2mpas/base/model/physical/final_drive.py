@@ -63,7 +63,7 @@ def calculate_final_drive_ratio_vector(final_drive_ratios, gears):
 
     :param final_drive_ratios:
         Final drive ratios [-].
-    :type final_drive_ratios: dict[int | float]
+    :type final_drive_ratios: dict[int, float | int]
 
     :param gears:
         Gear vector [-].
@@ -476,7 +476,7 @@ def define_final_drive_prediction_model(
 
     :param final_drive_ratios:
         Final drive ratios [-].
-    :type final_drive_ratios: dict[int | float]
+    :type final_drive_ratios: dict[int, float | int]
 
     :param final_drive_torque_loss:
         Constant Final drive torque loss [N*m].

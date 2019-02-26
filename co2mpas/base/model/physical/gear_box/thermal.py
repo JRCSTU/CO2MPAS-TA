@@ -124,7 +124,7 @@ def correct_gear_box_torque_in(
 
     :param gear_box_ratios:
         Gear box ratios [-].
-    :type gear_box_ratios: dict[int | float]
+    :type gear_box_ratios: dict[int, float | int]
 
     :return:
         Corrected torque required [N*m].
