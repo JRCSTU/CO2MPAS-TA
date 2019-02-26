@@ -8,13 +8,12 @@
 """
 It contains functions that model the basic mechanics of the clutch.
 """
-import scipy.interpolate as sci_itp
 import scipy.optimize as sci_opt
 import functools
 import schedula as sh
 import numpy as np
 from .torque_converter import TorqueConverter
-
+from ..defaults import dfl
 
 def calculate_clutch_phases(
         times, velocities, gears, gear_shifts, stop_velocity, clutch_window):
@@ -293,44 +292,6 @@ def predict_clutch_speeds_delta(
     return clutch_model(times, clutch_phases, X)
 
 
-def define_k_factor_curve(stand_still_torque_ratio=1.0, lockup_speed_ratio=0.0):
-    """
-    Defines k factor curve.
-
-    :param stand_still_torque_ratio:
-        Torque ratio when speed ratio==0.
-
-        .. note:: The ratios are defined as follows:
-
-           - Torque ratio = `gear box torque` / `engine torque`.
-           - Speed ratio = `gear box speed` / `engine speed`.
-    :type stand_still_torque_ratio: float
-
-    :param lockup_speed_ratio:
-        Minimum speed ratio where torque ratio==1.
-
-        ..note::
-            torque ratio==1 for speed ratio > lockup_speed_ratio.
-    :type lockup_speed_ratio: float
-
-    :return:
-        k factor curve.
-    :rtype: callable
-    """
-
-    if lockup_speed_ratio == 0:
-        x = [0, 1]
-        y = [1, 1]
-    elif lockup_speed_ratio == 1:
-        x = [0, 1]
-        y = [stand_still_torque_ratio, 1]
-    else:
-        x = [0, lockup_speed_ratio, 1]
-        y = [stand_still_torque_ratio, 1, 1]
-
-    res = sci_itp.InterpolatedUnivariateSpline(x, y, k=1)
-
-    return res
 
 
 def default_clutch_k_factor_curve():
@@ -344,7 +305,7 @@ def default_clutch_k_factor_curve():
     from ..defaults import dfl
     par = dfl.functions.default_clutch_k_factor_curve
     a = par.STAND_STILL_TORQUE_RATIO, par.LOCKUP_SPEED_RATIO
-
+    from .torque_converter import define_k_factor_curve
     return define_k_factor_curve(*a)
 
 
@@ -380,7 +341,7 @@ def clutch():
         description='Models the clutch.'
     )
 
-    from ..defaults import dfl
+
     d.add_data(
         data_id='stop_velocity',
         default_value=dfl.values.stop_velocity
@@ -433,7 +394,7 @@ def clutch():
                 'velocities', 'gear_box_speeds_in', 'gears'],
         outputs=['clutch_speeds_delta']
     )
-
+    from .torque_converter import define_k_factor_curve
     d.add_function(
         function=define_k_factor_curve,
         inputs=['stand_still_torque_ratio', 'lockup_speed_ratio'],

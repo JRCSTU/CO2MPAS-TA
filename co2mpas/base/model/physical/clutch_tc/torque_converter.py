@@ -4,7 +4,6 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-
 """
 It contains functions that model the basic mechanics of the torque converter.
 """
@@ -13,8 +12,19 @@ import sklearn.metrics as sk_met
 import sklearn.pipeline as sk_pip
 import schedula as sh
 import numpy as np
+from ..defaults import dfl
+
+dsp = sh.BlueDispatcher(
+    name='Torque_converter', description='Models the torque converter.'
+)
+dsp.add_data(
+    'calibration_tc_speed_threshold', dfl.values.calibration_tc_speed_threshold
+)
+dsp.add_data('stop_velocity', dfl.values.stop_velocity)
+dsp.add_data('lock_up_tc_limits', dfl.values.lock_up_tc_limits)
 
 
+@sh.add_function(dsp, outputs=['torque_converter_speeds_delta'])
 def identify_torque_converter_speeds_delta(
         engine_speeds_out, engine_speeds_out_hot, cold_start_speeds_delta):
     """
@@ -40,17 +50,19 @@ def identify_torque_converter_speeds_delta(
     return engine_speeds_out - engine_speeds_out_hot - cold_start_speeds_delta
 
 
-class TorqueConverter(object):
+# noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+class TorqueConverter:
     def __init__(self):
         self.predict = self.no_model
         self.regressor = None
 
-    def _fit_regressor(self, X, y):
+    @staticmethod
+    def _fit_regressor(X, y):
+        # noinspection PyProtectedMember
         from ..engine.thermal import _SelectFromModel
         model = xgb.XGBRegressor(
-            random_state=0,
             max_depth=2,
-            n_estimators=int(min(300, 0.25 * (len(y) - 1)))
+            n_estimators=int(min(300., 0.25 * (len(y) - 1)))
         )
         model = sk_pip.Pipeline([
             ('feature_selection', _SelectFromModel(model, '0.8*median')),
@@ -99,6 +111,7 @@ class TorqueConverter(object):
     def _prediction_inputs(X):
         return X
 
+    # noinspection PyUnusedLocal
     @staticmethod
     def no_model(times, params, X):
         return np.zeros(X.shape[0])
@@ -109,11 +122,13 @@ class TorqueConverter(object):
         a, v = X[:, 0], X[:, 1]
         # From issue #179 add lock up mode in torque converter.
         b = (v < lm_vel) & (a > lm_acc)
+        # noinspection PyUnresolvedReferences
         if b.any():
             d[b] = self.regressor.predict(X[b])
         return d
 
 
+@sh.add_function(dsp, outputs=['torque_converter_model'])
 def calibrate_torque_converter_model(
         times, lock_up_tc_limits, calibration_tc_speed_threshold, stop_velocity,
         torque_converter_speeds_delta, accelerations, velocities,
@@ -170,6 +185,7 @@ def calibrate_torque_converter_model(
     return model
 
 
+@sh.add_function(dsp, outputs=['torque_converter_speeds_delta'])
 def predict_torque_converter_speeds_delta(
         times, lock_up_tc_limits, torque_converter_model, accelerations,
         velocities, gear_box_speeds_in, gears):
@@ -209,13 +225,53 @@ def predict_torque_converter_speeds_delta(
     :rtype: numpy.array
     """
 
-    X = np.column_stack(
+    x = np.column_stack(
         (accelerations, velocities, gear_box_speeds_in, gears)
     )
 
-    return torque_converter_model(times, lock_up_tc_limits, X)
+    return torque_converter_model(times, lock_up_tc_limits, x)
 
 
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['k_factor_curve'])
+def define_k_factor_curve(stand_still_torque_ratio=1.0, lockup_speed_ratio=0.0):
+    """
+    Defines k factor curve.
+
+    :param stand_still_torque_ratio:
+        Torque ratio when speed ratio==0.
+
+        .. note:: The ratios are defined as follows:
+
+           - Torque ratio = `gear box torque` / `engine torque`.
+           - Speed ratio = `gear box speed` / `engine speed`.
+    :type stand_still_torque_ratio: float
+
+    :param lockup_speed_ratio:
+        Minimum speed ratio where torque ratio==1.
+
+        ..note::
+            torque ratio==1 for speed ratio > lockup_speed_ratio.
+    :type lockup_speed_ratio: float
+
+    :return:
+        k factor curve.
+    :rtype: callable
+    """
+    from scipy.interpolate import InterpolatedUnivariateSpline
+    if lockup_speed_ratio == 0:
+        x = [0, 1]
+        y = [1, 1]
+    elif lockup_speed_ratio == 1:
+        x = [0, 1]
+        y = [stand_still_torque_ratio, 1]
+    else:
+        x = [0, lockup_speed_ratio, 1]
+        y = [stand_still_torque_ratio, 1, 1]
+
+    return InterpolatedUnivariateSpline(x, y, k=1)
+
+
+@sh.add_function(dsp, outputs=['k_factor_curve'], weight=2)
 def default_tc_k_factor_curve():
     """
     Returns a default k factor curve for a generic torque converter.
@@ -227,78 +283,4 @@ def default_tc_k_factor_curve():
     from ..defaults import dfl
     par = dfl.functions.default_tc_k_factor_curve
     a = par.STAND_STILL_TORQUE_RATIO, par.LOCKUP_SPEED_RATIO
-
-    from .clutch import define_k_factor_curve
     return define_k_factor_curve(*a)
-
-
-def torque_converter():
-    """
-    Defines the torque converter model.
-
-    .. dispatcher:: d
-
-        >>> d = torque_converter()
-
-    :return:
-        The torque converter model.
-    :rtype: schedula.Dispatcher
-    """
-
-    d = sh.Dispatcher(
-        name='Torque_converter',
-        description='Models the torque converter.'
-    )
-
-    from ..defaults import dfl
-    d.add_data(
-        data_id='calibration_tc_speed_threshold',
-        default_value=dfl.values.calibration_tc_speed_threshold
-    )
-
-    d.add_data(
-        data_id='stop_velocity',
-        default_value=dfl.values.stop_velocity
-    )
-
-    d.add_data(
-        data_id='lock_up_tc_limits',
-        default_value=dfl.values.lock_up_tc_limits
-    )
-
-    d.add_function(
-        function=identify_torque_converter_speeds_delta,
-        inputs=['engine_speeds_out', 'engine_speeds_out_hot',
-                'cold_start_speeds_delta'],
-        outputs=['torque_converter_speeds_delta']
-    )
-
-    d.add_function(
-        function=calibrate_torque_converter_model,
-        inputs=['times', 'lock_up_tc_limits', 'calibration_tc_speed_threshold',
-                'stop_velocity', 'torque_converter_speeds_delta',
-                'accelerations', 'velocities', 'gear_box_speeds_in', 'gears'],
-        outputs=['torque_converter_model']
-    )
-
-    d.add_function(
-        function=predict_torque_converter_speeds_delta,
-        inputs=['times', 'lock_up_tc_limits', 'torque_converter_model',
-                'accelerations', 'velocities', 'gear_box_speeds_in', 'gears'],
-        outputs=['torque_converter_speeds_delta']
-    )
-
-    from .clutch import define_k_factor_curve
-    d.add_function(
-        function=define_k_factor_curve,
-        inputs=['stand_still_torque_ratio', 'lockup_speed_ratio'],
-        outputs=['k_factor_curve']
-    )
-
-    d.add_function(
-        function=default_tc_k_factor_curve,
-        outputs=['k_factor_curve'],
-        weight=2
-    )
-
-    return d
