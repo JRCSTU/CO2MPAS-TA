@@ -4,17 +4,34 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-
 """
 It contains functions that model the basic mechanics of the clutch.
 """
-import scipy.optimize as sci_opt
 import functools
-import schedula as sh
 import numpy as np
-from .torque_converter import TorqueConverter
+import schedula as sh
 from ..defaults import dfl
+from .torque_converter import TorqueConverter, define_k_factor_curve
 
+dsp = sh.BlueDispatcher(name='Clutch', description='Models the clutch.')
+dsp.add_data('stop_velocity', dfl.values.stop_velocity)
+
+
+@sh.add_function(dsp, outputs=['clutch_window'])
+def default_clutch_window():
+    """
+    Returns a default clutching time window [s] for a generic clutch.
+
+    :return:
+        Clutching time window [s].
+    :rtype: tuple
+    """
+    if dfl.functions.default_clutch_window.ENABLE:
+        return dfl.functions.default_clutch_window.clutch_window
+    return sh.NONE
+
+
+@sh.add_function(dsp, outputs=['clutch_phases'])
 def calculate_clutch_phases(
         times, velocities, gears, gear_shifts, stop_velocity, clutch_window):
     """
@@ -58,45 +75,10 @@ def calculate_clutch_phases(
     return b
 
 
-def identify_clutch_speeds_delta(
-        clutch_phases, engine_speeds_out, engine_speeds_out_hot,
-        cold_start_speeds_delta, accelerations):
-    """
-    Identifies the engine speed delta due to the clutch [RPM].
-
-    :param clutch_phases:
-        When the clutch is active [-].
-    :type clutch_phases: numpy.array
-
-    :param engine_speeds_out:
-        Engine speed [RPM].
-    :type engine_speeds_out: numpy.array
-
-    :param engine_speeds_out_hot:
-        Engine speed at hot condition [RPM].
-    :type engine_speeds_out_hot: numpy.array
-
-    :param cold_start_speeds_delta:
-        Engine speed delta due to the cold start [RPM].
-    :type cold_start_speeds_delta: numpy.array
-
-    :param accelerations:
-        Acceleration vector [m/s2].
-    :type accelerations: numpy.array
-
-    :return:
-        Engine speed delta due to the clutch or torque converter [RPM].
-    :rtype: numpy.array
-    """
-    delta = np.zeros_like(clutch_phases, dtype=float)
-    s, h, c = engine_speeds_out, engine_speeds_out_hot, cold_start_speeds_delta
-    b = clutch_phases
-    delta[b] = s[b] - h[b] - c[b]
-
-    delta[(delta > 0) & (accelerations < 0)] = 0
-    return delta
+dsp.add_data('max_clutch_window_width', dfl.values.max_clutch_window_width)
 
 
+@sh.add_function(dsp, outputs=['clutch_window'])
 def identify_clutch_window(
         times, accelerations, gear_shifts, engine_speeds_out,
         engine_speeds_out_hot, cold_start_speeds_delta,
@@ -159,7 +141,7 @@ def identify_clutch_window(
 
     delta = engine_speeds_out - engine_speeds_out_hot - cold_start_speeds_delta
 
-    X = np.column_stack((accelerations, velocities, gear_box_speeds_in, gears))
+    x = np.column_stack((accelerations, velocities, gear_box_speeds_in, gears))
 
     calculate_c_p = functools.partial(
         calculate_clutch_phases, times, velocities, gears, gear_shifts,
@@ -174,14 +156,56 @@ def identify_clutch_window(
         model = calibrate_clutch_prediction_model(
             times, clutch_phases, accelerations, delta, velocities,
             gear_box_speeds_in, gears)
-        res = np.mean(np.abs(delta - model.model(times, clutch_phases, X)))
+        res = np.mean(np.abs(delta - model.model(times, clutch_phases, x)))
         return np.float32(res)
 
     dt = max_clutch_window_width
-    Ns = int(dt / max(np.min(np.diff(times)), 0.5)) + 1
-    return tuple(sci_opt.brute(_error, ((-dt, 0), (dt, 0)), Ns=Ns, finish=None))
+    ns = int(dt / max(np.min(np.diff(times)), 0.5)) + 1
+    import scipy.optimize as sci_opt
+    return tuple(sci_opt.brute(_error, ((-dt, 0), (dt, 0)), Ns=ns, finish=None))
 
 
+@sh.add_function(dsp, outputs=['clutch_speeds_delta'])
+def identify_clutch_speeds_delta(
+        clutch_phases, engine_speeds_out, engine_speeds_out_hot,
+        cold_start_speeds_delta, accelerations):
+    """
+    Identifies the engine speed delta due to the clutch [RPM].
+
+    :param clutch_phases:
+        When the clutch is active [-].
+    :type clutch_phases: numpy.array
+
+    :param engine_speeds_out:
+        Engine speed [RPM].
+    :type engine_speeds_out: numpy.array
+
+    :param engine_speeds_out_hot:
+        Engine speed at hot condition [RPM].
+    :type engine_speeds_out_hot: numpy.array
+
+    :param cold_start_speeds_delta:
+        Engine speed delta due to the cold start [RPM].
+    :type cold_start_speeds_delta: numpy.array
+
+    :param accelerations:
+        Acceleration vector [m/s2].
+    :type accelerations: numpy.array
+
+    :return:
+        Engine speed delta due to the clutch or torque converter [RPM].
+    :rtype: numpy.array
+    """
+    delta = np.zeros_like(clutch_phases, dtype=float)
+    s, h, c = engine_speeds_out, engine_speeds_out_hot, cold_start_speeds_delta
+    b = clutch_phases
+    delta[b] = s[b] - h[b] - c[b]
+
+    delta[(delta > 0) & (accelerations < 0)] = 0
+    return delta
+
+
+# noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class ClutchModel(TorqueConverter):
     def __init__(self, prev_dt=1):
         super(ClutchModel, self).__init__()
@@ -209,8 +233,9 @@ class ClutchModel(TorqueConverter):
         return d
 
 
+@sh.add_function(dsp, outputs=['clutch_model'])
 def calibrate_clutch_prediction_model(
-        times, clutch_phases, accelerations, delta_speeds, velocities,
+        times, clutch_phases, accelerations, clutch_speeds_delta, velocities,
         gear_box_speeds_in, gears):
     """
     Calibrate clutch prediction model.
@@ -227,9 +252,9 @@ def calibrate_clutch_prediction_model(
         Acceleration vector [m/s2].
     :type accelerations: numpy.array
 
-    :param delta_speeds:
+    :param clutch_speeds_delta:
         Engine speed delta due to the clutch [RPM].
-    :type delta_speeds: numpy.array
+    :type clutch_speeds_delta: numpy.array
 
     :param velocities:
         Velocity vector [km/h].
@@ -251,17 +276,18 @@ def calibrate_clutch_prediction_model(
     prev_dt = dfl.functions.calibrate_clutch_prediction_model.prev_dt
     model = ClutchModel(prev_dt=prev_dt)
     es = np.interp(
-        times - model.prev_dt, times, gear_box_speeds_in + delta_speeds
+        times - model.prev_dt, times, gear_box_speeds_in + clutch_speeds_delta
     )
 
     model.fit(
-        times, clutch_phases, None, None,
-        delta_speeds, accelerations, velocities, gear_box_speeds_in, gears, es
+        times, clutch_phases, None, None, clutch_speeds_delta, accelerations,
+        velocities, gear_box_speeds_in, gears, es
     )
 
     return model
 
 
+@sh.add_function(dsp, outputs=['clutch_speeds_delta'])
 def predict_clutch_speeds_delta(
         clutch_model, times, clutch_phases, accelerations, velocities,
         gear_box_speeds_in, gears):
@@ -284,16 +310,34 @@ def predict_clutch_speeds_delta(
         Acceleration vector [m/s2].
     :type accelerations: numpy.array
 
+    :param velocities:
+        Vehicle velocity [km/h].
+    :type velocities: numpy.array
+
+    :param gear_box_speeds_in:
+        Gear box speed vector [RPM].
+    :type gear_box_speeds_in: numpy.array
+
+    :param gears:
+        Gear vector [-].
+    :type gears: numpy.array
+
     :return:
         Engine speed delta due to the clutch [RPM].
     :rtype: numpy.array
     """
-    X = np.column_stack((accelerations, velocities, gear_box_speeds_in, gears))
-    return clutch_model(times, clutch_phases, X)
+    x = np.column_stack((accelerations, velocities, gear_box_speeds_in, gears))
+    return clutch_model(times, clutch_phases, x)
 
 
+dsp.add_function(
+    function=define_k_factor_curve,
+    inputs=['stand_still_torque_ratio', 'lockup_speed_ratio'],
+    outputs=['k_factor_curve']
+)
 
 
+@sh.add_function(dsp, outputs=['k_factor_curve'], weight=2)
 def default_clutch_k_factor_curve():
     """
     Returns a default k factor curve for a generic clutch.
@@ -307,104 +351,3 @@ def default_clutch_k_factor_curve():
     a = par.STAND_STILL_TORQUE_RATIO, par.LOCKUP_SPEED_RATIO
     from .torque_converter import define_k_factor_curve
     return define_k_factor_curve(*a)
-
-
-def default_clutch_window():
-    """
-    Returns a default clutching time window [s] for a generic clutch.
-
-    :return:
-        Clutching time window [s].
-    :rtype: tuple
-    """
-    from ..defaults import dfl
-    if dfl.functions.default_clutch_window.ENABLE:
-        return dfl.functions.default_clutch_window.clutch_window
-    return sh.NONE
-
-
-def clutch():
-    """
-    Defines the clutch model.
-
-    .. dispatcher:: d
-
-        >>> d = clutch()
-
-    :return:
-        The clutch model.
-    :rtype: schedula.Dispatcher
-    """
-
-    d = sh.Dispatcher(
-        name='Clutch',
-        description='Models the clutch.'
-    )
-
-
-    d.add_data(
-        data_id='stop_velocity',
-        default_value=dfl.values.stop_velocity
-    )
-
-    d.add_function(
-        function=default_clutch_window,
-        outputs=['clutch_window']
-    )
-
-    d.add_function(
-        function=calculate_clutch_phases,
-        inputs=['times', 'velocities', 'gears', 'gear_shifts', 'stop_velocity',
-                'clutch_window'],
-        outputs=['clutch_phases']
-    )
-
-    d.add_data(
-        data_id='max_clutch_window_width',
-        default_value=dfl.values.max_clutch_window_width
-    )
-
-    d.add_function(
-        function=identify_clutch_window,
-        inputs=['times', 'accelerations', 'gear_shifts', 'engine_speeds_out',
-                'engine_speeds_out_hot', 'cold_start_speeds_delta',
-                'max_clutch_window_width', 'velocities', 'gear_box_speeds_in',
-                'gears', 'stop_velocity'],
-        outputs=['clutch_window']
-    )
-
-    d.add_function(
-        function=identify_clutch_speeds_delta,
-        inputs=['clutch_phases', 'engine_speeds_out', 'engine_speeds_out_hot',
-                'cold_start_speeds_delta', 'accelerations'],
-        outputs=['clutch_speeds_delta']
-    )
-
-    d.add_function(
-        function=calibrate_clutch_prediction_model,
-        inputs=['times', 'clutch_phases', 'accelerations',
-                'clutch_speeds_delta', 'velocities', 'gear_box_speeds_in',
-                'gears'],
-        outputs=['clutch_model']
-    )
-
-    d.add_function(
-        function=predict_clutch_speeds_delta,
-        inputs=['clutch_model', 'times', 'clutch_phases', 'accelerations',
-                'velocities', 'gear_box_speeds_in', 'gears'],
-        outputs=['clutch_speeds_delta']
-    )
-    from .torque_converter import define_k_factor_curve
-    d.add_function(
-        function=define_k_factor_curve,
-        inputs=['stand_still_torque_ratio', 'lockup_speed_ratio'],
-        outputs=['k_factor_curve']
-    )
-
-    d.add_function(
-        function=default_clutch_k_factor_curve,
-        outputs=['k_factor_curve'],
-        weight=2
-    )
-
-    return d
