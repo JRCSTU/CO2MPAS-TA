@@ -4,19 +4,34 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-
 """
 It contains functions that model the basic mechanics of a CVT.
 """
 
-import xgboost as xgb
-import schedula as sh
 import numpy as np
+import schedula as sh
+from ..defaults import dfl
+
+dsp = sh.BlueDispatcher(name='CVT model', description='Models the gear box.')
+
+
+@sh.add_function(dsp, outputs=['correct_gear'])
+def default_correct_gear():
+    """
+    Returns a fake function to correct the gear.
+
+    :return:
+        A function to correct the predicted gear.
+    :rtype: callable
+    """
+    from .at_gear import CorrectGear
+    return CorrectGear()
 
 
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming,PyUnusedLocal
 class CVT:
     def __init__(self):
+        import xgboost as xgb
         self.base_model = xgb.XGBRegressor
         self.model = None
 
@@ -54,6 +69,7 @@ class CVT:
             yield func(x)
 
 
+@sh.add_function(dsp, outputs=['CVT'])
 def calibrate_cvt(
         on_engine, engine_speeds_out, velocities, accelerations,
         gear_box_powers_out):
@@ -92,6 +108,32 @@ def calibrate_cvt(
     return model
 
 
+dsp.add_data('max_gear', 1)
+
+
+@sh.add_function(dsp, outputs=['gears'])
+def predict_gears(velocities):
+    """
+    Predicts gear vector [-].
+
+    :param velocities:
+        Vehicle velocity [km/h].
+    :type velocities: numpy.array
+
+    :return:
+        Gear vector [-].
+    :rtype: numpy.array
+    """
+
+    return np.ones_like(velocities, dtype=int)
+
+
+@sh.add_function(
+    dsp,
+    inputs=['CVT', 'velocities', 'accelerations', 'gear_box_powers_out'],
+    outputs=['gear_box_speeds_in'],
+    out_weight={'gear_box_speeds_in': 10}
+)
 def predict_gear_box_speeds_in(
         cvt, velocities, accelerations, gear_box_powers_out):
     """
@@ -121,22 +163,10 @@ def predict_gear_box_speeds_in(
     return cvt.predict(velocities, accelerations, gear_box_powers_out)
 
 
-def predict_gears(velocities):
-    """
-    Predicts gear vector [-].
-
-    :param velocities:
-        Vehicle velocity [km/h].
-    :type velocities: numpy.array
-
-    :return:
-        Gear vector [-].
-    :rtype: numpy.array
-    """
-
-    return np.ones_like(velocities, dtype=int)
+dsp.add_data('stop_velocity', dfl.values.stop_velocity)
 
 
+@sh.add_function(dsp, outputs=['max_speed_velocity_ratio'])
 def identify_max_speed_velocity_ratio(
         velocities, engine_speeds_out, idle_engine_speed, stop_velocity):
     """
@@ -166,80 +196,3 @@ def identify_max_speed_velocity_ratio(
     b = (velocities > stop_velocity)
     b &= (engine_speeds_out > idle_engine_speed[0])
     return max(engine_speeds_out[b] / velocities[b])
-
-
-def default_correct_gear():
-    """
-    Returns a fake function to correct the gear.
-
-    :return:
-        A function to correct the predicted gear.
-    :rtype: callable
-    """
-    from .at_gear import CorrectGear
-    return CorrectGear()
-
-
-def cvt_model():
-    """
-    Defines the gear box model.
-
-    .. dispatcher:: d
-
-        >>> d = cvt_model()
-
-    :return:
-        The gear box model.
-    :rtype: schedula.Dispatcher
-    """
-
-    d = sh.Dispatcher(
-        name='CVT model',
-        description='Models the gear box.'
-    )
-
-    d.add_function(
-        function=default_correct_gear,
-        outputs=['correct_gear']
-    )
-
-    d.add_function(
-        function=calibrate_cvt,
-        inputs=['on_engine', 'engine_speeds_out', 'velocities', 'accelerations',
-                'gear_box_powers_out'],
-        outputs=['CVT']
-    )
-
-    d.add_data(
-        data_id='max_gear',
-        default_value=1
-    )
-
-    d.add_function(
-        function=predict_gears,
-        inputs=['velocities'],
-        outputs=['gears'],
-    )
-
-    d.add_function(
-        function=predict_gear_box_speeds_in,
-        inputs=['CVT', 'velocities', 'accelerations',
-                'gear_box_powers_out'],
-        outputs=['gear_box_speeds_in'],
-        out_weight={'gear_box_speeds_in': 10}
-    )
-
-    from ..defaults import dfl
-    d.add_data(
-        data_id='stop_velocity',
-        default_value=dfl.values.stop_velocity
-    )
-
-    d.add_function(
-        function=identify_max_speed_velocity_ratio,
-        inputs=['velocities', 'engine_speeds_out', 'idle_engine_speed',
-                'stop_velocity'],
-        outputs=['max_speed_velocity_ratio']
-    )
-
-    return d
