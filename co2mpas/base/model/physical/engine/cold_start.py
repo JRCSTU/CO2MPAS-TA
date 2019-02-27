@@ -9,15 +9,15 @@
 It contains functions that model the engine cold start.
 """
 
-import functools
-import sklearn.metrics as sk_met
-import sklearn.tree as sk_tree
-import co2mpas.utils as co2_utl
 import numpy as np
 import schedula as sh
-import lmfit
+
+dsp = sh.BlueDispatcher(
+    name='cold_start', description='Models the engine cold start strategy.'
+)
 
 
+@sh.add_function(dsp, outputs=['cold_start_speeds_phases'])
 def identify_cold_start_speeds_phases(
         engine_coolant_temperatures, engine_thermostat_temperature, on_idle):
     """
@@ -39,6 +39,7 @@ def identify_cold_start_speeds_phases(
         Phases when engine speed is affected by the cold start [-].
     :rtype: numpy.array
     """
+    import co2mpas.utils as co2_utl
     temp = engine_coolant_temperatures
     i = co2_utl.argmax(temp > engine_thermostat_temperature)
     p = on_idle.copy()
@@ -46,6 +47,7 @@ def identify_cold_start_speeds_phases(
     return p
 
 
+@sh.add_function(dsp, outputs=['cold_start_speeds_delta'])
 def identify_cold_start_speeds_delta(
         cold_start_speeds_phases, engine_speeds_out, engine_speeds_out_hot):
     """
@@ -73,6 +75,7 @@ def identify_cold_start_speeds_delta(
     return speeds
 
 
+# noinspection PyMissingOrEmptyDocstring
 class ColdStartModel:
     def __init__(self, ds=0, m=np.inf, temp_limit=30):
         self.ds = ds
@@ -93,6 +96,7 @@ class ColdStartModel:
     @staticmethod
     def initial_guess_temp_limit(
             cold_start_speeds_delta, engine_coolant_temperatures):
+        import sklearn.tree as sk_tree
         reg = sk_tree.DecisionTreeRegressor(random_state=0, max_leaf_nodes=10)
         reg.fit(engine_coolant_temperatures[:, None], cold_start_speeds_delta)
         t = np.unique(engine_coolant_temperatures)
@@ -107,11 +111,13 @@ class ColdStartModel:
             self.ds = max(min(self.ds, (self.temp_limit - min_t) * self.m), 0)
         return self
 
+    # noinspection PyProtectedMember
     def fit(self, cold_start_speeds_delta, engine_coolant_temperatures,
-        engine_speeds_out_hot, on_engine, idle_engine_speed,
-        cold_start_speeds_phases):
+            engine_speeds_out_hot, on_engine, idle_engine_speed,
+            cold_start_speeds_phases):
         if not cold_start_speeds_phases.any():
             return self
+        import lmfit
         from .co2_emission import calibrate_model_params, _set_attr
 
         temp = engine_coolant_temperatures
@@ -121,9 +127,9 @@ class ColdStartModel:
         temp = engine_coolant_temperatures[cold_start_speeds_phases]
         ds = delta / idle_engine_speed[0]
 
-        def _err(x=None):
-            if x is not None:
-                self.set(**x.valuesdict())
+        def _err(_x=None):
+            if _x is not None:
+                self.set(**_x.valuesdict())
 
             s = self(
                 idle_engine_speed, on_engine, engine_coolant_temperatures,
@@ -174,6 +180,7 @@ class ColdStartModel:
         return add_speeds
 
 
+@sh.add_function(dsp, outputs=['cold_start_speed_model'])
 def calibrate_cold_start_speed_model(
         cold_start_speeds_phases, cold_start_speeds_delta, idle_engine_speed,
         on_engine, engine_coolant_temperatures, engine_speeds_out_hot):
@@ -218,6 +225,7 @@ def calibrate_cold_start_speed_model(
     return model
 
 
+@sh.add_function(dsp, outputs=['cold_start_speeds_delta'])
 def calculate_cold_start_speeds_delta(
         cold_start_speed_model, on_engine, engine_coolant_temperatures,
         engine_speeds_out_hot, idle_engine_speed):
@@ -255,54 +263,3 @@ def calculate_cold_start_speeds_delta(
     )
 
     return delta
-
-
-def cold_start():
-    """
-    Defines the engine cold start model.
-
-    .. dispatcher:: d
-
-        >>> d = cold_start()
-
-    :return:
-        The engine start/stop model.
-    :rtype: schedula.Dispatcher
-    """
-
-    d = sh.Dispatcher(
-        name='cold_start',
-        description='Models the engine cold start strategy.'
-    )
-
-    d.add_function(
-        function=identify_cold_start_speeds_phases,
-        inputs=['engine_coolant_temperatures', 'engine_thermostat_temperature',
-                'on_idle'],
-        outputs=['cold_start_speeds_phases']
-    )
-
-    d.add_function(
-        function=identify_cold_start_speeds_delta,
-        inputs=['cold_start_speeds_phases', 'engine_speeds_out',
-                'engine_speeds_out_hot'],
-        outputs=['cold_start_speeds_delta']
-    )
-
-    d.add_function(
-        function=calibrate_cold_start_speed_model,
-        inputs=['cold_start_speeds_phases', 'cold_start_speeds_delta',
-                'idle_engine_speed', 'on_engine', 'engine_coolant_temperatures',
-                'engine_speeds_out_hot'],
-        outputs=['cold_start_speed_model']
-    )
-
-    d.add_function(
-        function=calculate_cold_start_speeds_delta,
-        inputs=['cold_start_speed_model', 'on_engine',
-                'engine_coolant_temperatures', 'engine_speeds_out_hot',
-                'idle_engine_speed'],
-        outputs=['cold_start_speeds_delta']
-    )
-
-    return d
