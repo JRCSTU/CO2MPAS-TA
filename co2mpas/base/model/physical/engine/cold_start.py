@@ -118,7 +118,7 @@ class ColdStartModel:
         if not cold_start_speeds_phases.any():
             return self
         import lmfit
-        from .co2_emission import calibrate_model_params, _set_attr
+        from .co2_emission import _calibrate_model_params, _set_attr
 
         temp = engine_coolant_temperatures
         w = temp.max() + 1 - temp
@@ -154,7 +154,7 @@ class ColdStartModel:
             ds_max = ds[temp <= t].max()
             if not np.isclose(ds_max, 0.0):
                 _set_attr(p, {'ds': ds_max}, attr='max')
-                x = dict(calibrate_model_params(_err, p)[0].valuesdict())
+                x = dict(_calibrate_model_params(_err, p)[0].valuesdict())
                 x['ds'] = self.set(**x).correct_ds(t_min).ds
                 res.append((round(_err(), 1), i, x))
         self.set(**min(res)[-1])

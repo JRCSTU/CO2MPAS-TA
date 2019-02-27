@@ -700,8 +700,8 @@ def _identify_balance_soc(times, state_of_charges):
     def error(params):
         return np.mean(np.abs(state_of_charges - func(params)))
 
-    from ..engine.co2_emission import calibrate_model_params
-    return calibrate_model_params(error, parameters)[0].valuesdict()['B']
+    from ..engine.co2_emission import _calibrate_model_params
+    return _calibrate_model_params(error, parameters)[0].valuesdict()['B']
 
 
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming

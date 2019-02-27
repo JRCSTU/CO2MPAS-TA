@@ -23,7 +23,7 @@ def calibrate_co2_params_all(enable, rank, *data, data_id=None):
     if enable:
         # noinspection PyBroadException
         try:
-            from ..physical.engine.co2_emission import calibrate_model_params
+            from ..physical.engine.co2_emission import _calibrate_model_params
             cycle = rank[0][3]
             d = next(d[cycle] for d in data if d['data_in'] == cycle)
 
@@ -42,7 +42,7 @@ def calibrate_co2_params_all(enable, rank, *data, data_id=None):
                 (True, copy.deepcopy(initial_guess)), (None, None), (None, None)
             ]
 
-            p, s = calibrate_model_params(err_func, initial_guess)
+            p, s = _calibrate_model_params(err_func, initial_guess)
             sta.append((s, copy.deepcopy(p)))
             res['initial_friction_params'] = d['initial_friction_params']
             res.update({'co2_params_calibrated': p, 'calibration_status': sta})
