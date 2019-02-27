@@ -13,10 +13,15 @@ import sklearn.tree as sk_tree
 import sklearn.pipeline as sk_pip
 import sklearn.feature_selection as sk_fsel
 import numpy as np
-import co2mpas.model.physical.defaults as defaults
 import schedula as sh
+from ..defaults import dfl
+
+dsp = sh.BlueDispatcher(
+    name='start_stop', description='Models the engine start/stop strategy.'
+)
 
 
+@sh.add_function(dsp, outputs=['on_engine'])
 def identify_on_engine(
         times, engine_speeds_out, idle_engine_speed,
         min_time_engine_on_after_start):
@@ -47,13 +52,14 @@ def identify_on_engine(
     on_engine = engine_speeds_out > idle_engine_speed[0] - idle_engine_speed[1]
     mask = np.where(identify_engine_starts(on_engine))[0] + 1
     ts = np.asarray(times[mask], dtype=float)
-    ts += min_time_engine_on_after_start + defaults.dfl.EPS
+    ts += min_time_engine_on_after_start + dfl.EPS
     for i, j in np.column_stack((mask, np.searchsorted(times, ts))):
         on_engine[i:j] = True
 
     return on_engine
 
 
+@sh.add_function(dsp, outputs=['engine_starts'])
 def identify_engine_starts(on_engine):
     """
     Identifies when the engine starts [-].
@@ -72,76 +78,25 @@ def identify_engine_starts(on_engine):
     return engine_starts
 
 
-def default_use_basic_start_stop_model(is_hybrid):
+@sh.add_function(dsp, outputs=['start_stop_activation_time'])
+def default_start_stop_activation_time(has_start_stop):
     """
-    Returns a flag that defines if basic or complex start stop model is applied.
-
-    ..note:: The basic start stop model is function of velocity and
-      acceleration. While, the complex model is function of velocity,
-      acceleration, temperature, and battery state of charge.
-
-    :param is_hybrid:
-        Is the vehicle hybrid?
-    :type is_hybrid: bool
+    Returns the default start stop activation time threshold [s].
 
     :return:
-        If True the basic start stop model is applied, otherwise complex one.
-    :rtype: bool
+        Start-stop activation time threshold [s].
+    :rtype: float
     """
-
-    return not is_hybrid
-
-
-def calibrate_start_stop_model(
-        on_engine, velocities, accelerations, engine_coolant_temperatures,
-        state_of_charges):
-    """
-    Calibrates an start/stop model to predict if the engine is on.
-
-    :param on_engine:
-        If the engine is on [-].
-    :type on_engine: numpy.array
-
-    :param velocities:
-        Velocity vector [km/h].
-    :type velocities: numpy.array
-
-    :param accelerations:
-        Acceleration vector [m/s2].
-    :type accelerations: numpy.array
-
-    :param engine_coolant_temperatures:
-        Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
-
-    :param state_of_charges:
-        State of charge of the battery [%].
-
-        .. note::
-
-            `state_of_charges` = 99 is equivalent to 99%.
-    :type state_of_charges: numpy.array
-
-    :return:
-        Start/stop model.
-    :rtype: callable
-    """
-
-    soc = np.zeros_like(state_of_charges)
-    soc[0], soc[1:] = state_of_charges[0], state_of_charges[:-1]
-    model = StartStopModel()
-    model.fit(
-        on_engine, velocities, accelerations, engine_coolant_temperatures,
-        state_of_charges
-    )
-
-    return model
+    if not has_start_stop or dfl.functions.ENABLE_ALL_FUNCTIONS or \
+            dfl.functions.default_start_stop_activation_time.ENABLE:
+        return dfl.functions.default_start_stop_activation_time.threshold
+    return sh.NONE
 
 
 # noinspection PyShadowingBuiltins,PyUnusedLocal,PyMissingOrEmptyDocstring
-class StartStopModel(object):
-    VEL = defaults.dfl.functions.StartStopModel.stop_velocity
-    ACC = defaults.dfl.functions.StartStopModel.plateau_acceleration
+class StartStopModel:
+    VEL = dfl.functions.StartStopModel.stop_velocity
+    ACC = dfl.functions.StartStopModel.plateau_acceleration
 
     def __init__(self):
         self.simple = self.complex = self.base
@@ -192,6 +147,98 @@ class StartStopModel(object):
             self.fit_complex(on_engine, velocities, accelerations,
                              engine_coolant_temperatures, state_of_charges)
         return self
+
+
+@sh.add_function(dsp, outputs=['start_stop_model'])
+def calibrate_start_stop_model(
+        on_engine, velocities, accelerations, engine_coolant_temperatures,
+        state_of_charges):
+    """
+    Calibrates an start/stop model to predict if the engine is on.
+
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array
+
+    :param accelerations:
+        Acceleration vector [m/s2].
+    :type accelerations: numpy.array
+
+    :param engine_coolant_temperatures:
+        Engine coolant temperature vector [°C].
+    :type engine_coolant_temperatures: numpy.array
+
+    :param state_of_charges:
+        State of charge of the battery [%].
+
+        .. note::
+
+            `state_of_charges` = 99 is equivalent to 99%.
+    :type state_of_charges: numpy.array
+
+    :return:
+        Start/stop model.
+    :rtype: callable
+    """
+
+    soc = np.zeros_like(state_of_charges)
+    soc[0], soc[1:] = state_of_charges[0], state_of_charges[:-1]
+    model = StartStopModel()
+    model.fit(
+        on_engine, velocities, accelerations, engine_coolant_temperatures,
+        state_of_charges
+    )
+
+    return model
+
+
+@sh.add_function(dsp, outputs=['correct_start_stop_with_gears'])
+def default_correct_start_stop_with_gears(gear_box_type):
+    """
+    Defines a flag that imposes the engine on when there is a gear > 0.
+
+    :param gear_box_type:
+        Gear box type (manual or automatic or cvt).
+    :type gear_box_type: str
+
+    :return:
+        A flag to impose engine on when there is a gear > 0.
+    :rtype: bool
+    """
+
+    return gear_box_type == 'manual'
+
+
+dsp.add_data(
+    'min_time_engine_on_after_start', dfl.values.min_time_engine_on_after_start
+)
+dsp.add_data('has_start_stop', dfl.values.has_start_stop)
+dsp.add_data('is_hybrid', dfl.values.is_hybrid)
+
+
+@sh.add_function(dsp, outputs=['use_basic_start_stop'])
+def default_use_basic_start_stop_model(is_hybrid):
+    """
+    Returns a flag that defines if basic or complex start stop model is applied.
+
+    ..note:: The basic start stop model is function of velocity and
+      acceleration. While, the complex model is function of velocity,
+      acceleration, temperature, and battery state of charge.
+
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
+    :return:
+        If True the basic start stop model is applied, otherwise complex one.
+    :rtype: bool
+    """
+
+    return not is_hybrid
 
 
 # noinspection PyMissingOrEmptyDocstring
@@ -269,19 +316,17 @@ class EngineStartStopModel:
 
                     prev = outputs['on_engine'].take(i - 1, mode='clip')
 
-                # noinspection PyPep8
-                on = t <= self.start_stop_activation_time \
-                     or \
-                     self.correct_start_stop_with_gears and gears[i] > 0 \
-                     or \
-                     not (can_off and t >= t_switch_on) \
-                     or \
-                     ((prev or base(*v)) and predict(*v))
+                on = t <= self.start_stop_activation_time
+                on = on or self.correct_start_stop_with_gears and gears[i] > 0
+                on = on or not (can_off and t >= t_switch_on)
+                on = on or ((prev or base(*v)) and predict(*v))
+
                 outputs['on_engine'][i] = on
                 outputs['engine_starts'][i] = start = on and prev != on
                 yield on, start
 
 
+@sh.add_function(dsp, outputs=['start_stop_prediction_model'], weight=4000)
 def define_engine_start_stop_prediction_model(
         start_stop_model, start_stop_activation_time,
         correct_start_stop_with_gears, min_time_engine_on_after_start,
@@ -329,6 +374,7 @@ def define_engine_start_stop_prediction_model(
     return model
 
 
+@sh.add_function(dsp, outputs=['start_stop_prediction_model'])
 def define_fake_engine_start_stop_prediction_model(on_engine, engine_starts):
     """
     Defines a fake engine start/stop prediction model.
@@ -352,6 +398,7 @@ def define_fake_engine_start_stop_prediction_model(on_engine, engine_starts):
     return model
 
 
+@sh.add_function(dsp, outputs=['on_engine', 'engine_starts'])
 def predict_engine_start_stop(
         start_stop_prediction_model, times, velocities, accelerations,
         engine_coolant_temperatures, state_of_charges, gears):
@@ -398,132 +445,3 @@ def predict_engine_start_stop(
     return start_stop_prediction_model(
         times, velocities, accelerations, engine_coolant_temperatures,
         state_of_charges, gears)
-
-
-def default_correct_start_stop_with_gears(gear_box_type):
-    """
-    Defines a flag that imposes the engine on when there is a gear > 0.
-
-    :param gear_box_type:
-        Gear box type (manual or automatic or cvt).
-    :type gear_box_type: str
-
-    :return:
-        A flag to impose engine on when there is a gear > 0.
-    :rtype: bool
-    """
-
-    return gear_box_type == 'manual'
-
-
-def default_start_stop_activation_time(has_start_stop):
-    """
-    Returns the default start stop activation time threshold [s].
-    
-    :return:
-        Start-stop activation time threshold [s].
-    :rtype: float
-    """
-    d = defaults.dfl.functions
-    if not has_start_stop or d.ENABLE_ALL_FUNCTIONS or \
-            d.default_start_stop_activation_time.ENABLE:
-        return d.default_start_stop_activation_time.threshold
-    return sh.NONE
-
-
-def start_stop():
-    """
-    Defines the engine start/stop model.
-
-    .. dispatcher:: d
-
-        >>> d = start_stop()
-
-    :return:
-        The engine start/stop model.
-    :rtype: schedula.Dispatcher
-    """
-
-    d = sh.Dispatcher(
-        name='start_stop',
-        description='Models the engine start/stop strategy.'
-    )
-
-    d.add_function(
-        function=identify_on_engine,
-        inputs=['times', 'engine_speeds_out', 'idle_engine_speed',
-                'min_time_engine_on_after_start'],
-        outputs=['on_engine']
-    )
-
-    d.add_function(
-        function=identify_engine_starts,
-        inputs=['on_engine'],
-        outputs=['engine_starts']
-    )
-
-    d.add_function(
-        function=default_start_stop_activation_time,
-        inputs=['has_start_stop'],
-        outputs=['start_stop_activation_time']
-    )
-
-    d.add_function(
-        function=calibrate_start_stop_model,
-        inputs=['on_engine', 'velocities', 'accelerations',
-                'engine_coolant_temperatures', 'state_of_charges'],
-        outputs=['start_stop_model']
-    )
-
-    d.add_function(
-        function=default_correct_start_stop_with_gears,
-        inputs=['gear_box_type'],
-        outputs=['correct_start_stop_with_gears']
-    )
-
-    d.add_data(
-        data_id='min_time_engine_on_after_start',
-        default_value=defaults.dfl.values.min_time_engine_on_after_start
-    )
-
-    d.add_data(
-        data_id='has_start_stop',
-        default_value=defaults.dfl.values.has_start_stop
-    )
-
-    d.add_data(
-        data_id='is_hybrid',
-        default_value=defaults.dfl.values.is_hybrid
-    )
-
-    d.add_function(
-        function=default_use_basic_start_stop_model,
-        inputs=['is_hybrid'],
-        outputs=['use_basic_start_stop']
-    )
-
-    d.add_function(
-        function=define_engine_start_stop_prediction_model,
-        inputs=['start_stop_model', 'start_stop_activation_time',
-                'correct_start_stop_with_gears',
-                'min_time_engine_on_after_start',
-                'has_start_stop', 'use_basic_start_stop'],
-        outputs=['start_stop_prediction_model'],
-        weight=4000
-    )
-
-    d.add_function(
-        function=define_fake_engine_start_stop_prediction_model,
-        inputs=['on_engine', 'engine_starts'],
-        outputs=['start_stop_prediction_model']
-    )
-
-    d.add_function(
-        function=predict_engine_start_stop,
-        inputs=['start_stop_prediction_model', 'times', 'velocities',
-                'accelerations', 'engine_coolant_temperatures',
-                'state_of_charges', 'gears'],
-        outputs=['on_engine', 'engine_starts']
-    )
-
-    return d
