@@ -4,25 +4,26 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-
 """
 It contains functions that model the engine coolant temperature.
 """
 
 import itertools
-
-from sklearn.linear_model import RANSACRegressor
-
-import co2mpas.utils as co2_utl
-import xgboost as xgb
 import numpy as np
 import schedula as sh
+import xgboost as xgb
+from ..defaults import dfl
+import co2mpas.utils as co2_utl
 # noinspection SpellCheckingInspection
 import sklearn.feature_selection as sk_fsel
-import sklearn.pipeline as sk_pip
-from ..defaults import dfl
+from sklearn.linear_model import RANSACRegressor
+
+dsp = sh.BlueDispatcher(
+    name='thermal', description='Models the engine thermal behaviour.'
+)
 
 
+@sh.add_function(dsp, outputs=['engine_temperature_derivatives'])
 def calculate_engine_temperature_derivatives(
         times, engine_coolant_temperatures):
     """
@@ -46,6 +47,7 @@ def calculate_engine_temperature_derivatives(
     )
 
 
+@sh.add_function(dsp, outputs=['max_engine_coolant_temperature'])
 def identify_max_engine_coolant_temperature(engine_coolant_temperatures):
     """
     Identifies maximum engine coolant temperature [°C].
@@ -77,10 +79,12 @@ def _filter_temperature_samples(spl, on_engine, thermostat):
     b[:co2_utl.argmax(on_engine)] = False
     i = co2_utl.argmax(thermostat < spl[:, 0])
     b[i:] = True
+    # noinspection PyProtectedMember
     b[:i] &= adt[:i] < dfl.functions._filter_temperature_samples.max_abs_dt_cold
     return spl[b]
 
 
+# noinspection PyMissingOrEmptyDocstring
 class _SelectFromModel(sk_fsel.SelectFromModel):
     def __init__(self, *args, in_mask=(), out_mask=(), **kwargs):
         super(_SelectFromModel, self).__init__(*args, **kwargs)
@@ -153,12 +157,13 @@ class _SafeRANSACRegressor(RANSACRegressor):
                 raise ex
 
 
-class XGBRegressor(xgb.XGBRegressor):
+# noinspection PyMissingOrEmptyDocstring
+class _XGBRegressor(xgb.XGBRegressor):
     def __setattr__(self, key, value):
         if key != 'random_state':
-            super(XGBRegressor, self).__setattr__(key, value)
+            super(_XGBRegressor, self).__setattr__(key, value)
         else:
-            super(XGBRegressor, self).__setattr__(key, 0)
+            super(_XGBRegressor, self).__setattr__(key, 0)
 
 
 # noinspection PyMethodMayBeStatic,PyMethodMayBeStatic,PyMissingOrEmptyDocstring
@@ -169,10 +174,11 @@ class ThermalModel(object):
         self.mask = None
         self.cold = default_model
         self.mask_cold = None
-        self.base_model = XGBRegressor
+        self.base_model = _XGBRegressor
         self.thermostat = thermostat
         self.min_temp = -float('inf')
 
+    # noinspection PyProtectedMember
     def fit(self, idle_engine_speed, on_engine, temperature_derivatives,
             temperatures, *args):
         """
@@ -202,6 +208,7 @@ class ThermalModel(object):
             The calibrated engine temperature regression model.
         :rtype: ThermalModel
         """
+        import sklearn.pipeline as sk_pip
         spl = _build_samples(temperature_derivatives, temperatures, *args)
         self.thermostat = self._identify_thermostat(spl, idle_engine_speed)
 
@@ -258,11 +265,12 @@ class ThermalModel(object):
         t_max, t_min = spl[:, -1].max(), spl[:, -1].min()
         spl = spl[(t_max - (t_max - t_min) / 3) <= spl[:, -1]]
 
-        model = xgb.XGBRegressor(random_state=0)
+        model = xgb.XGBRegressor()
         model.fit(spl[:, :-1], spl[:, -1])
         ratio = np.arange(1, 1.5, 0.1) * idle_engine_speed[0]
         spl = np.zeros((len(ratio), 4))
         spl[:, 2] = ratio
+        # noinspection PyTypeChecker
         return float(np.median(model.predict(spl)))
 
     def __call__(self, deltas_t, *args, initial_temperature=23, max_temp=100.0):
@@ -289,9 +297,10 @@ class ThermalModel(object):
         return model.predict(np.array([args])[:, mask])[0]
 
 
+@sh.add_function(dsp, outputs=['engine_temperature_regression_model'])
 def calibrate_engine_temperature_regression_model(
         idle_engine_speed, on_engine, engine_temperature_derivatives,
-        engine_coolant_temperatures, gear_box_powers_in,
+        engine_coolant_temperatures, final_drive_powers_in,
         engine_speeds_out_hot, accelerations):
     """
     Calibrates an engine temperature regression model to predict engine
@@ -316,9 +325,9 @@ def calibrate_engine_temperature_regression_model(
         Engine coolant temperature vector [°C].
     :type engine_coolant_temperatures: numpy.array
 
-    :param gear_box_powers_in:
-        Gear box power vector [kW].
-    :type gear_box_powers_in: numpy.array
+    :param final_drive_powers_in:
+        Final drive power in [kW].
+    :type final_drive_powers_in: numpy.array
 
     :param engine_speeds_out_hot:
         Engine speed at hot condition [RPM].
@@ -336,11 +345,121 @@ def calibrate_engine_temperature_regression_model(
     model = ThermalModel()
     model.fit(
         idle_engine_speed, on_engine, engine_temperature_derivatives,
-        engine_coolant_temperatures, gear_box_powers_in, engine_speeds_out_hot,
+        engine_coolant_temperatures, final_drive_powers_in,
+        engine_speeds_out_hot,
         accelerations
     )
 
     return model
+
+
+@sh.add_function(dsp, outputs=['engine_coolant_temperatures'])
+def predict_engine_coolant_temperatures(
+        engine_temperature_regression_model, times, gear_box_powers_in,
+        engine_speeds_out_hot, accelerations, initial_temperature,
+        max_engine_coolant_temperature):
+    """
+    Predicts the engine temperature [°C].
+
+    :param engine_temperature_regression_model:
+        Engine temperature regression engine_temperature_regression_model.
+    :type engine_temperature_regression_model: callable
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param accelerations:
+        Acceleration vector [m/s2].
+    :type accelerations: numpy.array
+
+    :param gear_box_powers_in:
+        Gear box power vector [kW].
+    :type gear_box_powers_in: numpy.array
+
+    :param engine_speeds_out_hot:
+        Engine speed at hot condition [RPM].
+    :type engine_speeds_out_hot: numpy.array
+
+    :param initial_temperature:
+        Engine initial temperature [°C]
+    :type initial_temperature: float
+
+    :param max_engine_coolant_temperature:
+        Maximum engine coolant temperature [°C].
+    :type max_engine_coolant_temperature: float
+
+    :return:
+        Engine coolant temperature vector [°C].
+    :rtype: numpy.array
+    """
+
+    temp = engine_temperature_regression_model(
+        np.diff(times), gear_box_powers_in, engine_speeds_out_hot,
+        accelerations, initial_temperature=initial_temperature,
+        max_temp=max_engine_coolant_temperature
+    )
+
+    return temp
+
+
+@sh.add_function(dsp, outputs=['engine_thermostat_temperature'])
+def identify_engine_thermostat_temperature(engine_temperature_regression_model):
+    """
+    Identifies thermostat engine temperature and its limits [°C].
+
+    :param engine_temperature_regression_model:
+        The calibrated engine temperature regression model.
+    :type engine_temperature_regression_model: ThermalModel
+
+    :return:
+        Engine thermostat temperature [°C].
+    :rtype: float
+    """
+
+    return engine_temperature_regression_model.thermostat
+
+
+@sh.add_function(dsp, outputs=['engine_thermostat_temperature_window'])
+def identify_engine_thermostat_temperature_window(
+        engine_thermostat_temperature, engine_coolant_temperatures):
+    """
+    Identifies thermostat engine temperature limits [°C].
+
+    :param engine_thermostat_temperature:
+        Engine thermostat temperature [°C].
+    :type engine_thermostat_temperature: float
+
+    :param engine_coolant_temperatures:
+        Engine coolant temperature vector [°C].
+    :type engine_coolant_temperatures: numpy.array
+
+    :return:
+        Thermostat engine temperature limits [°C].
+    :rtype: float, float
+    """
+
+    thr = engine_thermostat_temperature
+    # noinspection PyTypeChecker
+    std = np.sqrt(np.mean((engine_coolant_temperatures - thr) ** 2))
+    return thr - std, thr + std
+
+
+@sh.add_function(dsp, outputs=['initial_engine_temperature'])
+def identify_initial_engine_temperature(engine_coolant_temperatures):
+    """
+    Identifies initial engine temperature [°C].
+
+    :param engine_coolant_temperatures:
+        Engine coolant temperature vector [°C].
+    :type engine_coolant_temperatures: numpy.array
+
+    :return:
+        Initial engine temperature [°C].
+    :rtype: float
+    """
+
+    return float(engine_coolant_temperatures[0])
 
 
 # noinspection PyMissingOrEmptyDocstring
@@ -406,6 +525,30 @@ class EngineTemperatureModel:
                 yield eng_temp
 
 
+@sh.add_function(dsp, outputs=['engine_temperature_prediction_model'])
+def define_fake_engine_temperature_prediction_model(
+        engine_coolant_temperatures):
+    """
+    Defines a fake engine temperature prediction model.
+
+    :param engine_coolant_temperatures:
+        Engine coolant temperature vector [°C].
+    :type engine_coolant_temperatures: numpy.array
+
+    :return:
+        Engine temperature prediction model.
+    :rtype: EngineTemperatureModel
+    """
+    model = EngineTemperatureModel(outputs={
+        'engine_coolant_temperatures': engine_coolant_temperatures
+    })
+
+    return model
+
+
+@sh.add_function(
+    dsp, outputs=['engine_temperature_prediction_model'], weight=4000
+)
 def define_engine_temperature_prediction_model(
         initial_engine_temperature, engine_temperature_regression_model,
         max_engine_coolant_temperature):
@@ -434,210 +577,3 @@ def define_engine_temperature_prediction_model(
     )
 
     return model
-
-
-def define_fake_engine_temperature_prediction_model(
-        engine_coolant_temperatures):
-    """
-    Defines a fake engine temperature prediction model.
-
-    :param engine_coolant_temperatures:
-        Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
-
-    :return:
-        Engine temperature prediction model.
-    :rtype: EngineTemperatureModel
-    """
-    model = EngineTemperatureModel(outputs={
-        'engine_coolant_temperatures': engine_coolant_temperatures
-    })
-
-    return model
-
-
-def predict_engine_coolant_temperatures(
-        model, times, gear_box_powers_in, engine_speeds_out_hot, accelerations,
-        initial_temperature, max_engine_coolant_temperature):
-    """
-    Predicts the engine temperature [°C].
-
-    :param model:
-        Engine temperature regression model.
-    :type model: callable
-
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
-    :param accelerations:
-        Acceleration vector [m/s2].
-    :type accelerations: numpy.array
-
-    :param gear_box_powers_in:
-        Gear box power vector [kW].
-    :type gear_box_powers_in: numpy.array
-
-    :param engine_speeds_out_hot:
-        Engine speed at hot condition [RPM].
-    :type engine_speeds_out_hot: numpy.array
-
-    :param initial_temperature:
-        Engine initial temperature [°C]
-    :type initial_temperature: float
-
-    :param max_engine_coolant_temperature:
-        Maximum engine coolant temperature [°C].
-    :type max_engine_coolant_temperature: float
-
-    :return:
-        Engine coolant temperature vector [°C].
-    :rtype: numpy.array
-    """
-
-    temp = model(np.diff(times), gear_box_powers_in, engine_speeds_out_hot,
-                 accelerations, initial_temperature=initial_temperature,
-                 max_temp=max_engine_coolant_temperature)
-
-    return temp
-
-
-def identify_engine_thermostat_temperature_window(
-        engine_thermostat_temperature, engine_coolant_temperatures):
-    """
-    Identifies thermostat engine temperature limits [°C].
-
-    :param engine_thermostat_temperature:
-        Engine thermostat temperature [°C].
-    :type engine_thermostat_temperature: float
-
-    :param engine_coolant_temperatures:
-        Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
-
-    :return:
-        Thermostat engine temperature limits [°C].
-    :rtype: float, float
-    """
-
-    thr = engine_thermostat_temperature
-    # noinspection PyTypeChecker
-    std = np.sqrt(np.mean((engine_coolant_temperatures - thr) ** 2))
-    return thr - std, thr + std
-
-
-def identify_engine_thermostat_temperature(engine_temperature_regression_model):
-    """
-    Identifies thermostat engine temperature and its limits [°C].
-
-    :param engine_temperature_regression_model:
-        The calibrated engine temperature regression model.
-    :type engine_temperature_regression_model: ThermalModel
-
-    :return:
-        Engine thermostat temperature [°C].
-    :rtype: float
-    """
-
-    return engine_temperature_regression_model.thermostat
-
-
-def identify_initial_engine_temperature(engine_coolant_temperatures):
-    """
-    Identifies initial engine temperature [°C].
-
-    :param engine_coolant_temperatures:
-        Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
-
-    :return:
-        Initial engine temperature [°C].
-    :rtype: float
-    """
-
-    return float(engine_coolant_temperatures[0])
-
-
-def thermal():
-    """
-    Defines the engine thermal model.
-
-    .. dispatcher:: d
-
-        >>> d = thermal()
-
-    :return:
-        The engine thermal model.
-    :rtype: schedula.Dispatcher
-    """
-
-    d = sh.Dispatcher(
-        name='thermal',
-        description='Models the engine thermal behaviour.'
-    )
-
-    d.add_function(
-        function=calculate_engine_temperature_derivatives,
-        inputs=['times', 'engine_coolant_temperatures'],
-        outputs=['engine_temperature_derivatives']
-    )
-
-    d.add_function(
-        function=identify_max_engine_coolant_temperature,
-        inputs=['engine_coolant_temperatures'],
-        outputs=['max_engine_coolant_temperature']
-    )
-
-    d.add_function(
-        function=calibrate_engine_temperature_regression_model,
-        inputs=['idle_engine_speed', 'on_engine',
-                'engine_temperature_derivatives', 'engine_coolant_temperatures',
-                'final_drive_powers_in', 'engine_speeds_out_hot',
-                'accelerations'],
-        outputs=['engine_temperature_regression_model']
-    )
-
-    d.add_function(
-        function=predict_engine_coolant_temperatures,
-        inputs=['engine_temperature_regression_model', 'times',
-                'final_drive_powers_in', 'engine_speeds_out_hot',
-                'accelerations', 'initial_engine_temperature',
-                'max_engine_coolant_temperature'],
-        outputs=['engine_coolant_temperatures']
-    )
-
-    d.add_function(
-        function=identify_engine_thermostat_temperature,
-        inputs=['engine_temperature_regression_model'],
-        outputs=['engine_thermostat_temperature']
-    )
-
-    d.add_function(
-        function=identify_engine_thermostat_temperature_window,
-        inputs=['engine_thermostat_temperature', 'engine_coolant_temperatures'],
-        outputs=['engine_thermostat_temperature_window']
-    )
-
-    d.add_function(
-        function=identify_initial_engine_temperature,
-        inputs=['engine_coolant_temperatures'],
-        outputs=['initial_engine_temperature']
-    )
-
-    d.add_function(
-        function=define_fake_engine_temperature_prediction_model,
-        inputs=['engine_coolant_temperatures'],
-        outputs=['engine_temperature_prediction_model']
-    )
-
-    d.add_function(
-        function=define_engine_temperature_prediction_model,
-        inputs=[
-            'initial_engine_temperature', 'engine_temperature_regression_model',
-            'max_engine_coolant_temperature'
-        ],
-        outputs=['engine_temperature_prediction_model'],
-        weight=4000
-    )
-
-    return d
