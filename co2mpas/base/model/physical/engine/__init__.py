@@ -15,10 +15,11 @@ Sub-Modules:
     :nosignatures:
     :toctree: engine/
 
-    thermal
     co2_emission
     cold_start
+    idle
     start_stop
+    thermal
 """
 
 import math

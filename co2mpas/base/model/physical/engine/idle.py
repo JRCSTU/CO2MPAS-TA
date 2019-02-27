@@ -6,23 +6,9 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
 It contains functions that model the basic mechanics of the engine.
-
-Sub-Modules:
-
-.. currentmodule:: co2mpas.model.physical.engine
-
-.. autosummary::
-    :nosignatures:
-    :toctree: engine/
-
-    thermal
-    co2_emission
-    cold_start
-    start_stop
 """
 import numpy as np
 import schedula as sh
-import sklearn.metrics as sk_met
 from sklearn.cluster import DBSCAN
 from ..defaults import dfl
 
@@ -55,6 +41,7 @@ class _IdleDetector(DBSCAN):
         return self
 
     def predict(self, X, set_outliers=True):
+        import sklearn.metrics as sk_met
         y = sk_met.pairwise_distances_argmin(X, self.cluster_centers_[:, None])
         if set_outliers:
             y[((X > self.max) | (X < self.min))[:, 0]] = -1

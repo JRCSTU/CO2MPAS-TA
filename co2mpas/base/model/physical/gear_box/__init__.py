@@ -415,6 +415,7 @@ def calculate_torques_losses(gear_box_torques_in, gear_box_torques):
 
 # noinspection PyMissingOrEmptyDocstring
 class GearBoxLosses(object):
+
     def __init__(self, gear_box_efficiency_parameters_cold_hot,
                  equivalent_gear_box_heat_capacity, thermostat_temperature,
                  gear_box_temperature_references, gear_box_ratios=None):
@@ -429,21 +430,8 @@ class GearBoxLosses(object):
         base['gear_box_temperature_references'] = \
             gear_box_temperature_references
 
-        # from .thermal import dsp as thermal
-        # inputs = (
-        #     'gear_box_temperature', 'delta_time', 'gear_box_power_out',
-        #     'gear_box_speed_out','gear_box_speed_in', 'gear_box_torque_out',
-        #     'gear'
-        # )
-        # _thermal = sh.DispatchPipe(
-        #     dsp=thermal,
-        #     function_id='thermal',
-        #     inputs=tuple(base) + inputs,
-        #     outputs=('gear_box_temperature', 'gear_box_torque_in',
-        #              'gear_box_efficiency')
-        # )
+        # noinspection PyProtectedMember
         from .thermal import _thermal
-
         self._thermal = functools.partial(_thermal, *tuple(base.values()))
 
     def predict(self, *args, **kwargs):
@@ -958,6 +946,7 @@ def initialize_gear_shifting_model(gsm, velocity_speed_ratios, cycle_type):
         Initialized gear shifting model (cmv or gspv or dtgs).
     :rtype: GSPV | CMV | DTGS
     """
+    # noinspection PyProtectedMember
     from .at_gear import _upgrade_gsm
     return _upgrade_gsm(gsm, velocity_speed_ratios, cycle_type)
 

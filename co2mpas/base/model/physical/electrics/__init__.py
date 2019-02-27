@@ -700,6 +700,7 @@ def _identify_balance_soc(times, state_of_charges):
     def error(params):
         return np.mean(np.abs(state_of_charges - func(params)))
 
+    # noinspection PyProtectedMember
     from ..engine.co2_emission import _calibrate_model_params
     return _calibrate_model_params(error, parameters)[0].valuesdict()['B']
 

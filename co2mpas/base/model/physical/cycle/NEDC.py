@@ -14,7 +14,7 @@ import schedula as sh
 from . import is_manual
 from ..defaults import dfl
 
-dsp = sh.Dispatcher(
+dsp = sh.BlueDispatcher(
     name='NEDC cycle model',
     description='Returns the theoretical times, velocities, and gears of NEDC.'
 )

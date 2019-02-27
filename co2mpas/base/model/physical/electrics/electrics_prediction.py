@@ -244,20 +244,3 @@ def calculate_engine_start_current(
             return -start_demand / den * 1000.0
 
     return 0.0
-
-
-func = sh.DispatchPipe(
-    dsp=dsp,
-    function_id='electric_sub_model',
-    inputs=[
-        'battery_capacity', 'alternator_status_model', 'max_alternator_current',
-        'alternator_current_model', 'max_battery_charging_current',
-        'alternator_nominal_voltage', 'start_demand', 'electric_load',
-        'delta_time', 'gear_box_power_in', 'acceleration', 'on_engine',
-        'engine_start', 'prev_alternator_status', 'prev_battery_current',
-        'prev_battery_state_of_charge'],
-    outputs=[
-        'alternator_current', 'alternator_status', 'battery_current',
-        'battery_state_of_charge'
-    ]
-)

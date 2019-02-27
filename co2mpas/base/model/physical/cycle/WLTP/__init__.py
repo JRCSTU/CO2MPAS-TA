@@ -58,6 +58,7 @@ def define_wltp_base_model(wltp_base_model):
     :rtype: dict
     """
     import wltp.model as wltp_mdl
+    # noinspection PyProtectedMember
     return sh.combine_dicts(wltp_mdl._get_model_base(), wltp_base_model)
 
 
