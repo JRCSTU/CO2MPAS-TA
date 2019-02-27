@@ -11,7 +11,13 @@ It contains functions to predict the electrics of the vehicle.
 
 import schedula as sh
 
+dsp = sh.BlueDispatcher(
+    name='Electric sub model',
+    description='Electric sub model to predict the alternator loads'
+)
 
+
+@sh.add_function(dsp, outputs=['battery_current'])
 def calculate_battery_current(
         electric_load, alternator_current, alternator_nominal_voltage,
         on_engine, max_battery_charging_current):
@@ -49,6 +55,7 @@ def calculate_battery_current(
     return min(c, max_battery_charging_current)
 
 
+@sh.add_function(dsp, outputs=['alternator_current'])
 def calculate_alternator_current(
         alternator_status, on_engine, gear_box_power_in, max_alternator_current,
         alternator_current_model, engine_start_current,
@@ -112,6 +119,10 @@ def calculate_alternator_current(
     return a_c - engine_start_current
 
 
+@sh.add_function(
+    dsp, inputs_kwargs=False, inputs_defaults=False,
+    outputs=['battery_state_of_charge']
+)
 def calculate_battery_state_of_charge(
         prev_battery_state_of_charge, battery_capacity,
         delta_time, battery_current, prev_battery_current=None):
@@ -157,9 +168,10 @@ def calculate_battery_state_of_charge(
     return min(prev_battery_state_of_charge + b / c, 100.0)
 
 
+@sh.add_function(dsp, outputs=['alternator_status'])
 def predict_alternator_status(
-        alternator_status_model, time, prev_status, battery_state_of_charge,
-        gear_box_power_in):
+        alternator_status_model, time, prev_alternator_status,
+        battery_state_of_charge, gear_box_power_in):
     """
     Predicts the alternator status(0: off, 1: on, due to state of charge, 2: on
     due to BERS) [-].
@@ -172,9 +184,9 @@ def predict_alternator_status(
         Time [s].
     :type time: float
 
-    :param prev_status:
+    :param prev_alternator_status:
         Previous alternator status [-].
-    :type prev_status: int
+    :type prev_alternator_status: int
 
     :param battery_state_of_charge:
         State of charge of the battery [%].
@@ -193,12 +205,12 @@ def predict_alternator_status(
         BERS) [-].
     :rtype: int
     """
+    return alternator_status_model(
+        time, prev_alternator_status, battery_state_of_charge, gear_box_power_in
+    )
 
-    args = (time, prev_status, battery_state_of_charge, gear_box_power_in)
 
-    return alternator_status_model(*args)
-
-
+@sh.add_function(dsp, outputs=['engine_start_current'])
 def calculate_engine_start_current(
         engine_start, start_demand, alternator_nominal_voltage, delta_time):
     """
@@ -234,73 +246,18 @@ def calculate_engine_start_current(
     return 0.0
 
 
-def electrics_prediction():
-    """
-    Defines the electric sub model to predict the alternator loads.
-
-    .. dispatcher:: d
-
-        >>> d = electrics_prediction()
-
-    :return:
-        The electric sub model.
-    :rtype: SubDispatchPipe
-    """
-
-    d = sh.Dispatcher(
-        name='Electric sub model',
-        description='Electric sub model to predict the alternator loads'
-    )
-
-    d.add_function(
-        function=calculate_battery_current,
-        inputs=['electric_load', 'alternator_current',
-                'alternator_nominal_voltage', 'on_engine',
-                'max_battery_charging_current'],
-        outputs=['battery_current']
-    )
-
-    d.add_function(
-        function=calculate_alternator_current,
-        inputs=['alternator_status', 'on_engine', 'gear_box_power_in',
-                'max_alternator_current', 'alternator_current_model',
-                'engine_start_current', 'prev_battery_current', 'acceleration'],
-        outputs=['alternator_current']
-    )
-
-    d.add_function(
-        function=calculate_battery_state_of_charge,
-        inputs=['battery_state_of_charge', 'battery_capacity', 'delta_time',
-                'battery_current', 'prev_battery_current'],
-        outputs=['battery_state_of_charge']
-    )
-
-    d.add_function(
-        function=predict_alternator_status,
-        inputs=['alternator_status_model', 'prev_alternator_status',
-                'battery_state_of_charge', 'gear_box_power_in'],
-        outputs=['alternator_status']
-    )
-
-    d.add_function(
-        function=calculate_engine_start_current,
-        inputs=['engine_start', 'start_demand', 'alternator_nominal_voltage',
-                'delta_time'],
-        outputs=['engine_start_current']
-    )
-
-    func = sh.SubDispatchPipe(
-        dsp=d,
-        function_id='electric_sub_model',
-        inputs=['battery_capacity', 'alternator_status_model',
-                'max_alternator_current', 'alternator_current_model',
-                'max_battery_charging_current', 'alternator_nominal_voltage',
-                'start_demand', 'electric_load', 'delta_time',
-                'gear_box_power_in', 'acceleration', 'on_engine',
-                'engine_start', 'prev_alternator_status',
-                'prev_battery_current', 'battery_state_of_charge'],
-        outputs=['alternator_current', 'alternator_status', 'battery_current',
-                 'battery_state_of_charge']
-    )
-
-    return func
+func = sh.DispatchPipe(
+    dsp=dsp,
+    function_id='electric_sub_model',
+    inputs=[
+        'battery_capacity', 'alternator_status_model', 'max_alternator_current',
+        'alternator_current_model', 'max_battery_charging_current',
+        'alternator_nominal_voltage', 'start_demand', 'electric_load',
+        'delta_time', 'gear_box_power_in', 'acceleration', 'on_engine',
+        'engine_start', 'prev_alternator_status', 'prev_battery_current',
+        'prev_battery_state_of_charge'],
+    outputs=[
+        'alternator_current', 'alternator_status', 'battery_current',
+        'battery_state_of_charge'
+    ]
+)
