@@ -21,7 +21,7 @@ It contains a comprehensive list of all CO2MPAS software models and sub-models:
 
 import schedula as sh
 from .physical import dsp as _physical
-from .selector import selector
+from .selector import dsp as _selector, calibration_cycles, prediction_cycles
 
 dsp = sh.BlueDispatcher(
     name='CO2MPAS model',
@@ -177,18 +177,21 @@ def select_prediction_data(data, *new_data):
     return data
 
 
-dsp.add_data('config.selector.all', {})
 dsp.add_data('input.prediction.models', {})
-
-pred_cyl_ids = ('nedc_h', 'nedc_l', 'wltp_h', 'wltp_l')
 dsp.add_function(
-    function_id='extract_calibrated_models',
-    function=selector('wltp_h', 'wltp_l', pred_cyl_ids=pred_cyl_ids),
-    inputs=['config.selector.all', 'input.prediction.models',
-            'output.calibration.wltp_h',
-            'output.calibration.wltp_l'],
-    outputs=['data.calibration.model_scores'] +
-            ['data.prediction.models_%s' % k for k in pred_cyl_ids]
+    function=sh.SubDispatchFunction(
+        _selector,
+        function_id='extract_calibrated_models',
+        inputs=('default_models',) + calibration_cycles,
+        outputs=('selections',) + prediction_cycles
+    ),
+    inputs=[
+        'input.prediction.models', 'output.calibration.wltp_h',
+        'output.calibration.wltp_l'
+    ],
+    outputs=['data.calibration.model_scores'] + [
+        'data.prediction.models_%s' % k for k in prediction_cycles
+    ]
 )
 
 dsp.add_function(
