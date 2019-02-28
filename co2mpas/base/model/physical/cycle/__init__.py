@@ -25,8 +25,8 @@ Sub-Modules:
 import schedula as sh
 import numpy as np
 from ..defaults import dfl
-from .NEDC import dsp as nedc_cycle
-from .WLTP import dsp as wltp_cycle
+from .NEDC import dsp as _nedc_cycle, is_manual
+from .WLTP import dsp as _wltp_cycle
 
 dsp = sh.BlueDispatcher(
     name='Cycle model',
@@ -45,14 +45,9 @@ def is_wltp(kwargs):
     return kwargs.get('cycle_type') == 'WLTP'
 
 
-# noinspection PyUnusedLocal, PyMissingOrEmptyDocstring
-def is_manual(gear_box_type, *args):
-    return gear_box_type == 'manual'
-
-
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp=nedc_cycle,
+    dsp=_nedc_cycle,
     inputs=(
         'gear_box_type', 'gears', 'k1', 'k2', 'k5', 'max_gear', 'times',
         {'cycle_type': sh.SINK}
@@ -63,7 +58,7 @@ dsp.add_dispatcher(
 
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp=wltp_cycle,
+    dsp=_wltp_cycle,
     inputs=(
         'accelerations', 'climbing_force', 'downscale_factor', 'motive_powers',
         'downscale_factor_threshold', 'downscale_phases', 'engine_max_power',

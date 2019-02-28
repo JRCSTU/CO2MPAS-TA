@@ -27,11 +27,11 @@ import functools
 import numpy as np
 import schedula as sh
 from ..defaults import dfl
-from .idle import dsp as idle
-from .thermal import dsp as thermal
-from .start_stop import dsp as start_stop
-from .cold_start import dsp as cold_start
-from .co2_emission import dsp as co2_emission
+from .idle import dsp as _idle
+from .thermal import dsp as _thermal
+from .start_stop import dsp as _start_stop
+from .cold_start import dsp as _cold_start
+from .co2_emission import dsp as _co2_emission
 
 dsp = sh.BlueDispatcher(name='Engine', description='Models the vehicle engine.')
 
@@ -262,8 +262,8 @@ def default_engine_max_speed(
     :rtype: float
     """
     fl = dfl.functions.default_full_load_speeds_and_powers.FULL_LOAD
-    _idle, r = idle_engine_speed[0], max(fl[ignition_type][0])
-    return _idle + r * (engine_speed_at_max_power - _idle)
+    idl, r = idle_engine_speed[0], max(fl[ignition_type][0])
+    return idl + r * (engine_speed_at_max_power - idl)
 
 
 @sh.add_function(dsp, outputs=['full_load_speeds', 'full_load_powers'])
@@ -299,15 +299,15 @@ def default_full_load_speeds_and_powers(
     """
     from scipy.interpolate import InterpolatedUnivariateSpline as Spline
 
-    _idle = idle_engine_speed[0]
+    idl = idle_engine_speed[0]
 
     full_load_speeds = np.unique(np.append(
-        [engine_speed_at_max_power], np.linspace(_idle, engine_max_speed)
+        [engine_speed_at_max_power], np.linspace(idl, engine_max_speed)
     ))
 
     d = dfl.functions.default_full_load_speeds_and_powers
     full_load_powers = Spline(*d.FULL_LOAD[ignition_type], k=1)(
-        (full_load_speeds - _idle) / (engine_speed_at_max_power - _idle)
+        (full_load_speeds - idl) / (engine_speed_at_max_power - idl)
     ) * engine_max_power
 
     return full_load_speeds, full_load_powers
@@ -532,7 +532,7 @@ def identify_on_idle(
 
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp=idle,
+    dsp=_idle,
     inputs=(
         'idle_engine_speed_median', 'idle_engine_speed_std',
         'min_engine_on_speed', 'stop_velocity', 'velocities',
@@ -546,7 +546,7 @@ dsp.add_dispatcher(
 
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp=thermal,
+    dsp=_thermal,
     dsp_id='thermal',
     inputs=(
         'accelerations', 'engine_coolant_temperatures',
@@ -566,7 +566,7 @@ dsp.add_dispatcher(
 
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp=start_stop,
+    dsp=_start_stop,
     dsp_id='start_stop',
     inputs=(
         'accelerations', 'correct_start_stop_with_gears', 'start_stop_model',
@@ -583,7 +583,7 @@ dsp.add_dispatcher(
 )
 
 dsp.add_dispatcher(
-    dsp=cold_start,
+    dsp=_cold_start,
     inputs=(
         'cold_start_speed_model', 'cold_start_speeds_phases', 'on_engine',
         'engine_coolant_temperatures', 'engine_speeds_out', 'idle_engine_speed',
@@ -967,7 +967,7 @@ def calculate_auxiliaries_power_losses(
 
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp=co2_emission,
+    dsp=_co2_emission,
     dsp_id='CO2_emission_model',
     inputs=(
         'accelerations', 'active_cylinder_ratios', 'angle_slopes',
@@ -1051,9 +1051,9 @@ class EngineModel:
         if self._outputs is not None and key in self._outputs:
             yield from self._outputs[key]
         else:
-            _idle = self.idle_engine_speed
+            idl = self.idle_engine_speed
             for on_eng, gb_s in zip(on_engine, gear_box_speeds_in):
-                yield calculate_engine_speeds_out_hot(gb_s, on_eng, _idle)
+                yield calculate_engine_speeds_out_hot(gb_s, on_eng, idl)
 
     def yield_thermal(self, times, accelerations, final_drive_powers_in,
                       engine_speeds_out_hot):

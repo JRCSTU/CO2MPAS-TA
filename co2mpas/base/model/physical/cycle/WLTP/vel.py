@@ -10,7 +10,6 @@ It contains functions and a model `dsp` to calculate the WLTP theoretical
 velocities.
 """
 import schedula as sh
-import wltp.experiment as wltp_exp
 from co2mpas.base.model.physical.vehicle import dsp as vehicle
 from ...defaults import dfl
 
@@ -40,12 +39,26 @@ def get_dfl(base_model):
     return sh.selector(keys, params, output_type='list')
 
 
-dsp.add_function(
-    function=wltp_exp.calc_default_resistance_coeffs,
-    inputs=['vehicle_mass', 'resistance_coeffs_regression_curves'],
-    outputs=['road_loads'],
-    weight=15
-)
+@sh.add_function(dsp, outputs=['road_loads'], weight=15)
+def default_road_loads(
+        vehicle_mass, resistance_coeffs_regression_curves):
+    """
+    Returns default road loads.
+
+    :param vehicle_mass:
+        Vehicle mass [kg].
+    :type vehicle_mass: float
+
+    :param resistance_coeffs_regression_curves:
+        Regression curve coefficient to calculate the default road loads.
+    :type resistance_coeffs_regression_curves: list[list[float]]
+
+    :return:
+        Cycle road loads [N, N/(km/h), N/(km/h)^2].
+    :rtype: list, tuple
+    """
+    from wltp.experiment import calc_default_resistance_coeffs as func
+    return func(vehicle_mass, resistance_coeffs_regression_curves)
 
 
 @sh.add_function(dsp, outputs=['max_speed_velocity_ratio'])
@@ -112,10 +125,9 @@ def calculate_wltp_class(
         WLTP vehicle class.
     :rtype: str
     """
-
+    from wltp.experiment import decideClass
     ratio = 1000.0 * engine_max_power / unladen_mass
-
-    return wltp_exp.decideClass(wltc_data, ratio, max_velocity)
+    return decideClass(wltc_data, ratio, max_velocity)
 
 
 @sh.add_function(dsp, outputs=['class_data'])
@@ -213,12 +225,13 @@ def calculate_downscale_factor(
     :rtype: float
     """
     import numpy as np
+    from wltp.experiment import calcDownscaleFactor
     dsc_data = class_data['downscale']
     p_max_values = dsc_data['p_max_values']
     p_max_values[0] = np.searchsorted(times, p_max_values[0])
     downsc_coeffs = dsc_data['factor_coeffs']
     dsc_v_split = dsc_data.get('v_max_split', None)
-    downscale_factor = wltp_exp.calcDownscaleFactor(
+    downscale_factor = calcDownscaleFactor(
         class_powers, p_max_values, downsc_coeffs, dsc_v_split,
         engine_max_power, max_velocity, downscale_factor_threshold
     )
@@ -270,10 +283,9 @@ def wltp_velocities(
 
     if downscale_factor > 0:
         import numpy as np
+        from wltp.experiment import downscaleCycle
         downscale_phases = np.searchsorted(times, downscale_phases)
-        v = wltp_exp.downscaleCycle(
-            class_velocities, downscale_factor, downscale_phases
-        )
+        v = downscaleCycle(class_velocities, downscale_factor, downscale_phases)
     else:
         v = class_velocities
     return v

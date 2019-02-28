@@ -8,6 +8,49 @@
 It contains functions to predict the A/T gear shifting.
 """
 import collections
+from ...defaults import dfl
+
+
+def define_gear_filter(
+        change_gear_window_width=dfl.values.change_gear_window_width):
+    """
+    Defines a gear filter function.
+
+    :param change_gear_window_width:
+        Time window used to apply gear change filters [s].
+    :type change_gear_window_width: float
+
+    :return:
+        Gear filter function.
+    :rtype: callable
+    """
+    import numpy as np
+    from co2mpas.utils import median_filter, clear_fluctuations
+    def gear_filter(times, gears):
+        """
+        Filter the gears to remove oscillations.
+
+        :param times:
+            Time vector [s].
+        :type times: numpy.array
+
+        :param gears:
+            Gear vector [-].
+        :type gears: numpy.array
+
+        :return:
+            Filtered gears [-].
+        :rtype: numpy.array
+        """
+
+        gears = median_filter(
+            times, gears.astype(float), change_gear_window_width
+        )
+        gears = clear_fluctuations(times, gears, change_gear_window_width)
+
+        return np.asarray(gears, dtype=int)
+
+    return gear_filter
 
 
 def prediction_gears_gsm(

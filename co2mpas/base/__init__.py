@@ -16,10 +16,10 @@ import schedula as sh
 import os.path as osp
 from co2mpas.io import schema
 from co2mpas.utils import check_first_arg, ret_v
-from .model import dsp as model
-from .report import dsp as report
-from co2mpas.io import dsp as write_outputs
-from co2mpas.io.ta import dsp as write_ta_output
+from .model import dsp as _model
+from .report import dsp as _report
+from co2mpas.io import dsp as _write_outputs
+from co2mpas.io.ta import dsp as _write_ta_output
 from co2mpas.conf import defaults
 
 log = logging.getLogger(__name__)
@@ -139,7 +139,7 @@ def default_output_file_name(
 dsp.add_data('only_summary', False)
 
 dsp.add_function(
-    function=sh.add_args(sh.SubDispatch(model), 2),
+    function=sh.add_args(sh.SubDispatch(_model), 2),
     inputs=['validated_meta', 'validated_dice', 'validated_base'],
     outputs=['dsp_solution']
 )
@@ -177,7 +177,7 @@ def parse_dsp_solution(dsp_solution):
 
 
 dsp.add_function(
-    function=report,
+    function=_report,
     inputs=['output_data', 'vehicle_name'],
     outputs=['report', 'summary'],
 )
@@ -187,7 +187,7 @@ dsp.add_data('encryption_keys', dfl.ENCRYPTION_KEYS_PATH)
 dsp.add_data('sign_key', dfl.SIGN_KEY_PATH)
 
 dsp.add_function(
-    function=sh.add_args(write_ta_output),
+    function=sh.add_args(_write_ta_output),
     inputs=['type_approval_mode', 'encryption_keys', 'vehicle_family_id',
             'sign_key', 'start_time', 'timestamp', 'data', 'meta',
             'validated_dice', 'report', 'output_folder', 'output_file',
@@ -233,7 +233,7 @@ def default_output_template():
 
 
 dsp.add_function(
-    function=sh.add_args(write_outputs),
+    function=sh.add_args(_write_outputs),
     inputs=['only_summary', 'output_file_name', 'template_file_name',
             'report', 'start_time', 'flag', 'type_approval_mode'],
     outputs=['output_file'],

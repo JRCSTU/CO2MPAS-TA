@@ -11,7 +11,6 @@ It provides constants for the NEDC cycle.
 """
 
 import schedula as sh
-from . import is_manual
 from ..defaults import dfl
 
 dsp = sh.BlueDispatcher(
@@ -92,6 +91,10 @@ def nedc_gears(times, max_gear, k1=1, k2=2, k5=2):
     s[s > max_gear] = max_gear
     return s
 
+
+# noinspection PyUnusedLocal, PyMissingOrEmptyDocstring
+def is_manual(gear_box_type, *args):
+    return gear_box_type == 'manual'
 
 dsp.add_function(
     function_id='nedc_gears',

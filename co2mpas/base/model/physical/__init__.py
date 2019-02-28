@@ -29,14 +29,14 @@ Modules:
 """
 
 import schedula as sh
-from .cycle import dsp as cycle
-from .vehicle import dsp as vehicle
-from .wheels import dsp as wheels
-from .final_drive import dsp as final_drive
-from .gear_box import dsp as gear_box
-from .clutch_tc import dsp as clutch_torque_converter
-from .electrics import dsp as electrics
-from .engine import dsp as engine
+from .cycle import dsp as _cycle
+from .vehicle import dsp as _vehicle
+from .wheels import dsp as _wheels
+from .final_drive import dsp as _final_drive
+from .gear_box import dsp as _gear_box
+from .clutch_tc import dsp as _clutch_torque_converter
+from .electrics import dsp as _electrics
+from .engine import dsp as _engine
 
 dsp = sh.BlueDispatcher(
     name='CO2MPAS physical model',
@@ -47,7 +47,7 @@ dsp = sh.BlueDispatcher(
 dsp.add_dispatcher(
     include_defaults=True,
     dsp_id='cycle_model',
-    dsp=cycle,
+    dsp=_cycle,
     inputs=(
         'accelerations', 'bag_phases', 'climbing_force', 'cycle_type',
         'downscale_factor', 'downscale_factor_threshold', 'downscale_phases',
@@ -67,7 +67,7 @@ dsp.add_dispatcher(
 dsp.add_dispatcher(
     include_defaults=True,
     dsp_id='vehicle_model',
-    dsp=vehicle,
+    dsp=_vehicle,
     inputs=(
         'aerodynamic_drag_coefficient', 'air_density', 'angle_slope',
         'angle_slopes', 'cargo_mass', 'correct_f0', 'cycle_type', 'curb_mass',
@@ -89,7 +89,7 @@ dsp.add_dispatcher(
 dsp.add_dispatcher(
     include_defaults=True,
     dsp_id='wheels_model',
-    dsp=wheels,
+    dsp=_wheels,
     inputs=(
         'accelerations', 'change_gear_window_width', 'engine_speeds_out',
         'final_drive_ratios', 'gear_box_ratios', 'gears', 'idle_engine_speed',
@@ -108,7 +108,7 @@ dsp.add_dispatcher(
 dsp.add_dispatcher(
     include_defaults=True,
     dsp_id='final_drive_model',
-    dsp=final_drive,
+    dsp=_final_drive,
     inputs=(
         'final_drive_efficiency', 'final_drive_ratio', 'final_drive_ratios',
         'final_drive_torque_loss', 'gear_box_type', 'gears', 'n_dyno_axes',
@@ -127,7 +127,7 @@ dsp.add_dispatcher(
 dsp.add_dispatcher(
     include_defaults=True,
     dsp_id='gear_box_model',
-    dsp=gear_box,
+    dsp=_gear_box,
     inputs=(
         'CMV', 'CMV_Cold_Hot', 'CVT', 'DTGS', 'GSPV', 'GSPV_Cold_Hot', 'MVL',
         'accelerations', 'change_gear_window_width', 'cycle_type',
@@ -168,7 +168,7 @@ dsp.add_dispatcher(
 
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp=clutch_torque_converter,
+    dsp=_clutch_torque_converter,
     dsp_id='clutch_torque_converter_model',
     inputs=(
         'accelerations', 'calibration_tc_speed_threshold', 'clutch_model',
@@ -188,7 +188,7 @@ dsp.add_dispatcher(
 dsp.add_dispatcher(
     include_defaults=True,
     dsp_id='electric_model',
-    dsp=electrics,
+    dsp=_electrics,
     inputs=(
         'accelerations', 'alternator_charging_currents', 'stop_velocity',
         'alternator_current_model', 'alternator_currents', 'state_of_charges',
@@ -216,7 +216,7 @@ dsp.add_dispatcher(
 dsp.add_dispatcher(
     include_defaults=True,
     dsp_id='engine_model',
-    dsp=engine,
+    dsp=_engine,
     inputs=(
         'accelerations', 'active_cylinder_ratios', 'alternator_powers_demand',
         'angle_slopes', 'auxiliaries_power_loss', 'auxiliaries_torque_loss',

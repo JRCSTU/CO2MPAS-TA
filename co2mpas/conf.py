@@ -11,7 +11,7 @@ It provides constants for the CO2MPAS.
 """
 
 import co2mpas.utils as co2_utl
-from .model.physical.defaults import dfl
+from .base.model.physical.defaults import dfl
 from .io.constants import con_vals
 
 

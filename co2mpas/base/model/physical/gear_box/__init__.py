@@ -25,10 +25,10 @@ import math
 import functools
 import schedula as sh
 from ..defaults import dfl
-from .cvt import dsp as cvt_model
-from .at_gear import dsp as at_gear
-from .mechanical import dsp as mechanical
-from .manual import dsp as manual
+from .cvt import dsp as _cvt_model
+from .at_gear import dsp as _at_gear
+from .mechanical import dsp as _mechanical
+from .manual import dsp as _manual
 
 dsp = sh.BlueDispatcher(
     name='Gear box model', description='Models the gear box.'
@@ -664,7 +664,7 @@ def not_cvt(kwargs):
 
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp=mechanical,
+    dsp=_mechanical,
     inputs=(
         'accelerations', 'change_gear_window_width', 'engine_max_torque',
         'engine_speed_at_max_velocity', 'engine_speeds_out', 'f0',
@@ -686,7 +686,7 @@ dsp.add_dispatcher(
 
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp=at_gear,
+    dsp=_at_gear,
     dsp_id='at_gear_shifting',
     inputs=(
         'CMV', 'CMV_Cold_Hot', 'DTGS', 'GSPV', 'GSPV_Cold_Hot', 'MVL', 'times',
@@ -711,7 +711,7 @@ dsp.add_dispatcher(
 
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp=manual,
+    dsp=_manual,
     dsp_id='manual_gear_shifting',
     inputs=(
         'cycle_type', 'full_load_speeds', 'idle_engine_speed', 'motive_powers',
@@ -727,7 +727,7 @@ dsp.add_dispatcher(
 
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp=cvt_model,
+    dsp=_cvt_model,
     dsp_id='cvt_model',
     inputs=(
         'CVT', 'accelerations', 'engine_speeds_out', 'gear_box_powers_out',

@@ -8,18 +8,19 @@
 It contains functions to predict the A/T gear shifting.
 """
 
-import collections
 import copy
 import itertools
-import schedula as sh
-from co2mpas.base.model.physical.defaults import dfl
-import co2mpas.utils as co2_utl
+import collections
 import numpy as np
-from .cmv import dsp as cmv, CMV
-from .cmv_ch import dsp as cmv_ch
-from .gspv import dsp as gspv
-from .gspv_ch import dsp as gspv_ch
-from .dtgs import dsp as dtgs
+import schedula as sh
+from ...defaults import dfl
+import co2mpas.utils as co2_utl
+from .core import define_gear_filter
+from .cmv import dsp as _cmv, CMV
+from .cmv_ch import dsp as _cmv_ch
+from .gspv import dsp as _gspv
+from .gspv_ch import dsp as _gspv_ch
+from .dtgs import dsp as _dtgs
 
 dsp = sh.BlueDispatcher(
     name='Automatic gear model',
@@ -134,51 +135,10 @@ def calibrate_mvl(
     return mvl
 
 
-@sh.add_function(
-    dsp, inputs_kwargs=True, inputs_defaults=True, outputs=['gear_filter']
+dsp.add_func(
+    define_gear_filter, inputs_kwargs=True, inputs_defaults=True,
+    outputs=['gear_filter']
 )
-def define_gear_filter(
-        change_gear_window_width=dfl.values.change_gear_window_width):
-    """
-    Defines a gear filter function.
-
-    :param change_gear_window_width:
-        Time window used to apply gear change filters [s].
-    :type change_gear_window_width: float
-
-    :return:
-        Gear filter function.
-    :rtype: callable
-    """
-
-    def gear_filter(times, gears):
-        """
-        Filter the gears to remove oscillations.
-
-        :param times:
-            Time vector [s].
-        :type times: numpy.array
-
-        :param gears:
-            Gear vector [-].
-        :type gears: numpy.array
-
-        :return:
-            Filtered gears [-].
-        :rtype: numpy.array
-        """
-
-        gears = co2_utl.median_filter(
-            times, gears.astype(float), change_gear_window_width
-        )
-
-        gears = co2_utl.clear_fluctuations(
-            times, gears, change_gear_window_width
-        )
-
-        return np.asarray(gears, dtype=int)
-
-    return gear_filter
 
 
 # noinspection PyMissingOrEmptyDocstring,PyAttributeOutsideInit,PyUnusedLocal
@@ -779,7 +739,7 @@ def at_domain(method):
 
 dsp.add_dispatcher(
     dsp_id='cmv_model',
-    dsp=cmv,
+    dsp=_cmv,
     input_domain=at_domain('CMV'),
     inputs=(
         'velocity_speed_ratios', 'engine_speeds_out', 'motive_powers', 'gears',
@@ -793,7 +753,7 @@ dsp.add_dispatcher(
     include_defaults=True,
     dsp_id='cmv_ch_model',
     input_domain=at_domain('CMV_Cold_Hot'),
-    dsp=cmv_ch,
+    dsp=_cmv_ch,
     inputs=(
         'CMV_Cold_Hot', 'accelerations', 'correct_gear', 'cycle_type',
         'engine_speeds_out', 'gear_filter', 'gears', 'stop_velocity',
@@ -822,7 +782,7 @@ def dt_domain(method):
 dsp.add_dispatcher(
     dsp_id='dtgs_model',
     input_domain=dt_domain('DTGS'),
-    dsp=dtgs,
+    dsp=_dtgs,
     inputs=(
         'velocity_speed_ratios', 'velocities', 'accelerations', 'correct_gear',
         'engine_coolant_temperatures', 'gear_filter', 'gears', 'motive_powers',
@@ -835,7 +795,7 @@ dsp.add_dispatcher(
 
 dsp.add_dispatcher(
     dsp_id='gspv_model',
-    dsp=gspv,
+    dsp=_gspv,
     input_domain=at_domain('GSPV'),
     inputs=(
         'GSPV', 'accelerations', 'correct_gear', 'cycle_type', 'velocities',
@@ -848,7 +808,7 @@ dsp.add_dispatcher(
 dsp.add_dispatcher(
     include_defaults=True,
     dsp_id='gspv_ch_model',
-    dsp=gspv_ch,
+    dsp=_gspv_ch,
     input_domain=at_domain('GSPV_Cold_Hot'),
     inputs=(
         'GSPV_Cold_Hot', 'accelerations', 'correct_gear', 'cycle_type', 'times',

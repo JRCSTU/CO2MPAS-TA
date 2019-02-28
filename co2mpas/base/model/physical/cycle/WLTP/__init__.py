@@ -22,9 +22,9 @@ Sub-Modules:
 import logging
 import copy
 import schedula as sh
-from .. import is_manual
+from ..NEDC import is_manual
 from ...defaults import dfl
-from .vel import dsp as vel
+from .vel import dsp as _vel
 
 logging.getLogger('wltp.experiment').setLevel(logging.WARNING)
 log = logging.getLogger(__name__)
@@ -63,7 +63,7 @@ def define_wltp_base_model(wltp_base_model):
 
 
 dsp.add_dispatcher(
-    dsp=vel,
+    dsp=_vel,
     inputs=(
         'times', 'base_model', 'velocities', 'speed_velocity_ratios',
         'inertial_factor', 'downscale_phases', 'climbing_force', 'max_velocity',

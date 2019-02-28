@@ -21,8 +21,8 @@ Sub-Modules:
 """
 
 import schedula as sh
-from .clutch import dsp as clutch
-from .torque_converter import dsp as torque_converter
+from .clutch import dsp as _clutch
+from .torque_converter import dsp as _torque_converter
 
 dsp = sh.BlueDispatcher(
     name='Clutch and torque-converter',
@@ -107,7 +107,7 @@ def clutch_domain(kwargs):
 dsp.add_dispatcher(
     include_defaults=True,
     input_domain=clutch_domain,
-    dsp=clutch,
+    dsp=_clutch,
     dsp_id='clutch',
     inputs=(
         'accelerations', 'clutch_model', 'clutch_window', 'lockup_speed_ratio',
@@ -134,7 +134,7 @@ def torque_converter_domain(kwargs):
 dsp.add_dispatcher(
     include_defaults=True,
     input_domain=torque_converter_domain,
-    dsp=torque_converter,
+    dsp=_torque_converter,
     dsp_id='torque_converter',
     inputs=(
         'accelerations', 'calibration_tc_speed_threshold',

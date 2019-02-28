@@ -62,10 +62,10 @@ dsp.add_data(
     default_value={}
 )
 
-physical = sh.SubDispatch(_physical)
+_physical = sh.SubDispatch(_physical)
 dsp.add_function(
     function_id='calculate_precondition_output',
-    function=physical,
+    function=_physical,
     inputs=['input.precondition.wltp_p'],
     outputs=['output.precondition.wltp_p'],
     description='Wraps all functions needed to calculate the precondition '
@@ -113,7 +113,7 @@ def select_calibration_data(cycle_inputs, precondition_outputs):
 
 dsp.add_function(
     function_id='calibrate_with_wltp_h',
-    function=physical,
+    function=_physical,
     inputs=['data.calibration.wltp_h'],
     outputs=['output.calibration.wltp_h'],
     description='Wraps all functions needed to calibrate the models to '
@@ -122,7 +122,7 @@ dsp.add_function(
 
 dsp.add_function(
     function_id='calibrate_with_wltp_l',
-    function=physical,
+    function=_physical,
     inputs=['data.calibration.wltp_l'],
     outputs=['output.calibration.wltp_l'],
     description='Wraps all functions needed to calibrate the models to '
@@ -193,7 +193,7 @@ dsp.add_function(
 
 dsp.add_function(
     function_id='predict_wltp_h',
-    function=physical,
+    function=_physical,
     inputs=['data.prediction.wltp_h'],
     outputs=['output.prediction.wltp_h'],
     description='Wraps all functions needed to predict CO2 emissions.'
@@ -201,7 +201,7 @@ dsp.add_function(
 
 dsp.add_function(
     function_id='predict_wltp_l',
-    function=physical,
+    function=_physical,
     inputs=['data.prediction.wltp_l'],
     outputs=['output.prediction.wltp_l'],
     description='Wraps all functions needed to predict CO2 emissions.'
@@ -210,14 +210,14 @@ dsp.add_function(
 
 dsp.add_function(
     function_id='predict_nedc_h',
-    function=physical,
+    function=_physical,
     inputs=['data.prediction.models_nedc_h', 'input.prediction.nedc_h'],
     outputs=['output.prediction.nedc_h'],
 )
 
 dsp.add_function(
     function_id='predict_nedc_l',
-    function=physical,
+    function=_physical,
     inputs=['data.prediction.models_nedc_l', 'input.prediction.nedc_l'],
     outputs=['output.prediction.nedc_l'],
 )
