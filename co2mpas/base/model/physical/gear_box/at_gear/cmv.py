@@ -166,7 +166,7 @@ class CMV(collections.OrderedDict):
             gears, velocities, stop_velocity
         ))
         if dfl.functions.CMV.ENABLE_OPT_LOOP:
-            gear_id, velocity_limits = zip(*list(sorted(self.items()))[1:])
+            gear_id, velocity_limits = zip(*sorted(self.items())[1:])
             max_gear, _inf, grp = gear_id[-1], float('inf'), co2_utl.grouper
             update, predict = self.update, self.predict
 

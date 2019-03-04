@@ -45,12 +45,12 @@ dsp.add_function(
 )
 
 dsp.add_data('engineering_mode', False)
-dsp.add_data('use_selector', False)
+dsp.add_data('enable_selector', False)
 
 dsp.add_function(
     function=sh.add_args(schema.validate_base),
     inputs=['run_base', 'data', 'engineering_mode', 'soft_validation',
-            'use_selector'],
+            'enable_selector'],
     outputs=['validated_base'],
     input_domain=check_first_arg,
     weight=10

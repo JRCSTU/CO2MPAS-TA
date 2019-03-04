@@ -267,7 +267,7 @@ def sort_models(*data, weights=None):
                 e = l, _mean(m, weights=[weights.get(i, 1) for i in keys])
                 scores.append((e, l, v[0], k, v[1]))
 
-        scores = list(sorted(scores, key=_sort))
+        scores = sorted(scores, key=_sort)
         if scores:
             score = tuple(np.mean([e[0] for e in scores], axis=0))
 
@@ -282,49 +282,51 @@ def sort_models(*data, weights=None):
 
             rank.append([score, scores, errors, d['data_in'], models])
 
-    return list(sorted(rank, key=_sorting_func))
+    return sorted(rank, key=_sorting_func)
 
 
-def _check_success(rank):
+def _check_success(score):
     try:
-        return rank[0][0]['success']
+        return score['success']
     except IndexError:
         return True
 
 
-def format_errors(rank):
+def format_score(rank):
     """
-    Format errors output.
+    Format score output.
 
     :param rank:
         Models rank.
     :type rank: list
 
     :return:
-        Errors output.
+        Score output.
     :rtype: dict
     """
-    errors = collections.OrderedDict()
-    for m in rank:
-        if m[1]:
-            errors[m[3]] = {
-                'score': m[0],
-                'errors': {k: v[0] for k, v in m[2].items()},
-                'limits': {k: v[1] for k, v in m[2].items()},
-                'models': list(sorted(m[-1].keys()))
-            }
-        else:
-            errors[m[3]] = {'models': list(sorted(m[-1].keys()))}
-    return errors
+    res = {}
+    for score, scores, errors, name, models in rank:
+        res[name] = d = {'models': sorted(models.keys())}
+        if scores:
+            d.update({
+                'score': score,
+                'errors': {k: v[0] for k, v in scores.items()},
+                'limits': {k: v[1] for k, v in scores.items()}
+            })
+    return res
 
 
-def select_best_model(rank, selector_id=''):
+def select_best_model(rank, enable_selector, selector_id=''):
     """
     Select the best model.
 
     :param rank:
         Models rank.
     :type rank: list
+
+    :param enable_selector:
+        Enable the selection of the best model to predict both H/L cycles.
+    :type enable_selector: bool
 
     :param selector_id:
         Selector id.
@@ -335,15 +337,22 @@ def select_best_model(rank, selector_id=''):
     :rtype: dict
     """
 
-    models = {}
-    if rank:
-        success = _check_success(rank)
+    models, _map = {}, {}
+    if not enable_selector:
+        _map = {'wltp_h': ('nedc_h', 'wltp_h'), 'wltp_l': ('nedc_l', 'wltp_l')}
+
+    for i, (score, scores, err, name, mdl) in enumerate(rank):
+        k = ((sh.NONE,) if i == 0 else ()) + _map.get(name, ())
+        if not k:
+            continue
+        success = _check_success(score)
+        models.update(dict.fromkeys(k, (name, success, mdl)))
         if not success:
-            msg = '\n  %s warning: Models %s to predict %s failed the ' \
-                  'calibration.'
-            selector_name = selector_id.replace('_', ' ').capitalize()
-            log.info(msg, selector_name, str(set(rank[0][-1].keys())), '')
-        models[sh.NONE] = rank[0][3], success, rank[0][-1]
+            log.info(
+                '\n  %s: Models (%s) to predict %s failed the calibration.',
+                '%s warning' % selector_id.replace('_', ' ').capitalize(),
+                ','.join(sorted(set(mdl))), ','.join(k)
+            )
     return models
 
 
@@ -395,9 +404,10 @@ def mdl_selector(name, package=None):
         outputs=['rank']
     )
 
-    dsp.add_func(format_errors, outputs=['errors'])
+    dsp.add_func(format_score, outputs=['score'])
+
     dsp.add_func(functools.partial(
-        select_best_model, selector_id=mdl.name
+        select_best_model, selector_id='%s selector' % mdl.name
     ), outputs=['model'])
 
     return dsp

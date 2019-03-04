@@ -19,6 +19,7 @@ Modules:
 
     co2_params
 """
+import copy
 import schedula as sh
 import sklearn.metrics as sk_met
 from co2mpas.base.model.physical.clutch_tc import dsp as _clutch_tc
@@ -58,9 +59,9 @@ metrics = sh.map_list(targets, metric_clutch_torque_converter_model)
 up_limit = sh.map_list(targets, 100)
 
 #: Prediction model.
-dsp = sh.SubDispatch(sh.BlueDispatcher().extend(_clutch_tc).add_function(
+dsp = copy.deepcopy(_clutch_tc).add_function(
     function=calculate_engine_speeds_out,
     inputs=['on_engine', 'idle_engine_speed', 'engine_speeds_out_hot',
             'clutch_tc_speeds_delta'],
     outputs=['engine_speeds_out']
-))
+)

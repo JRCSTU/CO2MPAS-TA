@@ -132,7 +132,7 @@ def _extract_declaration_data(inputs, errors):
 
 
 def _eng_mode_parser(
-        engineering_mode, soft_validation, use_selector, inputs, errors):
+        engineering_mode, soft_validation, inputs, errors):
     from . import validations
 
     if not engineering_mode:
@@ -144,9 +144,6 @@ def _eng_mode_parser(
                      'If you want to include these data add to the batch cmd '
                      '-D flag.engineering_mode=True',
                      ',\n'.join(diff))
-
-    if not use_selector:
-        inputs = validations.overwrite_declaration_config_data(inputs)
 
     if not soft_validation:
         for k, v in sh.stack_nested_keys(inputs, depth=3):
@@ -206,16 +203,14 @@ def _validate_base_with_schema(data, depth=4):
     return inputs, errors
 
 
-def validate_base(data, engineering_mode, soft_validation, use_selector):
+def validate_base(data, engineering_mode, soft_validation, enable_selector):
     i, e = _validate_base_with_schema(data)
 
-    i, e = _eng_mode_parser(
-        engineering_mode, soft_validation, use_selector, i, e
-    )
+    i, e = _eng_mode_parser(engineering_mode, soft_validation, i, e)
 
     if _log_errors_msg(e):
         return sh.NONE
-
+    i['enable_selector'] = enable_selector
     return {'.'.join(k): v for k, v in sh.stack_nested_keys(i, depth=3)}
 
 
@@ -827,7 +822,6 @@ def define_data_schema(read=True):
         'fmep_model': function,
         'gear_box_efficiency_constants': dictstrdict,
         'gear_box_efficiency_parameters_cold_hot': dictstrdict,
-        'config': dictstrdict,
         'scores': dictstrdict,
         'param_selections': dictstrdict,
         'model_selections': dictstrdict,

@@ -19,6 +19,7 @@ Modules:
 
     co2_params
 """
+import copy
 import schedula as sh
 import sklearn.metrics as sk_met
 from ._core import define_sub_model
@@ -65,7 +66,7 @@ metrics = sh.map_list(targets, metric_engine_cold_start_speed_model)
 up_limit = sh.map_list(targets, 160)
 
 #: Prediction model.
-dsp = sh.Blueprint(sh.BlueDispatcher().extend(_cold_start).add_function(
+dsp = sh.Blueprint(copy.deepcopy(_cold_start).add_function(
     function=calculate_engine_speeds_out,
     inputs=['on_engine', 'idle_engine_speed', 'engine_speeds_out_hot',
             'cold_start_speeds_delta'],

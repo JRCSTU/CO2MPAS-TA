@@ -26,10 +26,6 @@ import os.path as osp
 import co2mpas.utils as co2_utl
 from .models import mdl_selector, calibration_cycles, prediction_cycles
 
-import_mdl = lambda x: (x, mdl_selector('.models.%s' % x, __name__))
-if __name__ == '__main__':
-    import_mdl = lambda x: (x, mdl_selector('models.%s' % x))
-
 dsp = sh.BlueDispatcher(
     name='Models selector', description='Select the calibrated models.'
 )
@@ -46,33 +42,39 @@ MODELS = [
     if not v.name.startswith('_')
 ]
 
-
-@sh.add_function(
-    dsp, inputs_kwargs=True, inputs_defaults=True,
-    outputs=['selector_settings/%s' % k for k in MODELS]
+dsp.add_data(
+    'enable_selector', False, function=lambda x: {'enable_selector': x}
 )
-def split_selector_settings(selector_settings=None):
-    config = (selector_settings or {}).get('config', {})
-    return tuple(config.get(k, {}) for k in MODELS)
 
-
-for k, mdl in map(import_mdl, MODELS):
+for name in MODELS:
     dsp.add_function(
         function=sh.SubDispatch(
-            mdl, outputs=['model', 'errors'], output_type='list'
+            mdl_selector('.models.%s' % name, __name__),
+            outputs=['model', 'score'], output_type='list'
         ),
-        function_id='%s selector' % k,
-        inputs=['CO2MPAS_results', 'selector_settings/%s' % k],
+        function_id='%s selector' % name,
+        inputs=['CO2MPAS_results', 'enable_selector'],
         outputs=['models', 'scores']
     )
 
 
-def combine_outputs(outputs):
-    return {k[:-9]: v for k, v in outputs.items() if v}
+def merge_model_selection(adict):
+    """
+    Merge models or scores selection.
+
+    :param adict:
+        Models or scores selection.
+    :type adict: dict
+
+    :return:
+        Merged models or scores selection.
+    :rtype: dict
+    """
+    return {' '.join(k.split(' ')[:-1]): v for k, v in adict.items() if v}
 
 
-dsp.add_data(data_id='models', function=combine_outputs, wait_inputs=True)
-dsp.add_data(data_id='scores', function=combine_outputs, wait_inputs=True)
+dsp.add_data(data_id='models', function=merge_model_selection, wait_inputs=True)
+dsp.add_data(data_id='scores', function=merge_model_selection, wait_inputs=True)
 
 
 @sh.add_function(dsp, outputs=['selections'] + list(

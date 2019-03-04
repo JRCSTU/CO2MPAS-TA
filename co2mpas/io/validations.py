@@ -36,21 +36,6 @@ def select_declaration_data(data, diff=None):
     return res
 
 
-def overwrite_declaration_config_data(data):
-    config = constants.con_vals.DECLARATION_SELECTOR_CONFIG
-    res = sh.combine_nested_dicts(data, depth=3)
-    key = ('config', 'selector', 'all')
-
-    d = copy.deepcopy(sh.get_nested_dicts(res, *key))
-
-    for k, v in sh.stack_nested_keys(config):
-        sh.get_nested_dicts(d, *k, default=co2_utl.ret_v(v))
-
-    sh.get_nested_dicts(res, *key[:-1])[key[-1]] = d
-
-    return res
-
-
 def hard_validation(data, usage, stage=None, cycle=None, *args):
     if usage in ('input', 'target', 'meta'):
         checks = (

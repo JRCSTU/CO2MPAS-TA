@@ -334,8 +334,8 @@ def _param_orders():
 
     _map = {
         'scope': ('plan', 'flag', 'base'),
-        'usage': ('target', 'output', 'input', 'data', 'config'),
-        'stage': ('precondition', 'prediction', 'calibration', 'selector'),
+        'usage': ('target', 'output', 'input', 'data'),
+        'stage': ('precondition', 'prediction', 'calibration'),
         'cycle': ('all', 'nedc_h', 'nedc_l', 'wltp_h', 'wltp_l', 'wltp_p'),
         'type': ('pa', 'ts', 'pl'),
         'param': param

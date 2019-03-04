@@ -26,16 +26,16 @@ log = logging.getLogger(__name__)
 
 _base_params = r"""
     ^((?P<scope>base)(\.|\s+))?
-    ((?P<usage>(target|input|output|data|config))s?(\.|\s+))?
-    ((?P<stage>(precondition|calibration|prediction|selector))s?(\.|\s+))?
+    ((?P<usage>(target|input|output|data))s?(\.|\s+))?
+    ((?P<stage>(precondition|calibration|prediction))s?(\.|\s+))?
     ((?P<cycle>WLTP([-_]{1}[HLP]{1})?|
                NEDC([-_]{1}[HL]{1})?|
                ALL)(recon)?(\.|\s+))?
     (?P<param>[^\s.]*)\s*$
     |
     ^((?P<scope>base)(\.|\s+))?
-    ((?P<usage>(target|input|output|data|config))s?(\.|\s+))?
-    ((?P<stage>(precondition|calibration|prediction|selector))s?(\.|\s+))?
+    ((?P<usage>(target|input|output|data))s?(\.|\s+))?
+    ((?P<stage>(precondition|calibration|prediction))s?(\.|\s+))?
     ((?P<param>[^\s.]*))?
     ((.|\s+)(?P<cycle>WLTP([-_]{1}[HLP]{1})?|
                       NEDC([-_]{1}[HL]{1})?|
@@ -68,8 +68,8 @@ _plan_params = r"""
 _re_params_name = regex.compile(
     r"""
         ^(?P<param>((plan|base|flag|dice)|
-                    (target|input|output|data|config|meta)|
-                    ((precondition|calibration|prediction|selector)s?)|
+                    (target|input|output|data|meta)|
+                    ((precondition|calibration|prediction)s?)|
                     (WLTP([-_]{1}[HLP]{1})?|
                      NEDC([-_]{1}[HL]{1})?|
                      ALL)(recon)?))\s*$
@@ -86,8 +86,8 @@ _re_params_name = regex.compile(
 
 _base_sheet = r"""
     ^((?P<scope>base)(\.|\s+)?)?
-    ((?P<usage>(target|input|output|data|config))s?(\.|\s+)?)?
-    ((?P<stage>(precondition|calibration|prediction|selector))s?(\.|\s+)?)?
+    ((?P<usage>(target|input|output|data))s?(\.|\s+)?)?
+    ((?P<stage>(precondition|calibration|prediction))s?(\.|\s+)?)?
     ((?P<cycle>WLTP([-_]{1}[HLP]{1})?|
                NEDC([-_]{1}[HL]{1})?|
                ALL)(recon)?(\.|\s+)?)?
@@ -134,7 +134,7 @@ def _get_sheet_type(
         pass
     elif scope == 'plan':
         type = 'pl'
-    elif scope in ('flag', 'dice') or not cycle or usage == 'config':
+    elif scope in ('flag', 'dice') or not cycle:
         type = 'pa'
     else:
         type = 'ts'
@@ -187,12 +187,9 @@ def _parse_sheet(match, sheet, sheet_name, res=None):
 
 def _get_cycle(cycle=None, usage=None, **kw):
     if cycle is None or cycle == 'all':
-        if usage == 'config':
-            cycle = 'all'
-        else:
-            cycle = ('nedc_h', 'nedc_l', 'wltp_h', 'wltp_l')
-            if cycle == 'all':
-                cycle += 'wltp_p',
+        cycle = ('nedc_h', 'nedc_l', 'wltp_h', 'wltp_l')
+        if cycle == 'all':
+            cycle += 'wltp_p',
 
     elif cycle == 'wltp':
         cycle = ('wltp_h', 'wltp_l')

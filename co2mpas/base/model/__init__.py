@@ -178,19 +178,20 @@ def select_prediction_data(data, *new_data):
 
 
 dsp.add_data('input.prediction.models', {})
+_prediction_models = tuple(map('models_{}'.format, prediction_cycles))
 dsp.add_function(
-    function=sh.SubDispatchFunction(
+    function=sh.DispatchPipe(
         _selector,
         function_id='extract_calibrated_models',
-        inputs=('default_models',) + calibration_cycles,
-        outputs=('selections',) + prediction_cycles
+        inputs=('enable_selector', 'default_models',) + calibration_cycles,
+        outputs=('selections',) + _prediction_models
     ),
     inputs=[
-        'input.prediction.models', 'output.calibration.wltp_h',
-        'output.calibration.wltp_l'
+        'enable_selector', 'input.prediction.models',
+        'output.calibration.wltp_h', 'output.calibration.wltp_l'
     ],
     outputs=['data.calibration.model_scores'] + [
-        'data.prediction.models_%s' % k for k in prediction_cycles
+        'data.prediction.%s' % k for k in _prediction_models
     ]
 )
 
