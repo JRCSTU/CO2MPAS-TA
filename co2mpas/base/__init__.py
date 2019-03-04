@@ -137,9 +137,10 @@ def default_output_file_name(
 
 
 dsp.add_data('only_summary', False)
-
+_model = sh.Blueprint(sh.SubDispatch(_model), 2)
+_model.cls = sh.add_args
 dsp.add_function(
-    function=sh.add_args(sh.SubDispatch(_model), 2),
+    function=_model,
     inputs=['validated_meta', 'validated_dice', 'validated_base'],
     outputs=['dsp_solution']
 )
@@ -176,10 +177,11 @@ def parse_dsp_solution(dsp_solution):
     return res
 
 
+_rpt_inp, _rpt_out = ['output_data', 'vehicle_name'], ['report', 'summary']
 dsp.add_function(
-    function=_report,
-    inputs=['output_data', 'vehicle_name'],
-    outputs=['report', 'summary'],
+    function=sh.DispatchPipe(_report, 'make_report', _rpt_inp, _rpt_out),
+    inputs=_rpt_inp,
+    outputs=_rpt_out,
 )
 
 dfl = defaults.io_constants_dfl
