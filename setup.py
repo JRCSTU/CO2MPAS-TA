@@ -238,10 +238,7 @@ setup(
     package_data={
         'co2mpas': [
             'demos/*.xlsx',
-            'ipynbs/*.ipynb',
-            'co2mpas_template.xlsx',
-            'datasync_template.xlsx',
-            'co2mpas_output_template.xlsx',
+            'templates/*.xlsx'
         ]
     },
     zip_safe=True,

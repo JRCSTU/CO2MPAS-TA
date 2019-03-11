@@ -1,0 +1,296 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+#
+# Copyright 2014-2018 European Commission (JRC);
+# Licensed under the EUPL (the 'Licence');
+# You may not use this work except in compliance with the Licence.
+# You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
+"""
+It provides the CO2MPAS validation formulas.
+"""
+import schema
+import logging
+import schedula as sh
+
+log = logging.getLogger(__name__)
+dsp = sh.BlueDispatcher(
+    name='validate_data', description='Validates input data.'
+)
+
+
+def _add_validated_input(data, validate, keys, value, errors):
+    try:
+        k, v = next(iter(validate({keys[-1]: value}).items()))
+        if v is not sh.NONE:
+            data[k] = v
+            return v
+    except schema.SchemaError as ex:
+        sh.get_nested_dicts(errors, *keys[:-1])[keys[-1]] = ex
+    return sh.NONE
+
+
+def _validate_base_with_schema(data, depth=4):
+    from ..schema import define_data_schema
+    inputs, errors, validate = {}, {}, define_data_schema().validate
+    for k, v in sorted(sh.stack_nested_keys(data, depth=depth)):
+        d = sh.get_nested_dicts(inputs, *k[:-1])
+        _add_validated_input(d, validate, k, v, errors)
+
+    return inputs, errors
+
+
+def _log_errors_msg(errors):
+    if errors:
+        msg = ['\nInput cannot be parsed, due to:']
+        for k, v in sh.stack_nested_keys(errors, depth=4):
+            msg.append('{} in {}: {}'.format(k[-1], '/'.join(k[:-1]), v))
+        log.error('\n  '.join(msg))
+        return True
+    return False
+
+
+_kw = dict(inputs_kwargs=True, inputs_defaults=True)
+
+
+@sh.add_function(dsp, outputs=['validated_base'], **_kw)
+def validate_base(
+        base=None, engineering_mode=False, soft_validation=False,
+        enable_selector=False, type_approval_mode=False):
+    """
+    Validate base data.
+
+    :param base:
+        Base data.
+    :type base: dict
+
+    :param engineering_mode:
+        Use all data and not only the declaration data.
+    :type engineering_mode: bool
+
+    :param soft_validation:
+        Relax some Input-data validations, to facilitate experimentation.
+    :type soft_validation: bool
+
+    :param enable_selector:
+        Enable the selection of the best model to predict both H/L cycles.
+    :type enable_selector: bool
+
+    :param type_approval_mode:
+        Is launched for TA?
+    :type type_approval_mode: bool
+
+    :return:
+        Validated base data.
+    :rtype: dict
+    """
+    from .eng_mode import eng_mode_parser
+    i, e = _validate_base_with_schema(base or {})
+
+    i, e = eng_mode_parser(
+        type_approval_mode, engineering_mode, soft_validation, i, e
+    )
+
+    if _log_errors_msg(e):
+        return sh.NONE
+    i['enable_selector'] = enable_selector
+    return {'.'.join(k): v for k, v in sh.stack_nested_keys(i, depth=3)}
+
+
+@sh.add_function(dsp, outputs=['validated_meta'], **_kw)
+def validate_meta(meta=None, soft_validation=False):
+    """
+    Validate meta data.
+
+    :param meta:
+        Meta data.
+    :type meta: dict
+
+    :param soft_validation:
+        Relax some Input-data validations, to facilitate experimentation.
+    :type soft_validation: bool
+
+    :return:
+        Validated meta data.
+    :rtype: dict
+    """
+    i, e = _validate_base_with_schema(meta or {}, depth=2)
+    if not soft_validation:
+        from .eng_mode import _hard_validation
+        for k, v in sorted(sh.stack_nested_keys(i, depth=1)):
+            for c, msg in _hard_validation(v, 'meta'):
+                sh.get_nested_dicts(e, *k)[c] = schema.SchemaError([], [msg])
+
+    if _log_errors_msg(e):
+        return sh.NONE
+
+    return i
+
+
+@sh.add_function(dsp, outputs=['validated_dice'], **_kw)
+def validate_dice(dice=None):
+    """
+    Validate DICE data.
+
+    :param dice:
+        DICE data.
+    :type dice: dict
+
+    :return:
+        Validated DICE data.
+    :rtype: dict
+    """
+    from ..schema import define_dice_schema
+    inputs, errors, validate = {}, {}, define_dice_schema().validate
+    for k, v in sorted((dice or {}).items()):
+        _add_validated_input(inputs, validate, ('dice', k), v, errors)
+
+    if inputs.get('extension') and inputs.get('wltp_retest', '-') != '-':
+        sh.get_nested_dicts(errors, 'dice')['extension'] = (
+            "Invalid combination `dice.extension == True` and "
+            "`dice.wltp_retest != '-'`. Please set `dice.extension = False` "
+            "or set `dice.wltp_retest = '-'`!"
+        )
+
+    if _log_errors_msg(errors):
+        return sh.NONE
+    return inputs
+
+
+@sh.add_function(dsp, outputs=['validated_flag'], **_kw)
+def validate_flag(flag=None):
+    """
+    Validate flags data.
+
+    :param flag:
+        Flags data.
+    :type flag: dict
+
+    :return:
+        Validated flags data.
+    :rtype: dict
+    """
+    from ..schema import define_flags_schema
+    inputs, errors, validate = {}, {}, define_flags_schema().validate
+    for k, v in sorted((flag or {}).items()):
+        _add_validated_input(inputs, validate, ('flag', k), v, errors)
+    if _log_errors_msg(errors):
+        return sh.NONE
+    return inputs
+
+
+@sh.add_function(dsp, outputs=['validated_plan'], **_kw)
+def validate_plan(
+        plan=None, engineering_mode=False, soft_validation=False,
+        type_approval_mode=False):
+    """
+    Validate plan data.
+
+    :param plan:
+        Plan data.
+    :type plan: dict
+
+    :param engineering_mode:
+        Use all data and not only the declaration data.
+    :type engineering_mode: bool
+
+    :param soft_validation:
+        Relax some Input-data validations, to facilitate experimentation.
+    :type soft_validation: bool
+
+    :param type_approval_mode:
+        Is launched for TA?
+    :type type_approval_mode: bool
+
+    :return:
+        Validated plan data.
+    :rtype: dict
+    """
+    import pandas as pd
+    plan = pd.DataFrame(**(plan or {}))
+    if not plan.empty and not engineering_mode:
+        msg = 'Simulation plan cannot be executed without enabling the ' \
+              'engineering mode!\n' \
+              'If you want to execute it, add to the batch cmd ' \
+              '-D flag.engineering_mode=True'
+        log.warning(msg)
+        return sh.NONE
+
+    from ..excel import _parse_values
+    from .eng_mode import eng_mode_parser
+    from ..schema import define_data_schema, define_flags_schema
+    v_data = define_data_schema().validate
+    v_flag = define_flags_schema().validate
+
+    validated_plan, errors = [], {}
+
+    for i, data in plan.iterrows():
+        inputs, inp = {}, {}
+        data.dropna(how='all', inplace=True)
+        plan_id = 'plan id:{}'.format(i[0])
+        for k, v in _parse_values(data, where='in plan'):
+            if k[0] == 'base':
+                d = sh.get_nested_dicts(inp, *k[1:-1])
+                v = _add_validated_input(d, v_data, (plan_id,) + k, v, errors)
+            elif k[0] == 'flag':
+                v = _add_validated_input({}, v_flag, (plan_id,) + k, v, errors)
+
+            if v is not sh.NONE:
+                inputs[k] = v
+
+        errors = eng_mode_parser(
+            type_approval_mode, engineering_mode, soft_validation, inp, errors
+        )[1]
+
+        validated_plan.append((i, inputs))
+
+    if _log_errors_msg(errors):
+        return sh.NONE
+
+    return validated_plan
+
+
+@sh.add_function(dsp, outputs=['verified'], **_kw)
+def validation_status(
+        validated_base, validated_flag, validated_meta, validated_dice,
+        validated_plan, type_approval_mode=False):
+    """
+    Returns the validation status.
+
+    :param validated_base:
+        Validated base data.
+    :type validated_base: dict
+
+    :param validated_flag:
+        Validated flags data.
+    :type validated_flag: dict
+
+    :param validated_meta:
+        Validated meta data.
+    :type validated_meta: dict
+
+    :param validated_dice:
+        Validated DICE data.
+    :type validated_dice: dict
+
+    :param validated_plan:
+        Validated plan data.
+    :type validated_plan: dict
+
+    :param type_approval_mode:
+        Is launched for TA?
+    :type type_approval_mode: bool
+
+    :return:
+        Validation status.
+    :rtype: bool
+    """
+    if type_approval_mode:
+        from dice.co2mpas.verify import verify_data
+        return verify_data({
+            'base': validated_base,
+            'flag': validated_flag,
+            'meta': validated_meta,
+            'dice': validated_dice,
+            'plan': validated_plan
+        })
+    return True
