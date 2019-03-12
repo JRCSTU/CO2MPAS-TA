@@ -43,7 +43,7 @@ MODELS = [
 ]
 
 dsp.add_data(
-    'enable_selector', False, function=lambda x: {'enable_selector': x}
+    'enable_selector', False, filters=[lambda x: {'enable_selector': x}]
 )
 
 for name in MODELS:

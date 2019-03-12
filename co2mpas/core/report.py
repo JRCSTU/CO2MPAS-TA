@@ -546,17 +546,13 @@ def _extract_summary_from_model_scores(report, extracted):
 
 
 @sh.add_function(dsp, outputs=['summary'])
-def extract_summary(report, vehicle_name):
+def extract_summary(report):
     """
     Extract a summary report.
 
     :param report:
         Vehicle output report.
     :type report: dict
-
-    :param vehicle_name:
-        Vehicle name.
-    :type vehicle_name: str
 
     :return:
         Summary report.
@@ -569,8 +565,5 @@ def extract_summary(report, vehicle_name):
     _extract_summary_from_output(report, extracted)
 
     _extract_summary_from_model_scores(report, extracted)
-
-    for k, v in sh.stack_nested_keys(extracted, depth=3):
-        v['vehicle_name'] = vehicle_name
 
     return extracted

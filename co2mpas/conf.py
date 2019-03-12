@@ -12,13 +12,13 @@ It provides constants for the CO2MPAS.
 
 import co2mpas.utils as co2_utl
 from .core.model.physical.defaults import dfl as _physical
-from .core.load.validate.eng_mode import dfl as _load
+from .core.load.validate.eng_mode import dfl as _eng_mode
 
 
 # noinspection PyMissingOrEmptyDocstring
 class Defaults(co2_utl.Constants):
     physical = _physical
-    load = _load
+    eng_mode = _eng_mode
 
 
 dfl = Defaults()

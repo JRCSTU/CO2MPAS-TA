@@ -708,7 +708,7 @@ def define_flags_schema(read=True):
 
     schema = {
         _compare_str('input_version'): _input_version(read=read),
-        _compare_str('modelconf'): isfile,
+        _compare_str('model_conf'): isfile,
         _compare_str('encryption_keys'): string,
         _compare_str('sign_key'): string,
 

@@ -7,11 +7,8 @@
 """
 It contains functions that model the basic mechanics of the torque converter.
 """
-import xgboost as xgb
-import sklearn.metrics as sk_met
-import sklearn.pipeline as sk_pip
-import schedula as sh
 import numpy as np
+import schedula as sh
 from ..defaults import dfl
 
 dsp = sh.BlueDispatcher(
@@ -60,11 +57,14 @@ class TorqueConverter:
     def _fit_regressor(X, y):
         # noinspection PyProtectedMember
         from ..engine.thermal import _SelectFromModel
+        from sklearn.pipeline import Pipeline
+        import xgboost as xgb
+
         model = xgb.XGBRegressor(
             max_depth=2,
             n_estimators=int(min(300., 0.25 * (len(y) - 1)))
         )
-        model = sk_pip.Pipeline([
+        model = Pipeline([
             ('feature_selection', _SelectFromModel(model, '0.8*median')),
             ('classification', model)
         ])

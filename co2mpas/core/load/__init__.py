@@ -125,9 +125,7 @@ def load_ta_file(input_file_name, input_file):
     return _load_ta_function()(input_file_name, input_file)
 
 
-@sh.add_function(
-    dsp, inputs_kwargs=True, inputs_defaults=True, outputs=['data']
-)
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['data'])
 def merge_data(
         raw_data, cmd_flags=None, soft_validation=False, engineering_mode=False,
         type_approval_mode=False, encryption_keys=None, sign_key=None):

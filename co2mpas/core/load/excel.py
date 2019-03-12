@@ -317,7 +317,6 @@ def _add_index_plan(plan, file_path):
         plan['run_base'].fillna(True)
 
     plan['id'] = plan.index
-    plan.set_index(['id', 'base', 'run_base'], inplace=True)
     return plan
 
 
@@ -387,5 +386,5 @@ def parse_excel_file(input_file_name, input_file):
             v['cycle_type'] = v.get('cycle_type', k[-1].split('_')[0]).upper()
             v['cycle_name'] = v.get('cycle_name', k[-1]).upper()
 
-    res['plan'] = _finalize_plan(res, plans, input_file_name).to_dict('split')
+    res['plan'] = _finalize_plan(res, plans, input_file_name).to_dict('records')
     return res

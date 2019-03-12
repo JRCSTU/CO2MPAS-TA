@@ -156,7 +156,7 @@ def identify_clutch_window(
         model = calibrate_clutch_prediction_model(
             times, clutch_phases, accelerations, delta, velocities,
             gear_box_speeds_in, gears)
-        return np.float32(mae(delta , model.model(times, clutch_phases, x)))
+        return np.float32(mae(delta, model.model(times, clutch_phases, x)))
 
     dt = max_clutch_window_width
     ns = int(dt / max(np.min(np.diff(times)), 0.5)) + 1

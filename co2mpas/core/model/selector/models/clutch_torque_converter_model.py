@@ -20,7 +20,6 @@ Modules:
     co2_params
 """
 import copy
-import numpy as np
 import schedula as sh
 from ...physical.clutch_tc import dsp as _clutch_tc
 from ...physical.engine import calculate_engine_speeds_out

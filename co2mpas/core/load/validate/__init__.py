@@ -206,44 +206,36 @@ def validate_plan(
     :rtype: dict
     """
     import pandas as pd
-    plan = pd.DataFrame(**(plan or {}))
-    if not plan.empty and not engineering_mode:
+    if plan and not engineering_mode:
         msg = 'Simulation plan cannot be executed without enabling the ' \
               'engineering mode!\n' \
               'If you want to execute it, add to the batch cmd ' \
               '-D flag.engineering_mode=True'
         log.warning(msg)
-        return sh.NONE
+        return []
+    import os.path as osp
+    from .eng_mode import eng_mode_parser as eng
+    from ..excel import _parse_values as parse_key
+    from ..schema import define_data_schema as _schema
 
-    from ..excel import _parse_values
-    from .eng_mode import eng_mode_parser
-    from ..schema import define_data_schema, define_flags_schema
-    v_data = define_data_schema().validate
-    v_flag = define_flags_schema().validate
+    validated_plan, e, keys = [], {}, {'id', 'base', 'run_base'}
+    validate, add = _schema().validate, validated_plan.append
 
-    validated_plan, errors = [], {}
+    for _, d in pd.DataFrame(plan or []).iterrows():
+        d = dict(d.dropna(how='all'))
+        d['base'] = osp.abspath(d['base'])
+        i, data, p_id = {}, {}, 'plan id:{}'.format(d['id'])
 
-    for i, data in plan.iterrows():
-        inputs, inp = {}, {}
-        data.dropna(how='all', inplace=True)
-        plan_id = 'plan id:{}'.format(i[0])
-        for k, v in _parse_values(data, where='in plan'):
-            if k[0] == 'base':
-                d = sh.get_nested_dicts(inp, *k[1:-1])
-                v = _add_validated_input(d, v_data, (plan_id,) + k, v, errors)
-            elif k[0] == 'flag':
-                v = _add_validated_input({}, v_flag, (plan_id,) + k, v, errors)
-
+        for k, v in parse_key(sh.selector(set(d) - keys, d), where='in plan'):
+            k, inp = (p_id,) + k, sh.get_nested_dicts(i, *k[1:-1])
+            v = _add_validated_input(inp, validate, k, v, e)
             if v is not sh.NONE:
-                inputs[k] = v
+                sh.get_nested_dicts(data, '.'.join(k[2:-1]))[k[-1]] = v
 
-        errors = eng_mode_parser(
-            type_approval_mode, engineering_mode, soft_validation, inp, errors
-        )[1]
+        e = eng(type_approval_mode, engineering_mode, soft_validation, i, e)[1]
+        add(sh.combine_dicts({'data': data}, base=sh.selector(keys, d)))
 
-        validated_plan.append((i, inputs))
-
-    if _log_errors_msg(errors):
+    if _log_errors_msg(e):
         return sh.NONE
 
     return validated_plan

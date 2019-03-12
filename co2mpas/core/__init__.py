@@ -21,7 +21,7 @@ from .write import dsp as _write
 log = logging.getLogger(__name__)
 
 dsp = sh.BlueDispatcher(
-    name='process',
+    name='core',
     description='Processes a vehicle from the file path to the write of its'
                 ' outputs.'
 )
@@ -112,7 +112,7 @@ def parse_solution(solution):
 
 dsp.add_dispatcher(
     dsp=_report,
-    inputs=['output_data', 'vehicle_name'],
+    inputs=['output_data'],
     outputs=['report', 'summary'],
 )
 
@@ -135,8 +135,8 @@ def check_only_summary(kw):
 dsp.add_dispatcher(
     dsp=_write,
     inputs=[
-        'input_file_name', 'start_time', 'vehicle_name', 'output_folder',
-        'output_file_name', 'report', 'flag', 'type_approval_mode',
+        'input_file_name', 'input_file', 'vehicle_name', 'output_folder',
+        'output_file_name', 'report', 'flag', 'type_approval_mode', 'timestamp',
         {'only_summary': sh.SINK}
     ],
     outputs=['output_file', 'vehicle_name', 'start_time', 'timestamp',
