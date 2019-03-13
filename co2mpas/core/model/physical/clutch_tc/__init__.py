@@ -100,7 +100,7 @@ def calculate_clutch_tc_powers(
 
 # noinspection PyMissingOrEmptyDocstring
 def clutch_domain(kwargs):
-    b = not kwargs.get('has_torque_converter')
+    b = not kwargs.get('has_torque_converter', True)
     return b or kwargs.get('gear_box_type') == 'cvt'
 
 

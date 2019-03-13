@@ -649,7 +649,7 @@ def is_automatic(kwargs):
 # noinspection PyMissingOrEmptyDocstring
 def is_manual(kwargs):
     b = kwargs.get('gear_box_type') == 'manual'
-    return b and kwargs.get('cycle_type') != 'NEDC'
+    return b and kwargs.get('cycle_type', 'NEDC') != 'NEDC'
 
 
 # noinspection PyMissingOrEmptyDocstring
@@ -659,7 +659,7 @@ def is_cvt(kwargs):
 
 # noinspection PyMissingOrEmptyDocstring
 def not_cvt(kwargs):
-    return kwargs.get('gear_box_type') != 'cvt'
+    return kwargs.get('gear_box_type', 'cvt') != 'cvt'
 
 
 dsp.add_dispatcher(
