@@ -4,9 +4,20 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-
 """
-It contains functions to read inputs from excel.
+Functions and a model `dsp` to load data from a CO2MPAS input file.
+
+Sub-Modules:
+
+.. currentmodule:: co2mpas.core.load
+
+.. autosummary::
+    :nosignatures:
+    :toctree: load/
+
+    excel
+    schema
+    validate
 """
 import io
 import logging

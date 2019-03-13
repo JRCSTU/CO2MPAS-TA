@@ -5,19 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains functions to compare/select the CO2MPAS calibrated models.
-
-Docstrings should provide sufficient understanding for any individual function.
-
-Modules:
-
-.. currentmodule:: co2mpas.model.selector
-
-.. autosummary::
-    :nosignatures:
-    :toctree: selector/
-
-    co2_params
+Functions and constants to define the start_stop_model selector.
 """
 import schedula as sh
 import sklearn.metrics as sk_met

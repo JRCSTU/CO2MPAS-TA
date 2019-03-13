@@ -6,19 +6,18 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It provides constants for the WLTP cycle.
+Functions and a model `dsp` to define theoretical profiles of WLTP cycle.
 
 Sub-Modules:
 
-.. currentmodule:: co2mpas.base.model.physical.cycle.WLTP
+.. currentmodule:: co2mpas.core.model.physical.cycle.WLTP
 
 .. autosummary::
     :nosignatures:
-    :toctree: velocities/
+    :toctree: vel/
 
-    velocities
+    vel
 """
-
 import logging
 import copy
 import schedula as sh

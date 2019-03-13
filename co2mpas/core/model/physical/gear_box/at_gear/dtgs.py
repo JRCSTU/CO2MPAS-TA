@@ -5,7 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains functions to predict the A/T gear shifting.
+Functions and a model `dsp` to model the DT Approach.
 """
 import numpy as np
 import schedula as sh
@@ -14,9 +14,7 @@ import sklearn.pipeline as sk_pip
 from .cmv import CMV
 from .core import prediction_gears_gsm
 
-dsp = sh.BlueDispatcher(
-    name='Decision Tree with Velocity, Acceleration, Temperature, & Power'
-)
+dsp = sh.BlueDispatcher(name='Decision Tree Approach')
 
 
 # noinspection PyMissingOrEmptyDocstring,PyCallByClass,PyUnusedLocal

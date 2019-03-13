@@ -6,14 +6,13 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It provides the CO2MPAS validation formulas.
+It provides functions to perform the hard validation.
 """
 import schema
 import logging
 import functools
 import numpy as np
 import schedula as sh
-import co2mpas.utils as co2_utl
 from ...model.physical.defaults import dfl as ph_dfl
 
 log = logging.getLogger(__name__)
@@ -36,6 +35,7 @@ def check_sign_currents(battery_currents, alternator_currents):
     :rtype: (bool, bool)
     """
     #: Maximum allowed positive current for the alternator currents check [A].
+    import co2mpas.utils as co2_utl
     max_pos_curr = 1.0
     b_c, a_c = battery_currents, alternator_currents
 

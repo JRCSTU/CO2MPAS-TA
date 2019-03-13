@@ -5,19 +5,17 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains functions to compare/select the CO2MPAS calibrated models.
+Functions and a model `dsp` to compare/select the calibrated models.
 
-Docstrings should provide sufficient understanding for any individual function.
+Sub-Modules:
 
-Modules:
-
-.. currentmodule:: co2mpas.model.selector
+.. currentmodule:: co2mpas.core.model.selector
 
 .. autosummary::
     :nosignatures:
     :toctree: selector/
 
-    co2_params
+    models
 """
 import pkgutil
 import functools

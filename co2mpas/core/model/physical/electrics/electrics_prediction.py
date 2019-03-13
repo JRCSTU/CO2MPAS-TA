@@ -6,7 +6,7 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 """
-It contains functions to predict the electrics of the vehicle.
+Functions and a model `dsp` to model the instantaneous electrics of the vehicle.
 """
 
 import schedula as sh

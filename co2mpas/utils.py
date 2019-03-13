@@ -7,9 +7,6 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
 It contains classes and functions of general utility.
-
-These are python-specific utilities and hacks - general data-processing or
-numerical operations.
 """
 
 import yaml

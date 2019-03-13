@@ -5,11 +5,11 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains functions that model the basic mechanics of the engine.
+Functions and a model `dsp` to model the engine.
 
 Sub-Modules:
 
-.. currentmodule:: co2mpas.model.physical.engine
+.. currentmodule:: co2mpas.core.model.physical.engine
 
 .. autosummary::
     :nosignatures:
@@ -21,7 +21,6 @@ Sub-Modules:
     start_stop
     thermal
 """
-
 import math
 import functools
 import numpy as np

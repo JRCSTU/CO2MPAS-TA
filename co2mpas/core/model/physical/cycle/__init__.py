@@ -5,13 +5,12 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-
 """
-It provides the model to calculate theoretical times, velocities, and gears.
+Functions and a model `dsp` to define theoretical times, velocities, and gears.
 
 Sub-Modules:
 
-.. currentmodule:: co2mpas.model.physical.cycle
+.. currentmodule:: co2mpas.core.model.physical.cycle
 
 .. autosummary::
     :nosignatures:
@@ -21,7 +20,6 @@ Sub-Modules:
     WLTP
 
 """
-
 import schedula as sh
 import numpy as np
 from ..defaults import dfl

@@ -5,7 +5,22 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains functions to predict the A/T gear shifting.
+Functions and a model `dsp` to model the A/T gear shifting.
+
+Sub-Modules:
+
+.. currentmodule:: co2mpas.core.model.physical.gear_box.at_gear
+
+.. autosummary::
+    :nosignatures:
+    :toctree: at_gear/
+
+    cmv
+    cmv_ch
+    core
+    dtgs
+    gspv
+    gspv_ch
 """
 
 import copy

@@ -5,11 +5,11 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains functions that model the electrics of the vehicle.
+Functions and a model `dsp` to model the electrics of the vehicle.
 
 Sub-Modules:
 
-.. currentmodule:: co2mpas.model.physical.electrics
+.. currentmodule:: co2mpas.core.model.physical.electrics
 
 .. autosummary::
     :nosignatures:

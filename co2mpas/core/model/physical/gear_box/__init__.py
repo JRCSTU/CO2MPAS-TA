@@ -5,20 +5,21 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains functions that model the basic mechanics of the gear box.
+Functions and a model `dsp` to model the gear box.
 
 Sub-Modules:
 
-.. currentmodule:: co2mpas.model.physical.gear_box
+.. currentmodule:: co2mpas.core.model.physical.gear_box
 
 .. autosummary::
     :nosignatures:
     :toctree: gear_box/
 
-    thermal
     at_gear
+    manual
     cvt
     mechanical
+    thermal
 """
 
 import math

@@ -5,11 +5,11 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It provides CO2MPAS architecture model.
+It provides CO2MPAS architecture model `dsp`.
 
-It contains a comprehensive list of all CO2MPAS software models and sub-models:
+Sub-Modules:
 
-.. currentmodule:: co2mpas.base.model
+.. currentmodule:: co2mpas.core.model
 
 .. autosummary::
     :nosignatures:

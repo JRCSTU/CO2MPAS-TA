@@ -5,13 +5,13 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It provides CO2MPAS model to predict light-vehicles' CO2 emissions.
+It provides CO2MPAS model `dsp` to predict light-vehicles' CO2 emissions.
 
 Docstrings should provide sufficient understanding for any individual function.
 
-Modules:
+Sub-Modules:
 
-.. currentmodule:: co2mpas.model.physical
+.. currentmodule:: co2mpas.core.model.physical
 
 .. autosummary::
     :nosignatures:

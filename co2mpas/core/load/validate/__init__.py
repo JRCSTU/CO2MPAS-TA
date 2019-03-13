@@ -6,7 +6,17 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It provides the CO2MPAS validation formulas.
+It provides validation functions and the validation model `dsp`.
+
+Sub-Modules:
+
+.. currentmodule:: co2mpas.core.load.validate
+
+.. autosummary::
+    :nosignatures:
+    :toctree: validate/
+
+    hard
 """
 import schema
 import logging

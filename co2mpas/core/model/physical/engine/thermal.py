@@ -5,9 +5,8 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains functions that model the engine coolant temperature.
+Functions and a model `dsp` to model the engine coolant temperature.
 """
-
 import itertools
 import numpy as np
 import schedula as sh

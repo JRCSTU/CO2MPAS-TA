@@ -5,9 +5,8 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains reporting functions for output results.
+Functions and a model `dsp` to produce output report and summary.
 """
-
 import functools
 import collections
 import numpy as np

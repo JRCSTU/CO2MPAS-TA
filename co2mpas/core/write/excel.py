@@ -5,9 +5,8 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains functions to read/write inputs/outputs from/on excel.
+Functions to write outputs on an excel file.
 """
-
 import regex
 import logging
 import itertools

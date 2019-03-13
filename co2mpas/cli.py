@@ -49,95 +49,113 @@ def cli():
     """
 
 
-@cli.command('template', short_help='Generates sample template file.')
+@cli.command('template', short_help='Generates input template file.')
 @click.argument(
     'output-file', default='template.xlsx', required=False,
     type=click.Path(writable=True)
 )
 def template(output_file='template.xlsx'):
     """
-    Writes a CO2MPAS input template OUTPUT_FILE.
+    Writes a CO2MPAS input template into OUTPUT_FILE.
 
-    OUTPUT_FILE: CO2MPAS input template file (.xlsx). [default: ./template.xlsx]
+    OUTPUT_FILE: File path `.xlsx`. [default: ./template.xlsx]
     """
     return _process({'output_file': output_file}, ['template', 'done'])
 
 
-@cli.command('demo', short_help='Generates sample demo file.')
+@cli.command('demo', short_help='Generates sample demo files.')
 @click.argument(
     'output-folder', default='./inputs', required=False,
     type=click.Path(writable=True, file_okay=False)
 )
 def demo(output_folder):
     """
-    Writes a CO2MPAS input template OUTPUT_FILE.
-
-    OUTPUT_FILE: CO2MPAS input template file (.xlsx). [default: ./template.xlsx]
+    Writes a CO2MPAS demo files into OUTPUT_FOLDER.
     """
     return _process({'output_folder': output_folder}, ['demo', 'done'])
 
 
-@cli.command('conf', short_help='Generates sample template file.')
+@cli.command('conf', short_help='Generates CO2MPAS model-configuration file.')
 @click.argument(
-    'output-file', default='conf.yaml', required=False,
+    'output-file', default='./conf.yaml', required=False,
     type=click.Path(writable=True)
 )
-@click.option('-MC', '--model-conf', type=click.Path(exists=True))
-def conf(output_file='conf.yaml', **kwargs):
+@click.option(
+    '-MC', '--model-conf', type=click.Path(exists=True),
+    help='Model-configuration file path `.yaml`.'
+)
+def conf(output_file, **kwargs):
     """
-    Writes a CO2MPAS input template OUTPUT_FILE.
+    Writes a CO2MPAS model-configuration file into OUTPUT_FILE.
 
-    OUTPUT_FILE: CO2MPAS input template file (.xlsx). [default: ./template.xlsx]
+    OUTPUT_FILE: File path `.yaml`. [default: ./conf.yaml]
     """
     inputs = {sh.START: kwargs, 'output_file': output_file}
     return _process(inputs, ['conf', 'done'])
 
 
-@cli.command('plot', short_help='Generates sample template file.')
+@cli.command('plot', short_help='Plots the CO2MPAS model.')
 @click.option(
     '-O', '--cache-folder', help='Folder to save temporary html files.',
     default='./cache_plot', type=click.Path(file_okay=False, writable=True)
 )
-def plot(cache_folder='./cache_plot'):
+def plot(cache_folder):
     """
-    Plots the full CO2MPAS model.
+    Plots the full CO2MPAS model into CACHE_FOLDER.
     """
     return _process({'cache_folder': cache_folder}, ['plot', 'done'])
 
 
-@cli.command('run', short_help='')
+@cli.command('run', short_help='Run CO2MPAS model.')
 @click.argument('input-files', nargs=-1, type=click.Path(exists=True))
 @click.option(
     '-O', '--output-folder', help='Output folder.', default='./outputs',
     type=click.Path(file_okay=False, writable=True)
 )
 @click.option(
-    '-OT', '--output-template', help='Template output.',
-    type=click.Path(exists=True)
-)
-@click.option(
     '-EK', '--encryption-keys', help='Encryption keys for TA mode.',
     default='./DICE_KEYS/dice.co2mpas.keys', type=click.Path()
 )
-@click.option('-MC', '--model-conf', type=click.Path(exists=True))
 @click.option(
     '-SK', '--sign-key', help='User signature key for TA mode.',
     default='./DICE_KEYS/sign.co2mpas.key', type=click.Path()
 )
-@click.option('-OS', '--only-summary', is_flag=True)
-@click.option('-HV', '--hard-validation', is_flag=True)
-@click.option('-DM', '--declaration-mode', is_flag=True)
-@click.option('-ES', '--enable-selector', is_flag=True)
-@click.option('-TA', '--type-approval-mode', is_flag=True)
-@click.option('-PL', '--plot-workflow', is_flag=True)
+@click.option(
+    '-OT', '--output-template', help='Template output.',
+    type=click.Path(exists=True)
+)
+@click.option(
+    '-MC', '--model-conf', type=click.Path(exists=True),
+    help='Model-configuration file path `.yaml`.'
+)
+@click.option(
+    '-OS', '--only-summary', is_flag=True,
+    help='Do not save vehicle outputs, just the summary.'
+)
+@click.option(
+    '-HV', '--hard-validation', is_flag=True, help='Add extra data validations.'
+)
+@click.option(
+    '-DM', '--declaration-mode', is_flag=True,
+    help='Use only the declaration data.'
+)
+@click.option(
+    '-ES', '--enable-selector', is_flag=True,
+    help='Enable the selection of the best model to predict both H/L cycles.'
+)
+@click.option(
+    '-TA', '--type-approval-mode', is_flag=True, help='Is launched for TA?'
+)
+@click.option(
+    '-PL', '--plot-workflow', is_flag=True,
+    help='Open workflow-plot in browser, after run finished.'
+)
 def run(input_files, **kwargs):
     """
-    Synchronise and re-sample data-sets defined in INPUT_FILE and writes shifts
-    and synchronized data into the OUTPUT_FILE.
+    Run CO2MPAS for all files into INPUT_FILES.
 
-    INPUT_FILE: Data-sets input file (format: .xlsx, .json).
-
-    OUTPUT_FILE: output file (format: .xlsx, .json).
+    INPUT_FILES: List of input files and/or folders
+                 (format: .xlsx, .dill, .co2mpas.ta).
     """
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
     inputs = {'cmd_flags': kwargs, 'input_files': input_files, sh.START: kwargs}

@@ -6,8 +6,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains functions and a model `dsp` to calculate the WLTP theoretical
-velocities.
+Functions and a model `dsp` to calculate the WLTP theoretical velocities.
 """
 import schedula as sh
 from ...defaults import dfl

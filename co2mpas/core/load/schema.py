@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 
 
 # noinspection PyMissingOrEmptyDocstring
-class Empty(object):
+class Empty:
     def __repr__(self):
         return '%s' % self.__class__.__name__
 

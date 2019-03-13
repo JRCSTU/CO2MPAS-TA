@@ -5,12 +5,11 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains functions that model the basic mechanics of the clutch and torque
-converter.
+Functions and a model `dsp` to model clutch and torque converter.
 
 Sub-Modules:
 
-.. currentmodule:: co2mpas.base.model.physical.clutch_tc
+.. currentmodule:: co2mpas.core.model.physical.clutch_tc
 
 .. autosummary::
     :nosignatures:
@@ -19,7 +18,6 @@ Sub-Modules:
     clutch
     torque_converter
 """
-
 import schedula as sh
 from .clutch import dsp as _clutch
 from .torque_converter import dsp as _torque_converter

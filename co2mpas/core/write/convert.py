@@ -5,14 +5,13 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains functions to read/write inputs/outputs from/on excel.
+Functions to convert CO2MPAS output report to DataFrames.
 """
 import regex
 import functools
 import itertools
 import collections
 import schedula as sh
-
 
 _re_units = regex.compile(r'(\[.*\])')
 

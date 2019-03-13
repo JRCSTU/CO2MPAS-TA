@@ -5,7 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-"Vehicle simulator predicting NEDC CO2 emissions from WLTP time-series.
+Defines the file processing chain model `dsp`.
 
 .. currentmodule:: co2mpas
 
@@ -13,14 +13,9 @@
     :nosignatures:
     :toctree: _build/co2mpas/
 
-    ~model
-    ~io
-    ~batch
-    ~datasync
-    ~plot
-    ~plan
+    ~core
+    ~cli
     ~utils
-    ~report
 """
 import tqdm
 import logging
@@ -48,7 +43,7 @@ def init_conf(inputs):
     :rtype: dict | schedula.Token
     """
     if inputs is not sh.NONE and inputs.get('model_conf'):
-        from .conf import dfl
+        from .core.model.physical.defaults import dfl
         dfl.load(inputs['model_conf'])
     return inputs
 
@@ -87,7 +82,7 @@ def save_co2mpas_template(output_file):
     copy2(src, output_file)
 
 
-@sh.add_function(dsp, outputs=['modelconf'])
+@sh.add_function(dsp, outputs=['conf'])
 def save_co2mpas_conf(output_file):
     """
     Save CO2MPAS model configurations.
@@ -96,7 +91,7 @@ def save_co2mpas_conf(output_file):
         Output file.
     :type output_file: str
     """
-    from .conf import dfl
+    from .core.model.physical.defaults import dfl
     dfl.dump(output_file)
 
 
@@ -203,7 +198,7 @@ def run_core(core_model, cmd_flags, timestamp, input_files, **kwargs):
     :type timestamp: str
 
     :param input_files:
-        List of input flies and/or folder.
+        List of input files and/or folders.
     :type input_files: iterable
 
     :return:

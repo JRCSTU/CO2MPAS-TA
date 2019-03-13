@@ -5,19 +5,25 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains functions to compare/select the CO2MPAS calibrated models.
+Functions to compare/select the calibrated models.
 
-Docstrings should provide sufficient understanding for any individual function.
+Sub-Modules:
 
-Modules:
-
-.. currentmodule:: co2mpas.model.selector
+.. currentmodule:: co2mpas.core.model.selector.models
 
 .. autosummary::
     :nosignatures:
-    :toctree: selector/
+    :toctree: models/
 
+    _core
+    alternator_model
+    at_model
+    clutch_torque_converter_model
     co2_params
+    engine_cold_start_speed_model
+    engine_coolant_temperature_model
+    engine_speed_model
+    start_stop_model
 """
 import logging
 import functools

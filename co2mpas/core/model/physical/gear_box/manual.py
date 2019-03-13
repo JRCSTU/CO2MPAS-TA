@@ -5,9 +5,8 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains functions to predict the manual gear shifting.
+Functions and a model `dsp` to model the manual gear shifting.
 """
-
 import collections
 import numpy as np
 import schedula as sh

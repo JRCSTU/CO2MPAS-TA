@@ -5,9 +5,8 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains models to compare/select the calibrated co2_params.
+Functions and constants to define the co2_params selector.
 """
-
 import schedula as sh
 from co2mpas.utils import mae
 from ._core import define_sub_model

@@ -5,10 +5,21 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains functions and a model `dsp` to processes a vehicle from the file
-path to the write of its outputs.
-"""
+Functions and a model `dsp` to processes a CO2MPAS input file.
 
+Sub-Modules:
+
+.. currentmodule:: co2mpas.core
+
+.. autosummary::
+    :nosignatures:
+    :toctree: core/
+
+    load
+    model
+    report
+    write
+"""
 import logging
 import schedula as sh
 import os.path as osp
@@ -22,8 +33,7 @@ log = logging.getLogger(__name__)
 
 dsp = sh.BlueDispatcher(
     name='core',
-    description='Processes a vehicle from the file path to the write of its'
-                ' outputs.'
+    description='Processes a CO2MPAS input file.'
 )
 _cmd_flags = [
     'only_summary', 'hard_validation', 'declaration_mode', 'enable_selector',

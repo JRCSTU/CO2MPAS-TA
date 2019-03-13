@@ -4,11 +4,9 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-
 """
-It contains functions that model the basic mechanics of the vehicle.
+Functions and a model `dsp` to model the mechanic of the vehicle.
 """
-
 import schedula as sh
 from .defaults import dfl
 

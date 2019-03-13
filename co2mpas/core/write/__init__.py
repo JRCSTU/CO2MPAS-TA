@@ -5,7 +5,18 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-It contains functions to read/write inputs/outputs from/on excel.
+Functions and a model `dsp` to write CO2MPAS output data.
+
+Sub-Modules:
+
+.. currentmodule:: co2mpas.core.write
+
+.. autosummary::
+    :nosignatures:
+    :toctree: write/
+
+    convert
+    excel
 """
 import logging
 import os.path as osp

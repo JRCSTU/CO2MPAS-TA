@@ -5,11 +5,9 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-
 """
-It provides constants for the CO2MPAS formulas.
+Constants for the CO2MPAS physical model.
 """
-
 import collections
 import numpy as np
 import co2mpas.utils as co2_utl
