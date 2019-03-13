@@ -63,6 +63,20 @@ def template(output_file='template.xlsx'):
     return _process({'output_file': output_file}, ['template', 'done'])
 
 
+@cli.command('demo', short_help='Generates sample demo file.')
+@click.argument(
+    'output-folder', default='./inputs', required=False,
+    type=click.Path(writable=True, file_okay=False)
+)
+def demo(output_folder):
+    """
+    Writes a CO2MPAS input template OUTPUT_FILE.
+
+    OUTPUT_FILE: CO2MPAS input template file (.xlsx). [default: ./template.xlsx]
+    """
+    return _process({'output_folder': output_folder}, ['demo', 'done'])
+
+
 @cli.command('conf', short_help='Generates sample template file.')
 @click.argument(
     'output-file', default='conf.yaml', required=False,
@@ -81,7 +95,7 @@ def conf(output_file='conf.yaml', **kwargs):
 
 @cli.command('plot', short_help='Generates sample template file.')
 @click.option(
-    '-C', '--cache-folder', help='Folder to save temporary html files.',
+    '-O', '--cache-folder', help='Folder to save temporary html files.',
     default='./cache_plot', type=click.Path(file_okay=False, writable=True)
 )
 def plot(cache_folder='./cache_plot'):
@@ -98,16 +112,16 @@ def plot(cache_folder='./cache_plot'):
     type=click.Path(file_okay=False, writable=True)
 )
 @click.option(
-    '-T', '--output-template', help='Template output.',
+    '-OT', '--output-template', help='Template output.',
     type=click.Path(exists=True)
 )
 @click.option(
-    '-K', '--encryption-keys', help='Encryption keys for TA mode.',
+    '-EK', '--encryption-keys', help='Encryption keys for TA mode.',
     default='./DICE_KEYS/dice.co2mpas.keys', type=click.Path()
 )
 @click.option('-MC', '--model-conf', type=click.Path(exists=True))
 @click.option(
-    '-S', '--sign-key', help='User signature key for TA mode.',
+    '-SK', '--sign-key', help='User signature key for TA mode.',
     default='./DICE_KEYS/sign.co2mpas.key', type=click.Path()
 )
 @click.option('-OS', '--only-summary', is_flag=True)
@@ -127,7 +141,7 @@ def run(input_files, **kwargs):
     """
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
     inputs = {'cmd_flags': kwargs, 'input_files': input_files, sh.START: kwargs}
-    return _process(inputs, ['plot', 'done', 'run']).plot(sites=set())
+    return _process(inputs, ['plot', 'done', 'run'])
 
 
 if __name__ == '__main__':

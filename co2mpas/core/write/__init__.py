@@ -78,22 +78,6 @@ def default_timestamp(start_time):
     return start_time.strftime('%Y%m%d_%H%M%S')
 
 
-@sh.add_function(dsp, outputs=['vehicle_name'])
-def default_vehicle_name(input_file_name):
-    """
-    Returns the vehicle name.
-
-    :param input_file_name:
-        File path.
-    :type input_file_name: str
-
-    :return:
-        Vehicle name.
-    :rtype: str
-    """
-    return osp.splitext(osp.basename(input_file_name))[0]
-
-
 def default_output_file_name(
         output_folder, vehicle_name, timestamp, ext='xlsx'):
     """

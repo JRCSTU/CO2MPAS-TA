@@ -132,6 +132,22 @@ def check_only_summary(kw):
     return not kw.get('only_summary', True)
 
 
+@sh.add_function(dsp, outputs=['vehicle_name'])
+def default_vehicle_name(input_file_name):
+    """
+    Returns the vehicle name.
+
+    :param input_file_name:
+        File path.
+    :type input_file_name: str
+
+    :return:
+        Vehicle name.
+    :rtype: str
+    """
+    return osp.splitext(osp.basename(input_file_name))[0]
+
+
 dsp.add_dispatcher(
     dsp=_write,
     inputs=[
@@ -139,8 +155,8 @@ dsp.add_dispatcher(
         'output_file_name', 'report', 'flag', 'type_approval_mode', 'timestamp',
         {'only_summary': sh.SINK}
     ],
-    outputs=['output_file', 'vehicle_name', 'start_time', 'timestamp',
-             'output_file_name', sh.SINK],
+    outputs=['output_file', 'start_time', 'timestamp', 'output_file_name',
+             sh.SINK],
     input_domain=check_only_summary
 )
 

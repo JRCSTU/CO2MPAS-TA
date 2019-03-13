@@ -55,6 +55,22 @@ def init_conf(inputs):
 dsp.add_data(sh.START, filters=[init_conf, lambda x: sh.NONE])
 
 
+@sh.add_function(dsp, outputs=['demo'])
+def save_demo_files(output_folder):
+    """
+    Save CO2MPAS demo files.
+
+    :param output_folder:
+        Output folder.
+    :type output_folder: str
+    """
+    import glob
+    from shutil import copy2
+    from pkg_resources import resource_filename
+    for src in glob.glob(resource_filename('co2mpas', 'demo/*.xlsx')):
+        copy2(src, osp.join(output_folder, osp.basename(src)))
+
+
 @sh.add_function(dsp, outputs=['template'])
 def save_co2mpas_template(output_file):
     """
@@ -147,9 +163,9 @@ def _yield_files(*paths, cache=None):
 
 class _ProgressBar(tqdm.tqdm):
     def __init__(self, *args, _format_meter=None, **kwargs):
-        super(_ProgressBar, self).__init__(*args, **kwargs)
         if _format_meter:
             self._format_meter = _format_meter
+        super(_ProgressBar, self).__init__(*args, **kwargs)
 
     @staticmethod
     def _format_meter(bar, data):
@@ -208,6 +224,45 @@ def _define_inputs(sol, inputs):
     return sh.combine_dicts({k: sol[k] for k in keys}, inputs)
 
 
+def _format_meter(bar, row):
+    return '%s: Processing %s (%s)\n' % (bar, row['id'], row['base'])
+
+
+def _run_variations(plan, bases, core_model, timestamp):
+    for r in _ProgressBar(plan, _format_meter=_format_meter):
+        sol, data = bases[r['base']], r['data']
+        if 'solution' in sol:
+            s = sol['solution']
+            base = _define_inputs(s, sh.combine_nested_dicts(sh.selector(
+                data, s, allow_miss=True
+            ), data))
+        else:
+            base = sh.combine_nested_dicts(sol['base'], data, depth=2)
+
+        for i, d in base.items():
+            if hasattr(d, 'items'):
+                base[i] = {k: v for k, v in d.items() if v is not sh.EMPTY}
+
+        sol = core_model(_define_inputs(sol, dict(
+            base=base,
+            vehicle_name='-'.join((r['id'], sol['vehicle_name'])),
+            timestamp=timestamp
+        )))
+
+        summary, keys = {}, {
+            tuple(k.split('.')[:0:-1]) for k in base if k.startswith('output.')
+        }
+        for k, v in data.items():
+            k = ('plan %s' % k).split('.')[::-1]
+            sh.get_nested_dicts(summary, *k).update(v)
+
+        for k, v in sh.stack_nested_keys(sol['summary'], depth=3):
+            if k[:-1] not in keys:
+                sh.get_nested_dicts(summary, *k).update(v)
+        sol['summary'] = summary
+        yield sol
+
+
 @sh.add_function(dsp, outputs=['solutions'])
 def run_plan(core_solutions, core_model, cmd_flags, timestamp):
     """
@@ -234,42 +289,18 @@ def run_plan(core_solutions, core_model, cmd_flags, timestamp):
     :rtype: list[schedula.Solution]
     """
     bases = core_solutions.copy()
-    # Merge plans.
-    plan = sum((sol['plan'] for sol in bases.values()), [])
+    plan = sum((sol['plan'] for sol in bases.values()), [])  # Merge plans.
     # Run base.
-    files = {r['base'] for r in plan if r['run_base']} - set(bases)
-    bases.update(run_core(core_model, cmd_flags, timestamp, files))
+    fp = {r['base'] for r in plan if r['run_base']} - set(bases)
+    bases.update(run_core(core_model, cmd_flags, timestamp, fp))
     solutions = list(bases.values())
-
     # Load inputs.
-    files = {r['base'] for r in plan if not r['run_base']} - set(bases) - files
-    bases.update(
-        run_core(core_model, cmd_flags, timestamp, files, outputs=['base'])
-    )
-
-    def _format_meter(bar, row):
-        return '%s: Processing %s (%s)\n' % (bar, row['id'], row['base'])
-
-    for r in _ProgressBar(plan, _format_meter=_format_meter):
-        sol, data = bases[r['base']], r['data']
-        if 'solution' in sol:
-            s = sol['solution']
-            base = _define_inputs(s, sh.combine_nested_dicts(sh.selector(
-                data, s, allow_miss=True
-            ), data))
-        else:
-            base = sh.combine_nested_dicts(sol['base'], r['data'], depth=2)
-
-        for i, d in base.items():
-            if hasattr(d, 'items'):
-                base[i] = {k: v for k, v in d.items() if v is not sh.EMPTY}
-
-        solutions.append(core_model(_define_inputs(sol, dict(
-            base=base,
-            vehicle_name='-'.join((r['id'], sol['vehicle_name'])),
-            timestamp=timestamp
-        ))))
-
+    fp = {r['base'] for r in plan if not r['run_base']} - set(bases) - fp
+    bases.update(run_core(
+        core_model, cmd_flags, timestamp, fp, outputs=['base', 'vehicle_name']
+    ))
+    if plan:
+        solutions.extend(_run_variations(plan, bases, core_model, timestamp))
     return solutions
 
 
@@ -287,7 +318,7 @@ def get_summary(solutions):
     :rtype: list
     """
     return [sh.combine_dicts(
-        dict(sh.stack_nested_keys(sol.get('summary', {}))), base={
+        dict(sh.stack_nested_keys(sol.get('summary', {}), depth=4)), base={
             'id': sol['vehicle_name'],
             'base': sol['input_file_name']
         }
@@ -334,10 +365,14 @@ def save_summary(summary, output_summary_file, start_time):
     """
     import pandas as pd
     # noinspection PyProtectedMember
-    from .core.write.convert import _co2mpas_info2df
+    from .core.write.convert import _co2mpas_info2df, _add_units, _sort_key
     df = pd.DataFrame(summary)
     df.set_index(['id', 'base'], inplace=True)
-    df.columns = pd.MultiIndex.from_tuples(df.columns)
+    df = df.reindex(columns=sorted(
+        df.columns,
+        key=lambda x: _sort_key(x, p_keys=('cycle', 'stage', 'usage', 'param'))
+    ))
+    df.columns = pd.MultiIndex.from_tuples(_add_units(df.columns))
 
     with pd.ExcelWriter(output_summary_file) as writer:
         df.to_excel(writer, 'summary')
