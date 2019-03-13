@@ -12,7 +12,6 @@ import functools
 import collections
 import numpy as np
 import schedula as sh
-import co2mpas.utils as co2_utl
 
 dsp = sh.BlueDispatcher(
     name='make_report',
@@ -70,7 +69,7 @@ def _re_sample_targets(data):
                     for i, fp in time_series.items():
                         time_series[i] = np.interp(x, xp, fp)
             v = sh.combine_dicts(*t.values())
-            sh.get_nested_dicts(res, *k, default=co2_utl.ret_v(v))
+            sh.get_nested_dicts(res, *k[:-1])[k[-1]] = v
 
     return res
 
@@ -133,7 +132,7 @@ def _compare_outputs_vs_targets(data):
         o = sh.get_nested_dicts(data, 'output', *k)
         v = _compare(t, o, metrics=metrics)
         if v:
-            sh.get_nested_dicts(res, *k, default=co2_utl.ret_v(v))
+            sh.get_nested_dicts(res, *k[:-1])[k[-1]] = v
 
     return res
 
@@ -149,8 +148,7 @@ def _get_values(data, keys, tag=(), update=lambda k, v: v, base=None):
         v = update(k, v)
 
         if v:
-            k = tag + k
-            sh.get_nested_dicts(base, *k, default=co2_utl.ret_v(v))
+            sh.get_nested_dicts(base, *tag, *k[:-1])[k[-1]] = v
 
     return base
 
@@ -245,7 +243,7 @@ def _format_report_output(data):
     output = {}
     for k, v in sh.stack_nested_keys(res, depth=2):
         v = _split_by_data_format(v)
-        sh.get_nested_dicts(output, *k, default=co2_utl.ret_v(v))
+        sh.get_nested_dicts(output, *k[:-1])[k[-1]] = v
 
     return output
 
@@ -258,7 +256,7 @@ def _format_scores(scores):
             extra_field = ('score',) if k[-1] == 'errors' else ()
             for i, v in sh.stack_nested_keys(j):
                 i = (model_id, i[-1], k[1],) + i[:-1] + extra_field
-                sh.get_nested_dicts(res, *i, default=co2_utl.ret_v(v))
+                sh.get_nested_dicts(res, *i[:-1])[i[-1]] = v
     sco = {}
     for k, v in sorted(sh.stack_nested_keys(res, depth=4)):
         v.update(sh.map_list(['model_id', 'param_id'], *k[:2]))
@@ -273,22 +271,22 @@ def _format_report_scores(data):
         n = scores + ('param_selections',)
         v = _format_selection(sh.get_nested_dicts(data, *n), 2, 'param_id')
         if v:
-            sh.get_nested_dicts(res, *n, default=co2_utl.ret_v(v))
+            sh.get_nested_dicts(res, *n[:-1])[n[-1]] = v
 
         n = scores + ('model_selections',)
         v = _format_selection(sh.get_nested_dicts(data, *n), 3)
         if v:
-            sh.get_nested_dicts(res, *n, default=co2_utl.ret_v(v))
+            sh.get_nested_dicts(res, *n[:-1])[n[-1]] = v
 
         n = scores + ('score_by_model',)
         v = _format_selection(sh.get_nested_dicts(data, *n), 2)
         if v:
-            sh.get_nested_dicts(res, *n, default=co2_utl.ret_v(v))
+            sh.get_nested_dicts(res, *n[:-1])[n[-1]] = v
 
         n = scores + ('scores',)
         v = _format_scores(sh.get_nested_dicts(data, *n))
         if v:
-            sh.get_nested_dicts(res, *n, default=co2_utl.ret_v(v))
+            sh.get_nested_dicts(res, *n[:-1])[n[-1]] = v
 
     return res
 

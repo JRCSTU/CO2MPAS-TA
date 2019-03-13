@@ -254,22 +254,6 @@ def reject_outliers(x, n=1, med=np.median, std=np.std):
     return m, s
 
 
-def ret_v(v):
-    """
-    Returns a function that return the argument v.
-
-    :param v:
-        Object to be returned.
-    :type v: object
-
-    :return:
-        Function that return the argument v.
-    :rtype: callable
-    """
-
-    return lambda: v
-
-
 def clear_fluctuations(times, gears, dt_window):
     """
     Clears the gear identification fluctuations.

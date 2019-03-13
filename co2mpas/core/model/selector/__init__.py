@@ -20,10 +20,9 @@ Modules:
     co2_params
 """
 import pkgutil
-import schedula as sh
 import functools
+import schedula as sh
 import os.path as osp
-import co2mpas.utils as co2_utl
 from .models import mdl_selector, calibration_cycles, prediction_cycles
 
 dsp = sh.BlueDispatcher(
@@ -109,7 +108,7 @@ def split_prediction_models(scores, models, default_models):
             sh.get_nested_dicts(par, m, 'calibration')[c] = c
 
         r.update(v.get('score', {}))
-        sh.get_nested_dicts(sbm, k, c, default=co2_utl.ret_v(r))
+        sh.get_nested_dicts(sbm, k)[c] = r
         r = sh.selector(['success'], r, allow_miss=True)
         r = sh.map_dict({'success': 'status'}, r, {'from': c})
         sh.get_nested_dicts(model_sel, k, 'calibration')[c] = r
@@ -130,7 +129,7 @@ def split_prediction_models(scores, models, default_models):
                 p[i].update(dict.fromkeys(m, c))
 
     for k, v in sh.stack_nested_keys(p, ('prediction',), depth=2):
-        sh.get_nested_dicts(par, k[-1], *k[:-1], default=co2_utl.ret_v(v))
+        sh.get_nested_dicts(par, k[-1], *k[:-2])[k[-2]] = v
 
     s = {
         'param_selections': par,
