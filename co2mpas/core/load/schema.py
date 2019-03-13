@@ -712,9 +712,9 @@ def define_flags_schema(read=True):
         _compare_str('encryption_keys'): string,
         _compare_str('sign_key'): string,
 
-        _compare_str('soft_validation'): _bool,
+        _compare_str('hard_validation'): _bool,
         _compare_str('enable_selector'): _bool,
-        _compare_str('engineering_mode'): _bool,
+        _compare_str('declaration_mode'): _bool,
         _compare_str('only_summary'): _bool,
         _compare_str('plot_workflow'): _bool,
         _compare_str('type_approval_mode'): _bool,

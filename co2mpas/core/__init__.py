@@ -12,7 +12,7 @@ path to the write of its outputs.
 import logging
 import schedula as sh
 import os.path as osp
-from co2mpas.utils import check_first_arg, ret_v
+from co2mpas.utils import check_first_arg
 from .load import dsp as _load
 from .model import dsp as _model
 from .report import dsp as _report
@@ -26,7 +26,7 @@ dsp = sh.BlueDispatcher(
                 ' outputs.'
 )
 _cmd_flags = [
-    'only_summary', 'soft_validation', 'engineering_mode', 'enable_selector',
+    'only_summary', 'hard_validation', 'declaration_mode', 'enable_selector',
     'type_approval_mode', 'encryption_keys', 'sign_key', 'plot_workflow',
     'output_template', 'output_folder', 'encryption_keys_passwords'
 ]
@@ -49,8 +49,8 @@ def parse_cmd_flags(cmd_flags=None):
     """
     flags = sh.combine_dicts(cmd_flags or {}, base={
         'only_summary': False,
-        'soft_validation': False,
-        'engineering_mode': False,
+        'hard_validation': False,
+        'declaration_mode': False,
         'enable_selector': False,
         'type_approval_mode': False,
         'plot_workflow': False,
@@ -60,23 +60,25 @@ def parse_cmd_flags(cmd_flags=None):
         'encryption_keys_passwords': None,
         'output_folder': './outputs'
     })
+    flags['declaration_mode'] |= flags['type_approval_mode']
+    flags['hard_validation'] |= flags['declaration_mode']
     return sh.selector(_cmd_flags, flags, output_type='list')
 
 
 dsp.add_dispatcher(
     dsp=_load,
     inputs=(
-        'input_file_name', 'soft_validation', 'engineering_mode', 'cmd_flags',
+        'input_file_name', 'hard_validation', 'declaration_mode', 'cmd_flags',
         'type_approval_mode', 'input_file', 'raw_data', 'encryption_keys',
         'sign_key', 'encryption_keys_passwords'
     ),
-    outputs=('plan', 'flag', 'dice', 'meta', 'base', 'input_file', 'verified'),
+    outputs=('plan', 'flag', 'dice', 'meta', 'base', 'input_file'),
 )
 
 # noinspection PyProtectedMember
 dsp.add_function(
-    function=sh.Blueprint(sh.SubDispatch(_model))._set_cls(sh.add_args),
-    inputs=['verified', 'base'],
+    function=sh.SubDispatch(_model),
+    inputs=['base'],
     outputs=['solution'],
     input_domain=check_first_arg
 )
@@ -98,7 +100,8 @@ def parse_solution(solution):
 
     res = {}
     for k, v in solution.items():
-        sh.get_nested_dicts(res, *k.split('.'), default=ret_v(v))
+        k = k.split('.')
+        sh.get_nested_dicts(res, *k[:-1])[k[-1]] = v
 
     for k, v in list(sh.stack_nested_keys(res, depth=3)):
         n, k = k[:-1], k[-1]

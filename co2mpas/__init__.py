@@ -237,8 +237,10 @@ def _run_variations(plan, bases, core_model, timestamp):
             base = _define_inputs(s, sh.combine_nested_dicts(sh.selector(
                 data, s, allow_miss=True
             ), data))
-        else:
+        elif 'base' in sol:
             base = sh.combine_nested_dicts(sol['base'], data, depth=2)
+        else:
+            continue
 
         for i, d in base.items():
             if hasattr(d, 'items'):
@@ -290,7 +292,7 @@ def run_plan(core_solutions, core_model, cmd_flags, timestamp):
     :rtype: list[schedula.Solution]
     """
     bases = core_solutions.copy()
-    plan = sum((sol['plan'] for sol in bases.values()), [])  # Merge plans.
+    plan = sum((sol.get('plan', []) for sol in bases.values()), [])
     # Run base.
     fp = {r['base'] for r in plan if r['run_base']} - set(bases)
     bases.update(run_core(core_model, cmd_flags, timestamp, fp))

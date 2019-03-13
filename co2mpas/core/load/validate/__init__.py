@@ -49,12 +49,55 @@ def _log_errors_msg(errors):
     return False
 
 
+def _mode_parser(
+        type_approval_mode, declaration_mode, hard_validation, inputs, errors):
+    """
+    Parse input data for the declaration mode.
+
+    :param type_approval_mode:
+        Is launched for TA?
+    :type type_approval_mode: bool
+
+    :param declaration_mode:
+        Use only the declaration data.
+    :type declaration_mode: bool
+
+    :param hard_validation:
+        Add extra data validations.
+    :type hard_validation: bool
+
+    :param inputs:
+        Input data.
+    :type inputs: dict
+
+    :param errors:
+        Errors container.
+    :type errors: dict
+
+    :return:
+        Parsed input data and errors container.
+    :rtype: dict, dict
+    """
+
+    if type_approval_mode or declaration_mode:
+        from dice.co2mpas.declaration import declaration_validation
+        inputs, errors = declaration_validation(
+            type_approval_mode, inputs, errors
+        )
+
+    if hard_validation:
+        from .hard import hard_validation as validation
+        inputs, errors = validation(inputs, errors)
+
+    return inputs, errors
+
+
 _kw = dict(inputs_kwargs=True, inputs_defaults=True)
 
 
 @sh.add_function(dsp, outputs=['validated_base'], **_kw)
 def validate_base(
-        base=None, engineering_mode=False, soft_validation=False,
+        base=None, declaration_mode=False, hard_validation=False,
         enable_selector=False, type_approval_mode=False):
     """
     Validate base data.
@@ -63,13 +106,13 @@ def validate_base(
         Base data.
     :type base: dict
 
-    :param engineering_mode:
-        Use all data and not only the declaration data.
-    :type engineering_mode: bool
+    :param declaration_mode:
+        Use only the declaration data.
+    :type declaration_mode: bool
 
-    :param soft_validation:
-        Relax some Input-data validations, to facilitate experimentation.
-    :type soft_validation: bool
+    :param hard_validation:
+        Add extra data validations.
+    :type hard_validation: bool
 
     :param enable_selector:
         Enable the selection of the best model to predict both H/L cycles.
@@ -83,11 +126,10 @@ def validate_base(
         Validated base data.
     :rtype: dict
     """
-    from .eng_mode import eng_mode_parser
     i, e = _validate_base_with_schema(base or {})
 
-    i, e = eng_mode_parser(
-        type_approval_mode, engineering_mode, soft_validation, i, e
+    i, e = _mode_parser(
+        type_approval_mode, declaration_mode, hard_validation, i, e
     )
 
     if _log_errors_msg(e):
@@ -97,7 +139,7 @@ def validate_base(
 
 
 @sh.add_function(dsp, outputs=['validated_meta'], **_kw)
-def validate_meta(meta=None, soft_validation=False):
+def validate_meta(meta=None, hard_validation=False):
     """
     Validate meta data.
 
@@ -105,17 +147,17 @@ def validate_meta(meta=None, soft_validation=False):
         Meta data.
     :type meta: dict
 
-    :param soft_validation:
-        Relax some Input-data validations, to facilitate experimentation.
-    :type soft_validation: bool
+    :param hard_validation:
+        Add extra data validations.
+    :type hard_validation: bool
 
     :return:
         Validated meta data.
     :rtype: dict
     """
     i, e = _validate_base_with_schema(meta or {}, depth=2)
-    if not soft_validation:
-        from .eng_mode import _hard_validation
+    if hard_validation:
+        from .hard import _hard_validation
         for k, v in sorted(sh.stack_nested_keys(i, depth=1)):
             for c, msg in _hard_validation(v, 'meta'):
                 sh.get_nested_dicts(e, *k)[c] = schema.SchemaError([], [msg])
@@ -180,7 +222,7 @@ def validate_flag(flag=None):
 
 @sh.add_function(dsp, outputs=['validated_plan'], **_kw)
 def validate_plan(
-        plan=None, engineering_mode=False, soft_validation=False,
+        plan=None, declaration_mode=False, hard_validation=False,
         type_approval_mode=False):
     """
     Validate plan data.
@@ -189,13 +231,13 @@ def validate_plan(
         Plan data.
     :type plan: dict
 
-    :param engineering_mode:
-        Use all data and not only the declaration data.
-    :type engineering_mode: bool
+    :param declaration_mode:
+        Use only the declaration data.
+    :type declaration_mode: bool
 
-    :param soft_validation:
-        Relax some Input-data validations, to facilitate experimentation.
-    :type soft_validation: bool
+    :param hard_validation:
+        Add extra data validations.
+    :type hard_validation: bool
 
     :param type_approval_mode:
         Is launched for TA?
@@ -206,15 +248,12 @@ def validate_plan(
     :rtype: dict
     """
     import pandas as pd
-    if plan and not engineering_mode:
-        msg = 'Simulation plan cannot be executed without enabling the ' \
-              'engineering mode!\n' \
-              'If you want to execute it, add to the batch cmd ' \
-              '-D flag.engineering_mode=True'
+    if plan and declaration_mode:
+        msg = 'Simulation plan cannot be executed in declaration mode!\n' \
+              'If you want to execute it remove -DM or -TA from the cmd.'
         log.warning(msg)
         return []
     import os.path as osp
-    from .eng_mode import eng_mode_parser as eng
     from ..excel import _parse_values as parse_key
     from ..schema import define_data_schema as _schema
 
@@ -232,7 +271,9 @@ def validate_plan(
             if v is not sh.NONE:
                 sh.get_nested_dicts(data, '.'.join(k[2:-1]))[k[-1]] = v
 
-        e = eng(type_approval_mode, engineering_mode, soft_validation, i, e)[1]
+        e = _mode_parser(
+            type_approval_mode, declaration_mode, hard_validation, i, e
+        )[1]
         add(sh.combine_dicts({'data': data}, base=sh.selector(keys, d)))
 
     if _log_errors_msg(e):

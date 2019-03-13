@@ -14,6 +14,7 @@ import functools
 import schedula as sh
 from .excel import parse_excel_file
 from .validate import dsp as _validate
+
 try:
     from dice.co2mpas import dsp as _dice
 except ImportError:
@@ -112,7 +113,7 @@ if _dice is not None:
 
 @sh.add_function(dsp, inputs_kwargs=True, outputs=['data'])
 def merge_data(
-        raw_data, cmd_flags=None, soft_validation=False, engineering_mode=False,
+        raw_data, cmd_flags=None, hard_validation=False, declaration_mode=False,
         type_approval_mode=False, encryption_keys=None, sign_key=None):
     """
     Merge raw data with model flags.
@@ -125,13 +126,13 @@ def merge_data(
         Command line options.
     :type cmd_flags: dict
 
-    :param soft_validation:
-        Relax some Input-data validations, to facilitate experimentation.
-    :type soft_validation: bool
+    :param hard_validation:
+        Add extra data validations.
+    :type hard_validation: bool
 
-    :param engineering_mode:
-        Use all data and not only the declaration data.
-    :type engineering_mode: bool
+    :param declaration_mode:
+        Use only the declaration data.
+    :type declaration_mode: bool
 
     :param type_approval_mode:
         Is launched for TA?
@@ -150,8 +151,8 @@ def merge_data(
     :rtype: dict
     """
     flag = {k: v for k, v in dict(
-        soft_validation=soft_validation,
-        engineering_mode=engineering_mode,
+        hard_validation=hard_validation,
+        declaration_mode=declaration_mode,
         type_approval_mode=type_approval_mode,
         encryption_keys=encryption_keys,
         sign_key=sign_key
@@ -161,11 +162,26 @@ def merge_data(
     return data
 
 
+def check_validation(sol):
+    """
+    Check if the data are verified.
+
+    :param sol:
+        Validation solution.
+    :type sol: schedula.Solution
+
+    :return:
+        Validated data
+    :rtype: list[dict]
+    """
+    sol = sol.get('verified') and sol or {}
+    keys = 'plan', 'flag', 'dice', 'meta', 'base'
+    return [sol.get('validated_%s' % k, sh.NONE) for k in keys]
+
+
 dsp.add_function(
-    function=sh.SubDispatch(_validate, outputs=[
-        'validated_plan', 'validated_flag', 'validated_dice', 'validated_meta',
-        'validated_base', 'verified'
-    ], output_type='list'),
+    function=sh.SubDispatch(_validate),
     inputs=['data'],
-    outputs=['plan', 'flag', 'dice', 'meta', 'base', 'verified']
+    outputs=['plan', 'flag', 'dice', 'meta', 'base'],
+    filters=[check_validation]
 )
