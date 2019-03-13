@@ -8,12 +8,17 @@
 It contains functions to read/write inputs/outputs from/on excel.
 """
 import logging
-import functools
 import os.path as osp
 import schedula as sh
 from .excel import write_to_excel
 from .convert import convert2df
-from co2mpas.utils import check_first_arg_false, check_first_arg
+from co2mpas._version import __version__
+from co2mpas.utils import check_first_arg, check_first_arg_false
+
+try:
+    from dice.co2mpas import dsp as _dice
+except ImportError:
+    _dice = None
 
 log = logging.getLogger(__name__)
 dsp = sh.BlueDispatcher(
@@ -97,16 +102,17 @@ def default_output_file_name(
 
     :param ext:
         File extension.
-    :type ext: str
+    :type ext: str | None
 
     :return:
         Output file name.
     :rtype: str
 
     """
-    ofname = osp.join(output_folder, '%s-%s' % (timestamp, vehicle_name))
-
-    return '%s.%s' % (ofname, ext)
+    fp = osp.join(output_folder, '%s-%s' % (timestamp, vehicle_name))
+    if ext is not None:
+        fp = '%s.%s' % (fp, ext)
+    return fp
 
 
 dsp.add_function(
@@ -116,86 +122,24 @@ dsp.add_function(
     input_domain=check_first_arg_false
 )
 
-
-@functools.lru_cache(None)
-def _write_ta_function():
-    from dice.co2mpas import dsp as _dice
-    from co2mpas import __version__
-    _dice = _dice.register(memo={})
-    _dice.add_data('co2mpas_version', __version__)
-    return sh.SubDispatchFunction(_dice, inputs=[
-        'base', 'dice', 'meta', 'report', 'excel_output', 'input_file',
-        'encryption_keys', 'sign_key', 'output_folder', 'start_time',
+if _dice is not None:
+    dsp.add_data('co2mpas_version', __version__)
+    _out, _inp = ['output_file_name', 'output_file'], [
+        'base', 'dice', 'excel_output', 'input_file', 'output_folder', 'report',
+        'encryption_keys', 'start_time', 'meta', 'sign_key', 'co2mpas_version',
         'timestamp'
-    ], outputs=['output_file_name', 'output_file'])
+    ]
 
-
-# noinspection PyUnusedLocal
-@sh.add_function(
-    dsp, outputs=['output_file_name', 'output_file'],
-    input_domain=check_first_arg
-)
-def write_ta_output(
-        type_approval_mode, base, dice, meta, report, excel_output, input_file,
-        encryption_keys, sign_key, output_folder, start_time, timestamp):
-    """
-    Write ta output file.
-
-    :param type_approval_mode:
-        Is launched for TA?
-    :type type_approval_mode: bool
-
-    :param base:
-        Base data.
-    :type base: dict
-
-    :param dice:
-        DICE data.
-    :type dice: dict
-
-    :param meta:
-        Meta data.
-    :type meta: dict
-
-    :param report:
-        Vehicle output report.
-    :type report: dict
-
-    :param excel_output:
-        Excel output file.
-    :type excel_output: io.BytesIO
-
-    :param input_file:
-        Input file.
-    :type input_file: io.BytesIO
-
-    :param encryption_keys:
-        Encryption keys for TA mode.
-    :type encryption_keys: str
-
-    :param sign_key:
-        User signature key for TA mode.
-    :type sign_key: str
-
-    :param output_folder:
-        Output folder.
-    :type output_folder: str
-
-    :param start_time:
-        Run start time.
-    :type start_time: datetime.datetime
-
-    :param timestamp:
-        Run timestamp.
-    :type timestamp: str
-
-    :return:
-        Output file.
-    :rtype: io.BytesIO
-    """
-    return _write_ta_function()(
-        base, dice, meta, report, excel_output, input_file, encryption_keys,
-        sign_key, output_folder, start_time, timestamp
+    # noinspection PyProtectedMember
+    dsp.add_function(
+        function=sh.Blueprint(
+            sh.SubDispatchFunction(_dice, inputs=_inp, outputs=_out)
+        )._set_cls(sh.add_args),
+        function_id='write_ta_output',
+        description='Write ta output file.',
+        inputs=['type_approval_mode'] + _inp,
+        outputs=_out,
+        input_domain=check_first_arg
     )
 
 

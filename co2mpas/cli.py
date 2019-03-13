@@ -129,7 +129,7 @@ def plot(cache_folder='./cache_plot'):
 @click.option('-EM', '--engineering-mode', is_flag=True)
 @click.option('-ES', '--enable-selector', is_flag=True)
 @click.option('-TA', '--type-approval-mode', is_flag=True)
-@click.option('-PW', '--plot-workflow', is_flag=True)
+@click.option('-PL', '--plot-workflow', is_flag=True)
 def run(input_files, **kwargs):
     """
     Synchronise and re-sample data-sets defined in INPUT_FILE and writes shifts

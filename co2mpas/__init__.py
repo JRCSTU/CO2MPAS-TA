@@ -27,6 +27,7 @@ import logging
 import os.path as osp
 import schedula as sh
 from ._version import *
+from .utils import check_first_arg
 from .core import wait_sites, SITES
 from .core.write import default_start_time, default_timestamp
 
@@ -148,7 +149,7 @@ def _yield_files(*paths, cache=None):
     cache = set() if cache is None else cache
     for path in paths:
         path = osp.abspath(path)
-        if path in cache:
+        if path in cache or osp.basename(path).startswith('~'):
             continue
         cache.add(path)
         if osp.isdir(path):
@@ -372,7 +373,8 @@ def save_summary(summary, output_summary_file, start_time):
         df.columns,
         key=lambda x: _sort_key(x, p_keys=('cycle', 'stage', 'usage', 'param'))
     ))
-    df.columns = pd.MultiIndex.from_tuples(_add_units(df.columns))
+    if not df.columns.empty:
+        df.columns = pd.MultiIndex.from_tuples(_add_units(df.columns))
 
     with pd.ExcelWriter(output_summary_file) as writer:
         df.to_excel(writer, 'summary')

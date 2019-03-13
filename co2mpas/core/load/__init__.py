@@ -14,6 +14,10 @@ import functools
 import schedula as sh
 from .excel import parse_excel_file
 from .validate import dsp as _validate
+try:
+    from dice.co2mpas import dsp as _dice
+except ImportError:
+    _dice = None
 
 log = logging.getLogger(__name__)
 
@@ -41,7 +45,7 @@ def open_input_file(input_file_name):
 
 
 # noinspection PyUnusedLocal
-def check_file_format(input_file_name, *args, extensions=('.xlsx',)):
+def check_file_format(input_file_name, *args, ext=('.xlsx',)):
     """
     Check file format extension.
 
@@ -49,15 +53,15 @@ def check_file_format(input_file_name, *args, extensions=('.xlsx',)):
         Input file name.
     :type input_file_name: str
 
-    :param extensions:
+    :param ext:
         Allowed extensions.
-    :type extensions: tuple[str]
+    :type ext: tuple[str]
 
     :return:
         If the extension of the input file is within the allowed extensions.
     :rtype: bool
     """
-    return input_file_name.lower().endswith(extensions)
+    return input_file_name.lower().endswith(ext)
 
 
 def load_from_dill(input_file):
@@ -80,7 +84,7 @@ dsp.add_function(
     function=sh.add_args(load_from_dill),
     inputs=['input_file_name', 'input_file'],
     outputs=['raw_data'],
-    input_domain=functools.partial(check_file_format, extensions=('.dill',))
+    input_domain=functools.partial(check_file_format, ext=('.dill',))
 )
 
 dsp.add_function(
@@ -90,39 +94,20 @@ dsp.add_function(
     input_domain=check_file_format
 )
 
-
-@functools.lru_cache(None)
-def _load_ta_function():
-    from dice.co2mpas import dsp as _dice
-    func = sh.SubDispatchFunction(
-        _dice.register(memo={}),
-        inputs=['input_file_name', 'input_file'],
-        outputs=['base', 'meta']
+if _dice is not None:
+    _out, _inp = ['base', 'meta'], [
+        'input_file_name', 'input_file', 'encryption_keys',
+        'encryption_keys_passwords'
+    ]
+    dsp.add_function(
+        function=sh.SubDispatchFunction(_dice, inputs=_inp, outputs=_out),
+        function_id='load_ta_file',
+        description='Load inputs from .co2mpas.ta file.',
+        inputs=_inp,
+        outputs=['raw_data'],
+        filters=[lambda x: dict(zip(_out, x))],
+        input_domain=functools.partial(check_file_format, ext=('.co2mpas.ta',))
     )
-    func.output_type = 'dict'
-    return func
-
-
-@sh.add_function(dsp, outputs=['raw_data'], input_domain=functools.partial(
-    check_file_format, extensions=('.co2mpas.ta',)
-))
-def load_ta_file(input_file_name, input_file):
-    """
-    Load inputs from .co2mpas.ta file.
-
-    :param input_file_name:
-        Input file name.
-    :type input_file_name: str
-
-    :param input_file:
-        Input file.
-    :type input_file: io.BytesIO
-
-    :return:
-        Raw input data.
-    :rtype: dict
-    """
-    return _load_ta_function()(input_file_name, input_file)
 
 
 @sh.add_function(dsp, inputs_kwargs=True, outputs=['data'])
