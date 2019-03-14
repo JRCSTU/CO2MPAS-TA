@@ -5,7 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 r"""
-Define the command line interface.
+Define CO2MPAS command line interface.
 
 .. click:: co2mpas.cli:cli
    :prog: co2mpas
@@ -18,6 +18,11 @@ import click_log
 import schedula as sh
 from co2mpas import dsp as _process
 from co2mpas._version import __version__
+
+try:
+    from co2mpas.cli.sync import cli as _sync
+except ImportError:
+    _sync = None
 
 log = logging.getLogger('co2mpas.cli')
 
@@ -54,7 +59,7 @@ def cli():
     'output-file', default='template.xlsx', required=False,
     type=click.Path(writable=True)
 )
-def template(output_file='template.xlsx'):
+def template(output_file):
     """
     Writes a CO2MPAS input template into OUTPUT_FILE.
 
@@ -97,7 +102,8 @@ def conf(output_file, **kwargs):
 @cli.command('plot', short_help='Plots the CO2MPAS model.')
 @click.option(
     '-O', '--cache-folder', help='Folder to save temporary html files.',
-    default='./cache_plot', type=click.Path(file_okay=False, writable=True)
+    default='./cache_plot', type=click.Path(file_okay=False, writable=True),
+    show_default=True
 )
 def plot(cache_folder):
     """
@@ -110,15 +116,16 @@ def plot(cache_folder):
 @click.argument('input-files', nargs=-1, type=click.Path(exists=True))
 @click.option(
     '-O', '--output-folder', help='Output folder.', default='./outputs',
-    type=click.Path(file_okay=False, writable=True)
+    type=click.Path(file_okay=False, writable=True), show_default=True
 )
 @click.option(
     '-EK', '--encryption-keys', help='Encryption keys for TA mode.',
-    default='./DICE_KEYS/dice.co2mpas.keys', type=click.Path()
+    default='./DICE_KEYS/dice.co2mpas.keys', type=click.Path(),
+    show_default=True
 )
 @click.option(
     '-SK', '--sign-key', help='User signature key for TA mode.',
-    default='./DICE_KEYS/sign.co2mpas.key', type=click.Path()
+    default='./DICE_KEYS/sign.co2mpas.key', type=click.Path(), show_default=True
 )
 @click.option(
     '-OT', '--output-template', help='Template output.',
@@ -161,6 +168,9 @@ def run(input_files, **kwargs):
     inputs = {'cmd_flags': kwargs, 'input_files': input_files, sh.START: kwargs}
     return _process(inputs, ['plot', 'done', 'run'])
 
+
+if _sync is not None:
+    cli.add_command(_sync, 'syncing')
 
 if __name__ == '__main__':
     cli()
