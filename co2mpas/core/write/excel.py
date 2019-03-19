@@ -346,11 +346,5 @@ def write_to_excel(dfs, output_template):
             writer, 'xlref', xlref, named_ranges=(), index=True, header=False
         )
 
-    if calculate_sheets:
-        import formulas
-        xl_model = formulas.ExcelModel()
-        context = xl_model.add_book(writer.book, {'excel': 'excel'})[1]
-        xl_model.pushes(*calculate_sheets, context=context).finish().calculate()
-        xl_model.write(xl_model.books)
     writer.save()
     return fd
