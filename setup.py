@@ -101,8 +101,8 @@ if __name__ == '__main__':
         'cli': ['click', 'click-log'],
         'sync': ['syncing', 'pandas>=0.21.0'],
         'plot': ['schedula[plot]>=0.3.2', 'matplotlib'],
-        'io': ['pandas>=0.21.0', 'dill', 'regex', 'pandalone', 'pip',
-               'xlsxwriter', 'xlrd', 'asteval']
+        'io': ['pandas>=0.21.0', 'dill', 'regex', 'pandalone', 'pip', 'xlrd',
+               'asteval']
     }
     extras['dice'] = ['dice'] + extras['io']
     # noinspection PyTypeChecker

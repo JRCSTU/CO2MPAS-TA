@@ -3,6 +3,5 @@ dill
 regex
 pandalone
 pip
-xlsxwriter
 xlrd
 asteval

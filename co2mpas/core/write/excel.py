@@ -88,6 +88,8 @@ def _index_levels(index):
 
 # noinspection PyUnusedLocal
 def _get_corner(df, startcol=0, startrow=0, index=False, header=True, **kw):
+    import json
+    import xlrd
     ref = {}
 
     if header:
@@ -104,9 +106,7 @@ def _get_corner(df, startcol=0, startrow=0, index=False, header=True, **kw):
         i = _index_levels(df.index)
         ref['index_col'] = list(range(i))
         startcol += i
-    import json
-    import xlsxwriter.utility as xl_utl
-    landing = xl_utl.xl_rowcol_to_cell_fast(startrow, startcol)
+    landing = xlrd.cellname(startrow, startcol)
     ref = json.dumps(ref, sort_keys=True)
     ref = '{}(L):..(DR):LURD:["df", {}]'.format(landing, ref)
     return startrow, startcol, ref
@@ -120,24 +120,26 @@ def _convert_index(k):
     return k
 
 
+def _rangename2d(rlo, clo, rhi, chi):
+    import xlrd
+    return "%s:%s" % (xlrd.cellnameabs(rlo, clo), xlrd.cellnameabs(rhi, chi))
+
+
 def _ranges_by_col_row(df, startrow, startcol):
-    import xlsxwriter.utility as xl_utl
     for row, i in enumerate(df.index, start=startrow):
         i = _convert_index(i)
         for col, c in enumerate(df.columns, start=startcol):
-            yield i + _convert_index(c), xl_utl.xl_range_abs(row, col, row, col)
+            yield i + _convert_index(c), _rangename2d(row, col, row, col)
 
 
 def _ranges_by_col(df, startrow, startcol):
-    import xlsxwriter.utility as xl_utl
     for col, (k, v) in enumerate(df.items(), start=startcol):
-        yield k, xl_utl.xl_range_abs(startrow, col, startrow + len(v) - 1, col)
+        yield k, _rangename2d(startrow, col, startrow + len(v) - 1, col)
 
 
 def _ranges_by_row(df, startrow, startcol):
-    import xlsxwriter.utility as xl_utl
     for row, (k, v) in enumerate(df.iterrows(), start=startrow):
-        yield k, xl_utl.xl_range_abs(row, startcol, row, startcol + len(v) - 1)
+        yield k, _rangename2d(row, startcol, row, startcol + len(v) - 1)
 
 
 def _add_named_ranges(df, writer, shname, startrow, startcol, named_ranges, k0):
@@ -228,8 +230,8 @@ def _data_ref(ref):
 
 
 def _chart2excel(writer, sheet, charts):
+    import xlrd
     from openpyxl.chart import ScatterChart, Series
-    from xlrd import colname as xl_colname
 
     sn = writer.book.sheetnames
     named_ranges = {'%s!%s' % (sn[d.localSheetId], d.name): d.value
@@ -266,7 +268,7 @@ def _chart2excel(writer, sheet, charts):
         n = int(i / m)
         j = i - n * m
 
-        sheet.add_chart(chart, '%s%d' % (xl_colname(8 * n), 1 + 15 * j))
+        sheet.add_chart(chart, xlrd.cellname(15 * j, 8 * n))
 
 
 def write_to_excel(dfs, output_template):
