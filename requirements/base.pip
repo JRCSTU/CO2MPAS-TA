@@ -1,0 +1,11 @@
+PyYAML
+schedula>=0.3.2
+tqdm
+scikit-learn
+regex
+lmfit>=0.9.7
+numpy
+schema
+scipy
+wltp
+xgboost

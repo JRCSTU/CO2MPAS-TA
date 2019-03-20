@@ -1,0 +1,4 @@
+-r base.pip
+
+syncing
+pandas>=0.21.0

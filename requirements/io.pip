@@ -1,0 +1,8 @@
+pandas>=0.21.0
+dill
+regex
+pandalone
+pip
+xlsxwriter
+xlrd
+asteval
