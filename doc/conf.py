@@ -75,7 +75,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'CO2MPAS'
-copyright = '2014-2018, European Commission (JRC)'  # @ReservedAssignment
+copyright = '2015-2019, European Commission (JRC)'  # @ReservedAssignment
 author = 'see AUTHORS.rst'
 
 extlinks = {

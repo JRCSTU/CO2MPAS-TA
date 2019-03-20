@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 #
-# Copyright 2014-2018 European Commission (JRC);
+# Copyright 2015-2019 European Commission (JRC);
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 
 import unittest
-import co2mpas.model.physical.wheels as wheels
+import co2mpas.core.model.physical.wheels as wheels
 import ddt
 
 
@@ -79,7 +79,7 @@ class TyreCode(unittest.TestCase):
             'use': 'LT', 'load_index': '121/117',
             'aspect_ratio': 92.0, 'nominal_section_width': 9.5,
             'rim_diameter': 16.5, 'additional_marks': 'M+S'}),
-        ('205/65R15 C 102/100R',{
+        ('205/65R15 C 102/100R', {
             'rim_diameter': 15.0, 'carcass': 'R', 'speed_rating': 'R',
             'load_index': '102/100', 'use': 'C',
             'code': 'iso', 'aspect_ratio': 65.0,

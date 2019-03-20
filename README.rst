@@ -19,7 +19,7 @@
                 EU, JRC, IET, STU, correlation, back-translation, policy,
                 monitoring, M1, N1, simulator, engineering, scientific
 :developers:    .. include:: AUTHORS.rst
-:copyright:     2015-2018 European Commission (`JRC <https://ec.europa.eu/jrc/>`_)
+:copyright:     2015-2019 European Commission (`JRC <https://ec.europa.eu/jrc/>`_)
 :license:       `EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_
 
 |co2mpas| is backward-looking longitudinal-dynamics |CO2| and
@@ -387,7 +387,7 @@ you have installed |co2mpas| (see :ref:`co2mpas-install` above) and type::
     Predict NEDC CO2 emissions from WLTP.
 
     :Home:         http://co2mpas.io/
-    :Copyright:    2015-2018 European Commission, JRC <https://ec.europa.eu/jrc/>
+    :Copyright:    2015-2019 European Commission, JRC <https://ec.europa.eu/jrc/>
     :License:       EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>
 
     Use the `batch` sub-command to simulate a vehicle contained in an excel-file.
