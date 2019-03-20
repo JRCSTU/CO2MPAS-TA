@@ -228,67 +228,45 @@ def _data_ref(ref):
 
 
 def _chart2excel(writer, sheet, charts):
-    try:
-        add_chart = writer.book.add_chart
-        m, h, w = 3, 300, 512
+    from openpyxl.chart import ScatterChart, Series
+    from xlrd import colname as xl_colname
 
-        for i, (k, v) in enumerate(sorted(charts.items())):
-            chart = add_chart({'type': 'scatter', 'subtype': 'straight'})
-            for s in v['series']:
-                chart.add_series({
-                    'name': s['label'],
-                    'categories': _data_ref(s['x']),
-                    'values': _data_ref(s['y']),
-                })
-            chart.set_size({'width': w, 'height': h})
+    sn = writer.book.sheetnames
+    named_ranges = {'%s!%s' % (sn[d.localSheetId], d.name): d.value
+                    for d in writer.book.defined_names.definedName}
+    m, h, w = 3, 7.94, 13.55
 
-            for s, o in v['set'].items():
-                eval('chart.set_%s(o)' % s)
+    for i, (k, v) in enumerate(sorted(charts.items())):
+        chart = ScatterChart()
+        chart.height = h
+        chart.width = w
+        _map = {
+            ('title', 'name'): ('title',),
+            ('y_axis', 'name'): ('y_axis', 'title'),
+            ('x_axis', 'name'): ('x_axis', 'title'),
+        }
+        _filter = {
+            ('legend', 'position'): lambda x: x[0],
+        }
+        it = {s: _filter[s](o) if s in _filter else o
+              for s, o in sh.stack_nested_keys(v['set'])}
 
-            n = int(i / m)
-            j = i - n * m
-            sheet.insert_chart('A1', chart,
-                               {'x_offset': w * n, 'y_offset': h * j})
-    except AttributeError:
-        from openpyxl.chart import ScatterChart, Series
-        from xlrd import colname as xl_colname
+        for s, o in sh.map_dict(_map, it).items():
+            c = chart
+            for j in s[:-1]:
+                c = getattr(c, j)
+            setattr(c, s[-1], o)
 
-        sn = writer.book.sheetnames
-        named_ranges = {'%s!%s' % (sn[d.localSheetId], d.name): d.value
-                        for d in writer.book.defined_names.definedName}
-        m, h, w = 3, 7.94, 13.55
+        for s in v['series']:
+            xvalues = named_ranges[_data_ref(s['x'])]
+            values = named_ranges[_data_ref(s['y'])]
+            series = Series(values, xvalues, title=s['label'])
+            chart.series.append(series)
 
-        for i, (k, v) in enumerate(sorted(charts.items())):
-            chart = ScatterChart()
-            chart.height = h
-            chart.width = w
-            _map = {
-                ('title', 'name'): ('title',),
-                ('y_axis', 'name'): ('y_axis', 'title'),
-                ('x_axis', 'name'): ('x_axis', 'title'),
-            }
-            _filter = {
-                ('legend', 'position'): lambda x: x[0],
-            }
-            it = {s: _filter[s](o) if s in _filter else o
-                  for s, o in sh.stack_nested_keys(v['set'])}
+        n = int(i / m)
+        j = i - n * m
 
-            for s, o in sh.map_dict(_map, it).items():
-                c = chart
-                for j in s[:-1]:
-                    c = getattr(c, j)
-                setattr(c, s[-1], o)
-
-            for s in v['series']:
-                xvalues = named_ranges[_data_ref(s['x'])]
-                values = named_ranges[_data_ref(s['y'])]
-                series = Series(values, xvalues, title=s['label'])
-                chart.series.append(series)
-
-            n = int(i / m)
-            j = i - n * m
-
-            sheet.add_chart(chart, '%s%d' % (xl_colname(8 * n), 1 + 15 * j))
+        sheet.add_chart(chart, '%s%d' % (xl_colname(8 * n), 1 + 15 * j))
 
 
 def write_to_excel(dfs, output_template):
