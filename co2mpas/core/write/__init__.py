@@ -18,6 +18,7 @@ Sub-Modules:
     convert
     excel
 """
+import os
 import logging
 import os.path as osp
 import schedula as sh
@@ -168,6 +169,7 @@ def save_output_file(output_file, output_file_name):
     :type output_file: io.BytesIO
     """
     output_file.seek(0)
+    os.makedirs(osp.dirname(output_file_name), exist_ok=True)
     with open(output_file_name, 'wb') as f:
         f.write(output_file.read())
-    log.info('Written into (%s)...', output_file_name)
+    log.info('CO2MPAS output written into (%s).', output_file_name)
