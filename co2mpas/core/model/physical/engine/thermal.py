@@ -73,20 +73,19 @@ def _build_samples(temperature_derivatives, engine_coolant_temperatures, *args):
     col = itertools.chain(
         (engine_coolant_temperatures[:-1],),
         (a[1:] for a in args),
-        (temperature_derivatives[1:],)
     )
-    return np.column_stack(col)
+    return np.column_stack(tuple(col)), temperature_derivatives[1:]
 
 
-def _filter_temperature_samples(spl, on_engine, thermostat):
-    adt = np.abs(spl[:, -1])
+def _filter_temperature_samples(X, Y, on_engine, thermostat):
+    adt = np.abs(Y)
     b = ~((adt <= 0.001) & on_engine[1:])
     b[:co2_utl.argmax(on_engine)] = False
-    i = co2_utl.argmax(thermostat < spl[:, 0])
+    i = co2_utl.argmax(thermostat < X[:, 0])
     b[i:] = True
     # noinspection PyProtectedMember
     b[:i] &= adt[:i] < dfl.functions._filter_temperature_samples.max_abs_dt_cold
-    return spl[b]
+    return X[b], Y[b]
 
 
 # noinspection PyMissingOrEmptyDocstring
@@ -215,14 +214,14 @@ class ThermalModel(object):
         :rtype: ThermalModel
         """
         import sklearn.pipeline as sk_pip
-        spl = _build_samples(temperature_derivatives, temperatures, *args)
-        self.thermostat = self._identify_thermostat(spl, idle_engine_speed)
+        X, Y = _build_samples(temperature_derivatives, temperatures, *args)
+        self.thermostat = self._identify_thermostat(X, Y, idle_engine_speed)
 
-        spl = _filter_temperature_samples(spl, on_engine, self.thermostat)
+        X, Y = _filter_temperature_samples(X, Y, on_engine, self.thermostat)
         opt = {
             'random_state': 0,
             'max_depth': 2,
-            'n_estimators': int(min(300.0, 0.25 * (len(spl) - 1)))
+            'n_estimators': int(min(300.0, 0.25 * (len(X) - 1)))
         }
 
         model = _SafeRANSACRegressor(
@@ -237,22 +236,24 @@ class ThermalModel(object):
                                                    in_mask=(0, 2))),
             ('classification', model)
         ])
-        model.fit(spl[:, :-1], spl[:, -1])
+        model.fit(X, Y)
 
         self.model = model.steps[-1][-1]
         self.mask = np.where(model.steps[0][-1]._get_support_mask())[0]
 
-        self.min_temp = spl[:, 0].min()
-        spl = spl[:co2_utl.argmax(self.thermostat <= spl[:, 0])]
+        self.min_temp = X[:, 0].min()
+        i = co2_utl.argmax(self.thermostat <= X[:, 0])
+        X, Y = X[:i], Y[:i]
 
-        if not spl.any():
+        if not X.any():
             self.min_temp = -float('inf')
             return self
-        spl = spl[:co2_utl.argmax(np.percentile(spl[:, 0], 60) <= spl[:, 0])]
+        i = co2_utl.argmax(np.percentile(X[:, 0], 60) <= X[:, 0])
+        X, Y = X[:i], Y[:i]
         opt = {
             'random_state': 0,
             'max_depth': 2,
-            'n_estimators': int(min(300.0, 0.25 * (len(spl) - 1)))
+            'n_estimators': int(min(300.0, 0.25 * (len(X) - 1)))
         }
         model = self.base_model(**opt)
         model = sk_pip.Pipeline([
@@ -260,19 +261,19 @@ class ThermalModel(object):
                                                    in_mask=(1,))),
             ('classification', model)
         ])
-        model.fit(spl[:, 1:-1], spl[:, -1])
+        model.fit(X[:, 1:], Y)
         self.cold = model.steps[-1][-1]
         self.mask_cold = np.where(model.steps[0][-1]._get_support_mask())[0] + 1
 
         return self
 
-    def _identify_thermostat(self, spl, idle_engine_speed):
-        spl = spl[:, (-1,) + tuple(range(1, spl.shape[1] - 1)) + (0,)]
-        t_max, t_min = spl[:, -1].max(), spl[:, -1].min()
-        spl = spl[(t_max - (t_max - t_min) / 3) <= spl[:, -1]]
+    def _identify_thermostat(self, X, Y, idle_engine_speed):
+        X, Y = np.column_stack((Y, X[:, 1:])), X[:, 0]
+        t_max, t_min = Y.max(), Y.min()
+        b = (t_max - (t_max - t_min) / 3) <= Y
 
         model = xgb.XGBRegressor()
-        model.fit(spl[:, :-1], spl[:, -1])
+        model.fit(X[b], Y[b])
         ratio = np.arange(1, 1.5, 0.1) * idle_engine_speed[0]
         spl = np.zeros((len(ratio), 4))
         spl[:, 2] = ratio

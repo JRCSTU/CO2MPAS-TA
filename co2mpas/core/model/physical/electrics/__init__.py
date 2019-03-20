@@ -382,15 +382,15 @@ def identify_alternator_initialization_time(
         # noinspection PyProtectedMember
         from ..engine.thermal import _build_samples
 
-        spl = _build_samples(
+        X, Y = _build_samples(
             alternator_currents, state_of_charges, alts, gb_p, accelerations
         )
 
         j = min(i, int(n / 2))
         opt['n_estimators'] = int(min(100.0, 0.25 * (n - j))) or 1
         model = xgb.XGBRegressor(**opt)
-        model.fit(spl[j:][:, :-1], spl[j:][:, -1])
-        err = np.abs(spl[:, -1] - model.predict(spl[:, :-1]))
+        model.fit(X[j:], Y[j:])
+        err = np.abs(Y - model.predict(X))
         sets = np.array(co2_utl.get_inliers(err)[0], dtype=int)[:i]
         if sum(sets) / i < 0.5 or i > j:
             from sklearn.tree import DecisionTreeClassifier
@@ -940,20 +940,20 @@ class AlternatorCurrentModel:
         b = (statuses[1:] > 0) & on_engine[1:]
         i = co2_utl.argmax(times > times[0] + init_time)
         from ..engine.thermal import _build_samples
-        spl = _build_samples(currents, soc, statuses, *args)
+        X, Y = _build_samples(currents, soc, statuses, *args)
         if b[i:].any():
-            self.model, self.mask = self._fit_model(spl[i:][b[i:]])
+            self.model, self.mask = self._fit_model(X[i:][b[i:]], Y[i:][b[i:]])
         elif b[:i].any():
-            self.model, self.mask = self._fit_model(spl[b])
+            self.model, self.mask = self._fit_model(X[b], Y[b])
         else:
             self.model = lambda *args, **kwargs: [0.0]
             self.mask = np.array((0,))
         self.mask += 1
 
         if b[:i].any():
-            init_spl = (times[1:i + 1] - times[0])[:, None], spl[:i]
+            init_spl = (times[1:i + 1] - times[0])[:, None], X[:i]
             init_spl = np.concatenate(init_spl, axis=1)[b[:i]]
-            a = self._fit_model(init_spl, (0,), (2,))
+            a = self._fit_model(init_spl, Y[:i][b[:i]], (0,), (2,))
             self.init_model, self.init_mask = a
         else:
             self.init_model, self.init_mask = self.model, self.mask
@@ -961,11 +961,11 @@ class AlternatorCurrentModel:
         return self
 
     # noinspection PyProtectedMember
-    def _fit_model(self, spl, in_mask=(), out_mask=()):
+    def _fit_model(self, X, Y, in_mask=(), out_mask=()):
         opt = {
             'random_state': 0,
             'max_depth': 2,
-            'n_estimators': int(min(300.0, 0.25 * (len(spl) - 1))) or 1
+            'n_estimators': int(min(300.0, 0.25 * (len(X) - 1))) or 1
         }
         from sklearn.pipeline import Pipeline
         from ..engine.thermal import _SelectFromModel
@@ -976,7 +976,7 @@ class AlternatorCurrentModel:
                                                    out_mask=out_mask)),
             ('classification', model)
         ])
-        model.fit(spl[:, :-1], spl[:, -1])
+        model.fit(X, Y)
         mask = np.where(model.steps[0][-1]._get_support_mask())[0]
         return model.steps[-1][-1].predict, mask
 
