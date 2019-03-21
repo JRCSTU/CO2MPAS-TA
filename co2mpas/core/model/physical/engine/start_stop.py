@@ -7,9 +7,6 @@
 """
 Functions and a model `dsp` to model the engine start stop strategy.
 """
-import sklearn.tree as sk_tree
-import sklearn.pipeline as sk_pip
-import sklearn.feature_selection as sk_fsel
 import numpy as np
 import schedula as sh
 from ..defaults import dfl
@@ -106,9 +103,8 @@ class StartStopModel:
         return (velocity > self.VEL) | (acceleration > self.ACC)
 
     def fit_simple(self, on_engine, velocities, accelerations, *args):
-        model = sk_tree.DecisionTreeClassifier(
-            random_state=0, max_depth=3
-        )
+        from sklearn.tree import DecisionTreeClassifier
+        model = DecisionTreeClassifier(random_state=0, max_depth=3)
         model.fit(np.column_stack((velocities, accelerations)), on_engine)
         predict = model.predict
 
@@ -119,10 +115,13 @@ class StartStopModel:
 
     def fit_complex(self, on_engine, velocities, accelerations,
                     engine_coolant_temperatures, state_of_charges):
-        model = sk_tree.DecisionTreeClassifier(random_state=0, max_depth=4)
-        model = sk_pip.Pipeline([
-            ('feature_selection',
-             sk_fsel.SelectFromModel(model)),
+        from sklearn.tree import DecisionTreeClassifier
+        from sklearn.pipeline import Pipeline
+        from sklearn.feature_selection import SelectFromModel
+
+        model = DecisionTreeClassifier(random_state=0, max_depth=4)
+        model = Pipeline([
+            ('feature_selection', SelectFromModel(model)),
             ('classification', model)
         ])
         model.fit(np.column_stack((

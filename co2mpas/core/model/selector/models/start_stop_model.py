@@ -8,8 +8,7 @@
 Functions and constants to define the start_stop_model selector.
 """
 import schedula as sh
-import sklearn.metrics as sk_met
-from ._core import define_sub_model
+from ._core import define_sub_model, _accuracy_score
 from ...physical.engine.start_stop import dsp as _start_stop
 
 #: Model name.
@@ -36,7 +35,7 @@ targets = outputs
 weights = sh.map_list(targets, -1, -1)
 
 #: Metrics to compare outputs with targets.
-metrics = sh.map_list(targets, *([sk_met.accuracy_score] * 2))
+metrics = sh.map_list(targets, *([_accuracy_score] * 2))
 
 #: Bottom score limits to raise the warnings.
 dn_limit = sh.map_list(targets, 0.7, 0.7)

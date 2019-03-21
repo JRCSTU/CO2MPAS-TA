@@ -380,7 +380,7 @@ def identify_alternator_initialization_time(
 
         import xgboost as xgb
         # noinspection PyProtectedMember
-        from ..engine.thermal import _build_samples
+        from ..engine._thermal import _build_samples
 
         X, Y = _build_samples(
             alternator_currents, state_of_charges, alts, gb_p, accelerations
@@ -939,7 +939,7 @@ class AlternatorCurrentModel:
             init_time=0.0):
         b = (statuses[1:] > 0) & on_engine[1:]
         i = co2_utl.argmax(times > times[0] + init_time)
-        from ..engine.thermal import _build_samples
+        from ..engine._thermal import _build_samples
         X, Y = _build_samples(currents, soc, statuses, *args)
         if b[i:].any():
             self.model, self.mask = self._fit_model(X[i:][b[i:]], Y[i:][b[i:]])
@@ -968,7 +968,7 @@ class AlternatorCurrentModel:
             'n_estimators': int(min(300.0, 0.25 * (len(X) - 1))) or 1
         }
         from sklearn.pipeline import Pipeline
-        from ..engine.thermal import _SelectFromModel
+        from ..engine._thermal import _SelectFromModel
         model = self.base_model(**opt)
         model = Pipeline([
             ('feature_selection', _SelectFromModel(model, '0.8*median',

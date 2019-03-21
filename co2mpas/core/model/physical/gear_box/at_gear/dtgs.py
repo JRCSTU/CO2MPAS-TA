@@ -9,8 +9,6 @@ Functions and a model `dsp` to model the DT Approach.
 """
 import numpy as np
 import schedula as sh
-import sklearn.tree as sk_tree
-import sklearn.pipeline as sk_pip
 from .cmv import CMV
 from .core import prediction_gears_gsm
 
@@ -21,7 +19,8 @@ dsp = sh.BlueDispatcher(name='Decision Tree Approach')
 # noinspection PyTypeChecker,PyPep8Naming
 class DTGS:
     def __init__(self, velocity_speed_ratios):
-        self.tree = sk_tree.DecisionTreeClassifier(random_state=0)
+        from sklearn.tree import DecisionTreeClassifier
+        self.tree = DecisionTreeClassifier(random_state=0)
         self.model = self.gears = None
         self.velocity_speed_ratios = velocity_speed_ratios
 
@@ -30,9 +29,10 @@ class DTGS:
         i = np.arange(-1, gears.shape[0] - 1)
         i[0] = 0
         # noinspection PyProtectedMember
-        from ...engine.thermal import _SelectFromModel
+        from ...engine._thermal import _SelectFromModel
+        from sklearn.pipeline import Pipeline
         model = self.tree
-        self.model = sk_pip.Pipeline([
+        self.model = Pipeline([
             ('feature_selection', _SelectFromModel(
                 model, '0.8*median', in_mask=(0, 1)
             )),

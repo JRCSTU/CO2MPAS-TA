@@ -8,9 +8,6 @@
 """
 It contains classes and functions of general utility.
 """
-
-import yaml
-import inspect
 import statistics
 import numpy as np
 
@@ -18,11 +15,13 @@ import numpy as np
 # noinspection PyMissingOrEmptyDocstring
 class Constants(dict):
     def load(self, file, **kw):
+        import yaml
         with open(file, 'rb') as f:
             self.from_dict(yaml.load(f, **kw))
         return self
 
     def dump(self, file, default_flow_style=False, **kw):
+        import yaml
         with open(file, 'w') as f:
             yaml.dump(
                 self.to_dict(), f, default_flow_style=default_flow_style, **kw
@@ -47,6 +46,7 @@ class Constants(dict):
         return self
 
     def to_dict(self, base=None):
+        import inspect
         pr = {} if base is None else base
         s = (set(dir(self)) - set(dir(Constants)))
         for n in s.union(self.__class__.__dict__.keys()):

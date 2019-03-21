@@ -9,8 +9,7 @@ Functions and constants to define the alternator_model selector.
 """
 import schedula as sh
 import co2mpas.utils as co2_utl
-import sklearn.metrics as sk_met
-from ._core import define_sub_model
+from ._core import define_sub_model, _accuracy_score
 from ...physical.electrics import dsp as _electrics
 
 #: Model name.
@@ -43,7 +42,7 @@ targets = outputs
 weights = sh.map_list(targets, 1, 1, 0, 0)
 
 #: Metrics to compare outputs with targets.
-metrics = sh.map_list(targets, *([co2_utl.mae] * 3 + [sk_met.accuracy_score]))
+metrics = sh.map_list(targets, *([co2_utl.mae] * 3 + [_accuracy_score]))
 
 #: Upper score limits to raise the warnings.
 up_limit = dict.fromkeys(('alternator_currents', 'battery_currents'), 60)

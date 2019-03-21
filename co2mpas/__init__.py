@@ -22,9 +22,9 @@ import tqdm
 import logging
 import os.path as osp
 import schedula as sh
-from ._version import *
-from .utils import check_first_arg
-from .core.write import default_start_time, default_timestamp
+from co2mpas._version import *
+from co2mpas.utils import check_first_arg
+from co2mpas.core.write import default_start_time, default_timestamp
 
 log = logging.getLogger(__name__)
 dsp = sh.BlueDispatcher(name='process')

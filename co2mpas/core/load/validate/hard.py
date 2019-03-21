@@ -8,7 +8,6 @@
 """
 It provides functions to perform the hard validation.
 """
-import schema
 import logging
 import functools
 import numpy as np
@@ -232,9 +231,8 @@ def hard_validation(inputs, errors):
         Parsed input data and errors container.
     :rtype: dict, dict
     """
+    from schema import SchemaError
     for k, v in sh.stack_nested_keys(inputs, depth=3):
         for c, msg in _hard_validation(v, *k):
-            sh.get_nested_dicts(errors, *k)[c] = schema.SchemaError(
-                [], [msg]
-            )
+            sh.get_nested_dicts(errors, *k)[c] = SchemaError([], [msg])
     return inputs, errors

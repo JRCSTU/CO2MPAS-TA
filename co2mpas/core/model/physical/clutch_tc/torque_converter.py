@@ -56,7 +56,7 @@ class TorqueConverter:
     @staticmethod
     def _fit_regressor(X, y):
         # noinspection PyProtectedMember
-        from ..engine.thermal import _SelectFromModel
+        from ..engine._thermal import _SelectFromModel
         from sklearn.pipeline import Pipeline
         import xgboost as xgb
 

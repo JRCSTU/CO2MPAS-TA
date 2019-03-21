@@ -11,8 +11,7 @@ import logging
 import collections
 import schedula as sh
 import co2mpas.utils as co2_utl
-import sklearn.metrics as sk_met
-from ._core import define_sub_model
+from ._core import define_sub_model, _accuracy_score
 from ...physical.gear_box.at_gear import dsp as _at_gear
 from ...physical.gear_box.mechanical import calculate_gear_box_speeds_in
 
@@ -48,7 +47,7 @@ targets = outputs
 weights = sh.map_list(targets, -1)
 
 #: Metrics to compare outputs with targets.
-metrics = {'gears': sk_met.accuracy_score}
+metrics = {'gears': _accuracy_score}
 
 
 def _correlation_coefficient(t, o):
@@ -99,7 +98,7 @@ def calculate_error_coefficients(
     res = {
         'mean_absolute_error': co2_utl.mae(x, y),
         'correlation_coefficient': _correlation_coefficient(x, y),
-        'accuracy_score': sk_met.accuracy_score(identified_gears, gears)
+        'accuracy_score': _accuracy_score(identified_gears, gears)
     }
 
     return res

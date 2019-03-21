@@ -18,7 +18,6 @@ Sub-Modules:
 
     hard
 """
-import schema
 import logging
 import schedula as sh
 
@@ -29,12 +28,13 @@ dsp = sh.BlueDispatcher(
 
 
 def _add_validated_input(data, validate, keys, value, errors):
+    from schema import SchemaError
     try:
         k, v = next(iter(validate({keys[-1]: value}).items()))
         if v is not sh.NONE:
             data[k] = v
             return v
-    except schema.SchemaError as ex:
+    except SchemaError as ex:
         sh.get_nested_dicts(errors, *keys[:-1])[keys[-1]] = ex
     return sh.NONE
 
@@ -167,10 +167,11 @@ def validate_meta(meta=None, hard_validation=False):
     """
     i, e = _validate_base_with_schema(meta or {}, depth=2)
     if hard_validation:
+        from schema import SchemaError
         from .hard import _hard_validation
         for k, v in sorted(sh.stack_nested_keys(i, depth=1)):
             for c, msg in _hard_validation(v, 'meta'):
-                sh.get_nested_dicts(e, *k)[c] = schema.SchemaError([], [msg])
+                sh.get_nested_dicts(e, *k)[c] = SchemaError([], [msg])
 
     if _log_errors_msg(e):
         return sh.NONE

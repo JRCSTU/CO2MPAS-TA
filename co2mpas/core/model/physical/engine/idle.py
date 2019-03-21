@@ -9,7 +9,6 @@ Functions and a model `dsp` to model the idle engine speed.
 """
 import numpy as np
 import schedula as sh
-from sklearn.cluster import DBSCAN
 from ..defaults import dfl
 
 dsp = sh.BlueDispatcher(
@@ -17,35 +16,6 @@ dsp = sh.BlueDispatcher(
     description='Identify idle engine speed median and std.'
 )
 dsp.add_data('idle_engine_speed_std', dfl.values.idle_engine_speed_std, 20)
-
-
-# noinspection PyPep8Naming,PyMissingOrEmptyDocstring
-class _IdleDetector(DBSCAN):
-    def __init__(self, eps=0.5, min_samples=5, metric='euclidean',
-                 algorithm='auto', leaf_size=30, p=None):
-        super(_IdleDetector, self).__init__(
-            eps=eps, min_samples=min_samples, metric=metric,
-            algorithm=algorithm, leaf_size=leaf_size, p=p
-        )
-        self.cluster_centers_ = None
-        self.min, self.max = None, None
-
-    def fit(self, X, y=None, sample_weight=None):
-        super(_IdleDetector, self).fit(X, y=y, sample_weight=sample_weight)
-
-        c, lb = self.components_, self.labels_[self.core_sample_indices_]
-        self.cluster_centers_ = np.array(
-            [np.mean(c[lb == i]) for i in range(lb.max() + 1)]
-        )
-        self.min, self.max = c.min(), c.max()
-        return self
-
-    def predict(self, X, set_outliers=True):
-        import sklearn.metrics as sk_met
-        y = sk_met.pairwise_distances_argmin(X, self.cluster_centers_[:, None])
-        if set_outliers:
-            y[((X > self.max) | (X < self.min))[:, 0]] = -1
-        return y
 
 
 @sh.add_function(dsp, outputs=['idle_model_detector'], weigth=100)
@@ -79,6 +49,7 @@ def define_idle_model_detector(
     if not b.any():
         return sh.NONE
     x = engine_speeds_out[b, None]
+    from ._idle import _IdleDetector
     model = _IdleDetector(eps=dfl.functions.define_idle_model_detector.EPS)
     model.fit(x)
     return model
@@ -133,6 +104,7 @@ def identify_idle_engine_speed_std(
     b = idle_model_detector.predict(engine_speeds_out[:, None]) == b
     b &= (engine_speeds_out > min_engine_on_speed)
     idle_std = dfl.functions.identify_idle_engine_speed_std.MIN_STD
+    # noinspection PyUnresolvedReferences
     if not b.any():
         return idle_std
 

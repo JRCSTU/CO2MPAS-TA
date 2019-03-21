@@ -94,8 +94,8 @@ class ColdStartModel:
     @staticmethod
     def initial_guess_temp_limit(
             cold_start_speeds_delta, engine_coolant_temperatures):
-        import sklearn.tree as sk_tree
-        reg = sk_tree.DecisionTreeRegressor(random_state=0, max_leaf_nodes=10)
+        from sklearn.tree import DecisionTreeRegressor
+        reg = DecisionTreeRegressor(random_state=0, max_leaf_nodes=10)
         reg.fit(engine_coolant_temperatures[:, None], cold_start_speeds_delta)
         t = np.unique(engine_coolant_temperatures)
         i = np.searchsorted(t, np.unique(reg.tree_.threshold))

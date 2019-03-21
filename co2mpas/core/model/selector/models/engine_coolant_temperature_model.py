@@ -8,7 +8,7 @@
 Functions and constants to define the engine_coolant_temperature_model selector.
 """
 import schedula as sh
-import sklearn.metrics as sk_met
+import co2mpas.utils as co2_utl
 from ._core import define_sub_model
 from ...physical.engine.thermal import dsp as _thermal
 
@@ -33,7 +33,7 @@ outputs = ['engine_coolant_temperatures']
 targets = outputs
 
 #: Metrics to compare outputs with targets.
-metrics = sh.map_list(targets, sk_met.mean_absolute_error)
+metrics = sh.map_list(targets, co2_utl.mae)
 
 #: Upper score limits to raise the warnings.
 up_limit = sh.map_list(targets, 3)
