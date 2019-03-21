@@ -24,7 +24,6 @@ import os.path as osp
 import schedula as sh
 from ._version import *
 from .utils import check_first_arg
-from .core import wait_sites, SITES
 from .core.write import default_start_time, default_timestamp
 
 log = logging.getLogger(__name__)
@@ -87,7 +86,6 @@ def save_co2mpas_template(output_file):
     log.info('CO2MPAS input template written into (%s).', output_file)
 
 
-
 @sh.add_function(dsp, outputs=['conf'])
 def save_co2mpas_conf(output_file):
     """
@@ -116,34 +114,99 @@ def register_core():
     return dsp.register(memo={})
 
 
-dsp.add_data('sites', SITES, sh.inf(100, 1))
-
-
-@sh.add_function(dsp, outputs=['sites'])
-def plot_model(core_model, cache_folder):
+@sh.add_function(dsp, outputs=['sitemap'])
+def plot_core(plot_model, core_model):
     """
     Plot CO2MPAS core model.
+
+    :param plot_model:
+        Open model-plot in browser, after run finished.
+    :type plot_model: bool
 
     :param core_model:
         CO2MPAS core model.
     :type core_model: schedula.Dispatcher
 
+    :return:
+        Sitemap to plot.
+    :rtype: schedula.utils.drw.SiteMap
+    """
+    if plot_model:
+        return core_model.plot(view=False)
+    return sh.NONE
+
+
+@sh.add_function(dsp, outputs=['sitemap'])
+def plot_solutions(plot_workflow, solutions):
+    """
+    Plot CO2MPAS solutions.
+
+    :param plot_workflow:
+        Open workflow-plot in browser, after run finished.
+    :type plot_workflow: bool
+
+    :param solutions:
+        All model solutions.
+    :type solutions: list[schedula.Solution]
+
+    :return:
+        Sitemap to plot.
+    :rtype: schedula.utils.drw.SiteMap
+    """
+    if plot_workflow:
+        from schedula.utils.drw import SiteMap
+        sitemap = SiteMap()
+        for i, s in enumerate(solutions):
+            sitemap.add_items(s, workflow=True)._name = 'Solution %d' % i
+        return sitemap
+    return sh.NONE
+
+
+@sh.add_function(dsp, outputs=['site'])
+def run_sitemap(sitemap, cache_folder, host, port):
+    """
+    Run sitemap.
+
+    :param sitemap:
+        Sitemap to plot.
+    :type sitemap: schedula.utils.drw.SiteMap
+
     :param cache_folder:
         Folder to save temporary html files.
     :type cache_folder: str
 
+    :param host:
+        Hostname to listen on.
+    :type host: str
+
+    :param port:
+        Port of the webserver.
+    :type port: int
     :return:
-        Running sites.
-    :rtype: set
     """
-    sites = set()
-    core_model.plot(directory=cache_folder, sites=sites)
-    return sites
+    site = sitemap.site(cache_folder, host=host, port=port).run()
+
+    try:
+        # noinspection PyProtectedMember
+        sitemap._view(site.url, 'html')
+    except FileNotFoundError:  # We are inside docker.
+        pass
+    return site
 
 
-dsp.add_func(
-    wait_sites, inputs_kwargs=True, outputs=['plot'], weight=sh.inf(100, 1)
-)
+@sh.add_function(dsp, outputs=['plot'], weight=sh.inf(101, 0))
+def wait_site(site):
+    """
+    Pause for site shutdown.
+    """
+
+    import time
+    try:
+        while True:
+            time.sleep(1)
+    except (KeyboardInterrupt, SystemExit):
+        pass
+    site.shutdown()
 
 
 def _yield_files(*paths, cache=None):

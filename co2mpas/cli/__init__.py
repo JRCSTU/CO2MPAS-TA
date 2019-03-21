@@ -101,15 +101,26 @@ def conf(output_file, **kwargs):
 
 @cli.command('plot', short_help='Plots the CO2MPAS model.')
 @click.option(
-    '-O', '--cache-folder', help='Folder to save temporary html files.',
+    '-C', '--cache-folder', help='Folder to save temporary html files.',
     default='./cache_plot', type=click.Path(file_okay=False, writable=True),
     show_default=True
 )
-def plot(cache_folder):
+@click.option(
+    '-H', '--host', help='Hostname to listen on.', default='127.0.0.1',
+    type=str, show_default=True
+)
+@click.option(
+    '-P', '--port', help='Port of the webserver.', default=5000, type=int,
+    show_default=True
+)
+def plot(cache_folder, host, port):
     """
     Plots the full CO2MPAS model into CACHE_FOLDER.
     """
-    return _process({'cache_folder': cache_folder}, ['plot', 'done'])
+    return _process(
+        dict(plot_model=True, cache_folder=cache_folder, host=host, port=port),
+        ['plot', 'done']
+    )
 
 
 @cli.command('run', short_help='Run CO2MPAS model.')
@@ -126,6 +137,19 @@ def plot(cache_folder):
 @click.option(
     '-SK', '--sign-key', help='User signature key for TA mode.',
     default='./DICE_KEYS/sign.co2mpas.key', type=click.Path(), show_default=True
+)
+@click.option(
+    '-C', '--cache-folder', help='Folder to save temporary html files.',
+    default='./cache_plot', type=click.Path(file_okay=False, writable=True),
+    show_default=True
+)
+@click.option(
+    '-H', '--host', help='Hostname to listen on.', default='127.0.0.1',
+    type=str, show_default=True
+)
+@click.option(
+    '-P', '--port', help='Port of the webserver.', default=5000, type=int,
+    show_default=True
 )
 @click.option(
     '-OT', '--output-template', help='Template output.',
@@ -157,7 +181,7 @@ def plot(cache_folder):
     '-PL', '--plot-workflow', is_flag=True,
     help='Open workflow-plot in browser, after run finished.'
 )
-def run(input_files, **kwargs):
+def run(input_files, cache_folder, host, port, plot_workflow, **kwargs):
     """
     Run CO2MPAS for all files into INPUT_FILES.
 
@@ -165,7 +189,10 @@ def run(input_files, **kwargs):
                  (format: .xlsx, .dill, .co2mpas.ta).
     """
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
-    inputs = {'cmd_flags': kwargs, 'input_files': input_files, sh.START: kwargs}
+    inputs = dict(
+        plot_workflow=plot_workflow, host=host, port=port, cmd_flags=kwargs,
+        input_files=input_files, cache_folder=cache_folder, **{sh.START: kwargs}
+    )
     return _process(inputs, ['plot', 'done', 'run'])
 
 

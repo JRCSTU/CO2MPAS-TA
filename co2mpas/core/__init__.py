@@ -37,8 +37,8 @@ dsp = sh.BlueDispatcher(
 )
 _cmd_flags = [
     'only_summary', 'hard_validation', 'declaration_mode', 'enable_selector',
-    'type_approval_mode', 'encryption_keys', 'sign_key', 'plot_workflow',
-    'output_template', 'output_folder', 'encryption_keys_passwords'
+    'type_approval_mode', 'encryption_keys', 'sign_key', 'output_template',
+    'output_folder', 'encryption_keys_passwords'
 ]
 
 
@@ -63,7 +63,6 @@ def parse_cmd_flags(cmd_flags=None):
         'declaration_mode': False,
         'enable_selector': False,
         'type_approval_mode': False,
-        'plot_workflow': False,
         'encryption_keys': None,
         'sign_key': None,
         'output_template': sh.NONE,
@@ -176,61 +175,4 @@ dsp.add_dispatcher(
         'output_file', 'start_time', 'timestamp', 'output_file_name', sh.SINK
     ],
     input_domain=check_only_summary
-)
-
-SITES = set()
-
-
-def wait_sites(sites=None):
-    """
-    Pause for sites shutdown.
-
-    :param sites:
-        Running sites.
-    :type sites: set
-    """
-    import time
-    sites = SITES if sites is None else sites
-    try:
-        while sites:
-            time.sleep(1)
-    except (KeyboardInterrupt, SystemExit):
-        pass
-    while sites:
-        sites.pop().shutdown()
-
-
-# noinspection PyUnusedLocal
-def plot_model_workflow(output_folder, vehicle_name, timestamp):
-    """
-    Defines the kwargs to plot the dsp workflow.
-
-    :param output_folder:
-        Output folder.
-    :type output_folder: str
-
-    :param vehicle_name:
-        Vehicle name.
-    :type vehicle_name: str
-
-    :param timestamp:
-        Run timestamp.
-    :type timestamp: str
-
-    :return:
-        Kwargs to plot the dsp workflow.
-    :rtype: dict
-    """
-    from .write import default_output_file_name
-    fp = default_output_file_name(output_folder, vehicle_name, timestamp, None)
-    log.info("Plotting workflow of %s... into '%s'", vehicle_name, fp)
-    return dict(directory=fp, sites=SITES, index=True)
-
-
-dsp.add_function(
-    function=sh.add_args(plot_model_workflow),
-    inputs=['plot_workflow', 'output_folder', 'vehicle_name', 'timestamp'],
-    outputs=[sh.PLOT],
-    weight=sh.inf(100, 0),
-    input_domain=check_first_arg
 )
