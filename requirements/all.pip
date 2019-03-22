@@ -2,5 +2,5 @@
 -r cli.pip
 -r base.pip
 -r sync.pip
--r dice.pip
 -r io.pip
+-r gui.pip

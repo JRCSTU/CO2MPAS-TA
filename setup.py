@@ -100,11 +100,12 @@ if __name__ == '__main__':
     extras = {
         'cli': ['click', 'click-log'],
         'sync': ['syncing', 'pandas>=0.21.0'],
-        'plot': ['schedula[plot]>=0.3.2', 'matplotlib'],
+        'plot': ['flask', 'regex', 'graphviz', 'Pygments', 'lxml', 'bs4',
+                 'jinja2', 'docutils', 'matplotlib'],
         'io': ['pandas>=0.21.0', 'dill', 'regex', 'pandalone', 'pip', 'xlrd',
                'asteval']
     }
-    extras['dice'] = ['dice'] + extras['io']
+    extras['dice'] = ['co2mpas-dice'] + extras['io']
     # noinspection PyTypeChecker
     extras['all'] = list(functools.reduce(set.union, extras.values(), set()))
     extras['dev'] = extras['all'] + [
