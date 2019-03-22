@@ -25,12 +25,11 @@ class IO(unittest.TestCase):
 
     def test_read(self):
         import co2mpas
-        from co2mpas.batch import vehicle_processing_model
-        dsp = vehicle_processing_model()
+        dsp = co2mpas.dsp.register(memo={})
         files = osp.join(osp.dirname(co2mpas.__file__), 'demos', '*.xlsx')
         res = {
             osp.basename(f): dsp(
-                {'input_file_name': f, 'overwrite_cache': True},
+                {'input_file_name': f},
                 outputs=['base_data', 'plan_data']
             ) for f in glob.glob(files)
         }
