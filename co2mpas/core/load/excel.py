@@ -241,8 +241,8 @@ def _parse_sheet(match, sheet, sheet_name, res=None):
 
     # noinspection PyBroadException
     try:
-        import pandalone.xleash as xleash
-        data = xleash.lasso(_xl_ref[sh_type] % sheet_name, sheet=sheet)
+        from pandalone.xleash._lasso import lasso
+        data = lasso(_xl_ref[sh_type] % sheet_name, sheet=sheet)
     except Exception:
         return res
 
