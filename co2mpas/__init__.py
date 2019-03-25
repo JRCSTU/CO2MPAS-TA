@@ -63,8 +63,8 @@ def save_demo_files(output_folder):
     import glob
     from shutil import copy2
     from pkg_resources import resource_filename
-    os.makedirs(output_folder, exist_ok=True)
-    for src in glob.glob(resource_filename('co2mpas', 'demo/*.xlsx')):
+    os.makedirs(output_folder or '.', exist_ok=True)
+    for src in glob.glob(resource_filename('co2mpas', 'demos/*.xlsx')):
         copy2(src, osp.join(output_folder, osp.basename(src)))
     log.info('CO2MPAS demos written into (%s).', output_folder)
 
@@ -81,7 +81,7 @@ def save_co2mpas_template(output_file):
     from shutil import copy2
     from pkg_resources import resource_filename
     src = resource_filename('co2mpas', 'templates/co2mpas_template.xlsx')
-    os.makedirs(osp.dirname(output_file), exist_ok=True)
+    os.makedirs(osp.dirname(output_file) or '.', exist_ok=True)
     copy2(src, output_file)
     log.info('CO2MPAS input template written into (%s).', output_file)
 
@@ -96,7 +96,7 @@ def save_co2mpas_conf(output_file):
     :type output_file: str
     """
     from .core.model.physical.defaults import dfl
-    os.makedirs(osp.dirname(output_file), exist_ok=True)
+    os.makedirs(osp.dirname(output_file) or '.', exist_ok=True)
     dfl.dump(output_file)
     log.info('CO2MPAS model configurations written into (%s).', output_file)
 
@@ -444,7 +444,7 @@ def save_summary(summary, output_summary_file, start_time):
     if not df.columns.empty:
         df.columns = pd.MultiIndex.from_tuples(_add_units(df.columns))
 
-    os.makedirs(osp.dirname(output_summary_file), exist_ok=True)
+    os.makedirs(osp.dirname(output_summary_file) or '.', exist_ok=True)
     with pd.ExcelWriter(output_summary_file) as writer:
         df.to_excel(writer, 'summary')
         _co2mpas_info2df(start_time).to_excel(writer, 'proc_info')
