@@ -11,6 +11,7 @@ Functions to read inputs from excel.
 import math
 import regex
 import logging
+import functools
 import collections
 import os.path as osp
 import schedula as sh
@@ -233,18 +234,30 @@ def _parse_values(data, default=None, where=''):
             yield key, v
 
 
+@functools.lru_cache(None)
+def _lasso_filters():
+    from pandalone.xleash._filter import install_default_filters
+    from pandalone.xleash._pandas_filters import install_filters
+
+    filters = {}
+    install_default_filters(filters)
+    install_filters(filters)
+    return filters
+
+
 def _parse_sheet(match, sheet, sheet_name, res=None):
     if res is None:
         res = {}
 
     sh_type = _get_sheet_type(**match)
 
+    from pandalone.xleash._lasso import lasso
+
     # noinspection PyBroadException
-    try:
-        from pandalone.xleash._lasso import lasso
-        data = lasso(_xl_ref[sh_type] % sheet_name, sheet=sheet)
-    except Exception:
-        return res
+    data = lasso(
+        _xl_ref[sh_type] % sheet_name, sheet=sheet,
+        available_filters=_lasso_filters()
+    )
 
     if sh_type == 'pl':
         try:
