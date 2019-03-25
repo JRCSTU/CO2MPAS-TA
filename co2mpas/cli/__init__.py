@@ -12,6 +12,7 @@ Define CO2MPAS command line interface.
    :show-nested:
 
 """
+import os
 import click
 import logging
 import click_log
@@ -193,6 +194,7 @@ def run(input_files, cache_folder, host, port, plot_workflow, **kwargs):
         plot_workflow=plot_workflow, host=host, port=port, cmd_flags=kwargs,
         input_files=input_files, cache_folder=cache_folder, **{sh.START: kwargs}
     )
+    os.makedirs(inputs.get('output_folder') or '.', exist_ok=True)
     return _process(inputs, ['plot', 'done', 'run'])
 
 
