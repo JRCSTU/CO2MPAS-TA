@@ -18,8 +18,8 @@ from syncing.cli import cli
 
 _sync_params = {p.name: p for p in cli.commands['sync'].params}
 _sync_params['reference_name'].default = 'theoretical'
-_sync_params['x_label'].default = 'times'
-_sync_params['y_label'].default = 'velocities'
+_sync_params['x_label'].default = ('times',)
+_sync_params['y_label'].default = ('velocities',)
 
 
 @cli.command('template', short_help='Generates sample template file.')
