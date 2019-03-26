@@ -286,7 +286,10 @@ def run_core(core_model, cmd_flags, timestamp, input_files, **kwargs):
 
 
 def _define_inputs(sol, inputs):
-    kw = dict(sources=inputs, check_inputs=False, graph=sol.dsp.dmap)
+    kw = dict(
+        sources=inputs, check_inputs=False, graph=sol.dsp.dmap,
+        _update_links=False
+    )
     keys = set(sol) - set(sol.dsp.get_sub_dsp_from_workflow(**kw).data_nodes)
     return sh.combine_dicts({k: sol[k] for k in keys}, inputs)
 
