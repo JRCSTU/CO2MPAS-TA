@@ -331,7 +331,8 @@ def _file(error=None, **kwargs):
 # noinspection PyUnusedLocal
 def _dir(error=None, **kwargs):
     er = 'Must be a directory!'
-    return And(_string(), Schema(osp.isdir, error=er), error=error)
+    fun = lambda x: not osp.exists(x) or osp.isdir(x)
+    return And(_string(), Schema(fun, error=er), error=error)
 
 
 def _is_sorted(iterable, key=lambda a, b: a <= b):
