@@ -29,13 +29,13 @@ class Constants(dict):
 
     def from_dict(self, d):
         for k, v in sorted(d.items()):
-            if isinstance(v, Constants):
+            if isinstance(v, dict) and '__constants__' in v:
                 o = getattr(self, k, Constants())
                 if isinstance(o, Constants):
-                    v = o.from_dict(v)
+                    v = o.from_dict(v['__constants__'])
                 elif issubclass(o.__class__, Constants) or \
                         issubclass(o, Constants):
-                    v = o().from_dict(v)
+                    v = o().from_dict(v['__constants__'])
                 if not v:
                     continue
             elif hasattr(self, k) and getattr(self, k) == v:
@@ -45,25 +45,21 @@ class Constants(dict):
 
         return self
 
-    def to_dict(self, base=None):
+    def to_dict(self):
         import inspect
-        pr = {} if base is None else base
-        s = (set(dir(self)) - set(dir(Constants)))
+        s, pr = set(dir(self)) - set(dir(Constants)), {}
         for n in s.union(self.__class__.__dict__.keys()):
             if n.startswith('__'):
                 continue
             v = getattr(self, n)
             if inspect.ismethod(v) or inspect.isbuiltin(v):
                 continue
-            try:
-                if isinstance(v, Constants):
-                    v = v.to_dict(base=Constants())
-                elif issubclass(v, Constants):
-                    # noinspection PyCallByClass,PyTypeChecker
-                    v = v.to_dict(v, base=Constants())
-            except TypeError:
-                pass
-            pr[n] = v
+            if isinstance(v, Constants):
+                pr[n] = {'__constants__': v.to_dict()}
+            elif inspect.isclass(v) and issubclass(v, Constants):
+                pr[n] = {'__constants__': v.to_dict(v)}
+            else:
+                pr[n] = v
         return pr
 
 

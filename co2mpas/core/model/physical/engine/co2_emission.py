@@ -1240,9 +1240,12 @@ def define_initial_co2_emission_model_params_guess(
     :rtype: lmfit.Parameters, list[float]
     """
     import lmfit
+    import collections
     bounds = {}  # Parameters bounds.
     par = dfl.functions.define_initial_co2_emission_model_params_guess
-    default = copy.deepcopy(par.CO2_PARAMS[engine_type])
+    default = collections.OrderedDict(
+        copy.deepcopy(par.CO2_PARAMS[engine_type])
+    )
     default['trg'] = {
         'value': engine_thermostat_temperature,
         'min': engine_thermostat_temperature_window[0],

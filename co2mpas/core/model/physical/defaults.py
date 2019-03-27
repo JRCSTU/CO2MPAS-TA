@@ -8,8 +8,6 @@
 """
 Constants for the CO2MPAS physical model.
 """
-import collections
-import numpy as np
 import co2mpas.utils as co2_utl
 
 
@@ -60,10 +58,10 @@ class Values(co2_utl.Constants):
     max_time_WLTP = 1800.0
 
     #: Maximum velocity to consider the vehicle stopped [km/h].
-    stop_velocity = 1.0 + np.finfo(np.float32).eps
+    stop_velocity = 1.0 + 1.1920929e-07
 
     #: Maximum acceleration to be at constant velocity [m/s2].
-    plateau_acceleration = 0.1 + np.finfo(np.float32).eps
+    plateau_acceleration = 0.1 + 1.1920929e-07
 
     #: Does the vehicle have start/stop system?
     has_start_stop = True
@@ -368,10 +366,15 @@ class Functions(co2_utl.Constants):
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class design_gear_box_ratios(co2_utl.Constants):
         #: Two factor to design the gear box ratios [-].
-        f_two = np.arange(1, 1.2, 0.01)
+        f_two = [
+            1, 1.01, 1.02, 1.03, 1.04, 1.05, 1.06, 1.07, 1.08, 1.09, 1.1, 1.11,
+            1.12, 1.13, 1.14, 1.15, 1.16, 1.17, 1.18, 1.19, 1.2
+        ]
 
         #: Tuning factor to design the gear box ratios [-].
-        f_tuning = np.arange(1, 1.1, 0.01)
+        f_tuning = [
+            1, 1.01, 1.02, 1.03, 1.04, 1.05, 1.06, 1.07, 1.08, 1.09, 1.1
+        ]
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class _filter_temperature_samples(co2_utl.Constants):
@@ -619,7 +622,7 @@ class Functions(co2_utl.Constants):
     class define_initial_co2_emission_model_params_guess(co2_utl.Constants):
         #: Initial guess CO2 emission model params.
         CO2_PARAMS = {
-            'positive turbo': collections.OrderedDict([
+            'positive turbo': [
                 ('a', {'value': 0.468678, 'min': 0.0}),
                 # 'min': 0.398589, 'max': 0.538767},
                 ('b', {'value': 0.011859}),  # 'min': 0.006558, 'max': 0.01716},
@@ -635,8 +638,8 @@ class Functions(co2_utl.Constants):
                 ('t1', {'value': 3.5, 'min': 0.0}),  # 'max': 8.0},
                 ('dt', {'value': 1.0, 'min': 0.0}),
                 ('t0', {'expr': 't1 + dt', 'value': 4.5}),  # 'max': 8.0},
-            ]),
-            'positive natural aspiration': collections.OrderedDict([
+            ],
+            'positive natural aspiration': [
                 ('a', {'value': 0.4851, 'min': 0.0}),
                 # 'min': 0.40065, 'max': 0.54315},
                 ('b', {'value': 0.01193}),  # 'min': -0.00247, 'max': 0.026333},
@@ -652,8 +655,8 @@ class Functions(co2_utl.Constants):
                 ('t1', {'value': 3.5, 'min': 0.0}),  # 'max': 8.0},
                 ('dt', {'value': 1.0, 'min': 0.0}),
                 ('t0', {'expr': 't1 + dt', 'value': 4.5}),  # 'max': 8.0},
-            ]),
-            'compression': collections.OrderedDict([
+            ],
+            'compression': [
                 ('a', {'value': 0.391197, 'min': 0.0}),
                 # 'min': 0.346548, 'max': 0.435846},
                 ('b', {'value': 0.028604}),
@@ -670,7 +673,7 @@ class Functions(co2_utl.Constants):
                 ('t1', {'value': 3.5, 'min': 0.0}),  # 'max': 8.0},
                 ('dt', {'value': 1.0, 'min': 0.0}),
                 ('t0', {'expr': 't1 + dt', 'value': 4.5}),  # 'max': 8.0},
-            ])
+            ]
         }
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
@@ -926,7 +929,7 @@ class Defaults(co2_utl.Constants):
     functions = Functions()
 
     #: Machine error.
-    EPS = np.finfo(np.float32).eps
+    EPS = 1.1920929e-07
 
     #: Infinite value.
     INF = 10000.0

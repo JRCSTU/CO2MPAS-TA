@@ -242,8 +242,9 @@ def calculate_raw_frontal_area_v1(vehicle_mass, vehicle_category):
         Raw frontal area of the vehicle [m2].
     :rtype: float
     """
+    from asteval import Interpreter as Interp
     d = dfl.functions.calculate_raw_frontal_area_v1
-    return eval(d.formulas[vehicle_category.upper()])(vehicle_mass)
+    return Interp().eval(d.formulas[vehicle_category.upper()])(vehicle_mass)
 
 
 @sh.add_function(dsp, outputs=['frontal_area'])
