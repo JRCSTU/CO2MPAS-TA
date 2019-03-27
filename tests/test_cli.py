@@ -33,7 +33,7 @@ class CLI(unittest.TestCase):
         with self.runner.isolated_filesystem():
             result = self.invoke(('template',) + options)
             self.assertEqual(result.exit_code, 0)
-            fp = len(options) == 1 and 'template.xlsx' or options[0]
+            fp = len(options) == 0 and 'template.xlsx' or options[0]
             self.assertTrue(
                 filecmp.cmp(fp, rfp), 'Template file is not as expected!'
             )
@@ -75,5 +75,10 @@ class CLI(unittest.TestCase):
             self.assertEqual(result.exit_code, 0)
             fp = len(options) == 0 and 'conf.yaml' or options[0]
             with open(fp, 'rb') as f:
-                r = {k for k, _ in sh.stack_nested_keys(yaml.load(f))}
-                self.assertTrue(r.issubset(t))
+                r = dict(sh.stack_nested_keys(yaml.load(f)))
+                self.assertSetEqual(set(r), t)
+
+            if len(options) == 3:
+                with open(options[2], 'rb') as f:
+                    for k, v in sh.stack_nested_keys(yaml.load(f)):
+                        self.assertEqual(r[k], v)

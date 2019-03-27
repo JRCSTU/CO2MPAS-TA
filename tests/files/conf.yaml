@@ -1,0 +1,6 @@
+INF: 222222.0
+functions:
+  __constants__:
+    Alternator_status_model:
+      __constants__:
+        min_delta_soc: 3
