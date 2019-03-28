@@ -38,6 +38,7 @@ def define_sub_model(dsp, inputs, outputs, models):
     assert set(sub.nodes).issuperset(set(inputs).union(outputs))
     return sub
 
+
 def _accuracy_score(*args, **kwargs):
     from sklearn.metrics import accuracy_score as func
     return func(*args, **kwargs)

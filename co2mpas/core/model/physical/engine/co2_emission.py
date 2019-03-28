@@ -1285,6 +1285,7 @@ def define_initial_co2_emission_model_params_guess(
 
         if 'min' in kw and 'max' in kw and kw['min'] == kw['max']:
             kw['vary'] = False
+            # noinspection PyTypeChecker
             kw['max'] = kw['min'] = None
 
         kw['min'] = kw.get('min', None)

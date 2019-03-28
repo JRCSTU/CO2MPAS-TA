@@ -5,6 +5,9 @@
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
+"""
+Defines package metadata.
+"""
 
 __all__ = ['__version__', '__updated__', '__title__', '__author__',
            '__license__', '__copyright__', '__file_version__', '__uri__']

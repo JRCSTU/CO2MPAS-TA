@@ -234,6 +234,7 @@ def _parse_values(data, default=None, where=''):
             yield key, v
 
 
+# noinspection PyProtectedMember
 @functools.lru_cache(None)
 def _lasso_filters():
     from pandalone.xleash._filter import install_default_filters
@@ -250,10 +251,8 @@ def _parse_sheet(match, sheet, sheet_name, res=None):
         res = {}
 
     sh_type = _get_sheet_type(**match)
-
+    # noinspection PyProtectedMember
     from pandalone.xleash._lasso import lasso
-
-    # noinspection PyBroadException
     data = lasso(
         _xl_ref[sh_type] % sheet_name, sheet=sheet,
         available_filters=_lasso_filters()

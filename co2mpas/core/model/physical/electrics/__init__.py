@@ -132,7 +132,7 @@ def identify_electric_loads(
         off = min(0.0, c * rjo(bL, med=np.mean)[0])
         if on > off:
             curr = np.append(bL, bH)
-            if mae(curr , on / c) > mae(curr, off / c):
+            if mae(curr, on / c) > mae(curr, off / c):
                 on = off
             else:
                 off = on
@@ -382,15 +382,15 @@ def identify_alternator_initialization_time(
         # noinspection PyProtectedMember
         from ..engine._thermal import _build_samples
 
-        X, Y = _build_samples(
+        x, y = _build_samples(
             alternator_currents, state_of_charges, alts, gb_p, accelerations
         )
 
         j = min(i, int(n / 2))
         opt['n_estimators'] = int(min(100.0, 0.25 * (n - j))) or 1
         model = xgb.XGBRegressor(**opt)
-        model.fit(X[j:], Y[j:])
-        err = np.abs(Y - model.predict(X))
+        model.fit(x[j:], y[j:])
+        err = np.abs(y - model.predict(x))
         sets = np.array(co2_utl.get_inliers(err)[0], dtype=int)[:i]
         if sum(sets) / i < 0.5 or i > j:
             from sklearn.tree import DecisionTreeClassifier

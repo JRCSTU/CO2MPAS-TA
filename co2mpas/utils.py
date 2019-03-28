@@ -57,6 +57,7 @@ class Constants(dict):
             if isinstance(v, Constants):
                 pr[n] = {'__constants__': v.to_dict()}
             elif inspect.isclass(v) and issubclass(v, Constants):
+                # noinspection PyCallByClass,PyTypeChecker
                 pr[n] = {'__constants__': v.to_dict(v)}
             else:
                 pr[n] = v
