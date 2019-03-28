@@ -711,6 +711,7 @@ def define_flags_schema(read=True):
         _compare_str('input_version'): _input_version(read=read),
         _compare_str('model_conf'): isfile,
         _compare_str('encryption_keys'): string,
+        _compare_str('encryption_keys_passwords'): string,
         _compare_str('sign_key'): string,
 
         _compare_str('hard_validation'): _bool,

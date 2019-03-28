@@ -182,6 +182,12 @@ def plot(cache_folder, host, port):
     '-PL', '--plot-workflow', is_flag=True,
     help='Open workflow-plot in browser, after run finished.'
 )
+@click.option(
+    '-KP', '--encryption-keys-passwords',
+    help='Encryption keys passwords file for reading TA files.',
+    default='./DICE_KEYS/secret.passwords', type=click.Path(),
+    show_default=True
+)
 def run(input_files, cache_folder, host, port, plot_workflow, **kwargs):
     """
     Run CO2MPAS for all files into INPUT_FILES.
