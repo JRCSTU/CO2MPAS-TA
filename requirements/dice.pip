@@ -1,4 +1,4 @@
 -r base.pip
 -r io.pip
 
-co2mpas-dice
+co2mpas_dice
