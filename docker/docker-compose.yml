@@ -1,9 +1,16 @@
 version: '3'
 services:
   co2mpas-debian:
-    container_name: co2mpas
+    container_name: co2mpas-debian
     image: ${CO2MPAS_TAG_DEBIAN-vinci1it2000/co2mpas-debian:latest}
     build:
       context: ..
       dockerfile: ./docker/debian/Dockerfile
     command: ${CO2MPAS_CMD-co2mpas run ./input -O ./output}
+  co2mpas-exe:
+    container_name: co2mpas-exe
+    image: ${CO2MPAS_TAG_EXE-vinci1it2000/co2mpas-exe:latest}
+    build:
+      context: ..
+      dockerfile: ./docker/exe/Dockerfile
+    command: ${CO2MPAS_CMD-wine dist/co2mpas run ./input -O ./output}
