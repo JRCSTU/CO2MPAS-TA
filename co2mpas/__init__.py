@@ -163,7 +163,9 @@ def plot_solutions(plot_workflow, solutions):
         from schedula.utils.drw import SiteMap
         sitemap = SiteMap()
         for i, s in enumerate(solutions):
-            sitemap.add_items(s, workflow=True)._name = 'Solution %d' % i
+            sitemap.add_items(s, workflow=True)._name = s.get(
+                'vehicle_name', 'Solution %d' % i
+            )
         return sitemap
     return sh.NONE
 
