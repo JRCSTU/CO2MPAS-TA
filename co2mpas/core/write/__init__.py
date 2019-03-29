@@ -137,9 +137,9 @@ dsp.add_function(
 if _dice is not None:
     dsp.add_data('co2mpas_version', __version__)
     _out, _inp = ['output_file_name', 'output_file'], [
-        'base', 'dice', 'excel_output', 'input_file', 'output_folder', 'report',
-        'encryption_keys', 'start_time', 'meta', 'sign_key', 'co2mpas_version',
-        'timestamp'
+        'excel_input', 'base', 'start_time', 'excel_output', 'output_folder',
+        'report', 'encryption_keys', 'meta', 'sign_key', 'dice', 'timestamp',
+        'co2mpas_version'
     ]
 
     # noinspection PyProtectedMember
@@ -149,7 +149,7 @@ if _dice is not None:
         )._set_cls(sh.add_args),
         function_id='write_ta_output',
         description='Write ta output file.',
-        inputs=['type_approval_mode'] + _inp,
+        inputs=['type_approval_mode', 'input_file'] + _inp[1:],
         outputs=_out,
         input_domain=check_first_arg
     )
