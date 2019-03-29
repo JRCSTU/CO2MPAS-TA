@@ -55,18 +55,22 @@ def cli():
     """
 
 
-@cli.command('template', short_help='Generates input template file.')
+@cli.command('template', short_help='Generates input/output template file.')
 @click.argument(
     'output-file', default='template.xlsx', required=False,
     type=click.Path(writable=True)
 )
-def template(output_file):
+@click.option(
+    '-TT', '--template-type', type=click.Choice(['input', 'output']),
+    help='Template file type.', default='input', show_default=True
+)
+def template(**inputs):
     """
-    Writes a CO2MPAS input template into OUTPUT_FILE.
+    Writes a CO2MPAS input/output template into OUTPUT_FILE.
 
     OUTPUT_FILE: File path `.xlsx`. [default: ./template.xlsx]
     """
-    return _process({'output_file': output_file}, ['template', 'done'])
+    return _process(inputs, ['template', 'done'])
 
 
 @cli.command('demo', short_help='Generates sample demo files.')

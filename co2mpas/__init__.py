@@ -70,17 +70,23 @@ def save_demo_files(output_folder):
 
 
 @sh.add_function(dsp, outputs=['template'])
-def save_co2mpas_template(output_file):
+def save_co2mpas_template(output_file, template_type):
     """
     Save CO2MPAS input template.
 
     :param output_file:
         Output file.
     :type output_file: str
+
+    :param template_type:
+        Template type.
+    :type template_type: str
     """
     from shutil import copy2
     from pkg_resources import resource_filename
-    src = resource_filename('co2mpas', 'templates/co2mpas_template.xlsx')
+    src = resource_filename(
+        'co2mpas', 'templates/%s_template.xlsx' % template_type
+    )
     os.makedirs(osp.dirname(output_file) or '.', exist_ok=True)
     copy2(src, output_file)
     log.info('CO2MPAS input template written into (%s).', output_file)

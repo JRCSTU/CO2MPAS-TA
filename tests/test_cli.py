@@ -26,10 +26,13 @@ class CLI(unittest.TestCase):
     @ddt.idata((
             (),
             ('temp.xlsx',),
-            ('folder/temp.xlsx',)
+            ('folder/temp.xlsx',),
+            ('folder/temp.xlsx', '-TT', 'input'),
+            ('folder/temp.xlsx', '-TT', 'output')
     ))
     def test_template(self, options):
-        rfp = osp.join(fdir, '../co2mpas/templates/co2mpas_template.xlsx')
+        tt = len(options) <= 2 and 'input' or options[2]
+        rfp = osp.join(fdir, '../co2mpas/templates/%s_template.xlsx' % tt)
         with self.runner.isolated_filesystem():
             result = self.invoke(('template',) + options)
             self.assertEqual(result.exit_code, 0)

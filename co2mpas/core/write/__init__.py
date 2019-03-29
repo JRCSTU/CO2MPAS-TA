@@ -65,8 +65,8 @@ def default_output_template():
         Template output.
     :rtype: str
     """
-    from pkg_resources import resource_filename as res_fn
-    return res_fn('co2mpas', 'templates/co2mpas_output_template.xlsx')
+    from pkg_resources import resource_filename
+    return resource_filename('co2mpas', 'templates/output_template.xlsx')
 
 
 dsp.add_func(write_to_excel, outputs=['excel_output'])
