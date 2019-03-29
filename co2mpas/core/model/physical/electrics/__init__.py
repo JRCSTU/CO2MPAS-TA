@@ -468,7 +468,7 @@ def get_alternator_current_threshold(alternator_status_model):
 
     :param alternator_status_model:
         A function that predicts the alternator status.
-    :type alternator_status_model: Alternator_status_model
+    :type alternator_status_model: AlternatorStatusModel
 
     :return:
         Alternator current threshold [A].
@@ -637,7 +637,7 @@ def define_alternator_status_model(
     def bers_pred(X):
         return [X[0][0] < 0]
 
-    model = Alternator_status_model(
+    model = AlternatorStatusModel(
         charge_pred=lambda X: [X[0][0] == 1],
         bers_pred=bers_pred,
         min_soc=state_of_charge_balance - state_of_charge_balance_window / 2,
@@ -657,7 +657,7 @@ def identify_state_of_charge_balance_and_window(alternator_status_model):
 
     :param alternator_status_model:
         A function that predicts the alternator status.
-    :type alternator_status_model: Alternator_status_model
+    :type alternator_status_model: AlternatorStatusModel
 
     :return:
         Battery state of charge balance and its window [%].
@@ -706,7 +706,7 @@ def _identify_balance_soc(times, state_of_charges):
 
 
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-class Alternator_status_model(object):
+class AlternatorStatusModel:
     def __init__(self, bers_pred=None, charge_pred=None, min_soc=0.0,
                  max_soc=100.0, current_threshold=0.0):
         self.bers = bers_pred
@@ -723,7 +723,7 @@ class Alternator_status_model(object):
         threshold = 0.0
         if b.any():
             from sklearn.tree import DecisionTreeClassifier
-            q = dfl.functions.Alternator_status_model.min_percentile_bers
+            q = dfl.functions.AlternatorStatusModel.min_percentile_bers
             m = DecisionTreeClassifier(random_state=0, max_depth=2)
             c = alternator_statuses != 1
             # noinspection PyUnresolvedReferences
@@ -763,7 +763,7 @@ class Alternator_status_model(object):
         self.max, self.min = 100.0, 0.0
         _max, _min, balance = [], [], ()
         from scipy.stats import linregress
-        min_dt = dfl.functions.Alternator_status_model.min_delta_time_boundaries
+        min_dt = dfl.functions.AlternatorStatusModel.min_delta_time_boundaries
         for i, j in mask:
             t = times[i:j]
             if t[-1] - t[0] <= min_dt:
@@ -776,7 +776,7 @@ class Alternator_status_model(object):
                 if j < n:
                     _max.append(soc.max())
 
-        min_delta_soc = dfl.functions.Alternator_status_model.min_delta_soc
+        min_delta_soc = dfl.functions.AlternatorStatusModel.min_delta_soc
         if _min:
             self.min = _min = max(self.min, min(100.0, min(_min)))
 
@@ -863,7 +863,7 @@ def calibrate_alternator_status_model(
     :rtype: callable
     """
 
-    model = Alternator_status_model(
+    model = AlternatorStatusModel(
         current_threshold=alternator_current_threshold
     )
     model.fit(
@@ -1211,7 +1211,7 @@ def define_electrics_prediction_model(
 
     :param alternator_status_model:
         A function that predicts the alternator status.
-    :type alternator_status_model: Alternator_status_model
+    :type alternator_status_model: AlternatorStatusModel
 
     :param max_alternator_current:
         Max feasible alternator current [A].

@@ -88,10 +88,11 @@ def _limits(limits=(0, 100), error=None, **kwargs):
 
 
 # noinspection PyUnusedLocal
-def _eval(s, error=None, **kwargs):
+def _eval(s, error=None, usersyms=None, **kwargs):
     error = error or 'cannot be eval!'
     from asteval import Interpreter
-    return Or(And(str, Use(Interpreter().eval), s), s, error=error)
+    return Or(And(str, Use(Interpreter(usersyms=usersyms).eval), s), s,
+              error=error)
 
 
 # noinspection PyUnusedLocal,PyShadowingBuiltins
@@ -112,7 +113,10 @@ def _ordict(format=None, error=None, read=True, **kwargs):
     error = error or msg.format(format)
     c = Use(OrderedDict)
     if read:
-        return _eval(Or(Empty(), And(c, Or(Empty(), format))), error=error)
+        return _eval(
+            Or(Empty(), And(c, Or(Empty(), format))), error=error,
+            usersyms={'OrderedDict': OrderedDict}
+        )
     else:
         return And(_dict(format=format, error=error), Use(pprint.pformat))
 
@@ -131,7 +135,7 @@ def _check_length(length):
 # noinspection PyUnusedLocal,PyShadowingBuiltins
 def _type(type=None, error=None, length=None, **kwargs):
     type = type or tuple
-
+    usersyms = {getattr(type, '__name__', 'type'): type}
     if length is not None:
         error = error or 'should be as {} and ' \
                          'with a length of {}!'.format(type, length)
@@ -139,7 +143,7 @@ def _type(type=None, error=None, length=None, **kwargs):
     if not isinstance(type, (Use, Schema, And, Or)):
         type = Or(type, Use(type))
     error = error or 'should be as {}!'.format(type)
-    return _eval(type, error=error)
+    return _eval(type, error=error, usersyms=usersyms)
 
 
 # noinspection PyUnusedLocal
@@ -160,10 +164,13 @@ def _np_array(dtype=None, error=None, read=True, **kwargs):
     error = error or 'cannot be parsed as np.array dtype={}!'.format(dtype)
     if read:
         c = Use(lambda x: np.asarray(x, dtype=dtype))
-        return Or(And(str, _eval(c)), c, And(_type(), c), Empty(), error=error)
+        return Or(And(str, _eval(
+            c, usersyms={'np.array': np.array}
+        )), c, And(_type(), c), Empty(), error=error)
     else:
-        return And(_np_array(dtype=dtype), Use(lambda x: x.tolist()),
-                   error=error)
+        return And(
+            _np_array(dtype=dtype), Use(lambda x: x.tolist()), error=error
+        )
 
 
 def _check_np_array_positive(x):
@@ -186,11 +193,76 @@ def _np_array_positive(dtype=None, error=None, read=True,
                      'np.array dtype={} and positive!'.format(dtype)
     if read:
         c = And(Use(lambda x: np.asarray(x, dtype=dtype)), check)
-        return Or(And(str, _eval(c)), c, And(_type(), c), Empty(),
-                  error=error)
+        return Or(And(str, _eval(
+            c, usersyms={'np.array': np.array}
+        )), c, And(_type(), c), Empty(), error=error)
     else:
-        return And(_np_array_positive(dtype=dtype), Use(lambda x: x.tolist()),
-                   error=error)
+        return And(
+            _np_array_positive(dtype=dtype), Use(lambda x: x.tolist()),
+            error=error
+        )
+
+
+# noinspection PyUnusedLocal
+def _clutch_model(error=None, **kwargs):
+    from ..model.physical.clutch_tc.clutch import ClutchModel
+    return _type(type=ClutchModel, error=error)
+
+
+# noinspection PyUnusedLocal
+def _torque_converter_model(error=None, **kwargs):
+    from ..model.physical.clutch_tc.torque_converter import TorqueConverter
+    return _type(type=TorqueConverter, error=error)
+
+
+def _alternator_current_model(error=None, **kwargs):
+    from ..model.physical.electrics import AlternatorCurrentModel
+    return _type(type=AlternatorCurrentModel, error=error)
+
+
+def _alternator_status_model(error=None, **kwargs):
+    from ..model.physical.electrics import AlternatorStatusModel
+    return _type(type=AlternatorStatusModel, error=error)
+
+
+def _engine_temperature_regression_model(error=None, **kwargs):
+    from ..model.physical.engine._thermal import ThermalModel
+    return _type(type=ThermalModel, error=error)
+
+
+def _electrics_prediction_model(error=None, **kwargs):
+    from ..model.physical.engine._thermal import ThermalModel
+    return _type(type=ThermalModel, error=error)
+
+
+def _engine_prediction_model(error=None, **kwargs):
+    from ..model.physical.engine import EngineModel
+    return _type(type=EngineModel, error=error)
+
+
+def _gear_box_prediction_model(error=None, **kwargs):
+    from ..model.physical.gear_box import GearBoxModel
+    return _type(type=GearBoxModel, error=error)
+
+
+def _final_drive_prediction_model(error=None, **kwargs):
+    from ..model.physical.final_drive import FinalDriveModel
+    return _type(type=FinalDriveModel, error=error)
+
+
+def _wheels_prediction_model(error=None, **kwargs):
+    from ..model.physical.wheels import WheelsModel
+    return _type(type=WheelsModel, error=error)
+
+
+def _fmep_model(error=None, **kwargs):
+    from ..model.physical.engine.co2_emission import FMEP
+    return _type(type=FMEP, error=error)
+
+
+def _start_stop_model(error=None, **kwargs):
+    from ..model.physical.engine.start_stop import StartStopModel
+    return _type(type=StartStopModel, error=error)
 
 
 # noinspection PyUnusedLocal
@@ -520,9 +592,9 @@ def define_data_schema(read=True):
         'enable_willans': _bool,
 
         'alternator_charging_currents': tuplefloat2,
-        'alternator_current_model': function,
-        'alternator_status_model': function,
-        'clutch_model': function,
+        'alternator_current_model': _alternator_current_model(read=read),
+        'alternator_status_model': _alternator_status_model(read=read),
+        'clutch_model': _clutch_model(read=read),
         'co2_emissions_model': function,
         'co2_error_function_on_emissions': function,
         'co2_error_function_on_phases': function,
@@ -539,15 +611,17 @@ def define_data_schema(read=True):
                                     read=read),
         'electric_load': tuplefloat2,
         'engine_thermostat_temperature_window': tuplefloat2,
-        'engine_temperature_regression_model': function,
-        'electrics_prediction_model': function,
-        'engine_prediction_model': function,
-        'gear_box_prediction_model': function,
-        'final_drive_prediction_model': function,
-        'wheels_prediction_model': function,
+        'engine_temperature_regression_model':
+            _engine_temperature_regression_model(read=read),
+        'electrics_prediction_model': _electrics_prediction_model(read=read),
+        'engine_prediction_model': _engine_prediction_model(read=read),
+        'gear_box_prediction_model': _gear_box_prediction_model(read=read),
+        'final_drive_prediction_model':
+            _final_drive_prediction_model(read=read),
+        'wheels_prediction_model': _wheels_prediction_model(read=read),
         'engine_type': string,
         'full_load_curve': function,
-        'fmep_model': function,
+        'fmep_model': _fmep_model(read=read),
         'gear_box_efficiency_constants': dictstrdict,
         'gear_box_efficiency_parameters_cold_hot': dictstrdict,
         'scores': dictstrdict,
@@ -566,9 +640,9 @@ def define_data_schema(read=True):
         'road_loads': _type(type=And(Use(tuple), (_type(float),)),
                             length=3,
                             read=read),
-        'start_stop_model': function,
+        'start_stop_model': _start_stop_model(read=read),
         'gear_box_temperature_references': tuplefloat2,
-        'torque_converter_model': function,
+        'torque_converter_model': _torque_converter_model(read=read),
         'phases_co2_emissions': tuplefloat,
         'bag_phases': _bag_phases(read=read),
         'phases_integration_times':

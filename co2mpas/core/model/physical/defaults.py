@@ -530,7 +530,7 @@ class Functions(co2_utl.Constants):
         enable_third_step = True
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-    class Alternator_status_model(co2_utl.Constants):
+    class AlternatorStatusModel(co2_utl.Constants):
         #: Minimum delta time to consider valid a charging state to fit charges
         #: boundaries [s].
         min_delta_time_boundaries = 5
