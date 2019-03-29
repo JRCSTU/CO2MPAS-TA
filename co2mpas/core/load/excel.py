@@ -266,6 +266,10 @@ def _parse_sheet(match, sheet, sheet_name, res=None):
             return None
         if 'id' not in data:
             data['id'] = data.index + 1
+        else:
+            data['id'] = data['id'].apply(
+                lambda x: x.strip() if isinstance(x, str) else x
+            )
 
         data.set_index(['id'], inplace=True)
         data.dropna(how='all', inplace=True)
