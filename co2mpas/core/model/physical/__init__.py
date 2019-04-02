@@ -361,7 +361,7 @@ def prediction_loop(
     outputs = {}
     n = times.shape[0]
     wheels_prediction_model.set_outputs(outputs)
-    final_drive_prediction_model.set_outputs(n, outputs)
+    final_drive_prediction_model.set_outputs(outputs)
     gear_box_prediction_model.set_outputs(n, outputs)
     engine_prediction_model.set_outputs(n, outputs)
     electrics_prediction_model.set_outputs(n, outputs)
@@ -370,7 +370,7 @@ def prediction_loop(
 
     fd = final_drive_prediction_model.yield_results(
         outputs['gears'], outputs['wheel_speeds'], outputs['wheel_torques'],
-        outputs['wheel_powers']
+        outputs['wheel_powers'], n=n
     )
 
     gb = gear_box_prediction_model.yield_results(

@@ -12,6 +12,7 @@ import logging
 import collections
 import schedula as sh
 from .defaults import dfl
+from co2mpas.utils import BaseModel
 
 log = logging.getLogger(__name__)
 
@@ -291,15 +292,15 @@ def calculate_final_drive_powers_in(
 
 
 # noinspection PyMissingOrEmptyDocstring
-class FinalDriveModel:
-    key_outputs = [
+class FinalDriveModel(BaseModel):
+    key_outputs = (
         'final_drive_ratio_vector',
         'final_drive_speeds_in',
         'final_drive_torque_losses',
         'final_drive_torques_in',
         'final_drive_efficiencies',
         'final_drive_powers_in'
-    ]
+    )
 
     types = {float: set(key_outputs)}
 
@@ -312,111 +313,97 @@ class FinalDriveModel:
         self.final_drive_torque_loss = final_drive_torque_loss
         self.n_wheel_drive = n_wheel_drive
         self.final_drive_efficiency = final_drive_efficiency
-        self._outputs = outputs
-        self.outputs = None
+        super(FinalDriveModel, self).__init__(outputs)
 
-    def __call__(self, times, *args, **kwargs):
-        self.set_outputs(times.shape[0])
-        for _ in self.yield_results(times, *args, **kwargs):
-            pass
-        return sh.selector(self.key_outputs, self.outputs, output_type='list')
-
-    def yield_ratio(self, gears):
+    def init_ratio(self, gears):
         key = 'final_drive_ratio_vector'
         if self._outputs is not None and key in self._outputs:
-            yield from self._outputs[key]
-        else:
-            get = self.final_drive_ratios.get
-            yield get(0)
-            for g in gears[:-1]:
-                yield get(g)
+            out = self._outputs[key]
+            return lambda i: out[i]
+        get = self.final_drive_ratios.get
+        return lambda i: get(gears[i - 1] if i else 0)
 
-    def yield_speed(self, final_drive_speeds_out, final_drive_ratio_vector):
+    def init_speed(self, final_drive_speeds_out, final_drive_ratio_vector):
         key = 'final_drive_speeds_in'
         if self._outputs is not None and key in self._outputs:
-            yield from self._outputs[key]
-        else:
-            for v in zip(final_drive_speeds_out, final_drive_ratio_vector):
-                yield calculate_final_drive_speeds_in(*v)
+            out = self._outputs[key]
+            return lambda i: out[i]
+        speeds, ratios = final_drive_speeds_out, final_drive_ratio_vector
 
-    def yield_torque(self, final_drive_torques_out, final_drive_ratio_vector):
+        def _next(i):
+            return calculate_final_drive_speeds_in(speeds[i], ratios[i])
+
+        return _next
+
+    def init_torque(self, final_drive_torques_out, final_drive_ratio_vector):
         keys = ['final_drive_torque_losses', 'final_drive_torques_in']
 
         if self._outputs is not None and not (set(keys) - set(self._outputs)):
-            yield from zip(*sh.selector(
-                keys, self._outputs, output_type='list'
-            ))
-        else:
-            if self.final_drive_torque_loss:
-                # noinspection PyUnusedLocal
-                def t_loss(*args):
-                    return self.final_drive_torque_loss
-            else:
-                t_loss = _compile_torque_losses_function(
-                    self.n_wheel_drive, self.final_drive_efficiency
-                )
-            for r, t in zip(final_drive_ratio_vector, final_drive_torques_out):
-                loss = t_loss(r, t)
-                yield loss, calculate_final_drive_torques_in(t, r, loss)
+            losses, tor = sh.selector(keys, self._outputs, output_type='list')
+            return lambda i: (losses[i], tor[i])
 
-    def yield_power(self, final_drive_torques_out, final_drive_ratio_vector,
-                    final_drive_torques_in, final_drive_powers_out):
+        if self.final_drive_torque_loss:
+            # noinspection PyUnusedLocal
+            def t_loss(*args):
+                return self.final_drive_torque_loss
+        else:
+            t_loss = _compile_torque_losses_function(
+                self.n_wheel_drive, self.final_drive_efficiency
+            )
+
+        ratios, torques = final_drive_ratio_vector, final_drive_torques_out
+
+        def _next(i):
+            r, t = ratios[i], torques[i]
+            loss = t_loss(r, t)
+            return loss, calculate_final_drive_torques_in(t, r, loss)
+
+        return _next
+
+    def init_power(self, final_drive_torques_out, final_drive_ratio_vector,
+                   final_drive_torques_in, final_drive_powers_out):
         keys = ['final_drive_efficiencies', 'final_drive_powers_in']
 
         if self._outputs is not None and not (set(keys) - set(self._outputs)):
-            yield from zip(*sh.selector(
-                keys, self._outputs, output_type='list'
-            ))
-        else:
-            it = zip(
-                final_drive_torques_out, final_drive_ratio_vector,
-                final_drive_torques_in, final_drive_powers_out
-            )
-            for to, r, ti, po in it:
-                eff = calculate_final_drive_efficiencies(to, r, ti)
-                yield eff, calculate_final_drive_powers_in(po, eff)
+            eff, pwr = sh.selector(keys, self._outputs, output_type='list')
+            return lambda i: (eff[i], pwr[i])
 
-    def set_outputs(self, n, outputs=None):
-        import numpy as np
-        if outputs is None:
-            outputs = {}
-        outputs.update(self._outputs or {})
-
-        for t, names in self.types.items():
-            names = names - set(outputs)
-            if names:
-                outputs.update(zip(names, np.empty((len(names), n), dtype=t)))
-
-        self.outputs = outputs
-
-    def yield_results(self, gears, final_drive_speeds_out,
-                      final_drive_torques_out, final_drive_powers_out):
-        outputs = self.outputs
-        r_gen = self.yield_ratio(gears)
-
-        s_gen = self.yield_speed(
-            final_drive_speeds_out, outputs['final_drive_ratio_vector']
+        t_out, ratios, t_in, p_out = (
+            final_drive_torques_out, final_drive_ratio_vector,
+            final_drive_torques_in, final_drive_powers_out
         )
 
-        t_gen = self.yield_torque(
-            final_drive_torques_out, outputs['final_drive_ratio_vector']
+        def _next(i):
+            to, r, ti, po = t_out[i], ratios[i], t_in[i], p_out[i]
+            e = calculate_final_drive_efficiencies(to, r, ti)
+            return e, calculate_final_drive_powers_in(po, e)
+
+        return _next
+
+    def init_results(self, gears, final_drive_speeds_out,
+                     final_drive_torques_out, final_drive_powers_out):
+        out = self.outputs
+        ratio, speeds, losses, torques, eff, powers = (
+            out['final_drive_ratio_vector'], out['final_drive_speeds_in'],
+            out['final_drive_torque_losses'], out['final_drive_torques_in'],
+            out['final_drive_efficiencies'], out['final_drive_powers_in']
+
+        )
+        r_gen = self.init_ratio(gears)
+        s_gen = self.init_speed(final_drive_speeds_out, ratio)
+        t_gen = self.init_torque(final_drive_torques_out, ratio)
+        p_gen = self.init_power(
+            final_drive_torques_out, ratio, torques, final_drive_powers_out
         )
 
-        p_gen = self.yield_power(
-            final_drive_torques_out, outputs['final_drive_ratio_vector'],
-            outputs['final_drive_torques_in'], final_drive_powers_out
-        )
+        def _next(i):
+            ratio[i] = r = r_gen(i)
+            speeds[i] = s = s_gen(i)
+            losses[i], torques[i] = l, t = t_gen(i)
+            eff[i], powers[i] = e, p = p_gen(i)
+            return r, s, l, t, e, p
 
-        for i, r in enumerate(r_gen):
-            outputs['final_drive_ratio_vector'][i] = r
-            outputs['final_drive_speeds_in'][i] = s = next(s_gen)
-            l, t = next(t_gen)
-            outputs['final_drive_torque_losses'][i] = l
-            outputs['final_drive_torques_in'][i] = t
-            e, p = next(p_gen)
-            outputs['final_drive_efficiencies'][i] = e
-            outputs['final_drive_powers_in'][i] = p
-            yield r, s, l, t, e, p
+        return _next
 
 
 @sh.add_function(dsp, outputs=['final_drive_prediction_model'])
