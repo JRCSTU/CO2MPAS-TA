@@ -360,13 +360,13 @@ def prediction_loop(
     """
     outputs = {}
     n = times.shape[0]
-    wheels_prediction_model.set_outputs(n, outputs)
+    wheels_prediction_model.set_outputs(outputs)
     final_drive_prediction_model.set_outputs(n, outputs)
     gear_box_prediction_model.set_outputs(n, outputs)
     engine_prediction_model.set_outputs(n, outputs)
     electrics_prediction_model.set_outputs(n, outputs)
 
-    whl = wheels_prediction_model.yield_results(velocities, motive_powers)
+    whl = wheels_prediction_model.yield_results(velocities, motive_powers, n=n)
 
     fd = final_drive_prediction_model.yield_results(
         outputs['gears'], outputs['wheel_speeds'], outputs['wheel_torques'],
@@ -391,4 +391,6 @@ def prediction_loop(
     for _ in zip(whl, fd, gb, eng, ele):
         pass
 
-    return sh.selector(OUTPUTS_PREDICTION_LOOP, outputs, output_type='list')
+    from co2mpas.utils import List
+    out = sh.selector(OUTPUTS_PREDICTION_LOOP, outputs, output_type='list')
+    return [v.toarray() if isinstance(v, List) else v for v in out]

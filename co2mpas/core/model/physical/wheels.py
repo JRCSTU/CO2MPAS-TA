@@ -11,6 +11,7 @@ import math
 import regex
 import schedula as sh
 from .defaults import dfl
+from co2mpas.utils import BaseModel
 
 dsp = sh.BlueDispatcher(
     name='Wheel model', description='It models the wheel dynamics.'
@@ -531,77 +532,60 @@ dsp.add_function(
 
 
 # noinspection PyMissingOrEmptyDocstring
-class WheelsModel:
+class WheelsModel(BaseModel):
     key_outputs = [
         'wheel_speeds',
         'wheel_powers',
         'wheel_torques'
     ]
-
     types = {float: set(key_outputs)}
 
     def __init__(self, r_dynamic=None, outputs=None):
         self.r_dynamic = r_dynamic
-        self._outputs = outputs
-        self.outputs = None
+        super(WheelsModel, self).__init__(outputs)
 
-    def __call__(self, times, *args, **kwargs):
-        self.set_outputs(times.shape[0])
-        for _ in self.yield_results(times, *args, **kwargs):
-            pass
-        return sh.selector(self.key_outputs, self.outputs, output_type='list')
-
-    def yield_speed(self, velocities):
+    def init_speed(self, velocities):
         key = 'wheel_speeds'
         if self._outputs is not None and key in self._outputs:
-            yield from self._outputs[key]
-        else:
-            yield from map(_compile_speed_function(self.r_dynamic), velocities)
+            out = self._outputs[key]
+            return lambda i: out[i]
+        func = _compile_speed_function(self.r_dynamic)
+        return lambda i: func(velocities[i])
 
-    def yield_power(self, motive_powers):
+    def init_power(self, motive_powers):
         key = 'wheel_powers'
         if self._outputs is not None and key in self._outputs:
-            yield from self._outputs[key]
+            out = self._outputs[key]
         else:
-            yield from motive_powers
+            out = motive_powers
+        return lambda i: out[i]
 
-    def yield_torque(self, wheel_powers, wheel_speeds):
+    def init_torque(self, wheel_powers, wheel_speeds):
         key = 'wheel_torques'
         if self._outputs is not None and key in self._outputs:
-            yield from self._outputs[key]
-        else:
-            for v in zip(wheel_powers, wheel_speeds):
-                yield calculate_wheel_torques(*v)
+            out = self._outputs[key]
+            return lambda i: out[i]
 
-    def set_outputs(self, n, outputs=None):
-        import numpy as np
-        if outputs is None:
-            outputs = {}
-        outputs.update(self._outputs or {})
+        def _next_torque(i):
+            return calculate_wheel_torques(wheel_powers[i], wheel_speeds[i])
 
-        for t, names in self.types.items():
-            names = names - set(outputs)
-            if names:
-                outputs.update(zip(names, np.empty((len(names), n), dtype=t)))
+        return _next_torque
 
-        self.outputs = outputs
-
-    def yield_results(self, velocities, motive_powers):
-        outputs = self.outputs
-
-        s_gen = self.yield_speed(velocities)
-
-        p_gen = self.yield_power(motive_powers)
-
-        t_gen = self.yield_torque(
-            outputs['wheel_powers'], outputs['wheel_speeds']
+    def init_results(self, velocities, motive_powers):
+        out = self.outputs
+        powers, speeds, torques = (
+            out['wheel_powers'], out['wheel_speeds'], out['wheel_torques']
         )
+        s_gen = self.init_speed(velocities)
+        p_gen = self.init_power(motive_powers)
+        t_gen = self.init_torque(powers, speeds)
 
-        for i, (s, p) in enumerate(zip(s_gen, p_gen)):
-            outputs['wheel_speeds'][i] = s
-            outputs['wheel_powers'][i] = p
-            outputs['wheel_torques'][i] = t = next(t_gen)
-            yield s, p, t
+        def _next(i):
+            speeds[i], powers[i] = (s, p) = s_gen(i), p_gen(i)
+            torques[i] = t = t_gen(i)
+            return s, p, t
+
+        return _next
 
 
 @sh.add_function(dsp, outputs=['wheels_prediction_model'])

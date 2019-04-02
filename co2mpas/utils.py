@@ -8,6 +8,7 @@
 """
 It contains classes and functions of general utility.
 """
+import schedula as sh
 import statistics
 import numpy as np
 
@@ -62,6 +63,73 @@ class Constants(dict):
             else:
                 pr[n] = v
         return pr
+
+
+class List(list):
+    empty = sh.EMPTY
+    dtype = None
+
+    def __new__(cls, *args, dtype=None, **kwargs):
+        obj = super(List, cls).__new__(cls, *args, **kwargs)
+        obj.dtype = dtype
+        return obj
+
+    def __getitem__(self, item):
+        r = super(List, self).__getitem__(item)
+        if r is self.empty:
+            raise IndexError('list index out of range')
+        elif isinstance(item, slice):
+            return self.__class__(r)
+        return r
+
+    def __setitem__(self, key, value):
+        try:
+            return super(List, self).__setitem__(key, value)
+        except IndexError:
+            self.extend([self.empty] * (key - len(self)))
+            self.append(value)
+            return super(List, self).__setitem__(key, value)
+
+    def toarray(self, dtype=None, *args, **kwargs):
+        return np.array(self, dtype or self.dtype, *args, **kwargs)
+
+
+class BaseModel:
+    key_outputs = ()
+    types = {}
+
+    def __init__(self, outputs=None):
+        self._outputs = outputs
+        self.outputs = None
+
+    def __call__(self, *args, n=None):
+        n = len(args[0]) if n is None else n
+        self.set_outputs()
+        for _ in self.yield_results(*args, n=n):
+            pass
+        out = sh.selector(self.key_outputs, self.outputs, output_type='list')
+        return [v.toarray() for v in out]
+
+    def set_outputs(self, outputs=None):
+        if outputs is None:
+            outputs = {}
+        outputs.update(self._outputs or {})
+
+        for t, names in self.types.items():
+            for k in names - set(outputs):
+                outputs[k] = List(dtype=t)
+        self.outputs = outputs
+
+    def init_results(self, *args):
+        raise NotImplementedError
+
+    def yield_results(self, *args, n=-1):
+        i, _next = 0, self.init_results(*args)
+
+        while n != 0:
+            yield _next(i)
+            i += 1
+            n -= 1
 
 
 def argmax(values, **kws):
