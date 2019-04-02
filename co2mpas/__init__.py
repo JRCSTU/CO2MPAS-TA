@@ -20,6 +20,7 @@ Defines the file processing chain model `dsp`.
 import os
 import tqdm
 import logging
+import webbrowser
 import os.path as osp
 import schedula as sh
 from ._version import *
@@ -193,12 +194,7 @@ def run_sitemap(sitemap, cache_folder, host, port):
     :return:
     """
     site = sitemap.site(cache_folder, host=host, port=port).run()
-
-    try:
-        # noinspection PyProtectedMember
-        sitemap._view(site.url, 'html')
-    except FileNotFoundError:  # We are inside docker.
-        pass
+    webbrowser.open(site.url)
     return site
 
 
