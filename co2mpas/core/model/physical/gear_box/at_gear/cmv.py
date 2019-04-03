@@ -285,52 +285,61 @@ class CMV(collections.OrderedDict):
         plt.legend(loc='best')
         plt.xlabel('Velocity [km/h]')
 
-    def _prepare(self, times, velocities, accelerations, motive_powers,
-                 engine_coolant_temperatures):
+    def _init_gear(self, times, velocities, accelerations, motive_powers,
+                   engine_coolant_temperatures):
+
         keys = sorted(self.keys())
-        matrix, r, c = {}, velocities.shape[0], len(keys) - 1
-        for i, g in enumerate(keys):
-            down, up = self[g]
-            matrix[g] = p = np.tile(g, r)
-            p[velocities < down] = keys[max(0, i - 1)]
-            p[velocities >= up] = keys[min(i + 1, c)]
-        return matrix
+        matrix, c = {}, len(keys) - 1
+        from co2mpas.utils import List
+        if isinstance(velocities, List):
+            for i, k in enumerate(keys):
+                matrix[k] = self[k], (keys[max(0, i - 1)], keys[min(i + 1, c)])
+
+            def _next(gear, index):
+                v = velocities[index]
+                (down, up), (g0, g1) = matrix[gear]
+                if v >= up:
+                    return g1
+                if v < down:
+                    return g0
+                return gear
+        else:
+            r = velocities.shape[0]
+            for i, g in enumerate(keys):
+                down, up = self[g]
+                matrix[g] = p = np.tile(g, r)
+                p[velocities < down] = keys[max(0, i - 1)]
+                p[velocities >= up] = keys[min(i + 1, c)]
+
+            def _next(gear, index):
+                return matrix[gear][index]
+        return _next
 
     def predict(self, times, velocities, accelerations, motive_powers,
                 engine_coolant_temperatures=None,
-                correct_gear=lambda i, g, *args: g[i],
-                gear_filter=define_gear_filter(), index=0, gears=None):
-        if gears is None:
-            gears = np.zeros_like(times, int)
-
-        for _ in self.yield_gear(
-                times, velocities, accelerations, motive_powers,
-                engine_coolant_temperatures, correct_gear, index, gears):
-            pass
+                correct_gear=lambda g, *args: g,
+                gear_filter=define_gear_filter()):
+        gears = np.zeros_like(times, int)
+        gen = self.init_gear(
+            gears, times, velocities, accelerations, motive_powers,
+            engine_coolant_temperatures, correct_gear
+        )
+        for i in range(times.shape[0]):
+            gears[i] = gen(i)
 
         # if gear_filter is not None:
         #    gears[index:times.shape[0]] = gear_filter(times, gears)
 
-        return gears[index:times.shape[0]]
+        return gears
 
-    @staticmethod
-    def get_gear(gear, index, gears, times, velocities, accelerations,
-                 motive_powers, engine_coolant_temperatures, matrix):
-        return matrix[gear][index]
+    def init_gear(self, gears, times, velocities, accelerations, motive_powers,
+                  engine_coolant_temperatures=None,
+                  correct_gear=lambda g, *args: g):
 
-    def yield_gear(self, times, velocities, accelerations, motive_powers,
-                   engine_coolant_temperatures=None,
-                   correct_gear=lambda i, g, *args: g[i], index=0, gears=None):
-
-        matrix = self._prepare(
+        next_g = self._init_gear(
             times, velocities, accelerations, motive_powers,
             engine_coolant_temperatures
         )
-        if hasattr(correct_gear, 'prepare'):
-            matrix = correct_gear.prepare(
-                matrix, times, velocities, accelerations, motive_powers,
-                engine_coolant_temperatures
-            )
 
         valid_gears = np.array(list(getattr(self, 'gears', self)))
 
@@ -339,28 +348,26 @@ class CMV(collections.OrderedDict):
                 return g
             return valid_gears[np.abs(np.subtract(valid_gears, g)).argmin()]
 
-        gear = valid_gears.min()
-        if gears is None:
-            gears = np.zeros_like(times, int)
-        else:
-            gear = get_valid_gear(gears[index])
-
         args = (
             gears, times, velocities, accelerations, motive_powers,
-            engine_coolant_temperatures, matrix
+            engine_coolant_temperatures, next_g
         )
 
-        for i in np.arange(index, times.shape[0], dtype=int):
-            gear = gears[i] = get_valid_gear(correct_gear(
-                self.get_gear(gear, i, *args), i, *args
-            ))
-            yield gear
+        def _next(i):
+            g = get_valid_gear(valid_gears.min() if i == 0 else gears[i - 1])
+            return get_valid_gear(correct_gear(next_g(g, i), i, *args))
 
-    def yield_speed(self, stop_velocity, gears, velocities, *args, **kwargs):
-        vsr = self.velocity_speed_ratios
-        for g, v in zip(gears, velocities):
-            r = v > stop_velocity and vsr.get(g, 0)
-            yield v / r if r else 0
+        return _next
+
+    def init_speed(self, stop_velocity, gears, velocities, *args, **kwargs):
+        vsr = self.velocity_speed_ratios.get
+
+        def _next(i):
+            v = velocities[i]
+            r = v > stop_velocity and vsr(gears[i], 0)
+            return v / r if r else 0
+
+        return _next
 
     # noinspection PyPep8Naming
     def convert(self, velocity_speed_ratios):

@@ -165,93 +165,40 @@ class CorrectGear:
         self.min_gear = velocity_speed_ratios and self.gears[0] or None
         self.idle_engine_speed = idle_engine_speed
         self.pipe = []
-        self.prepare_pipe = []
 
     def fit_basic_correct_gear(self):
         idle = self.idle_engine_speed[0] - self.idle_engine_speed[1]
-        self.idle_vel = np.array([self.vsr[k] * idle for k in self.gears])
-        self.prepare_pipe.append(self.prepare_basic)
-
-    def prepare_basic(
-            self, matrix, times, velocities, accelerations, motive_powers,
-            engine_coolant_temperatures):
-
-        max_gear = np.repeat(
-            np.array([self.gears], int), velocities.shape[0], 0
-        )
-        max_gear[velocities[:, None] < self.idle_vel] = 0
-        max_gear = max_gear.max(1)
-        b = velocities > 0
-        max_gear[~b] = 0
-        b[-1] &= accelerations[-1] > 0
-        b[:-1] &= (accelerations[:-1] > 0) | (np.diff(velocities) > 0)
-        min_gear = np.minimum(np.where(b, self.min_gear, 0), max_gear)
-        del b
-
-        for gears in matrix.values():
-            np.clip(gears, min_gear, max_gear, gears)
-        del max_gear, min_gear
-        return matrix
+        self.idle_vel = [(self.vsr[k] * idle, k) for k in self.gears[::-1]]
+        self.pipe.append(self.basic_correct_gear)
 
     def basic_correct_gear(
             self, gear, i, gears, times, velocities, accelerations,
-            motive_powers, engine_coolant_temperatures, matrix):
-        vel, mg = velocities[i], self.min_gear
-        if not vel:
+            motive_powers, engine_coolant_temperatures, next_gear):
+
+        v, vel = velocities[i], velocities
+
+        if v < self.idle_vel[-1][0]:
             gear = 0
-        elif gear > mg:
-            j = np.searchsorted(self.gears, gear)
-            valid = (vel >= self.idle_vel)[::-1]
-            k = valid.argmax()
-            gear = valid[k] and self.gears[j - k] or mg
-        if not gear:
-            b = accelerations[i] > 0 or velocities.take(i + 1, mode='clip')
-            gear = b and mg or 0
+        else:
+            for iv, g in self.idle_vel:
+                if gear >= g and v >= iv:
+                    gear = g
+                    break
+
+        if not gear and v > 0:
+            if accelerations[i] > 0 or (len(vel) > i + 1 and vel[i + 1] > v):
+                gear = self.min_gear
         return gear
 
     def fit_correct_gear_mvl(self, mvl):
         self.mvl = mvl
-        self.mvl_acc = mvl.plateau_acceleration
-        self.vl_dn, self.vl_up = np.array(list(zip(*map(mvl.get, self.gears))))
         self.pipe.append(self.correct_gear_mvl)
-
-    def prepare_mvl(
-            self, matrix, times, velocities, accelerations, motive_powers,
-            engine_coolant_temperatures):
-
-        vel = velocities[:, None]
-        max_gear = np.repeat(np.array([self.gears], float), vel.shape[0], 0)
-        max_gear[(vel > self.vl_up) | (vel < self.vl_dn)] = np.nan
-        del vel
-
-        b = velocities.astype(bool) & (accelerations < self.mvl_acc)
-        max_gear = np.nanmax(max_gear, 1)
-        c = ~np.isnan(max_gear)
-        b, c = c & b, c & ~b
-        max_gear = max_gear[b].astype(int), max_gear[c].astype(int)
-        for gears in matrix.values():
-            gears[b] = max_gear[0]
-            gears[c] = np.minimum(max_gear[1], gears[c])
-
-        del max_gear, b, c
-
-        return matrix
 
     # noinspection PyUnusedLocal
     def correct_gear_mvl(
             self, gear, i, gears, times, velocities, accelerations,
-            motive_powers, engine_coolant_temperatures, matrix):
-        vel = velocities[i]
-        if abs(accelerations[i]) < self.mvl_acc:
-            j = np.where(self.vl_dn < vel)[0]
-            if j.shape[0]:
-                g = self.gears[j.max()]
-                if g > gear:
-                    return g
-        if gear:
-            while vel > self.mvl[gear][1]:
-                gear += 1
-        return gear
+            motive_powers, engine_coolant_temperatures, next_gear):
+        return self.mvl.predict(velocities[i], accelerations[i], gear)
 
     def fit_correct_gear_full_load(
             self, full_load_curve, max_velocity_full_load_correction):
@@ -260,30 +207,9 @@ class CorrectGear:
         self.np_vsr = np.array(list(map(self.vsr.get, self.gears)))
         self.pipe.append(self.correct_gear_full_load)
 
-    def prepare_full_load(
-            self, matrix, times, velocities, accelerations, motive_powers,
-            engine_coolant_temperatures):
-
-        max_gear = np.repeat(
-            np.array([self.gears], float), velocities.shape[0], 0
-        )
-        speeds = velocities[:, None] / self.np_vsr
-        speeds[:, 0] = np.maximum(speeds[:, 0], self.idle_engine_speed[0])
-        max_gear[self.flc(speeds) <= motive_powers[:, None]] = np.nan
-        del speeds
-        max_gear = np.nanmax(max_gear, 1)
-        max_gear[velocities > self.max_velocity_full_load_corr] = self.gears[-1]
-        b = ~np.isnan(max_gear)
-        max_gear = max_gear[b].astype(int)
-        for gears in matrix.values():
-            gears[b] = np.clip(gears[b], 0, max_gear)
-        del max_gear, b
-
-        return matrix
-
     def correct_gear_full_load(
             self, gear, i, gears, times, velocities, accelerations,
-            motive_powers, engine_coolant_temperatures, matrix):
+            motive_powers, engine_coolant_temperatures, next_gear):
         vel = velocities[i]
         if vel > self.max_velocity_full_load_corr or gear <= self.min_gear:
             return gear
@@ -309,7 +235,7 @@ class CorrectGear:
     # noinspection PyUnresolvedReferences
     def correct_driveability_rules(
             self, gear, i, gears, times, velocities, accelerations,
-            motive_powers, engine_coolant_temperatures, matrix):
+            motive_powers, engine_coolant_temperatures, next_gear):
         pg = gears.take(i - 1, mode='clip')  # Previous gear.
         power = motive_powers[i]  # Current power.
         t0 = times[i]
@@ -329,7 +255,7 @@ class CorrectGear:
                     g = v[1]
                     break
             else:
-                g = matrix[g][k]
+                g = next_gear(g, k)
             # 4.3
             if g and motive_powers[k] < 0 and \
                     self.min_gear_vel[g] > velocities[k]:
@@ -496,22 +422,12 @@ class CorrectGear:
 
         return gear
 
-    def prepare(
-            self, matrix, times, velocities, accelerations, motive_powers,
-            engine_coolant_temperatures):
-        for f in self.prepare_pipe:
-            matrix = f(
-                matrix, times, velocities, accelerations, motive_powers,
-                engine_coolant_temperatures
-            )
-        return matrix
-
     def __call__(self, gear, i, gears, times, velocities, accelerations,
-                 motive_powers, engine_coolant_temperatures, matrix):
+                 motive_powers, engine_coolant_temperatures, next_gear):
         for f in self.pipe:
             gear = f(
                 gear, i, gears, times, velocities, accelerations, motive_powers,
-                engine_coolant_temperatures, matrix
+                engine_coolant_temperatures, next_gear
             )
         return gear
 

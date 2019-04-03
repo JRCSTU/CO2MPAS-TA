@@ -51,21 +51,23 @@ class CVT:
 
     # noinspection PyUnusedLocal
     @staticmethod
-    def yield_gear(times, *args, **kwargs):
-        for _ in range(times.shape[0]):
-            yield 1
+    def init_gear(*args, **kwargs):
+        return lambda *a, **kw: 1
 
     def predict(self, velocities, accelerations, gear_box_powers_out):
         X = np.column_stack((velocities, accelerations, gear_box_powers_out))
         return self.model.predict(X)
 
-    def yield_speed(self, stop_velocity, gears, velocities, accelerations,
-                    gear_box_powers_out):
-        func = self.model.predict
-        x = np.empty((1, 3), float)
-        for v in zip(velocities, accelerations, gear_box_powers_out):
-            x[:, :] = v
-            yield func(x)
+    def init_speed(self, stop_velocity, gears, velocities, accelerations,
+                   gear_box_powers_out):
+        predict, x = self.model.predict, np.empty((1, 3), float)
+        powers = gear_box_powers_out
+
+        def _next(i):
+            x[:, :] = velocities[i], accelerations[i], powers[i]
+            return predict(x)
+
+        return _next
 
 
 @sh.add_function(dsp, outputs=['CVT'])

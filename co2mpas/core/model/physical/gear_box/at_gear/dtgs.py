@@ -10,7 +10,7 @@ Functions and a model `dsp` to model the DT Approach.
 import numpy as np
 import schedula as sh
 from .cmv import CMV
-from .core import prediction_gears_gsm
+from .core import prediction_gears_gsm as _prediction_gears_gsm
 
 dsp = sh.BlueDispatcher(name='Decision Tree Approach')
 
@@ -19,8 +19,8 @@ dsp = sh.BlueDispatcher(name='Decision Tree Approach')
 # noinspection PyTypeChecker,PyPep8Naming
 class DTGS:
     def __init__(self, velocity_speed_ratios):
-        from sklearn.tree import DecisionTreeClassifier
-        self.tree = DecisionTreeClassifier(random_state=0)
+        from xgboost import XGBClassifier
+        self.tree = XGBClassifier(random_state=0)
         self.model = self.gears = None
         self.velocity_speed_ratios = velocity_speed_ratios
 
@@ -47,34 +47,48 @@ class DTGS:
         self.gears = np.unique(gears)
         return self
 
-    def _prepare(self, times, velocities, accelerations, motive_powers,
-                 engine_coolant_temperatures):
-        keys = sorted(self.velocity_speed_ratios.keys())
-        matrix, r, c = {}, velocities.shape[0], len(keys) - 1
-        func = self.model.predict
-        for i, g in enumerate(keys):
-            matrix[g] = func(np.column_stack((
-                np.tile(g, r), velocities, accelerations, motive_powers,
-                engine_coolant_temperatures
-            )))
-        return matrix
+    def _init_gear(self, times, velocities, accelerations, motive_powers,
+                   engine_coolant_temperatures):
+        from co2mpas.utils import List
+        predict = self.model.predict
+        pars = (
+            velocities, accelerations, motive_powers,
+            engine_coolant_temperatures
+        )
 
-    @staticmethod
-    def get_gear(gear, index, gears, times, velocities, accelerations,
-                 motive_powers, engine_coolant_temperatures, matrix):
-        return matrix[gear][index]
+        if any(isinstance(v, List) for v in pars) or np.isnan(pars[-1]).any():
+            x = np.empty((1, 5), float)
 
-    def yield_gear(self, *args, **kwargs):
-        return CMV.yield_gear(self, *args, **kwargs)
+            def _next(gear, i):
+                x[:, :] = (
+                    gear, velocities[i], accelerations[i], motive_powers[i],
+                    engine_coolant_temperatures[i]
+                )
+                return predict(x)[0]
+        else:
+            matrix = {}
+            x = np.column_stack((np.empty_like(velocities),) + pars)
+            for g in self.velocity_speed_ratios.keys():
+                x[:, 0] = g
+                matrix[g] = predict(x)
+            del x
 
-    def yield_speed(self, *args, **kwargs):
-        return CMV.yield_speed(self, *args, **kwargs)
+            def _next(gear, index):
+                return matrix[gear][index]
+        return _next
+
+    def init_gear(self, *args, **kwargs):
+        return CMV.init_gear(self, *args, **kwargs)
+
+    def init_speed(self, *args, **kwargs):
+        return CMV.init_speed(self, *args, **kwargs)
 
     def predict(self, *args, **kwargs):
         return CMV.predict(self, *args, **kwargs)
 
     def convert(self, velocity_speed_ratios):
         self.velocity_speed_ratios = velocity_speed_ratios
+        return self
 
 
 @sh.add_function(dsp, outputs=['DTGS'])
@@ -120,6 +134,11 @@ def calibrate_gear_shifting_decision_tree(
     return model
 
 
+def prediction_gears_gsm(*a):
+    return _prediction_gears_gsm(*a[:-1], engine_coolant_temperatures=a[-1])
+
+
+prediction_gears_gsm.__doc__ = _prediction_gears_gsm.__doc__
 dsp.add_function(
     function=prediction_gears_gsm,
     inputs=[

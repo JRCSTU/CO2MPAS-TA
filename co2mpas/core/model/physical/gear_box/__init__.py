@@ -30,6 +30,7 @@ from .cvt import dsp as _cvt_model
 from .at_gear import dsp as _at_gear
 from .mechanical import dsp as _mechanical
 from .manual import dsp as _manual
+from co2mpas.utils import BaseModel, List
 
 dsp = sh.BlueDispatcher(
     name='Gear box model', description='Models the gear box.'
@@ -246,7 +247,7 @@ def calculate_gear_box_torques_in(
 
 
 def _gear_box_torques_in(
-        min_engine_on_speed, gear_box_torques_out, gear_box_speeds_in,
+        min_engine_on_speed, gear_box_torques, gear_box_speeds_in,
         gear_box_speeds_out, gear_box_efficiency_parameters_cold_hot):
     """
     Calculates torque required according to the temperature profile [N*m].
@@ -255,9 +256,9 @@ def _gear_box_torques_in(
         Minimum engine speed to consider the engine to be on [RPM].
     :type min_engine_on_speed: float
 
-    :param gear_box_torques_out:
+    :param gear_box_torques:
         Torque gear_box vector [N*m].
-    :type gear_box_torques_out: numpy.array
+    :type gear_box_torques: numpy.array
 
     :param gear_box_speeds_in:
         Engine speed vector [RPM].
@@ -280,7 +281,7 @@ def _gear_box_torques_in(
     :rtype: numpy.array
     """
     import numpy as np
-    tgb, es, ws = gear_box_torques_out, gear_box_speeds_in, gear_box_speeds_out
+    tgb, es, ws = gear_box_torques, gear_box_speeds_in, gear_box_speeds_out
 
     b = (tgb < 0) & (es != 0)
 
@@ -344,7 +345,7 @@ dsp.add_function(
 
 
 @sh.add_function(dsp, outputs=['gear_box_efficiencies'])
-def calculate_gear_box_efficiencies_v2(
+def calculate_gear_box_efficiencies(
         gear_box_powers_out, gear_box_speeds_in, gear_box_torques,
         gear_box_torques_in, min_engine_on_speed):
     """
@@ -415,60 +416,42 @@ def calculate_torques_losses(gear_box_torques_in, gear_box_torques):
 
 
 # noinspection PyMissingOrEmptyDocstring
-class GearBoxLosses(object):
-
+class GearBoxLosses:
     def __init__(self, gear_box_efficiency_parameters_cold_hot,
                  equivalent_gear_box_heat_capacity, thermostat_temperature,
-                 gear_box_temperature_references, gear_box_ratios=None):
-        import collections
-        base = collections.OrderedDict()
-        base['gear_box_ratios'] = gear_box_ratios
-        base['thermostat_temperature'] = thermostat_temperature
-        base['equivalent_gear_box_heat_capacity'] = \
-            equivalent_gear_box_heat_capacity
-        base['gear_box_efficiency_parameters_cold_hot'] = \
-            gear_box_efficiency_parameters_cold_hot
-        base['gear_box_temperature_references'] = \
-            gear_box_temperature_references
+                 gear_box_temperature_references, initial_gear_box_temperature,
+                 min_engine_on_speed, gear_box_ratios=None):
+        base = dict(
+            thermostat_temperature=thermostat_temperature,
+            equivalent_gear_box_heat_capacity=equivalent_gear_box_heat_capacity,
+            gear_box_efficiency_parameters_cold_hot=gear_box_efficiency_parameters_cold_hot,
+            gear_box_temperature_references=gear_box_temperature_references,
+            gear_box_ratios=gear_box_ratios,
+            min_engine_on_speed=min_engine_on_speed
+        )
+        self.initial_gear_box_temperature = initial_gear_box_temperature
 
         # noinspection PyProtectedMember
         from .thermal import _thermal
-        self._thermal = functools.partial(_thermal, *tuple(base.values()))
+        self._thermal = functools.partial(_thermal, **base)
 
-    def predict(self, *args, **kwargs):
-        import numpy as np
-        return np.array(list(self.yield_losses(*args, **kwargs))).T
-
-    def yield_losses(self, times, gear_box_powers_out, gear_box_speeds_in,
-                     gear_box_speeds_out, gear_box_torques_out,
-                     initial_gear_box_temperature, gears=None,
-                     min_engine_on_speed=None):
-        import numpy as np
-        delta_times = np.zeros_like(times, dtype=float)
-        delta_times[:-1] = np.diff(times)
-
-        if min_engine_on_speed is None:
-            # noinspection PyUnusedLocal
-            def gb_tor(*args):
-                return gear_box_torques_out[index]
+    def init_losses(self, gear_box_temperatures, times, gear_box_powers_out,
+                    gear_box_speeds_out, gear_box_speeds_in, gears,
+                    gear_box_torques=None):
+        gear_box_temperatures[0] = self.initial_gear_box_temperature
+        if gear_box_torques is None:
+            get_gear_box_torque = lambda i: None
         else:
-            gb_tor = functools.partial(
-                calculate_gear_box_torques,
-                min_engine_on_speed=min_engine_on_speed
-            )
-            if gear_box_torques_out is None:
-                gear_box_torques_out = np.empty_like(gear_box_powers_out, float)
+            get_gear_box_torque = lambda i: gear_box_torques[i]
 
-        o, func = [initial_gear_box_temperature], self._thermal
-        it = enumerate(zip(
-            delta_times, gear_box_powers_out, gear_box_speeds_out,
-            gear_box_speeds_in, gears
-        ))
-        for index, (dt, po, so, si, g) in it:
-            temp = o[0]
-            tr = gear_box_torques_out[index] = gb_tor(po, so, si)
-            o = func(temp, dt, po, so, si, tr, g)
-            yield [temp] + o[1:]
+        def _next(i):
+            return self._thermal(
+                gear_box_temperatures[i], get_gear_box_torque(i), gears[i],
+                i != 0 and times[i] - times[i - 1] or 0, gear_box_powers_out[i],
+                gear_box_speeds_out[i], gear_box_speeds_in[i]
+            )
+
+        return _next
 
 
 @sh.add_function(dsp, inputs_kwargs=True, outputs=['gear_box_loss_model'])
@@ -476,7 +459,8 @@ class GearBoxLosses(object):
 def define_gear_box_loss_model(
         gear_box_efficiency_parameters_cold_hot,
         equivalent_gear_box_heat_capacity, engine_thermostat_temperature,
-        gear_box_temperature_references, gear_box_ratios=None):
+        gear_box_temperature_references, initial_gear_box_temperature,
+        min_engine_on_speed, gear_box_ratios=None):
     """
     Defines the gear box loss model.
 
@@ -514,7 +498,8 @@ def define_gear_box_loss_model(
     model = GearBoxLosses(
         gear_box_efficiency_parameters_cold_hot,
         equivalent_gear_box_heat_capacity, engine_thermostat_temperature,
-        gear_box_temperature_references, gear_box_ratios=gear_box_ratios
+        gear_box_temperature_references, initial_gear_box_temperature,
+        min_engine_on_speed, gear_box_ratios=gear_box_ratios
     )
 
     return model
@@ -527,8 +512,7 @@ _o = 'gear_box_temperatures', 'gear_box_torques_in', 'gear_box_efficiencies'
 @sh.add_function(dsp, outputs=_o, weight=90)
 def calculate_gear_box_efficiencies_torques_temperatures(
         gear_box_loss_model, times, gear_box_powers_out, gear_box_speeds_in,
-        gear_box_speeds_out, gear_box_torques, initial_gear_box_temperature,
-        gears=None):
+        gear_box_speeds_out, gear_box_torques, gears=None):
     """
     Calculates gear box efficiency [-], torque in [N*m], and temperature [°C].
 
@@ -571,13 +555,16 @@ def calculate_gear_box_efficiencies_torques_temperatures(
     .. note:: Torque entering the gearbox can be from engine side
        (power mode or from wheels in motoring mode).
     """
+    temp, to_in, eff = List(dtype=float), List(dtype=float), List(dtype=float)
 
-    temp, to_in, eff = gear_box_loss_model.predict(
-        times, gear_box_powers_out, gear_box_speeds_in, gear_box_speeds_out,
-        gear_box_torques, initial_gear_box_temperature, gears=gears
+    func = gear_box_loss_model.init_losses(
+        temp, times, gear_box_powers_out, gear_box_speeds_out,
+        gear_box_speeds_in, gears, gear_box_torques
     )
+    for i in range(times.shape[0]):
+        temp[i + 1], to_in[i], eff[i] = func(i)
 
-    return temp, to_in, eff
+    return temp[:-1].toarray(), to_in.toarray(), eff.toarray()
 
 
 @sh.add_function(dsp, outputs=['gear_box_powers_in'])
@@ -744,15 +731,15 @@ dsp.add_dispatcher(
 
 
 # noinspection PyMissingOrEmptyDocstring
-class GearBoxModel:
-    key_outputs = [
+class GearBoxModel(BaseModel):
+    key_outputs = (
         'gears',
         'gear_box_speeds_in',
         'gear_box_temperatures',
         'gear_box_torques_in',
         'gear_box_efficiencies',
         'gear_box_powers_in'
-    ]
+    )
 
     types = {
         float: {
@@ -769,114 +756,100 @@ class GearBoxModel:
 
     def __init__(self, stop_velocity=None, min_engine_on_speed=None,
                  gear_shifting_model=None, gear_box_loss_model=None,
-                 initial_gear_box_temperature=None, correct_gear=None,
-                 outputs=None):
+                 correct_gear=lambda g, *args: g, outputs=None):
         self.stop_velocity = stop_velocity
         self.min_engine_on_speed = min_engine_on_speed
         self.gear_shifting_model = gear_shifting_model
         self.gear_box_loss_model = gear_box_loss_model
-        self.initial_gear_box_temperature = initial_gear_box_temperature
         self.correct_gear = correct_gear
-        self._outputs = outputs
-        self.outputs = None
+        super(GearBoxModel, self).__init__(outputs)
 
-    def __call__(self, times, *args, **kwargs):
-        self.set_outputs(times.shape[0])
-        for _ in self.yield_results(times, *args, **kwargs):
-            pass
-        return sh.selector(self.key_outputs, self.outputs, output_type='list')
+    def init_gear(self, gears, times, velocities, accelerations, motive_powers,
+                  engine_coolant_temperatures):
+        key = 'gears'
+        if self._outputs is not None and key in self._outputs:
+            out = self._outputs[key]
+            return lambda i: out[i]
+        return self.gear_shifting_model.init_gear(
+            gears, times, velocities, accelerations, motive_powers,
+            engine_coolant_temperatures, correct_gear=self.correct_gear
+        )
 
-    def yield_gear(self, times, velocities, accelerations, motive_powers,
-                   engine_coolant_temperatures, gears):
-        if self._outputs is not None and 'gears' in self._outputs:
-            yield from self._outputs['gears']
-        else:
-            yield from self.gear_shifting_model.yield_gear(
-                times, velocities, accelerations, motive_powers,
-                engine_coolant_temperatures, correct_gear=self.correct_gear,
-                gears=gears
-            )
+    def init_speed(self, gears, velocities, accelerations,
+                   final_drive_powers_in):
+        key = 'gear_box_speeds_in'
+        if self._outputs is not None and key in self._outputs:
+            out = self._outputs[key]
+            return lambda i: out[i]
 
-    def yield_speed(self, gears, velocities, accelerations,
-                    final_drive_powers_in):
-        if self._outputs is not None and 'gear_box_speeds_in' in self._outputs:
-            yield from self._outputs['gear_box_speeds_in']
-        else:
-            yield from self.gear_shifting_model.yield_speed(
-                self.stop_velocity, gears, velocities, accelerations,
-                final_drive_powers_in
-            )
+        return self.gear_shifting_model.init_speed(
+            self.stop_velocity, gears, velocities, accelerations,
+            final_drive_powers_in
+        )
 
-    def yield_losses(self, times, final_drive_powers_in, gear_box_speeds_in,
-                     final_drive_speeds_in, gears):
+    def init_losses(self, times, final_drive_powers_in, gear_box_speeds_in,
+                    final_drive_speeds_in, gears):
         keys = [
             'gear_box_temperatures', 'gear_box_torques_in',
             'gear_box_efficiencies'
         ]
 
         if self._outputs is not None and not (set(keys) - set(self._outputs)):
-            yield from zip(*sh.selector(
-                keys, self._outputs, output_type='list'
-            ))
-        else:
-            yield from self.gear_box_loss_model.yield_losses(
-                times, final_drive_powers_in, gear_box_speeds_in,
-                final_drive_speeds_in, self.outputs['gear_box_torques_in'],
-                self.initial_gear_box_temperature,
-                gears=gears, min_engine_on_speed=self.min_engine_on_speed
+            tmp, tor, eff = sh.selector(keys, self._outputs, output_type='list')
+            return lambda i: (tmp[i], tor[i], eff[i])
+        return self.gear_box_loss_model.init_losses(
+            self.outputs['gear_box_temperatures'], times, final_drive_powers_in,
+            final_drive_speeds_in, gear_box_speeds_in, gears
+        )
+
+    def init_power(self, gear_box_torques_in, gear_box_speeds_in):
+        key = 'gear_box_powers_in'
+        if self._outputs is not None and key in self._outputs:
+            out = self._outputs[key]
+            return lambda i: out[i]
+
+        def _next(i):
+            return calculate_gear_box_powers_in(
+                gear_box_torques_in[i], gear_box_speeds_in[i]
             )
 
-    def yield_power(self, gear_box_torques_in, gear_box_speeds_in):
-        if self._outputs is not None and 'gear_box_powers_in' in self._outputs:
-            yield from self._outputs['gear_box_powers_in']
-        else:
-            for t, s in zip(gear_box_torques_in, gear_box_speeds_in):
-                yield calculate_gear_box_powers_in(t, s)
+        return _next
 
-    def set_outputs(self, n, outputs=None):
-        import numpy as np
-        if outputs is None:
-            outputs = {}
-        outputs.update(self._outputs or {})
-
-        for t, names in self.types.items():
-            names = names - set(outputs)
-            if names:
-                outputs.update(zip(names, np.empty((len(names), n), dtype=t)))
-            if 'gears' in names:
-                outputs['gears'][0] = 0
-        self.outputs = outputs
-
-    def yield_results(self, times, velocities, accelerations, motive_powers,
-                      final_drive_speeds_in, final_drive_powers_in):
-        outputs = self.outputs
-        g_gen = self.yield_gear(
-            times, velocities, accelerations, motive_powers,
-            outputs['engine_coolant_temperatures'], outputs['gears']
+    def init_results(self, times, velocities, accelerations, motive_powers,
+                     engine_coolant_temperatures, final_drive_speeds_in,
+                     final_drive_powers_in):
+        out = self.outputs
+        gears, speeds, temps, torques, eff, powers = (
+            out['gears'], out['gear_box_speeds_in'],
+            out['gear_box_temperatures'], out['gear_box_torques_in'],
+            out['gear_box_efficiencies'], out['gear_box_powers_in']
         )
 
-        s_gen = self.yield_speed(
-            outputs['gears'], velocities, accelerations, final_drive_powers_in
+        g_gen = self.init_gear(
+            gears, times, velocities, accelerations, motive_powers,
+            engine_coolant_temperatures
         )
-
-        l_gen = self.yield_losses(
-            times, final_drive_powers_in, outputs['gear_box_speeds_in'],
-            final_drive_speeds_in, outputs['gears']
+        s_gen = self.init_speed(
+            gears, velocities, accelerations, final_drive_powers_in
         )
-
-        p_gen = self.yield_power(
-            outputs['gear_box_torques_in'], outputs['gear_box_speeds_in']
+        l_gen = self.init_losses(
+            times, final_drive_powers_in, speeds, final_drive_speeds_in, gears
         )
+        p_gen = self.init_power(torques, speeds)
 
-        for i in range(0, times.shape[0]):
-            outputs['gears'][i] = g = next(g_gen)
-            outputs['gear_box_speeds_in'][i] = gb_s = next(s_gen)
-            gb_temp, gb_tor, gb_eff = next(l_gen)
-            outputs['gear_box_temperatures'][i] = gb_temp
-            outputs['gear_box_torques_in'][i] = gb_tor
-            outputs['gear_box_efficiencies'][i] = gb_eff
-            outputs['gear_box_powers_in'][i] = gb_p = next(p_gen)
-            yield g, gb_s, gb_temp, gb_tor, gb_eff, gb_p
+        def _next(i):
+            gears[i] = g = g_gen(i)
+            speeds[i] = spd = s_gen(i)
+            gb_temp, gb_tor, gb_eff = l_gen(i)
+            torques[i], eff[i] = gb_tor, gb_eff
+            try:
+                temps[i + 1] = gb_temp
+            except IndexError:  #
+                pass
+            powers[i] = gb_p = p_gen(i)
+            return g, spd, gb_temp, gb_tor, gb_eff, gb_p
+
+        return _next
 
 
 @sh.add_function(dsp, outputs=['gear_box_prediction_model'])
@@ -927,13 +900,14 @@ def define_fake_gear_box_prediction_model(
 
 
 @sh.add_function(dsp, outputs=['gear_shifting_model'])
-def initialize_gear_shifting_model(gsm, velocity_speed_ratios, cycle_type):
+def initialize_gear_shifting_model(
+        gear_shifting_model_raw, velocity_speed_ratios, cycle_type):
     """
     Initialize the gear shifting model.
 
-    :param gsm:
+    :param gear_shifting_model_raw:
         A gear shifting model (cmv or gspv or dtgs).
-    :type gsm: GSPV | CMV | DTGS
+    :type gear_shifting_model_raw: GSPV | CMV | DTGS
 
     :param velocity_speed_ratios:
         Constant velocity speed ratios of the gear box [km/(h*RPM)].
@@ -949,13 +923,14 @@ def initialize_gear_shifting_model(gsm, velocity_speed_ratios, cycle_type):
     """
     # noinspection PyProtectedMember
     from .at_gear import _upgrade_gsm
+    gsm = gear_shifting_model_raw
     return _upgrade_gsm(gsm, velocity_speed_ratios, cycle_type)
 
 
 @sh.add_function(dsp, outputs=['gear_box_prediction_model'], weight=4000)
 def define_gear_box_prediction_model(
         stop_velocity, min_engine_on_speed, gear_shifting_model,
-        gear_box_loss_model, initial_gear_box_temperature, correct_gear):
+        gear_box_loss_model, correct_gear):
     """
     Defines the gear box prediction model.
 
@@ -989,7 +964,7 @@ def define_gear_box_prediction_model(
     """
     model = GearBoxModel(
         stop_velocity, min_engine_on_speed, gear_shifting_model,
-        gear_box_loss_model, initial_gear_box_temperature, correct_gear
+        gear_box_loss_model, correct_gear
     )
 
     return model

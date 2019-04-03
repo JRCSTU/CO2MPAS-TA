@@ -150,25 +150,24 @@ class GSMColdHot(collections.OrderedDict):
         from .cmv import CMV
         return CMV.predict(self, *args, **kwargs)
 
-    def yield_gear(self, times, velocities, accelerations, motive_powers,
-                   engine_coolant_temperatures=None,
-                   correct_gear=lambda i, g, *args: g[i], index=0, gears=None):
-        import numpy as np
+    def init_gear(self, gears, times, velocities, accelerations, motive_powers,
+                  engine_coolant_temperatures=None,
+                  correct_gear=lambda g, *args: g):
+        from co2mpas.utils import List
         if gears is None:
-            gears = np.zeros_like(times, int)
+            gears = List(dtype=int)
 
-        n = index + np.searchsorted(
-            times[index:], self.time_cold_hot_transition
-        )
+        gen = {k: v.init_gear(
+            gears, times, velocities, accelerations, motive_powers,
+            engine_coolant_temperatures, correct_gear=correct_gear
+        ) for k, v in self.items()}
 
-        flag, temp = engine_coolant_temperatures is not None, None
-        for i, j, k in [(index, n, 'cold'), (n, times.shape[0], 'hot')]:
-            if flag:
-                temp = engine_coolant_temperatures[:j]
-            yield from self[k].yield_gear(
-                times[:j], velocities[:j], accelerations[:j], motive_powers[:j],
-                temp, correct_gear=correct_gear, index=int(i), gears=gears
-            )
+        def _next(i):
+            if times[i] < self.time_cold_hot_transition:
+                return gen['cold'](i)
+            return gen['hot'](i)
 
-    def yield_speed(self, *args, **kwargs):
-        yield from self['hot'].yield_speed(*args, **kwargs)
+        return _next
+
+    def init_speed(self, *args, **kwargs):
+        return self['hot'].init_speed(*args, **kwargs)

@@ -1052,7 +1052,8 @@ class EngineModel:
             yield from self._outputs[key]
         else:
             idl = self.idle_engine_speed
-            for on_eng, gb_s in zip(on_engine, gear_box_speeds_in):
+            for i, on_eng in enumerate(on_engine):
+                gb_s = gear_box_speeds_in[i]
                 yield calculate_engine_speeds_out_hot(gb_s, on_eng, idl)
 
     def yield_thermal(self, times, accelerations, final_drive_powers_in,

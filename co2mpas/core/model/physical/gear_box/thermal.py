@@ -16,6 +16,46 @@ dsp = sh.BlueDispatcher(
     description='Calculates temperature, efficiency, torque loss of gear box.'
 )
 
+
+@sh.add_function(dsp, outputs=['gear_box_torque'])
+def calculate_gear_box_torque(
+        gear_box_power_out, gear_box_speed_out, gear_box_speed_in,
+        min_engine_on_speed):
+    """
+    Calculates torque entering the gear box [N*m].
+
+    :param gear_box_power_out:
+        Power at wheels [kW].
+    :type gear_box_power_out: float
+
+    :param gear_box_speed_in:
+        Engine speed [RPM].
+    :type gear_box_speed_in: float
+
+    :param gear_box_speed_out:
+        Wheel speed [RPM].
+    :type gear_box_speed_out: float
+
+    :param min_engine_on_speed:
+        Minimum engine speed to consider the engine to be on [RPM].
+    :type min_engine_on_speed: float
+
+    :return:
+        Torque gear box vector [N*m].
+    :rtype: numpy.array | float
+
+    .. note:: Torque entering the gearbox can be from engine side
+       (power mode or from wheels in motoring mode)
+    """
+    if gear_box_power_out > 0:
+        x = gear_box_speed_in
+    else:
+        x = gear_box_speed_out
+    if x <= min_engine_on_speed:
+        return 0
+    return gear_box_power_out / x * 30000.0 / math.pi
+
+
 dsp.add_data(
     data_id='gear_box_temperature_references',
     default_value=dfl.values.gear_box_temperature_references
@@ -23,18 +63,18 @@ dsp.add_data(
 
 
 def _evaluate_gear_box_torque_in(
-        gear_box_torque_out, gear_box_speed_in, gear_box_speed_out,
-        gear_box_efficiency_parameters):
+        min_engine_on_speed, gear_box_torque, gear_box_speed_in,
+        gear_box_speed_out, gear_box_efficiency_parameters):
     """
     Calculates torque required according to the temperature profile [N*m].
     """
 
-    tgb, es, ws = gear_box_torque_out, gear_box_speed_in, gear_box_speed_out
+    tgb, es, ws = gear_box_torque, gear_box_speed_in, gear_box_speed_out
     par = gear_box_efficiency_parameters
 
     if tgb < 0 < es and ws > 0:
         return (par['gbp01'] * tgb - par['gbp10'] * ws - par['gbp00']) * ws / es
-    elif es > 0 and ws > 0:
+    elif es > min_engine_on_speed and ws > min_engine_on_speed:
         return (tgb - par['gbp10'] * es - par['gbp00']) / par['gbp01']
     return 0
 
@@ -42,15 +82,15 @@ def _evaluate_gear_box_torque_in(
 # noinspection PyPep8Naming
 @sh.add_function(dsp, outputs=['gear_box_torque_in<0>'])
 def calculate_gear_box_torque_in(
-        gear_box_torque_out, gear_box_speed_in, gear_box_speed_out,
+        gear_box_torque, gear_box_speed_in, gear_box_speed_out,
         gear_box_temperature, gear_box_efficiency_parameters_cold_hot,
-        gear_box_temperature_references):
+        gear_box_temperature_references, min_engine_on_speed):
     """
     Calculates torque required according to the temperature profile [N*m].
 
-    :param gear_box_torque_out:
+    :param gear_box_torque:
         Torque gear box [N*m].
-    :type gear_box_torque_out: float
+    :type gear_box_torque: float
 
     :param gear_box_speed_in:
         Engine speed [RPM].
@@ -82,13 +122,16 @@ def calculate_gear_box_torque_in(
 
     par = gear_box_efficiency_parameters_cold_hot
     T_cold, T_hot = gear_box_temperature_references
-    t_out = gear_box_torque_out
+    t_out = gear_box_torque
+    min_es = min_engine_on_speed
     e_s, gb_s = gear_box_speed_in, gear_box_speed_out
 
-    t = _evaluate_gear_box_torque_in(t_out, e_s, gb_s, par['hot'])
+    t = _evaluate_gear_box_torque_in(min_es, t_out, e_s, gb_s, par['hot'])
 
     if not T_cold == T_hot and gear_box_temperature <= T_hot:
-        t_cold = _evaluate_gear_box_torque_in(t_out, e_s, gb_s, par['cold'])
+        t_cold = _evaluate_gear_box_torque_in(
+            min_es, t_out, e_s, gb_s, par['cold']
+        )
 
         t += (T_hot - gear_box_temperature) / (T_hot - T_cold) * (t_cold - t)
 
@@ -97,18 +140,18 @@ def calculate_gear_box_torque_in(
 
 @sh.add_function(
     dsp,
-    inputs=['gear_box_torque_out', 'gear_box_torque_in<0>', 'gear',
+    inputs=['gear_box_torque', 'gear_box_torque_in<0>', 'gear',
             'gear_box_ratios'],
     outputs=['gear_box_torque_in']
 )
 def correct_gear_box_torque_in(
-        gear_box_torque_out, gear_box_torque_in, gear, gear_box_ratios):
+        gear_box_torque, gear_box_torque_in, gear, gear_box_ratios):
     """
     Corrects the torque when the gear box ratio is equal to 1.
 
-    :param gear_box_torque_out:
+    :param gear_box_torque:
         Torque gear_box [N*m].
-    :type gear_box_torque_out: float
+    :type gear_box_torque: float
 
     :param gear_box_torque_in:
         Torque required [N*m].
@@ -131,13 +174,13 @@ def correct_gear_box_torque_in(
     if gbr is None or gear is None:
         return gear_box_torque_in
 
-    return gear_box_torque_out if gbr.get(gear, 0) == 1 else gear_box_torque_in
+    return gear_box_torque if gbr.get(gear, 0) == 1 else gear_box_torque_in
 
 
 @sh.add_function(dsp, outputs=['gear_box_efficiency'])
 def calculate_gear_box_efficiency(
-        gear_box_power_out, gear_box_speed_in, gear_box_torque_out,
-        gear_box_torque_in):
+        gear_box_power_out, gear_box_speed_in, gear_box_torque,
+        gear_box_torque_in, min_engine_on_speed):
     """
     Calculates the gear box efficiency [N*m].
 
@@ -149,20 +192,25 @@ def calculate_gear_box_efficiency(
         Engine speed [RPM].
     :type gear_box_speed_in: float
 
-    :param gear_box_torque_out:
+    :param gear_box_torque:
         Torque gear_box [N*m].
-    :type gear_box_torque_out: float
+    :type gear_box_torque: float
 
     :param gear_box_torque_in:
         Torque required [N*m].
     :type gear_box_torque_in: float
+
+    :param min_engine_on_speed:
+        Minimum engine speed to consider the engine to be on [RPM].
+    :type min_engine_on_speed: float
 
     :return:
         Gear box efficiency [-].
     :rtype: float
     """
 
-    if gear_box_torque_in == gear_box_torque_out or gear_box_power_out == 0:
+    if gear_box_torque_in == gear_box_torque or gear_box_power_out == 0 or \
+            gear_box_speed_in < min_engine_on_speed:
         eff = 1
     else:
         s_in = gear_box_speed_in
@@ -238,29 +286,37 @@ def calculate_next_gear_box_temperature(
 
 
 def _thermal(
-        gear_box_ratios, thermostat_temperature,
+        gear_box_temperature, gear_box_torque, gear, delta_time,
+        gear_box_power_out, gear_box_speed_out,
+        gear_box_speed_in, thermostat_temperature,
         equivalent_gear_box_heat_capacity,
         gear_box_efficiency_parameters_cold_hot,
-        gear_box_temperature_references, gear_box_temperature, delta_time,
-        gear_box_power_out, gear_box_speed_out, gear_box_speed_in,
-        gear_box_torque_out, gear):
+        gear_box_temperature_references, gear_box_ratios=None,
+        min_engine_on_speed=None):
+
+    if gear_box_torque is None:
+        gear_box_torque = calculate_gear_box_torque(
+            gear_box_power_out, gear_box_speed_out, gear_box_speed_in,
+            min_engine_on_speed
+        )
+
     gear_box_torque_in = calculate_gear_box_torque_in(
-        gear_box_torque_out, gear_box_speed_in, gear_box_speed_out,
+        gear_box_torque, gear_box_speed_in, gear_box_speed_out,
         gear_box_temperature, gear_box_efficiency_parameters_cold_hot,
-        gear_box_temperature_references)
-
+        gear_box_temperature_references, min_engine_on_speed
+    )
     gear_box_torque_in = correct_gear_box_torque_in(
-        gear_box_torque_out, gear_box_torque_in, gear, gear_box_ratios)
-
+        gear_box_torque, gear_box_torque_in, gear, gear_box_ratios
+    )
     gear_box_efficiency = calculate_gear_box_efficiency(
-        gear_box_power_out, gear_box_speed_in, gear_box_torque_out,
-        gear_box_torque_in)
-
+        gear_box_power_out, gear_box_speed_in, gear_box_torque,
+        gear_box_torque_in, min_engine_on_speed
+    )
     gear_box_heat = calculate_gear_box_heat(
-        gear_box_efficiency, gear_box_power_out, delta_time)
-
+        gear_box_efficiency, gear_box_power_out, delta_time
+    )
     gear_box_temperature = calculate_next_gear_box_temperature(
         gear_box_heat, gear_box_temperature, equivalent_gear_box_heat_capacity,
-        thermostat_temperature)
-
-    return list((gear_box_temperature, gear_box_torque_in, gear_box_efficiency))
+        thermostat_temperature
+    )
+    return gear_box_temperature, gear_box_torque_in, gear_box_efficiency

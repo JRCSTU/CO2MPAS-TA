@@ -144,16 +144,34 @@ class GSPV(CMV):
         plt.xlabel('Velocity [km/h]')
         plt.ylabel('Power [kW]')
 
-    def _prepare(self, times, velocities, accelerations, motive_powers,
-                 engine_coolant_temperatures):
+    def _init_gear(self, times, velocities, accelerations, motive_powers,
+                   engine_coolant_temperatures):
         keys = sorted(self.keys())
-        matrix, r, c = {}, times.shape[0], len(keys) - 1
-        for i, g in enumerate(keys):
-            down, up = [func(motive_powers) for func in self[g]]
-            matrix[g] = p = np.tile(g, r)
-            p[velocities < down] = keys[max(0, i - 1)]
-            p[velocities >= up] = keys[min(i + 1, c)]
-        return matrix
+        matrix, c = {}, len(keys) - 1
+        from co2mpas.utils import List
+        if isinstance(velocities, List) or isinstance(motive_powers, List):
+            for i, k in enumerate(keys):
+                matrix[k] = self[k], (keys[max(0, i - 1)], keys[min(i + 1, c)])
+
+            def _next(gear, index):
+                v, p = velocities[index], motive_powers[index]
+                (down, up), (g0, g1) = matrix[gear]
+                if v >= up(p):
+                    return g1
+                if v < down(p):
+                    return g0
+                return gear
+        else:
+            r = velocities.shape[0]
+            for i, g in enumerate(keys):
+                down, up = [func(motive_powers) for func in self[g]]
+                matrix[g] = p = np.tile(g, r)
+                p[velocities < down] = keys[max(0, i - 1)]
+                p[velocities >= up] = keys[min(i + 1, c)]
+
+            def _next(gear, index):
+                return matrix[gear][index]
+        return _next
 
     # noinspection PyUnresolvedReferences,PyTypeChecker
     def convert(self, velocity_speed_ratios):
