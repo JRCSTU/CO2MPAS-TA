@@ -112,8 +112,7 @@ def calibrate_engine_temperature_regression_model(
     model.fit(
         idle_engine_speed, on_engine, engine_temperature_derivatives,
         engine_coolant_temperatures, final_drive_powers_in,
-        engine_speeds_out_hot,
-        accelerations
+        engine_speeds_out_hot, accelerations
     )
 
     return model

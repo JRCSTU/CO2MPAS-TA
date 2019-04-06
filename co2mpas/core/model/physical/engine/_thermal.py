@@ -232,23 +232,23 @@ class ThermalModel:
         return float(np.median(model.predict(spl)))
 
     def __call__(self, deltas_t, *args, initial_temperature=23, max_temp=100.0):
-        delta, temp = self.delta, np.zeros(len(deltas_t) + 1, dtype=float)
+        func, temp = self.temperature, np.zeros(len(deltas_t) + 1, dtype=float)
         t = temp[0] = initial_temperature
 
         for i, a in enumerate(zip(*((deltas_t,) + args)), start=1):
-            t += delta(*a, prev_temperature=t, max_temp=max_temp)
-            temp[i] = t
+            temp[i] = t = func(*a, prev_temp=t, max_temp=max_temp)
 
         return temp
 
-    def delta(self, dt, *args, prev_temperature=23, max_temp=100.0):
-        if prev_temperature < self.min_temp:
+    def temperature(self, dt, *args, prev_temp=23, max_temp=100.0):
+        if prev_temp < self.min_temp:
             model, mask = self.cold, self.mask_cold
         else:
             model, mask = self.model, self.mask
 
-        delta_temp = self._derivative(model, mask, prev_temperature, *args) * dt
-        return min(delta_temp, max_temp - prev_temperature)
+        delta_temp = self._derivative(model, mask, prev_temp, *args) * dt
+
+        return min(prev_temp + delta_temp, max_temp)
 
     @staticmethod
     def _derivative(model, mask, *args):
@@ -256,8 +256,8 @@ class ThermalModel:
 
 
 # noinspection PyMissingOrEmptyDocstring
-class EngineTemperatureModel:
-    key_outputs = ['engine_coolant_temperatures']
+class EngineTemperatureModel(co2_utl.BaseModel):
+    key_outputs = ('engine_coolant_temperatures',)
     types = {float: {'engine_coolant_temperatures'}}
 
     def __init__(self, initial_engine_temperature=None,
@@ -267,52 +267,29 @@ class EngineTemperatureModel:
         self.engine_temperature_regression_model = \
             engine_temperature_regression_model
         self.max_engine_coolant_temperature = max_engine_coolant_temperature
-        self._outputs = outputs or {}
-        self.outputs = None
+        super(EngineTemperatureModel, self).__init__(outputs)
 
-    def __call__(self, times, *args, **kwargs):
-        self.set_outputs(times.shape[0])
-        for _ in self.yield_results(times, *args, **kwargs):
-            pass
-        return sh.selector(self.key_outputs, self.outputs, output_type='list')
-
-    def set_outputs(self, n, outputs=None):
-        if outputs is None:
-            outputs = {}
-        outputs.update(self._outputs or {})
-
-        for t, names in self.types.items():
-            names = names - set(outputs)
-            if names:
-                outputs.update(zip(names, np.empty((len(names), n), dtype=t)))
-            if 'engine_coolant_temperatures' in names:
-                eng_t = self.initial_engine_temperature
-                outputs['engine_coolant_temperatures'][0] = eng_t
-
-        self.outputs = outputs
-
-    def yield_results(self, times, accelerations, final_drive_powers_in,
-                      engine_speeds_out_hot):
-        k = 'engine_coolant_temperatures'
-        if self._outputs is not None and k in self._outputs:
-            yield from self._outputs[k]
+    def init_results(self, times, accelerations, final_drive_powers_in,
+                     engine_speeds_out_hot):
+        key = 'engine_coolant_temperatures'
+        if self._outputs is not None and key in self._outputs:
+            out = self._outputs[key]
+            return lambda i: out[i]
         else:
-            temp = self.outputs['engine_coolant_temperatures']
-            eng_temp = self.initial_engine_temperature
-            temp[0] = eng_temp
-            yield eng_temp
-            it = enumerate(zip(
-                np.ediff1d(times, to_begin=[0]), accelerations,
-                final_drive_powers_in, engine_speeds_out_hot
-            ), 1)
-            func = self.engine_temperature_regression_model.delta
-            for i, (dt, a, fdp, eng_s) in it:
-                eng_temp += func(
-                    dt, fdp, eng_s, a, prev_temperature=eng_temp,
-                    max_temp=self.max_engine_coolant_temperature
+            temp, max_t = self.outputs[key], self.max_engine_coolant_temperature
+            temp[0] = self.initial_engine_temperature
+            temperature = self.engine_temperature_regression_model.temperature
+            acc, powers, speeds = (
+                accelerations, final_drive_powers_in, engine_speeds_out_hot
+            )
+
+            def _next(i):
+                j = i + 1
+                dt = len(times) > j and times[j] - times[i] or 0
+                temp[j] = t = temperature(
+                    dt, powers[i], speeds[i], acc[i], prev_temp=temp[i],
+                    max_temp=max_t
                 )
-                try:
-                    temp[i] = eng_temp
-                except IndexError:
-                    pass
-                yield eng_temp
+                return t
+
+            return _next

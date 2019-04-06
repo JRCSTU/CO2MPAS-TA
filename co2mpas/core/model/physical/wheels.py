@@ -566,10 +566,10 @@ class WheelsModel(BaseModel):
             out = self._outputs[key]
             return lambda i: out[i]
 
-        def _next_torque(i):
+        def _next(i):
             return calculate_wheel_torques(wheel_powers[i], wheel_speeds[i])
 
-        return _next_torque
+        return _next
 
     def init_results(self, velocities, motive_powers):
         out = self.outputs

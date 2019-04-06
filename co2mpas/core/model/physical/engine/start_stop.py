@@ -10,6 +10,7 @@ Functions and a model `dsp` to model the engine start stop strategy.
 import numpy as np
 import schedula as sh
 from ..defaults import dfl
+from co2mpas.utils import BaseModel
 
 dsp = sh.BlueDispatcher(
     name='start_stop', description='Models the engine start/stop strategy.'
@@ -239,7 +240,7 @@ def default_use_basic_start_stop_model(is_hybrid):
 
 
 # noinspection PyMissingOrEmptyDocstring
-class EngineStartStopModel:
+class EngineStartStopModel(BaseModel):
     key_outputs = ['on_engine', 'engine_starts']
     types = {bool: {'on_engine', 'engine_starts'}}
 
@@ -253,74 +254,52 @@ class EngineStartStopModel:
         self.has_start_stop = has_start_stop
         self.use_basic_start_stop = use_basic_start_stop
         self.start_stop_model = start_stop_model
-        self._outputs = outputs or {}
-        self.outputs = None
+        super(EngineStartStopModel, self).__init__(outputs)
 
-    def __call__(self, times, *args, **kwargs):
-        self.set_outputs(times.shape[0])
-        for _ in self.yield_results(times, *args, **kwargs):
-            pass
-        return sh.selector(self.key_outputs, self.outputs, output_type='list')
-
-    def set_outputs(self, n, outputs=None):
-        if outputs is None:
-            outputs = {}
-        outputs.update(self._outputs or {})
-
-        for t, names in self.types.items():
-            names = names - set(outputs)
-            if names:
-                outputs.update(zip(names, np.empty((len(names), n), dtype=t)))
-        self.outputs = outputs
-
-    def yield_results(self, times, velocities, accelerations,
-                      engine_coolant_temperatures, state_of_charges,
-                      gears=None):
+    def init_results(self, times, velocities, accelerations,
+                     engine_coolant_temperatures, state_of_charges,
+                     gears=None):
         keys = ['on_engine', 'engine_starts']
         if self._outputs is not None and not (set(keys) - set(self._outputs)):
-            yield from zip(
-                *sh.selector(keys, self._outputs, output_type='list'))
+            one, st = self._outputs['on_engine'], self._outputs['engine_starts']
+            _next = lambda i: (one[i], st[i])
         elif not self.has_start_stop:
-            outputs = self.outputs
-            outputs['on_engine'][0], outputs['engine_starts'][0] = True, False
-            yield True, False
-            for i, prev in enumerate(outputs['on_engine'][:-1], 1):
-                outputs['engine_starts'][i] = start = not prev
-                outputs['on_engine'][i] = True
-                yield True, start
-        else:
-            outputs, t_switch_on, can_off = self.outputs, times[0], False
-            base = self.start_stop_model.base
+            st, one = self.outputs['engine_starts'], self.outputs['on_engine']
 
+            def _next(i):
+                st[i] = start = not (i == 0 or one[i - 1])
+                one[i] = True
+                return True, start
+        else:
+            one, st = self.outputs['engine_starts'], self.outputs['on_engine']
+            base = self.start_stop_model.base
             if self.use_basic_start_stop:
                 predict = self.start_stop_model.simple
             else:
                 predict = self.start_stop_model.complex
 
-            it = enumerate(zip(times, zip(
-                velocities, accelerations, engine_coolant_temperatures,
-                state_of_charges
-            )))
-            prev = True
-            for i, (t, v) in it:
-                if i > 0:
-                    if outputs['engine_starts'][i - 1]:
-                        t_switch_on = t + self.min_time_engine_on_after_start
-                        can_off = False
-
-                    if not can_off:
-                        can_off = base(*v)
-
-                    prev = outputs['on_engine'].take(i - 1, mode='clip')
+            def _next(i):
+                t, v = times[i], (
+                    velocities[i], accelerations[i],
+                    engine_coolant_temperatures[i], state_of_charges[i]
+                )
 
                 on = t <= self.start_stop_activation_time
                 on = on or self.correct_start_stop_with_gears and gears[i] > 0
-                on = on or not (can_off and t >= t_switch_on)
+                prev = i == 0 or one[i - 1]
                 on = on or ((prev or base(*v)) and predict(*v))
-
-                outputs['on_engine'][i] = on
-                outputs['engine_starts'][i] = start = on and prev != on
-                yield on, start
+                if not on:
+                    t0 = t - self.min_time_engine_on_after_start
+                    for ti, s in zip(times[:i:-1], st[:i:-1]):
+                        if ti < t0:
+                            break
+                        elif s:
+                            on = True
+                            break
+                one[i] = on
+                st[i] = start = on and prev != on
+                return on, start
+        return _next
 
 
 @sh.add_function(dsp, outputs=['start_stop_prediction_model'], weight=4000)

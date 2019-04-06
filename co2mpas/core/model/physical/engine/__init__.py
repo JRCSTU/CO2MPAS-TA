@@ -27,6 +27,7 @@ import numpy as np
 import schedula as sh
 from ..defaults import dfl
 from .idle import dsp as _idle
+from co2mpas.utils import BaseModel
 from .thermal import dsp as _thermal
 from .start_stop import dsp as _start_stop
 from .cold_start import dsp as _cold_start
@@ -1012,11 +1013,11 @@ dsp.add_dispatcher(
 
 
 # noinspection PyMissingOrEmptyDocstring
-class EngineModel:
-    key_outputs = [
+class EngineModel(BaseModel):
+    key_outputs = (
         'on_engine', 'engine_starts', 'engine_speeds_out_hot',
         'engine_coolant_temperatures'
-    ]
+    )
 
     types = {
         float: {'engine_speeds_out_hot', 'engine_coolant_temperatures'},
@@ -1030,81 +1031,67 @@ class EngineModel:
         self.idle_engine_speed = idle_engine_speed
         self.engine_temperature_prediction_model = \
             engine_temperature_prediction_model
-        self._outputs = outputs or {}
-        self.outputs = None
+        super(EngineModel, self).__init__(outputs)
 
-    def __call__(self, times, *args, **kwargs):
-        self.set_outputs(times.shape[0])
-        for _ in self.yield_results(times, *args, **kwargs):
-            pass
-        return sh.selector(self.key_outputs, self.outputs, output_type='list')
+    def set_outputs(self, outputs=None):
+        super(EngineModel, self).set_outputs(outputs)
 
-    def yield_on_start(self, times, velocities, accelerations,
-                       engine_coolant_temperatures, state_of_charges, gears):
-        yield from self.start_stop_prediction_model.yield_results(
+        if self.start_stop_prediction_model:
+            self.start_stop_prediction_model.set_outputs(outputs)
+        if self.engine_temperature_prediction_model:
+            self.engine_temperature_prediction_model.set_outputs(outputs)
+
+    def init_on_start(self, times, velocities, accelerations,
+                      engine_coolant_temperatures, state_of_charges, gears):
+        return self.start_stop_prediction_model.init_results(
             times, velocities, accelerations, engine_coolant_temperatures,
             state_of_charges, gears
         )
 
-    def yield_speed(self, on_engine, gear_box_speeds_in):
+    def init_speed(self, on_engine, gear_box_speeds_in):
         key = 'engine_speeds_out_hot'
         if self._outputs is not None and key in self._outputs:
-            yield from self._outputs[key]
-        else:
-            idl = self.idle_engine_speed
-            for i, on_eng in enumerate(on_engine):
-                gb_s = gear_box_speeds_in[i]
-                yield calculate_engine_speeds_out_hot(gb_s, on_eng, idl)
+            out = self._outputs[key]
+            return lambda i: out[i]
 
-    def yield_thermal(self, times, accelerations, final_drive_powers_in,
-                      engine_speeds_out_hot):
-        yield from self.engine_temperature_prediction_model.yield_results(
+        def _next(i):
+            return calculate_engine_speeds_out_hot(
+                gear_box_speeds_in[i], on_engine[i], self.idle_engine_speed
+            )
+
+        return _next
+
+    def init_thermal(self, times, accelerations, final_drive_powers_in,
+                     engine_speeds_out_hot):
+        return self.engine_temperature_prediction_model.init_results(
             times, accelerations, final_drive_powers_in, engine_speeds_out_hot
         )
 
-    def set_outputs(self, n, outputs=None):
-        if outputs is None:
-            outputs = {}
-        self.engine_temperature_prediction_model.set_outputs(n, outputs)
-        self.start_stop_prediction_model.set_outputs(n, outputs)
-        outputs.update(self._outputs or {})
-        for t, names in self.types.items():
-            names = names - set(outputs)
-            if names:
-                outputs.update(zip(names, np.empty((len(names), n), dtype=t)))
-
-        self.outputs = outputs
-
-    def yield_results(self, times, velocities, accelerations,
-                      final_drive_powers_in, gears, gear_box_speeds_in):
+    def init_results(self, times, velocities, accelerations, state_of_charges,
+                     final_drive_powers_in, gears, gear_box_speeds_in):
         outputs = self.outputs
-
-        ss_gen = self.yield_on_start(
-            times, velocities, accelerations,
-            outputs['engine_coolant_temperatures'], outputs['state_of_charges'],
-            gears
+        on_engine, temp, starts, speeds = (
+            outputs['on_engine'], outputs['engine_coolant_temperatures'],
+            outputs['engine_starts'], outputs['engine_speeds_out_hot']
+        )
+        ss_gen = self.init_on_start(
+            times, velocities, accelerations, temp, state_of_charges, gears
+        )
+        s_gen = self.init_speed(on_engine, gear_box_speeds_in)
+        t_gen = self.init_thermal(
+            times, accelerations, final_drive_powers_in, speeds
         )
 
-        s_gen = self.yield_speed(outputs['on_engine'], gear_box_speeds_in)
-
-        t_gen = self.yield_thermal(
-            times, accelerations, final_drive_powers_in,
-            outputs['engine_speeds_out_hot']
-        )
-        eng_temp = outputs['engine_coolant_temperatures']
-        eng_temp[0] = next(t_gen)
-        for i, on_eng in enumerate(ss_gen):
-            # if e[-1] < min_soc and not on_eng[0]:
-            #    on_eng[0], on_eng[1] = True, not eng[0]
-
-            outputs['on_engine'][i], outputs['engine_starts'][i] = on_eng
-
-            outputs['engine_speeds_out_hot'][i] = eng_s = next(s_gen)
+        def _next(i):
+            on_engine[i], starts[i] = on, start = ss_gen(i)
+            speeds[i] = eng_s = s_gen(i)
             try:
-                eng_temp[i + 1] = next(t_gen)
+                temp[i + 1] = t_gen(i)
             except IndexError:
                 pass
-            yield on_eng[0], on_eng[1], eng_s, eng_temp[i]
+            return on, start, eng_s, temp[i]
+
+        return _next
 
 
 @sh.add_function(dsp, outputs=['engine_prediction_model'], weight=4000)
