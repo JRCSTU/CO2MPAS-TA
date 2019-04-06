@@ -445,10 +445,12 @@ class GearBoxLosses:
             get_gear_box_torque = lambda i: gear_box_torques[i]
 
         def _next(i):
+            j = i + 1
+            dt = len(times) > j and times[j] - times[i] or 0
             return self._thermal(
-                gear_box_temperatures[i], get_gear_box_torque(i), gears[i],
-                i != 0 and times[i] - times[i - 1] or 0, gear_box_powers_out[i],
-                gear_box_speeds_out[i], gear_box_speeds_in[i]
+                gear_box_temperatures[i], get_gear_box_torque(i), gears[i], dt,
+                gear_box_powers_out[i], gear_box_speeds_out[i],
+                gear_box_speeds_in[i]
             )
 
         return _next
