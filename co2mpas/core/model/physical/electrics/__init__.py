@@ -1047,12 +1047,12 @@ def calibrate_alternator_current_model(
 
 
 # noinspection PyMissingOrEmptyDocstring
-class ElectricModel:
-    key_outputs = [
+class ElectricModel(co2_utl.BaseModel):
+    key_outputs = (
         'alternator_currents', 'alternator_statuses', 'battery_currents',
         'state_of_charges'
-    ]
-
+    )
+    contract_outputs = 'state_of_charges',
     types = {
         float: {'alternator_currents', 'battery_currents', 'state_of_charges'},
         int: {'alternator_statuses'}
@@ -1077,38 +1077,16 @@ class ElectricModel:
         self.has_energy_recuperation = has_energy_recuperation
         self.alternator_initialization_time = alternator_initialization_time
         self.initial_state_of_charge = initial_state_of_charge
-        self._outputs = outputs or {}
-        self.outputs = None
+        super(ElectricModel, self).__init__(outputs)
 
-    def __call__(self, times, *args, **kwargs):
-        self.set_outputs(times.shape[0])
-        for _ in self.yield_results(times, *args, **kwargs):
-            pass
-        return sh.selector(self.key_outputs, self.outputs, output_type='list')
-
-    def set_outputs(self, n, outputs=None):
-        if outputs is None:
-            outputs = {}
-        outputs.update(self._outputs or {})
-
-        for t, names in self.types.items():
-            names = names - set(outputs)
-            if names:
-                outputs.update(zip(names, np.empty((len(names), n), dtype=t)))
-            if 'state_of_charges' in names:
-                outputs['state_of_charges'][0] = self.initial_state_of_charge
-            if 'alternator_statuses' in names:
-                outputs['alternator_statuses'][0] = 0
-        self.outputs = outputs
-
-    def yield_alternator(self, times, accelerations, gear_box_powers_in,
-                         on_engine, engine_starts, state_of_charges,
-                         alternator_statuses):
+    def init_alternator(self, times, accelerations, gear_box_powers_in,
+                        on_engine, engine_starts, state_of_charges,
+                        alternator_statuses):
         keys = ['alternator_statuses', 'alternator_currents']
         if self._outputs is not None and not (set(keys) - set(self._outputs)):
-            yield from zip(*sh.selector(
-                keys, self._outputs, output_type='list'
-            ))
+            statuses = self._outputs['alternator_statuses']
+            currents = self._outputs['alternator_currents']
+            _next = lambda i: (statuses[i], currents[i])
         else:
             import functools
             from .electrics_prediction import (
@@ -1119,15 +1097,19 @@ class ElectricModel:
                 self.alternator_status_model, self.has_energy_recuperation,
                 self.alternator_initialization_time
             )
-            it = zip(
-                gear_box_powers_in, on_engine, accelerations, times,
-                engine_starts, np.ediff1d(times, to_begin=[0]), state_of_charges
-            )
+            self.outputs['alternator_statuses'][0] = 0
 
-            for i, (gbp, on_eng, a, t, eng_st, dt, soc) in enumerate(it, -1):
+            def _next(i):
+                gbp, on_eng, acc, t, eng_st, soc = (
+                    gear_box_powers_in[i], on_engine[i], accelerations[i],
+                    times[i], engine_starts[i], state_of_charges[i]
+                )
+                j = i + 1
+                dt = len(times) > j and times[j] - times[i] or 0
+
+                prev_status = i != 0 and alternator_statuses[i - 1] or 0
                 alt_status = predict_alternator_status(
-                    alt_st_mdl, t, alternator_statuses.take(i, mode='clip'),
-                    soc, gbp
+                    alt_st_mdl, t, prev_status, soc, gbp
                 )
 
                 sc = calculate_engine_start_current(
@@ -1137,62 +1119,66 @@ class ElectricModel:
 
                 alt_current = calculate_alternator_current(
                     alt_status, on_eng, gbp, self.max_alternator_current,
-                    self.alternator_current_model, sc, soc, a, t
+                    self.alternator_current_model, sc, soc, acc, t
                 )
-                yield alt_status, alt_current
+                return alt_status, alt_current
 
-    def yield_battery(self, times, on_engine, alternator_currents,
-                      state_of_charges, battery_currents):
+        return _next
+
+    def init_battery(self, times, on_engine, alternator_currents,
+                     state_of_charges, battery_currents):
         keys = ['state_of_charges', 'battery_currents']
 
         if self._outputs is not None and not (set(keys) - set(self._outputs)):
-            yield from zip(*sh.selector(
-                keys, self._outputs, output_type='list'
-            ))
+            state_of_charges = self._outputs['state_of_charges']
+            currents = self._outputs['battery_currents']
+            _next = lambda i: (state_of_charges[i], currents[i])
         else:
+            self.outputs['state_of_charges'][0] = self.initial_state_of_charge
             from .electrics_prediction import (
                 calculate_battery_current, calculate_battery_state_of_charge
             )
-            it = zip(
-                alternator_currents, on_engine, np.ediff1d(times, to_begin=[0])
-            )
-            for i, (ac, on_eng, dt) in enumerate(it, -1):
+
+            def _next(i):
+                j = i + 1
+                dt = len(times) > j and times[j] - times[i] or 0
+                ac, on_eng = alternator_currents[i], on_engine[i]
                 bc = calculate_battery_current(
                     self.electric_load, ac, self.alternator_nominal_voltage,
                     on_eng, self.max_battery_charging_current
                 )
 
                 soc = calculate_battery_state_of_charge(
-                    state_of_charges[i + 1],
-                    self.battery_capacity, dt, bc,
-                    battery_currents[i] if i >= 0 else None
+                    state_of_charges[i], self.battery_capacity, dt, bc,
+                    None if i == 0 else battery_currents[i - 1]
                 )
+                return soc, bc
 
-                yield soc, bc
+        return _next
 
-    def yield_results(self, times, accelerations, on_engine, engine_starts,
-                      gear_box_powers_in):
+    def init_results(self, times, accelerations, on_engine, engine_starts,
+                     gear_box_powers_in):
         outputs = self.outputs
+        socs, sts = outputs['state_of_charges'], outputs['alternator_statuses']
+        alt, bat = outputs['alternator_currents'], outputs['battery_currents']
 
-        a_gen = self.yield_alternator(
+        a_gen = self.init_alternator(
             times, accelerations, gear_box_powers_in, on_engine, engine_starts,
-            outputs['state_of_charges'], outputs['alternator_statuses']
+            socs, sts
         )
-        b_gen = self.yield_battery(
-            times, on_engine, outputs['alternator_currents'],
-            outputs['state_of_charges'], outputs['battery_currents']
-        )
+        b_gen = self.init_battery(times, on_engine, alt, socs, bat)
 
-        for i, (alt_status, alt_current) in enumerate(a_gen):
-            outputs['alternator_currents'][i] = alt_current
-            outputs['alternator_statuses'][i] = alt_status = int(alt_status)
-            soc, bat_current = next(b_gen)
-            outputs['battery_currents'][i] = bat_current
+        def _next(i):
+            sts[i], alt[i] = alt_status, alt_current = a_gen(i)
+            soc, bat_current = b_gen(i)
+            bat[i] = bat_current
             try:
-                outputs['state_of_charges'][i + 1] = soc
+                socs[i + 1] = soc
             except IndexError:
                 pass
-            yield alt_current, alt_status, bat_current, soc
+            return alt_current, alt_status, bat_current, soc
+
+        return _next
 
 
 @sh.add_function(dsp, outputs=['electrics_prediction_model'], weight=4000)

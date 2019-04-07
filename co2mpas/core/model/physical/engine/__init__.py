@@ -1018,7 +1018,7 @@ class EngineModel(BaseModel):
         'on_engine', 'engine_starts', 'engine_speeds_out_hot',
         'engine_coolant_temperatures'
     )
-
+    contract_outputs = ('engine_coolant_temperatures',)
     types = {
         float: {'engine_speeds_out_hot', 'engine_coolant_temperatures'},
         bool: {'on_engine', 'engine_starts'}

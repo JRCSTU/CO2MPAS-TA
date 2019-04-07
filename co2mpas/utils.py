@@ -96,6 +96,7 @@ class List(list):
 
 class BaseModel:
     key_outputs = ()
+    contract_outputs = ()
     types = {}
 
     def __init__(self, outputs=None):
@@ -107,8 +108,15 @@ class BaseModel:
         self.set_outputs()
         for _ in self.yield_results(*args, n=n):
             pass
-        out = sh.selector(self.key_outputs, self.outputs, output_type='list')
-        return [v.toarray() for v in out]
+        self.format_results()
+        return sh.selector(self.key_outputs, self.outputs, output_type='list')
+
+    def format_results(self):
+        keys = self.contract_outputs
+        for k in self.key_outputs:
+            v = self.outputs[k]
+            if isinstance(v, List):
+                self.outputs[k] = (v[:-1] if k in keys else v).toarray()
 
     def set_outputs(self, outputs=None):
         if outputs is None:

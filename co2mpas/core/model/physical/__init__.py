@@ -364,7 +364,7 @@ def prediction_loop(
     final_drive_prediction_model.set_outputs(outputs)
     gear_box_prediction_model.set_outputs(outputs)
     engine_prediction_model.set_outputs(outputs)
-    electrics_prediction_model.set_outputs(n, outputs)
+    electrics_prediction_model.set_outputs(outputs)
 
     whl = wheels_prediction_model.yield_results(velocities, motive_powers, n=n)
 
@@ -387,15 +387,16 @@ def prediction_loop(
 
     ele = electrics_prediction_model.yield_results(
         times, accelerations, outputs['on_engine'], outputs['engine_starts'],
-        outputs['gear_box_powers_in']
+        outputs['gear_box_powers_in'], n=n
     )
 
     for _ in zip(whl, fd, gb, eng, ele):
         pass
-    from co2mpas.utils import List
-    for k in ('gear_box_temperatures', 'engine_coolant_temperatures'):
-        if isinstance(outputs[k], List):
-            outputs[k] = outputs[k][:-1]
 
-    out = sh.selector(OUTPUTS_PREDICTION_LOOP, outputs, output_type='list')
-    return [v.toarray() if isinstance(v, List) else v for v in out]
+    wheels_prediction_model.format_results()
+    final_drive_prediction_model.format_results()
+    gear_box_prediction_model.format_results()
+    engine_prediction_model.format_results()
+    electrics_prediction_model.format_results()
+
+    return sh.selector(OUTPUTS_PREDICTION_LOOP, outputs, output_type='list')

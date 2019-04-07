@@ -257,7 +257,8 @@ class ThermalModel:
 
 # noinspection PyMissingOrEmptyDocstring
 class EngineTemperatureModel(co2_utl.BaseModel):
-    key_outputs = ('engine_coolant_temperatures',)
+    key_outputs = 'engine_coolant_temperatures',
+    contract_outputs = 'engine_coolant_temperatures',
     types = {float: {'engine_coolant_temperatures'}}
 
     def __init__(self, initial_engine_temperature=None,

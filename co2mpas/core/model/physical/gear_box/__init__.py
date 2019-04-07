@@ -742,7 +742,7 @@ class GearBoxModel(BaseModel):
         'gear_box_efficiencies',
         'gear_box_powers_in'
     )
-
+    contract_outputs = 'gear_box_temperatures',
     types = {
         float: {
             # Gear box model outputs.
