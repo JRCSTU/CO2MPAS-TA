@@ -275,7 +275,8 @@ class EngineTemperatureModel(co2_utl.BaseModel):
         key = 'engine_coolant_temperatures'
         if self._outputs is not None and key in self._outputs:
             out = self._outputs[key]
-            return lambda i: out[i]
+            n = len(out) - 1
+            return lambda i: out[min(i + 1, n)]
         else:
             temp, max_t = self.outputs[key], self.max_engine_coolant_temperature
             temp[0] = self.initial_engine_temperature

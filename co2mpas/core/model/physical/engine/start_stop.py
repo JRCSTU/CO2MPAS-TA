@@ -271,7 +271,7 @@ class EngineStartStopModel(BaseModel):
                 one[i] = True
                 return True, start
         else:
-            one, st = self.outputs['engine_starts'], self.outputs['on_engine']
+            st, one = self.outputs['engine_starts'], self.outputs['on_engine']
             base = self.start_stop_model.base
             if self.use_basic_start_stop:
                 predict = self.start_stop_model.simple
@@ -290,7 +290,7 @@ class EngineStartStopModel(BaseModel):
                 on = on or ((prev or base(*v)) and predict(*v))
                 if not on:
                     t0 = t - self.min_time_engine_on_after_start
-                    for ti, s in zip(times[:i:-1], st[:i:-1]):
+                    for ti, s in zip(times[i::-1], st[i::-1]):
                         if ti < t0:
                             break
                         elif s:

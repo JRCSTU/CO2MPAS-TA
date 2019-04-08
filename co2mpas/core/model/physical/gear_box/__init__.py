@@ -798,7 +798,12 @@ class GearBoxModel(BaseModel):
 
         if self._outputs is not None and not (set(keys) - set(self._outputs)):
             tmp, tor, eff = sh.selector(keys, self._outputs, output_type='list')
-            return lambda i: (tmp[i], tor[i], eff[i])
+            n = len(tmp) - 1
+
+            def _next(i):
+                return (tmp[min(i + 1, n)], tor[i], eff[i])
+
+            return _next
         return self.gear_box_loss_model.init_losses(
             self.outputs['gear_box_temperatures'], times, final_drive_powers_in,
             final_drive_speeds_in, gear_box_speeds_in, gears

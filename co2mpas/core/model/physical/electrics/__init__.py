@@ -1130,9 +1130,10 @@ class ElectricModel(co2_utl.BaseModel):
         keys = ['state_of_charges', 'battery_currents']
 
         if self._outputs is not None and not (set(keys) - set(self._outputs)):
-            state_of_charges = self._outputs['state_of_charges']
+            socs = self._outputs['state_of_charges']
             currents = self._outputs['battery_currents']
-            _next = lambda i: (state_of_charges[i], currents[i])
+            n = len(socs) - 1
+            _next = lambda i: (socs[min(i + 1, n)] , currents[i])
         else:
             self.outputs['state_of_charges'][0] = self.initial_state_of_charge
             from .electrics_prediction import (
