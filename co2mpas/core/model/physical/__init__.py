@@ -60,7 +60,7 @@ dsp.add_dispatcher(
     ),
     outputs=(
         'gears', 'initial_temperature', 'phases_integration_times', 'times',
-        'velocities'
+        'velocities', 'cycle_prediction_model'
     )
 )
 
@@ -82,7 +82,7 @@ dsp.add_dispatcher(
         'accelerations', 'angle_slopes', 'climbing_force', 'curb_mass',
         'distances', 'f0', 'f1', 'f2', 'inertial_factor', 'motive_powers',
         'n_dyno_axes', 'road_loads', 'unladen_mass', 'vehicle_mass',
-        'velocities'
+        'velocities', 'vehicle_prediction_model'
     )
 )
 
@@ -305,16 +305,24 @@ OUTPUTS_PREDICTION_LOOP = [
 
     'wheel_powers',
     'wheel_speeds',
-    'wheel_torques'
+    'wheel_torques',
+
+    'motive_powers',
+    'angle_slopes',
+    'distances',
+    'velocities',
+
+    'accelerations',
+    'times',
 ]
 
 
 @sh.add_function(dsp, outputs=OUTPUTS_PREDICTION_LOOP, weight=10)
 def prediction_loop(
+        cycle_prediction_model, vehicle_prediction_model,
         wheels_prediction_model, final_drive_prediction_model,
         gear_box_prediction_model, engine_prediction_model,
-        electrics_prediction_model, times, velocities, accelerations,
-        motive_powers):
+        electrics_prediction_model):
     """
     Predicts vehicle time-series.
 
@@ -359,40 +367,54 @@ def prediction_loop(
     :rtype: tuple[numpy.array]
     """
     outputs = {}
-    n = times.shape[0]
+    cycle_prediction_model.set_outputs(outputs)
+    vehicle_prediction_model.set_outputs(outputs)
     wheels_prediction_model.set_outputs(outputs)
     final_drive_prediction_model.set_outputs(outputs)
     gear_box_prediction_model.set_outputs(outputs)
     engine_prediction_model.set_outputs(outputs)
     electrics_prediction_model.set_outputs(outputs)
 
-    whl = wheels_prediction_model.yield_results(velocities, motive_powers, n=n)
+    vhl = vehicle_prediction_model.init_results(
+        outputs['times'], outputs['accelerations']
+    )
 
-    fd = final_drive_prediction_model.yield_results(
+    whl = wheels_prediction_model.init_results(
+        outputs['velocities'], outputs['motive_powers']
+    )
+
+    fd = final_drive_prediction_model.init_results(
         outputs['gears'], outputs['wheel_speeds'], outputs['wheel_torques'],
-        outputs['wheel_powers'], n=n
+        outputs['wheel_powers']
     )
 
-    gb = gear_box_prediction_model.yield_results(
-        times, velocities, accelerations, motive_powers,
-        outputs['engine_coolant_temperatures'],
-        outputs['final_drive_speeds_in'], outputs['final_drive_powers_in'], n=n
+    gb = gear_box_prediction_model.init_results(
+        outputs['times'], outputs['velocities'], outputs['accelerations'],
+        outputs['motive_powers'], outputs['engine_coolant_temperatures'],
+        outputs['final_drive_speeds_in'], outputs['final_drive_powers_in']
     )
 
-    eng = engine_prediction_model.yield_results(
-        times, velocities, accelerations, outputs['state_of_charges'],
-        outputs['final_drive_powers_in'], outputs['gears'],
-        outputs['gear_box_speeds_in'], n=n
+    eng = engine_prediction_model.init_results(
+        outputs['times'], outputs['velocities'], outputs['accelerations'],
+        outputs['state_of_charges'], outputs['final_drive_powers_in'],
+        outputs['gears'], outputs['gear_box_speeds_in']
     )
 
-    ele = electrics_prediction_model.yield_results(
-        times, accelerations, outputs['on_engine'], outputs['engine_starts'],
-        outputs['gear_box_powers_in'], n=n
+    ele = electrics_prediction_model.init_results(
+        outputs['times'], outputs['accelerations'], outputs['on_engine'],
+        outputs['engine_starts'], outputs['gear_box_powers_in']
     )
+    cyl = cycle_prediction_model.init_results(vhl, whl, fd, gb, eng, ele)
+    i = 0
+    while True:
+        try:
+            cyl(i), vhl(i), whl(i), fd(i), gb(i), eng(i), ele(i)
+            i += 1
+        except StopIteration:
+            break
 
-    for _ in zip(whl, fd, gb, eng, ele):
-        pass
-
+    cycle_prediction_model.format_results()
+    vehicle_prediction_model.format_results()
     wheels_prediction_model.format_results()
     final_drive_prediction_model.format_results()
     gear_box_prediction_model.format_results()

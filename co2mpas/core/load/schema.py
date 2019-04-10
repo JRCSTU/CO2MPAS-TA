@@ -230,6 +230,16 @@ def _engine_temperature_regression_model(error=None, **kwargs):
     return _type(type=ThermalModel, error=error)
 
 
+def _vehicle_prediction_model(error=None, **kwargs):
+    from ..model.physical.vehicle import VehicleModel
+    return _type(type=VehicleModel, error=error)
+
+
+def _cycle_prediction_model(error=None, **kwargs):
+    from ..model.physical.cycle import CycleModel
+    return _type(type=CycleModel, error=error)
+
+
 def _electrics_prediction_model(error=None, **kwargs):
     from ..model.physical.engine._thermal import ThermalModel
     return _type(type=ThermalModel, error=error)
@@ -613,6 +623,8 @@ def define_data_schema(read=True):
         'engine_thermostat_temperature_window': tuplefloat2,
         'engine_temperature_regression_model':
             _engine_temperature_regression_model(read=read),
+        'cycle_prediction_model': _cycle_prediction_model(read=read),
+        'vehicle_prediction_model': _vehicle_prediction_model(read=read),
         'electrics_prediction_model': _electrics_prediction_model(read=read),
         'engine_prediction_model': _engine_prediction_model(read=read),
         'gear_box_prediction_model': _gear_box_prediction_model(read=read),

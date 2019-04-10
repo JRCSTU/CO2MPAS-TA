@@ -9,6 +9,7 @@ Functions and a model `dsp` to model the mechanic of the vehicle.
 """
 import schedula as sh
 from .defaults import dfl
+from co2mpas.utils import BaseModel
 
 dsp = sh.BlueDispatcher(
     name='Vehicle free body diagram',
@@ -37,6 +38,57 @@ def calculate_velocities(times, obd_velocities):
     import numpy as np
     dt_window = dfl.functions.calculate_velocities.dt_window
     return median_filter(times, obd_velocities, dt_window, np.mean)
+
+
+def _integral(x, y, y0=.0):
+    from scipy.interpolate import InterpolatedUnivariateSpline as Spl
+    return Spl(x, y).antiderivative()(x) + y0
+
+
+@sh.add_function(dsp, outputs=['distances'])
+def calculate_distances(times, velocities):
+    """
+    Calculates the cumulative distance vector [m].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array
+
+    :return:
+        Cumulative distance vector [m].
+    :rtype: numpy.array
+    """
+    return _integral(times, velocities / 3.6, 0)
+
+
+@sh.add_function(
+    dsp, inputs_kwargs=True, inputs_defaults=True, outputs=['velocities']
+)
+def calculate_velocities_v1(times, accelerations, initial_velocity=.0):
+    """
+    Calculates the velocity from acceleration time series [km/h].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param accelerations:
+        Acceleration vector [m/s2].
+    :type accelerations: numpy.array
+
+    :param initial_velocity:
+        Initial velocity [km/h].
+    :type initial_velocity: float
+
+    :return:
+        Velocity vector [km/h].
+    :rtype: numpy.array
+    """
+    return _integral(times, accelerations, initial_velocity / 3.6) * 3.6
 
 
 @sh.add_function(dsp, outputs=['accelerations'])
@@ -428,52 +480,17 @@ def calculate_f1(f2):
 dsp.add_data('angle_slope', dfl.values.angle_slope)
 
 
-@sh.add_function(dsp, outputs=['distances'])
-def calculate_distances(times, velocities):
-    """
-    Calculates the cumulative distance vector [m].
-
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
-    :param velocities:
-        Velocity vector [km/h].
-    :type velocities: numpy.array
-
-    :return:
-        Cumulative distance vector [m].
-    :rtype: numpy.array
-    """
-    from scipy.integrate import cumtrapz
-    return cumtrapz(velocities / 3.6, times, initial=0)
-
-
-@sh.add_function(dsp, outputs=['angle_slopes'])
-def calculate_angle_slopes(distances, elevations):
-    """
-    Returns the angle slope vector [rad].
-
-    :param distances:
-       Cumulative distance vector [m].
-    :type distances: numpy.array
-
-    :param elevations:
-        Elevation vector [m].
-    :type elevations: numpy.array
-
-    :return:
-       Angle slope vector [rad].
-    :rtype: numpy.array
-    """
+@sh.add_function(dsp, outputs=['slope_model'])
+def define_slope_model(distances, elevations):
     import numpy as np
     from scipy.interpolate import InterpolatedUnivariateSpline as Spl
     i = np.append([0], np.where(np.diff(distances) > 0)[0] + 1)
-    return np.arctan(Spl(distances[i], elevations[i]).derivative()(distances))
+    func = Spl(distances[i], elevations[i]).derivative()
+    return lambda d: np.arctan(func(d))
 
 
-@sh.add_function(dsp, outputs=['angle_slopes'], weight=5)
-def calculate_angle_slopes_v1(times, angle_slope):
+@sh.add_function(dsp, outputs=['slope_model'], weight=5)
+def define_slope_model_v1(angle_slope):
     """
     Returns the angle slope vector [rad].
 
@@ -490,7 +507,27 @@ def calculate_angle_slopes_v1(times, angle_slope):
     :rtype: numpy.array
     """
     import numpy as np
-    return np.ones_like(times, dtype=float) * angle_slope
+    return np.vectorize(lambda *args: angle_slope, otypes=[float])
+
+
+@sh.add_function(dsp, outputs=['angle_slopes'])
+def calculate_angle_slopes(slope_model, distances):
+    """
+    Returns the angle slope vector [rad].
+
+    :param distances:
+       Cumulative distance vector [m].
+    :type distances: numpy.array
+
+    :param elevations:
+        Elevation vector [m].
+    :type elevations: numpy.array
+
+    :return:
+       Angle slope vector [rad].
+    :rtype: numpy.array
+    """
+    return slope_model(distances)
 
 
 @sh.add_function(dsp, outputs=['rolling_resistance'])
@@ -726,3 +763,136 @@ def apply_f0_correction(f0_uncorrected, correct_f0):
     if correct_f0:
         return f0_uncorrected - 6.0
     return f0_uncorrected
+
+
+# noinspection PyMissingOrEmptyDocstring
+class VehicleModel(BaseModel):
+    key_outputs = 'velocities', 'distances', 'angle_slopes', 'motive_powers'
+    contract_outputs = 'velocities', 'distances'
+    types = {float: set(key_outputs)}
+
+    def __init__(self, vehicle_mass=None, f0=None, f1=None, f2=None,
+                 inertial_factor=None, slope_model=None, initial_velocity=0,
+                 outputs=None):
+        pars = vehicle_mass, f0, f1, f2, inertial_factor, slope_model
+        self.initial_velocity = initial_velocity
+        if not any(v is None for v in pars):
+            d = dsp.register(memo={})
+            d.set_default_value('vehicle_mass', vehicle_mass)
+            d.set_default_value('f0', f0)
+            d.set_default_value('f1', f1)
+            d.set_default_value('f2', f2)
+            d.set_default_value('inertial_factor', inertial_factor)
+            d.set_default_value('slope_model', slope_model)
+            self.power = sh.DispatchPipe(
+                d, inputs=('velocities', 'accelerations', 'distances'),
+                outputs=('angle_slopes', 'motive_powers')
+            )
+        super(VehicleModel, self).__init__(outputs)
+
+    def init_velocity(self, times, accelerations):
+        key = 'velocities'
+        if self._outputs is not None and key in self._outputs:
+            out = self._outputs[key]
+            n = len(out) - 1
+            return lambda i: out[min(i + 1, n)]
+
+        velocities = self.outputs[key]
+        velocities[0] = self.initial_velocity
+
+        def _next(i):
+            j = max(i - 1, 0)
+            return velocities[j] + accelerations[i] * (times[i + 1] - times[j])
+
+        return _next
+
+    def init_distance(self, times, velocities):
+        key = 'distances'
+        if self._outputs is not None and key in self._outputs:
+            out = self._outputs[key]
+            n = len(out) - 1
+            return lambda i: out[min(i + 1, n)]
+
+        distances = self.outputs[key]
+        distances[0], vel = 0, velocities
+
+        def _next(i):
+            j = i + 1
+            return distances[i] + (vel[j] + vel[i]) / 2 * (times[j] - times[i])
+
+        return _next
+
+    def init_power(self, velocities, accelerations, distances):
+        keys = 'angle_slopes', 'motive_powers'
+        if self._outputs is not None and not (set(keys) - set(self._outputs)):
+            slp, pws = sh.selector(keys, self._outputs, output_type='list')
+            return lambda i: (slp[i], pws[i])
+
+        func = self.power
+        return lambda i: func(velocities[i], accelerations[i], distances[i])
+
+    def init_results(self, times, accelerations):
+        vel, dist = self.outputs['velocities'], self.outputs['distances']
+        slp, pws = self.outputs['angle_slopes'], self.outputs['motive_powers']
+
+        v_gen = self.init_velocity(times, accelerations)
+        d_gen = self.init_distance(times, vel)
+        p_gen = self.init_power(vel, accelerations, dist)
+
+        def _next(i):
+            try:
+                vel[i + 1], dist[i + 1] = v_gen(i), d_gen(i)
+            except IndexError:
+                pass
+            slp[i], pws[i] = s, p = p_gen(i)
+            return vel[i], dist[i], s, p
+
+        return _next
+
+
+@sh.add_function(dsp, outputs=['vehicle_prediction_model'])
+def define_fake_vehicle_prediction_model(
+        velocities, distances, motive_powers, angle_slopes):
+    """
+    Defines a fake vehicle prediction model.
+
+    :param wheel_speeds:
+        Rotating speed of the wheel [RPM].
+    :type wheel_speeds: numpy.array
+
+    :param wheel_powers:
+        Power at the wheels [kW].
+    :type wheel_powers: numpy.array
+
+    :param wheel_torques:
+        Torque at the wheel [N*m].
+    :type wheel_torques: numpy.array
+
+    :return:
+        Wheels prediction model.
+    :rtype: WheelsModel
+    """
+    return VehicleModel(outputs=dict(
+        velocities=velocities, distances=distances, motive_powers=motive_powers,
+        angle_slopes=angle_slopes
+    ))
+
+
+@sh.add_function(dsp, outputs=['vehicle_prediction_model'], weight=4000)
+def define_vehicle_prediction_model(
+        vehicle_mass, f0, f1, f2, inertial_factor, slope_model,
+        initial_velocity):
+    """
+    Defines the vehicle prediction model.
+
+    :param r_dynamic:
+        Dynamic radius of the wheels [m].
+    :type r_dynamic: float
+
+    :return:
+        Wheels prediction model.
+    :rtype: WheelsModel
+    """
+    return VehicleModel(
+        vehicle_mass, f0, f1, f2, inertial_factor, slope_model, initial_velocity
+    )

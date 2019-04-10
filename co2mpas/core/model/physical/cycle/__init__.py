@@ -20,9 +20,10 @@ Sub-Modules:
     WLTP
 
 """
-import schedula as sh
 import numpy as np
+import schedula as sh
 from ..defaults import dfl
+from co2mpas.utils import BaseModel
 from .NEDC import dsp as _nedc_cycle, is_manual
 from .WLTP import dsp as _wltp_cycle
 
@@ -169,3 +170,85 @@ def select_phases_integration_times(cycle_type):
     from ..defaults import dfl
     v = dfl.functions.select_phases_integration_times.INTEGRATION_TIMES
     return tuple(sh.pairwise(v[cycle_type.upper()]))
+
+
+# noinspection PyMissingOrEmptyDocstring
+class CycleModel(BaseModel):
+    key_outputs = 'times', 'accelerations'
+    contract_outputs = 'times',
+    types = {float: set(key_outputs)}
+
+    def __init__(self, driver_model=None, outputs=None):
+        self.driver_model = driver_model
+        super(CycleModel, self).__init__(outputs)
+
+    def init_driver(self, *models):
+        keys = 'times', 'accelerations'
+
+        if self._outputs is not None and not (set(keys) - set(self._outputs)):
+            times, acc = sh.selector(keys, self._outputs, output_type='list')
+            n = len(times) - 1
+
+            def _next(i):
+                if i > n:
+                    raise StopIteration
+                return times[min(i + 1, n)], acc[i]
+
+            return _next
+        return self.driver_model.init_results(*models)
+
+    def init_results(self, *models):
+        times, acc = self.outputs['times'], self.outputs['accelerations']
+
+        d_gen = self.init_driver(*models)
+
+        def _next(i):
+            t, a = d_gen(i)
+            acc[i] = a
+            try:
+                times[i + 1] = t
+            except IndexError:
+                pass
+            return times[i], a
+
+        return _next
+
+
+@sh.add_function(dsp, outputs=['cycle_prediction_model'])
+def define_fake_cycle_prediction_model(times, accelerations):
+    """
+    Defines a fake vehicle prediction model.
+
+    :param wheel_speeds:
+        Rotating speed of the wheel [RPM].
+    :type wheel_speeds: numpy.array
+
+    :param wheel_powers:
+        Power at the wheels [kW].
+    :type wheel_powers: numpy.array
+
+    :param wheel_torques:
+        Torque at the wheel [N*m].
+    :type wheel_torques: numpy.array
+
+    :return:
+        Wheels prediction model.
+    :rtype: WheelsModel
+    """
+    return CycleModel(outputs=dict(times=times, accelerations=accelerations))
+
+
+@sh.add_function(dsp, outputs=['cycle_prediction_model'], weight=4000)
+def define_vehicle_prediction_model(driver_model):
+    """
+    Defines the vehicle prediction model.
+
+    :param r_dynamic:
+        Dynamic radius of the wheels [m].
+    :type r_dynamic: float
+
+    :return:
+        Wheels prediction model.
+    :rtype: WheelsModel
+    """
+    return CycleModel(driver_model)
