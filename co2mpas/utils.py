@@ -135,9 +135,12 @@ class BaseModel:
         i, _next = 0, self.init_results(*args)
 
         while n != 0:
-            yield _next(i)
-            i += 1
-            n -= 1
+            try:
+                yield _next(i)
+                i += 1
+                n -= 1
+            except StopIteration:
+                break
 
 
 def argmax(values, **kws):

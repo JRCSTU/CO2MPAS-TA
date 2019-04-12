@@ -32,16 +32,22 @@ dsp = sh.BlueDispatcher(
     description='Returns the theoretical times, velocities, and gears.'
 )
 dsp.add_data('time_sample_frequency', dfl.values.time_sample_frequency)
+dsp.add_data('use_driver', dfl.values.use_driver)
 
 
 # noinspection PyMissingOrEmptyDocstring
-def is_nedc(kwargs):
-    return kwargs.get('cycle_type') == 'NEDC'
+def is_nedc(kw):
+    return kw.get('cycle_type') == 'NEDC' and not kw.get('use_driver', True)
 
 
 # noinspection PyMissingOrEmptyDocstring
-def is_wltp(kwargs):
-    return kwargs.get('cycle_type') == 'WLTP'
+def is_wltp(kw):
+    return kw.get('cycle_type') == 'WLTP' and not kw.get('use_driver', True)
+
+
+# noinspection PyMissingOrEmptyDocstring
+def is_driver(kw):
+    return kw.get('use_driver')
 
 
 dsp.add_dispatcher(
@@ -49,7 +55,7 @@ dsp.add_dispatcher(
     dsp=_nedc_cycle,
     inputs=(
         'gear_box_type', 'gears', 'k1', 'k2', 'k5', 'max_gear', 'times',
-        {'cycle_type': sh.SINK}
+        {'cycle_type': sh.SINK, 'use_driver': sh.SINK}
     ),
     outputs=('gears', 'initial_temperature', 'max_time', 'velocities'),
     input_domain=is_nedc
@@ -66,7 +72,7 @@ dsp.add_dispatcher(
         'max_speed_velocity_ratio', 'inertial_factor', 'road_loads', 'times',
         'unladen_mass', 'vehicle_mass', 'velocities', 'wltp_base_model',
         'engine_max_speed', 'wltp_class', {
-            'cycle_type': sh.SINK
+            'cycle_type': sh.SINK, 'use_driver': sh.SINK
         }
     ),
     outputs=('gears', 'initial_temperature', 'max_time', 'velocities'),
@@ -172,19 +178,85 @@ def select_phases_integration_times(cycle_type):
     return tuple(sh.pairwise(v[cycle_type.upper()]))
 
 
+@sh.add_function(
+    dsp, inputs_kwargs=True, inputs_defaults=True,
+    outputs=['driver_style_ratio']
+)
+def default_driver_style_ratio(driver_style='normal'):
+    """
+    Return the default driver style ratio [-].
+
+    :param driver_style:
+        Driver style (aggressive, normal, gentle).
+    :type driver_style: str
+
+    :return:
+        Driver style ratio [-].
+    :rtype: float
+    """
+    from ...physical.defaults import dfl
+    return dfl.functions.default_driver_style_ratio.ratios[driver_style]
+
+
+class SimulationModel:
+    def __init__(self, models, outputs, index=0):
+        self.index = index
+        self.models = models
+        self.outputs = outputs
+
+    def __call__(self, acceleration, next_time):
+        i = self.index
+        self.outputs['accelerations'][i] = acceleration
+        try:
+            self.outputs['times'][i + 1] = next_time
+        except IndexError:
+            pass
+        for m in self.models:
+            m(i)
+        return self
+
+    def select(self, *items, di=0):
+        i = max(self.index + di, 0)
+        res = sh.selector(items, self.outputs, output_type='list')
+        res = [v[i] for v in res]
+        if len(res) == 1:
+            return res[0]
+        return res
+
+
 # noinspection PyMissingOrEmptyDocstring
 class CycleModel(BaseModel):
     key_outputs = 'times', 'accelerations'
     contract_outputs = 'times',
     types = {float: set(key_outputs)}
 
-    def __init__(self, driver_model=None, outputs=None):
-        self.driver_model = driver_model
+    def __init__(self, path_velocities=None, path_distances=None,
+                 full_load_curve=None, time_sample_frequency=None,
+                 road_loads=None, vehicle_mass=None, inertial_factor=None,
+                 driver_style_ratio=None,
+                 outputs=None):
+        from .logic import dsp as _logic, define_max_acceleration_model as f
+        if path_distances is not None:
+            self.stop_distance = path_distances[-1]
+            d = _logic.register(memo={})
+            d.set_default_value('path_distances', path_distances)
+            d.set_default_value('path_velocities', path_velocities)
+            d.set_default_value('full_load_curve', full_load_curve)
+            d.set_default_value(
+                'max_acceleration_model',
+                f(road_loads, vehicle_mass, inertial_factor)
+            )
+            d.set_default_value('time_sample_frequency', time_sample_frequency)
+            d.set_default_value('driver_style_ratio', driver_style_ratio)
+            self.model = sh.DispatchPipe(
+                d, inputs=['simulation_model'],
+                outputs=('next_time', 'acceleration')
+            )
         super(CycleModel, self).__init__(outputs)
 
     def init_driver(self, *models):
         keys = 'times', 'accelerations'
-
+        simulation = SimulationModel(models, self.outputs)
         if self._outputs is not None and not (set(keys) - set(self._outputs)):
             times, acc = sh.selector(keys, self._outputs, output_type='list')
             n = len(times) - 1
@@ -192,15 +264,29 @@ class CycleModel(BaseModel):
             def _next(i):
                 if i > n:
                     raise StopIteration
-                return times[min(i + 1, n)], acc[i]
+                simulation.index, a, t = i, acc[i], times[min(i + 1, n)]
+                simulation(a, t)
+                return t, a
 
             return _next
-        return self.driver_model.init_results(*models)
 
-    def init_results(self, *models):
+        times, acc = sh.selector(keys, self.outputs, output_type='list')
+        times[0] = 0
+
+        def _next(i):
+            simulation.index = i
+            t, a = self.model(simulation)
+
+            if simulation(a, t).select('distances') >= self.stop_distance:
+                raise StopIteration
+            return t, a
+
+        return _next
+
+    def init_results(self, velocities, distances, *models):
         times, acc = self.outputs['times'], self.outputs['accelerations']
 
-        d_gen = self.init_driver(*models)
+        d_gen = self.init_driver(velocities, distances, *models)
 
         def _next(i):
             t, a = d_gen(i)
@@ -239,7 +325,10 @@ def define_fake_cycle_prediction_model(times, accelerations):
 
 
 @sh.add_function(dsp, outputs=['cycle_prediction_model'], weight=4000)
-def define_vehicle_prediction_model(driver_model):
+def define_cycle_prediction_model(
+        path_velocities, path_distances, full_load_curve,
+        time_sample_frequency, road_loads, vehicle_mass, inertial_factor,
+        driver_style_ratio):
     """
     Defines the vehicle prediction model.
 
@@ -251,4 +340,7 @@ def define_vehicle_prediction_model(driver_model):
         Wheels prediction model.
     :rtype: WheelsModel
     """
-    return CycleModel(driver_model)
+    return CycleModel(
+        path_velocities, path_distances, full_load_curve, time_sample_frequency,
+        road_loads, vehicle_mass, inertial_factor, driver_style_ratio
+    )

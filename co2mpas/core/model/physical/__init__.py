@@ -57,6 +57,7 @@ dsp.add_dispatcher(
         'max_speed_velocity_ratio', 'max_time', 'max_velocity', 'motive_powers',
         'road_loads', 'speed_velocity_ratios', 'time_sample_frequency', 'times',
         'unladen_mass', 'vehicle_mass', 'velocities', 'wltp_base_model',
+        'use_driver', 'path_velocities', 'path_distances'
     ),
     outputs=(
         'gears', 'initial_temperature', 'phases_integration_times', 'times',
@@ -404,14 +405,9 @@ def prediction_loop(
         outputs['times'], outputs['accelerations'], outputs['on_engine'],
         outputs['engine_starts'], outputs['gear_box_powers_in']
     )
-    cyl = cycle_prediction_model.init_results(vhl, whl, fd, gb, eng, ele)
-    i = 0
-    while True:
-        try:
-            cyl(i), vhl(i), whl(i), fd(i), gb(i), eng(i), ele(i)
-            i += 1
-        except StopIteration:
-            break
+
+    for _ in cycle_prediction_model.yield_results(vhl, whl, fd, gb, eng, ele):
+        pass
 
     cycle_prediction_model.format_results()
     vehicle_prediction_model.format_results()
