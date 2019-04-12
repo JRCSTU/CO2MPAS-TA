@@ -104,11 +104,11 @@ def calculate_final_drive_speeds_in(
 
 dsp.add_data('final_drive_efficiency', dfl.values.final_drive_efficiency)
 dsp.add_data('n_wheel_drive', dfl.values.n_wheel_drive)
-dsp.add_data('final_drive_torque_loss', sh.EMPTY)
+dsp.add_data('final_drive_torque_loss', None)
 
 
 @sh.add_function(dsp, outputs=['final_drive_torque_losses'],
-                 input_domain=lambda *args: args[1] is not sh.EMPTY)
+                 input_domain=lambda *args: args[1] is not None)
 def calculate_final_drive_torque_losses(
         final_drive_torques_out, final_drive_torque_loss):
     """
@@ -320,8 +320,9 @@ class FinalDriveModel(BaseModel):
         if self._outputs is not None and key in self._outputs:
             out = self._outputs[key]
             return lambda i: out[i]
-        get = self.final_drive_ratios.get
-        return lambda i: get(gears[i - 1] if i else 0)
+        d = collections.defaultdict(lambda: dfl.values.final_drive_ratio)
+        d.update(self.final_drive_ratios)
+        return lambda i: d[gears[i - 1] if i else 0]
 
     def init_speed(self, final_drive_speeds_out, final_drive_ratio_vector):
         key = 'final_drive_speeds_in'
@@ -481,8 +482,6 @@ def define_final_drive_prediction_model(
         Final drive prediction model.
     :rtype: FinalDriveModel
     """
-    if final_drive_torque_loss is sh.EMPTY:
-        final_drive_torque_loss = None
     model = FinalDriveModel(
         final_drive_ratios, final_drive_torque_loss, n_wheel_drive,
         final_drive_efficiency
