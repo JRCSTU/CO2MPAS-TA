@@ -7,6 +7,7 @@
 """
 Functions and a model `dsp` to model the mechanic of the vehicle.
 """
+import numpy as np
 import schedula as sh
 from .defaults import dfl
 from co2mpas.utils import BaseModel
@@ -35,7 +36,6 @@ def calculate_velocities(times, obd_velocities):
     :rtype: numpy.array
     """
     from co2mpas.utils import median_filter
-    import numpy as np
     dt_window = dfl.functions.calculate_velocities.dt_window
     return median_filter(times, obd_velocities, dt_window, np.mean)
 
@@ -482,7 +482,6 @@ dsp.add_data('angle_slope', dfl.values.angle_slope)
 
 @sh.add_function(dsp, outputs=['slope_model'])
 def define_slope_model(distances, elevations):
-    import numpy as np
     from scipy.interpolate import InterpolatedUnivariateSpline as Spl
     i = np.append([0], np.where(np.diff(distances) > 0)[0] + 1)
     func = Spl(distances[i], elevations[i]).derivative()
@@ -506,7 +505,6 @@ def define_slope_model_v1(angle_slope):
         Angle slope vector [rad].
     :rtype: numpy.array
     """
-    import numpy as np
     return np.vectorize(lambda *args: angle_slope, otypes=[float])
 
 
@@ -547,7 +545,6 @@ def calculate_rolling_resistance(f0, angle_slopes):
         Rolling resistance force [N].
     :rtype: numpy.array
     """
-    import numpy as np
     return f0 * np.cos(angle_slopes)
 
 
@@ -589,7 +586,6 @@ def calculate_climbing_force(vehicle_mass, angle_slopes):
         Vehicle climbing resistance [N].
     :rtype: numpy.array
     """
-    import numpy as np
     return vehicle_mass * 9.81 * np.sin(angle_slopes)
 
 
@@ -659,6 +655,51 @@ def calculate_rotational_inertia_forces(
     """
 
     return vehicle_mass * inertial_factor * accelerations / 100
+
+
+@sh.add_function(dsp, outputs=['accelerations'])
+def calculate_accelerations_v1(
+        vehicle_mass, inertial_factor, motive_forces, climbing_force,
+        aerodynamic_resistances, rolling_resistance, velocity_resistances):
+    """
+    Calculates the acceleration from motive forces [m/s2].
+
+    :param vehicle_mass:
+        Vehicle mass [kg].
+    :type vehicle_mass: float
+
+    :param inertial_factor:
+        Factor that considers the rotational inertia [%].
+    :type inertial_factor: float
+
+    :param motive_forces:
+        Motive forces [N].
+    :type motive_forces: numpy.array | float
+
+    :param climbing_force:
+        Vehicle climbing resistance [N].
+    :type climbing_force: float | numpy.array
+
+    :param aerodynamic_resistances:
+        Aerodynamic resistance vector [N].
+    :type aerodynamic_resistances: numpy.array | float
+
+    :param rolling_resistance:
+        Rolling resistance force [N].
+    :type rolling_resistance: float | numpy.array
+
+    :param velocity_resistances:
+        Forces function of velocity [N].
+    :type velocity_resistances: numpy.array | float
+
+    :return:
+        Acceleration vector [m/s2].
+    :rtype: numpy.array
+    """
+    acc = motive_forces - climbing_force - aerodynamic_resistances
+    acc -= rolling_resistance + velocity_resistances
+    acc /= vehicle_mass * (1 + inertial_factor / 100)
+    return acc
 
 
 # noinspection PyPep8Naming
@@ -733,6 +774,27 @@ def calculate_motive_powers(motive_forces, velocities):
     return motive_forces * velocities / 3600
 
 
+@sh.add_function(dsp, outputs=['motive_forces'])
+def calculate_motive_forces_v1(motive_powers, velocities):
+    """
+    Calculate motive forces [N].
+
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array | float
+
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array | float
+
+    :return:
+        Motive forces [N].
+    :rtype: numpy.array | float
+    """
+
+    return motive_powers / velocities * 3600
+
+
 dsp.add_data(
     'road_loads', description='Cycle road loads [N, N/(km/h), N/(km/h)^2].'
 )
@@ -768,7 +830,7 @@ def apply_f0_correction(f0_uncorrected, correct_f0):
 # noinspection PyMissingOrEmptyDocstring
 class VehicleModel(BaseModel):
     key_outputs = 'velocities', 'distances', 'angle_slopes', 'motive_powers'
-    contract_outputs = 'velocities', 'distances'
+    contract_outputs = 'velocities', 'distances', 'angle_slopes'
     types = {float: set(key_outputs)}
 
     def __init__(self, vehicle_mass=None, f0=None, f1=None, f2=None,
@@ -776,6 +838,7 @@ class VehicleModel(BaseModel):
                  outputs=None):
         pars = vehicle_mass, f0, f1, f2, inertial_factor, slope_model
         self.initial_velocity = initial_velocity
+        self.slope_model = slope_model
         if not any(v is None for v in pars):
             d = dsp.register(memo={})
             d.set_default_value('vehicle_mass', vehicle_mass)
@@ -783,10 +846,9 @@ class VehicleModel(BaseModel):
             d.set_default_value('f1', f1)
             d.set_default_value('f2', f2)
             d.set_default_value('inertial_factor', inertial_factor)
-            d.set_default_value('slope_model', slope_model)
             self.power = sh.DispatchPipe(
-                d, inputs=('velocities', 'accelerations', 'distances'),
-                outputs=('angle_slopes', 'motive_powers')
+                d, inputs=('velocities', 'accelerations', 'angle_slopes'),
+                outputs=('motive_powers',)
             )
         super(VehicleModel, self).__init__(outputs)
 
@@ -802,34 +864,40 @@ class VehicleModel(BaseModel):
 
         def _next(i):
             j = max(i - 1, 0)
-            return velocities[j] + accelerations[i] * (times[i + 1] - times[j])
+            dt = times[i + 1] - times[j]
+            return velocities[j] + 3.6 * accelerations[i] * dt
 
         return _next
 
     def init_distance(self, times, velocities):
-        key = 'distances'
-        if self._outputs is not None and key in self._outputs:
-            out = self._outputs[key]
-            n = len(out) - 1
-            return lambda i: out[min(i + 1, n)]
-
-        distances = self.outputs[key]
-        distances[0], vel = 0, velocities
+        keys = 'angle_slopes', 'distances'
+        if self._outputs is not None and not (set(keys) - set(self._outputs)):
+            slp, dist = sh.selector(keys, self._outputs, output_type='list')
+            n = len(dist) - 1
+            def _next(i):
+                j = min(i + 1, n)
+                return dist[j], slp[j]
+            return _next
+        slp, dist = sh.selector(keys, self.outputs, output_type='list')
+        dist[0], vel = 0, velocities
+        slp[0] = self.slope_model(0)
 
         def _next(i):
             j = i + 1
-            return distances[i] + (vel[j] + vel[i]) / 2 * (times[j] - times[i])
+            d = (vel[j] + vel[i]) / (2 * 3.6) * (times[j] - times[i])
+            d += dist[i]
+            return d, np.asscalar(self.slope_model(d))
 
         return _next
 
-    def init_power(self, velocities, accelerations, distances):
-        keys = 'angle_slopes', 'motive_powers'
-        if self._outputs is not None and not (set(keys) - set(self._outputs)):
-            slp, pws = sh.selector(keys, self._outputs, output_type='list')
-            return lambda i: (slp[i], pws[i])
+    def init_power(self, velocities, accelerations, angle_slopes):
+        key = 'motive_powers'
+        if self._outputs is not None and key in self._outputs:
+            out = self._outputs[key]
+            return lambda i: out[i]
 
         func = self.power
-        return lambda i: func(velocities[i], accelerations[i], distances[i])
+        return lambda i: func(velocities[i], accelerations[i], angle_slopes[i])
 
     def init_results(self, times, accelerations):
         vel, dist = self.outputs['velocities'], self.outputs['distances']
@@ -837,15 +905,16 @@ class VehicleModel(BaseModel):
 
         v_gen = self.init_velocity(times, accelerations)
         d_gen = self.init_distance(times, vel)
-        p_gen = self.init_power(vel, accelerations, dist)
+        p_gen = self.init_power(vel, accelerations, slp)
 
         def _next(i):
             try:
-                vel[i + 1], dist[i + 1] = v_gen(i), d_gen(i)
+                vel[i + 1] = v_gen(i)
+                dist[i + 1], slp[i + 1] = d_gen(i)
             except IndexError:
                 pass
-            slp[i], pws[i] = s, p = p_gen(i)
-            return vel[i], dist[i], s, p
+            pws[i] = p = p_gen(i)
+            return vel[i], dist[i], slp[i] , p
 
         return _next
 
