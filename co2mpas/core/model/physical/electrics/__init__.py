@@ -1093,9 +1093,14 @@ class ElectricModel(co2_utl.BaseModel):
                 predict_alternator_status, calculate_engine_start_current,
                 calculate_alternator_current
             )
+            init_time = self.alternator_initialization_time
+            try:
+                init_time += times[0]
+            except IndexError:
+                pass
             alt_st_mdl = functools.partial(
                 self.alternator_status_model, self.has_energy_recuperation,
-                self.alternator_initialization_time
+                init_time
             )
             self.outputs['alternator_statuses'][0] = 0
 
@@ -1133,7 +1138,7 @@ class ElectricModel(co2_utl.BaseModel):
             socs = self._outputs['state_of_charges']
             currents = self._outputs['battery_currents']
             n = len(socs) - 1
-            _next = lambda i: (socs[min(i + 1, n)] , currents[i])
+            _next = lambda i: (socs[min(i + 1, n)], currents[i])
         else:
             self.outputs['state_of_charges'][0] = self.initial_state_of_charge
             from .electrics_prediction import (
@@ -1187,7 +1192,7 @@ def define_electrics_prediction_model(
         battery_capacity, alternator_status_model, max_alternator_current,
         alternator_current_model, max_battery_charging_current,
         alternator_nominal_voltage, start_demand, electric_load,
-        has_energy_recuperation, alternator_initialization_time, times,
+        has_energy_recuperation, alternator_initialization_time,
         initial_state_of_charge):
     """
     Defines the electrics prediction model.
@@ -1232,10 +1237,6 @@ def define_electrics_prediction_model(
         Alternator initialization time delta [s].
     :type alternator_initialization_time: float
 
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
     :param initial_state_of_charge:
         Initial state of charge of the battery [%].
 
@@ -1254,7 +1255,7 @@ def define_electrics_prediction_model(
         max_alternator_current, alternator_current_model,
         max_battery_charging_current, alternator_nominal_voltage, start_demand,
         electric_load, has_energy_recuperation,
-        times[0] + alternator_initialization_time, initial_state_of_charge
+        alternator_initialization_time, initial_state_of_charge
     )
 
     return model
