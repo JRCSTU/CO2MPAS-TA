@@ -6,18 +6,19 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Functions and a model `dsp` to define theoretical times, velocities, and gears.
+Functions and a model `dsp` to define driver strategies.
 
 Sub-Modules:
 
-.. currentmodule:: co2mpas.core.model.physical.cycle
+.. currentmodule:: co2mpas.core.model.physical.driver
 
 .. autosummary::
     :nosignatures:
-    :toctree: cycle/
+    :toctree: driver/
 
     NEDC
     WLTP
+    logic
 
 """
 import numpy as np
@@ -28,7 +29,7 @@ from .NEDC import dsp as _nedc_cycle, is_manual
 from .WLTP import dsp as _wltp_cycle
 
 dsp = sh.BlueDispatcher(
-    name='Cycle model',
+    name='Driver model',
     description='Returns the theoretical times, velocities, and gears.'
 )
 dsp.add_data('time_sample_frequency', dfl.values.time_sample_frequency)
@@ -225,7 +226,7 @@ class SimulationModel:
 
 
 # noinspection PyMissingOrEmptyDocstring
-class CycleModel(BaseModel):
+class DriverModel(BaseModel):
     key_outputs = 'times', 'accelerations'
     contract_outputs = 'times',
     types = {float: set(key_outputs)}
@@ -253,7 +254,7 @@ class CycleModel(BaseModel):
                 d, inputs=['simulation_model'],
                 outputs=('next_time', 'acceleration')
             )
-        super(CycleModel, self).__init__(outputs)
+        super(DriverModel, self).__init__(outputs)
 
     def init_driver(self, *models):
         keys = 'times', 'accelerations'
@@ -322,7 +323,7 @@ def define_fake_cycle_prediction_model(times, accelerations):
         Wheels prediction model.
     :rtype: WheelsModel
     """
-    return CycleModel(outputs=dict(times=times, accelerations=accelerations))
+    return DriverModel(outputs=dict(times=times, accelerations=accelerations))
 
 
 @sh.add_function(dsp, outputs=['cycle_prediction_model'], weight=4000)
@@ -341,7 +342,7 @@ def define_cycle_prediction_model(
         Wheels prediction model.
     :rtype: WheelsModel
     """
-    return CycleModel(
+    return DriverModel(
         path_velocities, path_distances, full_load_curve, time_sample_frequency,
         road_loads, vehicle_mass, inertial_factor, driver_style_ratio,
         static_friction, wheel_drive_load_fraction

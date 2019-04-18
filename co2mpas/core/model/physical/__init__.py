@@ -29,7 +29,7 @@ Sub-Modules:
 """
 
 import schedula as sh
-from .cycle import dsp as _cycle
+from .driver import dsp as _driver
 from .vehicle import dsp as _vehicle
 from .wheels import dsp as _wheels
 from .final_drive import dsp as _final_drive
@@ -46,8 +46,8 @@ dsp = sh.BlueDispatcher(
 
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp_id='cycle_model',
-    dsp=_cycle,
+    dsp_id='driver_model',
+    dsp=_driver,
     inputs=(
         'accelerations', 'bag_phases', 'climbing_force', 'cycle_type',
         'downscale_factor', 'downscale_factor_threshold', 'downscale_phases',
@@ -87,8 +87,7 @@ dsp.add_dispatcher(
         'distances', 'f0', 'f1', 'f2', 'inertial_factor', 'motive_powers',
         'n_dyno_axes', 'road_loads', 'unladen_mass', 'vehicle_mass',
         'velocities', 'vehicle_prediction_model', 'wheel_drive_load_fraction',
-        'traction_acceleration_limits', 'static_friction',
-        'wheel_drive_load_fraction'
+        'traction_acceleration_limits', 'static_friction'
     )
 )
 

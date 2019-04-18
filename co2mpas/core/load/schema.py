@@ -236,8 +236,8 @@ def _vehicle_prediction_model(error=None, **kwargs):
 
 
 def _cycle_prediction_model(error=None, **kwargs):
-    from ..model.physical.cycle import CycleModel
-    return _type(type=CycleModel, error=error)
+    from ..model.physical.driver import DriverModel
+    return _type(type=DriverModel, error=error)
 
 
 def _electrics_prediction_model(error=None, **kwargs):
