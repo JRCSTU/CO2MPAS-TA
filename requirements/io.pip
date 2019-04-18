@@ -1,7 +1,7 @@
 pandas>=0.21.0
 dill
 regex
-pandalone
+pandalone[xlrd]
 # pip  # Has to be installed to run this.
 xlrd
 asteval

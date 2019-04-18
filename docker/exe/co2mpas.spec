@@ -1,11 +1,11 @@
 # -*- mode: python -*-
 
 block_cipher = None
+import glob
 
-
-a = Analysis(['/src/co2mpas/cli/__init__.py'],
-             pathex=['/src',],
-             binaries=[],
+a = Analysis(['cli.py'],
+             pathex=['/src'],
+             binaries=[(f, '.') for f in glob.glob('graphviz/release/bin/*')],
              datas=[],
              hiddenimports=[],
              hookspath=['hooks'],
@@ -19,14 +19,18 @@ pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
-          a.binaries,
-          a.zipfiles,
-          a.datas,
           [],
+          exclude_binaries=True,
           name='co2mpas',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          runtime_tmpdir=None,
           console=True )
+coll = COLLECT(exe,
+               a.binaries,
+               a.zipfiles,
+               a.datas,
+               strip=False,
+               upx=True,
+               name='co2mpas')

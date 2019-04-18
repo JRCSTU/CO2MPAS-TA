@@ -76,11 +76,18 @@ WORKDIR /wine/drive_c/src/
 RUN mkdir -p /wine/drive_c/tmp
 
 RUN pip install pyinstaller==$PYINSTALLER_VERSION
+RUN apt-get install unzip
+RUN wget https://graphviz.gitlab.io/_pages/Download/windows/graphviz-2.38.zip && \
+    unzip graphviz-2.38.zip -d graphviz && rm graphviz-2.38.zip
 
 COPY ./requirements /tmp/requirements
 RUN pip install -r /tmp/requirements/all.pip --no-cache-dir && \
     rm -rf /tmp/requirements
+COPY ./docker/exe/hooks /src/hooks
+COPY ./setup.py /src/setup.py
 COPY ./co2mpas /src/co2mpas
-COPY ./co2mpas.spec /src/co2mpas.spec
-RUN pyinstaller --clean -y --dist ./dist/windows --workpath /src co2mpas.spec
-RUN chown -R --reference=. ./dist/windows
+RUN pip install .
+COPY ./docker/exe/cli.py /src/cli.py
+COPY ./docker/exe/co2mpas.spec /src/co2mpas.spec
+RUN pyinstaller --clean -y --dist /dist co2mpas.spec
+RUN chown -R --reference=. /dist

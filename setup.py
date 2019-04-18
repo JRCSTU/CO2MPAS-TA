@@ -102,8 +102,8 @@ if __name__ == '__main__':
         'sync': ['syncing', 'pandas>=0.21.0'],
         'plot': ['flask', 'regex', 'graphviz', 'Pygments', 'lxml', 'bs4',
                  'jinja2', 'docutils', 'matplotlib'],
-        'io': ['pandas>=0.21.0', 'dill', 'regex', 'pandalone', 'pip', 'xlrd',
-               'asteval']
+        'io': ['pandas>=0.21.0', 'dill', 'regex', 'pandalone[xlrd]', 'pip',
+               'xlrd', 'asteval']
     }
     extras['dice'] = ['co2mpas_dice'] + extras['io']
     # noinspection PyTypeChecker

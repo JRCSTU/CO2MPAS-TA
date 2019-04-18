@@ -13,4 +13,4 @@ services:
     build:
       context: ..
       dockerfile: ./docker/exe/Dockerfile
-    command: ${CO2MPAS_CMD-wine dist/co2mpas run ./input -O ./output}
+    command: ${CO2MPAS_CMD-wine /dist/co2mpas/co2mpas.exe run ./input -O ./output}

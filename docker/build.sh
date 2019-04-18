@@ -2,7 +2,7 @@
 
 cd "$(dirname "$0")"
 
-co2mpas_VERSION=$(python ../src/co2mpas/__init__.py version)
+co2mpas_VERSION=$(python ../co2mpas/_version.py version)
 export co2mpas_VERSION=${co2mpas_VERSION/+/-}
 export CO2MPAS_TAG_DEBIAN=vinci1it2000/co2mpas-debian:v$co2mpas_VERSION
 
