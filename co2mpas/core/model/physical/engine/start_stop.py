@@ -150,7 +150,7 @@ class StartStopModel:
 @sh.add_function(dsp, outputs=['start_stop_model'])
 def calibrate_start_stop_model(
         on_engine, velocities, accelerations, engine_coolant_temperatures,
-        state_of_charges):
+        state_of_charges, times, start_stop_activation_time):
     """
     Calibrates an start/stop model to predict if the engine is on.
 
@@ -178,17 +178,25 @@ def calibrate_start_stop_model(
             `state_of_charges` = 99 is equivalent to 99%.
     :type state_of_charges: numpy.array
 
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param start_stop_activation_time:
+        Start-stop activation time threshold [s].
+    :type start_stop_activation_time: float
+
     :return:
         Start/stop model.
     :rtype: callable
     """
-
+    i = np.searchsorted(times, start_stop_activation_time)
     soc = np.zeros_like(state_of_charges)
     soc[0], soc[1:] = state_of_charges[0], state_of_charges[:-1]
     model = StartStopModel()
     model.fit(
-        on_engine, velocities, accelerations, engine_coolant_temperatures,
-        state_of_charges
+        on_engine[i:], velocities[i:], accelerations[i:],
+        engine_coolant_temperatures[i:], soc[i:]
     )
 
     return model
