@@ -233,8 +233,8 @@ class CycleModel(BaseModel):
     def __init__(self, path_velocities=None, path_distances=None,
                  full_load_curve=None, time_sample_frequency=None,
                  road_loads=None, vehicle_mass=None, inertial_factor=None,
-                 driver_style_ratio=None,
-                 outputs=None):
+                 driver_style_ratio=None, static_friction=None,
+                 wheel_drive_load_fraction=None, outputs=None):
         from .logic import dsp as _logic, define_max_acceleration_model as f
         if path_distances is not None:
             self.stop_distance = path_distances[-1]
@@ -244,7 +244,8 @@ class CycleModel(BaseModel):
             d.set_default_value('full_load_curve', full_load_curve)
             d.set_default_value(
                 'max_acceleration_model',
-                f(road_loads, vehicle_mass, inertial_factor)
+                f(road_loads, vehicle_mass, inertial_factor,
+                  static_friction, wheel_drive_load_fraction)
             )
             d.set_default_value('time_sample_frequency', time_sample_frequency)
             d.set_default_value('driver_style_ratio', driver_style_ratio)
@@ -326,9 +327,9 @@ def define_fake_cycle_prediction_model(times, accelerations):
 
 @sh.add_function(dsp, outputs=['cycle_prediction_model'], weight=4000)
 def define_cycle_prediction_model(
-        path_velocities, path_distances, full_load_curve,
-        time_sample_frequency, road_loads, vehicle_mass, inertial_factor,
-        driver_style_ratio):
+        path_velocities, path_distances, full_load_curve, time_sample_frequency,
+        road_loads, vehicle_mass, inertial_factor, driver_style_ratio,
+        static_friction, wheel_drive_load_fraction):
     """
     Defines the vehicle prediction model.
 
@@ -342,5 +343,6 @@ def define_cycle_prediction_model(
     """
     return CycleModel(
         path_velocities, path_distances, full_load_curve, time_sample_frequency,
-        road_loads, vehicle_mass, inertial_factor, driver_style_ratio
+        road_loads, vehicle_mass, inertial_factor, driver_style_ratio,
+        static_friction, wheel_drive_load_fraction
     )

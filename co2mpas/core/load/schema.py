@@ -450,6 +450,10 @@ def define_data_schema(read=True):
         read=read, error='should be as <float> and greater than zero!',
         check=lambda x: x > 0
     )
+    between_zero_and_one = _positive(
+        read=read, error='should be as <float> and between zero and one!',
+        check=lambda x: 0 < x < 1
+    )
     greater_than_one = _positive(
         read=read, error='should be as <float> and greater than one!',
         check=lambda x: x >= 1
@@ -528,6 +532,13 @@ def define_data_schema(read=True):
         'engine_idle_fuel_consumption': greater_than_zero,
         'final_drive_ratio': positive,
         'r_dynamic': positive,
+        'n_wheel': positive_int,
+        'wheel_drive_load_fraction': between_zero_and_one,
+        'static_friction': greater_than_zero,
+        'tyre_state': _select(types=('new', 'worm'), read=read),
+        'road_state': _select(
+            types=('dry', 'wet', 'rainfall', 'puddles', 'ice'), read=read
+        ),
         'wltp_class': _select(types=('class1', 'class2', 'class3a', 'class3b'),
                               read=read),
         'downscale_phases': tuplefloat,

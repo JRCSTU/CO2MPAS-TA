@@ -14,6 +14,12 @@ import co2mpas.utils as co2_utl
 #: Container of node default values.
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class Values(co2_utl.Constants):
+    #: Tyre state (i.e., new or worm).
+    tyre_state = 'new'
+
+    #: Road state (i.e., dry, wet, rainfall, puddles, ice).
+    road_state = 'dry'
+
     #: Number of engine cylinders [-].
     engine_n_cylinders = 4
 
@@ -211,6 +217,19 @@ class Values(co2_utl.Constants):
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
+
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+    class default_n_wheel(co2_utl.Constants):
+        #: Total number of wheels [-].
+        n_wheel = 4
+
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+    class default_static_friction(co2_utl.Constants):
+        #: Static friction coefficient [-].
+        coeff = dict(
+            new=dict(dry=.85, wet=.65, rainfall=.55, puddles=.5, ice=.1),
+            worm=dict(dry=1, wet=.5, rainfall=.4, puddles=.25, ice=.1)
+        )
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class default_driver_style_ratio(co2_utl.Constants):

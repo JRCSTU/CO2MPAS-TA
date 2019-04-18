@@ -51,12 +51,17 @@ def calculate_maximum_power(
 
 
 @sh.add_function(dsp, outputs=['max_acceleration_model'])
-def define_max_acceleration_model(road_loads, vehicle_mass, inertial_factor):
+def define_max_acceleration_model(
+        road_loads, vehicle_mass, inertial_factor, static_friction,
+        wheel_drive_load_fraction):
+    from ..vehicle import _compile_traction_acceleration_limits
     from numpy.polynomial.polynomial import polyroots
     f0, f1, f2 = road_loads
     _m = vehicle_mass * (1 + inertial_factor / 100)
     _b = vehicle_mass * 9.81
-
+    acc_lim = _compile_traction_acceleration_limits(
+        static_friction, wheel_drive_load_fraction
+    )
     def _func(previous_velocity, next_time, previous_time, angle_slope,
               motive_power):
         dt = (next_time - previous_time) * 3.6
@@ -66,7 +71,7 @@ def define_max_acceleration_model(road_loads, vehicle_mass, inertial_factor):
         b -= m * previous_velocity
 
         vel = max(polyroots((-motive_power * 3600, b, f1 + m, f2)))
-        return (vel - previous_velocity) / dt
+        return np.clip((vel - previous_velocity) / dt, *acc_lim(angle_slope))
 
     return _func
 

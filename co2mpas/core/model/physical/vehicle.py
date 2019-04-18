@@ -414,6 +414,106 @@ def calculate_f2(
     return 0.5 * c / 3.6 ** 2
 
 
+dsp.add_data('tyre_state', dfl.values.tyre_state)
+dsp.add_data('road_state', dfl.values.road_state)
+
+
+@sh.add_function(dsp, outputs=['static_friction'])
+def default_static_friction(tyre_state, road_state):
+    """
+    Returns the default static friction coefficient [-].
+
+    :param tyre_state:
+        Tyre state (i.e., new or worm).
+    :type tyre_state: str
+
+    :param road_state:
+        Road state (i.e., dry, wet, rainfall, puddles, ice).
+    :type road_state: str
+
+    :return:
+        Static friction coefficient [-].
+    :rtype: float
+    """
+    coeff = dfl.functions.default_static_friction.coeff
+    return coeff[tyre_state][road_state]
+
+
+@sh.add_function(dsp, outputs=['n_wheel'])
+def default_n_wheel(n_wheel_drive):
+    """
+    Returns the default total number of wheels [-].
+
+    :param n_wheel_drive:
+        Number of wheel drive [-].
+    :type n_wheel_drive: int
+
+    :return:
+        Total number of wheels [-].
+    :rtype: int
+    """
+    return max(n_wheel_drive, dfl.functions.default_n_wheel.n_wheel)
+
+
+@sh.add_function(dsp, outputs=['wheel_drive_load_fraction'])
+def calculate_wheel_drive_load_fraction(n_wheel_drive, n_wheel=4):
+    """
+    Calculate the repartition of the load on wheel drive axles [-].
+
+    :param n_wheel_drive:
+        Number of wheel drive [-].
+    :type n_wheel_drive: int
+
+    :param n_wheel:
+        Total number of wheels [-].
+    :type n_wheel: int
+
+    :return:
+        Repartition of the load on wheel drive axles [-].
+    :rtype: float
+    """
+    return n_wheel_drive / n_wheel
+
+
+def _compile_traction_acceleration_limits(
+        static_friction, wheel_drive_load_fraction):
+    deceleration = -9.81 * static_friction
+    acceleration = -deceleration * wheel_drive_load_fraction
+
+    def _func(angle_slopes):
+        slope = np.cos(angle_slopes)
+        return deceleration * slope, acceleration * slope
+
+    return _func
+
+
+@sh.add_function(dsp, outputs=['traction_acceleration_limits'])
+def calculate_traction_acceleration_limits(
+        static_friction, wheel_drive_load_fraction, angle_slopes):
+    """
+    Calculates the traction acceleration limits [m/s2].
+
+    :param static_friction:
+        Static friction coefficient [-].
+    :type static_friction: float
+
+    :param wheel_drive_load_fraction:
+        Repartition of the load on wheel drive axles [-].
+    :type wheel_drive_load_fraction: float
+
+    :param angle_slopes:
+        Angle slope vector [rad].
+    :type angle_slopes: numpy.array
+
+    :return:
+        Traction acceleration limits (i.e., deceleration, acceleration) [m/s2].
+    :rtype: tuple[float]
+    """
+    return _compile_traction_acceleration_limits(
+        static_friction, wheel_drive_load_fraction
+    )(angle_slopes)
+
+
 dsp.add_data('tyre_class', dfl.values.tyre_class)
 
 
@@ -482,6 +582,21 @@ dsp.add_data('angle_slope', dfl.values.angle_slope)
 
 @sh.add_function(dsp, outputs=['slope_model'])
 def define_slope_model(distances, elevations):
+    """
+    Returns the angle slope model [rad].
+
+    :param distances:
+        Cumulative distance vector [m].
+    :type distances: numpy.array
+
+    :param elevations:
+        Elevation vector [m].
+    :type elevations: numpy.array
+
+    :return:
+        Angle slope model [rad].
+    :rtype: function
+    """
     from scipy.interpolate import InterpolatedUnivariateSpline as Spl
     i = np.append([0], np.where(np.diff(distances) > 0)[0] + 1)
     func = Spl(distances[i], elevations[i]).derivative()
@@ -491,19 +606,15 @@ def define_slope_model(distances, elevations):
 @sh.add_function(dsp, outputs=['slope_model'], weight=5)
 def define_slope_model_v1(angle_slope):
     """
-    Returns the angle slope vector [rad].
-
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
+    Returns the angle slope model [rad].
 
     :param angle_slope:
-         Angle slope [rad].
+        Angle slope [rad].
     :type angle_slope: float
 
     :return:
-        Angle slope vector [rad].
-    :rtype: numpy.array
+        Angle slope model [rad].
+    :rtype: function
     """
     return np.vectorize(lambda *args: angle_slope, otypes=[float])
 
@@ -513,16 +624,16 @@ def calculate_angle_slopes(slope_model, distances):
     """
     Returns the angle slope vector [rad].
 
+    :param slope_model:
+        Angle slope model [rad].
+    :type slope_model: function
+
     :param distances:
-       Cumulative distance vector [m].
+        Cumulative distance vector [m].
     :type distances: numpy.array
 
-    :param elevations:
-        Elevation vector [m].
-    :type elevations: numpy.array
-
     :return:
-       Angle slope vector [rad].
+        Angle slope vector [rad].
     :rtype: numpy.array
     """
     return slope_model(distances)
@@ -874,9 +985,11 @@ class VehicleModel(BaseModel):
         if self._outputs is not None and not (set(keys) - set(self._outputs)):
             slp, dist = sh.selector(keys, self._outputs, output_type='list')
             n = len(dist) - 1
+
             def _next(i):
                 j = min(i + 1, n)
                 return dist[j], slp[j]
+
             return _next
         slp, dist = sh.selector(keys, self.outputs, output_type='list')
         dist[0], vel = 0, velocities
@@ -914,7 +1027,7 @@ class VehicleModel(BaseModel):
             except IndexError:
                 pass
             pws[i] = p = p_gen(i)
-            return vel[i], dist[i], slp[i] , p
+            return vel[i], dist[i], slp[i], p
 
         return _next
 

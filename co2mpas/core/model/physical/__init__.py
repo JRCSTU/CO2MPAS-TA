@@ -57,7 +57,8 @@ dsp.add_dispatcher(
         'max_speed_velocity_ratio', 'max_time', 'max_velocity', 'motive_powers',
         'road_loads', 'speed_velocity_ratios', 'time_sample_frequency', 'times',
         'unladen_mass', 'vehicle_mass', 'velocities', 'wltp_base_model',
-        'use_driver', 'path_velocities', 'path_distances'
+        'use_driver', 'path_velocities', 'path_distances', 'static_friction',
+        'wheel_drive_load_fraction'
     ),
     outputs=(
         'gears', 'initial_temperature', 'phases_integration_times', 'times',
@@ -77,13 +78,17 @@ dsp.add_dispatcher(
         'n_passengers', 'n_wheel_drive', 'obd_velocities', 'passenger_mass',
         'road_loads', 'rolling_resistance_coeff', 'times', 'tyre_category',
         'tyre_class', 'unladen_mass', 'vehicle_body', 'vehicle_category',
-        'vehicle_height', 'vehicle_mass', 'vehicle_width', 'velocities'
+        'vehicle_height', 'vehicle_mass', 'vehicle_width', 'velocities',
+        'traction_acceleration_limits', 'wheel_drive_load_fraction', 'n_wheel',
+        'tyre_state', 'road_state', 'static_friction'
     ),
     outputs=(
         'accelerations', 'angle_slopes', 'climbing_force', 'curb_mass',
         'distances', 'f0', 'f1', 'f2', 'inertial_factor', 'motive_powers',
         'n_dyno_axes', 'road_loads', 'unladen_mass', 'vehicle_mass',
-        'velocities', 'vehicle_prediction_model'
+        'velocities', 'vehicle_prediction_model', 'wheel_drive_load_fraction',
+        'traction_acceleration_limits', 'static_friction',
+        'wheel_drive_load_fraction'
     )
 )
 
