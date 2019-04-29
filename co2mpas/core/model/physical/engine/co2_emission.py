@@ -1947,7 +1947,7 @@ def calculate_phases_co2_emissions(
         i, j = np.searchsorted(times, p)
         co2.append(trapz(co2_emissions[i:j], times[i:j]))
 
-    return np.array(co2) / phases_distances
+    return np.nan_to_num(np.array(co2) / phases_distances)
 
 
 @sh.add_function(dsp, outputs=['fuel_consumptions'])
