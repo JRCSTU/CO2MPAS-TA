@@ -328,7 +328,6 @@ def define_fake_cycle_prediction_model(times, accelerations):
 
 dsp.add_data('path_velocities', wildcard=True)
 dsp.add_data('path_distances', wildcard=True)
-dsp.add_data('path_elevations', wildcard=True)
 
 
 @sh.add_function(dsp, outputs=['desired_velocities'])
