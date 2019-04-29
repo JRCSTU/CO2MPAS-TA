@@ -66,7 +66,7 @@ dsp.add_dispatcher(
     ),
     outputs=(
         'gears', 'initial_temperature', 'phases_integration_times', 'times',
-        'velocities', 'cycle_prediction_model', 'desired_velocities'
+        'velocities', 'driver_prediction_model', 'desired_velocities'
     )
 )
 
@@ -328,7 +328,7 @@ OUTPUTS_PREDICTION_LOOP = [
 
 @sh.add_function(dsp, outputs=OUTPUTS_PREDICTION_LOOP, weight=10)
 def prediction_loop(
-        cycle_prediction_model, vehicle_prediction_model,
+        driver_prediction_model, vehicle_prediction_model,
         wheels_prediction_model, final_drive_prediction_model,
         gear_box_prediction_model, engine_prediction_model,
         electrics_prediction_model):
@@ -376,7 +376,7 @@ def prediction_loop(
     :rtype: tuple[numpy.array]
     """
     outputs = {}
-    cycle_prediction_model.set_outputs(outputs)
+    driver_prediction_model.set_outputs(outputs)
     vehicle_prediction_model.set_outputs(outputs)
     wheels_prediction_model.set_outputs(outputs)
     final_drive_prediction_model.set_outputs(outputs)
@@ -414,10 +414,10 @@ def prediction_loop(
         outputs['engine_starts'], outputs['gear_box_powers_in']
     )
 
-    for _ in cycle_prediction_model.yield_results(vhl, whl, fd, gb, eng, ele):
+    for _ in driver_prediction_model.yield_results(vhl, whl, fd, gb, eng, ele):
         pass
 
-    cycle_prediction_model.format_results()
+    driver_prediction_model.format_results()
     vehicle_prediction_model.format_results()
     wheels_prediction_model.format_results()
     final_drive_prediction_model.format_results()

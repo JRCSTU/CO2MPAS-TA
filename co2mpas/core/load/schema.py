@@ -235,7 +235,8 @@ def _vehicle_prediction_model(error=None, **kwargs):
     return _type(type=VehicleModel, error=error)
 
 
-def _cycle_prediction_model(error=None, **kwargs):
+# noinspection PyUnusedLocal
+def _driver_prediction_model(error=None, **kwargs):
     from ..model.physical.driver import DriverModel
     return _type(type=DriverModel, error=error)
 
@@ -634,7 +635,7 @@ def define_data_schema(read=True):
         'engine_thermostat_temperature_window': tuplefloat2,
         'engine_temperature_regression_model':
             _engine_temperature_regression_model(read=read),
-        'cycle_prediction_model': _cycle_prediction_model(read=read),
+        'driver_prediction_model': _driver_prediction_model(read=read),
         'vehicle_prediction_model': _vehicle_prediction_model(read=read),
         'electrics_prediction_model': _electrics_prediction_model(read=read),
         'engine_prediction_model': _engine_prediction_model(read=read),

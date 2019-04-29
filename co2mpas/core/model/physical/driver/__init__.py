@@ -302,8 +302,8 @@ class DriverModel(BaseModel):
         return _next
 
 
-@sh.add_function(dsp, outputs=['cycle_prediction_model'])
-def define_fake_cycle_prediction_model(times, accelerations):
+@sh.add_function(dsp, outputs=['driver_prediction_model'])
+def define_fake_driver_prediction_model(times, accelerations):
     """
     Defines a fake vehicle prediction model.
 
@@ -355,8 +355,8 @@ def calculate_desired_velocities(path_distances, path_velocities, distances):
     return path_velocities.take(i, mode='clip')
 
 
-@sh.add_function(dsp, outputs=['cycle_prediction_model'], weight=4000)
-def define_cycle_prediction_model(
+@sh.add_function(dsp, outputs=['driver_prediction_model'], weight=4000)
+def define_driver_prediction_model(
         path_velocities, path_distances, full_load_curve, time_sample_frequency,
         road_loads, vehicle_mass, inertial_factor, driver_style_ratio,
         static_friction, wheel_drive_load_fraction):
