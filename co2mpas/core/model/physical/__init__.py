@@ -44,6 +44,10 @@ dsp = sh.BlueDispatcher(
                 'light-vehicles\' CO2 emissions.'
 )
 
+dsp.add_data('path_velocities', wildcard=True)
+dsp.add_data('path_distances', wildcard=True)
+dsp.add_data('path_elevations', wildcard=True)
+
 dsp.add_dispatcher(
     include_defaults=True,
     dsp_id='driver_model',

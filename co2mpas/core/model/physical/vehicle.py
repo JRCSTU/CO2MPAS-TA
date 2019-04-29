@@ -578,9 +578,14 @@ def calculate_f1(f2):
 
 
 dsp.add_data('angle_slope', dfl.values.angle_slope)
+dsp.add_data('path_distances', wildcard=True)
+dsp.add_data('path_elevations', wildcard=True)
 
 
 @sh.add_function(dsp, outputs=['slope_model'])
+@sh.add_function(
+    dsp, inputs=['path_distances', 'path_elevations'], outputs=['slope_model']
+)
 def define_slope_model(distances, elevations):
     """
     Returns the angle slope model [rad].

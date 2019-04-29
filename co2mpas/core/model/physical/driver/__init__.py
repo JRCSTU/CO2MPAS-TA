@@ -326,6 +326,10 @@ def define_fake_cycle_prediction_model(times, accelerations):
     return DriverModel(outputs=dict(times=times, accelerations=accelerations))
 
 
+dsp.add_data('path_velocities', wildcard=True)
+dsp.add_data('path_distances', wildcard=True)
+dsp.add_data('path_elevations', wildcard=True)
+
 @sh.add_function(dsp, outputs=['cycle_prediction_model'], weight=4000)
 def define_cycle_prediction_model(
         path_velocities, path_distances, full_load_curve, time_sample_frequency,
