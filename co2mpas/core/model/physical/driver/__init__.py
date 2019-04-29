@@ -330,6 +330,32 @@ dsp.add_data('path_velocities', wildcard=True)
 dsp.add_data('path_distances', wildcard=True)
 dsp.add_data('path_elevations', wildcard=True)
 
+
+@sh.add_function(dsp, outputs=['desired_velocities'])
+def calculate_desired_velocities(path_distances, path_velocities, distances):
+    """
+    Calculates the desired velocity vector [km/h].
+
+    :param path_distances:
+        Cumulative distance vector [m].
+    :type path_distances: numpy.array
+
+    :param path_velocities:
+        Desired velocity vector [km/h].
+    :type path_velocities: numpy.array
+
+    :param distances:
+        Cumulative distance vector [m].
+    :type distances: numpy.array
+
+    :return:
+        Desired velocity vector [km/h].
+    :rtype: numpy.array
+    """
+    i = np.searchsorted(path_distances, distances, side='right')
+    return path_velocities.take(i, mode='clip')
+
+
 @sh.add_function(dsp, outputs=['cycle_prediction_model'], weight=4000)
 def define_cycle_prediction_model(
         path_velocities, path_distances, full_load_curve, time_sample_frequency,

@@ -62,11 +62,11 @@ dsp.add_dispatcher(
         'road_loads', 'speed_velocity_ratios', 'time_sample_frequency', 'times',
         'unladen_mass', 'vehicle_mass', 'velocities', 'wltp_base_model',
         'use_driver', 'path_velocities', 'path_distances', 'static_friction',
-        'wheel_drive_load_fraction'
+        'wheel_drive_load_fraction', 'distances'
     ),
     outputs=(
         'gears', 'initial_temperature', 'phases_integration_times', 'times',
-        'velocities', 'cycle_prediction_model'
+        'velocities', 'cycle_prediction_model', 'desired_velocities'
     )
 )
 
