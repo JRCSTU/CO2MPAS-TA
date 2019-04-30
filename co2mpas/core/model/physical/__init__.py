@@ -291,38 +291,38 @@ dsp.add_dispatcher(
 )
 
 OUTPUTS_PREDICTION_LOOP = [
-    'alternator_currents',
-    'alternator_statuses',
-    'battery_currents',
-    'state_of_charges',
-
-    'engine_coolant_temperatures',
-    'engine_speeds_out_hot',
-    'on_engine',
-    'engine_starts',
-
-    'gear_box_efficiencies',
-    'gear_box_powers_in',
-    'gear_box_speeds_in',
-    'gear_box_temperatures',
-    'gear_box_torques_in',
-    'gears',
-
-    'final_drive_speeds_in',
-    'final_drive_torques_in',
-    'final_drive_powers_in',
-
-    'wheel_powers',
-    'wheel_speeds',
-    'wheel_torques',
-
-    'motive_powers',
-    'angle_slopes',
-    'distances',
-    'velocities',
-
-    'accelerations',
     'times',
+    'accelerations',
+
+    'velocities',
+    'distances',
+    'angle_slopes',
+    'motive_powers',
+
+    'wheel_torques',
+    'wheel_speeds',
+    'wheel_powers',
+
+    'final_drive_powers_in',
+    'final_drive_torques_in',
+    'final_drive_speeds_in',
+
+    'gears',
+    'gear_box_torques_in',
+    'gear_box_temperatures',
+    'gear_box_speeds_in',
+    'gear_box_powers_in',
+    'gear_box_efficiencies',
+
+    'engine_starts',
+    'on_engine',
+    'engine_speeds_out_hot',
+    'engine_coolant_temperatures',
+
+    'state_of_charges',
+    'battery_currents',
+    'alternator_statuses',
+    'alternator_currents'
 ]
 
 
