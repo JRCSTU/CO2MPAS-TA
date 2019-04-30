@@ -206,7 +206,7 @@ class Values(co2_utl.Constants):
     #: Calibration torque converter speeds delta threshold [RPM].
     calibration_tc_speed_threshold = 100.0
 
-    #: Limits (vel, acc) when torque converter is active [km/h, m/s].
+    #: Limits (vel, acc) when torque converter is active [km/h, m/s2].
     lock_up_tc_limits = (48.0, 0.3)
 
     #: Empirical value in case of CVT [-].

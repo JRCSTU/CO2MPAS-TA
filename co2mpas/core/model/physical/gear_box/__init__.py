@@ -485,6 +485,14 @@ def define_gear_box_loss_model(
         Reference temperature [°C].
     :type gear_box_temperature_references: (float, float)
 
+    :param initial_gear_box_temperature:
+        Initial gear box temperature [°C].
+    :type initial_gear_box_temperature: float
+
+    :param min_engine_on_speed:
+        Minimum engine speed to consider the engine to be on [RPM].
+    :type min_engine_on_speed: float
+
     :param gear_box_ratios:
         Gear box ratios [-].
     :type gear_box_ratios: dict[int, float | int], optional
@@ -541,10 +549,6 @@ def calculate_gear_box_efficiencies_torques_temperatures(
     :param gear_box_torques:
         Torque gear_box vector [N*m].
     :type gear_box_torques: numpy.array
-
-    :param initial_gear_box_temperature:
-        initial_gear_box_temperature [°C].
-    :type initial_gear_box_temperature: float
 
     :param gears:
         Gear vector [-].
@@ -801,7 +805,7 @@ class GearBoxModel(BaseModel):
             n = len(tmp) - 1
 
             def _next(i):
-                return (tmp[min(i + 1, n)], tor[i], eff[i])
+                return tmp[min(i + 1, n)], tor[i], eff[i]
 
             return _next
         return self.gear_box_loss_model.init_losses(
@@ -956,10 +960,6 @@ def define_gear_box_prediction_model(
     :param gear_box_loss_model:
         Gear box loss model.
     :type gear_box_loss_model: GearBoxLosses
-
-    :param initial_gear_box_temperature:
-        initial_gear_box_temperature [°C].
-    :type initial_gear_box_temperature: float
 
     :param correct_gear:
         A function to correct the predicted gear.

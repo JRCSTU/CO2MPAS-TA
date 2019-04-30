@@ -155,10 +155,10 @@ class GSPV(CMV):
 
             def _next(gear, index):
                 v, p = velocities[index], motive_powers[index]
-                (down, up), (g0, g1) = matrix[gear]
-                if v >= up(p):
+                (_down, _up), (g0, g1) = matrix[gear]
+                if v >= _up(p):
                     return g1
-                if v < down(p):
+                if v < _down(p):
                     return g0
                 return gear
         else:

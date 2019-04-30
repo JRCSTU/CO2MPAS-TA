@@ -20,7 +20,7 @@ dsp = sh.BlueDispatcher(name='Decision Tree Approach')
 class DTGS:
     def __init__(self, velocity_speed_ratios):
         from xgboost import XGBClassifier
-        self.tree = XGBClassifier(random_state=0)
+        self.tree = XGBClassifier()
         self.model = self.gears = None
         self.velocity_speed_ratios = velocity_speed_ratios
 
@@ -135,6 +135,17 @@ def calibrate_gear_shifting_decision_tree(
 
 
 def prediction_gears_gsm(*a):
+    """
+    Predicts gears with a gear shifting model (cmv or gspv or dtgs or mgs) [-].
+
+    :param a:
+        Arguments of `_prediction_gears_gsm`.
+    :type a: tuple
+
+    :return:
+        Predicted gears.
+    :rtype: numpy.array
+    """
     return _prediction_gears_gsm(*a[:-1], engine_coolant_temperatures=a[-1])
 
 

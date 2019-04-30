@@ -215,21 +215,26 @@ def _torque_converter_model(error=None, **kwargs):
     return _type(type=TorqueConverter, error=error)
 
 
+# noinspection PyUnusedLocal
 def _alternator_current_model(error=None, **kwargs):
     from ..model.physical.electrics import AlternatorCurrentModel
     return _type(type=AlternatorCurrentModel, error=error)
 
 
+# noinspection PyUnusedLocal
 def _alternator_status_model(error=None, **kwargs):
     from ..model.physical.electrics import AlternatorStatusModel
     return _type(type=AlternatorStatusModel, error=error)
 
 
+# noinspection PyUnusedLocal
 def _engine_temperature_regression_model(error=None, **kwargs):
+    # noinspection PyProtectedMember
     from ..model.physical.engine._thermal import ThermalModel
     return _type(type=ThermalModel, error=error)
 
 
+# noinspection PyUnusedLocal
 def _vehicle_prediction_model(error=None, **kwargs):
     from ..model.physical.vehicle import VehicleModel
     return _type(type=VehicleModel, error=error)
@@ -241,36 +246,43 @@ def _driver_prediction_model(error=None, **kwargs):
     return _type(type=DriverModel, error=error)
 
 
+# noinspection PyUnusedLocal
 def _electrics_prediction_model(error=None, **kwargs):
-    from ..model.physical.engine._thermal import ThermalModel
-    return _type(type=ThermalModel, error=error)
+    from ..model.physical.electrics import ElectricModel
+    return _type(type=ElectricModel, error=error)
 
 
+# noinspection PyUnusedLocal
 def _engine_prediction_model(error=None, **kwargs):
     from ..model.physical.engine import EngineModel
     return _type(type=EngineModel, error=error)
 
 
+# noinspection PyUnusedLocal
 def _gear_box_prediction_model(error=None, **kwargs):
     from ..model.physical.gear_box import GearBoxModel
     return _type(type=GearBoxModel, error=error)
 
 
+# noinspection PyUnusedLocal
 def _final_drive_prediction_model(error=None, **kwargs):
     from ..model.physical.final_drive import FinalDriveModel
     return _type(type=FinalDriveModel, error=error)
 
 
+# noinspection PyUnusedLocal
 def _wheels_prediction_model(error=None, **kwargs):
     from ..model.physical.wheels import WheelsModel
     return _type(type=WheelsModel, error=error)
 
 
+# noinspection PyUnusedLocal
 def _fmep_model(error=None, **kwargs):
     from ..model.physical.engine.co2_emission import FMEP
     return _type(type=FMEP, error=error)
 
 
+# noinspection PyUnusedLocal
 def _start_stop_model(error=None, **kwargs):
     from ..model.physical.engine.start_stop import StartStopModel
     return _type(type=StartStopModel, error=error)

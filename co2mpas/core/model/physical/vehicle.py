@@ -950,7 +950,7 @@ class VehicleModel(BaseModel):
     types = {float: set(key_outputs)}
 
     def __init__(self, vehicle_mass=None, f0=None, f1=None, f2=None,
-                 inertial_factor=None, slope_model=None, initial_velocity=0,
+                 inertial_factor=None, slope_model=None, initial_velocity=.0,
                  outputs=None):
         pars = vehicle_mass, f0, f1, f2, inertial_factor, slope_model
         self.initial_velocity = initial_velocity
@@ -1043,21 +1043,25 @@ def define_fake_vehicle_prediction_model(
     """
     Defines a fake vehicle prediction model.
 
-    :param wheel_speeds:
-        Rotating speed of the wheel [RPM].
-    :type wheel_speeds: numpy.array
+    :param velocities:
+        Vehicle velocity [km/h].
+    :type velocities: numpy.array
 
-    :param wheel_powers:
-        Power at the wheels [kW].
-    :type wheel_powers: numpy.array
+    :param distances:
+        Cumulative distance vector [m].
+    :type distances: numpy.array
 
-    :param wheel_torques:
-        Torque at the wheel [N*m].
-    :type wheel_torques: numpy.array
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
+
+    :param angle_slopes:
+        Angle slope vector [rad].
+    :type angle_slopes: numpy.array
 
     :return:
-        Wheels prediction model.
-    :rtype: WheelsModel
+        Vehicle prediction model.
+    :rtype: VehicleModel
     """
     return VehicleModel(outputs=dict(
         velocities=velocities, distances=distances, motive_powers=motive_powers,
@@ -1072,13 +1076,37 @@ def define_vehicle_prediction_model(
     """
     Defines the vehicle prediction model.
 
-    :param r_dynamic:
-        Dynamic radius of the wheels [m].
-    :type r_dynamic: float
+    :param vehicle_mass:
+        Vehicle mass [kg].
+    :type vehicle_mass: float
+
+    :param f0:
+        Rolling resistance force [N] when angle_slope == 0.
+    :type f0: float
+
+    :param f1:
+        Defined by dyno procedure [N/(km/h)].
+    :type f1: float
+
+    :param f2:
+        As used in the dyno and defined by respective guidelines [N/(km/h)^2].
+    :type f2: float
+
+    :param inertial_factor:
+        Factor that considers the rotational inertia [%].
+    :type inertial_factor: float
+
+    :param slope_model:
+        Angle slope model [rad].
+    :type slope_model: function
+
+    :param initial_velocity:
+        Initial velocity [km/h].
+    :type initial_velocity: float
 
     :return:
-        Wheels prediction model.
-    :rtype: WheelsModel
+        Vehicle prediction model.
+    :rtype: VehicleModel
     """
     return VehicleModel(
         vehicle_mass, f0, f1, f2, inertial_factor, slope_model, initial_velocity

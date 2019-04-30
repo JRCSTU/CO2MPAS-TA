@@ -65,6 +65,7 @@ class Constants(dict):
         return pr
 
 
+# noinspection PyMissingOrEmptyDocstring
 class List(list):
     empty = sh.EMPTY
     dtype = None
@@ -94,6 +95,7 @@ class List(list):
         return np.array(self, dtype or self.dtype, *args, **kwargs)
 
 
+# noinspection PyMissingOrEmptyDocstring
 class BaseModel:
     key_outputs = ()
     contract_outputs = ()

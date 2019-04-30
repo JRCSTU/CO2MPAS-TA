@@ -1,3 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+#
+# Copyright 2015-2019 European Commission (JRC);
+# Licensed under the EUPL (the 'Licence');
+# You may not use this work except in compliance with the Licence.
+# You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
+"""
+Functions and a model `dsp` to define driver logic.
+"""
 import numpy as np
 import schedula as sh
 from ..defaults import dfl
@@ -5,13 +15,62 @@ from ..defaults import dfl
 dsp = sh.BlueDispatcher(name='Driver logic')
 
 
+# noinspection PyMissingOrEmptyDocstring
+class SimulationModel:
+    def __init__(self, models, outputs, index=0):
+        self.index = index
+        self.models = models
+        self.outputs = outputs
+
+    def __call__(self, acceleration, next_time):
+        i = self.index
+        self.outputs['accelerations'][i] = acceleration
+        try:
+            self.outputs['times'][i + 1] = next_time
+        except IndexError:
+            pass
+        for m in self.models:
+            m(i)
+        return self
+
+    def select(self, *items, di=0):
+        i = max(self.index + di, 0)
+        res = sh.selector(items, self.outputs, output_type='list')
+        res = [v[i] for v in res]
+        if len(res) == 1:
+            return res[0]
+        return res
+
+
 @sh.add_function(dsp, outputs=['previous_velocity', 'previous_time'])
 def get_previous(simulation_model):
+    """
+    Returns previous velocity and time.
+
+    :param simulation_model:
+        Simulation model.
+    :type simulation_model: SimulationModel
+
+    :return:
+        Previous velocity [km/h] and time [s].
+    :rtype: float, float
+    """
     return simulation_model.select('velocities', 'times', di=-1)
 
 
 @sh.add_function(dsp, outputs=['distance', 'velocity', 'time', 'angle_slope'])
 def get_current(simulation_model):
+    """
+    Returns current distance, velocity, time, and angle_slope.
+
+    :param simulation_model:
+        Simulation model.
+    :type simulation_model: SimulationModel
+
+    :return:
+        Previous distance [m], velocity [km/h], time [s], and angle_slope [rad].
+    :rtype: float, float
+    """
     return simulation_model.select(
         'distances', 'velocities', 'times', 'angle_slopes'
     )
@@ -20,23 +79,23 @@ def get_current(simulation_model):
 @sh.add_function(dsp, outputs=['desired_velocity', 'maximum_distance'])
 def calculate_desired_velocity(path_distances, path_velocities, distance):
     """
-    Returns the desired velocity [km/h].
+    Returns the desired velocity [km/h] and maximum distance [m].
 
     :param path_distances:
         Cumulative distance vector [m].
     :type path_distances: numpy.array
 
-    :param desired_velocities:
+    :param path_velocities:
         Desired velocity vector [km/h].
-    :type desired_velocities: numpy.array
+    :type path_velocities: numpy.array
 
     :param distance:
         Current travelled distance [m].
     :type distance: float
 
     :return:
-        Desired velocity [km/h].
-    :rtype: float
+        Desired velocity [km/h] and maximum distance [m].
+    :rtype: float, float
     """
     i = np.searchsorted(path_distances, distance, side='right')
     d = path_distances.take(i + 1, mode='clip') + dfl.EPS
@@ -45,8 +104,31 @@ def calculate_desired_velocity(path_distances, path_velocities, distance):
 
 @sh.add_function(dsp, outputs=['maximum_power'])
 def calculate_maximum_power(
-        simulation_model, time, full_load_curve, time_sample_frequency):
-    simulation_model(1, time + time_sample_frequency)
+        simulation_model, time, full_load_curve, delta_time):
+    """
+    Calculate maximum engine power [kW].
+
+    :param simulation_model:
+        Simulation model.
+    :type simulation_model: SimulationModel
+
+    :param time:
+        Time [s].
+    :type time: float
+
+    :param full_load_curve:
+        Vehicle full load curve.
+    :type full_load_curve: function
+
+    :param delta_time:
+        Time step [s].
+    :type delta_time: float
+
+    :return:
+        Maximum engine power [kW].
+    :rtype: float
+    """
+    simulation_model(1, time + delta_time)
     return full_load_curve(simulation_model.select('engine_speeds_out_hot'))
 
 
@@ -54,6 +136,34 @@ def calculate_maximum_power(
 def define_max_acceleration_model(
         road_loads, vehicle_mass, inertial_factor, static_friction,
         wheel_drive_load_fraction):
+    """
+    Defines maximum acceleration model.
+
+    :param road_loads:
+        Cycle road loads [N, N/(km/h), N/(km/h)^2].
+    :type road_loads: list, tuple
+
+
+    :param vehicle_mass:
+        Vehicle mass [kg].
+    :type vehicle_mass: float
+
+    :param inertial_factor:
+        Factor that considers the rotational inertia [%].
+    :type inertial_factor: float
+
+    :param static_friction:
+        Static friction coefficient [-].
+    :type static_friction: float
+
+    :param wheel_drive_load_fraction:
+        Repartition of the load on wheel drive axles [-].
+    :type wheel_drive_load_fraction: float
+
+    :return:
+        Maximum acceleration model.
+    :rtype: function
+    """
     from ..vehicle import _compile_traction_acceleration_limits
     from numpy.polynomial.polynomial import polyroots
     f0, f1, f2 = road_loads
@@ -62,6 +172,7 @@ def define_max_acceleration_model(
     acc_lim = _compile_traction_acceleration_limits(
         static_friction, wheel_drive_load_fraction
     )
+
     def _func(previous_velocity, next_time, previous_time, angle_slope,
               motive_power):
         dt = (next_time - previous_time) * 3.6
@@ -80,6 +191,37 @@ def define_max_acceleration_model(
 def calculate_maximum_acceleration(
         simulation_model, maximum_power, max_acceleration_model, angle_slope,
         previous_velocity, previous_time):
+    """
+    Calculates the maximum vehicle acceleration.
+
+    :param simulation_model:
+        Simulation model.
+    :type simulation_model: SimulationModel
+
+    :param maximum_power:
+        Maximum engine power [kW].
+    :type maximum_power: float
+
+    :param max_acceleration_model:
+        Maximum acceleration model.
+    :type max_acceleration_model: function
+
+    :param angle_slope:
+        Angle slope [rad].
+    :type angle_slope: float
+
+    :param previous_velocity:
+        Previous velocity [km/h].
+    :type previous_velocity: float
+
+    :param previous_time:
+        Previous time [s].
+    :type previous_time: float
+
+    :return:
+        Maximum vehicle acceleration [m/s2].
+    :rtype: float
+    """
     acc = max_acceleration_model(
         previous_velocity, simulation_model.select('times', di=1),
         previous_time, angle_slope, maximum_power
@@ -92,9 +234,9 @@ def calculate_acceleration_damping(previous_velocity, desired_velocity):
     """
     Calculates the acceleration damping [-].
 
-    :param velocity:
-        Current velocity [km/h].
-    :type velocity: float
+    :param previous_velocity:
+        Previous velocity [km/h].
+    :type previous_velocity: float
 
     :param desired_velocity:
         Desired velocity [km/h].
@@ -116,22 +258,22 @@ def calculate_acceleration_damping(previous_velocity, desired_velocity):
 def calculate_desired_acceleration(
         maximum_acceleration, driver_style_ratio, acceleration_damping):
     """
-    Calculate the desired acceleration [m/s].
+    Calculate the desired acceleration [m/s2].
 
-    :param maximum_accelerations:
-        Maximum achievable acceleration [m/s].
-    :type maximum_accelerations: float | numpy.array
+    :param maximum_acceleration:
+        Maximum achievable acceleration [m/s2].
+    :type maximum_acceleration: float
 
     :param driver_style_ratio:
         Driver style ratio [-].
     :type driver_style_ratio: float
 
-    :param accelerations_damping:
+    :param acceleration_damping:
         Acceleration damping factor [-].
-    :type accelerations_damping: float | numpy.array
+    :type acceleration_damping: float
 
     :return:
-        Desired acceleration [m/s].
+        Desired acceleration [m/s2].
     :rtype: float
     """
     return maximum_acceleration * driver_style_ratio * acceleration_damping
@@ -139,9 +281,48 @@ def calculate_desired_acceleration(
 
 @sh.add_function(dsp, outputs=['next_time'])
 def calculate_next_time(
-        time_sample_frequency, time, previous_time, velocity, acceleration,
+        delta_time, time, previous_time, velocity, acceleration,
         previous_velocity, maximum_distance, distance):
+    """
+    Calculate next time [s].
+
+    :param delta_time:
+        Time frequency [1/s].
+    :type delta_time: float
+
+    :param time:
+        Time [s].
+    :type time: float
+
+    :param previous_time:
+        Previous time [s].
+    :type previous_time: float
+
+    :param velocity:
+        Velocity [km/h].
+    :type velocity: float
+
+    :param acceleration:
+        Acceleration [m/s2].
+    :type acceleration: float
+
+    :param previous_velocity:
+        Previous velocity [km/h].
+    :type previous_velocity: float
+
+    :param maximum_distance:
+        Maximum distance [m].
+    :type maximum_distance: float
+
+    :param distance:
+        Current travelled distance [m].
+    :type distance: float
+
+    :return:
+        Next time [s].
+    :rtype: float
+    """
     from numpy.polynomial.polynomial import polyroots
     v, a = (velocity + previous_velocity) / 3.6, acceleration
     p = 2 * (distance - maximum_distance), a * (time - previous_time) + v, a
-    return time + min(max(polyroots(p)), time_sample_frequency)
+    return time + min(max(polyroots(p)), delta_time)

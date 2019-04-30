@@ -335,6 +335,14 @@ def prediction_loop(
     """
     Predicts vehicle time-series.
 
+    :param driver_prediction_model:
+        Driver prediction model.
+    :type driver_prediction_model: .driver.DriverModel
+
+    :param vehicle_prediction_model:
+        Vehicle prediction model.
+    :type vehicle_prediction_model: .vehicle.VehicleModel
+
     :param wheels_prediction_model:
         Wheels prediction model.
     :type wheels_prediction_model: .wheels.WheelsModel
@@ -354,22 +362,6 @@ def prediction_loop(
     :param electrics_prediction_model:
         Electrics prediction model.
     :type electrics_prediction_model: .electrics.ElectricModel
-
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
-    :param velocities:
-        Velocity vector [km/h].
-    :type velocities: numpy.array
-
-    :param accelerations:
-        Acceleration vector [m/s2].
-    :type accelerations: numpy.array
-
-    :param motive_powers:
-        Gear vector [-].
-    :type motive_powers: numpy.array
 
     :return:
         Vehicle time-series

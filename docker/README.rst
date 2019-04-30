@@ -1,7 +1,8 @@
 CO2MPAS docker images
 =====================
-There is one image available:
+There are two images available:
  - co2mpas-debian
+ - co2mpas-exe
 
 Quick Start
 -----------

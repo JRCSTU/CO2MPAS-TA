@@ -297,10 +297,10 @@ class CMV(collections.OrderedDict):
 
             def _next(gear, index):
                 v = velocities[index]
-                (down, up), (g0, g1) = matrix[gear]
-                if v >= up:
+                (_down, _up), (g0, g1) = matrix[gear]
+                if v >= _up:
                     return g1
-                if v < down:
+                if v < _down:
                     return g0
                 return gear
         else:

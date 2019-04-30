@@ -115,6 +115,10 @@ def calculate_gear_box_torque_in(
         Cold and hot reference temperatures [°C].
     :type gear_box_temperature_references: tuple
 
+    :param min_engine_on_speed:
+        Minimum engine speed to consider the engine to be on [RPM].
+    :type min_engine_on_speed: float
+
     :return:
         Torque required according to the temperature profile [N*m].
     :rtype: float

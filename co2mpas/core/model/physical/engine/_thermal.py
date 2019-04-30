@@ -9,7 +9,6 @@ Functions to model the engine coolant temperature.
 """
 import itertools
 import numpy as np
-import schedula as sh
 import xgboost as xgb
 from ..defaults import dfl
 import co2mpas.utils as co2_utl

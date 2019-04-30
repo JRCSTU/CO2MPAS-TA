@@ -199,32 +199,6 @@ def default_driver_style_ratio(driver_style='normal'):
     return dfl.functions.default_driver_style_ratio.ratios[driver_style]
 
 
-class SimulationModel:
-    def __init__(self, models, outputs, index=0):
-        self.index = index
-        self.models = models
-        self.outputs = outputs
-
-    def __call__(self, acceleration, next_time):
-        i = self.index
-        self.outputs['accelerations'][i] = acceleration
-        try:
-            self.outputs['times'][i + 1] = next_time
-        except IndexError:
-            pass
-        for m in self.models:
-            m(i)
-        return self
-
-    def select(self, *items, di=0):
-        i = max(self.index + di, 0)
-        res = sh.selector(items, self.outputs, output_type='list')
-        res = [v[i] for v in res]
-        if len(res) == 1:
-            return res[0]
-        return res
-
-
 # noinspection PyMissingOrEmptyDocstring
 class DriverModel(BaseModel):
     key_outputs = 'times', 'accelerations'
@@ -248,7 +222,7 @@ class DriverModel(BaseModel):
                 f(road_loads, vehicle_mass, inertial_factor,
                   static_friction, wheel_drive_load_fraction)
             )
-            d.set_default_value('time_sample_frequency', time_sample_frequency)
+            d.set_default_value('delta_time', 1 / time_sample_frequency)
             d.set_default_value('driver_style_ratio', driver_style_ratio)
             self.model = sh.DispatchPipe(
                 d, inputs=['simulation_model'],
@@ -258,6 +232,7 @@ class DriverModel(BaseModel):
 
     def init_driver(self, *models):
         keys = 'times', 'accelerations'
+        from .logic import SimulationModel
         simulation = SimulationModel(models, self.outputs)
         if self._outputs is not None and not (set(keys) - set(self._outputs)):
             times, acc = sh.selector(keys, self._outputs, output_type='list')
@@ -305,23 +280,19 @@ class DriverModel(BaseModel):
 @sh.add_function(dsp, outputs=['driver_prediction_model'])
 def define_fake_driver_prediction_model(times, accelerations):
     """
-    Defines a fake vehicle prediction model.
+    Defines a fake driver prediction model.
 
-    :param wheel_speeds:
-        Rotating speed of the wheel [RPM].
-    :type wheel_speeds: numpy.array
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
 
-    :param wheel_powers:
-        Power at the wheels [kW].
-    :type wheel_powers: numpy.array
-
-    :param wheel_torques:
-        Torque at the wheel [N*m].
-    :type wheel_torques: numpy.array
+    :param accelerations:
+        Vehicle acceleration [m/s2].
+    :type accelerations: numpy.array
 
     :return:
-        Wheels prediction model.
-    :rtype: WheelsModel
+        Driver prediction model.
+    :rtype: DriverModel
     """
     return DriverModel(outputs=dict(times=times, accelerations=accelerations))
 
@@ -361,15 +332,51 @@ def define_driver_prediction_model(
         road_loads, vehicle_mass, inertial_factor, driver_style_ratio,
         static_friction, wheel_drive_load_fraction):
     """
-    Defines the vehicle prediction model.
+    Defines the driver prediction model.
 
-    :param r_dynamic:
-        Dynamic radius of the wheels [m].
-    :type r_dynamic: float
+    :param path_velocities:
+        Desired velocity vector [km/h].
+    :type path_velocities: numpy.array
+
+    :param path_distances:
+        Cumulative distance vector [m].
+    :type path_distances: numpy.array
+
+    :param full_load_curve:
+        Vehicle full load curve.
+    :type full_load_curve: function
+
+    :param time_sample_frequency:
+        Time frequency [1/s].
+    :type time_sample_frequency: float
+
+    :param road_loads:
+        Cycle road loads [N, N/(km/h), N/(km/h)^2].
+    :type road_loads: list, tuple
+
+    :param vehicle_mass:
+        Vehicle mass [kg].
+    :type vehicle_mass: float
+
+    :param inertial_factor:
+        Factor that considers the rotational inertia [%].
+    :type inertial_factor: float
+
+    :param driver_style_ratio:
+        Driver style ratio [-].
+    :type driver_style_ratio: float
+
+    :param static_friction:
+        Static friction coefficient [-].
+    :type static_friction: float
+
+    :param wheel_drive_load_fraction:
+        Repartition of the load on wheel drive axles [-].
+    :type wheel_drive_load_fraction: float
 
     :return:
-        Wheels prediction model.
-    :rtype: WheelsModel
+        Diver prediction model.
+    :rtype: DriverModel
     """
     return DriverModel(
         path_velocities, path_distances, full_load_curve, time_sample_frequency,

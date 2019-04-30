@@ -142,7 +142,7 @@ def calibrate_torque_converter_model(
     :type times: numpy.array
 
     :param lock_up_tc_limits:
-        Limits (vel, acc) when torque converter is active [km/h, m/s].
+        Limits (vel, acc) when torque converter is active [km/h, m/s2].
     :type lock_up_tc_limits: (float, float)
 
     :param calibration_tc_speed_threshold:
@@ -198,7 +198,7 @@ def predict_torque_converter_speeds_delta(
     :type times: numpy.array
 
     :param lock_up_tc_limits:
-        Limits (vel, acc) when torque converter is active [km/h, m/s].
+        Limits (vel, acc) when torque converter is active [km/h, m/s2].
     :type lock_up_tc_limits: (float, float)
 
     :param torque_converter_model:
