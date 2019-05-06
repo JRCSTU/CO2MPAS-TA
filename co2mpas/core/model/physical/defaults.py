@@ -219,6 +219,14 @@ class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+    class define_max_acceleration_model(co2_utl.Constants):
+        #: Factor to reduce the maximum acceleration [-].
+        factor = dict(manual=.0, automatic=2 / 3)
+
+        #: Time window from last gear shift where to apply the correction [s].
+        clutch_acceleration_window = 1
+
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class default_n_wheel(co2_utl.Constants):
         #: Total number of wheels [-].
         n_wheel = 4

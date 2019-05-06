@@ -106,7 +106,7 @@ def calculate_desired_velocity(path_distances, path_velocities, distance):
 def calculate_maximum_power(
         simulation_model, time, full_load_curve, delta_time):
     """
-    Calculate maximum engine power [kW].
+    Calculate maximum power [kW].
 
     :param simulation_model:
         Simulation model.
@@ -129,13 +129,31 @@ def calculate_maximum_power(
     :rtype: float
     """
     simulation_model(1, time + delta_time)
-    return full_load_curve(simulation_model.select('engine_speeds_out_hot'))
+    eng_pwr = full_load_curve(simulation_model.select('engine_speeds_out_hot'))
+    return eng_pwr - simulation_model.select('alternator_powers_demand')
+
+
+def _clutch_acceleration_factor(
+        simulation_model, clutch_acceleration_window=5, factor=0):
+    if factor == 1:
+        return 1
+    tms, grs = sh.selector(
+        ('times', 'gears'), simulation_model.outputs, output_type='list'
+    )
+    i = simulation_model.index
+    t0, g0, = tms[i] - clutch_acceleration_window, grs[i]
+    for t, g in zip(tms[-2::-1], grs[-2::-1]):
+        if t < t0:
+            break
+        elif g != g0:
+            return factor
+    return 1
 
 
 @sh.add_function(dsp, outputs=['max_acceleration_model'])
 def define_max_acceleration_model(
         road_loads, vehicle_mass, inertial_factor, static_friction,
-        wheel_drive_load_fraction):
+        wheel_drive_load_fraction, gear_box_type):
     """
     Defines maximum acceleration model.
 
@@ -160,10 +178,15 @@ def define_max_acceleration_model(
         Repartition of the load on wheel drive axles [-].
     :type wheel_drive_load_fraction: float
 
+    :param gear_box_type:
+        Gear box type (manual or automatic or cvt).
+    :type gear_box_type: str
+
     :return:
         Maximum acceleration model.
     :rtype: function
     """
+    import functools
     from ..vehicle import _compile_traction_acceleration_limits
     from numpy.polynomial.polynomial import polyroots
     f0, f1, f2 = road_loads
@@ -172,17 +195,26 @@ def define_max_acceleration_model(
     acc_lim = _compile_traction_acceleration_limits(
         static_friction, wheel_drive_load_fraction
     )
+    d = dfl.functions.define_max_acceleration_model
 
-    def _func(previous_velocity, next_time, previous_time, angle_slope,
-              motive_power):
-        dt = (next_time - previous_time) * 3.6
+    clutch_factor = functools.partial(
+        _clutch_acceleration_factor,
+        clutch_acceleration_window=d.clutch_acceleration_window,
+        factor=d.factor.get(gear_box_type, 1)
+    )
+
+    def _func(simulation_model, previous_velocity, previous_time,
+              angle_slope, motive_power):
+        dt = (simulation_model.select('times', di=1) - previous_time) * 3.6
         m = _m / dt
 
         b = f0 * np.cos(angle_slope) + _b * np.sin(angle_slope)
         b -= m * previous_velocity
 
         vel = max(polyroots((-motive_power * 3600, b, f1 + m, f2)))
-        return np.clip((vel - previous_velocity) / dt, *acc_lim(angle_slope))
+
+        a = np.clip((vel - previous_velocity) / dt, *acc_lim(angle_slope))
+        return clutch_factor(simulation_model) * a
 
     return _func
 
@@ -223,8 +255,8 @@ def calculate_maximum_acceleration(
     :rtype: float
     """
     acc = max_acceleration_model(
-        previous_velocity, simulation_model.select('times', di=1),
-        previous_time, angle_slope, maximum_power
+        simulation_model, previous_velocity, previous_time, angle_slope,
+        maximum_power
     )
     return acc
 
@@ -254,7 +286,7 @@ def calculate_acceleration_damping(previous_velocity, desired_velocity):
     return 1 - 0.8 * np.power(1 - r, 60)  # Acceleration boost.
 
 
-@sh.add_function(dsp, outputs=['acceleration'])
+@sh.add_function(dsp, outputs=['desired_acceleration'])
 def calculate_desired_acceleration(
         maximum_acceleration, driver_style_ratio, acceleration_damping):
     """
@@ -279,9 +311,9 @@ def calculate_desired_acceleration(
     return maximum_acceleration * driver_style_ratio * acceleration_damping
 
 
-@sh.add_function(dsp, outputs=['next_time'])
-def calculate_next_time(
-        delta_time, time, previous_time, velocity, acceleration,
+@sh.add_function(dsp, outputs=['acceleration', 'next_time'])
+def calculate_acceleration_and_next_time(
+        delta_time, time, previous_time, velocity, desired_acceleration,
         previous_velocity, maximum_distance, distance):
     """
     Calculate next time [s].
@@ -302,9 +334,9 @@ def calculate_next_time(
         Velocity [km/h].
     :type velocity: float
 
-    :param acceleration:
-        Acceleration [m/s2].
-    :type acceleration: float
+    :param desired_acceleration:
+        Desired acceleration [m/s2].
+    :type desired_acceleration: float
 
     :param previous_velocity:
         Previous velocity [km/h].
@@ -319,10 +351,14 @@ def calculate_next_time(
     :type distance: float
 
     :return:
-        Next time [s].
-    :rtype: float
+        Acceleration [m/s2], Next time [s].
+    :rtype: float, float
     """
     from numpy.polynomial.polynomial import polyroots
-    v, a = (velocity + previous_velocity) / 3.6, acceleration
+    dt, v = time - previous_time, (velocity + previous_velocity) / 3.6
+    d, a = 2 * (distance - maximum_distance), desired_acceleration
+    a = max(a, *polyroots((v ** 2, 2 * dt * v - 4 * d, dt ** 2)))
+    if dt > dfl.EPS:
+        a = max(a, -previous_velocity / dt / 3.6)
     p = 2 * (distance - maximum_distance), a * (time - previous_time) + v, a
-    return time + min(max(polyroots(p)), delta_time)
+    return a, time + min(max(polyroots(p)), delta_time)

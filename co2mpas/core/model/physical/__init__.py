@@ -319,10 +319,11 @@ OUTPUTS_PREDICTION_LOOP = [
     'engine_speeds_out_hot',
     'engine_coolant_temperatures',
 
-    'state_of_charges',
-    'battery_currents',
+    'alternator_currents',
     'alternator_statuses',
-    'alternator_currents'
+    'alternator_powers_demand',
+    'battery_currents',
+    'state_of_charges'
 ]
 
 

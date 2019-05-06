@@ -209,7 +209,8 @@ class DriverModel(BaseModel):
                  full_load_curve=None, time_sample_frequency=None,
                  road_loads=None, vehicle_mass=None, inertial_factor=None,
                  driver_style_ratio=None, static_friction=None,
-                 wheel_drive_load_fraction=None, outputs=None):
+                 wheel_drive_load_fraction=None, gear_box_type=None,
+                 outputs=None):
         from .logic import dsp as _logic, define_max_acceleration_model as f
         if path_distances is not None:
             self.stop_distance = path_distances[-1]
@@ -220,7 +221,7 @@ class DriverModel(BaseModel):
             d.set_default_value(
                 'max_acceleration_model',
                 f(road_loads, vehicle_mass, inertial_factor,
-                  static_friction, wheel_drive_load_fraction)
+                  static_friction, wheel_drive_load_fraction, gear_box_type)
             )
             d.set_default_value('delta_time', 1 / time_sample_frequency)
             d.set_default_value('driver_style_ratio', driver_style_ratio)
@@ -330,7 +331,7 @@ def calculate_desired_velocities(path_distances, path_velocities, distances):
 def define_driver_prediction_model(
         path_velocities, path_distances, full_load_curve, time_sample_frequency,
         road_loads, vehicle_mass, inertial_factor, driver_style_ratio,
-        static_friction, wheel_drive_load_fraction):
+        static_friction, wheel_drive_load_fraction, gear_box_type):
     """
     Defines the driver prediction model.
 
@@ -374,6 +375,10 @@ def define_driver_prediction_model(
         Repartition of the load on wheel drive axles [-].
     :type wheel_drive_load_fraction: float
 
+    :param gear_box_type:
+        Gear box type (manual or automatic or cvt).
+    :type gear_box_type: str
+
     :return:
         Diver prediction model.
     :rtype: DriverModel
@@ -381,5 +386,5 @@ def define_driver_prediction_model(
     return DriverModel(
         path_velocities, path_distances, full_load_curve, time_sample_frequency,
         road_loads, vehicle_mass, inertial_factor, driver_style_ratio,
-        static_friction, wheel_drive_load_fraction
+        static_friction, wheel_drive_load_fraction, gear_box_type
     )

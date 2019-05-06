@@ -577,6 +577,16 @@ def identify_alternator_starts_windows(
     return starts_windows
 
 
+def _compile_alternator_powers_demand(
+        alternator_nominal_voltage, alternator_efficiency):
+    c = - alternator_nominal_voltage / (1000.0 * alternator_efficiency)
+
+    def _func(alternator_currents):
+        return np.maximum(alternator_currents * c, 0.0)
+
+    return _func
+
+
 @sh.add_function(dsp, outputs=['alternator_powers_demand'])
 def calculate_alternator_powers_demand(
         alternator_nominal_voltage, alternator_currents, alternator_efficiency):
@@ -599,10 +609,9 @@ def calculate_alternator_powers_demand(
         Alternator power demand to the engine [kW].
     :rtype: numpy.array
     """
-
-    c = alternator_nominal_voltage / (1000.0 * alternator_efficiency)
-
-    return np.maximum(-alternator_currents * c, 0.0)
+    return _compile_alternator_powers_demand(
+        alternator_nominal_voltage, alternator_efficiency
+    )(alternator_currents)
 
 
 # noinspection PyPep8Naming
@@ -1049,12 +1058,15 @@ def calibrate_alternator_current_model(
 # noinspection PyMissingOrEmptyDocstring
 class ElectricModel(co2_utl.BaseModel):
     key_outputs = (
-        'alternator_currents', 'alternator_statuses', 'battery_currents',
-        'state_of_charges'
+        'alternator_currents', 'alternator_statuses',
+        'alternator_powers_demand', 'battery_currents', 'state_of_charges'
     )
     contract_outputs = 'state_of_charges',
     types = {
-        float: {'alternator_currents', 'battery_currents', 'state_of_charges'},
+        float: {
+            'alternator_currents', 'battery_currents', 'state_of_charges',
+            'alternator_powers_demand'
+        },
         int: {'alternator_statuses'}
     }
 
@@ -1065,7 +1077,8 @@ class ElectricModel(co2_utl.BaseModel):
                  start_demand=None, electric_load=None,
                  has_energy_recuperation=None,
                  alternator_initialization_time=None,
-                 initial_state_of_charge=None, outputs=None):
+                 initial_state_of_charge=None, alternator_efficiency=None,
+                 outputs=None):
         self.battery_capacity = battery_capacity
         self.alternator_status_model = alternator_status_model
         self.max_alternator_current = max_alternator_current
@@ -1077,6 +1090,7 @@ class ElectricModel(co2_utl.BaseModel):
         self.has_energy_recuperation = has_energy_recuperation
         self.alternator_initialization_time = alternator_initialization_time
         self.initial_state_of_charge = initial_state_of_charge
+        self.alternator_efficiency = alternator_efficiency
         super(ElectricModel, self).__init__(outputs)
 
     def init_alternator(self, times, accelerations, gear_box_powers_in,
@@ -1162,27 +1176,45 @@ class ElectricModel(co2_utl.BaseModel):
 
         return _next
 
+    def init_power(self, alternator_currents):
+        key = 'alternator_powers_demand'
+        if self._outputs is not None and key in self._outputs:
+            out = self._outputs[key]
+            return lambda i: out[i]
+
+        func = _compile_alternator_powers_demand(
+            self.alternator_nominal_voltage, self.alternator_efficiency
+        )
+
+        def _next(i):
+            return func(alternator_currents[i])
+
+        return _next
+
     def init_results(self, times, accelerations, on_engine, engine_starts,
                      gear_box_powers_in):
         outputs = self.outputs
         socs, sts = outputs['state_of_charges'], outputs['alternator_statuses']
         alt, bat = outputs['alternator_currents'], outputs['battery_currents']
+        pwr = outputs['alternator_powers_demand']
 
         a_gen = self.init_alternator(
             times, accelerations, gear_box_powers_in, on_engine, engine_starts,
             socs, sts
         )
         b_gen = self.init_battery(times, on_engine, alt, socs, bat)
+        p_gen = self.init_power(alt)
 
         def _next(i):
             sts[i], alt[i] = alt_status, alt_current = a_gen(i)
+            pwr[i] = p = p_gen(i)
             soc, bat_current = b_gen(i)
             bat[i] = bat_current
             try:
                 socs[i + 1] = soc
             except IndexError:
                 pass
-            return alt_current, alt_status, bat_current, soc
+            return alt_current, alt_status, p, bat_current, socs[i]
 
         return _next
 
@@ -1193,7 +1225,7 @@ def define_electrics_prediction_model(
         alternator_current_model, max_battery_charging_current,
         alternator_nominal_voltage, start_demand, electric_load,
         has_energy_recuperation, alternator_initialization_time,
-        initial_state_of_charge):
+        initial_state_of_charge, alternator_efficiency):
     """
     Defines the electrics prediction model.
 
@@ -1245,17 +1277,21 @@ def define_electrics_prediction_model(
             `initial_state_of_charge` = 99 is equivalent to 99%.
     :type initial_state_of_charge: float
 
+    :param alternator_efficiency:
+        Alternator efficiency [-].
+    :type alternator_efficiency: float
+
     :return:
        Electrics prediction model.
     :rtype: ElectricModel
     """
 
     model = ElectricModel(
-        battery_capacity, alternator_status_model,
-        max_alternator_current, alternator_current_model,
-        max_battery_charging_current, alternator_nominal_voltage, start_demand,
-        electric_load, has_energy_recuperation,
-        alternator_initialization_time, initial_state_of_charge
+        battery_capacity, alternator_status_model, max_alternator_current,
+        alternator_current_model, max_battery_charging_current,
+        alternator_nominal_voltage, start_demand, electric_load,
+        has_energy_recuperation, alternator_initialization_time,
+        initial_state_of_charge, alternator_efficiency
     )
 
     return model
@@ -1264,7 +1300,7 @@ def define_electrics_prediction_model(
 @sh.add_function(dsp, outputs=['electrics_prediction_model'])
 def define_fake_electrics_prediction_model(
         alternator_currents, alternator_statuses, battery_currents,
-        state_of_charges):
+        state_of_charges, alternator_powers_demand):
     """
     Defines a fake electrics prediction model.
 
@@ -1289,6 +1325,10 @@ def define_fake_electrics_prediction_model(
             `state_of_charges` = 99 is equivalent to 99%.
     :type state_of_charges: numpy.array
 
+    :param alternator_powers_demand:
+        Alternator power demand to the engine [kW].
+    :type alternator_powers_demand: numpy.array, optional
+
     :return:
        Electrics prediction model.
     :rtype: ElectricModel
@@ -1298,7 +1338,8 @@ def define_fake_electrics_prediction_model(
         'alternator_currents': alternator_currents,
         'alternator_statuses': alternator_statuses,
         'battery_currents': battery_currents,
-        'state_of_charges': state_of_charges
+        'state_of_charges': state_of_charges,
+        'alternator_powers_demand': alternator_powers_demand
     })
     return model
 
