@@ -324,7 +324,10 @@ OUTPUTS_PREDICTION_LOOP = [
     'alternator_statuses',
     'alternator_powers_demand',
     'battery_currents',
-    'state_of_charges'
+    'state_of_charges',
+
+    'clutch_tc_speeds_delta',
+    'clutch_tc_powers'
 ]
 
 
@@ -333,7 +336,7 @@ def prediction_loop(
         driver_prediction_model, vehicle_prediction_model,
         wheels_prediction_model, final_drive_prediction_model,
         gear_box_prediction_model, engine_prediction_model,
-        electrics_prediction_model):
+        electrics_prediction_model, clutch_tc_prediction_model):
     """
     Predicts vehicle time-series.
 
@@ -365,6 +368,10 @@ def prediction_loop(
         Electrics prediction model.
     :type electrics_prediction_model: .electrics.ElectricModel
 
+    :param clutch_tc_prediction_model:
+        Clutch or torque converter prediction model.
+    :type clutch_tc_prediction_model: .clutch_tc.ClutchTCModel
+
     :return:
         Vehicle time-series
     :rtype: tuple[numpy.array]
@@ -377,6 +384,7 @@ def prediction_loop(
     gear_box_prediction_model.set_outputs(outputs)
     engine_prediction_model.set_outputs(outputs)
     electrics_prediction_model.set_outputs(outputs)
+    clutch_tc_prediction_model.set_outputs(outputs)
 
     vhl = vehicle_prediction_model.init_results(
         outputs['times'], outputs['accelerations']
@@ -408,7 +416,14 @@ def prediction_loop(
         outputs['engine_starts'], outputs['gear_box_powers_in']
     )
 
-    for _ in driver_prediction_model.yield_results(vhl, whl, fd, gb, eng, ele):
+    ctc = clutch_tc_prediction_model.init_results(
+        outputs['accelerations'], outputs['velocities'],
+        outputs['gear_box_speeds_in'], outputs['gears'], outputs['times'],
+        outputs['gear_box_powers_in'], outputs['engine_speeds_out_hot']
+    )
+
+    for _ in driver_prediction_model.yield_results(
+            vhl, whl, fd, gb, eng, ele, ctc):
         pass
 
     driver_prediction_model.format_results()
@@ -418,5 +433,6 @@ def prediction_loop(
     gear_box_prediction_model.format_results()
     engine_prediction_model.format_results()
     electrics_prediction_model.format_results()
+    clutch_tc_prediction_model.format_results()
 
     return sh.selector(OUTPUTS_PREDICTION_LOOP, outputs, output_type='list')

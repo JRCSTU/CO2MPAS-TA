@@ -236,9 +236,15 @@ class CorrectGear:
     def correct_driveability_rules(
             self, gear, i, gears, times, velocities, accelerations,
             motive_powers, engine_coolant_temperatures, next_gear):
-        pg = gears.take(i - 1, mode='clip')  # Previous gear.
+        if len(times) > len(motive_powers):
+            times = times[:-1]
+        try:
+            pg = gears[max(0, i - 1)]  # Previous gear.
+        except IndexError:
+            pg = 0
         power = motive_powers[i]  # Current power.
         t0 = times[i]
+
         for j, (g, t) in enumerate(self.next_gears):
             if t0 <= t:
                 gear = g
@@ -262,14 +268,17 @@ class CorrectGear:
                 return 0
             return g
 
+        def up_clip(arr, k):
+            return arr[min(i + 1, len(arr) - 1)]
+
         # 4.a During accelerations a gear have to last at least 2 seconds.
-        if power > 0 or velocities.take(i + 1, mode='clip') > velocities[i]:
-            j = np.searchsorted(times, times[i] - 2)
-            gear = min(gear, pg + int((gears[j:i] == pg).all()))
+        if power > 0 or up_clip(velocities, i + 1) >= velocities[i]:
+            b = [g == pg for g in gears[np.searchsorted(times, times[i] - 2):i]]
+            gear = min(gear, pg + int(b and all(b) or 0))
 
         # 4.b
         if gear > 1 and power > 0:
-            if pg < gear or motive_powers.take(i - 1, mode='clip') <= 0:
+            if pg < gear or motive_powers[max(i - 1, 0)] <= 0:
                 g = gear
                 t0 = times[i] + 10
                 j = i + 1
@@ -319,7 +328,7 @@ class CorrectGear:
 
         # 4.c, 4.d
         if pg and pg < gear:
-            if power < 0 or motive_powers.take(i + 1, mode='clip') < 0:  # 4.d
+            if power < 0 or up_clip(motive_powers, i + 1) < 0:  # 4.d
                 gear = pg
             else:  # 4.c
                 g = gear
@@ -352,8 +361,9 @@ class CorrectGear:
         # 4.f
         if gear and power < 0 and pg > gear:
             j, g = i - 1, gear
-            t0 = times.take(j, mode='clip')
-            if (gears[np.searchsorted(times[:j], t0 - 3):j] == pg).all():
+            t0 = times[max(j, 0)]
+            b = [pg == g for g in gears[np.searchsorted(times[:j], t0 - 3):j]]
+            if b and all(b):
                 t1, t2, t3 = times[i], t0 + 2, t0 + 5
                 flag = gear, t1 + 3
                 j = i + 1
@@ -398,7 +408,7 @@ class CorrectGear:
         # 4.f
         if power < 0 and gear and (pg > gear or pg == 0):
             j, g0 = i + 1, gear
-            t0 = times.take(i - 1, mode='clip') + 2
+            t0 = times[max(i - 1, 0)] + 2
             gen = enumerate(zip(times[j:], motive_powers[j:]), j)
             for k, (t, p) in gen:
                 if p > 0:
@@ -417,7 +427,7 @@ class CorrectGear:
 
         # 3.2
         j = i + np.searchsorted(times[i:], times[i] + 1)
-        if not gear and np.diff(velocities.take([j, j + 1], mode='clip')) > 0:
+        if not gear and up_clip(velocities, j + 1) >= up_clip(velocities, j):
             gear = self.min_gear
 
         return gear

@@ -231,6 +231,34 @@ class ClutchModel(TorqueConverter):
                     d[i] = v
         return d
 
+    # noinspection PyMethodOverriding
+    def next(self, clutch_window, accelerations, velocities, gear_box_speeds_in,
+             gears, times, clutch_speeds_delta):
+        predict, up = self.regressor.predict, clutch_window[1]
+
+        def _next(i):
+            t0, g0 = times[i] - up, gears[i]
+            for t, g in zip(times[:i][::-1], gears[:i - 1][::-1]):
+                if t < t0:
+                    break
+                elif g != g0:
+                    n = len(gear_box_speeds_in)
+                    t, a = times[i] - self.prev_dt, accelerations[i]
+                    gbs = np.interp(t, xp=times[:n], fp=gear_box_speeds_in)
+                    if clutch_speeds_delta:
+                        gbs += np.interp(
+                            t, xp=times[:len(clutch_speeds_delta)],
+                            fp=clutch_speeds_delta
+                        )
+                    args = a, velocities[i], gear_box_speeds_in[i], g0, gbs
+                    v = predict([args])[0]
+                    if not ((v >= 0) & (a < 0)):
+                        return v
+                    break
+            return 0
+
+        return _next
+
 
 @sh.add_function(dsp, outputs=['clutch_model'])
 def calibrate_clutch_prediction_model(
@@ -327,6 +355,26 @@ def predict_clutch_speeds_delta(
     """
     x = np.column_stack((accelerations, velocities, gear_box_speeds_in, gears))
     return clutch_model(times, clutch_phases, x)
+
+
+@sh.add_function(dsp, outputs=['init_clutch_tc_speed_prediction_model'])
+def define_init_clutch_tc_speed_prediction_model(clutch_model, clutch_window):
+    """
+    Defines initialization function of the clutch tc speed prediction model.
+
+    :param clutch_model:
+        Clutch prediction model.
+    :type clutch_model: ClutchModel
+
+    :param clutch_window:
+        Clutching time window [s].
+    :type clutch_window: tuple
+
+    :return:
+        Initialization function of the clutch tc speed prediction model.
+    :rtype: function
+    """
+    return functools.partial(clutch_model.next, clutch_window)
 
 
 dsp.add_function(

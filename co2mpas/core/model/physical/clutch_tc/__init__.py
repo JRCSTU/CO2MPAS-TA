@@ -21,6 +21,7 @@ Sub-Modules:
 import schedula as sh
 from .clutch import dsp as _clutch
 from .torque_converter import dsp as _torque_converter
+from co2mpas.utils import BaseModel
 
 dsp = sh.BlueDispatcher(
     name='Clutch and torque-converter',
@@ -43,6 +44,32 @@ def default_has_torque_converter(gear_box_type):
     """
 
     return gear_box_type == 'automatic'
+
+
+def _calculate_clutch_tc_powers(
+        clutch_tc_speeds_delta, k_factor_curve, gear_box_speed_in,
+        gear_box_power_in, engine_speed_out_hot):
+    engine_speed_out = engine_speed_out_hot + clutch_tc_speeds_delta
+    is_not_eng2gb = gear_box_speed_in >= engine_speed_out
+    if clutch_tc_speeds_delta == 0:
+        ratio = 1
+    else:
+        if is_not_eng2gb:
+            speed_out, speed_in = engine_speed_out, gear_box_speed_in
+        else:
+            speed_out, speed_in = gear_box_speed_in, engine_speed_out
+
+        if (speed_in > 0) and (clutch_tc_speeds_delta != 0):
+            ratio = speed_out / speed_in
+        else:
+            ratio = 1
+
+    eff = k_factor_curve(ratio) * ratio
+    if is_not_eng2gb and eff != 0:
+        eff = 1 / eff
+    if eff > 0:
+        return gear_box_power_in / eff
+    return gear_box_power_in
 
 
 @sh.add_function(dsp, outputs=['clutch_tc_powers'])
@@ -118,6 +145,7 @@ dsp.add_dispatcher(
     ),
     outputs=(
         'clutch_model', 'clutch_phases', 'clutch_window', 'k_factor_curve',
+        'init_clutch_tc_speed_prediction_model',
         {'clutch_speeds_delta': 'clutch_tc_speeds_delta'}
     )
 )
@@ -147,5 +175,117 @@ dsp.add_dispatcher(
          'has_torque_converter': sh.SINK}),
     outputs=(
         'k_factor_curve', 'torque_converter_model',
+        'init_clutch_tc_speed_prediction_model',
         {'torque_converter_speeds_delta': 'clutch_tc_speeds_delta'})
 )
+
+
+# noinspection PyMissingOrEmptyDocstring
+class ClutchTCModel(BaseModel):
+    key_outputs = [
+        'clutch_tc_speeds_delta',
+        'clutch_tc_powers'
+    ]
+    types = {float: set(key_outputs)}
+
+    def __init__(self, init_clutch_tc_speed_prediction_model=None,
+                 k_factor_curve=None, outputs=None):
+        self.init_clutch_tc_speed_prediction_model = \
+            init_clutch_tc_speed_prediction_model
+        self.k_factor_curve = k_factor_curve
+        super(ClutchTCModel, self).__init__(outputs)
+
+    def init_speed(self, accelerations, velocities, gear_box_speeds_in, gears,
+                   times, clutch_speeds_delta):
+        key = 'clutch_tc_speeds_delta'
+        if self._outputs is not None and key in self._outputs:
+            out = self._outputs[key]
+            return lambda i: out[i]
+
+        return self.init_clutch_tc_speed_prediction_model(
+            accelerations, velocities, gear_box_speeds_in, gears, times,
+            clutch_speeds_delta
+        )
+
+    def init_power(self, clutch_tc_speeds_delta, k_factor_curve,
+                   gear_box_speeds_in, gear_box_powers_in,
+                   engine_speeds_out_hot):
+        key = 'clutch_tc_powers'
+        if self._outputs is not None and key in self._outputs:
+            out = self._outputs[key]
+            return lambda i: out[i]
+
+        def _next(i):
+            return _calculate_clutch_tc_powers(
+                clutch_tc_speeds_delta[i], k_factor_curve,
+                gear_box_speeds_in[i], gear_box_powers_in[i],
+                engine_speeds_out_hot[i]
+            )
+
+        return _next
+
+    def init_results(self, accelerations, velocities, gear_box_speeds_in, gears,
+                     times, gear_box_powers_in, engine_speeds_out_hot):
+        out = self.outputs
+        deltas, powers = out['clutch_tc_speeds_delta'], out['clutch_tc_powers']
+
+        s_gen = self.init_speed(
+            accelerations, velocities, gear_box_speeds_in, gears, times, deltas
+        )
+        p_gen = self.init_power(
+            deltas, self.k_factor_curve, gear_box_speeds_in, gear_box_powers_in,
+            engine_speeds_out_hot
+        )
+
+        def _next(i):
+            deltas[i] = s = s_gen(i)
+            powers[i] = p = p_gen(i)
+            return s, p
+
+        return _next
+
+
+@sh.add_function(dsp, outputs=['clutch_tc_prediction_model'])
+def define_fake_clutch_tc_prediction_model(
+        clutch_tc_speeds_delta, clutch_tc_powers):
+    """
+    Defines a fake clutch or torque converter prediction model.
+
+    :param clutch_tc_speeds_delta:
+        Engine speed delta due to the clutch or torque converter [RPM].
+    :type clutch_tc_speeds_delta: numpy.array
+
+    :param clutch_tc_powers:
+        Clutch or torque converter power [kW].
+    :type clutch_tc_powers: numpy.array
+
+    :return:
+        Clutch or torque converter prediction model.
+    :rtype: ClutchTCModel
+    """
+    model = ClutchTCModel(outputs={
+        'clutch_tc_speeds_delta': clutch_tc_speeds_delta,
+        'clutch_tc_powers': clutch_tc_powers
+    })
+    return model
+
+
+@sh.add_function(dsp, outputs=['clutch_tc_prediction_model'], weight=4000)
+def define_wheels_prediction_model(
+        init_clutch_tc_speed_prediction_model, k_factor_curve):
+    """
+    Defines the clutch or torque converter prediction model.
+
+    :param init_clutch_tc_speed_prediction_model:
+        Initialization function of the clutch tc speed prediction model.
+    :type init_clutch_tc_speed_prediction_model: function
+
+    :param k_factor_curve:
+        k factor curve.
+    :type k_factor_curve: callable
+
+    :return:
+        Clutch or torque converter prediction model.
+    :rtype: ClutchTCModel
+    """
+    return ClutchTCModel(init_clutch_tc_speed_prediction_model, k_factor_curve)

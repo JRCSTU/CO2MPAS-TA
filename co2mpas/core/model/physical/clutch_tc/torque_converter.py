@@ -128,6 +128,19 @@ class TorqueConverter:
             d[b] = self.regressor.predict(X[b])
         return d
 
+    def next(self, params, accelerations, velocities, gear_box_speeds_in, gears,
+             *args):
+        (lm_vel, lm_acc), predict = params, self.regressor.predict
+
+        def _next(i):
+            v, a = accelerations[i], velocities[i]
+            # From issue #179 add lock up mode in torque converter.
+            if v < lm_vel and a > lm_acc:
+                return predict([[a, v, gear_box_speeds_in[i], gears[i]]])[0]
+            return 0
+
+        return _next
+
 
 @sh.add_function(dsp, outputs=['torque_converter_model'])
 def calibrate_torque_converter_model(
@@ -225,12 +238,30 @@ def predict_torque_converter_speeds_delta(
         Engine speed delta due to the torque converter [RPM].
     :rtype: numpy.array
     """
-
-    x = np.column_stack(
-        (accelerations, velocities, gear_box_speeds_in, gears)
-    )
-
+    x = np.column_stack((accelerations, velocities, gear_box_speeds_in, gears))
     return torque_converter_model(times, lock_up_tc_limits, x)
+
+
+@sh.add_function(dsp, outputs=['init_clutch_tc_speed_prediction_model'])
+def define_init_clutch_tc_speed_prediction_model(
+        torque_converter_model, lock_up_tc_limits):
+    """
+    Defines initialization function of the clutch tc speed prediction model.
+
+    :param torque_converter_model:
+        Torque converter model.
+    :type torque_converter_model: TorqueConverter
+
+    :param lock_up_tc_limits:
+        Limits (vel, acc) when torque converter is active [km/h, m/s2].
+    :type lock_up_tc_limits: (float, float)
+
+    :return:
+        Initialization function of the clutch tc speed prediction model.
+    :rtype: function
+    """
+    import functools
+    return functools.partial(torque_converter_model.next, lock_up_tc_limits)
 
 
 @sh.add_function(dsp, inputs_kwargs=True, outputs=['k_factor_curve'])

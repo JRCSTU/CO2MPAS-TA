@@ -247,6 +247,12 @@ def _driver_prediction_model(error=None, **kwargs):
 
 
 # noinspection PyUnusedLocal
+def _clutch_tc_prediction_model(error=None, **kwargs):
+    from ..model.physical.clutch_tc import ClutchTCModel
+    return _type(type=ClutchTCModel, error=error)
+
+
+# noinspection PyUnusedLocal
 def _electrics_prediction_model(error=None, **kwargs):
     from ..model.physical.electrics import ElectricModel
     return _type(type=ElectricModel, error=error)
@@ -654,6 +660,7 @@ def define_data_schema(read=True):
         'gear_box_prediction_model': _gear_box_prediction_model(read=read),
         'final_drive_prediction_model':
             _final_drive_prediction_model(read=read),
+        'clutch_tc_prediction_model': _clutch_tc_prediction_model(read=read),
         'wheels_prediction_model': _wheels_prediction_model(read=read),
         'engine_type': string,
         'full_load_curve': function,
