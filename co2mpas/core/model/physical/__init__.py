@@ -254,7 +254,8 @@ dsp.add_dispatcher(
         'obd_fuel_type_code', 'min_engine_on_speed', 'phases_integration_times',
         'min_time_engine_on_after_start', 'motive_powers', 'engine_n_cylinders',
         'times', 'on_idle', 'full_load_speeds', 'start_stop_activation_time',
-        'start_stop_model', 'state_of_charges', {
+        'start_stop_model', 'state_of_charges',
+        'auxiliaries_torque_loss_factors', {
             'initial_temperature': 'initial_engine_temperature'
         }),
     outputs=(

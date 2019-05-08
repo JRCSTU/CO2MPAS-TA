@@ -698,7 +698,7 @@ def define_data_schema(read=True):
         'alternator_powers_demand': np_array,
         'alternator_statuses': np_array_int,
         'auxiliaries_power_losses': np_array,
-        'auxiliaries_torque_loss': tuplefloat,
+        'auxiliaries_torque_loss_factors': tuplefloat,
         'auxiliaries_torque_losses': np_array,
         'battery_currents': np_array,
         'clutch_tc_powers': np_array,

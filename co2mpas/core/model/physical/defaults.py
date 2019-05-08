@@ -134,8 +134,8 @@ class Values(co2_utl.Constants):
     #: Cold and hot gear box reference temperatures [°C].
     gear_box_temperature_references = (40.0, 80.0)
 
-    #: Constant torque loss due to engine auxiliaries [N*m].
-    auxiliaries_torque_loss = (0.175, 0.2021)  # m, q
+    #: Constant torque loss factors due to engine auxiliaries [N/cc, N*m].
+    auxiliaries_torque_loss_factors = (0.175, 0.2021)  # m, q
 
     #: Constant power loss due to engine auxiliaries [kW].
     auxiliaries_power_loss = 0.0213

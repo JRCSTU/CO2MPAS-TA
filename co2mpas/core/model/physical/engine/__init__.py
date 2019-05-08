@@ -901,23 +901,22 @@ def calculate_engine_moment_inertia(engine_capacity, ignition_type):
     return (0.05 + 0.1 * engine_capacity / 1000.0) * par
 
 
-dsp.add_data('auxiliaries_torque_loss', dfl.values.auxiliaries_torque_loss)
+dsp.add_data(
+    'auxiliaries_torque_loss_factors',
+    dfl.values.auxiliaries_torque_loss_factors
+)
 dsp.add_data('auxiliaries_power_loss', dfl.values.auxiliaries_power_loss)
 
 
-@sh.add_function(dsp, outputs=['auxiliaries_torque_losses'])
-def calculate_auxiliaries_torque_losses(
-        times, auxiliaries_torque_loss, engine_capacity):
+@sh.add_function(dsp, outputs=['auxiliaries_torque_loss'])
+def calculate_auxiliaries_torque_loss(
+        auxiliaries_torque_loss_factors, engine_capacity):
     """
     Calculates engine torque losses due to engine auxiliaries [N*m].
 
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
-    :param auxiliaries_torque_loss:
-        Constant torque loss due to engine auxiliaries [N*m].
-    :type auxiliaries_torque_loss: (float, float)
+    :param auxiliaries_torque_loss_factors:
+        Constant torque loss factors due to engine auxiliaries [N/m2, N*m].
+    :type auxiliaries_torque_loss_factors: (float, float)
 
     :param engine_capacity:
         Engine capacity [cm3].
@@ -927,8 +926,29 @@ def calculate_auxiliaries_torque_losses(
         Engine torque losses due to engine auxiliaries [N*m].
     :rtype: numpy.array
     """
-    m, q = auxiliaries_torque_loss
-    return np.ones_like(times, dtype=float) * (m * engine_capacity / 1000.0 + q)
+    m, q = auxiliaries_torque_loss_factors
+    return m * engine_capacity / 1000.0 + q
+
+
+@sh.add_function(dsp, outputs=['auxiliaries_torque_losses'])
+def calculate_auxiliaries_torque_losses(times, auxiliaries_torque_loss):
+    """
+    Calculates engine torque losses due to engine auxiliaries [N*m].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param auxiliaries_torque_loss:
+        Constant torque loss due to engine auxiliaries [N*m].
+    :type auxiliaries_torque_loss: float
+
+    :return:
+        Engine torque losses due to engine auxiliaries [N*m].
+    :rtype: numpy.array
+    """
+
+    return np.tile(auxiliaries_torque_loss, len(times))
 
 
 @sh.add_function(dsp, outputs=['auxiliaries_power_losses'])
