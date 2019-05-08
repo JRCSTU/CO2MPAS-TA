@@ -98,7 +98,7 @@ def calculate_desired_velocity(path_distances, path_velocities, distance):
     :rtype: float, float
     """
     i = np.searchsorted(path_distances, distance, side='right')
-    d = path_distances.take(i + 1, mode='clip') + dfl.EPS
+    d = path_distances.take(i, mode='clip') + dfl.EPS
     return path_velocities.take(i, mode='clip'), d
 
 
