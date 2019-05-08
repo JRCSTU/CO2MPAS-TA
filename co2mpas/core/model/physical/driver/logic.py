@@ -102,11 +102,12 @@ def calculate_desired_velocity(path_distances, path_velocities, distance):
     return path_velocities.take(i, mode='clip'), d
 
 
-@sh.add_function(dsp, outputs=['maximum_power'])
-def calculate_maximum_power(
-        simulation_model, time, full_load_curve, delta_time):
+@sh.add_function(dsp, outputs=['maximum_motive_power'])
+def calculate_maximum_motive_power(
+        simulation_model, time, full_load_curve, delta_time,
+        auxiliaries_power_loss, auxiliaries_torque_loss):
     """
-    Calculate maximum power [kW].
+    Calculate maximum motive power [kW].
 
     :param simulation_model:
         Simulation model.
@@ -124,13 +125,29 @@ def calculate_maximum_power(
         Time step [s].
     :type delta_time: float
 
+    :param auxiliaries_power_loss:
+        Constant power loss due to engine auxiliaries [kW].
+    :type auxiliaries_power_loss: float
+
+    :param auxiliaries_torque_loss:
+        Constant torque loss due to engine auxiliaries [N*m].
+    :type auxiliaries_torque_loss: float
+
     :return:
-        Maximum engine power [kW].
+        Maximum motive power [kW].
     :rtype: float
     """
-    simulation_model(1, time + delta_time)
-    eng_pwr = full_load_curve(simulation_model.select('engine_speeds_out_hot'))
-    return eng_pwr - simulation_model.select('alternator_powers_demand')
+    simulation_model(0, time + delta_time)
+    m_p, c_p, a_p, e_s, on = simulation_model.select(
+        'motive_powers', 'clutch_tc_powers', 'alternator_powers_demand',
+        'engine_speeds_out_hot', 'on_engine'
+    )
+
+    p = full_load_curve(e_s) - a_p
+    if on:
+        from ..wheels import calculate_wheel_powers as func
+        p -= func(auxiliaries_torque_loss, e_s) + auxiliaries_power_loss
+    return p * (c_p and (m_p / c_p) or 1)
 
 
 def _clutch_acceleration_factor(
@@ -140,9 +157,9 @@ def _clutch_acceleration_factor(
     tms, grs = sh.selector(
         ('times', 'gears'), simulation_model.outputs, output_type='list'
     )
-    i = simulation_model.index
+    i = max(0, simulation_model.index - 1)
     t0, g0, = tms[i] - clutch_acceleration_window, grs[i]
-    for t, g in zip(tms[-2::-1], grs[-2::-1]):
+    for t, g in zip(tms[:i][::-1], grs[:i][::-1]):
         if t < t0:
             break
         elif g != g0:
@@ -221,8 +238,8 @@ def define_max_acceleration_model(
 
 @sh.add_function(dsp, outputs=['maximum_acceleration'])
 def calculate_maximum_acceleration(
-        simulation_model, maximum_power, max_acceleration_model, angle_slope,
-        previous_velocity, previous_time):
+        simulation_model, maximum_motive_power, max_acceleration_model,
+        angle_slope, previous_velocity, previous_time):
     """
     Calculates the maximum vehicle acceleration.
 
@@ -230,9 +247,9 @@ def calculate_maximum_acceleration(
         Simulation model.
     :type simulation_model: SimulationModel
 
-    :param maximum_power:
-        Maximum engine power [kW].
-    :type maximum_power: float
+    :param maximum_motive_power:
+        Maximum motive power [kW].
+    :type maximum_motive_power: float
 
     :param max_acceleration_model:
         Maximum acceleration model.
@@ -256,7 +273,7 @@ def calculate_maximum_acceleration(
     """
     acc = max_acceleration_model(
         simulation_model, previous_velocity, previous_time, angle_slope,
-        maximum_power
+        maximum_motive_power
     )
     return acc
 
@@ -356,9 +373,13 @@ def calculate_acceleration_and_next_time(
     """
     from numpy.polynomial.polynomial import polyroots
     dt, v = time - previous_time, (velocity + previous_velocity) / 3.6
-    d, a = 2 * (distance - maximum_distance), desired_acceleration
-    a = max(a, *polyroots((v ** 2, 2 * dt * v - 4 * d, dt ** 2)))
-    if dt > dfl.EPS:
-        a = max(a, -previous_velocity / dt / 3.6)
-    p = 2 * (distance - maximum_distance), a * (time - previous_time) + v, a
-    return a, time + min(max(polyroots(p)), delta_time)
+    d = 2 * (distance - maximum_distance)
+    a = polyroots((v ** 2, 2 * dt * v - 4 * d, dt ** 2))
+    if desired_acceleration >= 0:
+        a = max(desired_acceleration, *a)
+    else:
+        a = max(desired_acceleration, min(a))
+        if dt > dfl.EPS:
+            a = max(a, -previous_velocity / dt / 3.6)
+    a = not np.isclose(a, 0) and a or 0
+    return a, time + min(max(polyroots((d, a * dt + v, a))), delta_time)

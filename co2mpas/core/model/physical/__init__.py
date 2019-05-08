@@ -62,7 +62,8 @@ dsp.add_dispatcher(
         'road_loads', 'speed_velocity_ratios', 'time_sample_frequency', 'times',
         'unladen_mass', 'vehicle_mass', 'velocities', 'wltp_base_model',
         'use_driver', 'path_velocities', 'path_distances', 'static_friction',
-        'wheel_drive_load_fraction', 'distances'
+        'wheel_drive_load_fraction', 'distances', 'auxiliaries_power_loss',
+        'auxiliaries_torque_loss'
     ),
     outputs=(
         'gears', 'initial_temperature', 'phases_integration_times', 'times',
@@ -190,7 +191,8 @@ dsp.add_dispatcher(
     outputs=(
         'clutch_model', 'clutch_phases', 'clutch_tc_powers', 'clutch_window',
         'clutch_tc_speeds_delta', 'has_torque_converter', 'lockup_speed_ratio',
-        'stand_still_torque_ratio', 'torque_converter_model'
+        'stand_still_torque_ratio', 'torque_converter_model',
+        'clutch_tc_prediction_model'
     )
 )
 
@@ -286,7 +288,8 @@ dsp.add_dispatcher(
         'on_engine', 'on_idle', 'optimal_efficiency', 'phases_co2_emissions',
         'phases_fuel_consumptions', 'phases_willans_factors', 'ki_additive',
         'start_stop_model', 'use_basic_start_stop', 'initial_friction_params',
-        'co2_rescaling_scores', 'engine_prediction_model', 'full_load_speeds'
+        'co2_rescaling_scores', 'engine_prediction_model', 'full_load_speeds',
+        'auxiliaries_power_loss', 'auxiliaries_torque_loss'
     ),
     inp_weight={'initial_temperature': 5}
 )
