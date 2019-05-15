@@ -215,7 +215,8 @@ class CorrectGear:
             return gear
 
         j = np.searchsorted(self.gears, gear)
-        delta = (self.flc(vel / self.np_vsr) - motive_powers[i])
+        delta = self.flc(vel / self.np_vsr, left=None, right=None)
+        delta -= motive_powers[i]
         valid = delta[:j + 1][::-1] >= 0
         k = valid.argmax()
         if not valid[k]:
