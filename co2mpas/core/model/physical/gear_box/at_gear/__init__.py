@@ -465,6 +465,7 @@ def _upgrade_gsm(gsm, velocity_speed_ratios, cycle_type):
                     dn_window=par.VEL_DN_WINDOW, dn_delta=par.DV_DN_SHIFT
                 )
     elif isinstance(gsm, GSMColdHot):
+        gsm = copy.deepcopy(gsm)
         for k, v in gsm.items():
             gsm[k] = _upgrade_gsm(v, velocity_speed_ratios, cycle_type)
 
