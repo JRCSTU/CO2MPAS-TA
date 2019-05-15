@@ -63,7 +63,7 @@ dsp.add_dispatcher(
         'unladen_mass', 'vehicle_mass', 'velocities', 'wltp_base_model',
         'use_driver', 'path_velocities', 'path_distances', 'static_friction',
         'wheel_drive_load_fraction', 'distances', 'auxiliaries_power_loss',
-        'auxiliaries_torque_loss'
+        'auxiliaries_torque_loss', 'maximum_velocity'
     ),
     outputs=(
         'gears', 'initial_temperature', 'phases_integration_times', 'times',

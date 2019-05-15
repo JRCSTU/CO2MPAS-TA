@@ -170,14 +170,13 @@ def _clutch_acceleration_factor(
 @sh.add_function(dsp, outputs=['max_acceleration_model'])
 def define_max_acceleration_model(
         road_loads, vehicle_mass, inertial_factor, static_friction,
-        wheel_drive_load_fraction, gear_box_type):
+        wheel_drive_load_fraction, gear_box_type, maximum_velocity):
     """
     Defines maximum acceleration model.
 
     :param road_loads:
         Cycle road loads [N, N/(km/h), N/(km/h)^2].
     :type road_loads: list, tuple
-
 
     :param vehicle_mass:
         Vehicle mass [kg].
@@ -198,6 +197,10 @@ def define_max_acceleration_model(
     :param gear_box_type:
         Gear box type (manual or automatic or cvt).
     :type gear_box_type: str
+
+    :param maximum_velocity:
+        Maximum velocity [km/h].
+    :type maximum_velocity: float
 
     :return:
         Maximum acceleration model.
@@ -229,7 +232,7 @@ def define_max_acceleration_model(
         b -= m * previous_velocity
 
         vel = max(polyroots((-motive_power * 3600, b, f1 + m, f2)))
-
+        vel = min(vel, maximum_velocity)
         a = np.clip((vel - previous_velocity) / dt, *acc_lim(angle_slope))
         return clutch_factor(simulation_model) * a
 
