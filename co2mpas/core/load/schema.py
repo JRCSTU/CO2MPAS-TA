@@ -471,7 +471,7 @@ def define_data_schema(read=True):
     )
     between_zero_and_one = _positive(
         read=read, error='should be as <float> and between zero and one!',
-        check=lambda x: 0 < x < 1
+        check=lambda x: 0 <= x <= 1
     )
     greater_than_one = _positive(
         read=read, error='should be as <float> and greater than one!',
