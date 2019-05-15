@@ -321,7 +321,7 @@ def _run_variations(plan, bases, core_model, timestamp):
 
         sol = core_model(_define_inputs(sol, dict(
             base=base,
-            vehicle_name='-'.join((r['id'], sol['vehicle_name'])),
+            vehicle_name='-'.join((str(r['id']), sol['vehicle_name'])),
             timestamp=timestamp
         )))
 
