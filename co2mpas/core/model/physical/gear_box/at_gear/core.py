@@ -140,10 +140,13 @@ class GSMColdHot(collections.OrderedDict):
         b = times <= self.time_cold_hot_transition
 
         for i in ['cold', 'hot']:
-            a = (v[b] if isinstance(v, np.ndarray) else v for v in args)
-            self[i] = model_class().fit(*a)
+            if b.sum() > 2:
+                a = (v[b] if isinstance(v, np.ndarray) else v for v in args)
+                self[i] = model_class().fit(*a)
             b = ~b
-        return self
+
+        if len(self) == 2 and set(self['cold']) == set(self['hot']):
+            return self
 
     # noinspection PyTypeChecker,PyCallByClass
     def predict(self, *args, **kwargs):

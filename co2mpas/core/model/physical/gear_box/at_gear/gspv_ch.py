@@ -64,7 +64,7 @@ def calibrate_gspv_cold_hot(
         stop_velocity
     )
 
-    return model
+    return model or sh.NONE
 
 
 # predict gears with corrected matrix velocity

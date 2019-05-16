@@ -76,7 +76,7 @@ def calibrate_gear_shifting_cmv_cold_hot(
         accelerations, motive_powers, velocity_speed_ratios, stop_velocity
     )
 
-    return model
+    return model or sh.NONE
 
 
 # predict gears with corrected matrix velocity

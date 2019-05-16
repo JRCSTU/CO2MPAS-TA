@@ -138,15 +138,15 @@ def calculate_maximum_motive_power(
     :rtype: float
     """
     simulation_model(0, time + delta_time)
-    m_p, c_p, a_p, e_s, on = simulation_model.select(
+    m_p, c_p, a_p, e_s, on, ds = simulation_model.select(
         'motive_powers', 'clutch_tc_powers', 'alternator_powers_demand',
-        'engine_speeds_out_hot', 'on_engine'
+        'engine_speeds_out_hot', 'on_engine', 'clutch_tc_speeds_delta'
     )
-
-    p = full_load_curve(e_s) - a_p
+    eso = e_s + ds
+    p = full_load_curve(eso, left=None, right=None) - a_p
     if on:
         from ..wheels import calculate_wheel_powers as func
-        p -= func(auxiliaries_torque_loss, e_s) + auxiliaries_power_loss
+        p -= func(auxiliaries_torque_loss, eso) + auxiliaries_power_loss
     return p * (c_p and (m_p / c_p) or 1)
 
 
@@ -328,7 +328,7 @@ def calculate_desired_acceleration(
         Desired acceleration [m/s2].
     :rtype: float
     """
-    return maximum_acceleration * driver_style_ratio * acceleration_damping
+    return maximum_acceleration #* driver_style_ratio * acceleration_damping
 
 
 @sh.add_function(dsp, outputs=['acceleration', 'next_time'])
@@ -378,11 +378,11 @@ def calculate_acceleration_and_next_time(
     dt, v = time - previous_time, (velocity + previous_velocity) / 3.6
     d = 2 * (distance - maximum_distance)
     a = polyroots((v ** 2, 2 * dt * v - 4 * d, dt ** 2))
-    if desired_acceleration >= 0:
+    if desired_acceleration > 0:
         a = max(desired_acceleration, *a)
     else:
         a = max(desired_acceleration, min(a))
-        if dt > dfl.EPS:
+        if dt > dfl.EPS and desired_acceleration < 0:
             a = max(a, -previous_velocity / dt / 3.6)
     a = not np.isclose(a, 0) and a or 0
     return a, time + min(max(polyroots((d, a * dt + v, a))), delta_time)
