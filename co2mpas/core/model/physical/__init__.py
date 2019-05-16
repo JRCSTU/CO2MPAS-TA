@@ -53,13 +53,13 @@ dsp.add_dispatcher(
     dsp_id='driver_model',
     dsp=_driver,
     inputs=(
-        'accelerations', 'bag_phases', 'climbing_force', 'cycle_type',
-        'downscale_factor', 'downscale_factor_threshold', 'downscale_phases',
-        'engine_max_power', 'engine_max_speed', 'engine_speed_at_max_power',
-        'full_load_curve', 'gear_box_type', 'gears', 'idle_engine_speed',
-        'inertial_factor', 'k1', 'k2', 'k5', 'max_gear', 'wltp_class',
-        'max_speed_velocity_ratio', 'max_time', 'max_velocity', 'motive_powers',
-        'road_loads', 'speed_velocity_ratios', 'time_sample_frequency', 'times',
+        'accelerations', 'bag_phases', 'cycle_type', 'downscale_factor',
+        'downscale_factor_threshold', 'downscale_phases', 'engine_max_power',
+        'engine_max_speed', 'engine_speed_at_max_power', 'full_load_curve',
+        'gear_box_type', 'gears', 'idle_engine_speed', 'inertial_factor', 'k1',
+        'k2', 'k5', 'max_gear', 'wltp_class', 'max_speed_velocity_ratio',
+        'max_time', 'max_velocity', 'motive_powers', 'road_loads',
+        'speed_velocity_ratios', 'time_sample_frequency', 'times',
         'unladen_mass', 'vehicle_mass', 'velocities', 'wltp_base_model',
         'use_driver', 'path_velocities', 'path_distances', 'static_friction',
         'wheel_drive_load_fraction', 'distances', 'auxiliaries_power_loss',
@@ -88,10 +88,10 @@ dsp.add_dispatcher(
         'tyre_state', 'road_state', 'static_friction'
     ),
     outputs=(
-        'accelerations', 'angle_slopes', 'climbing_force', 'curb_mass',
-        'distances', 'f0', 'f1', 'f2', 'inertial_factor', 'motive_powers',
-        'n_dyno_axes', 'road_loads', 'unladen_mass', 'vehicle_mass',
-        'velocities', 'vehicle_prediction_model', 'wheel_drive_load_fraction',
+        'accelerations', 'angle_slopes', 'curb_mass', 'distances', 'f0', 'f1',
+        'f2', 'inertial_factor', 'motive_powers', 'n_dyno_axes', 'road_loads',
+        'unladen_mass', 'vehicle_mass', 'velocities',
+        'vehicle_prediction_model', 'wheel_drive_load_fraction',
         'traction_acceleration_limits', 'static_friction'
     )
 )

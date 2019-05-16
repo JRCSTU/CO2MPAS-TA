@@ -174,7 +174,7 @@ def get_class_velocities(class_data, times):
     return np.interp(times, np.arange(len(vel)), vel)
 
 
-i = ['vehicle_mass', 'climbing_force', 'road_loads', 'inertial_factor', 'times']
+i = ['vehicle_mass', 'road_loads', 'inertial_factor', 'times']
 dsp.add_function(
     function=sh.SubDispatchPipe(
         _vehicle,

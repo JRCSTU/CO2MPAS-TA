@@ -65,7 +65,7 @@ dsp.add_dispatcher(
     dsp=_vel,
     inputs=(
         'times', 'base_model', 'velocities', 'speed_velocity_ratios',
-        'inertial_factor', 'downscale_phases', 'climbing_force', 'max_velocity',
+        'inertial_factor', 'downscale_phases', 'max_velocity',
         'downscale_factor', 'downscale_factor_threshold', 'vehicle_mass',
         'unladen_mass', 'road_loads', 'engine_max_power', 'wltp_class',
         'engine_speed_at_max_power', 'max_speed_velocity_ratio'

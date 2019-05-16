@@ -66,7 +66,7 @@ dsp.add_dispatcher(
     include_defaults=True,
     dsp=_wltp_cycle,
     inputs=(
-        'accelerations', 'climbing_force', 'downscale_factor', 'motive_powers',
+        'accelerations', 'downscale_factor', 'motive_powers',
         'downscale_factor_threshold', 'downscale_phases', 'engine_max_power',
         'engine_speed_at_max_power', 'full_load_curve', 'gear_box_type',
         'gears', 'idle_engine_speed', 'speed_velocity_ratios', 'max_velocity',
