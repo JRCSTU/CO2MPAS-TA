@@ -133,7 +133,7 @@ class TorqueConverter:
         (lm_vel, lm_acc), predict = params, self.regressor.predict
 
         def _next(i):
-            v, a = accelerations[i], velocities[i]
+            a, v = accelerations[i], velocities[i]
             # From issue #179 add lock up mode in torque converter.
             if v < lm_vel and a > lm_acc:
                 return predict([[a, v, gear_box_speeds_in[i], gears[i]]])[0]
