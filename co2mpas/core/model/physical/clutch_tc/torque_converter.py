@@ -316,3 +316,58 @@ def default_tc_k_factor_curve():
     par = dfl.functions.default_tc_k_factor_curve
     a = par.STAND_STILL_TORQUE_RATIO, par.LOCKUP_SPEED_RATIO
     return define_k_factor_curve(*a)
+
+
+@sh.add_function(
+    dsp, outputs=['m1000_curve_ratios', 'm1000_curve_norm_torques'], weight=2
+)
+def default_tc_normalized_m1000_curve():
+    """
+    Returns default `m1000_curve_ratios` and `m1000_curve_norm_torques`.
+
+    :return:
+        Speed ratios and normalized torques of m1000 curve.
+    :rtype: tuple[numpy.array]
+    """
+
+    from ..defaults import dfl
+    curve = dfl.functions.default_tc_normailzed_m1000_curve.curve
+    return np.array(curve['x']), np.array(curve['y'])
+
+
+@sh.add_function(dsp, outputs=['normalized_m1000_curve'], weight=2)
+def define_normalized_m1000_curve(m1000_curve_ratios, m1000_curve_norm_torques):
+    """
+    Defines normalized m1000 curve function.
+
+    :param m1000_curve_ratios:
+        Speed ratios of m1000 curve [-].
+    :type m1000_curve_ratios: numpy.array
+
+    :param m1000_curve_norm_torques:
+        Normalized torques of m1000 curve [-].
+    :type m1000_curve_norm_torques: numpy.array
+
+    :return:
+        Normalized m1000 curve function.
+    :rtype: callable
+    """
+    from scipy.interpolate import interp1d
+    return interp1d(m1000_curve_ratios, m1000_curve_norm_torques)
+
+
+@sh.add_function(dsp, outputs=['m1000_curve_factor'])
+def default_m1000_curve_factor(full_load_curve):
+    """
+    Returns the default value of the rescaling factor of m1000 curve [N*m].
+
+    :param full_load_curve:
+        Vehicle full load curve.
+    :type full_load_curve: function
+
+    :return:
+        Rescaling factor of m1000 curve [N*m].
+    :rtype: float
+    """
+    from ..wheels import calculate_wheel_torques
+    return calculate_wheel_torques(full_load_curve(1000), 1000) / 1e6
