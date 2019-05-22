@@ -331,7 +331,7 @@ def default_tc_normalized_m1000_curve():
     """
 
     from ..defaults import dfl
-    curve = dfl.functions.default_tc_normailzed_m1000_curve.curve
+    curve = dfl.functions.default_tc_normalized_m1000_curve.curve
     return np.array(curve['x']), np.array(curve['y'])
 
 
