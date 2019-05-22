@@ -487,7 +487,9 @@ def _compile_traction_acceleration_limits(
     return _func
 
 
-@sh.add_function(dsp, outputs=['traction_acceleration_limits'])
+@sh.add_function(
+    dsp, outputs=['traction_deceleration_limit', 'traction_acceleration_limit']
+)
 def calculate_traction_acceleration_limits(
         static_friction, wheel_drive_load_fraction, angle_slopes):
     """
@@ -507,7 +509,7 @@ def calculate_traction_acceleration_limits(
 
     :return:
         Traction acceleration limits (i.e., deceleration, acceleration) [m/s2].
-    :rtype: tuple[float]
+    :rtype: tuple[numpy.array]
     """
     return _compile_traction_acceleration_limits(
         static_friction, wheel_drive_load_fraction

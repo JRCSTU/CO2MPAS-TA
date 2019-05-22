@@ -84,15 +84,16 @@ dsp.add_dispatcher(
         'road_loads', 'rolling_resistance_coeff', 'times', 'tyre_category',
         'tyre_class', 'unladen_mass', 'vehicle_body', 'vehicle_category',
         'vehicle_height', 'vehicle_mass', 'vehicle_width', 'velocities',
-        'traction_acceleration_limits', 'wheel_drive_load_fraction', 'n_wheel',
-        'tyre_state', 'road_state', 'static_friction'
+        'traction_acceleration_limit', 'traction_deceleration_limit',
+        'wheel_drive_load_fraction', 'n_wheel', 'tyre_state', 'road_state',
+        'static_friction', 'initial_velocity'
     ),
     outputs=(
         'accelerations', 'angle_slopes', 'curb_mass', 'distances', 'f0', 'f1',
         'f2', 'inertial_factor', 'motive_powers', 'n_dyno_axes', 'road_loads',
-        'unladen_mass', 'vehicle_mass', 'velocities',
+        'unladen_mass', 'vehicle_mass', 'velocities', 'static_friction',
         'vehicle_prediction_model', 'wheel_drive_load_fraction',
-        'traction_acceleration_limits', 'static_friction'
+        'traction_acceleration_limit', 'traction_deceleration_limit'
     )
 )
 
