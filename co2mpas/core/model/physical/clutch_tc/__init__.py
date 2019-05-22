@@ -168,6 +168,8 @@ dsp.add_dispatcher(
         'lock_up_tc_limits', 'lockup_speed_ratio',
         'stand_still_torque_ratio', 'stop_velocity', 'times',
         'torque_converter_model', 'velocities',
+        'm1000_curve_factor', 'm1000_curve_ratios', 'm1000_curve_norm_torques',
+        'full_load_curve', 'gear_box_torques_in',
         {'clutch_tc_speeds_delta': 'torque_converter_speeds_delta',
          'engine_speeds_out_hot':
              ('gear_box_speeds_in', 'engine_speeds_out_hot'),
@@ -175,7 +177,8 @@ dsp.add_dispatcher(
          'has_torque_converter': sh.SINK}),
     outputs=(
         'k_factor_curve', 'torque_converter_model',
-        'init_clutch_tc_speed_prediction_model',
+        'init_clutch_tc_speed_prediction_model','normalized_m1000_curve',
+        'm1000_curve_factor',
         {'torque_converter_speeds_delta': 'clutch_tc_speeds_delta'})
 )
 
