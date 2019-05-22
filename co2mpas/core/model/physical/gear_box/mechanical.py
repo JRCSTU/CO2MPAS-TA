@@ -518,21 +518,37 @@ def identify_max_gear(speed_velocity_ratios):
     return int(max(speed_velocity_ratios))
 
 
-@sh.add_function(dsp, outputs=['first_gear_box_ratio', 'last_gear_box_ratio'])
-def identify_first_last_gear_box_ratios(gear_box_ratios):
+@sh.add_function(dsp, outputs=['first_gear_box_ratio'])
+def identify_first_gear_box_ratio(gear_box_ratios):
     """
-    Identify the gear box ratio of first and last gears.
+    Identify the gear box ratio of first gear.
 
     :param gear_box_ratios:
         Gear box ratios [-].
     :type gear_box_ratios: dict[int, float | int]
 
     :return:
-        Gear box ratio of first and last gears [-, -].
-    :return: float, float
+        Gear box ratio of first gear [-].
+    :return: float
+    """
+    return gear_box_ratios.get(1, sh.NONE)
+
+
+@sh.add_function(dsp, outputs=['last_gear_box_ratio'])
+def identify_last_gear_box_ratio(gear_box_ratios):
+    """
+    Identify the gear box ratio of last gear.
+
+    :param gear_box_ratios:
+        Gear box ratios [-].
+    :type gear_box_ratios: dict[int, float | int]
+
+    :return:
+        Gear box ratio of last gear [-].
+    :return: float
     """
     # noinspection PyUnresolvedReferences
-    return gear_box_ratios[1], max(gear_box_ratios.items())[1]
+    return max(gear_box_ratios.items())[1]
 
 
 @sh.add_function(dsp, outputs=['engine_speed_at_max_velocity'])
