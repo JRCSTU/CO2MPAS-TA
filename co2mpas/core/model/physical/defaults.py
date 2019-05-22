@@ -218,6 +218,21 @@ class Values(co2_utl.Constants):
 class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
 
+    class default_tc_normalized_m1000_curve(co2_utl.Constants):
+        #: Normalized m1000 curve [-].
+        curve = dict(
+            x=[
+                0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.7, 0.75, 0.8, 0.87,
+                0.9, 0.95, 1, 1.1, 1.222, 1.375, 1.571, 1.833, 2.2, 2.5, 3, 3.5,
+                4, 4.5, 5
+            ],
+            y=[
+                1, 0.97, 0.93, 0.9, 0.87, 0.83, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55,
+                0.5, 0.25, 0, -0.099, -0.198, -0.336, -0.535, -0.828, -1.306,
+                -1.781, -2.772, -4.071, -5.746, -7.861, -10.480
+            ]
+        )
+
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class define_max_acceleration_model(co2_utl.Constants):
         #: Factor to reduce the maximum acceleration [-].
