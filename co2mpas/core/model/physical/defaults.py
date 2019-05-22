@@ -239,7 +239,7 @@ class Functions(co2_utl.Constants):
         factor = dict(manual=.0, automatic=2 / 3)
 
         #: Time window from last gear shift where to apply the correction [s].
-        clutch_acceleration_window = 1
+        clutch_acceleration_window = .5
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class default_n_wheel(co2_utl.Constants):
