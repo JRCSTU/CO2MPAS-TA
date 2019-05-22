@@ -18,7 +18,7 @@ dsp = sh.BlueDispatcher(
 dsp.add_data('idle_engine_speed_std', dfl.values.idle_engine_speed_std, 20)
 
 
-@sh.add_function(dsp, outputs=['idle_model_detector'], weigth=100)
+@sh.add_function(dsp, outputs=['idle_model_detector'], weight=100)
 def define_idle_model_detector(
         velocities, engine_speeds_out, stop_velocity, min_engine_on_speed):
     """

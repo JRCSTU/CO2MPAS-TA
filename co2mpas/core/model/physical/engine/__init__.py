@@ -121,7 +121,7 @@ def default_ignition_type(engine_type):
     return 'positive'
 
 
-@sh.add_function(dsp, outputs=['ignition_type'], weigth=1)
+@sh.add_function(dsp, outputs=['ignition_type'], weight=1)
 def default_ignition_type_v1(fuel_type):
     """
     Returns the default ignition type according to the fuel type.
