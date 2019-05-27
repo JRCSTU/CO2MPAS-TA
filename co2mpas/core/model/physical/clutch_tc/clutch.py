@@ -26,9 +26,7 @@ def default_clutch_window():
         Clutching time window [s].
     :rtype: tuple
     """
-    if dfl.functions.default_clutch_window.ENABLE:
-        return dfl.functions.default_clutch_window.clutch_window
-    return sh.NONE
+    return dfl.functions.default_clutch_window.clutch_window
 
 
 @sh.add_function(dsp, outputs=['clutch_phases'])
@@ -73,95 +71,6 @@ def calculate_clutch_phases(
         b |= ((t + dn) <= times) & (times <= (t + up))
     b &= (gears > 0) & (velocities > stop_velocity)
     return b
-
-
-dsp.add_data('max_clutch_window_width', dfl.values.max_clutch_window_width)
-
-
-@sh.add_function(dsp, outputs=['clutch_window'])
-def identify_clutch_window(
-        times, accelerations, gear_shifts, engine_speeds_out,
-        engine_speeds_out_hot, cold_start_speeds_delta,
-        max_clutch_window_width, velocities, gear_box_speeds_in, gears,
-        stop_velocity):
-    """
-    Identifies clutching time window [s].
-
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
-    :param accelerations:
-        Acceleration vector [m/s2].
-    :type accelerations: numpy.array
-
-    :param gear_shifts:
-        When there is a gear shifting [-].
-    :type gear_shifts: numpy.array
-
-    :param engine_speeds_out:
-        Engine speed [RPM].
-    :type engine_speeds_out: numpy.array
-
-    :param engine_speeds_out_hot:
-        Engine speed at hot condition [RPM].
-    :type engine_speeds_out_hot: numpy.array
-
-    :param cold_start_speeds_delta:
-        Engine speed delta due to the cold start [RPM].
-    :type cold_start_speeds_delta: numpy.array
-
-    :param max_clutch_window_width:
-        Maximum clutch window width [s].
-    :type max_clutch_window_width: float
-
-    :param velocities:
-        Velocity vector [km/h].
-    :type velocities: numpy.array
-
-    :param gear_box_speeds_in:
-        Gear box speed vector [RPM].
-    :type gear_box_speeds_in: numpy.array
-
-    :param gears:
-        Gear vector [-].
-    :type gears: numpy.array
-
-    :param stop_velocity:
-        Maximum velocity to consider the vehicle stopped [km/h].
-    :type stop_velocity: float
-
-    :return:
-        Clutching time window [s].
-    :rtype: tuple
-    """
-
-    if not gear_shifts.any():
-        return 0.0, 0.0
-    from co2mpas.utils import mae
-    delta = engine_speeds_out - engine_speeds_out_hot - cold_start_speeds_delta
-
-    x = np.column_stack((accelerations, velocities, gear_box_speeds_in, gears))
-
-    calculate_c_p = functools.partial(
-        calculate_clutch_phases, times, velocities, gears, gear_shifts,
-        stop_velocity
-    )
-
-    def _error(v):
-        dn, up = v
-        if up - dn > max_clutch_window_width:
-            return np.inf
-        clutch_phases = calculate_c_p(v)
-        model = calibrate_clutch_prediction_model(
-            times, clutch_phases, accelerations, delta, velocities,
-            gear_box_speeds_in, gears)
-        return np.float32(mae(delta, model.model(times, clutch_phases, x)))
-
-    dt = max_clutch_window_width
-    ns = int(dt / max(np.min(np.diff(times)), 0.5)) + 1
-    import scipy.optimize as sci_opt
-    return tuple(sci_opt.brute(_error, ((-dt, 0), (dt, 0)), Ns=ns, finish=None))
 
 
 @sh.add_function(dsp, outputs=['clutch_speeds_delta'])

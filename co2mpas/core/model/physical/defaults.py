@@ -274,9 +274,6 @@ class Functions(co2_utl.Constants):
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class default_clutch_window(co2_utl.Constants):
-        #: Enable function?
-        ENABLE = True
-
         #: Clutching time window [s].
         clutch_window = (-0.89230769, 0.95384615)
 
