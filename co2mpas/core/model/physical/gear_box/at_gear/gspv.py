@@ -183,8 +183,9 @@ class GSPV(CMV):
             limits = [dfl.INF, 0]
 
             for v in self.cloud.values():
-                limits[0] = min(min(v[1][0]), limits[0])
-                limits[1] = max(max(v[1][0]), limits[1])
+                if v[1][0]:
+                    limits[0] = min(min(v[1][0]), limits[0])
+                    limits[1] = max(max(v[1][0]), limits[1])
 
             K, X = zip(*[(k, v) for k, v in sorted(n_vsr.items())])
             cloud = self.cloud = {}
