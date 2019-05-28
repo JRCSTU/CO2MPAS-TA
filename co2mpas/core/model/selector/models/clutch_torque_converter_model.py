@@ -16,13 +16,13 @@ from ...physical.engine import calculate_engine_speeds_out
 name = 'clutch_torque_converter_model'
 
 #: Parameters that constitute the model.
-models = ['clutch_window', 'clutch_model', 'torque_converter_model']
+models = ['clutch_window', 'clutch_speed_model', 'torque_converter_speed_model']
 
 #: Inputs required to run the model.
 inputs = [
     'gear_box_speeds_in', 'on_engine', 'idle_engine_speed', 'gear_box_type',
     'gears', 'accelerations', 'times', 'gear_shifts', 'engine_speeds_out_hot',
-    'velocities', 'lock_up_tc_limits', 'has_torque_converter'
+    'velocities', 'has_torque_converter', 'gear_box_torques_in'
 ]
 
 #: Relevant outputs of the model.

@@ -204,18 +204,6 @@ def _np_array_positive(dtype=None, error=None, read=True,
 
 
 # noinspection PyUnusedLocal
-def _clutch_model(error=None, **kwargs):
-    from ..model.physical.clutch_tc.clutch import ClutchModel
-    return _type(type=ClutchModel, error=error)
-
-
-# noinspection PyUnusedLocal
-def _torque_converter_model(error=None, **kwargs):
-    from ..model.physical.clutch_tc.torque_converter import TorqueConverter
-    return _type(type=TorqueConverter, error=error)
-
-
-# noinspection PyUnusedLocal
 def _alternator_current_model(error=None, **kwargs):
     from ..model.physical.electrics import AlternatorCurrentModel
     return _type(type=AlternatorCurrentModel, error=error)
@@ -634,7 +622,7 @@ def define_data_schema(read=True):
         'alternator_charging_currents': tuplefloat2,
         'alternator_current_model': _alternator_current_model(read=read),
         'alternator_status_model': _alternator_status_model(read=read),
-        'clutch_model': _clutch_model(read=read),
+        'clutch_speed_model': function,
         'co2_emissions_model': function,
         'co2_error_function_on_emissions': function,
         'co2_error_function_on_phases': function,
@@ -685,7 +673,7 @@ def define_data_schema(read=True):
                             read=read),
         'start_stop_model': _start_stop_model(read=read),
         'gear_box_temperature_references': tuplefloat2,
-        'torque_converter_model': _torque_converter_model(read=read),
+        'torque_converter_speed_model': function,
         'phases_co2_emissions': tuplefloat,
         'bag_phases': _bag_phases(read=read),
         'phases_integration_times':

@@ -10,7 +10,7 @@ Functions and constants to define the engine_speed_model selector.
 import schedula as sh
 from ._core import define_sub_model
 from ...physical import dsp as _physical
-from ...physical.clutch_tc.clutch import calculate_clutch_phases
+from ...physical.clutch_tc import calculate_clutch_phases
 
 #: Model name.
 name = 'engine_speed_model'

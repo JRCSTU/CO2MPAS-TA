@@ -182,20 +182,21 @@ dsp.add_dispatcher(
     dsp=_clutch_torque_converter,
     dsp_id='clutch_torque_converter_model',
     inputs=(
-        'accelerations', 'calibration_tc_speed_threshold', 'clutch_model',
+        'accelerations', 'clutch_speed_model',
         'clutch_window', 'cold_start_speeds_delta', 'engine_speeds_out',
         'engine_speeds_out_hot', 'gear_box_powers_in', 'gear_box_speeds_in',
         'gear_box_type', 'gear_shifts', 'gears', 'has_torque_converter',
-        'lock_up_tc_limits', 'lockup_speed_ratio', 'stand_still_torque_ratio',
-        'stop_velocity', 'times', 'torque_converter_model', 'velocities',
+        'lockup_speed_ratio', 'stand_still_torque_ratio',
+        'stop_velocity', 'times', 'torque_converter_speed_model', 'velocities',
         'm1000_curve_factor', 'm1000_curve_ratios', 'm1000_curve_norm_torques',
-        'full_load_curve', 'gear_box_torques_in'
+        'full_load_curve', 'gear_box_torques_in', 'idle_engine_speed',
+        'engine_max_speed'
     ),
     outputs=(
-        'clutch_model', 'clutch_phases', 'clutch_tc_powers', 'clutch_window',
-        'clutch_tc_speeds_delta', 'has_torque_converter', 'lockup_speed_ratio',
-        'stand_still_torque_ratio', 'torque_converter_model',
-        'clutch_tc_prediction_model', 'normalized_m1000_curve',
+        'clutch_speed_model', 'clutch_phases', 'clutch_tc_powers',
+        'clutch_window', 'clutch_tc_speeds_delta', 'has_torque_converter',
+        'lockup_speed_ratio', 'stand_still_torque_ratio',
+        'torque_converter_speed_model', 'clutch_tc_prediction_model',
         'm1000_curve_factor'
     )
 )
@@ -333,6 +334,7 @@ OUTPUTS_PREDICTION_LOOP = [
     'battery_currents',
     'state_of_charges',
 
+    'clutch_phases',
     'clutch_tc_speeds_delta',
     'clutch_tc_powers'
 ]
@@ -426,7 +428,8 @@ def prediction_loop(
     ctc = clutch_tc_prediction_model.init_results(
         outputs['accelerations'], outputs['velocities'],
         outputs['gear_box_speeds_in'], outputs['gears'], outputs['times'],
-        outputs['gear_box_powers_in'], outputs['engine_speeds_out_hot']
+        outputs['gear_box_powers_in'], outputs['engine_speeds_out_hot'],
+        outputs['gear_box_torques_in']
     )
 
     for _ in driver_prediction_model.yield_results(

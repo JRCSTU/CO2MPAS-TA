@@ -203,12 +203,6 @@ class Values(co2_utl.Constants):
     #: Velocity downscale factor threshold [-].
     downscale_factor_threshold = 0.01
 
-    #: Calibration torque converter speeds delta threshold [RPM].
-    calibration_tc_speed_threshold = 100.0
-
-    #: Limits (vel, acc) when torque converter is active [km/h, m/s2].
-    lock_up_tc_limits = (48.0, 0.3)
-
     #: Empirical value in case of CVT [-].
     tyre_dynamic_rolling_coefficient = 3.05 / 3.14
 
@@ -218,6 +212,12 @@ class Values(co2_utl.Constants):
 class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
 
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+    class predict_clutch_tc_speeds_delta(co2_utl.Constants):
+        #: Enable prediction of clutch or torque converter speeds delta?
+        ENABLE = False
+
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class default_tc_normalized_m1000_curve(co2_utl.Constants):
         #: Normalized m1000 curve [-].
         curve = dict(
@@ -275,7 +275,7 @@ class Functions(co2_utl.Constants):
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class default_clutch_window(co2_utl.Constants):
         #: Clutching time window [s].
-        clutch_window = (-0.89230769, 0.95384615)
+        clutch_window = (0, 0.95384615)
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class define_fuel_type_and_is_hybrid(co2_utl.Constants):
