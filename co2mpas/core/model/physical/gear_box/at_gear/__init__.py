@@ -396,7 +396,7 @@ class CorrectGear:
                             break
                         g0 = g
                         if v is None and t >= t1:
-                            v = matrix[g][k] - g <= 2
+                            v = next_gear(g, k) - g <= 2
                         if t >= t2:
                             if g <= r:
                                 if v:
