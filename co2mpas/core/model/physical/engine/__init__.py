@@ -690,7 +690,6 @@ def calculate_uncorrected_engine_powers_out(
         Uncorrected engine power [kW].
     :rtype: numpy.array
     """
-    from scipy.misc import derivative
     from scipy.interpolate import InterpolatedUnivariateSpline as Spline
 
     p, b = np.zeros_like(clutch_tc_powers, dtype=float), on_engine
@@ -705,7 +704,7 @@ def calculate_uncorrected_engine_powers_out(
         p[b] += alternator_powers_demand[b]
 
     p_ine = engine_moment_inertia / 2000 * (2 * math.pi / 60) ** 2
-    p += p_ine * derivative(Spline(times, engine_speeds_out, k=1), times) ** 2
+    p += p_ine * Spline(times, engine_speeds_out).derivative()(times) ** 2
 
     return p
 

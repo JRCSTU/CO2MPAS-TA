@@ -211,7 +211,8 @@ class DriverModel(BaseModel):
                  driver_style_ratio=None, static_friction=None,
                  wheel_drive_load_fraction=None, gear_box_type=None,
                  auxiliaries_power_loss=None, auxiliaries_torque_loss=None,
-                 maximum_velocity=None, outputs=None):
+                 maximum_velocity=None, engine_moment_inertia=None,
+                 outputs=None):
         from .logic import dsp as _logic, define_max_acceleration_model as f
         if path_distances is not None:
             self.stop_distance = path_distances[-1]
@@ -219,6 +220,7 @@ class DriverModel(BaseModel):
             d.set_default_value('path_distances', path_distances)
             d.set_default_value('path_velocities', path_velocities)
             d.set_default_value('full_load_curve', full_load_curve)
+            d.set_default_value('engine_moment_inertia', engine_moment_inertia)
             d.set_default_value(
                 'max_acceleration_model',
                 f(road_loads, vehicle_mass, inertial_factor,
@@ -340,7 +342,8 @@ def define_driver_prediction_model(
         path_velocities, path_distances, full_load_curve, time_sample_frequency,
         road_loads, vehicle_mass, inertial_factor, driver_style_ratio,
         static_friction, wheel_drive_load_fraction, gear_box_type,
-        auxiliaries_power_loss, auxiliaries_torque_loss, maximum_velocity):
+        auxiliaries_power_loss, auxiliaries_torque_loss, maximum_velocity,
+        engine_moment_inertia):
     """
     Defines the driver prediction model.
 
@@ -400,6 +403,10 @@ def define_driver_prediction_model(
         Maximum velocity [km/h].
     :type maximum_velocity: float
 
+    :param engine_moment_inertia:
+        Engine moment of inertia [kg*m2].
+    :type engine_moment_inertia: float
+
     :return:
         Diver prediction model.
     :rtype: DriverModel
@@ -408,5 +415,6 @@ def define_driver_prediction_model(
         path_velocities, path_distances, full_load_curve, time_sample_frequency,
         road_loads, vehicle_mass, inertial_factor, driver_style_ratio,
         static_friction, wheel_drive_load_fraction, gear_box_type,
-        auxiliaries_power_loss, auxiliaries_torque_loss, maximum_velocity
+        auxiliaries_power_loss, auxiliaries_torque_loss, maximum_velocity,
+        engine_moment_inertia
     )

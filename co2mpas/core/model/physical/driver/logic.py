@@ -8,6 +8,7 @@
 """
 Functions and a model `dsp` to define driver logic.
 """
+import math
 import numpy as np
 import schedula as sh
 from ..defaults import dfl
@@ -105,7 +106,9 @@ def calculate_desired_velocity(path_distances, path_velocities, distance):
 @sh.add_function(dsp, outputs=['maximum_motive_power'])
 def calculate_maximum_motive_power(
         simulation_model, time, full_load_curve, delta_time,
-        auxiliaries_power_loss, auxiliaries_torque_loss):
+        auxiliaries_power_loss, auxiliaries_torque_loss, previous_velocity,
+        previous_time, angle_slope, max_acceleration_model,
+        engine_moment_inertia, velocity):
     """
     Calculate maximum motive power [kW].
 
@@ -133,21 +136,58 @@ def calculate_maximum_motive_power(
         Constant torque loss due to engine auxiliaries [N*m].
     :type auxiliaries_torque_loss: float
 
+    :param previous_velocity:
+        Previous velocity [km/h].
+    :type previous_velocity: float
+
+    :param previous_time:
+        Previous time [s].
+    :type previous_time: float
+
+    :param angle_slope:
+        Angle slope [rad].
+    :type angle_slope: float
+
+    :param max_acceleration_model:
+        Maximum acceleration model.
+    :type max_acceleration_model: function
+
+    :param engine_moment_inertia:
+        Engine moment of inertia [kg*m2].
+    :type engine_moment_inertia: float
+
+    :param velocity:
+        Velocity [km/h].
+    :type velocity: float
+
     :return:
         Maximum motive power [kW].
     :rtype: float
     """
-    simulation_model(0, time + delta_time)
-    m_p, c_p, a_p, e_s, on, ds = simulation_model.select(
-        'motive_powers', 'clutch_tc_powers', 'alternator_powers_demand',
-        'engine_speeds_out_hot', 'on_engine', 'clutch_tc_speeds_delta'
-    )
-    eso = e_s + ds
-    p = full_load_curve(eso, left=None, right=None) - a_p
-    if on:
-        from ..wheels import calculate_wheel_powers as func
-        p -= func(auxiliaries_torque_loss, eso) + auxiliaries_power_loss
-    return p * (c_p and (m_p / c_p) or 1)
+    a, motive_power = 0, 0
+    emi = engine_moment_inertia / 2000 * (2 * math.pi / 60) ** 2
+    for i in range(5):
+        simulation_model(a, time + delta_time)
+        m_p, c_p, a_p, e_s, on, ds = simulation_model.select(
+            'motive_powers', 'clutch_tc_powers', 'alternator_powers_demand',
+            'engine_speeds_out_hot', 'on_engine', 'clutch_tc_speeds_delta'
+        )
+        eso = e_s + ds
+
+        p = full_load_curve(eso, left=None, right=None) - a_p
+        if on:
+            from ..wheels import calculate_wheel_powers as func
+            p -= func(auxiliaries_torque_loss, eso) + auxiliaries_power_loss
+
+        if velocity:
+            p -= emi * (eso / velocity * 3.6 * a) ** 2
+
+        motive_power = max(0, p * (c_p and (m_p / c_p) or 1))
+        a = max_acceleration_model(
+            simulation_model, previous_velocity, previous_time, angle_slope,
+            motive_power
+        )
+    return motive_power
 
 
 def _clutch_acceleration_factor(
