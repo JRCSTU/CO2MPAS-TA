@@ -108,7 +108,7 @@ def calculate_maximum_motive_power(
         simulation_model, time, full_load_curve, delta_time,
         auxiliaries_power_loss, auxiliaries_torque_loss, previous_velocity,
         previous_time, angle_slope, max_acceleration_model,
-        engine_moment_inertia, velocity):
+        engine_moment_inertia, velocity, idle_engine_speed):
     """
     Calculate maximum motive power [kW].
 
@@ -160,17 +160,22 @@ def calculate_maximum_motive_power(
         Velocity [km/h].
     :type velocity: float
 
+    :param idle_engine_speed:
+        Idle engine speed and its standard deviation [RPM].
+    :type idle_engine_speed: (float, float)
+
     :return:
         Maximum motive power [kW].
     :rtype: float
     """
-    a, motive_power = 0, 0
+    a, motive_power = 10, 0
     emi = engine_moment_inertia / 2000 * (2 * math.pi / 60) ** 2
     for i in range(5):
         simulation_model(a, time + delta_time)
-        m_p, c_p, a_p, e_s, on, ds = simulation_model.select(
+        m_p, c_p, a_p, e_s, on, ds, gbs = simulation_model.select(
             'motive_powers', 'clutch_tc_powers', 'alternator_powers_demand',
-            'engine_speeds_out_hot', 'on_engine', 'clutch_tc_speeds_delta'
+            'engine_speeds_out_hot', 'on_engine', 'clutch_tc_speeds_delta',
+            'gear_box_speeds_in'
         )
         eso = e_s + ds
 
@@ -179,14 +184,16 @@ def calculate_maximum_motive_power(
             from ..wheels import calculate_wheel_powers as func
             p -= func(auxiliaries_torque_loss, eso) + auxiliaries_power_loss
 
-        if velocity:
-            p -= emi * (eso / velocity * 3.6 * a) ** 2
+            if i and gbs >= idle_engine_speed[0]:
+                p -= emi * (eso / velocity * 3.6 * a) ** 2
 
-        motive_power = max(0, p * (c_p and (m_p / c_p) or 1))
+        motive_power = p * (c_p and (m_p / c_p) or 1)
         a = max_acceleration_model(
             simulation_model, previous_velocity, previous_time, angle_slope,
             motive_power
         )
+
+
     return motive_power
 
 
