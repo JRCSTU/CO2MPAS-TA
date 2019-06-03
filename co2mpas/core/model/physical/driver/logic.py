@@ -375,7 +375,7 @@ def calculate_desired_acceleration(
         Desired acceleration [m/s2].
     :rtype: float
     """
-    return maximum_acceleration #* driver_style_ratio * acceleration_damping
+    return maximum_acceleration * driver_style_ratio * acceleration_damping
 
 
 @sh.add_function(dsp, outputs=['acceleration', 'next_time'])

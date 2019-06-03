@@ -523,6 +523,9 @@ def define_data_schema(read=True):
             'cabriolet', 'sedan', 'hatchback', 'stationwagon', 'suv/crossover',
             'mpv', 'coupé', 'bus', 'bestelwagen', 'pick-up'
         ), read=read),
+        'driver_style': _select(types=(
+            'aggressive', 'normal', 'gentle'
+        ), read=read),
         'tyre_class': _select(types=('C1', 'C2', 'C3'), read=read),
         'tyre_category': _select(types='ABCDEFG', read=read),
         'engine_fuel_lower_heating_value': positive,
