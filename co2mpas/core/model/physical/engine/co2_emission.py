@@ -1348,8 +1348,9 @@ def calculate_extended_phases_co2_emissions(
         Extended CO2 emission of cycle phases [CO2g/km].
     :rtype: numpy.array
     """
-
-    return extended_cumulative_co2_emissions / extended_phases_distances
+    with np.errstate(divide='ignore', invalid='ignore'):
+        x = extended_cumulative_co2_emissions
+        return np.nan_to_num(x / extended_phases_distances)
 
 
 dsp.add_function(function=sh.bypass, weight=300, inputs=[
@@ -1947,7 +1948,8 @@ def calculate_phases_co2_emissions(
         i, j = np.searchsorted(times, p)
         co2.append(trapz(co2_emissions[i:j], times[i:j]))
 
-    return np.nan_to_num(np.array(co2) / phases_distances)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        return np.nan_to_num(np.array(co2) / phases_distances)
 
 
 @sh.add_function(dsp, outputs=['fuel_consumptions'])
