@@ -228,7 +228,7 @@ def _yield_files(*paths, cache=None):
             )
         elif osp.isfile(path) and path.endswith(ext):
             yield path
-        else:
+        elif path.endswith(ext):
             raise FileNotFoundError
 
 
