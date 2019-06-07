@@ -238,10 +238,11 @@ class CorrectGear:
             motive_powers, engine_coolant_temperatures, next_gear):
         if len(times) > len(motive_powers):
             times = times[:-1]
-        try:
+        if i == 0:
+            pg = gear
+        else:
             pg = gears[max(0, i - 1)]  # Previous gear.
-        except IndexError:
-            pg = 0
+
         power = motive_powers[i]  # Current power.
         t0 = times[i]
 

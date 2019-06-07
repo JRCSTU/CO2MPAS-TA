@@ -354,8 +354,16 @@ class CMV(collections.OrderedDict):
         )
 
         def _next(i):
-            g = get_valid_gear(valid_gears.min() if i == 0 else gears[i - 1])
-            return get_valid_gear(correct_gear(next_g(g, i), i, *args))
+            if i != 0:
+                g = gears[i - 1]
+                return get_valid_gear(correct_gear(next_g(g, i), i, *args))
+            g = valid_gears.min()
+            for _ in range(len(valid_gears) + 1):
+                g0 = g
+                g = get_valid_gear(correct_gear(next_g(g, i), i, *args))
+                if g == g0:
+                    break
+            return g
 
         return _next
 
