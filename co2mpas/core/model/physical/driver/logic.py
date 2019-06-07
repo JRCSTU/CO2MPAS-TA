@@ -424,11 +424,8 @@ def calculate_acceleration_and_next_time(
     from numpy.polynomial.polynomial import polyroots
     dt, v = time - previous_time, (velocity + previous_velocity) / 3.6
     d = 2 * (distance - maximum_distance)
-    a = polyroots((v ** 2, 2 * dt * v - 4 * d, dt ** 2))
-    if desired_acceleration > 0:
-        a = max(desired_acceleration, *a)
-    else:
-        a = max(desired_acceleration, min(a))
+    a = desired_acceleration
+    if desired_acceleration < 0:
         if dt > dfl.EPS and desired_acceleration < 0:
             a = max(a, -previous_velocity / dt / 3.6)
     a = not np.isclose(a, 0) and a or 0
