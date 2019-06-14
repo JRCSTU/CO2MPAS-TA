@@ -887,6 +887,16 @@ class Functions(co2_utl.Constants):
         cutoff_idle_ratio = 1.1
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+    class default_initial_drive_battery_state_of_charge(co2_utl.Constants):
+        # default initial state of charge of the drive battery [%].
+        initial_state_of_charge = {
+            'mild': 50,
+            'full': 60,
+            'plugin': 70,
+            'electric': 80
+        }
+
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class default_initial_service_battery_state_of_charge(co2_utl.Constants):
         # default initial state of charge of the service battery [%].
         initial_state_of_charge = {
