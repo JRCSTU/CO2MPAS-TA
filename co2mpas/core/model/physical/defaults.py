@@ -887,8 +887,8 @@ class Functions(co2_utl.Constants):
         cutoff_idle_ratio = 1.1
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-    class initial_service_battery_state_of_charge(co2_utl.Constants):
-        # default initial state of charge of the battery [%].
+    class default_initial_service_battery_state_of_charge(co2_utl.Constants):
+        # default initial state of charge of the service battery [%].
         initial_state_of_charge = {
             'WLTP': 90,
             'NEDC': 99
