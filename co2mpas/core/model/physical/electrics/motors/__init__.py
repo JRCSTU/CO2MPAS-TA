@@ -24,10 +24,29 @@ Sub-Modules:
 """
 
 import schedula as sh
+from .p0 import dsp as _p0
 from .p3 import dsp as _p3
 from .p4 import dsp as _p4
 
 dsp = sh.BlueDispatcher(name='Motors', description='Models the vehicle motors.')
+
+dsp.add_dispatcher(
+    dsp_id='motor_p0',
+    dsp=_p0,
+    inputs=(
+        'engine_speeds_out', 'motor_p0_speed_ratio', 'motor_p0_speeds',
+        'motor_p0_powers', 'motor_p0_torques', 'motor_p0_efficiency',
+        'motor_p0_electric_power_loss_function', 'motor_p0_loss_param_a',
+        'motor_p0_loss_param_b', 'motor_p0_electric_powers',
+    ),
+    outputs=(
+        'motor_p0_speed_ratio', 'motor_p0_speeds', 'motor_p0_powers',
+        'motor_p0_torques', 'motor_p0_efficiency', 'motor_p0_electric_powers',
+        'motor_p0_efficiency_ratios'
+    ),
+    include_defaults=True
+)
+
 
 dsp.add_dispatcher(
     dsp_id='motor_p3',
