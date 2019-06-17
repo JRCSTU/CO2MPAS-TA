@@ -343,11 +343,11 @@ def calculate_drive_battery_delta_state_of_charge(
 
 
 @sh.add_function(dsp, outputs=['drive_battery_r0', 'drive_battery_ocv'])
-def calibrate_driver_battery_r0_and_ocv(
+def calibrate_drive_battery_r0_and_ocv(
         drive_battery_n_parallel_cells, drive_battery_n_series_cells,
         drive_battery_currents, drive_battery_voltages):
     """
-    Calibrate driver battery resistance and open circuit voltage [ohm, V].
+    Calibrate drive battery resistance and open circuit voltage [ohm, V].
 
     :param drive_battery_n_parallel_cells:
         Number of battery cells in parallel [-].
@@ -382,12 +382,12 @@ dsp.add_data('drive_battery_n_parallel_cells', 1)
 dsp.add_data('drive_battery_n_series_cells', 1)
 
 
-@sh.add_function(dsp, outputs=['maximum_driver_battery_electric_power'])
-def calculate_maximum_driver_battery_electric_power(
+@sh.add_function(dsp, outputs=['maximum_drive_battery_electric_power'])
+def calculate_maximum_drive_battery_electric_power(
         drive_battery_r0, drive_battery_ocv, drive_battery_n_parallel_cells,
         drive_battery_n_series_cells):
     """
-    Calculate the maximum admissible electric power of driver battery [kW].
+    Calculate the maximum admissible electric power of drive battery [kW].
 
     :param drive_battery_r0:
         Driver battery resistance [ohm].
@@ -406,7 +406,7 @@ def calculate_maximum_driver_battery_electric_power(
     :type drive_battery_n_series_cells: int
 
     :return:
-        Maximum admissible electric power of driver battery [kW].
+        Maximum admissible electric power of drive battery [kW].
     :rtype: float
     """
     if not drive_battery_r0:
