@@ -20,7 +20,7 @@ dsp = sh.BlueDispatcher(
 @sh.add_function(dsp, outputs=['motor_p4_speed_ratio'])
 def identify_motor_p4_speed_ratio(wheel_speeds, motor_p4_speeds):
     """
-    Identifies motor P4 speed ratio
+    Identifies motor P4 speed ratio.
 
     :param wheel_speeds:
         Rotating speed of the wheel [RPM].
@@ -31,7 +31,7 @@ def identify_motor_p4_speed_ratio(wheel_speeds, motor_p4_speeds):
     :type motor_p4_speeds: numpy.array | float
 
     :return:
-        Motor P4 speed ratio [-]
+        Motor P4 speed ratio [-].
     :rtype: float
     """
     b = wheel_speeds > 0
