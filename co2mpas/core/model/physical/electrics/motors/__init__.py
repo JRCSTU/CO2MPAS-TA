@@ -26,6 +26,7 @@ Sub-Modules:
 import schedula as sh
 from .p0 import dsp as _p0
 from .p3 import dsp as _p3
+from .p1 import dsp as _p1
 from .p2 import dsp as _p2
 from .p4 import dsp as _p4
 
@@ -44,6 +45,23 @@ dsp.add_dispatcher(
         'motor_p0_speed_ratio', 'motor_p0_speeds', 'motor_p0_powers',
         'motor_p0_torques', 'motor_p0_efficiency', 'motor_p0_electric_powers',
         'motor_p0_efficiency_ratios'
+    ),
+    include_defaults=True
+)
+
+dsp.add_dispatcher(
+    dsp_id='motor_p1',
+    dsp=_p1,
+    inputs=(
+        'engine_speeds_out', 'motor_p1_speed_ratio', 'motor_p1_speeds',
+        'motor_p1_powers', 'motor_p1_torques', 'motor_p1_efficiency',
+        'motor_p1_electric_power_loss_function', 'motor_p1_loss_param_a',
+        'motor_p1_loss_param_b', 'motor_p1_electric_powers'
+    ),
+    outputs=(
+        'motor_p1_speed_ratio', 'motor_p1_speeds', 'motor_p1_powers',
+        'motor_p1_torques', 'motor_p1_efficiency', 'motor_p1_electric_powers',
+        'motor_p1_efficiency_ratios'
     ),
     include_defaults=True
 )
