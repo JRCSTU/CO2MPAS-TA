@@ -26,6 +26,7 @@ Sub-Modules:
 import schedula as sh
 from .p0 import dsp as _p0
 from .p3 import dsp as _p3
+from .p2 import dsp as _p2
 from .p4 import dsp as _p4
 
 dsp = sh.BlueDispatcher(name='Motors', description='Models the vehicle motors.')
@@ -47,6 +48,22 @@ dsp.add_dispatcher(
     include_defaults=True
 )
 
+dsp.add_dispatcher(
+    dsp_id='motor_p2',
+    dsp=_p2,
+    inputs=(
+        'gear_box_speeds_in', 'motor_p2_speed_ratio', 'motor_p2_speeds',
+        'motor_p2_powers', 'motor_p2_torques', 'motor_p2_efficiency',
+        'motor_p2_electric_power_loss_function', 'motor_p2_loss_param_a',
+        'motor_p2_loss_param_b', 'motor_p2_electric_powers'
+    ),
+    outputs=(
+        'motor_p2_speed_ratio', 'motor_p2_speeds', 'motor_p2_powers',
+        'motor_p2_torques', 'motor_p2_efficiency', 'motor_p2_electric_powers',
+        'motor_p2_efficiency_ratios'
+    ),
+    include_defaults=True
+)
 
 dsp.add_dispatcher(
     dsp_id='motor_p3',
@@ -64,6 +81,11 @@ dsp.add_dispatcher(
     ),
     include_defaults=True
 )
+dsp = sh.BlueDispatcher(
+    name='Motors', description='Models the vehicle electric motors.'
+)
+
+
 
 dsp.add_dispatcher(
     dsp_id='motor_p4',
@@ -72,7 +94,7 @@ dsp.add_dispatcher(
         'wheel_speeds', 'motor_p4_speed_ratio', 'motor_p4_speeds',
         'motor_p4_powers', 'motor_p4_torques', 'motor_p4_efficiency',
         'motor_p4_electric_power_loss_function', 'motor_p4_loss_param_a',
-        'motor_p4_loss_param_b', 'motor_p4_electric_powers',
+        'motor_p4_loss_param_b', 'motor_p4_electric_powers'
     ),
     outputs=(
         'motor_p4_speed_ratio', 'motor_p4_speeds', 'motor_p4_powers',
