@@ -38,9 +38,10 @@ def identify_motor_p4_speed_ratio(wheel_speeds, motor_p4_speeds):
     return co2_utl.reject_outliers(motor_p4_speeds[b] / wheel_speeds[b])[0]
 
 
-@sh.add_function(
-    dsp, inputs_kwargs=True, inputs_defaults=True, outputs=['motor_p4_speeds']
-)
+dsp.add_data('motor_p4_speed_ratio', 1, sh.inf(10, 1))
+
+
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['motor_p4_speeds'])
 def calculate_motor_p4_speeds(wheel_speeds, motor_p4_speed_ratio=1):
     """
     Calculates rotating speed of motor P4 [RPM].
