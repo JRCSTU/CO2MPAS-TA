@@ -25,9 +25,9 @@ Sub-Modules:
 
 import schedula as sh
 from .p0 import dsp as _p0
-from .p3 import dsp as _p3
 from .p1 import dsp as _p1
 from .p2 import dsp as _p2
+from .p3 import dsp as _p3
 from .p4 import dsp as _p4
 
 dsp = sh.BlueDispatcher(name='Motors', description='Models the vehicle motors.')
@@ -99,10 +99,6 @@ dsp.add_dispatcher(
     ),
     include_defaults=True
 )
-dsp = sh.BlueDispatcher(
-    name='Motors', description='Models the vehicle electric motors.'
-)
-
 
 
 dsp.add_dispatcher(
