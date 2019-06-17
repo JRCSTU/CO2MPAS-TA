@@ -33,7 +33,7 @@ dsp.add_dispatcher(
     dsp_id='motor_p3',
     dsp=_p3,
     inputs=(
-        'wheel_speeds', 'motor_p3_speed_ratio', 'motor_p3_speeds',
+        'final_drive_speeds_in', 'motor_p3_speed_ratio', 'motor_p3_speeds',
         'motor_p3_powers', 'motor_p3_torques', 'motor_p3_efficiency',
         'motor_p3_electric_power_loss_function', 'motor_p3_loss_param_a',
         'motor_p3_loss_param_b', 'motor_p3_electric_powers',
