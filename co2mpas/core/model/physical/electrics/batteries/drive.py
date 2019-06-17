@@ -450,6 +450,6 @@ def calculate_drive_battery_currents_v2(
     n_p, n_s = drive_battery_n_parallel_cells, drive_battery_n_series_cells
     p = drive_battery_electric_powers
     r0, ocv = drive_battery_r0, drive_battery_ocv
-    x = ocv + np.nan_to_num(np.sqrt(ocv ** 2 - (4e3 * r0 / (n_s * n_p)) * p))
+    x = ocv - np.nan_to_num(np.sqrt(ocv ** 2 - (4e3 * r0 / (n_s * n_p)) * p))
     x *= n_p / (2 * r0)
     return x
