@@ -117,7 +117,7 @@ dsp.add_dispatcher(
     dsp=_status,
     inputs=(
         'stop_velocity', 'alternator_off_threshold', 'alternator_currents',
-        'velocities', 'on_engine', 'stop_velocity', 'times', 'engine_starts',
+        'velocities', 'on_engine', 'times', 'engine_starts',
         'alternator_current_threshold', 'alternator_start_window_width',
         'alternator_statuses', 'gear_box_powers_in', 'alternator_status_model',
         'alternator_initialization_time', 'service_battery_state_of_charges',

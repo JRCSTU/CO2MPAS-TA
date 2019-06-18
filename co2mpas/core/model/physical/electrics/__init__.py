@@ -31,7 +31,7 @@ dsp.add_dispatcher(
     dsp_id='motors',
     dsp=_motors,
     inputs=(
-        'engine_speeds_out', 'motor_p0_efficiency',
+        'engine_speeds_out', 'motor_p0_efficiency', 'wheel_speeds',
         'motor_p0_electric_power_loss_function', 'motor_p0_electric_powers',
         'motor_p0_loss_param_a', 'motor_p0_loss_param_b', 'motor_p0_powers',
         'motor_p0_speed_ratio', 'motor_p0_speeds', 'motor_p0_torques',
@@ -50,7 +50,18 @@ dsp.add_dispatcher(
         'motor_p4_electric_power_loss_function', 'motor_p4_electric_powers',
         'motor_p4_loss_param_a', 'motor_p4_loss_param_b', 'motor_p4_powers',
         'motor_p4_speed_ratio', 'motor_p4_speeds', 'motor_p4_torques',
-        'wheel_speeds',
+        'alternator_currents', 'alternator_nominal_voltage', 'stop_velocity',
+        'alternator_electric_powers', 'alternator_efficiency',
+        'alternator_off_threshold', 'velocities', 'on_engine', 'times',
+        'engine_starts', 'alternator_current_threshold',
+        'alternator_start_window_width', 'alternator_statuses',
+        'gear_box_powers_in', 'alternator_status_model',
+        'alternator_initialization_time', 'service_battery_state_of_charges',
+        'accelerations', 'service_battery_state_of_charge_balance',
+        'service_battery_state_of_charge_balance_window',
+        'alternator_charging_currents', 'alternator_current_model',
+        'engine_moment_inertia', 'starter_efficiency',
+        'delta_time_engine_starter'
     ),
     outputs=(
         'motor_p0_electric_power_loss_function', 'motor_p0_electric_powers',
@@ -68,7 +79,12 @@ dsp.add_dispatcher(
         'motor_p4_electric_power_loss_function', 'motor_p4_electric_powers',
         'motor_p4_powers', 'motor_p4_speed_ratio', 'motor_p4_speeds',
         'motor_p4_torques', 'motor_p4_efficiency_ratios',
-        'motors_electric_powers'
+
+        'alternator_current_threshold', 'alternator_current_model',
+        'alternator_initialization_time', 'alternator_status_model',
+        'service_battery_state_of_charge_balance', 'alternator_currents',
+        'service_battery_state_of_charge_balance_window', 'alternator_powers',
+        'alternator_electric_powers', 'alternator_statuses'
     ),
     include_defaults=True
 )
@@ -77,7 +93,8 @@ dsp.add_dispatcher(
     dsp_id='batteries',
     dsp=_batteries,
     inputs=(
-        'cycle_type', 'dcdc_converter_electric_powers', 'engine_powers_out',
+        'alternator_electric_powers', 'cycle_type',
+        'dcdc_converter_electric_powers', 'engine_powers_out',
         'initial_service_battery_state_of_charge', 'on_engine',
         'service_battery_capacity', 'service_battery_currents',
         'service_battery_electric_powers', 'service_battery_load',
@@ -90,20 +107,23 @@ dsp.add_dispatcher(
         'drive_battery_n_series_cells', 'drive_battery_ocv', 'drive_battery_r0',
         'drive_battery_state_of_charges', 'drive_battery_voltages',
         'electrical_hybridization_degree',
-        'initial_drive_battery_state_of_charge', 'motors_electric_powers',
-        'maximum_drive_battery_electric_power'
+        'initial_drive_battery_state_of_charge', 'motor_p0_electric_powers',
+        'motor_p1_electric_powers', 'motor_p2_electric_powers',
+        'motor_p3_electric_powers', 'motor_p4_electric_powers'
     ),
     outputs=(
-        'alternator_electric_powers', 'dcdc_converter_electric_powers',
+        'initial_service_battery_state_of_charge', 'service_battery_capacity',
         'service_battery_currents', 'service_battery_electric_powers',
         'service_battery_load', 'service_battery_loads',
-        'service_battery_nominal_voltage', 'service_battery_state_of_charges',
-        'dcdc_converter_efficiency', 'dcdc_converter_electric_powers_demand',
+        'service_battery_state_of_charges',
+        'service_battery_delta_state_of_charge', 'drive_battery_capacity',
         'drive_battery_currents', 'drive_battery_electric_powers',
         'drive_battery_load', 'drive_battery_loads',
         'drive_battery_n_parallel_cells', 'drive_battery_n_series_cells',
         'drive_battery_ocv', 'drive_battery_r0',
         'drive_battery_state_of_charges', 'drive_battery_voltages',
+        'initial_drive_battery_state_of_charge',
+        'drive_battery_delta_state_of_charge',
         'maximum_drive_battery_electric_power'
     ),
     include_defaults=True

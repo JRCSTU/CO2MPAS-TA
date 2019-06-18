@@ -40,7 +40,7 @@ dsp.add_dispatcher(
     dsp=_alternator,
     inputs=(
         'alternator_currents', 'alternator_nominal_voltage', 'stop_velocity',
-        'alternator_electric_powers', 'alternator_efficiency', 'stop_velocity',
+        'alternator_electric_powers', 'alternator_efficiency',
         'alternator_off_threshold', 'velocities', 'on_engine', 'times',
         'engine_starts', 'alternator_current_threshold',
         'alternator_start_window_width', 'alternator_statuses',
