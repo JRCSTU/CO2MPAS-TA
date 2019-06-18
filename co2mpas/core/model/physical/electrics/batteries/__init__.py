@@ -15,6 +15,7 @@ Sub-Modules:
     :nosignatures:
     :toctree: batteries/
 
+    dcdc
     drive
     service
 """
@@ -22,6 +23,7 @@ Sub-Modules:
 import schedula as sh
 from .service import dsp as _service
 from .drive import dsp as _drive
+from .dcdc import dsp as _dcdc
 
 dsp = sh.BlueDispatcher(
     name='Batteries', description='Models the vehicle batteries.'
@@ -51,15 +53,14 @@ dsp.add_dispatcher(
     dsp_id='drive_battery',
     dsp=_drive,
     inputs=(
-        'drive_battery_electric_powers', 'drive_battery_voltages',
-        'drive_battery_currents', 'drive_battery_capacity', 'times',
+        'drive_battery_electric_powers', 'drive_battery_voltages', 'times',
+        'drive_battery_currents', 'drive_battery_capacity', 'drive_battery_r0',
         'drive_battery_state_of_charges', 'drive_battery_loads',
         'dcdc_converter_electric_powers_demand', 'motor_p0_electric_powers',
         'motor_p1_electric_powers', 'motor_p2_electric_powers',
         'motor_p3_electric_powers', 'motor_p4_electric_powers',
         'initial_drive_battery_state_of_charge', 'drive_battery_ocv',
-        'electrical_hybridization_degree', 'dcdc_converter_electric_powers',
-        'dcdc_converter_efficiency', 'drive_battery_load', 'drive_battery_r0',
+        'electrical_hybridization_degree', 'drive_battery_load',
         'drive_battery_n_parallel_cells', 'drive_battery_n_series_cells'
     ),
     outputs=(
@@ -70,5 +71,13 @@ dsp.add_dispatcher(
         'drive_battery_delta_state_of_charge', 'drive_battery_n_parallel_cells',
         'drive_battery_electric_powers', 'drive_battery_state_of_charges'
     ),
+    include_defaults=True
+)
+
+dsp.add_dispatcher(
+    dsp_id='dcdc_converter',
+    dsp=_dcdc,
+    inputs=('dcdc_converter_efficiency', 'dcdc_converter_electric_powers'),
+    outputs=('dcdc_converter_electric_powers_demand',),
     include_defaults=True
 )

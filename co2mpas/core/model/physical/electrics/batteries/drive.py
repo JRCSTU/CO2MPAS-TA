@@ -236,30 +236,6 @@ def calculate_drive_battery_state_of_charges(
     )
 
 
-@sh.add_function(
-    dsp, inputs_kwargs=True, inputs_defaults=True,
-    outputs=['dcdc_converter_electric_powers_demand']
-)
-def calculate_dcdc_converter_electric_powers_demand(
-        dcdc_converter_electric_powers, dcdc_converter_efficiency=.95):
-    """
-    Calculate DC/DC converter electric power demand [kW].
-
-    :param dcdc_converter_electric_powers:
-        DC/DC converter electric power [kW].
-    :type dcdc_converter_electric_powers: numpy.array
-
-    :param dcdc_converter_efficiency:
-        DC/DC converter efficiency [-].
-    :type dcdc_converter_efficiency: float
-
-    :return:
-        DC/DC converter electric power demand [kW].
-    :rtype: numpy.array
-    """
-    return dcdc_converter_electric_powers / dcdc_converter_efficiency
-
-
 @sh.add_function(dsp, outputs=['drive_battery_loads'])
 def calculate_drive_battery_loads(
         drive_battery_electric_powers, motors_electric_powers,
