@@ -29,6 +29,7 @@ from .p1 import dsp as _p1
 from .p2 import dsp as _p2
 from .p3 import dsp as _p3
 from .p4 import dsp as _p4
+from .starter import dsp as _starter
 
 dsp = sh.BlueDispatcher(name='Motors', description='Models the vehicle motors.')
 
@@ -114,6 +115,17 @@ dsp.add_dispatcher(
         'motor_p4_torques', 'motor_p4_efficiency', 'motor_p4_electric_powers',
         'motor_p4_efficiency_ratios'
     ),
+    include_defaults=True
+)
+
+dsp.add_dispatcher(
+    dsp_id='starter',
+    dsp=_starter,
+    inputs=(
+        'engine_moment_inertia', 'times', 'engine_starts', 'starter_efficiency',
+        'delta_time_engine_starter', 'engine_speeds_out',
+    ),
+    outputs=('starter_electric_powers', 'starter_powers'),
     include_defaults=True
 )
 

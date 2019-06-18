@@ -14,6 +14,9 @@ import co2mpas.utils as co2_utl
 #: Container of node default values.
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class Values(co2_utl.Constants):
+    #: Starter efficiency [-].
+    starter_efficiency = 0.7
+
     #: Tyre state (i.e., new or worm).
     tyre_state = 'new'
 
@@ -165,7 +168,7 @@ class Values(co2_utl.Constants):
     alternator_efficiency = 0.67
 
     #: Time elapsed to turn on the engine with electric starter [s].
-    delta_time_engine_starter = 1.0
+    delta_time_engine_starter = .5
 
     #: If to use decision tree classifiers to predict gears.
     use_dt_gear_shifting = False
