@@ -15,6 +15,7 @@ Sub-Modules:
     :nosignatures:
     :toctree: motors/
 
+    alternator
     p0
     p1
     p2
@@ -24,6 +25,7 @@ Sub-Modules:
 """
 
 import schedula as sh
+from .alternator import dsp as _alternator
 from .p0 import dsp as _p0
 from .p1 import dsp as _p1
 from .p2 import dsp as _p2
@@ -32,6 +34,31 @@ from .p4 import dsp as _p4
 from .starter import dsp as _starter
 
 dsp = sh.BlueDispatcher(name='Motors', description='Models the vehicle motors.')
+
+dsp.add_dispatcher(
+    dsp_id='alternator',
+    dsp=_alternator,
+    inputs=(
+        'alternator_currents', 'alternator_nominal_voltage', 'stop_velocity',
+        'alternator_electric_powers', 'alternator_efficiency', 'stop_velocity',
+        'alternator_off_threshold', 'velocities', 'on_engine', 'times',
+        'engine_starts', 'alternator_current_threshold',
+        'alternator_start_window_width', 'alternator_statuses',
+        'gear_box_powers_in', 'alternator_status_model',
+        'alternator_initialization_time', 'service_battery_state_of_charges',
+        'accelerations', 'service_battery_state_of_charge_balance',
+        'service_battery_state_of_charge_balance_window',
+        'alternator_charging_currents', 'alternator_current_model'
+    ),
+    outputs=(
+        'alternator_current_threshold', 'alternator_current_model',
+        'alternator_initialization_time', 'alternator_status_model',
+        'service_battery_state_of_charge_balance', 'alternator_currents',
+        'service_battery_state_of_charge_balance_window', 'alternator_powers',
+        'alternator_electric_powers', 'alternator_statuses'
+    ),
+    include_defaults=True
+)
 
 dsp.add_dispatcher(
     dsp_id='motor_p0',
@@ -128,42 +155,3 @@ dsp.add_dispatcher(
     outputs=('starter_electric_powers', 'starter_powers'),
     include_defaults=True
 )
-
-
-@sh.add_function(dsp, outputs=['motors_electric_powers'])
-def calculate_motors_electric_powers(
-        motor_p0_electric_powers, motor_p1_electric_powers,
-        motor_p2_electric_powers, motor_p3_electric_powers,
-        motor_p4_electric_powers):
-    """
-    Calculate motors electric power [kW].
-
-    :param motor_p0_electric_powers:
-        Electric power of motor P0 [kW].
-    :type motor_p0_electric_powers: numpy.array | float
-
-    :param motor_p1_electric_powers:
-        Electric power of motor P1 [kW].
-    :type motor_p1_electric_powers: numpy.array | float
-
-    :param motor_p2_electric_powers:
-        Electric power of motor P2 [kW].
-    :type motor_p2_electric_powers: numpy.array | float
-
-    :param motor_p3_electric_powers:
-        Electric power of motor P3 [kW].
-    :type motor_p3_electric_powers: numpy.array | float
-
-    :param motor_p4_electric_powers:
-        Electric power of motor P4 [kW].
-    :type motor_p4_electric_powers: numpy.array | float
-
-    :return:
-        Motors electric power [kW].
-    :rtype: numpy.array | float
-    """
-    p = motor_p0_electric_powers + motor_p1_electric_powers
-    p += motor_p2_electric_powers
-    p += motor_p3_electric_powers
-    p += motor_p4_electric_powers
-    return p

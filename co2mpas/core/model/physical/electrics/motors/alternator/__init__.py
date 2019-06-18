@@ -6,13 +6,23 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
 Functions and a model `dsp` to model the alternator.
+Sub-Modules:
+
+.. currentmodule:: co2mpas.core.model.physical.electrics.motors.alternator
+
+.. autosummary::
+    :nosignatures:
+    :toctree: alternator/
+
+    current
+    status
 """
 import schedula as sh
+from ....defaults import dfl
+from .status import dsp as _status
+from .current import dsp as _current
 
-dsp = sh.BlueDispatcher(
-    name='Alternator',
-    description='Models the alternator.'
-)
+dsp = sh.BlueDispatcher(name='Alternator', description='Models the alternator.')
 
 
 @sh.add_function(dsp, outputs=['alternator_electric_powers'])
@@ -57,6 +67,9 @@ def calculate_alternator_currents(
     return alternator_electric_powers / alternator_nominal_voltage * 1000
 
 
+dsp.add_data('alternator_efficiency', dfl.values.alternator_efficiency)
+
+
 @sh.add_function(dsp, outputs=['alternator_powers'])
 def calculate_alternator_powers(
         alternator_electric_powers, alternator_efficiency):
@@ -97,3 +110,35 @@ def calculate_alternator_electric_powers_v1(
     :rtype: numpy.array | float
     """
     return alternator_powers * alternator_efficiency
+
+
+dsp.add_dispatcher(
+    dsp_id='status_model',
+    dsp=_status,
+    inputs=(
+        'stop_velocity', 'alternator_off_threshold', 'alternator_currents',
+        'velocities', 'on_engine', 'stop_velocity', 'times', 'engine_starts',
+        'alternator_current_threshold', 'alternator_start_window_width',
+        'alternator_statuses', 'gear_box_powers_in', 'alternator_status_model',
+        'alternator_initialization_time', 'service_battery_state_of_charges',
+        'accelerations', 'service_battery_state_of_charge_balance',
+        'service_battery_state_of_charge_balance_window'
+    ),
+    outputs=(
+        'alternator_current_threshold', 'alternator_initialization_time',
+        'service_battery_state_of_charge_balance', 'alternator_status_model',
+        'service_battery_state_of_charge_balance_window', 'alternator_statuses',
+    )
+)
+
+dsp.add_dispatcher(
+    dsp_id='current_model',
+    dsp=_current,
+    inputs=(
+        'alternator_charging_currents', 'alternator_currents', 'on_engine',
+        'times', 'service_battery_state_of_charges', 'alternator_statuses',
+        'gear_box_powers_in', 'accelerations', 'alternator_initialization_time',
+        'alternator_current_model'
+    ),
+    outputs=('alternator_current_model',)
+)
