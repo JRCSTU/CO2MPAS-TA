@@ -453,3 +453,42 @@ def calculate_drive_battery_currents_v2(
     x = ocv - np.nan_to_num(np.sqrt(ocv ** 2 - (4e3 * r0 / (n_s * n_p)) * p))
     x *= n_p / (2 * r0)
     return x
+
+
+@sh.add_function(dsp, outputs=['motors_electric_powers'])
+def calculate_motors_electric_powers(
+        motor_p0_electric_powers, motor_p1_electric_powers,
+        motor_p2_electric_powers, motor_p3_electric_powers,
+        motor_p4_electric_powers):
+    """
+    Calculate motors electric power [kW].
+
+    :param motor_p0_electric_powers:
+        Electric power of motor P0 [kW].
+    :type motor_p0_electric_powers: numpy.array | float
+
+    :param motor_p1_electric_powers:
+        Electric power of motor P1 [kW].
+    :type motor_p1_electric_powers: numpy.array | float
+
+    :param motor_p2_electric_powers:
+        Electric power of motor P2 [kW].
+    :type motor_p2_electric_powers: numpy.array | float
+
+    :param motor_p3_electric_powers:
+        Electric power of motor P3 [kW].
+    :type motor_p3_electric_powers: numpy.array | float
+
+    :param motor_p4_electric_powers:
+        Electric power of motor P4 [kW].
+    :type motor_p4_electric_powers: numpy.array | float
+
+    :return:
+        Motors electric power [kW].
+    :rtype: numpy.array | float
+    """
+    p = motor_p0_electric_powers + motor_p1_electric_powers
+    p += motor_p2_electric_powers
+    p += motor_p3_electric_powers
+    p += motor_p4_electric_powers
+    return p
