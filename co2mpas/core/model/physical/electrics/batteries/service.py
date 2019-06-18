@@ -123,7 +123,7 @@ def calculate_service_battery_electric_powers(
 @sh.add_function(dsp, outputs=['service_battery_electric_powers'], weight=1)
 def calculate_service_battery_electric_powers_v1(
         service_battery_loads, alternator_electric_powers,
-        dcdc_converter_electric_powers):
+        starter_electric_powers, dcdc_converter_electric_powers):
     """
     Calculate the service battery electric power [kW].
 
@@ -135,6 +135,10 @@ def calculate_service_battery_electric_powers_v1(
         Alternator electric power [kW].
     :type alternator_electric_powers: numpy.array
 
+    :param starter_electric_powers:
+        Starter electric power [kW].
+    :type starter_electric_powers: numpy.array
+
     :param dcdc_converter_electric_powers:
         DC/DC converter electric power [kW].
     :type dcdc_converter_electric_powers: numpy.array
@@ -145,6 +149,7 @@ def calculate_service_battery_electric_powers_v1(
     """
     p = service_battery_loads - alternator_electric_powers
     p -= dcdc_converter_electric_powers
+    p -= starter_electric_powers
     return p
 
 
@@ -227,7 +232,7 @@ def calculate_service_battery_state_of_charges(
 @sh.add_function(dsp, outputs=['service_battery_loads'])
 def calculate_service_battery_loads(
         service_battery_electric_powers, alternator_electric_powers,
-        dcdc_converter_electric_powers):
+        starter_electric_powers, dcdc_converter_electric_powers):
     """
     Calculates service battery load vector [kW].
 
@@ -239,6 +244,10 @@ def calculate_service_battery_loads(
         Alternator electric power [kW].
     :type alternator_electric_powers: numpy.array
 
+    :param starter_electric_powers:
+        Starter electric power [kW].
+    :type starter_electric_powers: numpy.array
+
     :param dcdc_converter_electric_powers:
         DC/DC converter electric power [kW].
     :type dcdc_converter_electric_powers: numpy.array
@@ -249,6 +258,7 @@ def calculate_service_battery_loads(
     """
     p = service_battery_electric_powers - alternator_electric_powers
     p -= dcdc_converter_electric_powers
+    p -= starter_electric_powers
     return p
 
 
