@@ -107,7 +107,8 @@ dsp.add_dispatcher(
         'electrical_hybridization_degree', 'starter_electric_powers',
         'initial_drive_battery_state_of_charge', 'motor_p0_electric_powers',
         'motor_p1_electric_powers', 'motor_p2_electric_powers',
-        'motor_p3_electric_powers', 'motor_p4_electric_powers'
+        'motor_p3_electric_powers', 'motor_p4_electric_powers',
+        'dcdc_converter_currents'
     ),
     outputs=(
         'initial_service_battery_state_of_charge', 'service_battery_capacity',

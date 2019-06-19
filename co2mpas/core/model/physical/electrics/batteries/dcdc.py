@@ -30,7 +30,7 @@ def calculate_dcdc_converter_electric_powers_demand(
 
     :param dcdc_converter_electric_powers:
         DC/DC converter electric power [kW].
-    :type dcdc_converter_electric_powers: numpy.array
+    :type dcdc_converter_electric_powers: numpy.array | float
 
     :param dcdc_converter_efficiency:
         DC/DC converter efficiency [-].
@@ -38,6 +38,27 @@ def calculate_dcdc_converter_electric_powers_demand(
 
     :return:
         DC/DC converter electric power demand [kW].
-    :rtype: numpy.array
+    :rtype: numpy.array | float
     """
     return dcdc_converter_electric_powers / dcdc_converter_efficiency
+
+
+@sh.add_function(dsp, outputs=['dcdc_converter_electric_powers'])
+def calculate_dcdc_converter_electric_powers(
+        dcdc_converter_currents, service_battery_nominal_voltage):
+    """
+    Calculates DC/DC converter electric powers [kW].
+
+    :param dcdc_converter_currents:
+        DC/DC converter currents [A].
+    :type dcdc_converter_currents: numpy.array | float
+
+    :param service_battery_nominal_voltage:
+        Service battery nominal voltage [V].
+    :type service_battery_nominal_voltage: float
+
+    :return:
+        DC/DC converter electric power [kW].
+    :rtype: numpy.array | float
+    """
+    return dcdc_converter_currents * service_battery_nominal_voltage / 1000

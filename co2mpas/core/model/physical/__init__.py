@@ -304,7 +304,8 @@ dsp.add_dispatcher(
         'service_battery_capacity', 'initial_drive_battery_state_of_charge',
         'service_battery_electric_powers', 'service_battery_nominal_voltage',
         'service_battery_load', 'initial_service_battery_state_of_charge',
-        'service_battery_loads', 'service_battery_currents'
+        'service_battery_loads', 'service_battery_currents',
+        'dcdc_converter_currents'
     ),
     outputs=(
         'alternator_current_model', 'alternator_current_threshold',
