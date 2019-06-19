@@ -173,7 +173,7 @@ def calculate_maximum_motive_power(
     for i in range(5):
         simulation_model(a, time + delta_time)
         m_p, c_p, a_p, e_s, on, ds, gbs = simulation_model.select(
-            'motive_powers', 'clutch_tc_powers', 'alternator_powers_demand',
+            'motive_powers', 'clutch_tc_powers', 'alternator_powers',
             'engine_speeds_out_hot', 'on_engine', 'clutch_tc_speeds_delta',
             'gear_box_speeds_in'
         )

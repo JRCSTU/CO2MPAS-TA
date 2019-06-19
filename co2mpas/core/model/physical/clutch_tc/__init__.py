@@ -212,7 +212,7 @@ def _calculate_clutch_tc_powers(
 @sh.add_function(dsp, outputs=['clutch_tc_powers'])
 def calculate_clutch_tc_powers(
         clutch_tc_speeds_delta, k_factor_curve, gear_box_speeds_in,
-        gear_box_powers_in, engine_speeds_out):
+        clutch_tc_powers_out, engine_speeds_out):
     """
     Calculates the power that flows in the clutch or torque converter [kW].
 
@@ -228,9 +228,9 @@ def calculate_clutch_tc_powers(
         Gear box speed vector [RPM].
     :type gear_box_speeds_in: numpy.array
 
-    :param gear_box_powers_in:
-        Gear box power vector [kW].
-    :type gear_box_powers_in: numpy.array
+    :param clutch_tc_powers_out:
+        Clutch or torque converter power out [kW].
+    :type clutch_tc_powers_out: numpy.array
 
     :param engine_speeds_out:
         Engine speed [RPM].
@@ -244,16 +244,16 @@ def calculate_clutch_tc_powers(
     speed_out = np.where(is_not_eng2gb, engine_speeds_out, gear_box_speeds_in)
     speed_in = np.where(is_not_eng2gb, gear_box_speeds_in, engine_speeds_out)
 
-    ratios = np.ones_like(gear_box_powers_in, dtype=float)
+    ratios = np.ones_like(clutch_tc_powers_out, dtype=float)
     b = (speed_in > 0) & (clutch_tc_speeds_delta != 0)
     ratios[b] = speed_out[b] / speed_in[b]
 
     eff = k_factor_curve(ratios) * ratios
     eff[is_not_eng2gb] = np.nan_to_num(1 / eff[is_not_eng2gb])
 
-    powers = gear_box_powers_in.copy()
+    powers = clutch_tc_powers_out.copy()
     b = eff > 0
-    powers[b] = gear_box_powers_in[b] / eff[b]
+    powers[b] = clutch_tc_powers_out[b] / eff[b]
 
     return powers
 
@@ -376,7 +376,7 @@ class ClutchTCModel(BaseModel):
         return _next
 
     def init_power(self, clutch_tc_speeds_delta, k_factor_curve,
-                   gear_box_speeds_in, gear_box_powers_in,
+                   gear_box_speeds_in, clutch_tc_powers_out,
                    engine_speeds_out_hot):
         key = 'clutch_tc_powers'
         if self._outputs is not None and key in self._outputs:
@@ -386,14 +386,14 @@ class ClutchTCModel(BaseModel):
         def _next(i):
             return _calculate_clutch_tc_powers(
                 clutch_tc_speeds_delta[i], k_factor_curve,
-                gear_box_speeds_in[i], gear_box_powers_in[i],
+                gear_box_speeds_in[i], clutch_tc_powers_out[i],
                 engine_speeds_out_hot[i]
             )
 
         return _next
 
     def init_results(self, accelerations, velocities, gear_box_speeds_in, gears,
-                     times, gear_box_powers_in, engine_speeds_out_hot,
+                     times, clutch_tc_powers_out, engine_speeds_out_hot,
                      gear_box_torques_in):
         out = self.outputs
         deltas, powers = out['clutch_tc_speeds_delta'], out['clutch_tc_powers']
@@ -404,8 +404,8 @@ class ClutchTCModel(BaseModel):
             gear_box_speeds_in, gears, times, gear_box_torques_in
         )
         p_gen = self.init_power(
-            deltas, self.k_factor_curve, gear_box_speeds_in, gear_box_powers_in,
-            engine_speeds_out_hot
+            deltas, self.k_factor_curve, gear_box_speeds_in,
+            clutch_tc_powers_out, engine_speeds_out_hot
         )
 
         def _next(i):

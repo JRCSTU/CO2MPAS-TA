@@ -117,6 +117,27 @@ dsp.add_dispatcher(
     inp_weight={'r_dynamic': 3}
 )
 
+
+@sh.add_function(dsp, outputs=['final_drive_powers_out'])
+def calculate_final_drive_powers_out(wheel_powers, motor_p4_powers):
+    """
+    Calculate final drive power out [kW].
+
+    :param wheel_powers:
+        Power at the wheels [kW].
+    :type wheel_powers: numpy.array | float
+
+    :param motor_p4_powers:
+        Power at motor P4 [kW].
+    :type motor_p4_powers: numpy.array | float
+
+    :return:
+        Final drive power out [kW].
+    :rtype: numpy.array | float
+    """
+    return wheel_powers - motor_p4_powers
+
+
 dsp.add_dispatcher(
     include_defaults=True,
     dsp_id='final_drive_model',
@@ -124,8 +145,7 @@ dsp.add_dispatcher(
     inputs=(
         'final_drive_efficiency', 'final_drive_ratio', 'final_drive_ratios',
         'final_drive_torque_loss', 'gear_box_type', 'gears', 'n_dyno_axes',
-        'n_wheel_drive', 'n_gears', {
-            'wheel_powers': 'final_drive_powers_out',
+        'n_wheel_drive', 'n_gears', 'final_drive_powers_out', {
             'wheel_speeds': 'final_drive_speeds_out',
             'wheel_torques': 'final_drive_torques_out'
         }
@@ -135,6 +155,27 @@ dsp.add_dispatcher(
         'final_drive_torques_in', 'final_drive_prediction_model'
     )
 )
+
+
+@sh.add_function(dsp, outputs=['gear_box_powers_out'])
+def calculate_gear_box_powers_out(final_drive_powers_in, motor_p3_powers):
+    """
+    Calculate gear box power vector [kW].
+
+    :param final_drive_powers_in:
+        Final drive power in [kW].
+    :type final_drive_powers_in: numpy.array | float
+
+    :param motor_p3_powers:
+        Power at motor P3 [kW].
+    :type motor_p3_powers: numpy.array | float
+
+    :return:
+        Gear box power vector [kW].
+    :rtype: numpy.array | float
+    """
+    return final_drive_powers_in - motor_p3_powers
+
 
 dsp.add_dispatcher(
     include_defaults=True,
@@ -158,8 +199,7 @@ dsp.add_dispatcher(
         'motive_powers', 'n_gears', 'on_engine', 'plateau_acceleration',
         'r_dynamic', 'road_loads', 'specific_gear_shifting', 'stop_velocity',
         'time_cold_hot_transition', 'times', 'use_dt_gear_shifting',
-        'velocities', 'velocity_speed_ratios', {
-            'final_drive_powers_in': 'gear_box_powers_out',
+        'velocities', 'velocity_speed_ratios', 'gear_box_powers_out', {
             'final_drive_speeds_in': 'gear_box_speeds_out',
             'initial_engine_temperature': 'initial_gear_box_temperature',
             'initial_temperature': 'initial_gear_box_temperature'
@@ -178,6 +218,27 @@ dsp.add_dispatcher(
     inp_weight={'initial_temperature': 5}
 )
 
+
+@sh.add_function(dsp, outputs=['clutch_tc_powers_out'])
+def calculate_clutch_tc_powers_out(gear_box_powers_in, motor_p2_powers):
+    """
+    Calculate gear box power vector [kW].
+
+    :param gear_box_powers_in:
+        Gear box power vector [kW].
+    :type gear_box_powers_in: numpy.array | float
+
+    :param motor_p2_powers:
+        Power at motor P2 [kW].
+    :type motor_p2_powers: numpy.array | float
+
+    :return:
+        Clutch or torque converter power out [kW].
+    :rtype: numpy.array | float
+    """
+    return gear_box_powers_in - motor_p2_powers
+
+
 dsp.add_dispatcher(
     include_defaults=True,
     dsp=_clutch_torque_converter,
@@ -185,7 +246,7 @@ dsp.add_dispatcher(
     inputs=(
         'accelerations', 'clutch_speed_model',
         'clutch_window', 'cold_start_speeds_delta', 'engine_speeds_out',
-        'engine_speeds_out_hot', 'gear_box_powers_in', 'gear_box_speeds_in',
+        'engine_speeds_out_hot', 'clutch_tc_powers_out', 'gear_box_speeds_in',
         'gear_box_type', 'gear_shifts', 'gears', 'has_torque_converter',
         'lockup_speed_ratio', 'stand_still_torque_ratio', 'engine_max_speed',
         'stop_velocity', 'times', 'torque_converter_speed_model', 'velocities',
@@ -285,7 +346,7 @@ dsp.add_dispatcher(
     dsp_id='engine_model',
     dsp=_engine,
     inputs=(
-        'accelerations', 'active_cylinder_ratios', 'alternator_powers_demand',
+        'accelerations', 'active_cylinder_ratios', 'alternator_powers',
         'angle_slopes', 'auxiliaries_power_loss', 'auxiliaries_torque_loss',
         'calibration_status', 'clutch_tc_powers', 'clutch_tc_speeds_delta',
         'co2_emission_extra_high', 'co2_emission_high', 'co2_emission_low',
@@ -312,8 +373,8 @@ dsp.add_dispatcher(
         'obd_fuel_type_code', 'min_engine_on_speed', 'phases_integration_times',
         'min_time_engine_on_after_start', 'motive_powers', 'engine_n_cylinders',
         'times', 'on_idle', 'full_load_speeds', 'start_stop_activation_time',
-        'start_stop_model', 'state_of_charges',
-        'auxiliaries_torque_loss_factors', {
+        'start_stop_model', 'state_of_charges', 'motor_p0_powers',
+        'motor_p1_powers', 'auxiliaries_torque_loss_factors', {
             'initial_temperature': 'initial_engine_temperature'
         }),
     outputs=(
@@ -381,7 +442,7 @@ OUTPUTS_PREDICTION_LOOP = [
 
     'alternator_currents',
     'alternator_statuses',
-    'alternator_powers_demand',
+    'alternator_powers',
     'battery_currents',
     'state_of_charges',
 

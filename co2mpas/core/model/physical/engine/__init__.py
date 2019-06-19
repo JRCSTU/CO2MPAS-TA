@@ -646,7 +646,7 @@ def calculate_engine_speeds_out(
 def calculate_uncorrected_engine_powers_out(
         times, engine_moment_inertia, clutch_tc_powers, engine_speeds_out,
         on_engine, auxiliaries_power_losses, gear_box_type, on_idle,
-        alternator_powers_demand=None):
+        alternator_powers, motor_p0_powers, motor_p1_powers):
     """
     Calculates the uncorrected engine power [kW].
 
@@ -682,9 +682,17 @@ def calculate_uncorrected_engine_powers_out(
         If the engine is on idle [-].
     :type on_idle: numpy.array
 
-    :param alternator_powers_demand:
-        Alternator power demand to the engine [kW].
-    :type alternator_powers_demand: numpy.array, optional
+    :param alternator_powers:
+        Alternator power [kW].
+    :type alternator_powers: numpy.array
+
+    :param motor_p0_powers:
+        Power at motor P0 [kW].
+    :type motor_p0_powers: numpy.array
+
+    :param motor_p1_powers:
+        Power at motor P1 [kW].
+    :type motor_p1_powers: numpy.array
 
     :return:
         Uncorrected engine power [kW].
@@ -700,9 +708,7 @@ def calculate_uncorrected_engine_powers_out(
         p[on_idle & (p < 0)] = 0.0
 
     p[b] += auxiliaries_power_losses[b]
-
-    if alternator_powers_demand is not None:
-        p[b] += alternator_powers_demand[b]
+    p[b] += alternator_powers[b] - motor_p0_powers[b] - motor_p1_powers[b]
 
     p_ine = engine_moment_inertia / 2000 * (2 * math.pi / 60) ** 2
     p += p_ine * derivative(Spline(times, engine_speeds_out, k=1), times) ** 2

@@ -693,7 +693,7 @@ def define_data_schema(read=True):
         'accelerations': np_array,
         'alternator_currents': np_array,
         'active_cylinders': np_array,
-        'alternator_powers_demand': np_array,
+        'alternator_powers': np_array,
         'alternator_statuses': np_array_int,
         'auxiliaries_power_losses': np_array,
         'auxiliaries_torque_loss_factors': tuplefloat,
