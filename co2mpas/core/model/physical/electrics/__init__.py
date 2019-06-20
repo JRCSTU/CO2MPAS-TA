@@ -84,7 +84,8 @@ dsp.add_dispatcher(
         'service_battery_state_of_charge_balance', 'alternator_currents',
         'service_battery_state_of_charge_balance_window', 'alternator_powers',
         'alternator_electric_powers', 'alternator_statuses',
-        'starter_electric_powers', 'starter_powers'
+        'starter_electric_powers', 'starter_powers', 'engine_speeds_out',
+        'wheel_speeds', 'final_drive_speeds_in', 'gear_box_speeds_in'
     ),
     include_defaults=True
 )

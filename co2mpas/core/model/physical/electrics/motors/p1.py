@@ -7,9 +7,7 @@
 """
 Functions and a model `dsp` to model the electric motor in P1 position.
 """
-import numpy as np
 import schedula as sh
-import co2mpas.utils as co2_utl
 
 dsp = sh.BlueDispatcher(
     name='Motor P1',
@@ -59,6 +57,26 @@ def calculate_motor_p1_speeds(engine_speeds_out, motor_p1_speed_ratio):
     :rtype: numpy.array | float
     """
     return engine_speeds_out * motor_p1_speed_ratio
+
+
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['engine_speeds_out'])
+def calculate_engine_speeds_out(motor_p1_speeds, motor_p1_speed_ratio=1):
+    """
+    Calculates the engine speed [RPM].
+
+    :param motor_p1_speeds:
+        Rotating speed of motor P1 [RPM].
+    :type motor_p1_speeds: numpy.array | float
+
+    :param motor_p1_speed_ratio:
+        Ratio between motor P1 speed and wheel speed [-].
+    :type motor_p1_speed_ratio: float
+
+    :return:
+        Engine speed [RPM].
+    :rtype: numpy.array | float
+    """
+    return motor_p1_speeds / motor_p1_speed_ratio
 
 
 @sh.add_function(dsp, outputs=['motor_p1_torques'])
@@ -262,4 +280,5 @@ def calculate_motor_p1_efficiency_ratios(
         Motor P1 efficiency ratio [-].
     :rtype: numpy.array | float
     """
-    return motor_p1_powers / motor_p1_electric_powers
+    from .p4 import calculate_motor_p4_efficiency_ratios as func
+    return func(motor_p1_powers, motor_p1_electric_powers)

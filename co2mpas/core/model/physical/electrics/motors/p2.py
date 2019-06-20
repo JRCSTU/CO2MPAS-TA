@@ -7,9 +7,7 @@
 """
 Functions and a model `dsp` to model the electric motor in P2 position.
 """
-import numpy as np
 import schedula as sh
-import co2mpas.utils as co2_utl
 
 dsp = sh.BlueDispatcher(
     name='Motor P2',
@@ -59,6 +57,26 @@ def calculate_motor_p2_speeds(gear_box_speeds_in, motor_p2_speed_ratio):
     :rtype: numpy.array | float
     """
     return gear_box_speeds_in * motor_p2_speed_ratio
+
+
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['gear_box_speeds_in'])
+def calculate_gear_box_speeds_in(motor_p2_speeds, motor_p2_speed_ratio=1):
+    """
+    Calculates Gear box speed vector [RPM].
+
+    :param motor_p2_speeds:
+        Rotating speed of motor P2 [RPM].
+    :type motor_p2_speeds: numpy.array | float
+
+    :param motor_p2_speed_ratio:
+        Ratio between motor P2 speed and wheel speed [-].
+    :type motor_p2_speed_ratio: float
+
+    :return:
+        Gear box speed vector [RPM].
+    :rtype: numpy.array | float
+    """
+    return motor_p2_speeds / motor_p2_speed_ratio
 
 
 @sh.add_function(dsp, outputs=['motor_p2_torques'])
@@ -262,4 +280,5 @@ def calculate_motor_p2_efficiency_ratios(
         Motor P2 efficiency ratio [-].
     :rtype: numpy.array | float
     """
-    return motor_p2_powers / motor_p2_electric_powers
+    from .p4 import calculate_motor_p4_efficiency_ratios as func
+    return func(motor_p2_powers, motor_p2_electric_powers)

@@ -61,6 +61,26 @@ def calculate_motor_p4_speeds(wheel_speeds, motor_p4_speed_ratio=1):
     return wheel_speeds * motor_p4_speed_ratio
 
 
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['wheel_speeds'])
+def calculate_wheel_speeds(motor_p4_speeds, motor_p4_speed_ratio=1):
+    """
+    Calculates rotating speed of the wheels [RPM].
+
+    :param motor_p4_speeds:
+        Rotating speed of motor P4 [RPM].
+    :type motor_p4_speeds: numpy.array | float
+
+    :param motor_p4_speed_ratio:
+        Ratio between motor P4 speed and wheel speed [-].
+    :type motor_p4_speed_ratio: float
+
+    :return:
+        Rotating speed of the wheel [RPM].
+    :rtype: numpy.array | float
+    """
+    return motor_p4_speeds / motor_p4_speed_ratio
+
+
 @sh.add_function(dsp, outputs=['motor_p4_torques'])
 def calculate_motor_p4_torques(motor_p4_powers, motor_p4_speeds):
     """
@@ -144,7 +164,7 @@ def define_motor_p4_electric_power_loss_function(motor_p4_efficiency):
     """
     eff = 1.0 / motor_p4_efficiency - 1.0, motor_p4_efficiency - 1.0
 
-    # noinspection PyUnusedLocal
+    # noinspection PyUnusedLocal,PyMissingOrEmptyDocstring
     def motor_p4_electric_power_loss_function(motor_p4_powers, *args):
         return motor_p4_powers * np.where(motor_p4_powers >= 0, *eff)
 
@@ -171,7 +191,7 @@ def define_motor_p4_electric_power_loss_function_v1(
         """
     a, b = motor_p4_loss_param_a, motor_p4_loss_param_b
 
-    # noinspection PyUnusedLocal
+    # noinspection PyUnusedLocal,PyMissingOrEmptyDocstring
     def motor_p4_electric_power_loss_function(
             motor_p4_powers, motor_p4_torques, motor_p4_speeds):
         return a * motor_p4_speeds ** 2 + b * motor_p4_torques ** 2
@@ -270,4 +290,6 @@ def calculate_motor_p4_efficiency_ratios(
         Motor P4 efficiency ratio [-].
     :rtype: numpy.array | float
     """
-    return motor_p4_powers / motor_p4_electric_powers
+    with np.errstate(divide='ignore', invalid='ignore'):
+        ratios = motor_p4_powers / motor_p4_electric_powers
+        return np.where(np.isnan(ratios), 1, ratios)

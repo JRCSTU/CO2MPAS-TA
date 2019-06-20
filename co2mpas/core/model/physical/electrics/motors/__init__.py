@@ -71,7 +71,7 @@ dsp.add_dispatcher(
     ),
     outputs=(
         'motor_p0_speed_ratio', 'motor_p0_speeds', 'motor_p0_powers',
-        'motor_p0_torques', 'motor_p0_electric_powers',
+        'motor_p0_torques', 'motor_p0_electric_powers', 'engine_speeds_out',
         'motor_p0_efficiency_ratios', 'motor_p0_electric_power_loss_function'
     ),
     include_defaults=True
@@ -88,7 +88,7 @@ dsp.add_dispatcher(
     ),
     outputs=(
         'motor_p1_speed_ratio', 'motor_p1_speeds', 'motor_p1_powers',
-        'motor_p1_torques', 'motor_p1_electric_powers',
+        'motor_p1_torques', 'motor_p1_electric_powers', 'engine_speeds_out',
         'motor_p1_efficiency_ratios', 'motor_p1_electric_power_loss_function'
     ),
     include_defaults=True
@@ -105,7 +105,7 @@ dsp.add_dispatcher(
     ),
     outputs=(
         'motor_p2_speed_ratio', 'motor_p2_speeds', 'motor_p2_powers',
-        'motor_p2_torques', 'motor_p2_electric_powers',
+        'motor_p2_torques', 'motor_p2_electric_powers', 'gear_box_speeds_in',
         'motor_p2_efficiency_ratios', 'motor_p2_electric_power_loss_function'
     ),
     include_defaults=True
@@ -122,7 +122,7 @@ dsp.add_dispatcher(
     ),
     outputs=(
         'motor_p3_speed_ratio', 'motor_p3_speeds', 'motor_p3_powers',
-        'motor_p3_torques', 'motor_p3_electric_powers',
+        'motor_p3_torques', 'motor_p3_electric_powers', 'final_drive_speeds_in',
         'motor_p3_efficiency_ratios', 'motor_p3_electric_power_loss_function'
     ),
     include_defaults=True
@@ -139,7 +139,7 @@ dsp.add_dispatcher(
     ),
     outputs=(
         'motor_p4_speed_ratio', 'motor_p4_speeds', 'motor_p4_powers',
-        'motor_p4_torques', 'motor_p4_electric_powers',
+        'motor_p4_torques', 'motor_p4_electric_powers', 'wheel_speeds',
         'motor_p4_efficiency_ratios', 'motor_p4_electric_power_loss_function'
     ),
     include_defaults=True

@@ -40,7 +40,7 @@ dsp.add_data('motor_p0_speed_ratio', 3, sh.inf(10, 1))
 
 
 @sh.add_function(dsp, inputs_kwargs=True, outputs=['motor_p0_speeds'])
-def calculate_motor_p0_speeds(engine_speeds_out, motor_p0_speed_ratio=1):
+def calculate_motor_p0_speeds(engine_speeds_out, motor_p0_speed_ratio=3):
     """
     Calculates rotating speed of motor P0 [RPM].
 
@@ -57,6 +57,26 @@ def calculate_motor_p0_speeds(engine_speeds_out, motor_p0_speed_ratio=1):
     :rtype: numpy.array | float
     """
     return engine_speeds_out * motor_p0_speed_ratio
+
+
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['engine_speeds_out'])
+def calculate_engine_speeds_out(motor_p0_speeds, motor_p0_speed_ratio=3):
+    """
+    Calculates the engine speed [RPM].
+
+    :param motor_p0_speeds:
+        Rotating speed of motor P0 [RPM].
+    :type motor_p0_speeds: numpy.array | float
+
+    :param motor_p0_speed_ratio:
+        Ratio between motor P0 speed and wheel speed [-].
+    :type motor_p0_speed_ratio: float
+
+    :return:
+        Engine speed [RPM].
+    :rtype: numpy.array | float
+    """
+    return motor_p0_speeds / motor_p0_speed_ratio
 
 
 @sh.add_function(dsp, outputs=['motor_p0_torques'])
@@ -260,4 +280,5 @@ def calculate_motor_p0_efficiency_ratios(
         Motor P0 efficiency ratio [-].
     :rtype: numpy.array | float
     """
-    return motor_p0_powers / motor_p0_electric_powers
+    from .p4 import calculate_motor_p4_efficiency_ratios as func
+    return func(motor_p0_powers, motor_p0_electric_powers)

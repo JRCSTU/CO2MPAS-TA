@@ -59,6 +59,26 @@ def calculate_motor_p3_speeds(final_drive_speeds_in, motor_p3_speed_ratio=1):
     return final_drive_speeds_in * motor_p3_speed_ratio
 
 
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['final_drive_speeds_in'])
+def calculate_final_drive_speeds_in(motor_p3_speeds, motor_p3_speed_ratio=1):
+    """
+    Calculates final drive speed [RPM].
+
+    :param motor_p3_speeds:
+        Rotating speed of motor P3 [RPM].
+    :type motor_p3_speeds: numpy.array | float
+
+    :param motor_p3_speed_ratio:
+        Ratio between motor P3 speed and wheel speed [-].
+    :type motor_p3_speed_ratio: float
+
+    :return:
+        Final drive speed in [RPM].
+    :rtype: numpy.array | float
+    """
+    return motor_p3_speeds / motor_p3_speed_ratio
+
+
 @sh.add_function(dsp, outputs=['motor_p3_torques'])
 def calculate_motor_p3_torques(motor_p3_powers, motor_p3_speeds):
     """
@@ -260,4 +280,5 @@ def calculate_motor_p3_efficiency_ratios(
         Motor P3 efficiency ratio [-].
     :rtype: numpy.array | float
     """
-    return motor_p3_powers / motor_p3_electric_powers
+    from .p4 import calculate_motor_p4_efficiency_ratios as func
+    return func(motor_p3_powers, motor_p3_electric_powers)
