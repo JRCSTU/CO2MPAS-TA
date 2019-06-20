@@ -116,6 +116,57 @@ dsp.add_data('change_gear_window_width', dfl.values.change_gear_window_width)
 
 @sh.add_function(dsp, outputs=['gears'])
 def identify_gears(
+        times, velocities, accelerations, gear_box_speeds_in,
+        velocity_speed_ratios, stop_velocity, plateau_acceleration,
+        change_gear_window_width):
+    """
+    Identifies gear time series [-].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array
+
+    :param accelerations:
+        Acceleration vector [m/s2].
+    :type accelerations: numpy.array
+
+    :param gear_box_speeds_in:
+        Gear box speed [RPM].
+    :type gear_box_speeds_in: numpy.array
+
+    :param velocity_speed_ratios:
+        Constant velocity speed ratios of the gear box [km/(h*RPM)].
+    :type velocity_speed_ratios: dict[int | float]
+
+    :param stop_velocity:
+        Maximum velocity to consider the vehicle stopped [km/h].
+    :type stop_velocity: float
+
+    :param plateau_acceleration:
+        Maximum acceleration to be at constant velocity [m/s2].
+    :type plateau_acceleration: float
+
+    :param change_gear_window_width:
+        Time window used to apply gear change filters [s].
+    :type change_gear_window_width: float
+
+    :return:
+        Gear vector identified [-].
+    :rtype: numpy.array
+    """
+    return identify_gears_v1(
+        times, velocities, accelerations, gear_box_speeds_in,
+        velocity_speed_ratios, stop_velocity, plateau_acceleration,
+        change_gear_window_width, (0, 0)
+    )
+
+
+@sh.add_function(dsp, outputs=['gears'], weight=10)
+def identify_gears_v1(
         times, velocities, accelerations, engine_speeds_out,
         velocity_speed_ratios, stop_velocity, plateau_acceleration,
         change_gear_window_width, idle_engine_speed):
@@ -163,17 +214,17 @@ def identify_gears(
     :rtype: numpy.array
     """
 
-    vsr = [v for v in velocity_speed_ratios.items() if v[0] != 0]
     with np.errstate(divide='ignore', invalid='ignore'):
         ratios = velocities / engine_speeds_out
 
     idle_speed = (idle_engine_speed[0] - idle_engine_speed[1],
                   idle_engine_speed[0] + idle_engine_speed[1])
-
     ratios[engine_speeds_out < idle_speed[0]] = 0
+    vsr = [v for v in velocity_speed_ratios.items() if v[0] != 0]
 
-    id_gear = functools.partial(_identify_gear, idle_speed, vsr, stop_velocity,
-                                plateau_acceleration)
+    id_gear = functools.partial(
+        _identify_gear, idle_speed, vsr, stop_velocity, plateau_acceleration
+    )
 
     # noinspection PyArgumentList
     gear = list(map(id_gear, *(ratios, velocities, accelerations)))
@@ -379,8 +430,39 @@ def identify_n_gears(gear_box_ratios):
     return max(gear_box_ratios)
 
 
-@sh.add_function(dsp, outputs=['velocity_speed_ratios'], weight=49)
+@sh.add_function(dsp, outputs=['velocity_speed_ratios'], weight=48)
 def identify_velocity_speed_ratios(
+        n_gears, gear_box_speeds_in, velocities, stop_velocity):
+    """
+    Identifies velocity speed ratios from gear box speed vector [km/(h*RPM)].
+
+    :param n_gears:
+        Number of gears [-].
+    :type n_gears: int
+
+    :param gear_box_speeds_in:
+        Gear box speed [RPM].
+    :type gear_box_speeds_in: numpy.array
+
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array
+
+    :param stop_velocity:
+        Maximum velocity to consider the vehicle stopped [km/h].
+    :type stop_velocity: float
+
+    :return:
+        Constant velocity speed ratios of the gear box [km/(h*RPM)].
+    :rtype: dict
+    """
+    return identify_velocity_speed_ratios_v1(
+        n_gears, gear_box_speeds_in, velocities, (0, 0), stop_velocity
+    )
+
+
+@sh.add_function(dsp, outputs=['velocity_speed_ratios'], weight=49)
+def identify_velocity_speed_ratios_v1(
         n_gears, engine_speeds_out, velocities, idle_engine_speed,
         stop_velocity):
     """
@@ -391,7 +473,7 @@ def identify_velocity_speed_ratios(
     :type n_gears: int
 
     :param engine_speeds_out:
-        Engine speed vector [RPM].
+        Engine speed [RPM].
     :type engine_speeds_out: numpy.array
 
     :param velocities:
@@ -428,13 +510,40 @@ def identify_velocity_speed_ratios(
 
 
 @sh.add_function(dsp, outputs=['velocity_speed_ratios'], weight=50)
-def identify_velocity_speed_ratios_v1(
+def identify_velocity_speed_ratios_v2(
+        gear_box_speeds_in, velocities, stop_velocity):
+    """
+    Identifies velocity speed ratios from gear box speed vector [km/(h*RPM)].
+
+    :param gear_box_speeds_in:
+        Gear box speed [RPM].
+    :type gear_box_speeds_in: numpy.array
+
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array
+
+    :param stop_velocity:
+        Maximum velocity to consider the vehicle stopped [km/h].
+    :type stop_velocity: float
+
+    :return:
+        Constant velocity speed ratios of the gear box [km/(h*RPM)].
+    :rtype: dict
+    """
+    return identify_velocity_speed_ratios_v3(
+        gear_box_speeds_in, velocities, (0, 0), stop_velocity
+    )
+
+
+@sh.add_function(dsp, outputs=['velocity_speed_ratios'], weight=51)
+def identify_velocity_speed_ratios_v3(
         engine_speeds_out, velocities, idle_engine_speed, stop_velocity):
     """
     Identifies velocity speed ratios from gear box speed vector [km/(h*RPM)].
 
     :param engine_speeds_out:
-        Engine speed vector [RPM].
+        Engine speed [RPM].
     :type engine_speeds_out: numpy.array
 
     :param velocities:

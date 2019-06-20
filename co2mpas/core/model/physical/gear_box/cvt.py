@@ -34,11 +34,11 @@ class CVT:
         self.base_model = xgb.XGBRegressor
         self.model = None
 
-    def fit(self, on_engine, engine_speeds_out, velocities, accelerations,
+    def fit(self, on_engine, gear_box_speeds_in, velocities, accelerations,
             gear_box_powers_out):
         b = on_engine
         X = np.column_stack((velocities, accelerations, gear_box_powers_out))[b]
-        y = engine_speeds_out[b]
+        y = gear_box_speeds_in[b]
 
         # noinspection PyArgumentEqualDefault
         self.model = self.base_model(
@@ -71,8 +71,16 @@ class CVT:
 
 
 @sh.add_function(dsp, outputs=['CVT'])
+@sh.add_function(
+    dsp,
+    inputs=[
+        'on_engine', 'engine_speeds_out', 'velocities', 'accelerations',
+        'gear_box_powers_out'
+    ],
+    outputs=['CVT'], weight=50
+)
 def calibrate_cvt(
-        on_engine, engine_speeds_out, velocities, accelerations,
+        on_engine, gear_box_speeds_in, velocities, accelerations,
         gear_box_powers_out):
     """
     Calibrates a model for continuously variable transmission (CVT).
@@ -81,9 +89,9 @@ def calibrate_cvt(
         If the engine is on [-].
     :type on_engine: numpy.array
 
-    :param engine_speeds_out:
-        Engine speed [RPM].
-    :type engine_speeds_out: numpy.array
+    :param gear_box_speeds_in:
+        Gear box speed [RPM].
+    :type gear_box_speeds_in: numpy.array
 
     :param velocities:
         Vehicle velocity [km/h].
@@ -102,7 +110,7 @@ def calibrate_cvt(
     :rtype: callable
     """
     model = CVT().fit(
-        on_engine, engine_speeds_out, velocities, accelerations,
+        on_engine, gear_box_speeds_in, velocities, accelerations,
         gear_box_powers_out
     )
 
