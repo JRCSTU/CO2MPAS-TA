@@ -106,8 +106,9 @@ dsp.add_dispatcher(
         'accelerations', 'change_gear_window_width', 'engine_speeds_out',
         'final_drive_ratios', 'gear_box_ratios', 'gears', 'idle_engine_speed',
         'motive_powers', 'plateau_acceleration', 'r_dynamic', 'r_wheels',
-        'stop_velocity', 'times', 'velocities', 'tyre_dimensions',
-        'tyre_dynamic_rolling_coefficient', 'tyre_code', 'velocity_speed_ratios'
+        'gear_box_speeds_in', 'on_engine', 'tyre_dimensions', 'stop_velocity',
+        'tyre_dynamic_rolling_coefficient', 'tyre_code', 'velocities', 'times',
+        'velocity_speed_ratios'
     ),
     outputs=(
         'r_dynamic', 'r_wheels', 'tyre_code', 'wheel_powers', 'wheel_speeds',
@@ -192,14 +193,14 @@ dsp.add_dispatcher(
         'full_load_speeds', 'gear_box_efficiency_constants',
         'gear_box_efficiency_parameters_cold_hot', 'gear_box_ratios',
         'gear_box_temperature_references', 'gear_box_type', 'gears',
-        'has_gear_box_thermal_management', 'has_torque_converter',
+        'has_gear_box_thermal_management', 'has_torque_converter', 'velocities',
         'idle_engine_speed', 'initial_gear_box_temperature',
         'last_gear_box_ratio', 'max_velocity_full_load_correction',
         'maximum_vehicle_laden_mass', 'maximum_velocity', 'min_engine_on_speed',
         'motive_powers', 'n_gears', 'on_engine', 'plateau_acceleration',
         'r_dynamic', 'road_loads', 'specific_gear_shifting', 'stop_velocity',
         'time_cold_hot_transition', 'times', 'use_dt_gear_shifting',
-        'velocities', 'velocity_speed_ratios', 'gear_box_powers_out', {
+        'gear_box_speeds_in', 'velocity_speed_ratios', 'gear_box_powers_out', {
             'final_drive_speeds_in': 'gear_box_speeds_out',
             'initial_engine_temperature': 'initial_gear_box_temperature',
             'initial_temperature': 'initial_gear_box_temperature'
