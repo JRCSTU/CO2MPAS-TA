@@ -80,6 +80,7 @@ dsp.add_dispatcher(
     dsp=_dcdc,
     inputs=('dcdc_converter_efficiency', 'dcdc_converter_electric_powers',
             'dcdc_converter_currents', 'service_battery_nominal_voltage'),
-    outputs=('dcdc_converter_electric_powers_demand',),
+    outputs=('dcdc_converter_electric_powers_demand',
+             'dcdc_converter_electric_powers'),
     include_defaults=True
 )

@@ -205,13 +205,13 @@ def _np_array_positive(dtype=None, error=None, read=True,
 
 # noinspection PyUnusedLocal
 def _alternator_current_model(error=None, **kwargs):
-    from ..model.physical.electrics import AlternatorCurrentModel
+    from ..model.physical.electrics.alternator import AlternatorCurrentModel
     return _type(type=AlternatorCurrentModel, error=error)
 
 
 # noinspection PyUnusedLocal
 def _alternator_status_model(error=None, **kwargs):
-    from ..model.physical.electrics import AlternatorStatusModel
+    from ..model.physical.electrics.alternator import AlternatorStatusModel
     return _type(type=AlternatorStatusModel, error=error)
 
 
@@ -552,6 +552,9 @@ def define_data_schema(read=True):
         'wltp_class': _select(types=('class1', 'class2', 'class3a', 'class3b'),
                               read=read),
         'downscale_phases': tuplefloat,
+        'electrical_hybridization_degree': _select(
+            types=('mild', 'full', 'plugin', 'electric'), read=read
+        ),
         'gear_box_type': _select(types=('manual', 'automatic', 'cvt'),
                                  read=read),
         'ignition_type': _select(types=('positive', 'compression'), read=read),
@@ -629,6 +632,11 @@ def define_data_schema(read=True):
         'co2_emissions_model': function,
         'co2_error_function_on_emissions': function,
         'co2_error_function_on_phases': function,
+        'motor_p0_electric_power_loss_function': function,
+        'motor_p1_electric_power_loss_function': function,
+        'motor_p2_electric_power_loss_function': function,
+        'motor_p3_electric_power_loss_function': function,
+        'motor_p4_electric_power_loss_function': function,
         'cold_start_speed_model': cssm,
         'clutch_window': tuplefloat2,
         'co2_params_calibrated': parameters,
@@ -640,13 +648,13 @@ def define_data_schema(read=True):
                                              [(bool, Or(parameters, None))]),
                                     length=4,
                                     read=read),
-        'electric_load': tuplefloat2,
+        _convert_str('electric_load', 'service_battery_load'): tuplefloat2,
         'engine_thermostat_temperature_window': tuplefloat2,
         'engine_temperature_regression_model':
             _engine_temperature_regression_model(read=read),
         'driver_prediction_model': _driver_prediction_model(read=read),
         'vehicle_prediction_model': _vehicle_prediction_model(read=read),
-        'electrics_prediction_model': _electrics_prediction_model(read=read),
+        # 'electrics_prediction_model': _electrics_prediction_model(read=read),
         'engine_prediction_model': _engine_prediction_model(read=read),
         'gear_box_prediction_model': _gear_box_prediction_model(read=read),
         'final_drive_prediction_model':
