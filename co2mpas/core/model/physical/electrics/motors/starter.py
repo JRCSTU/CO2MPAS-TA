@@ -74,7 +74,8 @@ def calculate_starter_powers(
     """
     ts, dt = times[engine_starts], delta_time_engine_starter + dfl.EPS
     k = np.searchsorted(times, np.column_stack((ts, ts + dt)))
-    e = start_demand_function(engine_speeds_out[k[:, 1]]) / np.diff(times[k])
+    e = start_demand_function(engine_speeds_out[k[:, 1]])
+    e /= np.diff(times[k]).ravel()
     p = np.zeros_like(times, float)
     for (i, j), v in zip(k, e):
         p[i:j] += v

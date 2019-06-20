@@ -39,6 +39,7 @@ dsp.add_dispatcher(
         'service_battery_capacity', 'service_battery_state_of_charges',
         'service_battery_electric_powers', 'service_battery_load',
         'service_battery_loads', 'service_battery_nominal_voltage',
+        'starter_electric_powers'
     ),
     outputs=(
         'initial_service_battery_state_of_charge', 'service_battery_currents',
