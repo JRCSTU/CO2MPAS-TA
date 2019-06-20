@@ -667,7 +667,7 @@ dsp.add_dispatcher(
         'last_gear_box_ratio', 'maximum_vehicle_laden_mass', 'maximum_velocity',
         'n_gears', 'plateau_acceleration', 'r_dynamic', 'road_loads',
         'stop_velocity', 'times', 'velocities', 'velocity_speed_ratios',
-        {'gear_box_type': sh.SINK}
+        'gear_box_speeds_in', {'gear_box_type': sh.SINK}
     ),
     outputs=(
         'engine_speed_at_max_velocity', 'first_gear_box_ratio', 'max_gear',
@@ -726,7 +726,7 @@ dsp.add_dispatcher(
     inputs=(
         'CVT', 'accelerations', 'engine_speeds_out', 'gear_box_powers_out',
         'idle_engine_speed', 'on_engine', 'stop_velocity', 'velocities',
-        {'gear_box_type': sh.SINK}
+        'gear_box_speeds_in', {'gear_box_type': sh.SINK}
     ),
     outputs=(
         'gear_box_speeds_in', 'correct_gear', 'gears', 'max_gear',

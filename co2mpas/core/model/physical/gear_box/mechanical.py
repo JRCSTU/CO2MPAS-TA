@@ -62,7 +62,8 @@ def _identify_gear(idle, vsr, stop_vel, plateau_acc, ratio, vel, acc):
 
     m, (gear, vs) = min((abs(v - ratio), (k, v)) for k, v in vsr)
 
-    if acc < 0 and (vel <= idle[0] * vs or abs(vel / idle[1] - ratio) < m):
+    if acc < 0 and (vel <= idle[0] * vs or
+                    (idle[1] and abs(vel / idle[1] - ratio) < m)):
         return 0
 
     if gear == 0 and ((vel > stop_vel and acc > 0) or acc > plateau_acc):
