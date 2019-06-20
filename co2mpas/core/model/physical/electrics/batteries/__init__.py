@@ -64,7 +64,7 @@ dsp.add_dispatcher(
         'drive_battery_n_parallel_cells', 'drive_battery_n_series_cells'
     ),
     outputs=(
-        'maximum_drive_battery_electric_power', 'drive_battery_voltages',
+        'minimum_drive_battery_electric_power', 'drive_battery_voltages',
         'drive_battery_currents', 'drive_battery_loads', 'drive_battery_load',
         'drive_battery_n_series_cells', 'drive_battery_ocv', 'drive_battery_r0',
         'initial_drive_battery_state_of_charge', 'drive_battery_capacity',

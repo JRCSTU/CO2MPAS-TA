@@ -120,7 +120,7 @@ dsp.add_dispatcher(
         'drive_battery_load', 'initial_drive_battery_state_of_charge',
         'drive_battery_n_parallel_cells', 'drive_battery_n_series_cells',
         'drive_battery_state_of_charges', 'drive_battery_delta_state_of_charge',
-        'maximum_drive_battery_electric_power', 'drive_battery_ocv',
+        'minimum_drive_battery_electric_power', 'drive_battery_ocv',
         'drive_battery_loads', 'dcdc_converter_electric_powers_demand'
     ),
     include_defaults=True

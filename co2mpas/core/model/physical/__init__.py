@@ -337,7 +337,7 @@ dsp.add_dispatcher(
         'service_battery_currents', 'service_battery_electric_powers',
         'dcdc_converter_electric_powers_demand', 'service_battery_loads',
         'drive_battery_delta_state_of_charge', 'motor_p4_speeds',
-        'maximum_drive_battery_electric_power', 'service_battery_load',
+        'minimum_drive_battery_electric_power', 'service_battery_load',
         'service_battery_delta_state_of_charge', 'motor_p0_speeds'
     )
 )

@@ -161,7 +161,7 @@ def calculate_drive_battery_electric_powers_v1(
     :rtype: numpy.array
     """
     p = drive_battery_loads - motors_electric_powers
-    p += dcdc_converter_electric_powers_demand
+    p -= dcdc_converter_electric_powers_demand
     return p
 
 
@@ -260,7 +260,7 @@ def calculate_drive_battery_loads(
     :rtype: numpy.array
     """
     p = drive_battery_electric_powers + motors_electric_powers
-    p -= dcdc_converter_electric_powers_demand
+    p += dcdc_converter_electric_powers_demand
     return p
 
 
@@ -349,7 +349,7 @@ def calibrate_drive_battery_r0_and_ocv(
     m = RANSACRegressor()
     m.fit(drive_battery_currents[:, None], drive_battery_voltages)
     r0, ocv = float(m.estimator_.coef_), float(m.estimator_.intercept_)
-    r0 *= -drive_battery_n_parallel_cells / drive_battery_n_series_cells
+    r0 *= drive_battery_n_parallel_cells / drive_battery_n_series_cells
     ocv /= drive_battery_n_series_cells
     return r0, ocv
 
@@ -358,8 +358,8 @@ dsp.add_data('drive_battery_n_parallel_cells', 1)
 dsp.add_data('drive_battery_n_series_cells', 1)
 
 
-@sh.add_function(dsp, outputs=['maximum_drive_battery_electric_power'])
-def calculate_maximum_drive_battery_electric_power(
+@sh.add_function(dsp, outputs=['minimum_drive_battery_electric_power'])
+def calculate_minimum_drive_battery_electric_power(
         drive_battery_r0, drive_battery_ocv, drive_battery_n_parallel_cells,
         drive_battery_n_series_cells):
     """
@@ -382,14 +382,14 @@ def calculate_maximum_drive_battery_electric_power(
     :type drive_battery_n_series_cells: int
 
     :return:
-        Maximum admissible electric power of drive battery [kW].
+        Minimum admissible electric power of drive battery [kW].
     :rtype: float
     """
     if not drive_battery_r0:
         return float('inf')
     n_p, n_s = drive_battery_n_parallel_cells, drive_battery_n_series_cells
     r0, ocv = drive_battery_r0, drive_battery_ocv
-    return ocv ** 2 / (4e3 * r0 / (n_s * n_p))
+    return -ocv ** 2 / (4e3 * r0 / (n_s * n_p))
 
 
 @sh.add_function(dsp, outputs=['drive_battery_currents'])
@@ -426,8 +426,8 @@ def calculate_drive_battery_currents_v2(
     n_p, n_s = drive_battery_n_parallel_cells, drive_battery_n_series_cells
     p = drive_battery_electric_powers
     r0, ocv = drive_battery_r0, drive_battery_ocv
-    x = ocv - np.nan_to_num(np.sqrt(ocv ** 2 - (4e3 * r0 / (n_s * n_p)) * p))
-    x *= n_p / (2 * r0)
+    x = ocv - np.nan_to_num(np.sqrt(ocv ** 2 + (4e3 * r0 / (n_s * n_p)) * p))
+    x *= - n_p / (2 * r0)
     return x
 
 
