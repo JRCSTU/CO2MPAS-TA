@@ -122,9 +122,6 @@ class Values(co2_utl.Constants):
     #: Final drive ratio [-].
     final_drive_ratio = 1.0
 
-    #: Final drive efficiency [-].
-    final_drive_efficiency = 1.0
-
     #: Number of wheel drive [-].
     n_wheel_drive = 2
 
@@ -214,6 +211,11 @@ class Values(co2_utl.Constants):
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
+
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+    class default_final_drive_efficiency(co2_utl.Constants):
+        #: Formula for the default final drive efficiency [function].
+        formula = 'lambda n_wheel_drive: 1 - (n_wheel_drive - 2) / 100)'
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class predict_clutch_tc_speeds_delta(co2_utl.Constants):
