@@ -106,6 +106,17 @@ dsp.add_data('n_wheel_drive', dfl.values.n_wheel_drive)
 
 @sh.add_function(dsp, outputs=['final_drive_efficiency'])
 def default_final_drive_efficiency(n_wheel_drive):
+    """
+    Returns the default final drive efficiency [-].
+
+    :param n_wheel_drive:
+        Number of wheel drive [-].
+    :type n_wheel_drive: int
+
+    :return:
+        Final drive efficiency [-].
+    :rtype: float
+    """
     from asteval import Interpreter as Interp
     formula = dfl.functions.default_final_drive_efficiency.formula
     return Interp(dict(n_wheel_drive=n_wheel_drive)).eval(formula)
@@ -114,6 +125,21 @@ def default_final_drive_efficiency(n_wheel_drive):
 @sh.add_function(dsp, outputs=['final_drive_powers_in'])
 def calculate_final_drive_powers_in(
         final_drive_powers_out, final_drive_efficiency):
+    """
+    Calculate final drive power in [kW].
+
+    :param final_drive_powers_out:
+        Final drive power out [kW].
+    :type final_drive_powers_out: numpy.array | float
+
+    :param final_drive_efficiency:
+        Final drive efficiency [-].
+    :type final_drive_efficiency: float
+
+    :return:
+        Final drive power in [kW].
+    :rtype: numpy.array | float
+    """
     eff, p = final_drive_efficiency, final_drive_powers_out
     return np.where(p > 0, eff, 1 / eff) * p
 
@@ -121,6 +147,21 @@ def calculate_final_drive_powers_in(
 @sh.add_function(dsp, outputs=['final_drive_torques_in'])
 def calculate_final_drive_torques_in(
         final_drive_powers_in, final_drive_speeds_in):
+    """
+    Calculate final drive power in [kW].
+
+    :param final_drive_powers_in:
+        Final drive power in [kW].
+    :type final_drive_powers_in: numpy.array | float
+
+    :param final_drive_speeds_in:
+        Final drive speed in [RPM].
+    :type final_drive_speeds_in: numpy.array | float
+
+    :return:
+        Final drive torque in [N*m].
+    :rtype: numpy.array | float
+    """
     from .wheels import calculate_wheel_torques as func
     return func(final_drive_powers_in, final_drive_speeds_in)
 
