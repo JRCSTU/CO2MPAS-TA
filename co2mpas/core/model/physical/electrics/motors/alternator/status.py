@@ -136,7 +136,7 @@ def _mask_boolean_phases(b):
 
 @sh.add_function(dsp, outputs=['alternator_statuses'])
 def identify_charging_statuses(
-        times, alternator_currents, gear_box_powers_in, on_engine,
+        times, alternator_currents, clutch_tc_powers, on_engine,
         alternator_current_threshold, alternator_starts_windows,
         alternator_initialization_time):
     """
@@ -151,9 +151,9 @@ def identify_charging_statuses(
         Alternator current vector [A].
     :type alternator_currents: numpy.array
 
-    :param gear_box_powers_in:
-        Gear box power vector [kW].
-    :type gear_box_powers_in: numpy.array
+    :param clutch_tc_powers:
+        Clutch or torque converter power [kW].
+    :type clutch_tc_powers: numpy.array
 
     :param on_engine:
         If the engine is on [-].
@@ -180,7 +180,7 @@ def identify_charging_statuses(
     b = (alternator_currents < alternator_current_threshold) & on_engine
 
     status = b.astype(int, copy=True)
-    status[b & (gear_box_powers_in < 0)] = 2
+    status[b & (clutch_tc_powers < 0)] = 2
 
     off = ~on_engine | alternator_starts_windows
     mask = _mask_boolean_phases(status != 1)
@@ -197,7 +197,7 @@ def identify_charging_statuses(
 # noinspection PyPep8
 @sh.add_function(dsp, outputs=['alternator_initialization_time'])
 def identify_alternator_initialization_time(
-        alternator_currents, gear_box_powers_in, on_engine, accelerations,
+        alternator_currents, clutch_tc_powers, on_engine, accelerations,
         service_battery_state_of_charges, alternator_statuses, times,
         alternator_current_threshold):
     """
@@ -207,9 +207,9 @@ def identify_alternator_initialization_time(
         Alternator current vector [A].
     :type alternator_currents: numpy.array
 
-    :param gear_box_powers_in:
-        Gear box power vector [kW].
-    :type gear_box_powers_in: numpy.array
+    :param clutch_tc_powers:
+        Clutch or torque converter power [kW].
+    :type clutch_tc_powers: numpy.array
 
     :param on_engine:
         If the engine is on [-].
@@ -240,7 +240,7 @@ def identify_alternator_initialization_time(
         Alternator initialization time delta [s].
     :rtype: float
     """
-    alts, gb_p = alternator_statuses, gear_box_powers_in
+    alts, gb_p = alternator_statuses, clutch_tc_powers
     i = co2_utl.argmax(alts != 0)
     if alts[0] == 1 or (i and ((alts[:i] == 0) & (gb_p[:i] == 0)).all()):
         s = alternator_currents < alternator_current_threshold
@@ -287,7 +287,7 @@ def identify_alternator_initialization_time(
     weight=1
 )
 def identify_alternator_statuses_and_alternator_initialization_time(
-        times, alternator_currents, gear_box_powers_in, on_engine,
+        times, alternator_currents, clutch_tc_powers, on_engine,
         alternator_current_threshold, starts_windows,
         service_battery_state_of_charges, accelerations):
     """
@@ -302,9 +302,9 @@ def identify_alternator_statuses_and_alternator_initialization_time(
         Alternator current vector [A].
     :type alternator_currents: numpy.array
 
-    :param gear_box_powers_in:
-        Gear box power vector [kW].
-    :type gear_box_powers_in: numpy.array
+    :param clutch_tc_powers:
+        Clutch or torque converter power [kW].
+    :type clutch_tc_powers: numpy.array
 
     :param on_engine:
         If the engine is on [-].
@@ -333,10 +333,10 @@ def identify_alternator_statuses_and_alternator_initialization_time(
     :rtype: numpy.array, float
     """
     statuses = identify_charging_statuses(
-        times, alternator_currents, gear_box_powers_in, on_engine,
+        times, alternator_currents, clutch_tc_powers, on_engine,
         alternator_current_threshold, starts_windows, 0)
     alternator_initialization_time = identify_alternator_initialization_time(
-        alternator_currents, gear_box_powers_in, on_engine, accelerations,
+        alternator_currents, clutch_tc_powers, on_engine, accelerations,
         service_battery_state_of_charges, statuses, times,
         alternator_current_threshold
     )
@@ -383,7 +383,7 @@ class AlternatorStatusModel:
     def __call__(self, *args, **kwargs):
         return self.predict(*args, **kwargs)
 
-    def _fit_bers(self, alternator_statuses, gear_box_powers_in):
+    def _fit_bers(self, alternator_statuses, clutch_tc_powers):
         b = alternator_statuses == 2
         threshold = 0.0
         if b.any():
@@ -392,16 +392,16 @@ class AlternatorStatusModel:
             m = DecisionTreeClassifier(random_state=0, max_depth=2)
             c = alternator_statuses != 1
             # noinspection PyUnresolvedReferences
-            m.fit(gear_box_powers_in[c, None], b[c])
+            m.fit(clutch_tc_powers[c, None], b[c])
 
-            X = gear_box_powers_in[b, None]
+            X = clutch_tc_powers[b, None]
             if (np.sum(m.predict(X)) / X.shape[0] * 100) >= q:
                 self.bers = m.predict  # shortcut name
                 return self.bers
 
             # noinspection PyUnresolvedReferences
             if not b.all():
-                gb_p_s = gear_box_powers_in[_mask_boolean_phases(b)[:, 0]]
+                gb_p_s = clutch_tc_powers[_mask_boolean_phases(b)[:, 0]]
 
                 threshold = min(threshold, np.percentile(gb_p_s, q))
 
@@ -462,13 +462,13 @@ class AlternatorStatusModel:
             self.min = max(balance - std, 0.0)
 
     def fit(self, times, alternator_statuses, state_of_charges,
-            gear_box_powers_in):
+            clutch_tc_powers):
 
         i = co2_utl.argmax(alternator_statuses != 3)
 
         status, soc = alternator_statuses[i:], state_of_charges[i:]
 
-        self._fit_bers(status, gear_box_powers_in[i:])
+        self._fit_bers(status, clutch_tc_powers[i:])
         self._fit_charge(status, soc)
         self._fit_boundaries(status, soc, times[i:])
 
@@ -494,7 +494,7 @@ class AlternatorStatusModel:
 @sh.add_function(dsp, outputs=['alternator_status_model'], weight=10)
 def calibrate_alternator_status_model(
         times, alternator_statuses, service_battery_state_of_charges,
-        gear_box_powers_in, alternator_current_threshold):
+        clutch_tc_powers, alternator_current_threshold):
     """
     Calibrates the alternator status model.
 
@@ -511,9 +511,9 @@ def calibrate_alternator_status_model(
         State of charge of the service battery [%].
     :type service_battery_state_of_charges: numpy.array
 
-    :param gear_box_powers_in:
-        Gear box power vector [kW].
-    :type gear_box_powers_in: numpy.array
+    :param clutch_tc_powers:
+        Clutch or torque converter power [kW].
+    :type clutch_tc_powers: numpy.array
 
     :param alternator_current_threshold:
         Alternator current threshold [A].
@@ -529,7 +529,7 @@ def calibrate_alternator_status_model(
     )
     model.fit(
         times, alternator_statuses, service_battery_state_of_charges,
-        gear_box_powers_in
+        clutch_tc_powers
     )
 
     return model

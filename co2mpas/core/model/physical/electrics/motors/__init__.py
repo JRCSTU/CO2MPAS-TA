@@ -44,7 +44,7 @@ dsp.add_dispatcher(
         'alternator_off_threshold', 'velocities', 'on_engine', 'times',
         'engine_starts', 'alternator_current_threshold',
         'alternator_start_window_width', 'alternator_statuses',
-        'gear_box_powers_in', 'alternator_status_model',
+        'clutch_tc_powers', 'alternator_status_model',
         'alternator_initialization_time', 'service_battery_state_of_charges',
         'accelerations', 'service_battery_state_of_charge_balance',
         'service_battery_state_of_charge_balance_window',

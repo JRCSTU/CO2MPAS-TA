@@ -115,7 +115,7 @@ class AlternatorCurrentModel:
 @sh.add_function(dsp, outputs=['alternator_current_model'])
 def calibrate_alternator_current_model(
         alternator_currents, on_engine, times, service_battery_state_of_charges,
-        alternator_statuses, gear_box_powers_in, accelerations,
+        alternator_statuses, clutch_tc_powers, accelerations,
         alternator_initialization_time):
     """
     Calibrates an alternator current model that predicts alternator current [A].
@@ -141,9 +141,9 @@ def calibrate_alternator_current_model(
         to BERS, 3: on and initialize battery) [-].
     :type alternator_statuses: numpy.array
 
-    :param gear_box_powers_in:
-        Gear box power vector [kW].
-    :type gear_box_powers_in: numpy.array
+    :param clutch_tc_powers:
+        Clutch or torque converter power [kW].
+    :type clutch_tc_powers: numpy.array
 
     :param accelerations:
         Acceleration vector [m/s2].
@@ -160,7 +160,7 @@ def calibrate_alternator_current_model(
     model = AlternatorCurrentModel()
     model.fit(
         alternator_currents, on_engine, times, service_battery_state_of_charges,
-        alternator_statuses, gear_box_powers_in, accelerations,
+        alternator_statuses, clutch_tc_powers, accelerations,
         init_time=alternator_initialization_time
     )
 

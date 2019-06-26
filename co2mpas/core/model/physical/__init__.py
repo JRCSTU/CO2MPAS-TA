@@ -273,7 +273,7 @@ dsp.add_dispatcher(
         'alternator_off_threshold', 'alternator_start_window_width',
         'alternator_status_model', 'alternator_statuses', 'engine_speeds_out',
         'delta_time_engine_starter', 'engine_moment_inertia', 'on_engine',
-        'final_drive_speeds_in', 'gear_box_powers_in', 'gear_box_speeds_in',
+        'final_drive_speeds_in', 'clutch_tc_powers', 'gear_box_speeds_in',
         'motor_p0_efficiency', 'motor_p0_electric_power_loss_function',
         'motor_p0_electric_powers', 'motor_p0_loss_param_a', 'stop_velocity',
         'motor_p0_loss_param_b', 'motor_p0_powers', 'motor_p0_speed_ratio',
