@@ -365,7 +365,7 @@ dsp.add_dispatcher(
         'engine_thermostat_temperature', 'engine_thermostat_temperature_window',
         'engine_type', 'final_drive_powers_in', 'fuel_carbon_content', 'gears',
         'fuel_carbon_content_percentage', 'fuel_consumptions', 'fuel_density',
-        'fuel_type', 'engine_speeds_out_hot', 'enable_phases_willans',
+        'fuel_type', 'engine_speeds_out_hot', 'enable_phases_willans', 'times',
         'has_exhausted_gas_recirculation', 'gear_box_speeds_in', 'is_cycle_hot',
         'has_lean_burn', 'has_periodically_regenerating_systems', 'ki_additive',
         'has_selective_catalytic_reduction', 'max_engine_coolant_temperature',
@@ -374,7 +374,7 @@ dsp.add_dispatcher(
         'initial_friction_params', 'ki_multiplicative', 'obd_fuel_type_code',
         'min_engine_on_speed', 'phases_integration_times', 'motive_powers',
         'motor_p0_powers', 'motor_p1_powers', 'auxiliaries_torque_loss_factors',
-        'engine_n_cylinders', 'times', 'on_idle', 'full_load_speeds', {
+        'engine_n_cylinders', 'on_idle', 'full_load_speeds', 'is_hybrid', {
             'initial_temperature': 'initial_engine_temperature'
         }
     ),
@@ -417,7 +417,7 @@ dsp.add_dispatcher(
         'times', 'engine_speeds_out', 'idle_engine_speed', 'velocities',
         'min_time_engine_on_after_start', 'accelerations', 'has_start_stop',
         'correct_start_stop_with_gears', 'start_stop_model', 'on_engine',
-        'is_hybrid', 'gears', 'gear_box_type', 'start_stop_activation_time'
+        'gears', 'gear_box_type', 'start_stop_activation_time'
     ),
     outputs=(
         'on_engine', 'engine_starts', 'start_stop_model',

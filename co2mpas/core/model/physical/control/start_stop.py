@@ -73,6 +73,23 @@ def calibrate_start_stop_model(
     return model
 
 
+@sh.add_function(dsp, outputs=['correct_start_stop_with_gears'])
+def default_correct_start_stop_with_gears(gear_box_type):
+    """
+    Defines a flag that imposes the engine on when there is a gear > 0.
+
+    :param gear_box_type:
+        Gear box type (manual or automatic or cvt).
+    :type gear_box_type: str
+
+    :return:
+        A flag to impose engine on when there is a gear > 0.
+    :rtype: bool
+    """
+
+    return gear_box_type == 'manual'
+
+
 dsp.add_data(
     'min_time_engine_on_after_start', dfl.values.min_time_engine_on_after_start
 )
@@ -147,20 +164,3 @@ def predict_on_engine(
             ts = t + min_time_engine_on_after_start
         on_engine[i] = on
     return on_engine
-
-
-@sh.add_function(dsp, outputs=['correct_start_stop_with_gears'])
-def default_correct_start_stop_with_gears(gear_box_type):
-    """
-    Defines a flag that imposes the engine on when there is a gear > 0.
-
-    :param gear_box_type:
-        Gear box type (manual or automatic or cvt).
-    :type gear_box_type: str
-
-    :return:
-        A flag to impose engine on when there is a gear > 0.
-    :rtype: bool
-    """
-
-    return gear_box_type == 'manual'
