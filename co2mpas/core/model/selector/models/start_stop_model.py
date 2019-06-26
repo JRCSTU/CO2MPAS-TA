@@ -9,7 +9,7 @@ Functions and constants to define the start_stop_model selector.
 """
 import schedula as sh
 from ._core import define_sub_model, _accuracy_score
-from ...physical.engine.start_stop import dsp as _start_stop
+from ...physical.control.start_stop import dsp as _start_stop
 
 #: Model name.
 name = 'start_stop_model'

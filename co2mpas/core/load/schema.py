@@ -278,7 +278,7 @@ def _fmep_model(error=None, **kwargs):
 
 # noinspection PyUnusedLocal
 def _start_stop_model(error=None, **kwargs):
-    from ..model.physical.engine.start_stop import StartStopModel
+    from ..model.physical.control.start_stop import StartStopModel
     return _type(type=StartStopModel, error=error)
 
 

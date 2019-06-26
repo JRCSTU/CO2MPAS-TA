@@ -29,7 +29,6 @@ from ..defaults import dfl
 from .idle import dsp as _idle
 from co2mpas.utils import BaseModel
 from .thermal import dsp as _thermal
-from .start_stop import dsp as _start_stop
 from .cold_start import dsp as _cold_start
 from .co2_emission import dsp as _co2_emission
 
@@ -562,24 +561,6 @@ dsp.add_dispatcher(
         'engine_thermostat_temperature_window',
         'initial_engine_temperature', 'max_engine_coolant_temperature',
         'engine_temperature_prediction_model')
-)
-
-dsp.add_dispatcher(
-    include_defaults=True,
-    dsp=_start_stop,
-    dsp_id='start_stop',
-    inputs=(
-        'accelerations', 'correct_start_stop_with_gears', 'start_stop_model',
-        'engine_coolant_temperatures', 'engine_starts', 'use_basic_start_stop',
-        'has_start_stop', 'is_hybrid', 'state_of_charges', 'idle_engine_speed',
-        'min_time_engine_on_after_start', 'on_engine', 'gears', 'gear_box_type',
-        'start_stop_activation_time', 'times', 'velocities', 'engine_speeds_out'
-    ),
-    outputs=(
-        'use_basic_start_stop', 'on_engine', 'start_stop_prediction_model',
-        'start_stop_model', 'engine_starts', 'correct_start_stop_with_gears',
-        'start_stop_activation_time'
-    )
 )
 
 dsp.add_dispatcher(
