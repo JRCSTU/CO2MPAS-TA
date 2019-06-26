@@ -296,7 +296,8 @@ def calculate_raw_frontal_area_v1(vehicle_mass, vehicle_category):
     """
     from asteval import Interpreter as Interp
     d = dfl.functions.calculate_raw_frontal_area_v1
-    return Interp().eval(d.formulas[vehicle_category.upper()])(vehicle_mass)
+    expr = d.formulas[vehicle_category.upper()]
+    return Interp(dict(vehicle_mass=vehicle_mass)).eval(expr)
 
 
 @sh.add_function(dsp, outputs=['frontal_area'])

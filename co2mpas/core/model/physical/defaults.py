@@ -215,7 +215,7 @@ class Functions(co2_utl.Constants):
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class default_final_drive_efficiency(co2_utl.Constants):
         #: Formula for the default final drive efficiency [function].
-        formula = 'lambda n_wheel_drive: 1 - (n_wheel_drive - 2) / 100)'
+        formula = '1 - (n_wheel_drive - 2) / 100'
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class predict_clutch_tc_speeds_delta(co2_utl.Constants):
@@ -498,10 +498,9 @@ class Functions(co2_utl.Constants):
     class calculate_raw_frontal_area_v1(co2_utl.Constants):
         #: Frontal area formulas function of vehicle_mass [function].
         formulas = dict.fromkeys(
-            'ABCDEFS',
-            'lambda vehicle_mass: (0.4041 * np.log(vehicle_mass) - 0.338)'
+            'ABCDEFS', '0.4041 * np.log(vehicle_mass) - 0.338'
         )
-        formulas['J'] = 'lambda vehicle_mass: 0.0007 * vehicle_mass + 1.8721'
+        formulas['J'] = '0.0007 * vehicle_mass + 1.8721'
         formulas['M'] = formulas['J']
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming

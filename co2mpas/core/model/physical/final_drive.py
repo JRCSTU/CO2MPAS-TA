@@ -108,7 +108,7 @@ dsp.add_data('n_wheel_drive', dfl.values.n_wheel_drive)
 def default_final_drive_efficiency(n_wheel_drive):
     from asteval import Interpreter as Interp
     formula = dfl.functions.default_final_drive_efficiency.formula
-    return Interp().eval(formula)(n_wheel_drive)
+    return Interp(dict(n_wheel_drive=n_wheel_drive)).eval(formula)
 
 
 @sh.add_function(dsp, outputs=['final_drive_powers_in'])
