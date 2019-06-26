@@ -95,13 +95,13 @@ dsp.add_dispatcher(
     dsp_id='start_stop',
     inputs=(
         'accelerations', 'correct_start_stop_with_gears', 'start_stop_model',
-        'engine_coolant_temperatures', 'engine_starts', 'use_basic_start_stop',
-        'on_engine', 'gears', 'gear_box_type', 'start_stop_activation_time',
-        'has_start_stop', 'is_hybrid', 'times', 'velocities'
+        'engine_starts', 'has_start_stop', 'on_engine', 'gears',
+        'gear_box_type', 'start_stop_activation_time', 'times', 'velocities',
+        'min_time_engine_on_after_start'
     ),
     outputs=(
-        'use_basic_start_stop', 'on_engine', 'start_stop_prediction_model',
         'start_stop_model', 'correct_start_stop_with_gears',
-        'start_stop_activation_time'
+        'on_engine', 'start_stop_activation_time'
+
     )
 )

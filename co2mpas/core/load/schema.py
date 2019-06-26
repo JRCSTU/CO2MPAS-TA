@@ -278,8 +278,8 @@ def _fmep_model(error=None, **kwargs):
 
 # noinspection PyUnusedLocal
 def _start_stop_model(error=None, **kwargs):
-    from ..model.physical.control.start_stop import StartStopModel
-    return _type(type=StartStopModel, error=error)
+    from sklearn.tree import DecisionTreeClassifier
+    return _type(type=DecisionTreeClassifier, error=error)
 
 
 # noinspection PyUnusedLocal
@@ -604,7 +604,6 @@ def define_data_schema(read=True):
         'has_start_stop': _bool,
         'has_gear_box_thermal_management': _bool,
         'has_energy_recuperation': _bool,
-        'use_basic_start_stop': _bool,
         'is_hybrid': _bool,
         'has_roof_box': _bool,
         'has_periodically_regenerating_systems': _bool,

@@ -34,6 +34,8 @@ from .co2_emission import dsp as _co2_emission
 
 dsp = sh.BlueDispatcher(name='Engine', description='Models the vehicle engine.')
 
+dsp.add_data('is_hybrid', dfl.values.is_hybrid, 4)
+
 
 @sh.add_function(dsp, outputs=['fuel_type', 'is_hybrid'])
 def define_fuel_type_and_is_hybrid(obd_fuel_type_code):

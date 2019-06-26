@@ -9,20 +9,19 @@ Functions and constants to define the start_stop_model selector.
 """
 import schedula as sh
 from ._core import define_sub_model, _accuracy_score
-from ...physical.control.start_stop import dsp as _start_stop
+from ...physical.control import dsp as _control
 
 #: Model name.
 name = 'start_stop_model'
 
 #: Parameters that constitute the model.
-models = ['start_stop_model', 'use_basic_start_stop']
+models = ['start_stop_model']
 
 #: Inputs required to run the model.
 inputs = [
-    'times', 'velocities', 'accelerations', 'engine_coolant_temperatures',
-    'state_of_charges', 'gears', 'correct_start_stop_with_gears',
-    'start_stop_activation_time', 'min_time_engine_on_after_start',
-    'has_start_stop'
+    'times', 'velocities', 'accelerations', 'gears',
+    'correct_start_stop_with_gears', 'start_stop_activation_time',
+    'min_time_engine_on_after_start', 'has_start_stop'
 ]
 
 #: Relevant outputs of the model.
@@ -42,6 +41,6 @@ dn_limit = sh.map_list(targets, 0.7, 0.7)
 
 #: Prediction model.
 # noinspection PyProtectedMember
-dsp = sh.Blueprint(_start_stop, inputs, outputs, models)._set_cls(
+dsp = sh.Blueprint(_control, inputs, outputs, models)._set_cls(
     define_sub_model
 )
