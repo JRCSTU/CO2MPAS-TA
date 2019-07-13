@@ -1001,7 +1001,7 @@ class StartStopHybrid:
 
         p = lmfit.Parameters()
         starter_time = self.starter_model.time
-        p.add('starter_time', 1, min=starter_time, max=starter_time * 5)
+        p.add('starter_time', 1, min=starter_time, max=starter_time * 10)
         p.add('k0', 0, min=0)
         p.add('soc0', 0, min=0, max=100)
         p.add('alpha', 0, min=0)
