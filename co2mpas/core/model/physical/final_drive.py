@@ -166,6 +166,13 @@ def calculate_final_drive_torques_in(
     return func(final_drive_powers_in, final_drive_speeds_in)
 
 
+dsp.add_function(
+    function=sh.bypass,
+    inputs=['final_drive_efficiency'],
+    outputs=['final_drive_mean_efficiency']
+)
+
+
 # noinspection PyUnusedLocal
 def domain_final_drive_torque_losses_v1(n_dyno_axes, n_wheel_drive, *args):
     """

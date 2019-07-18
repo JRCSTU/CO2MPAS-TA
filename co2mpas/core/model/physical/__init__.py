@@ -152,7 +152,8 @@ dsp.add_dispatcher(
     ),
     outputs=(
         'final_drive_powers_in', 'final_drive_ratios', 'final_drive_speeds_in',
-        'final_drive_torques_in', 'final_drive_prediction_model'
+        'final_drive_torques_in', 'final_drive_prediction_model',
+        'final_drive_mean_efficiency'
     )
 )
 
