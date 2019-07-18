@@ -623,7 +623,7 @@ def define_data_schema(read=True):
         'correct_start_stop_with_gears': _bool,
         'enable_phases_willans': _bool,
         'enable_willans': _bool,
-
+        'fuel_map': dictarray,
         'alternator_charging_currents': tuplefloat2,
         'alternator_current_model': _alternator_current_model(read=read),
         'alternator_status_model': _alternator_status_model(read=read),

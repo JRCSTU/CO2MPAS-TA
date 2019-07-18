@@ -343,21 +343,41 @@ def _map_cycle_report_graphs():
         }
     }
 
-    _map['state_of_charges'] = {
+    _map['service_battery_state_of_charges'] = {
         'label': 'SOC',
         'set': {
-            'title': {'name': 'State of charge [%]'},
-            'y_axis': {'name': 'State of charge [%]'},
+            'title': {'name': 'Service battery state of charge [%]'},
+            'y_axis': {'name': 'Service battery state of charge [%]'},
             'x_axis': {'name': 'Time [s]'},
             'legend': {'position': 'bottom'}
         }
     }
 
-    _map['battery_currents'] = {
-        'label': 'battery current',
+    _map['service_battery_powers'] = {
+        'label': 'service battery power',
         'set': {
-            'title': {'name': 'Battery current [A]'},
-            'y_axis': {'name': 'Battery current [A]'},
+            'title': {'name': 'Service battery power [kW]'},
+            'y_axis': {'name': 'Service battery power [kW]'},
+            'x_axis': {'name': 'Time [s]'},
+            'legend': {'position': 'bottom'}
+        }
+    }
+
+    _map['drive_battery_state_of_charges'] = {
+        'label': 'SOC',
+        'set': {
+            'title': {'name': 'Drive battery state of charge [%]'},
+            'y_axis': {'name': 'Drive battery state of charge [%]'},
+            'x_axis': {'name': 'Time [s]'},
+            'legend': {'position': 'bottom'}
+        }
+    }
+
+    _map['drive_battery_electric_powers'] = {
+        'label': 'drive electric power',
+        'set': {
+            'title': {'name': 'Drive battery power [kW]'},
+            'y_axis': {'name': 'Drive battery power [kW]'},
             'x_axis': {'name': 'Time [s]'},
             'legend': {'position': 'bottom'}
         }
@@ -366,8 +386,8 @@ def _map_cycle_report_graphs():
     _map['alternator_currents'] = {
         'label': 'alternator current',
         'set': {
-            'title': {'name': 'Generator current [A]'},
-            'y_axis': {'name': 'Generator current [A]'},
+            'title': {'name': 'Alternator current [A]'},
+            'y_axis': {'name': 'Alternator current [A]'},
             'x_axis': {'name': 'Time [s]'},
             'legend': {'position': 'bottom'}
         }

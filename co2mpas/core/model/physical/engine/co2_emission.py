@@ -859,6 +859,82 @@ def define_fmep_model(
     return model
 
 
+# noinspection PyUnresolvedReferences
+@sh.add_function(dsp, outputs=['fuel_map'])
+def define_fuel_map(
+        idle_engine_speed, engine_capacity, co2_params_calibrated, fmep_model,
+        engine_fuel_lower_heating_value, engine_stroke, full_load_speeds,
+        full_load_powers):
+    """
+    Define fuel consumption map [RPM, kW, g/s].
+
+    :param idle_engine_speed:
+        Idle engine speed and its standard deviation [RPM].
+    :type idle_engine_speed: (float, float)
+
+    :param full_load_speeds:
+        T1 map speed vector [RPM].
+    :type full_load_speeds: numpy.array
+
+    :param full_load_powers:
+        T1 map power vector [kW].
+    :type full_load_powers: numpy.array
+
+    :param co2_params_calibrated:
+        CO2 emission model parameters (a2, b2, a, b, c, l, l2, t, trg).
+
+        The missing parameters are set equal to zero.
+    :type co2_params_calibrated: lmfit.Parameters
+
+    :param fmep_model:
+        Engine FMEP model.
+    :type fmep_model: FMEP
+
+    :param engine_fuel_lower_heating_value:
+        Fuel lower heating value [kJ/kg].
+    :type engine_fuel_lower_heating_value: float
+
+    :param engine_stroke:
+        Engine stroke [mm].
+    :type engine_stroke: float
+
+    :param engine_capacity:
+        Engine capacity [cm3].
+    :type engine_capacity: float
+
+    :return:
+        Fuel consumption map [RPM, kW, g/s].
+    :rtype: dict
+    """
+    from . import calculate_mean_piston_speeds
+    speed = np.linspace(full_load_speeds[0], full_load_speeds[-1], 100).tolist()
+    speed = np.unique(speed + list(full_load_speeds))
+    p = co2_params_calibrated.valuesdict()
+    lhv = engine_fuel_lower_heating_value
+    par = dfl.functions.calculate_co2_emissions
+    idle_cutoff = idle_engine_speed[0] * par.cutoff_idle_ratio
+    ec_p0 = _calculate_p0(
+        fmep_model, p, engine_capacity, engine_stroke, idle_cutoff, lhv
+    )
+    flp = np.interp(speed, full_load_speeds, full_load_powers)
+    power = np.linspace(ec_p0, np.max(full_load_powers), 100).tolist()
+    power = np.unique(power + list(full_load_powers) + list(flp) + [0])
+
+    e_s, e_p = np.meshgrid(speed, power, indexing='ij')
+    n_s = calculate_mean_piston_speeds(e_s, engine_stroke)
+    n_p = calculate_brake_mean_effective_pressures(e_s, e_p, engine_capacity, 0)
+
+    fc = np.maximum(0, fmep_model(p, n_s, n_p, 1)[0])
+    fc *= e_s * (engine_capacity / (lhv * 1200))  # [g/sec]
+    b = np.zeros_like(fc, bool)
+    b[:, 1:] |= np.diff(fc, axis=1) < 0
+    fc[b] = np.nan
+    b = ~np.isnan(fc).all(0)
+    return dict(
+        speed=speed.tolist(), power=power[b].tolist(), fuel=fc[:, b].tolist()
+    )
+
+
 def _calculate_p0(
         fmep_model, params, engine_capacity, engine_stroke,
         idle_engine_speed_median, engine_fuel_lower_heating_value):
