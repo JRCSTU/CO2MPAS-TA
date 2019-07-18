@@ -72,7 +72,7 @@ def calculate_wheel_torques(wheel_powers, wheel_speeds, coef=30000 / math.pi):
     """
     import numpy as np
     with np.errstate(divide='ignore', invalid='ignore'):
-        return np.where(wheel_speeds, wheel_powers / wheel_speeds * coef, 0)
+        return np.where(wheel_speeds, np.divide(wheel_powers, wheel_speeds) * coef, 0)
 
 
 @sh.add_function(dsp, outputs=['wheel_powers'])
