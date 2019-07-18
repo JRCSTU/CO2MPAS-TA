@@ -209,6 +209,27 @@ def _calculate_clutch_tc_powers(
     return gear_box_power_in
 
 
+@sh.add_function(dsp, outputs=['clutch_tc_mean_efficiency'])
+def identify_clutch_tc_mean_efficiency(clutch_tc_powers, clutch_tc_powers_out):
+    """
+    Identify clutch or torque converter mean efficiency [-].
+
+    :param clutch_tc_powers:
+        Clutch or torque converter power [kW].
+    :type clutch_tc_powers: numpy.array
+
+    :param clutch_tc_powers_out:
+        Clutch or torque converter power out [kW].
+    :type clutch_tc_powers_out: numpy.array
+
+    :return:
+        Clutch or torque converter mean efficiency [-].
+    :rtype: float
+    """
+    from ..gear_box import identify_gear_box_mean_efficiency as func
+    return func(clutch_tc_powers, clutch_tc_powers_out)
+
+
 @sh.add_function(dsp, outputs=['clutch_tc_powers'])
 def calculate_clutch_tc_powers(
         clutch_tc_speeds_delta, k_factor_curve, gear_box_speeds_in,

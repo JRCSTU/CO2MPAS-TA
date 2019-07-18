@@ -245,20 +245,21 @@ dsp.add_dispatcher(
     dsp=_clutch_torque_converter,
     dsp_id='clutch_torque_converter_model',
     inputs=(
-        'accelerations', 'clutch_speed_model',
-        'clutch_window', 'cold_start_speeds_delta', 'engine_speeds_out',
+        'accelerations', 'clutch_window', 'cold_start_speeds_delta', 'gears',
+        'engine_speeds_out', 'clutch_speed_model', 'has_torque_converter',
         'engine_speeds_out_hot', 'clutch_tc_powers_out', 'gear_box_speeds_in',
-        'gear_box_type', 'gear_shifts', 'gears', 'has_torque_converter',
+        'gear_box_type', 'gear_shifts', 'full_load_curve', 'idle_engine_speed',
         'lockup_speed_ratio', 'stand_still_torque_ratio', 'engine_max_speed',
         'stop_velocity', 'times', 'torque_converter_speed_model', 'velocities',
         'm1000_curve_factor', 'm1000_curve_ratios', 'm1000_curve_norm_torques',
-        'full_load_curve', 'gear_box_torques_in', 'idle_engine_speed',
+        'gear_box_torques_in',
     ),
     outputs=(
-        'clutch_speed_model', 'clutch_phases', 'clutch_tc_powers',
+        'clutch_speed_model', 'clutch_phases', 'clutch_tc_mean_efficiency',
         'clutch_window', 'clutch_tc_speeds_delta', 'has_torque_converter',
         'lockup_speed_ratio', 'stand_still_torque_ratio', 'm1000_curve_factor',
         'torque_converter_speed_model', 'clutch_tc_prediction_model',
+        'clutch_tc_powers',
     )
 )
 
