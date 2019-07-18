@@ -468,7 +468,7 @@ def calculate_engine_speeds_out_hot(
 
     :param gear_box_speeds_in:
         Gear box speed [RPM].
-    :type gear_box_speeds_in: numpy.array, float
+    :type gear_box_speeds_in: numpy.array | float
 
     :param on_engine:
         If the engine is on [-].
@@ -1002,9 +1002,9 @@ dsp.add_dispatcher(
     dsp=_co2_emission,
     dsp_id='CO2_emission_model',
     inputs=(
-        'accelerations', 'active_cylinder_ratios', 'angle_slopes',
+        'accelerations', 'active_cylinder_ratios', 'co2_emission_extra_high',
         'calibration_status', 'co2_emission_EUDC', 'co2_emission_UDC', 'times',
-        'co2_emission_extra_high', 'co2_emission_high', 'co2_emission_low',
+        'co2_emission_high', 'co2_emission_low', 'motive_powers', 'engine_type',
         'co2_emission_medium', 'co2_emissions', 'co2_normalization_references',
         'co2_params', 'enable_phases_willans', 'enable_willans', 'ki_additive',
         'engine_capacity', 'engine_coolant_temperatures', 'idle_engine_speed',
@@ -1012,23 +1012,25 @@ dsp.add_dispatcher(
         'engine_has_variable_valve_actuation', 'engine_max_speed', 'velocities',
         'engine_powers_out', 'engine_speeds_out', 'engine_stroke', 'on_engine',
         'engine_thermostat_temperature', 'engine_thermostat_temperature_window',
-        'engine_type', 'fuel_carbon_content', 'fuel_carbon_content_percentage',
+        'angle_slopes', 'fuel_carbon_content', 'fuel_carbon_content_percentage',
         'fuel_consumptions', 'fuel_density', 'full_bmep_curve', 'is_cycle_hot',
         'has_exhausted_gas_recirculation', 'has_lean_burn', 'missing_powers',
         'has_periodically_regenerating_systems', 'initial_engine_temperature',
         'has_selective_catalytic_reduction', 'phases_integration_times',
         'stop_velocity', 'ki_multiplicative', 'mean_piston_speeds', 'fuel_type',
-        'motive_powers', 'engine_n_cylinders', 'min_engine_on_speed',
-        {'co2_params_calibrated': ('co2_params_calibrated', 'co2_params'),
-         'engine_idle_fuel_consumption': (
-             'engine_idle_fuel_consumption',
-             'idle_fuel_consumption_initial_guess')}
-    ),
+        'engine_n_cylinders', 'min_engine_on_speed', 'full_load_speeds',
+        'full_load_powers', {
+            'co2_params_calibrated': ('co2_params_calibrated', 'co2_params'),
+            'engine_idle_fuel_consumption': (
+                'engine_idle_fuel_consumption',
+                'idle_fuel_consumption_initial_guess'
+            )
+        }),
     outputs=(
         'active_cylinders', 'fuel_consumptions', 'optimal_efficiency',
         'active_lean_burns', 'active_variable_valves', 'co2_rescaling_scores',
-        'after_treatment_temperature_threshold', 'calibration_status',
-        'co2_emission_value', 'co2_emissions', 'co2_emissions_model',
+        'after_treatment_temperature_threshold', 'co2_emissions_model',
+        'co2_emission_value', 'co2_emissions', 'calibration_status', 'fuel_map',
         'co2_error_function_on_emissions', 'co2_error_function_on_phases',
         'co2_params_calibrated', 'co2_params_initial_guess', 'ki_additive',
         'declared_co2_emission_value', 'engine_fuel_lower_heating_value',

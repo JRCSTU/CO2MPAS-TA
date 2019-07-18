@@ -395,9 +395,8 @@ dsp.add_dispatcher(
         'initial_friction_params', 'ki_multiplicative', 'obd_fuel_type_code',
         'min_engine_on_speed', 'phases_integration_times', 'motive_powers',
         'motor_p0_powers', 'motor_p1_powers', 'auxiliaries_torque_loss_factors',
-        'engine_n_cylinders', 'on_idle', 'full_load_speeds', 'is_hybrid', {
-            'initial_temperature': 'initial_engine_temperature'
-        }
+        'engine_n_cylinders', 'on_idle', 'full_load_speeds', 'is_hybrid',
+        'belt_efficiency', {'initial_temperature': 'initial_engine_temperature'}
     ),
     outputs=(
         'active_exhausted_gas_recirculations', 'initial_friction_params',
@@ -407,14 +406,14 @@ dsp.add_dispatcher(
         'co2_emission_value', 'co2_emissions_model', 'co2_rescaling_scores',
         'co2_error_function_on_emissions', 'co2_error_function_on_phases',
         'co2_params_calibrated', 'co2_params_initial_guess', 'ignition_type',
-        'cold_start_speed_model', 'cold_start_speeds_delta', 'co2_emissions',
+        'phases_fuel_consumptions', 'cold_start_speeds_delta', 'co2_emissions',
         'cold_start_speeds_phases', 'declared_co2_emission_value', 'is_hybrid',
         'engine_coolant_temperatures', 'engine_fuel_lower_heating_value',
         'engine_heat_capacity', 'engine_idle_fuel_consumption', 'engine_mass',
         'engine_max_power', 'engine_max_speed', 'engine_speed_at_max_power',
         'engine_max_torque', 'engine_moment_inertia', 'engine_powers_out',
-        'engine_speeds_out', 'engine_temperature_derivatives', 'fuel_type',
-        'engine_temperature_regression_model', 'auxiliaries_torque_loss',
+        'engine_temperature_derivatives', 'auxiliaries_torque_loss', 'on_idle',
+        'engine_temperature_regression_model', 'engine_speeds_out', 'fuel_type',
         'engine_thermostat_temperature', 'engine_thermostat_temperature_window',
         'engine_type', 'extended_phases_co2_emissions', 'fuel_carbon_content',
         'extended_phases_integration_times', 'initial_engine_temperature',
@@ -423,9 +422,10 @@ dsp.add_dispatcher(
         'identified_co2_emissions', 'idle_engine_speed', 'has_sufficient_power',
         'idle_engine_speed_median', 'idle_engine_speed_std', 'full_load_powers',
         'ki_multiplicative', 'max_engine_coolant_temperature', 'missing_powers',
-        'on_idle', 'optimal_efficiency', 'phases_co2_emissions', 'ki_additive',
+        'fuel_map', 'optimal_efficiency', 'phases_co2_emissions', 'ki_additive',
         'engine_prediction_model', 'full_load_speeds', 'auxiliaries_power_loss',
-        'phases_fuel_consumptions', 'phases_willans_factors', 'active_cylinders'
+        'phases_willans_factors', 'active_cylinders', 'cold_start_speed_model',
+        'belt_mean_efficiency', 'engine_inertia_powers_losses',
     ),
     inp_weight={'initial_temperature': 5}
 )
