@@ -494,7 +494,7 @@ def calculate_engine_idle_fuel_consumption(
         CO2 emission model parameters (a2, b2, a, b, c, l, l2, t, trg).
 
         The missing parameters are set equal to zero.
-    :type co2_params_calibrated: dict
+    :type co2_params_calibrated: lmfit.Parameters
 
     :return:
         Fuel consumption at hot idle engine speed [g/s].
@@ -1976,7 +1976,7 @@ def predict_co2_emissions(co2_emissions_model, co2_params_calibrated):
         CO2 emission model parameters (a2, b2, a, b, c, l, l2, t, trg).
 
         The missing parameters are set equal to zero.
-    :type co2_params_calibrated: dict
+    :type co2_params_calibrated: lmfit.Parameters
 
     :return:
         CO2 instantaneous emissions vector [CO2g/s].
@@ -2582,7 +2582,7 @@ def calculate_optimal_efficiency(co2_params_calibrated, mean_piston_speeds):
     n_s = np.linspace(mean_piston_speeds.min(), mean_piston_speeds.max(), 10)
     bmep, eff = _calculate_optimal_point(co2_params_calibrated, n_s)
 
-    return {'mean_piston_speeds': n_s, 'engine_bmep': bmep, 'efficiency': eff}
+    return dict(mean_piston_speeds=n_s, engine_bmep=bmep, efficiency=eff)
 
 
 @sh.add_function(dsp, outputs=['co2_emissions'])
