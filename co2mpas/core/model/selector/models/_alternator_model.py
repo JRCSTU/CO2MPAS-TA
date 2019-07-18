@@ -25,15 +25,15 @@ models = [
 
 #: Inputs required to run the model.
 inputs = [
-    'battery_capacity', 'alternator_nominal_voltage', 'initial_state_of_charge',
-    'has_energy_recuperation', 'times', 'gear_box_powers_in', 'on_engine',
-    'engine_starts', 'accelerations'
+    'battery_capacity', 'alternator_nominal_voltage', 'clutch_tc_powers',
+    'initial_service_battery_state_of_charges', 'has_energy_recuperation',
+    'times', 'on_engine', 'engine_starts', 'accelerations'
 ]
 
 #: Relevant outputs of the model.
 outputs = [
-    'alternator_currents', 'battery_currents', 'state_of_charges',
-    'alternator_statuses'
+    'alternator_currents', 'service_battery_currents',
+    'service_battery_state_of_charges', 'alternator_statuses'
 ]
 #: Targets to compare the outputs of the model.
 targets = outputs
@@ -45,7 +45,9 @@ weights = sh.map_list(targets, 1, 1, 0, 0)
 metrics = sh.map_list(targets, *([co2_utl.mae] * 3 + [_accuracy_score]))
 
 #: Upper score limits to raise the warnings.
-up_limit = dict.fromkeys(('alternator_currents', 'battery_currents'), 60)
+up_limit = dict.fromkeys(
+    ('alternator_currents', 'service_battery_currents'), 60
+)
 
 #: Prediction model.
 # noinspection PyProtectedMember
