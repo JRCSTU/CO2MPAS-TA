@@ -318,12 +318,45 @@ def calculate_drive_battery_delta_state_of_charge(
     return func(drive_battery_state_of_charges)
 
 
-@sh.add_function(dsp, outputs=['drive_battery_r0', 'drive_battery_ocv'])
-def calibrate_drive_battery_r0_and_ocv(
+class BatteryModel:
+    def __init__(self, r0=None, ocv=None, n_parallel_cells=1, n_series_cells=1):
+        self.r0, self.ocv = r0, ocv
+        self.np, self.ns = n_parallel_cells, n_series_cells
+        r0 is not None and ocv is not None and self.compile()
+
+    def compile(self):
+        self.c = self.np / (2 * self.r0)
+        self.a = - self.ocv * self.c
+        self.b = self.a ** 2
+        m = (4e3 * self.r0 / (self.ns * self.np))
+        self.c *= self.c * m
+        self._ocv = self.ocv * self.ns
+        self._r0 = self.r0 * self.ns / self.np
+        self.min_power = not self.r0 and float('inf') or -self.ocv ** 2 / m
+
+    def fit(self, currents, voltages):
+        from sklearn.linear_model import RANSACRegressor
+        m = RANSACRegressor(random_state=0)
+        m.fit(currents[:, None], voltages)
+        r0, ocv = float(m.estimator_.coef_), float(m.estimator_.intercept_)
+        self.r0 = r0 * self.np / self.ns
+        self.ocv = ocv / self.ns
+        self.compile()
+        return self
+
+    def currents(self, powers):
+        return self.a + np.nan_to_num(np.sqrt(self.b + self.c * powers))
+
+    def powers(self, currents):
+        return ((self._ocv / 1e3 + currents * self._r0 / 1e3) * currents)
+
+
+@sh.add_function(dsp, outputs=['drive_battery_model'])
+def calibrate_drive_battery_model(
         drive_battery_n_parallel_cells, drive_battery_n_series_cells,
         drive_battery_currents, drive_battery_voltages):
     """
-    Calibrate drive battery resistance and open circuit voltage [ohm, V].
+    Calibrate the drive battery current model.
 
     :param drive_battery_n_parallel_cells:
         Number of battery cells in parallel [-].
@@ -342,35 +375,48 @@ def calibrate_drive_battery_r0_and_ocv(
     :type drive_battery_voltages: numpy.array
 
     :return:
-        Driver battery resistance and open circuit voltage [ohm, V].
+        Drive battery current model.
+    :rtype: BatteryModel
+    """
+    return BatteryModel(
+        n_parallel_cells=drive_battery_n_parallel_cells,
+        n_series_cells=drive_battery_n_series_cells
+    ).fit(drive_battery_currents, drive_battery_voltages)
+
+
+@sh.add_function(dsp, outputs=['drive_battery_r0', 'drive_battery_ocv'])
+def get_drive_battery_r0_and_ocv(drive_battery_model):
+    """
+    Returns drive battery resistance and open circuit voltage [ohm, V].
+
+    :param drive_battery_model:
+        Drive battery current model.
+    :type drive_battery_model: BatteryModel
+
+    :return:
+        Drive battery resistance and open circuit voltage [ohm, V].
     :rtype: float, float
     """
-    from sklearn.linear_model import RANSACRegressor
-    m = RANSACRegressor()
-    m.fit(drive_battery_currents[:, None], drive_battery_voltages)
-    r0, ocv = float(m.estimator_.coef_), float(m.estimator_.intercept_)
-    r0 *= drive_battery_n_parallel_cells / drive_battery_n_series_cells
-    ocv /= drive_battery_n_series_cells
-    return r0, ocv
+    return drive_battery_model.r0, drive_battery_model.ocv
 
 
 dsp.add_data('drive_battery_n_parallel_cells', 1)
 dsp.add_data('drive_battery_n_series_cells', 1)
 
 
-@sh.add_function(dsp, outputs=['minimum_drive_battery_electric_power'])
-def calculate_minimum_drive_battery_electric_power(
+@sh.add_function(dsp, outputs=['drive_battery_model'])
+def define_drive_battery_model(
         drive_battery_r0, drive_battery_ocv, drive_battery_n_parallel_cells,
         drive_battery_n_series_cells):
     """
-    Calculate the maximum admissible electric power of drive battery [kW].
+    Define the drive battery current model.
 
     :param drive_battery_r0:
-        Driver battery resistance [ohm].
+        Drive battery resistance [ohm].
     :type drive_battery_r0: float
 
     :param drive_battery_ocv:
-        Driver battery open circuit voltage [V].
+        Drive battery open circuit voltage [V].
     :type drive_battery_ocv: float
 
     :param drive_battery_n_parallel_cells:
@@ -382,20 +428,18 @@ def calculate_minimum_drive_battery_electric_power(
     :type drive_battery_n_series_cells: int
 
     :return:
-        Minimum admissible electric power of drive battery [kW].
-    :rtype: float
+        Drive battery current model.
+    :rtype: BatteryModel
     """
-    if not drive_battery_r0:
-        return float('inf')
-    n_p, n_s = drive_battery_n_parallel_cells, drive_battery_n_series_cells
-    r0, ocv = drive_battery_r0, drive_battery_ocv
-    return -ocv ** 2 / (4e3 * r0 / (n_s * n_p))
+    return BatteryModel(
+        drive_battery_r0, drive_battery_ocv, drive_battery_n_parallel_cells,
+        drive_battery_n_series_cells
+    )
 
 
 @sh.add_function(dsp, outputs=['drive_battery_currents'])
 def calculate_drive_battery_currents_v2(
-        drive_battery_electric_powers, drive_battery_r0, drive_battery_ocv,
-        drive_battery_n_parallel_cells, drive_battery_n_series_cells):
+        drive_battery_electric_powers, drive_battery_model):
     """
     Calculate the drive battery current vector [A].
 
@@ -403,32 +447,15 @@ def calculate_drive_battery_currents_v2(
         Drive battery electric power [kW].
     :type drive_battery_electric_powers: numpy.array
 
-    :param drive_battery_r0:
-        Driver battery resistance [ohm].
-    :type drive_battery_r0: float
-
-    :param drive_battery_ocv:
-        Driver battery open circuit voltage [V].
-    :type drive_battery_ocv: float
-
-    :param drive_battery_n_parallel_cells:
-        Number of battery cells in parallel [-].
-    :type drive_battery_n_parallel_cells: int
-
-    :param drive_battery_n_series_cells:
-        Number of battery cells in series [-].
-    :type drive_battery_n_series_cells: int
+    :param drive_battery_model:
+        Drive battery current model.
+    :type drive_battery_model: BatteryModel
 
     :return:
         Drive battery current vector [A].
     :rtype: numpy.array
     """
-    n_p, n_s = drive_battery_n_parallel_cells, drive_battery_n_series_cells
-    p = drive_battery_electric_powers
-    r0, ocv = drive_battery_r0, drive_battery_ocv
-    x = ocv - np.nan_to_num(np.sqrt(ocv ** 2 + (4e3 * r0 / (n_s * n_p)) * p))
-    x *= - n_p / (2 * r0)
-    return x
+    return drive_battery_model.currents(drive_battery_electric_powers)
 
 
 @sh.add_function(dsp, outputs=['motors_electric_powers'])
