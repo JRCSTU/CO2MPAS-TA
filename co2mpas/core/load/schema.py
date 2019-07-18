@@ -661,6 +661,8 @@ def define_data_schema(read=True):
         'clutch_tc_prediction_model': _clutch_tc_prediction_model(read=read),
         'wheels_prediction_model': _wheels_prediction_model(read=read),
         'engine_type': string,
+        'start_demand_function': function,
+        'drive_battery_model': function,
         'full_load_curve': function,
         'fmep_model': _fmep_model(read=read),
         'gear_box_efficiency_constants': dictstrdict,
