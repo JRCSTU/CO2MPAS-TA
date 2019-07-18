@@ -24,13 +24,14 @@ Sub-Modules:
 
 import math
 import functools
+import numpy as np
 import schedula as sh
 from ..defaults import dfl
 from .cvt import dsp as _cvt_model
 from .at_gear import dsp as _at_gear
 from .mechanical import dsp as _mechanical
 from .manual import dsp as _manual
-from co2mpas.utils import BaseModel, List
+from co2mpas.utils import BaseModel, List, reject_outliers
 
 dsp = sh.BlueDispatcher(
     name='Gear box model', description='Models the gear box.'
@@ -50,8 +51,31 @@ def calculate_gear_shifts(gears):
         When there is a gear shifting [-].
     :rtype: numpy.array
     """
-    import numpy as np
     return np.ediff1d(gears, to_begin=[0]) != 0
+
+
+@sh.add_function(dsp, outputs=['gear_box_mean_efficiency'])
+def identify_gear_box_mean_efficiency(gear_box_powers_in, gear_box_powers_out):
+    """
+    Identify gear box mean efficiency [-].
+
+    :param gear_box_powers_in:
+        Gear box power in vector [kW].
+    :type gear_box_powers_in: numpy.array
+
+    :param gear_box_powers_out:
+        Gear box power out vector [kW].
+    :type gear_box_powers_out: numpy.array
+
+    :return:
+        Gear box mean efficiency [-].
+    :rtype: float
+    """
+    with np.errstate(divide='ignore', invalid='ignore'):
+        eff = gear_box_powers_out / gear_box_powers_in
+        b = eff > 1
+        eff[b] = 1 / eff[b]
+        return reject_outliers(eff[np.isfinite(eff) & (eff >= 0)])[0]
 
 
 # noinspection PyPep8Naming
@@ -165,7 +189,6 @@ def calculate_gear_box_torques(
             return 0
         return gear_box_powers_out / x * 30000.0 / math.pi
     else:
-        import numpy as np
         x = np.where(
             gear_box_powers_out > 0, gear_box_speeds_in, gear_box_speeds_out
         )
@@ -280,7 +303,6 @@ def _gear_box_torques_in(
         Torque required vector [N*m].
     :rtype: numpy.array
     """
-    import numpy as np
     tgb, es, ws = gear_box_torques, gear_box_speeds_in, gear_box_speeds_out
 
     b = (tgb < 0) & (es != 0)
@@ -328,7 +350,6 @@ def correct_gear_box_torques_in(
         Corrected Torque required vector [N*m].
     :rtype: numpy.array
     """
-    import numpy as np
     b = np.zeros_like(gears, dtype=bool)
 
     for k, v in gear_box_ratios.items():
@@ -375,7 +396,6 @@ def calculate_gear_box_efficiencies(
         Gear box efficiency vector [-].
     :rtype: numpy.array
     """
-    import numpy as np
     wp = gear_box_powers_out
     tgb = gear_box_torques
     tr = gear_box_torques_in

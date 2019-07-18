@@ -214,7 +214,8 @@ dsp.add_dispatcher(
         'gear_box_torque_losses', 'gear_box_torques_in', 'gear_shifts', 'gears',
         'last_gear_box_ratio', 'max_gear', 'max_speed_velocity_ratio',
         'maximum_velocity', 'specific_gear_shifting', 'velocity_speed_ratios',
-        'speed_velocity_ratios', 'gear_box_prediction_model', 'n_gears'
+        'speed_velocity_ratios', 'gear_box_prediction_model', 'n_gears',
+        'gear_box_mean_efficiency'
     ),
     inp_weight={'initial_temperature': 5}
 )
