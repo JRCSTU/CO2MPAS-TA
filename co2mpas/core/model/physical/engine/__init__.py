@@ -623,15 +623,11 @@ def calculate_engine_speeds_out(
     return speeds
 
 
-@sh.add_function(
-    dsp, inputs_kwargs=True, outputs=['uncorrected_engine_powers_out']
-)
-def calculate_uncorrected_engine_powers_out(
-        times, engine_moment_inertia, clutch_tc_powers, engine_speeds_out,
-        on_engine, auxiliaries_power_losses, gear_box_type, on_idle,
-        alternator_powers, motor_p0_powers, motor_p1_powers):
+@sh.add_function(dsp, outputs=['engine_inertia_powers_losses'])
+def calculate_engine_inertia_powers_losses(
+        times, engine_speeds_out, engine_moment_inertia):
     """
-    Calculates the uncorrected engine power [kW].
+    Calculates the engine power losses due to inertia [kW].
 
     :param times:
         Time vector [s].
@@ -641,21 +637,45 @@ def calculate_uncorrected_engine_powers_out(
         Engine moment of inertia [kg*m2].
     :type engine_moment_inertia: float
 
-    :param clutch_tc_powers:
-        Clutch or torque converter power [kW].
-    :type clutch_tc_powers: numpy.array
-
     :param engine_speeds_out:
         Engine speed [RPM].
     :type engine_speeds_out: numpy.array
 
+    :return:
+        Engine power losses due to inertia [kW].
+    :rtype: numpy.array
+    """
+    t = times[:, None] + np.array([-1, 1])
+    c = engine_moment_inertia / 2000 * (2 * math.pi / 60) ** 2 / 4
+    return c * np.diff(np.interp(t, times, engine_speeds_out)).ravel() ** 2
+
+
+dsp.add_data('belt_efficiency', dfl.values.belt_efficiency)
+dsp.add_function(
+    function=sh.bypass,
+    inputs=['belt_efficiency'],
+    outputs=['belt_mean_efficiency']
+)
+
+
+@sh.add_function(dsp, outputs=['gross_engine_powers_out'])
+def calculate_gross_engine_powers_out(
+        clutch_tc_powers, belt_efficiency, on_engine, gear_box_type, on_idle,
+        alternator_powers, motor_p0_powers, motor_p1_powers):
+    """
+    Calculates the gross engine power (pre-losses) [kW].
+
+    :param clutch_tc_powers:
+        Clutch or torque converter power [kW].
+    :type clutch_tc_powers: numpy.array
+
+    :param belt_efficiency:
+        Belt efficiency [-].
+    :type belt_efficiency: float
+
     :param on_engine:
         If the engine is on [-].
     :type on_engine: numpy.array
-
-    :param auxiliaries_power_losses:
-        Engine torque losses due to engine auxiliaries [N*m].
-    :type auxiliaries_power_losses: numpy.array
 
     :param gear_box_type:
         Gear box type (manual or automatic or cvt).
@@ -678,24 +698,17 @@ def calculate_uncorrected_engine_powers_out(
     :type motor_p1_powers: numpy.array
 
     :return:
-        Uncorrected engine power [kW].
+        Gross engine power (pre-losses) [kW].
     :rtype: numpy.array
     """
-    from scipy.misc import derivative
-    from scipy.interpolate import InterpolatedUnivariateSpline as Spline
 
     p, b = np.zeros_like(clutch_tc_powers, dtype=float), on_engine
     p[b] = clutch_tc_powers[b]
 
     if gear_box_type == 'manual':
         p[on_idle & (p < 0)] = 0.0
-
-    p[b] += auxiliaries_power_losses[b]
-    p[b] += alternator_powers[b] - motor_p0_powers[b] - motor_p1_powers[b]
-
-    p_ine = engine_moment_inertia / 2000 * (2 * math.pi / 60) ** 2
-    p += p_ine * derivative(Spline(times, engine_speeds_out, k=1), times) ** 2
-
+    eff = np.where(motor_p0_powers[b] < 0, belt_efficiency, 1 / belt_efficiency)
+    p[b] += alternator_powers[b] - motor_p0_powers[b] * eff - motor_p1_powers[b]
     return p
 
 
@@ -760,7 +773,8 @@ def calculate_max_available_engine_powers_out(
 )
 def correct_engine_powers_out(
         max_available_engine_powers_out, min_available_engine_powers_out,
-        uncorrected_engine_powers_out):
+        gross_engine_powers_out, auxiliaries_power_losses,
+        engine_inertia_powers_losses):
     """
     Corrects the engine powers out according to the available powers and
     returns the missing and brake power [kW].
@@ -773,9 +787,17 @@ def correct_engine_powers_out(
         Minimum available engine power [kW].
     :type min_available_engine_powers_out: numpy.array
 
-    :param uncorrected_engine_powers_out:
-        Uncorrected engine power [kW].
-    :type uncorrected_engine_powers_out: numpy.array
+    :param engine_inertia_powers_losses:
+        Engine power losses due to inertia [kW].
+    :type engine_inertia_powers_losses: numpy.array
+
+    :param auxiliaries_power_losses:
+        Engine torque losses due to engine auxiliaries [N*m].
+    :type auxiliaries_power_losses: numpy.array
+
+    :param gross_engine_powers_out:
+        Gross engine power (pre-losses) [kW].
+    :type gross_engine_powers_out: numpy.array
 
     :return:
         Engine, missing, and braking powers [kW].
@@ -783,8 +805,8 @@ def correct_engine_powers_out(
     """
 
     ul, dl = max_available_engine_powers_out, min_available_engine_powers_out
-    p = uncorrected_engine_powers_out
-
+    p = gross_engine_powers_out + auxiliaries_power_losses
+    p += engine_inertia_powers_losses
     up, dn = ul < p, dl > p
 
     missing_powers, brake_powers = np.zeros_like(p), np.zeros_like(p)

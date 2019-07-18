@@ -14,6 +14,9 @@ import co2mpas.utils as co2_utl
 #: Container of node default values.
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class Values(co2_utl.Constants):
+    #: Belt efficiency [-].
+    belt_efficiency = 0.8
+
     #: Starter efficiency [-].
     starter_efficiency = 0.7
 
