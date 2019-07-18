@@ -15,6 +15,128 @@ dsp = sh.BlueDispatcher(
 )
 
 
+@sh.add_function(dsp, outputs=['motor_p0_maximum_power'])
+def identify_motor_p0_maximum_power(motor_p0_powers):
+    """
+    Identify the maximum power of motor P0 [kW].
+
+    :param motor_p0_powers:
+        Power at motor P0 [kW].
+    :type motor_p0_powers: numpy.array
+
+    :return:
+        Maximum power of motor P0 [kW].
+    :rtype: float
+    """
+    from .p4 import identify_motor_p4_maximum_power as func
+    return func(motor_p0_powers)
+
+
+@sh.add_function(dsp, outputs=['motor_p0_maximum_torque'])
+def identify_motor_p0_maximum_torque(motor_p0_torques):
+    """
+    Identify the maximum torque of motor P0 [N*m].
+
+    :param motor_p0_torques:
+        Torque at motor P0 [N*m].
+    :type motor_p0_torques: numpy.array
+
+    :return:
+        Maximum torque of motor P0 [N*m].
+    :rtype: float
+    """
+    from .p4 import identify_motor_p4_maximum_torque as func
+    return func(motor_p0_torques)
+
+
+@sh.add_function(dsp, outputs=['motor_p0_maximum_power'])
+def calculate_motor_p0_maximum_power(
+        motor_p0_rated_speed, motor_p0_maximum_torque):
+    """
+    Calculate the maximum power of motor P0 [kW].
+
+    :param motor_p0_rated_speed:
+        Rated speed of motor P0 [RPM].
+    :type motor_p0_rated_speed: float
+
+    :param motor_p0_maximum_torque:
+        Maximum torque of motor P0 [N*m].
+    :type motor_p0_maximum_torque: float
+
+    :return:
+        Maximum power of motor P0 [kW].
+    :rtype: float
+    """
+    from .p4 import calculate_motor_p4_maximum_power as func
+    return func(motor_p0_rated_speed, motor_p0_maximum_torque)
+
+
+@sh.add_function(dsp, outputs=['motor_p0_rated_speed'])
+def calculate_motor_p0_rated_speed(
+        motor_p0_maximum_power, motor_p0_maximum_torque):
+    """
+    Calculate the rated speed of motor P0 [RPM].
+
+    :param motor_p0_maximum_power:
+        Maximum power of motor P0 [kW].
+    :type motor_p0_maximum_power: float
+
+    :param motor_p0_maximum_torque:
+        Maximum torque of motor P0 [N*m].
+    :type motor_p0_maximum_torque: float
+
+    :return:
+        Rated speed of motor P0 [RPM].
+    :rtype: float
+    """
+    from .p4 import calculate_motor_p4_rated_speed as func
+    return func(motor_p0_maximum_power, motor_p0_maximum_torque)
+
+
+@sh.add_function(dsp, outputs=['motor_p0_maximum_power_function'])
+def define_motor_p0_maximum_power_function(
+        motor_p0_maximum_power, motor_p0_rated_speed):
+    """
+    Define the maximum power function of motor P0.
+
+    :param motor_p0_maximum_power:
+        Maximum power of motor P0 [kW].
+    :type motor_p0_maximum_power: float
+
+    :param motor_p0_rated_speed:
+        Rated speed of motor P0 [RPM].
+    :type motor_p0_rated_speed: float
+
+    :return:
+        Maximum power function of motor P0.
+    :rtype: function
+    """
+    from .p4 import define_motor_p4_maximum_power_function as func
+    return func(motor_p0_maximum_power, motor_p0_rated_speed)
+
+
+@sh.add_function(dsp, outputs=['motor_p0_maximum_powers'])
+def calculate_motor_p0_maximum_powers(
+        motor_p0_speeds, motor_p0_maximum_power_function):
+    """
+    Calculate the maximum power vector of motor P0 [kW].
+
+    :param motor_p0_speeds:
+        Rotating speed of motor P0 [RPM].
+    :type motor_p0_speeds: numpy.array | float
+
+    :param motor_p0_maximum_power_function:
+        Maximum power function of motor P0.
+    :type motor_p0_maximum_power_function: function
+
+    :return:
+        Maximum power vector of motor P0 [kW].
+    :rtype: numpy.array | float
+    """
+    from .p4 import calculate_motor_p4_maximum_powers as func
+    return func(motor_p0_speeds, motor_p0_maximum_power_function)
+
+
 @sh.add_function(dsp, outputs=['motor_p0_speed_ratio'])
 def identify_motor_p0_speed_ratio(engine_speeds_out, motor_p0_speeds):
     """

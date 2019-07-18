@@ -61,7 +61,14 @@ dsp.add_dispatcher(
         'service_battery_state_of_charge_balance_window',
         'alternator_charging_currents', 'alternator_current_model',
         'engine_moment_inertia', 'starter_efficiency',
-        'delta_time_engine_starter'
+        'delta_time_engine_starter', 'motor_p0_maximum_power',
+        'motor_p0_maximum_torque', 'motor_p0_rated_speed',
+        'motor_p1_maximum_power', 'motor_p1_maximum_torque',
+        'motor_p1_rated_speed', 'motor_p2_maximum_power',
+        'motor_p2_maximum_torque', 'motor_p2_rated_speed',
+        'motor_p3_maximum_power', 'motor_p3_maximum_torque',
+        'motor_p3_rated_speed', 'motor_p4_maximum_power',
+        'motor_p4_maximum_torque', 'motor_p4_rated_speed'
     ),
     outputs=(
         'motor_p0_electric_power_loss_function', 'motor_p0_electric_powers',
@@ -83,9 +90,21 @@ dsp.add_dispatcher(
         'alternator_initialization_time', 'alternator_status_model',
         'service_battery_state_of_charge_balance', 'alternator_currents',
         'service_battery_state_of_charge_balance_window', 'alternator_powers',
-        'alternator_electric_powers', 'alternator_statuses',
-        'starter_electric_powers', 'starter_powers', 'engine_speeds_out',
-        'wheel_speeds', 'final_drive_speeds_in', 'gear_box_speeds_in'
+        'alternator_electric_powers', 'engine_speeds_out',
+        'alternator_statuses', 'starter_electric_powers', 'starter_powers',
+        'wheel_speeds', 'final_drive_speeds_in', 'gear_box_speeds_in',
+        'start_demand_function', 'delta_time_engine_starter',
+        'motor_p0_maximum_power', 'motor_p0_maximum_torque',
+        'motor_p0_rated_speed', 'motor_p0_maximum_powers',
+        'motor_p0_maximum_power_function', 'motor_p1_maximum_power',
+        'motor_p1_maximum_torque', 'motor_p1_rated_speed',
+        'motor_p1_maximum_powers', 'motor_p1_maximum_power_function',
+        'motor_p2_maximum_power', 'motor_p2_maximum_torque',
+        'motor_p2_rated_speed', 'motor_p2_maximum_powers',
+        'motor_p3_maximum_power', 'motor_p3_maximum_torque',
+        'motor_p3_rated_speed', 'motor_p3_maximum_powers',
+        'motor_p4_maximum_power', 'motor_p4_maximum_torque',
+        'motor_p4_rated_speed', 'motor_p4_maximum_powers',
     ),
     include_defaults=True
 )
