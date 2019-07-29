@@ -191,7 +191,7 @@ def calculate_gear_box_speeds_in(motor_p2_speeds, motor_p2_speed_ratio=1):
     :type motor_p2_speeds: numpy.array | float
 
     :param motor_p2_speed_ratio:
-        Ratio between motor P2 speed and wheel speed [-].
+        Ratio between motor P2 speed and gear box speed [-].
     :type motor_p2_speed_ratio: float
 
     :return:

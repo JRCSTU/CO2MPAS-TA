@@ -191,7 +191,7 @@ def calculate_engine_speeds_out(motor_p1_speeds, motor_p1_speed_ratio=1):
     :type motor_p1_speeds: numpy.array | float
 
     :param motor_p1_speed_ratio:
-        Ratio between motor P1 speed and wheel speed [-].
+        Ratio between motor P1 speed and engine speed [-].
     :type motor_p1_speed_ratio: float
 
     :return:

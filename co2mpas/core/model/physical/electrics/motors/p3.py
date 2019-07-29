@@ -191,7 +191,7 @@ def calculate_final_drive_speeds_in(motor_p3_speeds, motor_p3_speed_ratio=1):
     :type motor_p3_speeds: numpy.array | float
 
     :param motor_p3_speed_ratio:
-        Ratio between motor P3 speed and wheel speed [-].
+        Ratio between motor P3 speed and final drive speed in [-].
     :type motor_p3_speed_ratio: float
 
     :return:

@@ -292,7 +292,7 @@ def identify_service_battery_load(
         Service battery load vector [kW].
     :type service_battery_loads: numpy.array
 
-    ::param engine_powers_out:
+    :param engine_powers_out:
         Engine power vector [kW].
     :type engine_powers_out: numpy.array
 

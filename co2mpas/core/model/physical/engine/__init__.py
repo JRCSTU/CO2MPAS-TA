@@ -792,7 +792,7 @@ def correct_engine_powers_out(
     :type engine_inertia_powers_losses: numpy.array
 
     :param auxiliaries_power_losses:
-        Engine torque losses due to engine auxiliaries [N*m].
+        Engine power losses due to engine auxiliaries [kW].
     :type auxiliaries_power_losses: numpy.array
 
     :param gross_engine_powers_out:
