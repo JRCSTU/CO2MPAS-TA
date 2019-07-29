@@ -435,14 +435,33 @@ dsp.add_dispatcher(
     dsp_id='control_model',
     dsp=_control,
     inputs=(
-        'times', 'engine_speeds_out', 'idle_engine_speed', 'velocities',
-        'min_time_engine_on_after_start', 'accelerations', 'has_start_stop',
-        'correct_start_stop_with_gears', 'start_stop_model', 'on_engine',
-        'gears', 'gear_box_type', 'start_stop_activation_time'
+        'start_stop_hybrid_params', 'start_stop_activation_time',
+        'start_demand_function', 'engine_speeds_out', 'idle_engine_speed',
+        'final_drive_mean_efficiency', 'gear_box_mean_efficiency', 'on_engine',
+        'full_load_curve', 'gear_box_speeds_in', 'motor_p0_efficiency', 'gears',
+        'motor_p1_efficiency', 'motor_p2_efficiency', 'motor_p3_efficiency',
+        'motor_p4_efficiency', 'clutch_tc_mean_efficiency', 'motive_powers',
+        'drive_battery_model', 'drive_battery_capacity', 'starter_efficiency',
+        'initial_drive_battery_state_of_charge', 'catalyst_warm_up_duration',
+        'correct_start_stop_with_gears', 'motor_p1_maximum_power_function',
+        'delta_time_engine_starter', 'motor_p2_maximum_powers', 'velocities',
+        'motor_p3_maximum_power', 'motor_p0_maximum_power', 'engine_powers_out',
+        'motor_p3_maximum_powers', 'motor_p1_speed_ratio', 'has_start_stop',
+        'motor_p0_speed_ratio', 'motor_p0_maximum_power_function', 'is_hybrid',
+        'motor_p4_maximum_powers', 'motor_p1_maximum_power', 'start_stop_model',
+        'motor_p2_maximum_power', 'engine_thermostat_temperature', 'ecms_s',
+        'motor_p4_maximum_power', 'drive_battery_state_of_charges', 'fuel_map',
+        'belt_mean_efficiency', 'is_cycle_hot', 'auxiliaries_power_loss',
+        'min_time_engine_on_after_start', 'times', 'accelerations',
+        'engine_coolant_temperatures', 'engine_moment_inertia', 'gear_box_type',
+
     ),
     outputs=(
-        'on_engine', 'engine_starts', 'start_stop_model',
-        'correct_start_stop_with_gears', 'start_stop_activation_time'
+        'correct_start_stop_with_gears', 'start_stop_activation_time', 'ecms_s',
+        'motor_p0_electric_powers', 'motor_p1_electric_powers', 'engine_starts',
+        'catalyst_warm_up_duration', 'motor_p2_electric_powers', 'on_engine',
+        'engine_speeds_out_hot', 'start_stop_hybrid_params', 'start_stop_model',
+        'motor_p3_electric_powers', 'motor_p4_electric_powers',
     )
 )
 

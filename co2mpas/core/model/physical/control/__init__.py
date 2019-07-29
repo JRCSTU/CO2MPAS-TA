@@ -22,6 +22,7 @@ import numpy as np
 import schedula as sh
 from ..defaults import dfl
 from .start_stop import dsp as _start_stop
+from .ems import dsp as _ems
 
 dsp = sh.BlueDispatcher(
     name='Control', description='Models the vehicle control strategy.'
@@ -83,7 +84,6 @@ def identify_engine_starts(on_engine):
         When the engine starts [-].
     :rtype: numpy.array
     """
-
     engine_starts = np.zeros_like(on_engine, dtype=bool)
     engine_starts[:-1] = on_engine[1:] & (on_engine[:-1] != on_engine[1:])
     return engine_starts
@@ -97,11 +97,41 @@ dsp.add_dispatcher(
         'accelerations', 'correct_start_stop_with_gears', 'start_stop_model',
         'engine_starts', 'has_start_stop', 'on_engine', 'gears',
         'gear_box_type', 'start_stop_activation_time', 'times', 'velocities',
-        'min_time_engine_on_after_start'
+        'min_time_engine_on_after_start', 'is_hybrid'
     ),
     outputs=(
         'start_stop_model', 'correct_start_stop_with_gears',
         'on_engine', 'start_stop_activation_time'
+    )
+)
 
+dsp.add_dispatcher(
+    include_defaults=True,
+    dsp=_ems,
+    dsp_id='energy_management_system',
+    inputs=(
+        'clutch_tc_mean_efficiency', 'idle_engine_speed', 'motor_p0_efficiency',
+        'motor_p4_efficiency', 'gear_box_speeds_in', 'gear_box_mean_efficiency',
+        'motor_p0_maximum_power', 'drive_battery_model', 'belt_mean_efficiency',
+        'motor_p4_maximum_powers', 'motor_p0_speed_ratio', 'starter_efficiency',
+        'min_time_engine_on_after_start', 'start_stop_activation_time', 'times',
+        'drive_battery_state_of_charges', 'motor_p2_maximum_powers', 'fuel_map',
+        'final_drive_mean_efficiency', 'drive_battery_capacity', 'is_cycle_hot',
+        'motor_p3_maximum_powers', 'delta_time_engine_starter', 'motive_powers',
+        'engine_coolant_temperatures', 'motor_p3_efficiency', 'full_load_curve',
+        'motor_p4_maximum_power', 'engine_powers_out', 'motor_p2_maximum_power',
+        'motor_p0_maximum_power_function', 'on_engine', 'engine_moment_inertia',
+        'motor_p3_maximum_power', 'motor_p1_maximum_power', 'engine_speeds_out',
+        'motor_p1_maximum_power_function', 'ecms_s', 'start_stop_hybrid_params',
+        'motor_p1_speed_ratio', 'auxiliaries_power_loss', 'motor_p1_efficiency',
+        'initial_drive_battery_state_of_charge', 'catalyst_warm_up_duration',
+        'engine_thermostat_temperature', 'start_demand_function',
+        'motor_p2_efficiency', {'is_hybrid': sh.SINK},
+    ),
+    outputs=(
+        'start_stop_hybrid_params', 'catalyst_warm_up_duration', 'on_engine',
+        'motor_p0_electric_powers', 'motor_p1_electric_powers', 'ecms_s',
+        'motor_p2_electric_powers', 'motor_p3_electric_powers',
+        'motor_p4_electric_powers', 'engine_speeds_out_hot',
     )
 )

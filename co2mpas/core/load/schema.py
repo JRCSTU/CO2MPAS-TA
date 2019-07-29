@@ -643,10 +643,10 @@ def define_data_schema(read=True):
         'cycle_type': string,
         'cycle_name': string,
         'specific_gear_shifting': string,
-        'calibration_status': _type(type=And(Use(list),
-                                             [(bool, Or(parameters, None))]),
-                                    length=4,
-                                    read=read),
+        'calibration_status': _type(
+            type=And(Use(list), [(bool, Or(parameters, None))]), length=4,
+            read=read
+        ),
         _convert_str('electric_load', 'service_battery_load'): tuplefloat2,
         'engine_thermostat_temperature_window': tuplefloat2,
         'engine_temperature_regression_model':
@@ -663,6 +663,9 @@ def define_data_schema(read=True):
         'engine_type': string,
         'start_demand_function': function,
         'drive_battery_model': function,
+        'motor_p0_maximum_power_function': function,
+        'motor_p1_maximum_power_function': function,
+        'start_stop_hybrid_params': dictstrfloat,
         'full_load_curve': function,
         'fmep_model': _fmep_model(read=read),
         'gear_box_efficiency_constants': dictstrdict,

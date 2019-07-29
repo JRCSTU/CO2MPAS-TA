@@ -344,7 +344,7 @@ class BatteryModel:
         self.compile()
         return self
 
-    def currents(self, powers):
+    def __call__(self, powers):
         return self.a + np.nan_to_num(np.sqrt(self.b + self.c * powers))
 
     def powers(self, currents):
@@ -455,7 +455,7 @@ def calculate_drive_battery_currents_v2(
         Drive battery current vector [A].
     :rtype: numpy.array
     """
-    return drive_battery_model.currents(drive_battery_electric_powers)
+    return drive_battery_model(drive_battery_electric_powers)
 
 
 @sh.add_function(dsp, outputs=['motors_electric_powers'])
