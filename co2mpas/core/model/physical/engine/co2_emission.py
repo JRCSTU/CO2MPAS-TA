@@ -926,9 +926,7 @@ def define_fuel_map(
 
     fc = np.maximum(0, fmep_model(p, n_s, n_p, 1)[0])
     fc *= e_s * (engine_capacity / (lhv * 1200))  # [g/sec]
-    b = np.zeros_like(fc, bool)
-    b[:, 1:] |= np.diff(fc, axis=1) < 0
-    fc[b] = np.nan
+    fc[np.argmax(fc, axis=1)[:, None] < np.arange(fc.shape[1])] = np.nan
     b = ~np.isnan(fc).all(0)
     return dict(
         speed=speed.tolist(), power=power[b].tolist(), fuel=fc[:, b].tolist()
