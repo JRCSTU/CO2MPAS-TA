@@ -205,14 +205,18 @@ def _np_array_positive(dtype=None, error=None, read=True,
 
 # noinspection PyUnusedLocal
 def _alternator_current_model(error=None, **kwargs):
-    from ..model.physical.electrics.alternator import AlternatorCurrentModel
+    from ..model.physical.electrics.motors.alternator.current import (
+        AlternatorCurrentModel
+    )
     return _type(type=AlternatorCurrentModel, error=error)
 
 
 # noinspection PyUnusedLocal
-def _alternator_status_model(error=None, **kwargs):
-    from ..model.physical.electrics.alternator import AlternatorStatusModel
-    return _type(type=AlternatorStatusModel, error=error)
+def _service_battery_status_model(error=None, **kwargs):
+    from ..model.physical.electrics.batteries.service.status import (
+        BatteryStatusModel
+    )
+    return _type(type=BatteryStatusModel, error=error)
 
 
 # noinspection PyUnusedLocal
@@ -626,7 +630,8 @@ def define_data_schema(read=True):
         'fuel_map': dictarray,
         'alternator_charging_currents': tuplefloat2,
         'alternator_current_model': _alternator_current_model(read=read),
-        'alternator_status_model': _alternator_status_model(read=read),
+        'dcdc_current_model': _alternator_current_model(read=read),
+        'service_battery_status_model': _service_battery_status_model(read=read),
         'clutch_speed_model': function,
         'co2_emissions_model': function,
         'co2_error_function_on_emissions': function,

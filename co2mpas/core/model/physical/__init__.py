@@ -298,6 +298,7 @@ dsp.add_dispatcher(
         'cycle_type', 'service_battery_electric_powers', 'service_battery_load',
         'initial_drive_battery_state_of_charge', 'service_battery_status_model',
         'starter_efficiency', 'delta_time_engine_starter', 'gear_box_speeds_in',
+        'final_drive_speeds_in', 'dcdc_charging_currents', 'dcdc_current_model',
         'service_battery_state_of_charge_balance', 'dcdc_converter_efficiency',
         'service_battery_electric_powers_supply_threshold', 'clutch_tc_powers',
         'service_battery_capacity', 'starter_electric_powers', 'engine_starts',
@@ -310,7 +311,6 @@ dsp.add_dispatcher(
         'drive_battery_currents', 'drive_battery_voltages', 'engine_speeds_out',
         'alternator_currents', 'service_battery_state_of_charges', 'on_engine',
         'alternator_nominal_voltage', 'alternator_efficiency', 'wheel_speeds',
-        'final_drive_speeds_in',
     ),
     outputs=(
         'motor_p0_speeds', 'motor_p0_speed_ratio', 'motor_p0_efficiency_ratios',
@@ -351,7 +351,7 @@ dsp.add_dispatcher(
         'service_battery_delta_state_of_charge', 'service_battery_currents',
         'dcdc_converter_electric_powers_demand', 'drive_battery_voltages',
         'drive_battery_n_parallel_cells', 'drive_battery_capacity',
-        'drive_battery_load', 'drive_battery_r0',
+        'drive_battery_load', 'drive_battery_r0', 'dcdc_current_model',
     )
 )
 

@@ -8,10 +8,7 @@
 Functions and a model `dsp` to model the DC/DC Converter.
 """
 
-import numpy as np
 import schedula as sh
-from ...defaults import dfl
-import co2mpas.utils as co2_utl
 
 dsp = sh.BlueDispatcher(
     name='DC/DC Converter',
@@ -62,3 +59,74 @@ def calculate_dcdc_converter_electric_powers(
     :rtype: numpy.array | float
     """
     return dcdc_converter_currents * service_battery_nominal_voltage / 1000
+
+
+@sh.add_function(dsp, outputs=['dcdc_current_model'])
+def define_dcdc_current_model(dcdc_charging_currents):
+    """
+    Defines an DC/DC converter current model that predicts its current [A].
+
+    :param dcdc_charging_currents:
+        Mean charging currents of the DC/DC converter (for negative and positive
+        power)[A].
+    :type dcdc_charging_currents: (float, float)
+
+    :return:
+        DC/DC converter current model.
+    :rtype: callable
+    """
+    from ..motors.alternator.current import define_alternator_current_model
+    return define_alternator_current_model(dcdc_charging_currents)
+
+
+@sh.add_function(dsp, outputs=['dcdc_current_model'])
+def calibrate_dcdc_current_model(
+        dcdc_converter_currents, on_engine, times,
+        service_battery_state_of_charges, service_battery_charging_statuses,
+        clutch_tc_powers, accelerations, service_battery_initialization_time):
+    """
+    Calibrates an alternator current model that predicts alternator current [A].
+
+    :param dcdc_converter_currents:
+        DC/DC converter currents [A].
+    :type dcdc_converter_currents: numpy.array
+
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param service_battery_state_of_charges:
+        State of charge of the service battery [%].
+    :type service_battery_state_of_charges: numpy.array
+
+    :param service_battery_charging_statuses:
+        Service battery charging statuses (0: Discharge, 1: Charging, 2: BERS,
+        3: Initialization) [-].
+    :type service_battery_charging_statuses: numpy.array
+
+    :param clutch_tc_powers:
+        Clutch or torque converter power [kW].
+    :type clutch_tc_powers: numpy.array
+
+    :param accelerations:
+        Acceleration vector [m/s2].
+    :type accelerations: numpy.array
+
+    :param service_battery_initialization_time:
+        Service battery initialization time delta [s].
+    :type service_battery_initialization_time: float
+
+    :return:
+        DC/DC converter current model.
+    :rtype: callable
+    """
+    from ..motors.alternator.current import calibrate_alternator_current_model
+    return calibrate_alternator_current_model(
+        dcdc_converter_currents, on_engine, times,
+        service_battery_state_of_charges, service_battery_charging_statuses,
+        clutch_tc_powers, accelerations, service_battery_initialization_time
+    )
