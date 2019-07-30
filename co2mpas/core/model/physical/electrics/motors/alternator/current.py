@@ -115,8 +115,8 @@ class AlternatorCurrentModel:
 @sh.add_function(dsp, outputs=['alternator_current_model'])
 def calibrate_alternator_current_model(
         alternator_currents, on_engine, times, service_battery_state_of_charges,
-        alternator_statuses, clutch_tc_powers, accelerations,
-        alternator_initialization_time):
+        service_battery_charging_statuses, clutch_tc_powers, accelerations,
+        service_battery_initialization_time):
     """
     Calibrates an alternator current model that predicts alternator current [A].
 
@@ -136,10 +136,10 @@ def calibrate_alternator_current_model(
         State of charge of the service battery [%].
     :type service_battery_state_of_charges: numpy.array
 
-    :param alternator_statuses:
-        The alternator status (0: off, 1: on, due to state of charge, 2: on due
-        to BERS, 3: on and initialize battery) [-].
-    :type alternator_statuses: numpy.array
+    :param service_battery_charging_statuses:
+        Service battery charging statuses (0: Discharge, 1: Charging, 2: BERS,
+        3: Initialization) [-].
+    :type service_battery_charging_statuses: numpy.array
 
     :param clutch_tc_powers:
         Clutch or torque converter power [kW].
@@ -149,19 +149,16 @@ def calibrate_alternator_current_model(
         Acceleration vector [m/s2].
     :type accelerations: numpy.array
 
-    :param alternator_initialization_time:
-        Alternator initialization time delta [s].
-    :type alternator_initialization_time: float
+    :param service_battery_initialization_time:
+        Service battery initialization time delta [s].
+    :type service_battery_initialization_time: float
 
     :return:
         Alternator current model.
     :rtype: callable
     """
-    model = AlternatorCurrentModel()
-    model.fit(
+    return AlternatorCurrentModel().fit(
         alternator_currents, on_engine, times, service_battery_state_of_charges,
-        alternator_statuses, clutch_tc_powers, accelerations,
-        init_time=alternator_initialization_time
+        service_battery_charging_statuses, clutch_tc_powers, accelerations,
+        init_time=service_battery_initialization_time
     )
-
-    return model

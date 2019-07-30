@@ -33,19 +33,27 @@ dsp.add_dispatcher(
     dsp_id='service_battery',
     dsp=_service,
     inputs=(
-        'alternator_electric_powers', 'cycle_type', 'on_engine', 'times',
-        'dcdc_converter_electric_powers', 'engine_powers_out',
-        'initial_service_battery_state_of_charge', 'service_battery_currents',
-        'service_battery_capacity', 'service_battery_state_of_charges',
-        'service_battery_electric_powers', 'service_battery_load',
-        'service_battery_loads', 'service_battery_nominal_voltage',
-        'starter_electric_powers'
+        'initial_service_battery_state_of_charge', 'alternator_electric_powers',
+        'service_battery_start_window_width', 'service_battery_nominal_voltage',
+        'service_battery_state_of_charge_balance', 'on_engine', 'accelerations',
+        'cycle_type', 'service_battery_electric_powers', 'service_battery_load',
+        'service_battery_electric_powers_supply_threshold', 'clutch_tc_powers',
+        'service_battery_capacity', 'starter_electric_powers', 'engine_starts',
+        'service_battery_initialization_time', 'service_battery_status_model',
+        'service_battery_state_of_charge_balance_window', 'engine_powers_out',
+        'service_battery_electric_powers_supply', 'service_battery_currents',
+        'dcdc_converter_electric_powers', 'service_battery_state_of_charges',
+        'service_battery_loads', 'times',
     ),
     outputs=(
         'initial_service_battery_state_of_charge', 'service_battery_currents',
-        'service_battery_electric_powers', 'service_battery_load',
-        'service_battery_loads', 'service_battery_state_of_charges',
-        'service_battery_capacity', 'service_battery_delta_state_of_charge'
+        'service_battery_electric_powers', 'service_battery_state_of_charges',
+        'service_battery_initialization_time', 'service_battery_status_model',
+        'service_battery_state_of_charge_balance', 'service_battery_capacity',
+        'service_battery_delta_state_of_charge', 'service_battery_loads',
+        'service_battery_charging_statuses', 'service_battery_load',
+        'service_battery_electric_powers_supply_threshold',
+        'service_battery_state_of_charge_balance_window',
     ),
     include_defaults=True
 )

@@ -90,8 +90,8 @@ class Values(co2_utl.Constants):
     #: Time window used to apply gear change filters [s].
     change_gear_window_width = 4.0
 
-    #: Alternator start window width [s].
-    alternator_start_window_width = 4.0
+    #: Service battery start window width [s].
+    service_battery_start_window_width = 4.0
 
     #: Maximum clutch window width [s].
     max_clutch_window_width = 2.0
@@ -99,10 +99,6 @@ class Values(co2_utl.Constants):
     #: Threshold vehicle velocity for gear correction due to full load curve
     #: [km/h].
     max_velocity_full_load_correction = 100.0
-
-    #: Maximum allowed negative current for the alternator being considered off
-    #: [A].
-    alternator_off_threshold = -1.0
 
     #: Air temperature [°C].
     air_temperature = 20
@@ -214,6 +210,16 @@ class Values(co2_utl.Constants):
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
+
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+    class define_service_battery_electric_powers_supply_threshold(
+        co2_utl.Constants):
+        #: Minimum SOC variation to define service battery charging status[%].
+        min_soc = 0.1
+
+        #: Maximum allowed negative current for the service battery being
+        #: considered not charging [A].
+        min_current = -1.0
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class default_final_drive_efficiency(co2_utl.Constants):
@@ -584,7 +590,7 @@ class Functions(co2_utl.Constants):
         enable_third_step = True
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-    class AlternatorStatusModel(co2_utl.Constants):
+    class BatteryStatusModel(co2_utl.Constants):
         #: Minimum delta time to consider valid a charging state to fit charges
         #: boundaries [s].
         min_delta_time_boundaries = 5

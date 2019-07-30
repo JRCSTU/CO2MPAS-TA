@@ -39,23 +39,15 @@ dsp.add_dispatcher(
     dsp_id='alternator',
     dsp=_alternator,
     inputs=(
-        'alternator_currents', 'alternator_nominal_voltage', 'stop_velocity',
-        'alternator_electric_powers', 'alternator_efficiency',
-        'alternator_off_threshold', 'velocities', 'on_engine', 'times',
-        'engine_starts', 'alternator_current_threshold',
-        'alternator_start_window_width', 'alternator_statuses',
-        'clutch_tc_powers', 'alternator_status_model',
-        'alternator_initialization_time', 'service_battery_state_of_charges',
-        'accelerations', 'service_battery_state_of_charge_balance',
-        'service_battery_state_of_charge_balance_window',
-        'alternator_charging_currents', 'alternator_current_model'
+        'alternator_currents', 'alternator_nominal_voltage', 'clutch_tc_powers',
+        'alternator_electric_powers', 'alternator_efficiency', 'accelerations',
+        'service_battery_state_of_charges', 'service_battery_charging_statuses',
+        'alternator_current_model', 'on_engine', 'alternator_charging_currents',
+        'service_battery_initialization_time', 'times',
     ),
     outputs=(
-        'alternator_current_threshold', 'alternator_current_model',
-        'alternator_initialization_time', 'alternator_status_model',
-        'service_battery_state_of_charge_balance', 'alternator_currents',
-        'service_battery_state_of_charge_balance_window', 'alternator_powers',
-        'alternator_electric_powers', 'alternator_statuses'
+        'alternator_current_model', 'alternator_currents', 'alternator_powers',
+        'alternator_electric_powers'
     ),
     include_defaults=True
 )

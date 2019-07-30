@@ -706,7 +706,7 @@ def define_data_schema(read=True):
         'alternator_currents': np_array,
         'active_cylinders': np_array,
         'alternator_powers': np_array,
-        'alternator_statuses': np_array_int,
+        'service_battery_charging_statuses': np_array_int,
         'auxiliaries_power_losses': np_array,
         'auxiliaries_torque_loss_factors': tuplefloat,
         'auxiliaries_torque_losses': np_array,

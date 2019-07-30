@@ -10,8 +10,9 @@ Functions and a model `dsp` to model the service battery (low voltage).
 
 import numpy as np
 import schedula as sh
-from ...defaults import dfl
+from ....defaults import dfl
 import co2mpas.utils as co2_utl
+from .status import dsp as _status
 
 dsp = sh.BlueDispatcher(
     name='Service Battery',
@@ -120,10 +121,31 @@ def calculate_service_battery_electric_powers(
     return service_battery_currents * (service_battery_nominal_voltage / 1000.0)
 
 
+@sh.add_function(dsp, outputs=['service_battery_electric_powers_supply'])
+def calculate_service_battery_electric_powers_supply(
+        alternator_electric_powers, dcdc_converter_electric_powers):
+    """
+    Calculate the service battery electric power supply [kW].
+
+    :param alternator_electric_powers:
+        Alternator electric power [kW].
+    :type alternator_electric_powers: numpy.array
+
+    :param dcdc_converter_electric_powers:
+        DC/DC converter electric power [kW].
+    :type dcdc_converter_electric_powers: numpy.array
+
+    :return:
+        Service battery electric power supply [kW].
+    :rtype: numpy.array
+    """
+    return alternator_electric_powers + dcdc_converter_electric_powers
+
+
 @sh.add_function(dsp, outputs=['service_battery_electric_powers'], weight=1)
 def calculate_service_battery_electric_powers_v1(
-        service_battery_loads, alternator_electric_powers,
-        starter_electric_powers, dcdc_converter_electric_powers):
+        service_battery_loads, service_battery_electric_powers_supply,
+        starter_electric_powers):
     """
     Calculate the service battery electric power [kW].
 
@@ -131,24 +153,19 @@ def calculate_service_battery_electric_powers_v1(
         Service battery load vector [kW].
     :type service_battery_loads: numpy.array
 
-    :param alternator_electric_powers:
-        Alternator electric power [kW].
-    :type alternator_electric_powers: numpy.array
+    :param service_battery_electric_powers_supply:
+        Service battery electric power supply [kW].
+    :type service_battery_electric_powers_supply: numpy.array
 
     :param starter_electric_powers:
         Starter electric power [kW].
     :type starter_electric_powers: numpy.array
 
-    :param dcdc_converter_electric_powers:
-        DC/DC converter electric power [kW].
-    :type dcdc_converter_electric_powers: numpy.array
-
     :return:
         Service battery electric power [kW].
     :rtype: numpy.array
     """
-    p = service_battery_loads - alternator_electric_powers
-    p -= dcdc_converter_electric_powers
+    p = service_battery_loads - service_battery_electric_powers_supply
     p -= starter_electric_powers
     return p
 
@@ -231,8 +248,8 @@ def calculate_service_battery_state_of_charges(
 
 @sh.add_function(dsp, outputs=['service_battery_loads'])
 def calculate_service_battery_loads(
-        service_battery_electric_powers, alternator_electric_powers,
-        starter_electric_powers, dcdc_converter_electric_powers):
+        service_battery_electric_powers, service_battery_electric_powers_supply,
+        starter_electric_powers):
     """
     Calculates service battery load vector [kW].
 
@@ -240,24 +257,19 @@ def calculate_service_battery_loads(
         Service battery electric power [kW].
     :type service_battery_electric_powers: numpy.array
 
-    :param alternator_electric_powers:
-        Alternator electric power [kW].
-    :type alternator_electric_powers: numpy.array
+    :param service_battery_electric_powers_supply:
+        Service battery electric power supply [kW].
+    :type service_battery_electric_powers_supply: numpy.array
 
     :param starter_electric_powers:
         Starter electric power [kW].
     :type starter_electric_powers: numpy.array
 
-    :param dcdc_converter_electric_powers:
-        DC/DC converter electric power [kW].
-    :type dcdc_converter_electric_powers: numpy.array
-
     :return:
         Service battery load vector [kW].
     :rtype: numpy.array
     """
-    p = service_battery_electric_powers - alternator_electric_powers
-    p -= dcdc_converter_electric_powers
+    p = service_battery_electric_powers - service_battery_electric_powers_supply
     p -= starter_electric_powers
     return p
 
@@ -335,3 +347,25 @@ def calculate_service_battery_delta_state_of_charge(
     """
     soc = service_battery_state_of_charges
     return soc[-1] - soc[0]
+
+
+dsp.add_dispatcher(
+    dsp_id='status_model',
+    dsp=_status,
+    inputs=(
+        'service_battery_start_window_width', 'service_battery_nominal_voltage',
+        'service_battery_state_of_charge_balance', 'on_engine', 'accelerations',
+        'service_battery_electric_powers_supply_threshold', 'clutch_tc_powers',
+        'service_battery_initialization_time', 'service_battery_status_model',
+        'service_battery_electric_powers_supply', 'service_battery_capacity',
+        'service_battery_state_of_charge_balance_window', 'engine_starts',
+        'times', 'service_battery_state_of_charges',
+    ),
+    outputs=(
+        'service_battery_initialization_time', 'service_battery_status_model',
+        'service_battery_electric_powers_supply_threshold',
+        'service_battery_state_of_charge_balance_window',
+        'service_battery_state_of_charge_balance',
+        'service_battery_charging_statuses',
+    )
+)

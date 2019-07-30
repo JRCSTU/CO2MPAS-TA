@@ -15,11 +15,9 @@ Sub-Modules:
     :toctree: alternator/
 
     current
-    status
 """
 import schedula as sh
 from ....defaults import dfl
-from .status import dsp as _status
 from .current import dsp as _current
 
 dsp = sh.BlueDispatcher(name='Alternator', description='Models the alternator.')
@@ -113,32 +111,13 @@ def calculate_alternator_electric_powers_v1(
 
 
 dsp.add_dispatcher(
-    dsp_id='status_model',
-    dsp=_status,
-    inputs=(
-        'stop_velocity', 'alternator_off_threshold', 'alternator_currents',
-        'velocities', 'on_engine', 'times', 'engine_starts',
-        'alternator_current_threshold', 'alternator_start_window_width',
-        'alternator_statuses', 'clutch_tc_powers', 'alternator_status_model',
-        'alternator_initialization_time', 'service_battery_state_of_charges',
-        'accelerations', 'service_battery_state_of_charge_balance',
-        'service_battery_state_of_charge_balance_window'
-    ),
-    outputs=(
-        'alternator_current_threshold', 'alternator_initialization_time',
-        'service_battery_state_of_charge_balance', 'alternator_status_model',
-        'service_battery_state_of_charge_balance_window', 'alternator_statuses',
-    )
-)
-
-dsp.add_dispatcher(
     dsp_id='current_model',
     dsp=_current,
     inputs=(
-        'alternator_charging_currents', 'alternator_currents', 'on_engine',
-        'times', 'service_battery_state_of_charges', 'alternator_statuses',
-        'clutch_tc_powers', 'accelerations', 'alternator_initialization_time',
-        'alternator_current_model'
+        'service_battery_state_of_charges', 'service_battery_charging_statuses',
+        'service_battery_initialization_time', 'alternator_charging_currents',
+        'accelerations', 'on_engine', 'alternator_currents', 'clutch_tc_powers',
+        'alternator_current_model', 'times',
     ),
     outputs=('alternator_current_model',)
 )
