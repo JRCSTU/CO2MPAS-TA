@@ -53,7 +53,7 @@ dsp.add_data(
 
 @sh.add_function(dsp, outputs=['service_battery_starts_windows'])
 def identify_service_battery_starts_windows(
-        times, engine_starts, service_battery_electric_powers_supply,
+        times, engine_starts, alternator_electric_powers,
         service_battery_start_window_width,
         service_battery_electric_powers_supply_threshold):
     """
@@ -67,9 +67,9 @@ def identify_service_battery_starts_windows(
         When the engine starts [-].
     :type engine_starts: numpy.array
 
-    :param service_battery_electric_powers_supply:
-        Service battery electric power supply [kW].
-    :type service_battery_electric_powers_supply: numpy.array
+    :param alternator_electric_powers:
+        Alternator electric power [kW].
+    :type alternator_electric_powers: numpy.array
 
     :param service_battery_start_window_width:
         Service battery start window width [s].
@@ -87,7 +87,7 @@ def identify_service_battery_starts_windows(
     starts_windows = np.zeros_like(times, dtype=bool)
     ind = np.searchsorted(times, np.column_stack((ts - dt, ts + dt + dfl.EPS)))
     b = service_battery_electric_powers_supply_threshold
-    b = service_battery_electric_powers_supply >= b
+    b = alternator_electric_powers >= b
     for i, j in ind:
         starts_windows[i:j] = b[i:j].any()
     return starts_windows
@@ -108,8 +108,9 @@ def _mask_boolean_phases(b):
 
 @sh.add_function(dsp, outputs=['service_battery_charging_statuses'])
 def identify_service_battery_charging_statuses(
-        times, service_battery_electric_powers_supply, clutch_tc_powers,
-        on_engine, service_battery_electric_powers_supply_threshold,
+        times, alternator_electric_powers, dcdc_converter_electric_powers,
+        motive_powers, on_engine,
+        service_battery_electric_powers_supply_threshold,
         service_battery_starts_windows, service_battery_initialization_time):
     """
     Identifies service battery charging statuses: Discharge (0), Charging (1),
@@ -119,13 +120,17 @@ def identify_service_battery_charging_statuses(
         Time vector [s].
     :type times: numpy.array
 
-    :param service_battery_electric_powers_supply:
-        Service battery electric power supply [kW].
-    :type service_battery_electric_powers_supply: numpy.array
+    :param alternator_electric_powers:
+        Alternator electric power [kW].
+    :type alternator_electric_powers: numpy.array
 
-    :param clutch_tc_powers:
-        Clutch or torque converter power [kW].
-    :type clutch_tc_powers: numpy.array
+    :param dcdc_converter_electric_powers:
+        DC/DC converter electric power [kW].
+    :type dcdc_converter_electric_powers: numpy.array
+
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
 
     :param on_engine:
         If the engine is on [-].
@@ -148,11 +153,10 @@ def identify_service_battery_charging_statuses(
         3: Initialization) [-].
     :rtype: numpy.array
     """
-    b = service_battery_electric_powers_supply_threshold
-    b = (service_battery_electric_powers_supply < b) & on_engine
-
+    threshold = service_battery_electric_powers_supply_threshold
+    b = (alternator_electric_powers < threshold) & on_engine
     status = b.astype(int, copy=True)
-    status[b & (clutch_tc_powers < 0)] = 2
+    status[b & (motive_powers < 0)] = 2
 
     off = ~on_engine | service_battery_starts_windows
     mask = _mask_boolean_phases(status != 1)
@@ -161,6 +165,7 @@ def identify_service_battery_charging_statuses(
         if ((status[i:j] == 2) | off[i:j]).all():
             status[i:j] = 1
 
+    status[dcdc_converter_electric_powers < threshold] = 1
     _set_alt_init_status(times, service_battery_initialization_time, status)
 
     return status
@@ -169,24 +174,20 @@ def identify_service_battery_charging_statuses(
 # noinspection PyPep8
 @sh.add_function(dsp, outputs=['service_battery_initialization_time'])
 def identify_service_battery_initialization_time(
-        service_battery_electric_powers_supply, clutch_tc_powers, on_engine,
+        alternator_electric_powers, motive_powers,
         accelerations, service_battery_state_of_charges,
         service_battery_charging_statuses, times,
         service_battery_electric_powers_supply_threshold):
     """
     Identifies the alternator initialization time delta [s].
 
-    :param service_battery_electric_powers_supply:
-        Service battery electric power supply [kW].
-    :type service_battery_electric_powers_supply: numpy.array
+    :param alternator_electric_powers:
+        Alternator electric power [kW].
+    :type alternator_electric_powers: numpy.array
 
-    :param clutch_tc_powers:
-        Clutch or torque converter power [kW].
-    :type clutch_tc_powers: numpy.array
-
-    :param on_engine:
-        If the engine is on [-].
-    :type on_engine: numpy.array
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
 
     :param accelerations:
         Vehicle acceleration [m/s2].
@@ -213,12 +214,12 @@ def identify_service_battery_initialization_time(
         Service battery initialization time delta [s].
     :rtype: float
     """
-    bats, gb_p = service_battery_charging_statuses, clutch_tc_powers
+    bats, p = service_battery_charging_statuses, motive_powers
     i = co2_utl.argmax(bats != 0)
-    if bats[0] == 1 or (i and ((bats[:i] == 0) & (gb_p[:i] == 0)).all()):
+    if bats[0] == 1 or (i and ((bats[:i] == 0) & (p[:i] == 0)).all()):
         s = service_battery_electric_powers_supply_threshold
-        s = service_battery_electric_powers_supply < s
-        n, i = len(on_engine), int(co2_utl.argmax((s[:-1] != s[1:]) & s[:-1]))
+        s = alternator_electric_powers < s
+        n, i = len(times), int(co2_utl.argmax((s[:-1] != s[1:]) & s[:-1]))
         i = min(n - 1, i)
         opt = {
             'random_state': 0, 'max_depth': 2
@@ -229,8 +230,8 @@ def identify_service_battery_initialization_time(
         from ....engine._thermal import _build_samples
 
         x, y = _build_samples(
-            service_battery_electric_powers_supply,
-            service_battery_state_of_charges, bats, gb_p, accelerations
+            alternator_electric_powers, service_battery_state_of_charges, bats,
+            p, accelerations
         )
 
         j = min(i, int(n / 2))
@@ -260,10 +261,10 @@ def identify_service_battery_initialization_time(
     'service_battery_charging_statuses', 'service_battery_initialization_time'
 ], weight=1)
 def identify_service_battery_charging_statuses_and_initialization_time(
-        times, service_battery_electric_powers_supply, clutch_tc_powers,
-        on_engine, service_battery_electric_powers_supply_threshold,
-        service_battery_starts_windows, accelerations,
-        service_battery_state_of_charges):
+        times, accelerations, on_engine, alternator_electric_powers,
+        dcdc_converter_electric_powers, motive_powers,
+        service_battery_electric_powers_supply_threshold,
+        service_battery_starts_windows, service_battery_state_of_charges):
     """
     Identifies the service battery charging statuses [-] and its initialization
     time delta [s].
@@ -272,13 +273,17 @@ def identify_service_battery_charging_statuses_and_initialization_time(
         Time vector [s].
     :type times: numpy.array
 
-    :param service_battery_electric_powers_supply:
-        Service battery electric power supply [kW].
-    :type service_battery_electric_powers_supply: numpy.array
+    :param alternator_electric_powers:
+        Alternator electric power [kW].
+    :type alternator_electric_powers: numpy.array
 
-    :param clutch_tc_powers:
-        Clutch or torque converter power [kW].
-    :type clutch_tc_powers: numpy.array
+    :param dcdc_converter_electric_powers:
+        DC/DC converter electric power [kW].
+    :type dcdc_converter_electric_powers: numpy.array
+
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
 
     :param on_engine:
         If the engine is on [-].
@@ -306,13 +311,14 @@ def identify_service_battery_charging_statuses_and_initialization_time(
     :rtype: numpy.array, float
     """
     statuses = identify_service_battery_charging_statuses(
-        times, service_battery_electric_powers_supply, clutch_tc_powers,
-        on_engine, service_battery_electric_powers_supply_threshold,
+        times, alternator_electric_powers, dcdc_converter_electric_powers,
+        motive_powers, on_engine,
+        service_battery_electric_powers_supply_threshold,
         service_battery_starts_windows, 0
     )
     initialization_time = identify_service_battery_initialization_time(
-        service_battery_electric_powers_supply, clutch_tc_powers, on_engine,
-        accelerations, service_battery_state_of_charges, statuses, times,
+        alternator_electric_powers, motive_powers, accelerations,
+        service_battery_state_of_charges, statuses, times,
         service_battery_electric_powers_supply_threshold
     )
     _set_alt_init_status(times, initialization_time, statuses)
@@ -357,25 +363,25 @@ class BatteryStatusModel:
     def __call__(self, *args, **kwargs):
         return self.predict(*args, **kwargs)
 
-    def _fit_bers(self, charging_statuses, clutch_tc_powers):
+    def _fit_bers(self, charging_statuses, motive_powers):
         b = charging_statuses == 2
         threshold = 0.0
         if b.any():
             from sklearn.tree import DecisionTreeClassifier
-            q = dfl.functions.AlternatorStatusModel.min_percentile_bers
+            q = dfl.functions.BatteryStatusModel.min_percentile_bers
             m = DecisionTreeClassifier(random_state=0, max_depth=2)
             c = charging_statuses != 1
             # noinspection PyUnresolvedReferences
-            m.fit(clutch_tc_powers[c, None], b[c])
+            m.fit(motive_powers[c, None], b[c])
 
-            X = clutch_tc_powers[b, None]
+            X = motive_powers[b, None]
             if (np.sum(m.predict(X)) / X.shape[0] * 100) >= q:
                 self.bers = m.predict  # shortcut name
                 return self.bers
 
             # noinspection PyUnresolvedReferences
             if not b.all():
-                gb_p_s = clutch_tc_powers[_mask_boolean_phases(b)[:, 0]]
+                gb_p_s = motive_powers[_mask_boolean_phases(b)[:, 0]]
 
                 threshold = min(threshold, np.percentile(gb_p_s, q))
 
@@ -383,8 +389,9 @@ class BatteryStatusModel:
         return self.bers
 
     # noinspection PyShadowingNames
-    def _fit_charge(self, charging_statuses, state_of_charges):
+    def _fit_charge(self, charging_statuses, state_of_charges, times):
         b = charging_statuses[1:] == 1
+        self.max, self.min = 100.0, 0.0
         if b.any():
             from sklearn.tree import DecisionTreeClassifier
             charge = DecisionTreeClassifier(random_state=0, max_depth=3)
@@ -392,14 +399,18 @@ class BatteryStatusModel:
                 (charging_statuses[:-1], state_of_charges[1:])
             )
             charge.fit(X, b)
-            self.charge = charge.predict
-        else:
-            self.charge = lambda X: np.zeros(len(X), dtype=bool)
+            soc = state_of_charges[charging_statuses == 1]
+            X = np.column_stack((
+                np.ones(100), np.linspace(soc.min(), soc.max(), 100)
+            ))
+            s = np.where(charge.predict(X))[0]
+            if s.shape[0]:
+                self.min, self.max = X[s[0], 1], X[s[-1], 1]
+        self._fit_boundaries(charging_statuses, state_of_charges, times)
 
     def _fit_boundaries(self, charging_statuses, state_of_charges, times):
         n, b = len(charging_statuses), charging_statuses == 1
         mask = _mask_boolean_phases(b)
-        self.max, self.min = 100.0, 0.0
         _max, _min, balance = [], [], ()
         from scipy.stats import linregress
         min_dt = dfl.functions.BatteryStatusModel.min_delta_time_boundaries
@@ -435,16 +446,14 @@ class BatteryStatusModel:
             self.max = min(balance + std, 100.0)
             self.min = max(balance - std, 0.0)
 
-    def fit(self, times, charging_statuses, state_of_charges,
-            clutch_tc_powers):
+    def fit(self, times, charging_statuses, state_of_charges, motive_powers):
 
         i = co2_utl.argmax(charging_statuses != 3)
 
         status, soc = charging_statuses[i:], state_of_charges[i:]
 
-        self._fit_bers(status, clutch_tc_powers[i:])
-        self._fit_charge(status, soc)
-        self._fit_boundaries(status, soc, times[i:])
+        self._fit_bers(status, motive_powers[i:])
+        self._fit_charge(status, soc, times[i:])
 
         return self
 
@@ -452,11 +461,10 @@ class BatteryStatusModel:
         status = 0
 
         if soc < 100:
-            x = [(prev, soc)]
             if time < init_time:
                 status = 3
 
-            elif soc < self.min or (soc <= self.max and self.charge(x)[0]):
+            elif soc < self.min or (prev == 1 and soc <= self.max):
                 status = 1
 
             elif has_energy_rec and self.bers([(power,)])[0]:
@@ -468,7 +476,7 @@ class BatteryStatusModel:
 @sh.add_function(dsp, outputs=['service_battery_status_model'], weight=10)
 def calibrate_service_battery_status_model(
         times, service_battery_charging_statuses,
-        service_battery_state_of_charges, clutch_tc_powers):
+        service_battery_state_of_charges, motive_powers):
     """
     Calibrates the service battery charging status model.
 
@@ -485,9 +493,9 @@ def calibrate_service_battery_status_model(
         State of charge of the service battery [%].
     :type service_battery_state_of_charges: numpy.array
 
-    :param clutch_tc_powers:
-        Clutch or torque converter power [kW].
-    :type clutch_tc_powers: numpy.array
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
 
     :return:
         A function that predicts the service battery charging status.
@@ -495,7 +503,7 @@ def calibrate_service_battery_status_model(
     """
     return BatteryStatusModel().fit(
         times, service_battery_charging_statuses,
-        service_battery_state_of_charges, clutch_tc_powers
+        service_battery_state_of_charges, motive_powers
     )
 
 
@@ -547,12 +555,6 @@ def identify_service_battery_state_of_charge_balance_and_window(
     :rtype: float, float
     """
     model = service_battery_status_model
-    min_soc, max_soc = model.min, model.max
-    X = np.column_stack((np.ones(100), np.linspace(min_soc, max_soc, 100)))
-    s = np.where(model.charge(X))[0]
-    if s.shape[0]:
-        min_soc, max_soc = max(min_soc, X[s[0], 1]), min(max_soc, X[s[-1], 1])
-
-    state_of_charge_balance_window = max_soc - min_soc
-    state_of_charge_balance = min_soc + state_of_charge_balance_window / 2
+    state_of_charge_balance_window = model.max - model.min
+    state_of_charge_balance = model.min + state_of_charge_balance_window / 2
     return state_of_charge_balance, state_of_charge_balance_window
