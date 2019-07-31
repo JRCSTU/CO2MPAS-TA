@@ -63,7 +63,7 @@ class AlternatorCurrentModel:
     def fit(self, currents, on_engine, times, soc, statuses, *args,
             init_time=0.0):
         b = (statuses[1:] > 0) & on_engine[1:]
-        i = co2_utl.argmax(times > times[0] + init_time)
+        i = co2_utl.argmax(times >= times[0] + init_time)
         from ....engine._thermal import _build_samples
         X, Y = _build_samples(currents, soc, statuses, *args)
         if b[i:].any():
@@ -96,9 +96,9 @@ class AlternatorCurrentModel:
         from ....engine._thermal import _SelectFromModel
         model = self.base_model(**opt)
         model = Pipeline([
-            ('feature_selection', _SelectFromModel(model, '0.8*median',
-                                                   in_mask=in_mask,
-                                                   out_mask=out_mask)),
+            ('feature_selection', _SelectFromModel(
+                model, '0.8*median', in_mask=in_mask, out_mask=out_mask
+            )),
             ('classification', model)
         ])
         model.fit(X, Y)
@@ -115,7 +115,7 @@ class AlternatorCurrentModel:
 @sh.add_function(dsp, outputs=['alternator_current_model'])
 def calibrate_alternator_current_model(
         alternator_currents, on_engine, times, service_battery_state_of_charges,
-        service_battery_charging_statuses, clutch_tc_powers, accelerations,
+        service_battery_charging_statuses, motive_powers, accelerations,
         service_battery_initialization_time):
     """
     Calibrates an alternator current model that predicts alternator current [A].
@@ -141,9 +141,9 @@ def calibrate_alternator_current_model(
         3: Initialization) [-].
     :type service_battery_charging_statuses: numpy.array
 
-    :param clutch_tc_powers:
-        Clutch or torque converter power [kW].
-    :type clutch_tc_powers: numpy.array
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
 
     :param accelerations:
         Acceleration vector [m/s2].
@@ -159,6 +159,6 @@ def calibrate_alternator_current_model(
     """
     return AlternatorCurrentModel().fit(
         alternator_currents, on_engine, times, service_battery_state_of_charges,
-        service_battery_charging_statuses, clutch_tc_powers, accelerations,
+        service_battery_charging_statuses, motive_powers, accelerations,
         init_time=service_battery_initialization_time
     )

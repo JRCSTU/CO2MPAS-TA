@@ -318,12 +318,29 @@ def calculate_drive_battery_delta_state_of_charge(
     return func(drive_battery_state_of_charges)
 
 
-class BatteryModel:
-    def __init__(self, r0=None, ocv=None, n_parallel_cells=1, n_series_cells=1):
+# noinspection PyMissingOrEmptyDocstring
+class DriveBatteryModel:
+    def __init__(self, service_battery_model,
+                 initial_drive_battery_state_of_charge, drive_battery_capacity,
+                 dcdc_converter_efficiency=.95, r0=None, ocv=None,
+                 n_parallel_cells=1, n_series_cells=1):
         self.r0, self.ocv = r0, ocv
         self.np, self.ns = n_parallel_cells, n_series_cells
         r0 is not None and ocv is not None and self.compile()
+        self.service = service_battery_model
+        self.dcdc_converter_efficiency = dcdc_converter_efficiency
+        self._d_soc = drive_battery_capacity * 36.0 * 2
+        self.init_soc = initial_drive_battery_state_of_charge
+        self.reset()
+        self._dcdc_p = self.service.nominal_voltage / dcdc_converter_efficiency
+        self._dcdc_p /= 1000
 
+    def reset(self):
+        self.service.reset()
+        self._prev_current = 0
+        self._prev_soc = self.init_soc
+
+    # noinspection PyAttributeOutsideInit
     def compile(self):
         self.c = self.np / (2 * self.r0)
         self.a = - self.ocv * self.c
@@ -344,19 +361,53 @@ class BatteryModel:
         self.compile()
         return self
 
-    def __call__(self, powers):
+    def currents(self, powers):
         return self.a + np.nan_to_num(np.sqrt(self.b + self.c * powers))
 
     def powers(self, currents):
-        return ((self._ocv / 1e3 + currents * self._r0 / 1e3) * currents)
+        return (self._ocv / 1e3 + currents * self._r0 / 1e3) * currents
+
+    def __call__(self, current, time, motive_power, acceleration, on_engine,
+                 prev_soc=None, update=True, service_kw=None):
+        dt = time - self.service._prev_time
+        dcdc_p = self.service(
+            time, motive_power, acceleration, on_engine, update=update,
+            **(service_kw or {})
+        )[2] * self._dcdc_p
+
+        if prev_soc is None:
+            prev_soc = self._prev_soc
+
+        current = current + self.currents(dcdc_p)
+        dsoc = (current + self._prev_current) * dt / self._d_soc
+        soc = min(prev_soc + dsoc, 100.0)
+
+        if update:
+            self._prev_soc, self._prev_current = soc, current
+
+        return soc
 
 
 @sh.add_function(dsp, outputs=['drive_battery_model'])
 def calibrate_drive_battery_model(
-        drive_battery_n_parallel_cells, drive_battery_n_series_cells,
-        drive_battery_currents, drive_battery_voltages):
+        service_battery_model, initial_drive_battery_state_of_charge,
+        drive_battery_capacity, drive_battery_n_parallel_cells,
+        drive_battery_n_series_cells, drive_battery_currents,
+        drive_battery_voltages):
     """
     Calibrate the drive battery current model.
+
+    :param service_battery_model:
+         Service battery model.
+    :type service_battery_model: ServiceBatteryModel
+
+    :param initial_drive_battery_state_of_charge:
+        Initial state of charge of the drive battery [%].
+    :type initial_drive_battery_state_of_charge: float
+
+    :param drive_battery_capacity:
+        Drive battery capacity [Ah].
+    :type drive_battery_capacity: float
 
     :param drive_battery_n_parallel_cells:
         Number of battery cells in parallel [-].
@@ -376,10 +427,11 @@ def calibrate_drive_battery_model(
 
     :return:
         Drive battery current model.
-    :rtype: BatteryModel
+    :rtype: DriveBatteryModel
     """
-    return BatteryModel(
-        n_parallel_cells=drive_battery_n_parallel_cells,
+    return DriveBatteryModel(
+        service_battery_model, initial_drive_battery_state_of_charge,
+        drive_battery_capacity, n_parallel_cells=drive_battery_n_parallel_cells,
         n_series_cells=drive_battery_n_series_cells
     ).fit(drive_battery_currents, drive_battery_voltages)
 
@@ -391,7 +443,7 @@ def get_drive_battery_r0_and_ocv(drive_battery_model):
 
     :param drive_battery_model:
         Drive battery current model.
-    :type drive_battery_model: BatteryModel
+    :type drive_battery_model: DriveBatteryModel
 
     :return:
         Drive battery resistance and open circuit voltage [ohm, V].
@@ -406,10 +458,23 @@ dsp.add_data('drive_battery_n_series_cells', 1)
 
 @sh.add_function(dsp, outputs=['drive_battery_model'])
 def define_drive_battery_model(
-        drive_battery_r0, drive_battery_ocv, drive_battery_n_parallel_cells,
-        drive_battery_n_series_cells):
+        service_battery_model, initial_drive_battery_state_of_charge,
+        drive_battery_capacity, drive_battery_r0, drive_battery_ocv,
+        drive_battery_n_parallel_cells, drive_battery_n_series_cells):
     """
     Define the drive battery current model.
+
+    :param service_battery_model:
+         Service battery model.
+    :type service_battery_model: ServiceBatteryModel
+
+    :param initial_drive_battery_state_of_charge:
+        Initial state of charge of the drive battery [%].
+    :type initial_drive_battery_state_of_charge: float
+
+    :param drive_battery_capacity:
+        Drive battery capacity [Ah].
+    :type drive_battery_capacity: float
 
     :param drive_battery_r0:
         Drive battery resistance [ohm].
@@ -429,11 +494,12 @@ def define_drive_battery_model(
 
     :return:
         Drive battery current model.
-    :rtype: BatteryModel
+    :rtype: DriveBatteryModel
     """
-    return BatteryModel(
-        drive_battery_r0, drive_battery_ocv, drive_battery_n_parallel_cells,
-        drive_battery_n_series_cells
+    return DriveBatteryModel(
+        service_battery_model, initial_drive_battery_state_of_charge,
+        drive_battery_capacity, drive_battery_r0, drive_battery_ocv,
+        drive_battery_n_parallel_cells, drive_battery_n_series_cells
     )
 
 
@@ -449,13 +515,13 @@ def calculate_drive_battery_currents_v2(
 
     :param drive_battery_model:
         Drive battery current model.
-    :type drive_battery_model: BatteryModel
+    :type drive_battery_model: DriveBatteryModel
 
     :return:
         Drive battery current vector [A].
     :rtype: numpy.array
     """
-    return drive_battery_model(drive_battery_electric_powers)
+    return drive_battery_model.currents(drive_battery_electric_powers)
 
 
 @sh.add_function(dsp, outputs=['motors_electric_powers'])

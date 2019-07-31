@@ -7,7 +7,7 @@
 """
 Functions and a model `dsp` to model the DC/DC Converter.
 """
-
+import numpy as np
 import schedula as sh
 
 dsp = sh.BlueDispatcher(
@@ -81,19 +81,14 @@ def define_dcdc_current_model(dcdc_charging_currents):
 
 @sh.add_function(dsp, outputs=['dcdc_current_model'])
 def calibrate_dcdc_current_model(
-        dcdc_converter_currents, on_engine, times,
-        service_battery_state_of_charges, service_battery_charging_statuses,
-        clutch_tc_powers, accelerations, service_battery_initialization_time):
+        dcdc_converter_currents, times, service_battery_state_of_charges,
+        service_battery_charging_statuses, service_battery_initialization_time):
     """
     Calibrates an alternator current model that predicts alternator current [A].
 
     :param dcdc_converter_currents:
         DC/DC converter currents [A].
     :type dcdc_converter_currents: numpy.array
-
-    :param on_engine:
-        If the engine is on [-].
-    :type on_engine: numpy.array
 
     :param times:
         Time vector [s].
@@ -108,14 +103,6 @@ def calibrate_dcdc_current_model(
         3: Initialization) [-].
     :type service_battery_charging_statuses: numpy.array
 
-    :param clutch_tc_powers:
-        Clutch or torque converter power [kW].
-    :type clutch_tc_powers: numpy.array
-
-    :param accelerations:
-        Acceleration vector [m/s2].
-    :type accelerations: numpy.array
-
     :param service_battery_initialization_time:
         Service battery initialization time delta [s].
     :type service_battery_initialization_time: float
@@ -124,9 +111,10 @@ def calibrate_dcdc_current_model(
         DC/DC converter current model.
     :rtype: callable
     """
-    from ..motors.alternator.current import calibrate_alternator_current_model
-    return calibrate_alternator_current_model(
-        dcdc_converter_currents, on_engine, times,
-        service_battery_state_of_charges, service_battery_charging_statuses,
-        clutch_tc_powers, accelerations, service_battery_initialization_time
+    from ..motors.alternator.current import AlternatorCurrentModel
+    statuses = service_battery_charging_statuses
+    return AlternatorCurrentModel().fit(
+        dcdc_converter_currents, np.in1d(statuses, (1, 3)), times,
+        service_battery_state_of_charges, statuses,
+        init_time=service_battery_initialization_time
     )

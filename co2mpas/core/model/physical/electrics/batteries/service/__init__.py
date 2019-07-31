@@ -7,7 +7,7 @@
 """
 Functions and a model `dsp` to model the service battery (low voltage).
 """
-
+import functools
 import numpy as np
 import schedula as sh
 from ....defaults import dfl
@@ -355,11 +355,11 @@ dsp.add_dispatcher(
     inputs=(
         'service_battery_start_window_width', 'service_battery_nominal_voltage',
         'service_battery_state_of_charge_balance', 'on_engine', 'accelerations',
-        'service_battery_electric_powers_supply_threshold', 'clutch_tc_powers',
+        'alternator_electric_powers', 'dcdc_converter_electric_powers', 'times',
         'service_battery_initialization_time', 'service_battery_status_model',
-        'service_battery_electric_powers_supply', 'service_battery_capacity',
+        'service_battery_electric_powers_supply_threshold', 'motive_powers',
+        'service_battery_state_of_charges', 'service_battery_capacity',
         'service_battery_state_of_charge_balance_window', 'engine_starts',
-        'times', 'service_battery_state_of_charges',
     ),
     outputs=(
         'service_battery_initialization_time', 'service_battery_status_model',
@@ -369,3 +369,120 @@ dsp.add_dispatcher(
         'service_battery_charging_statuses',
     )
 )
+
+
+# noinspection PyMissingOrEmptyDocstring
+class ServiceBatteryModel:
+    def __init__(self, service_battery_status_model, dcdc_current_model,
+                 alternator_current_model, has_energy_recuperation,
+                 service_battery_initialization_time, service_battery_load,
+                 initial_service_battery_state_of_charge,
+                 service_battery_nominal_voltage, service_battery_capacity):
+        self.status = functools.partial(
+            service_battery_status_model.predict, has_energy_recuperation,
+            service_battery_initialization_time
+        )
+        self.nominal_voltage = service_battery_nominal_voltage
+        self.dcdc = dcdc_current_model
+        self.alternator = alternator_current_model
+        self.current_load = np.divide(
+            service_battery_load, service_battery_nominal_voltage / 1e3
+        )
+        self._d_soc = service_battery_capacity * 36.0 * 2
+        self.init_soc = initial_service_battery_state_of_charge
+        self.reset()
+
+    # noinspection PyAttributeOutsideInit
+    def reset(self):
+        self._prev_status = 0
+        self._prev_time = 0
+        self._prev_current = 0
+        self._prev_soc = self.init_soc
+
+    def __call__(self, time, motive_power, acceleration, on_engine,
+                 prev_soc=None, prev_status=None, update=True):
+        if prev_status is None:
+            prev_status = self._prev_status
+        if prev_soc is None:
+            prev_soc = self._prev_soc
+        alt_c = dcdc_c = .0
+        status = self.status(time, prev_status, prev_soc, motive_power)
+        if status:
+            if status == 1:
+                dcdc_c = self.dcdc(time, 0, status)
+            if on_engine:
+                alt_c = self.alternator(
+                    time, prev_soc, status, motive_power, acceleration
+                )
+        c = self.current_load[int(on_engine)] - alt_c - dcdc_c
+
+        dsoc = (c + self._prev_current) * (time - self._prev_time) / self._d_soc
+        soc = min(prev_soc + dsoc, 100.0)
+
+        if update:
+            self._prev_status, self._prev_soc = status, soc
+            self._prev_time, self._prev_current = time, c
+
+        return soc, status, dcdc_c, alt_c
+
+
+dsp.add_data('has_energy_recuperation', dfl.values.has_energy_recuperation)
+
+
+@sh.add_function(dsp, outputs=['service_battery_model'])
+def define_service_battery_model(
+        service_battery_status_model, dcdc_current_model,
+        alternator_current_model, has_energy_recuperation,
+        service_battery_initialization_time, service_battery_load,
+        initial_service_battery_state_of_charge,
+        service_battery_nominal_voltage, service_battery_capacity):
+    """
+    Define a service battery model.
+
+    :param service_battery_status_model:
+        A function that predicts the service battery charging status.
+    :type service_battery_status_model: BatteryStatusModel
+
+    :param dcdc_current_model:
+        DC/DC converter current model.
+    :type dcdc_current_model: callable
+
+    :param alternator_current_model:
+        Alternator current model.
+    :type alternator_current_model: callable
+
+    :param has_energy_recuperation:
+        Is the vehicle equipped with any brake energy recuperation technology?
+    :type has_energy_recuperation: bool
+
+    :param service_battery_initialization_time:
+        Service battery initialization time delta [s].
+    :type service_battery_initialization_time: float
+
+    :param service_battery_load:
+        Service electric load (engine off and on) [kW].
+    :type service_battery_load: float, float
+
+    :param initial_service_battery_state_of_charge:
+        Initial state of charge of the service battery [%].
+    :type initial_service_battery_state_of_charge: float
+
+    :param service_battery_nominal_voltage:
+        Service battery nominal voltage [V].
+    :type service_battery_nominal_voltage: float
+
+    :param service_battery_capacity:
+        Service battery capacity [Ah].
+    :type service_battery_capacity: float
+
+    :return:
+        Service battery model.
+    :rtype: ServiceBatteryModel
+    """
+    return ServiceBatteryModel(
+        service_battery_status_model, dcdc_current_model,
+        alternator_current_model, has_energy_recuperation,
+        service_battery_initialization_time, service_battery_load,
+        initial_service_battery_state_of_charge,
+        service_battery_nominal_voltage, service_battery_capacity
+    )

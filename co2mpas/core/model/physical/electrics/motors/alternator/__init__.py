@@ -116,7 +116,7 @@ dsp.add_dispatcher(
     inputs=(
         'service_battery_state_of_charges', 'service_battery_charging_statuses',
         'service_battery_initialization_time', 'alternator_charging_currents',
-        'accelerations', 'on_engine', 'alternator_currents', 'clutch_tc_powers',
+        'accelerations', 'on_engine', 'alternator_currents', 'motive_powers',
         'alternator_current_model', 'times',
     ),
     outputs=('alternator_current_model',)

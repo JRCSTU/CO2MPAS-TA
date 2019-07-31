@@ -463,7 +463,7 @@ class EMS:
             motive_powers, motors_maximums_powers, pi, ice_power_losses=pl
         )[1] for func in (hev.parallel, hev.serial)))
         b = hybrid_mode.astype(bool)
-        pi, bc = pi[b], self.battery_model(pb[b])
+        pi, bc = pi[b], self.battery_model.currents(pb[b])
         s = -np.diff(fc(engine_speeds_out[b, None], pi), axis=1)
         with np.errstate(divide='ignore', invalid='ignore'):
             s /= np.diff(bc, axis=1)
@@ -490,7 +490,7 @@ class EMS:
         ))
         res['power_bat'], res['power_ice'] = pb, pi = _interp(0, pi.T, pb.T)
         pb += np.atleast_2d(battery_power_losses).T
-        res['current_bat'] = bc = self.battery_model(pb)
+        res['current_bat'] = bc = self.battery_model.currents(pb)
         res['fc_bat'] = res['fc_eq'] = self.battery_fuel(bc)
         res['fc_ice'] = res['speed_ice'] = np.zeros_like(bc)
         res['battery_power_split'] = bps
@@ -512,7 +512,7 @@ class EMS:
         es = np.atleast_2d(engine_speeds_out).T
         fc_ice = fc(es, pi)
         pb += np.atleast_2d(battery_power_losses).T
-        bc = self.battery_model(pb)
+        bc = self.battery_model.currents(pb)
         fc_bat = self.battery_fuel(bc)
         fc_eq = fc_ice + fc_bat
         res = dict(
@@ -556,7 +556,7 @@ class EMS:
             es = es.reshape(n, -1).T
         pb += np.atleast_2d(pb_ev + battery_power_losses).T
         fc_ice = fc(es, pi)
-        bc = self.battery_model(pb)
+        bc = self.battery_model.currents(pb)
         fc_bat = self.battery_fuel(bc)
         fc_eq = fc_ice + fc_bat
 
@@ -577,7 +577,7 @@ class EMS:
         return self.starter_penalties(res)
 
     def starter_penalties(self, res):
-        cf, dt = self.battery_model, 4
+        cf, dt = self.battery_model.currents, 4
         eff = np.array([self.starter_efficiency, -1 / self.starter_efficiency])
         pb = (self.start_demand_function(res['speed_ice']) / dt)[None, :]
         res['power_stop'], res['power_start'] = pb = pb * eff[:, None, None]
@@ -634,7 +634,7 @@ def calibrate_ems_model(
 
     :param drive_battery_model:
         Drive battery current model.
-    :type drive_battery_model: BatteryModel
+    :type drive_battery_model: DriveBatteryModel
 
     :param hev_power_model:
         Hybrid Electric Vehicle power balance model.
@@ -714,7 +714,7 @@ def define_ems_model(
 
     :param drive_battery_model:
         Drive battery current model.
-    :type drive_battery_model: BatteryModel
+    :type drive_battery_model: DriveBatteryModel
 
     :param hev_power_model:
         Hybrid Electric Vehicle power balance model.
@@ -762,10 +762,11 @@ def define_ems_model(
 
 def _index_anomalies(anomalies):
     i = np.where(np.logical_xor(anomalies[:-1], anomalies[1:]))[0] + 1
-    if i[0] and anomalies[0]:
-        i = np.append([0], i)
-    if anomalies[-1]:
-        i = np.append(i, [len(anomalies) - 1])
+    if i.shape[0]:
+        if i[0] and anomalies[0]:
+            i = np.append([0], i)
+        if anomalies[-1]:
+            i = np.append(i, [len(anomalies) - 1])
     return i.reshape(-1, 2)
 
 
@@ -1002,10 +1003,9 @@ def define_start_stop_hybrid(ems_model, start_stop_hybrid_params):
 ])
 def predict_motors_electric_power_split(
         start_stop_hybrid, times, motive_powers, motors_maximums_powers,
-        gear_box_speeds_in, idle_engine_speed, drive_battery_capacity,
-        initial_drive_battery_state_of_charge, catalyst_warm_up_duration,
-        min_time_engine_on_after_start, start_stop_activation_time,
-        is_cycle_hot):
+        gear_box_speeds_in, idle_engine_speed, accelerations,
+        catalyst_warm_up_duration, min_time_engine_on_after_start,
+        start_stop_activation_time, is_cycle_hot):
     """
     Predicts hybrid mode, catalyst warm-up phase, engine speeds, and
     motors electric power split.
@@ -1034,13 +1034,9 @@ def predict_motors_electric_power_split(
         Engine speed idle median and std [RPM].
     :type idle_engine_speed: (float, float)
 
-    :param drive_battery_capacity:
-        Drive battery capacity [Ah].
-    :type drive_battery_capacity: float
-
-    :param initial_drive_battery_state_of_charge:
-        Initial state of charge of the drive battery [%].
-    :type initial_drive_battery_state_of_charge: float
+    :param accelerations:
+        Acceleration [m/s2].
+    :type accelerations: numpy.array
 
     :param catalyst_warm_up_duration:
         Catalyst warm up duration [s].
@@ -1067,6 +1063,7 @@ def predict_motors_electric_power_split(
         times, motive_powers, motors_maximums_powers, gear_box_speeds_in,
         idle_engine_speed
     )
+
     ele, par, ser = r['electric'], r['parallel'], r['serial']
     current_bat = {
         i: d['current_bat'].ravel() for i, d in enumerate((ele, par, ser, ele))
@@ -1082,13 +1079,15 @@ def predict_motors_electric_power_split(
     hybrid_mode &= motive_powers > 0.01  # No be off.
     # noinspection PyUnresolvedReferences
     hybrid_mode = hybrid_mode.astype(int)
-    soc, t0 = initial_drive_battery_state_of_charge, start_stop_activation_time
+    battery = start_stop_hybrid.ems_model.battery_model
+    battery.reset()
+    soc, t0 = battery.init_soc, start_stop_activation_time
     it = enumerate(zip(
-        times, np.ediff1d(times, [1]) * (36 * drive_battery_capacity),
-        hybrid_mode, r['k_reference'], r['hybrid_mode']
+        times, motive_powers, accelerations, hybrid_mode, r['k_reference'],
+        r['hybrid_mode']
     ))
     catalyst_warm_up, is_warm = np.zeros_like(times, bool), is_cycle_hot
-    for i, (t, soc_den, mode, k_ref, mode_ref) in it:
+    for i, (t, motive_power, acc, mode, k_ref, mode_ref) in it:
         pre_mode = hybrid_mode.take(i - 1, mode='clip')
         j = int(bool(pre_mode))
         if not mode and (t < t0 or k_ref[j] > start_stop_hybrid(soc)):
@@ -1106,7 +1105,10 @@ def predict_motors_electric_power_split(
                     hybrid_mode[i:j][hybrid_mode[i:j] == 0] = 3
                     is_warm = True
             starter_current = starter_bat[mode][i]
-        soc += (starter_current + current_bat[mode][i]) / soc_den
+        soc = battery(
+            starter_current + current_bat[mode][i], t, motive_power, acc,
+            bool(mode)
+        )
         hybrid_mode[i] = mode
 
     it = ele, par, ser

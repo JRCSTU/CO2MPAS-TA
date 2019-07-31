@@ -39,7 +39,7 @@ dsp.add_dispatcher(
     dsp_id='alternator',
     dsp=_alternator,
     inputs=(
-        'alternator_currents', 'alternator_nominal_voltage', 'clutch_tc_powers',
+        'alternator_currents', 'alternator_nominal_voltage', 'motive_powers',
         'alternator_electric_powers', 'alternator_efficiency', 'accelerations',
         'service_battery_state_of_charges', 'service_battery_charging_statuses',
         'alternator_current_model', 'on_engine', 'alternator_charging_currents',

@@ -37,13 +37,14 @@ dsp.add_dispatcher(
         'service_battery_start_window_width', 'service_battery_nominal_voltage',
         'service_battery_state_of_charge_balance', 'on_engine', 'accelerations',
         'cycle_type', 'service_battery_electric_powers', 'service_battery_load',
-        'service_battery_electric_powers_supply_threshold', 'clutch_tc_powers',
+        'service_battery_electric_powers_supply_threshold', 'engine_powers_out',
         'service_battery_capacity', 'starter_electric_powers', 'engine_starts',
         'service_battery_initialization_time', 'service_battery_status_model',
-        'service_battery_state_of_charge_balance_window', 'engine_powers_out',
         'service_battery_electric_powers_supply', 'service_battery_currents',
         'dcdc_converter_electric_powers', 'service_battery_state_of_charges',
-        'service_battery_loads', 'times',
+        'service_battery_state_of_charge_balance_window', 'motive_powers',
+        'service_battery_loads', 'times', 'has_energy_recuperation',
+        'dcdc_current_model', 'alternator_current_model'
     ),
     outputs=(
         'initial_service_battery_state_of_charge', 'service_battery_currents',
@@ -51,9 +52,9 @@ dsp.add_dispatcher(
         'service_battery_initialization_time', 'service_battery_status_model',
         'service_battery_state_of_charge_balance', 'service_battery_capacity',
         'service_battery_delta_state_of_charge', 'service_battery_loads',
-        'service_battery_charging_statuses', 'service_battery_load',
+        'service_battery_charging_statuses', 'service_battery_model',
         'service_battery_electric_powers_supply_threshold',
-        'service_battery_state_of_charge_balance_window',
+        'service_battery_state_of_charge_balance_window', 'service_battery_load'
     ),
     include_defaults=True
 )
@@ -62,15 +63,16 @@ dsp.add_dispatcher(
     dsp_id='drive_battery',
     dsp=_drive,
     inputs=(
-        'drive_battery_electric_powers', 'drive_battery_voltages', 'times',
+        'dcdc_converter_electric_powers_demand', 'drive_battery_n_series_cells',
+        'motor_p4_electric_powers', 'drive_battery_loads', 'drive_battery_load',
         'drive_battery_currents', 'drive_battery_capacity', 'drive_battery_r0',
-        'drive_battery_state_of_charges', 'drive_battery_loads',
-        'dcdc_converter_electric_powers_demand', 'motor_p0_electric_powers',
-        'motor_p1_electric_powers', 'motor_p2_electric_powers',
-        'motor_p3_electric_powers', 'motor_p4_electric_powers',
-        'initial_drive_battery_state_of_charge', 'drive_battery_ocv',
-        'electrical_hybridization_degree', 'drive_battery_load',
-        'drive_battery_n_parallel_cells', 'drive_battery_n_series_cells'
+        'initial_drive_battery_state_of_charge', 'drive_battery_ocv', 'times',
+        'drive_battery_n_parallel_cells', 'electrical_hybridization_degree',
+        'drive_battery_electric_powers', 'drive_battery_state_of_charges',
+        'motor_p2_electric_powers', 'motor_p3_electric_powers',
+        'motor_p0_electric_powers', 'drive_battery_voltages',
+        'motor_p1_electric_powers', 'service_battery_model',
+
     ),
     outputs=(
         'drive_battery_currents', 'drive_battery_loads', 'drive_battery_load',
@@ -87,11 +89,11 @@ dsp.add_dispatcher(
     dsp_id='dcdc_converter',
     dsp=_dcdc,
     inputs=(
-        'dcdc_converter_electric_powers', 'dcdc_current_model', 'accelerations',
         'service_battery_state_of_charges', 'service_battery_charging_statuses',
-        'clutch_tc_powers', 'on_engine', 'service_battery_initialization_time',
-        'dcdc_converter_currents', 'service_battery_nominal_voltage', 'times',
-        'dcdc_charging_currents', 'dcdc_converter_efficiency',
+        'dcdc_converter_electric_powers', 'service_battery_initialization_time',
+        'service_battery_nominal_voltage', 'dcdc_converter_efficiency', 'times',
+        'dcdc_converter_currents', 'dcdc_charging_currents', 'on_engine',
+        'dcdc_current_model',
     ),
     outputs=(
         'dcdc_converter_electric_powers_demand', 'dcdc_current_model',
