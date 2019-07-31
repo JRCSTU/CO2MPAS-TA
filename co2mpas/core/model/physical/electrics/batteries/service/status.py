@@ -353,10 +353,8 @@ def _identify_balance_soc(times, state_of_charges):
 
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class BatteryStatusModel:
-    def __init__(self, bers_pred=None, charge_pred=None, min_soc=0.0,
-                 max_soc=100.0):
+    def __init__(self, bers_pred=None, min_soc=0.0, max_soc=100.0):
         self.bers = bers_pred
-        self.charge = charge_pred
         self.max = max_soc
         self.min = min_soc
 
@@ -529,7 +527,6 @@ def define_service_battery_status_model(
     m = service_battery_state_of_charge_balance
     w = service_battery_state_of_charge_balance_window / 2
     return BatteryStatusModel(
-        charge_pred=lambda x: [x[0][0] == 1],
         bers_pred=lambda x: [x[0][0] < 0],
         min_soc=m - w,
         max_soc=m + w
