@@ -380,7 +380,7 @@ class DriveBatteryModel:
 
         current = current + self.currents(dcdc_p)
         dsoc = (current + self._prev_current) * dt / self._d_soc
-        soc = min(prev_soc + dsoc, 100.0)
+        soc = max(0.0, min(prev_soc + dsoc, 100.0))
 
         if update:
             self._prev_soc, self._prev_current = soc, current

@@ -64,11 +64,10 @@ def calculate_service_battery_currents_v1(
         Service battery current vector [A].
     :rtype: numpy.array
     """
-    from scipy.interpolate import UnivariateSpline
+    from scipy.interpolate import UnivariateSpline as Spline
     soc = service_battery_state_of_charges
-    ib = UnivariateSpline(times, soc).derivative()(times)
-    ib *= service_battery_capacity * 36.0
-    return ib
+    ib = Spline(times, soc, w=np.tile(10, times.shape[0])).derivative()(times)
+    return ib * (service_battery_capacity * 36.0)
 
 
 @sh.add_function(dsp, outputs=['service_battery_capacity'])
@@ -93,11 +92,10 @@ def identify_service_battery_capacity(
         Service battery capacity [Ah].
     :rtype: float
     """
-    d = calculate_service_battery_currents_v1(
-        1, times, service_battery_state_of_charges
-    )
-    b = (d < -dfl.EPS) | (d > dfl.EPS)
-    return co2_utl.reject_outliers(service_battery_currents[b] / d[b])[0]
+    soc = service_battery_state_of_charges
+    ib = calculate_service_battery_currents_v1(1, times, soc)
+    b = (ib < -dfl.EPS) | (ib > dfl.EPS)
+    return co2_utl.reject_outliers(service_battery_currents[b] / ib[b])[0]
 
 
 @sh.add_function(dsp, outputs=['service_battery_electric_powers'])
@@ -241,7 +239,7 @@ def calculate_service_battery_state_of_charges(
     bc /= 2.0 * service_battery_capacity * 36.0
 
     for i, v in enumerate(bc, 1):
-        soc[i] = min(soc[i - 1] + v, 100.0)
+        soc[i] = max(0.0, min(soc[i - 1] + v, 100.0))
 
     return soc
 
@@ -406,24 +404,24 @@ class ServiceBatteryModel:
         if prev_soc is None:
             prev_soc = self._prev_soc
         alt_c = dcdc_c = .0
-        status = self.status(time, prev_status, prev_soc, motive_power)
-        if status:
-            if status == 1:
-                dcdc_c = self.dcdc(time, 0, status)
+        status_ = self.status(time, prev_status, prev_soc, motive_power)
+        if status_:
+            if status_ == 1:
+                dcdc_c = self.dcdc(time, 0, status_)
             if on_engine:
                 alt_c = self.alternator(
-                    time, prev_soc, status, motive_power, acceleration
+                    time, prev_soc, status_, motive_power, acceleration
                 )
         c = self.current_load[int(on_engine)] - alt_c - dcdc_c
 
         dsoc = (c + self._prev_current) * (time - self._prev_time) / self._d_soc
-        soc = min(prev_soc + dsoc, 100.0)
+        soc = max(0.0, min(prev_soc + dsoc, 100.0))
 
         if update:
-            self._prev_status, self._prev_soc = status, soc
+            self._prev_status, self._prev_soc = status_, soc
             self._prev_time, self._prev_current = time, c
 
-        return soc, status, dcdc_c, alt_c
+        return soc, status_, dcdc_c, alt_c
 
 
 dsp.add_data('has_energy_recuperation', dfl.values.has_energy_recuperation)
