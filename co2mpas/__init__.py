@@ -193,6 +193,8 @@ def run_sitemap(sitemap, cache_folder, host, port):
     :type port: int
     :return:
     """
+    import numpy as np
+    np.set_printoptions(threshold=np.inf)
     site = sitemap.site(cache_folder, host=host, port=port).run()
     webbrowser.open(site.url)
     return site
