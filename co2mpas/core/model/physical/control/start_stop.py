@@ -35,14 +35,10 @@ def default_start_stop_activation_time(has_start_stop):
 
 @sh.add_function(dsp, outputs=['start_stop_model'])
 def calibrate_start_stop_model(
-        is_hybrid, on_engine, velocities, accelerations, times,
+        on_engine, velocities, accelerations, times,
         start_stop_activation_time):
     """
     Calibrates an start/stop model to predict if the engine is on.
-
-    :param is_hybrid:
-        Is the vehicle hybrid?
-    :type is_hybrid: bool
 
     :param on_engine:
         If the engine is on [-].
@@ -68,8 +64,6 @@ def calibrate_start_stop_model(
         Start/stop model.
     :rtype: sklearn.tree.DecisionTreeClassifier
     """
-    if is_hybrid:
-        return sh.NONE
     from sklearn.tree import DecisionTreeClassifier
     i = np.searchsorted(times, start_stop_activation_time)
     model = DecisionTreeClassifier(random_state=0, max_depth=3)

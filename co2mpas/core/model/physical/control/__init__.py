@@ -89,6 +89,16 @@ def identify_engine_starts(on_engine):
     return engine_starts
 
 
+# noinspection PyMissingOrEmptyDocstring
+def is_hybrid(kwargs):
+    return kwargs.get('is_hybrid')
+
+
+# noinspection PyMissingOrEmptyDocstring
+def is_not_hybrid(kwargs):
+    return not kwargs.get('is_hybrid', True)
+
+
 dsp.add_dispatcher(
     include_defaults=True,
     dsp=_start_stop,
@@ -97,12 +107,13 @@ dsp.add_dispatcher(
         'accelerations', 'correct_start_stop_with_gears', 'start_stop_model',
         'engine_starts', 'has_start_stop', 'on_engine', 'gears',
         'gear_box_type', 'start_stop_activation_time', 'times', 'velocities',
-        'min_time_engine_on_after_start', 'is_hybrid'
+        'min_time_engine_on_after_start', {'is_hybrid': sh.SINK}
     ),
     outputs=(
         'start_stop_model', 'correct_start_stop_with_gears',
         'on_engine', 'start_stop_activation_time'
-    )
+    ),
+    input_domain=is_not_hybrid
 )
 
 dsp.add_dispatcher(
@@ -136,5 +147,6 @@ dsp.add_dispatcher(
         'start_stop_hybrid_params', 'catalyst_warm_up_duration', 'on_engine',
         'motor_p0_electric_powers', 'motor_p1_electric_powers', 'ecms_s',
         'motor_p2_electric_powers', 'motor_p3_electric_powers', 'hybrid_modes',
-    )
+    ),
+    input_domain=is_hybrid
 )

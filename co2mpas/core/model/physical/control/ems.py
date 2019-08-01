@@ -1093,7 +1093,7 @@ def predict_hybrid_modes(
             bool(mode)
         )
         hybrid_modes[i] = mode
-    return np.maximum(hybrid_modes, 2)
+    return np.minimum(hybrid_modes, 2)
 
 
 @sh.add_function(dsp, outputs=['on_engine'])
@@ -1166,7 +1166,7 @@ def predict_catalyst_warm_up_v1(times, is_cycle_hot):
     return sh.NONE
 
 
-@sh.add_function(dsp, outputs=['engine_speeds_out_hot'])
+@sh.add_function(dsp, outputs=['engine_speeds_out_hot'], weight=2)
 def predict_engine_speeds_out_hot(ems_data, hybrid_modes):
     """
     Predicts the engine speed at hot condition [RPM].
