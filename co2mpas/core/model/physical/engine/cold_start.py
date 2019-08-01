@@ -167,15 +167,10 @@ class ColdStartModel:
             if b.any():
                 ds, m = self.ds, self.m
                 if not np.isinf(m):
-                    ds = np.minimum(
-                        ds,
-                        (self.temp_limit - engine_coolant_temperatures[b]) * m
-                    )
-
-                add_speeds[b] = np.maximum(
-                    (ds + 1) * idle_engine_speed[0] - engine_speeds_out_hot[b],
-                    0
-                )
+                    dtemp = self.temp_limit - engine_coolant_temperatures[b]
+                    ds = np.minimum(ds, dtemp * m)
+                s = (ds + 1) * idle_engine_speed[0]
+                add_speeds[b] = np.maximum(s - engine_speeds_out_hot[b], 0)
         return add_speeds
 
 
