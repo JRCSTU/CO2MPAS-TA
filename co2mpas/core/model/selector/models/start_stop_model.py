@@ -15,13 +15,26 @@ from ...physical.control import dsp as _control
 name = 'start_stop_model'
 
 #: Parameters that constitute the model.
-models = ['start_stop_model']
+models = [
+    'start_stop_model', 'start_stop_hybrid_params', 'catalyst_warm_up_duration',
+    'motor_p3_efficiency', 'motor_p4_efficiency', 'final_drive_mean_efficiency',
+    'belt_mean_efficiency', 'clutch_tc_mean_efficiency', 'motor_p2_efficiency',
+    'motor_p0_efficiency', 'motor_p1_efficiency', 'gear_box_mean_efficiency',
+    'ecms_s',
+]
 
 #: Inputs required to run the model.
 inputs = [
-    'times', 'velocities', 'accelerations', 'gears',
+    'times', 'velocities', 'accelerations', 'gears', 'motive_powers',
     'correct_start_stop_with_gears', 'start_stop_activation_time',
-    'min_time_engine_on_after_start', 'has_start_stop'
+    'min_time_engine_on_after_start', 'has_start_stop', 'is_hybrid',
+    'drive_battery_model', 'fuel_map', 'full_load_curve', 'is_cycle_hot',
+    'motor_p1_maximum_power_function', 'motor_p0_maximum_power_function',
+    'motor_p1_speed_ratio', 'motor_p0_speed_ratio', 'gear_box_speeds_in',
+    'idle_engine_speed', 'motor_p4_maximum_powers', 'motor_p3_maximum_powers',
+    'motor_p2_maximum_powers', 'start_demand_function',
+    'delta_time_engine_starter', 'starter_efficiency', 'engine_moment_inertia',
+    'auxiliaries_torque_loss', 'auxiliaries_power_loss'
 ]
 
 #: Relevant outputs of the model.
