@@ -18,7 +18,7 @@ Sub-Modules:
     motors
     batteries
 """
-
+import numpy as np
 import schedula as sh
 from .motors import dsp as _motors
 from .batteries import dsp as _batteries
@@ -121,16 +121,58 @@ dsp.add_dispatcher(
         'service_battery_state_of_charge_balance_window', 'drive_battery_model',
         'drive_battery_state_of_charges', 'drive_battery_delta_state_of_charge',
         'initial_drive_battery_state_of_charge', 'drive_battery_n_series_cells',
+        'dcdc_converter_currents', 'drive_battery_capacity', 'drive_battery_r0',
+        'service_battery_delta_state_of_charge', 'service_battery_status_model',
         'service_battery_load', 'service_battery_loads', 'drive_battery_loads',
+        'dcdc_current_model', 'drive_battery_load', 'service_battery_currents',
+        'service_battery_initialization_time', 'drive_battery_electric_powers',
         'initial_service_battery_state_of_charge', 'service_battery_capacity',
-        'service_battery_initialization_time', 'service_battery_status_model',
         'service_battery_electric_powers', 'service_battery_state_of_charges',
-        'service_battery_charging_statuses', 'drive_battery_electric_powers',
+        'service_battery_charging_statuses', 'drive_battery_n_parallel_cells',
         'service_battery_state_of_charge_balance', 'drive_battery_currents',
-        'service_battery_delta_state_of_charge', 'service_battery_currents',
         'dcdc_converter_electric_powers_demand', 'drive_battery_voltages',
-        'drive_battery_n_parallel_cells', 'drive_battery_capacity',
-        'drive_battery_load', 'drive_battery_r0', 'dcdc_current_model'
     ),
     include_defaults=True
 )
+
+
+@sh.add_function(dsp, outputs=[
+    'service_battery_state_of_charges', 'service_battery_charging_statuses',
+    'dcdc_converter_currents', 'alternator_currents'
+])
+def predict_service_battery_flows(
+        service_battery_model, times, motive_powers, accelerations, on_engine):
+    """
+    Predict the service battery currents flows.
+
+    :param service_battery_model:
+         Service battery model.
+    :type service_battery_model: ServiceBatteryModel
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
+
+    :param accelerations:
+        Acceleration [m/s2].
+    :type accelerations: numpy.array
+
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :return:
+        - State of charge of the service battery [%].
+        - Service battery charging statuses (0: Discharge, 1: Charging, 2: BERS,
+          3: Initialization) [-].
+        - DC/DC converter currents [A].
+        - Alternator currents [A].
+    :rtype: numpy.array
+    """
+    service_battery_model.reset()
+    it = zip(times, motive_powers, accelerations, on_engine)
+    return np.array([service_battery_model(*a) for a in it]).T

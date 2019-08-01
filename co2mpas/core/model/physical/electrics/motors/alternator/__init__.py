@@ -119,5 +119,5 @@ dsp.add_dispatcher(
         'accelerations', 'on_engine', 'alternator_currents', 'motive_powers',
         'alternator_current_model', 'times',
     ),
-    outputs=('alternator_current_model',)
+    outputs=('alternator_current_model', 'alternator_currents')
 )

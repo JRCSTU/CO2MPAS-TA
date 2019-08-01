@@ -124,14 +124,17 @@ dsp.add_dispatcher(
         'motor_p3_maximum_power', 'motor_p1_maximum_power', 'engine_speeds_out',
         'motor_p1_maximum_power_function', 'ecms_s', 'start_stop_hybrid_params',
         'motor_p1_speed_ratio', 'auxiliaries_power_loss', 'motor_p1_efficiency',
+        'motor_p4_electric_powers', 'engine_speeds_out_hot', 'catalyst_warm_up',
+        'catalyst_warm_up_duration', 'motor_p1_electric_powers', 'hybrid_modes',
         'final_drive_mean_efficiency', 'is_cycle_hot', 'start_demand_function',
-        'catalyst_warm_up_duration', 'auxiliaries_torque_loss',
+        'motor_p2_electric_powers', 'motor_p3_electric_powers',
+        'auxiliaries_torque_loss', 'motor_p0_electric_powers',
         {'is_hybrid': sh.SINK},
     ),
     outputs=(
+        'motor_p4_electric_powers', 'engine_speeds_out_hot', 'catalyst_warm_up',
         'start_stop_hybrid_params', 'catalyst_warm_up_duration', 'on_engine',
         'motor_p0_electric_powers', 'motor_p1_electric_powers', 'ecms_s',
-        'motor_p2_electric_powers', 'motor_p3_electric_powers',
-        'motor_p4_electric_powers', 'engine_speeds_out_hot',
+        'motor_p2_electric_powers', 'motor_p3_electric_powers', 'hybrid_modes',
     )
 )

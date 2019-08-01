@@ -313,8 +313,8 @@ def define_hev_power_model(motors_efficiencies, drive_line_efficiencies):
     return HEV(drive_line_efficiencies, motors_efficiencies)
 
 
-@sh.add_function(dsp, outputs=['hybrid_mode'])
-def identify_hybrid_mode(
+@sh.add_function(dsp, outputs=['hybrid_modes'])
+def identify_hybrid_modes(
         gear_box_speeds_in, engine_speeds_out, idle_engine_speed, on_engine):
     """
     Identify the hybrid mode status (0: EV, 1: Parallel, 2: Serial).
@@ -452,17 +452,17 @@ class EMS:
         pb, i = np.unique(-pb, return_index=True)
         self._battery_power = Spline(pb, np.abs(p.ravel()[i]), k=1, s=0)
 
-    def fit(self, hybrid_mode, times, motive_powers, motors_maximums_powers,
+    def fit(self, hybrid_modes, times, motive_powers, motors_maximums_powers,
             engine_powers_out, engine_speeds_out, ice_power_losses=None):
         pl = ice_power_losses
         if pl is None:
             pl = self.engine_power_losses(times, engine_speeds_out)
         hev, fc = self.hev_power_model, self.fuel_map_model
         pi = engine_powers_out[:, None] + [-dfl.EPS, dfl.EPS]
-        pb = np.where(hybrid_mode[:, None] == 1, *(func(
+        pb = np.where(hybrid_modes[:, None] == 1, *(func(
             motive_powers, motors_maximums_powers, pi, ice_power_losses=pl
         )[1] for func in (hev.parallel, hev.serial)))
-        b = hybrid_mode.astype(bool)
+        b = hybrid_modes.astype(bool)
         pi, bc = pi[b], self.battery_model.currents(pb[b])
         s = -np.diff(fc(engine_speeds_out[b, None], pi), axis=1)
         with np.errstate(divide='ignore', invalid='ignore'):
@@ -614,17 +614,18 @@ class EMS:
         # noinspection PyUnresolvedReferences
         mode = (fc_ser < fc_par).astype(int) + 1
         mode[gear_box_speeds_in < -np.diff(idle_engine_speed)] = 2
-        mode[(e['power_ice'].ravel() > dfl.EPS) & (motive_powers > 0.01)] = 1
+        be_serial = (e['power_ice'].ravel() > dfl.EPS) & (motive_powers > 0.01)
+        mode[be_serial] = 1
         k_ref = np.choose(mode - 1, [k_par.T, k_ser.T])
         return dict(
-            hybrid_mode=mode, k_serial=k_ser, k_parallel=k_par, serial=s,
-            parallel=p, electric=e, k_reference=k_ref
+            hybrid_modes=mode, k_serial=k_ser, k_parallel=k_par, serial=s,
+            parallel=p, electric=e, k_reference=k_ref, force_on_engine=be_serial
         )
 
 
 @sh.add_function(dsp, outputs=['ecms_s'])
 def calibrate_ems_model(
-        drive_battery_model, hev_power_model, fuel_map_model, hybrid_mode,
+        drive_battery_model, hev_power_model, fuel_map_model, hybrid_modes,
         serial_motor_maximum_power_function, motive_powers, starter_efficiency,
         motors_maximums_powers, engine_powers_out, engine_speeds_out, times,
         engine_power_losses_function, start_demand_function,
@@ -644,9 +645,9 @@ def calibrate_ems_model(
         Fuel map model.
     :type fuel_map_model: FuelMapModel
 
-    :param hybrid_mode:
+    :param hybrid_modes:
         Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
-    :type hybrid_mode: numpy.array
+    :type hybrid_modes: numpy.array
 
     :param serial_motor_maximum_power_function:
         Serial motor maximum power function.
@@ -697,7 +698,7 @@ def calibrate_ems_model(
         serial_motor_maximum_power_function, start_demand_function,
         delta_time_engine_starter, starter_efficiency,
         engine_power_losses_function).fit(
-        hybrid_mode, times, motive_powers, motors_maximums_powers,
+        hybrid_modes, times, motive_powers, motors_maximums_powers,
         engine_powers_out, engine_speeds_out
     )
     return model.s_ch, model.s_ds
@@ -760,6 +761,47 @@ def define_ems_model(
     )
 
 
+@sh.add_function(dsp, outputs=['ems_data'])
+def calculate_ems_data(
+        ems_model, times, motive_powers, motors_maximums_powers,
+        gear_box_speeds_in, idle_engine_speed):
+    """
+    Calculate EMS decision data.
+
+    :param ems_model:
+        Energy Management Strategy model.
+    :type ems_model: EMS
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
+
+    :param motors_maximums_powers:
+        Maximum powers of electric motors [kW].
+    :type motors_maximums_powers: numpy.array
+
+    :param gear_box_speeds_in:
+        Gear box speed [RPM].
+    :type gear_box_speeds_in: numpy.array
+
+    :param idle_engine_speed:
+        Engine speed idle median and std [RPM].
+    :type idle_engine_speed: (float, float)
+
+    :return:
+        EMS decision data.
+    :rtype: dict
+    """
+    return ems_model(
+        times, motive_powers, motors_maximums_powers, gear_box_speeds_in,
+        idle_engine_speed
+    )
+
+
 def _index_anomalies(anomalies):
     i = np.where(np.logical_xor(anomalies[:-1], anomalies[1:]))[0] + 1
     if i.shape[0]:
@@ -770,11 +812,11 @@ def _index_anomalies(anomalies):
     return i.reshape(-1, 2)
 
 
-@sh.add_function(dsp, outputs=['catalyst_warm_up'])
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['catalyst_warm_up'])
 def identify_catalyst_warm_up(
-        times, engine_powers_out, engine_coolant_temperatures,
-        hybrid_mode, engine_thermostat_temperature, ems_model,
-        motive_powers, motors_maximums_powers, engine_speeds_out):
+        times, engine_powers_out, engine_coolant_temperatures, on_engine,
+        engine_thermostat_temperature, ems_data, hybrid_modes,
+        is_cycle_hot=False):
     """
     Identifies catalyst warm up phase.
 
@@ -790,44 +832,43 @@ def identify_catalyst_warm_up(
         Engine coolant temperature vector [°C].
     :type engine_coolant_temperatures: numpy.array
 
-    :param hybrid_mode:
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :param ems_data:
+        EMS decision data.
+    :type ems_data: dict
+
+    :param hybrid_modes:
         Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
-    :type hybrid_mode: numpy.array
+    :type hybrid_modes: numpy.array
 
     :param engine_thermostat_temperature:
         Engine thermostat temperature [°C].
     :type engine_thermostat_temperature: float
 
-    :param ems_model:
-        Energy Management Strategy model.
-    :type ems_model: EMS
-
-    :param motive_powers:
-        Motive power [kW].
-    :type motive_powers: numpy.array
-
-    :param motors_maximums_powers:
-        Maximum powers of electric motors [kW].
-    :type motors_maximums_powers: numpy.array
-
-    :param engine_speeds_out:
-        Engine speed [RPM].
-    :type engine_speeds_out: numpy.array
+    :param is_cycle_hot:
+        Is an hot cycle?
+    :type is_cycle_hot: bool
 
     :return:
         Catalyst warm up phase.
     :rtype: numpy.array
     """
+    anomalies = np.zeros_like(times)
+    if is_cycle_hot or not on_engine.any():
+        return anomalies.astype(bool)
     from co2mpas.utils import clear_fluctuations, median_filter
     from sklearn.ensemble import IsolationForest
-    b, ems = hybrid_mode > 0, ems_model
-    p = np.where(hybrid_mode == 2, *(func(
-        times, motive_powers, motors_maximums_powers, engine_speeds_out
-    )['power_ice'].ravel() for func in (ems.serial, ems.parallel)))[b]
-    p = np.column_stack((engine_powers_out[b], p))
-    anomalies = np.zeros_like(hybrid_mode)
+    i = np.where(on_engine)[0]
+    p = np.column_stack((engine_powers_out[i], np.choose(
+        ems_data['hybrid_modes'][:, 1] - 1,
+        [ems_data[k]['power_ice'].ravel() for k in ('parallel', 'serial')]
+    )[i]))
+
     # noinspection PyUnresolvedReferences
-    anomalies[np.where(b)[0][IsolationForest(
+    anomalies[i[IsolationForest(
         random_state=0, behaviour='new', contamination='auto'
     ).fit(p).predict(p) == -1]] = 1
     anomalies = median_filter(times, anomalies, 5)
@@ -836,12 +877,14 @@ def identify_catalyst_warm_up(
     b = np.diff(temp[i], axis=1) > 4
     b &= temp[i[:, 0], None] < (engine_thermostat_temperature - 10)
     b &= np.diff(times[i], axis=1) > 5
-    b &= np.apply_along_axis(lambda a: np.in1d(2, hybrid_mode[slice(*a)]), 1, i)
+    b &= np.apply_along_axis(
+        lambda a: np.in1d(2, hybrid_modes[slice(*a)]), 1, i
+    )
     i = i[b.ravel()]
     anomalies[:] = False
     if i.shape[0]:
         i, j = i[0]
-        while i and hybrid_mode.take(i - 1, mode='clip'):
+        while i and hybrid_modes.take(i - 1, mode='clip'):
             i -= 1
         anomalies[i:j] = True
     return anomalies
@@ -872,28 +915,19 @@ def identify_catalyst_warm_up_duration(times, catalyst_warm_up):
 
 # noinspection PyMissingOrEmptyDocstring
 class StartStopHybrid:
-    def __init__(self, ems_model, params=None):
-        self.ems_model = ems_model
+    def __init__(self, params=None):
         self.params = params
 
-    def fit(self, times, motive_powers, motors_maximums_powers, on_engine,
-            engine_speeds_out, gear_box_speeds_in, idle_engine_speed,
-            drive_battery_state_of_charges, catalyst_warm_up):
+    def fit(self, ems_data, on_engine, drive_battery_state_of_charges,
+            catalyst_warm_up):
         import lmfit
-        r = self.ems_model(
-            times, motive_powers, motors_maximums_powers,
-            np.where(on_engine, engine_speeds_out, gear_box_speeds_in),
-            idle_engine_speed
-        )
-        k = np.where(~on_engine, *r['k_reference'].T)
+        k = np.where(~on_engine, *ems_data['k_reference'].T)
 
         # Filter data.
-        b = r['electric']['power_ice'].ravel() > dfl.EPS
-        b &= motive_powers > 0.01  # No be off.
-        b = ~catalyst_warm_up & ~b
+        b = ~catalyst_warm_up & ~ ems_data['force_on_engine']
         s = np.where(on_engine[b], 1, -1)
         k, soc = k[b].T, drive_battery_state_of_charges[b]
-        del r, b
+        del b
 
         def _(x):
             return np.maximum(0, s * (self._k(x.valuesdict(), soc) - k)).sum()
@@ -918,43 +952,17 @@ class StartStopHybrid:
 
 @sh.add_function(dsp, outputs=['start_stop_hybrid_params'])
 def calibrate_start_stop_hybrid_params(
-        ems_model, times, motive_powers, motors_maximums_powers, on_engine,
-        engine_speeds_out, gear_box_speeds_in, idle_engine_speed,
-        drive_battery_state_of_charges, catalyst_warm_up):
+        ems_data, on_engine, drive_battery_state_of_charges, catalyst_warm_up):
     """
     Calibrate start stop model for hybrid electric vehicles.
 
-    :param ems_model:
-        Energy Management Strategy model.
-    :type ems_model: EMS
-
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
-    :param motive_powers:
-        Motive power [kW].
-    :type motive_powers: numpy.array
-
-    :param motors_maximums_powers:
-        Maximum powers of electric motors [kW].
-    :type motors_maximums_powers: numpy.array
+    :param ems_data:
+        EMS decision data.
+    :type ems_data: dict
 
     :param on_engine:
         If the engine is on [-].
     :type on_engine: numpy.array
-
-    :param engine_speeds_out:
-        Engine speed [RPM].
-    :type engine_speeds_out: numpy.array
-
-    :param gear_box_speeds_in:
-        Gear box speed [RPM].
-    :type gear_box_speeds_in: numpy.array
-
-    :param idle_engine_speed:
-        Engine speed idle median and std [RPM].
-    :type idle_engine_speed: (float, float)
 
     :param drive_battery_state_of_charges:
         State of charge of the drive battery [%].
@@ -968,21 +976,16 @@ def calibrate_start_stop_hybrid_params(
         Params of start stop model for hybrid electric vehicles.
     :rtype: dict
     """
-    return StartStopHybrid(ems_model).fit(
-        times, motive_powers, motors_maximums_powers, on_engine,
-        engine_speeds_out, gear_box_speeds_in, idle_engine_speed,
-        drive_battery_state_of_charges, catalyst_warm_up
+    return StartStopHybrid().fit(
+        ems_data, on_engine, drive_battery_state_of_charges,
+        catalyst_warm_up
     ).params
 
 
 @sh.add_function(dsp, outputs=['start_stop_hybrid'])
-def define_start_stop_hybrid(ems_model, start_stop_hybrid_params):
+def define_start_stop_hybrid(start_stop_hybrid_params):
     """
     Defines start stop model for hybrid electric vehicles.
-
-    :param ems_model:
-        Energy Management Strategy model.
-    :type ems_model: EMS
 
     :param start_stop_hybrid_params:
         Params of start stop model for hybrid electric vehicles.
@@ -992,27 +995,28 @@ def define_start_stop_hybrid(ems_model, start_stop_hybrid_params):
         Start stop model for hybrid electric vehicles.
     :rtype: StartStopHybrid
     """
-    return StartStopHybrid(ems_model, start_stop_hybrid_params)
+    return StartStopHybrid(start_stop_hybrid_params)
 
 
-@sh.add_function(dsp, outputs=[
-    'hybrid_mode', 'catalyst_warm_up', 'engine_speeds_out_hot',
-    'motor_p4_electric_powers', 'motor_p3_electric_powers',
-    'motor_p2_electric_powers', 'motor_p1_electric_powers',
-    'motor_p0_electric_powers'
-])
-def predict_motors_electric_power_split(
-        start_stop_hybrid, times, motive_powers, motors_maximums_powers,
-        gear_box_speeds_in, idle_engine_speed, accelerations,
-        catalyst_warm_up_duration, min_time_engine_on_after_start,
-        start_stop_activation_time, is_cycle_hot):
+@sh.add_function(dsp, outputs=['hybrid_modes'])
+def predict_hybrid_modes(
+        start_stop_hybrid, ems_data, drive_battery_model, times, motive_powers,
+        accelerations, catalyst_warm_up_duration, start_stop_activation_time,
+        min_time_engine_on_after_start, is_cycle_hot):
     """
-    Predicts hybrid mode, catalyst warm-up phase, engine speeds, and
-    motors electric power split.
+    Predicts the hybrid mode status (0: EV, 1: Parallel, 2: Serial).
 
     :param start_stop_hybrid:
         Start stop model for hybrid electric vehicles.
     :type start_stop_hybrid: StartStopHybrid
+
+    :param ems_data:
+        EMS decision data.
+    :type ems_data: dict
+
+    :param drive_battery_model:
+        Drive battery current model.
+    :type drive_battery_model: DriveBatteryModel
 
     :param times:
         Time vector [s].
@@ -1021,18 +1025,6 @@ def predict_motors_electric_power_split(
     :param motive_powers:
         Motive power [kW].
     :type motive_powers: numpy.array
-
-    :param motors_maximums_powers:
-        Maximum powers of electric motors [kW].
-    :type motors_maximums_powers: numpy.array
-
-    :param gear_box_speeds_in:
-        Gear box speed [RPM].
-    :type gear_box_speeds_in: numpy.array
-
-    :param idle_engine_speed:
-        Engine speed idle median and std [RPM].
-    :type idle_engine_speed: (float, float)
 
     :param accelerations:
         Acceleration [m/s2].
@@ -1055,40 +1047,33 @@ def predict_motors_electric_power_split(
     :type is_cycle_hot: bool
 
     :return:
-        Hybrid mode, catalyst warm-up phase, engine speeds, and motors electric
-        power split.
-    :rtype: tuple
+        Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
+    :rtype: numpy.array
     """
-    r = start_stop_hybrid.ems_model(
-        times, motive_powers, motors_maximums_powers, gear_box_speeds_in,
-        idle_engine_speed
-    )
+    r = ems_data
 
     ele, par, ser = r['electric'], r['parallel'], r['serial']
     current_bat = {
-        i: d['current_bat'].ravel() for i, d in enumerate((ele, par, ser, ele))
+        i: v['current_bat'].ravel() for i, v in enumerate((ele, par, ser, ele))
     }
     starter_bat = {
-        i: d['current_start'].ravel() for i, d in enumerate((par, ser, ser), 1)
+        i: v['current_start'].ravel() for i, v in enumerate((par, ser, ser), 1)
     }
     starter_bat[0] = np.where(
-        r['hybrid_mode'].T[0] == 1, par['current_stop'].T, ser['current_stop'].T
+        r['hybrid_modes'].T[0] == 1, *(v['current_stop'].T for v in (par, ser))
     ).ravel()
 
-    hybrid_mode = r['electric']['power_ice'].ravel() > dfl.EPS
-    hybrid_mode &= motive_powers > 0.01  # No be off.
     # noinspection PyUnresolvedReferences
-    hybrid_mode = hybrid_mode.astype(int)
-    battery = start_stop_hybrid.ems_model.battery_model
-    battery.reset()
-    soc, t0 = battery.init_soc, start_stop_activation_time
+    hybrid_modes = r['force_on_engine'].astype(int)
+    drive_battery_model.reset()
+    soc, t0 = drive_battery_model.init_soc, start_stop_activation_time
     it = enumerate(zip(
-        times, motive_powers, accelerations, hybrid_mode, r['k_reference'],
-        r['hybrid_mode']
+        times, motive_powers, accelerations, hybrid_modes, r['k_reference'],
+        r['hybrid_modes']
     ))
-    catalyst_warm_up, is_warm = np.zeros_like(times, bool), is_cycle_hot
+    is_warm = is_cycle_hot
     for i, (t, motive_power, acc, mode, k_ref, mode_ref) in it:
-        pre_mode = hybrid_mode.take(i - 1, mode='clip')
+        pre_mode = hybrid_modes.take(i - 1, mode='clip')
         j = int(bool(pre_mode))
         if not mode and (t < t0 or k_ref[j] > start_stop_hybrid(soc)):
             mode = mode_ref[j]
@@ -1097,38 +1082,143 @@ def predict_motors_electric_power_split(
             if mode:
                 t0 = t + min_time_engine_on_after_start
                 if not is_warm:
-                    if not hybrid_mode[i]:
+                    if not hybrid_modes[i]:
                         mode = 3
                     j = np.searchsorted(times, t + catalyst_warm_up_duration)
                     j += 1
-                    catalyst_warm_up[i:j] = True
-                    hybrid_mode[i:j][hybrid_mode[i:j] == 0] = 3
-                    is_warm = True
+                    hybrid_modes[i:j][hybrid_modes[i:j] == 0], is_warm = 3, True
             starter_current = starter_bat[mode][i]
-        soc = battery(
+        soc = drive_battery_model(
             starter_current + current_bat[mode][i], t, motive_power, acc,
             bool(mode)
         )
-        hybrid_mode[i] = mode
-
-    it = ele, par, ser
-    es = np.choose(hybrid_mode, [d['speed_ice'].ravel() for d in it + (ser,)])
-    ps = [d['battery_power_split'](d['power_bat'].ravel(), es) for d in it]
-    motors = tuple(np.choose(hybrid_mode, ps + [ps[0]]))
-    return (hybrid_mode, catalyst_warm_up, es) + motors
+        hybrid_modes[i] = mode
+    return np.maximum(hybrid_modes, 2)
 
 
 @sh.add_function(dsp, outputs=['on_engine'])
-def identify_on_engine(hybrid_mode):
+def identify_on_engine(hybrid_modes):
     """
     Identifies if the engine is on [-].
 
-    :param hybrid_mode:
+    :param hybrid_modes:
         Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
-    :type hybrid_mode: numpy.array
+    :type hybrid_modes: numpy.array
 
     :return:
         If the engine is on [-].
     :rtype: numpy.array
     """
-    return hybrid_mode.astype(bool)
+    return hybrid_modes.astype(bool)
+
+
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['catalyst_warm_up'])
+def predict_catalyst_warm_up(
+        times, on_engine, catalyst_warm_up_duration, is_cycle_hot=False):
+    """
+    Predict catalyst warm up phase.
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :param catalyst_warm_up_duration:
+        Catalyst warm up duration [s].
+    :type catalyst_warm_up_duration: float
+
+    :param is_cycle_hot:
+        Is an hot cycle?
+    :type is_cycle_hot: bool, optional
+
+    :return:
+        Catalyst warm up phase.
+    :rtype: numpy.array
+    """
+    if not is_cycle_hot and on_engine.any():
+        t1 = times[on_engine][0] + catalyst_warm_up_duration
+        return on_engine & (times <= t1)
+    return np.zeros_like(times, bool)
+
+
+@sh.add_function(dsp, outputs=['catalyst_warm_up'])
+def predict_catalyst_warm_up_v1(times, is_cycle_hot):
+    """
+    Predict catalyst warm up phase.
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param is_cycle_hot:
+        Is an hot cycle?
+    :type is_cycle_hot: bool, optional
+
+    :return:
+        Catalyst warm up phase.
+    :rtype: numpy.array
+    """
+    if is_cycle_hot:
+        return np.zeros_like(times, bool)
+    return sh.NONE
+
+
+@sh.add_function(dsp, outputs=['engine_speeds_out_hot'])
+def predict_engine_speeds_out_hot(ems_data, hybrid_modes):
+    """
+    Predicts the engine speed at hot condition [RPM].
+
+    :param ems_data:
+        EMS decision data.
+    :type ems_data: dict
+
+    :param hybrid_modes:
+        Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
+    :type hybrid_modes: numpy.array
+
+    :return:
+        Engine speed at hot condition [RPM].
+    :rtype: numpy.array
+    """
+    it = ems_data['electric'], ems_data['parallel'], ems_data['serial']
+    return np.choose(hybrid_modes, [d['speed_ice'].ravel() for d in it])
+
+
+@sh.add_function(dsp, outputs=[
+    'motor_p4_electric_powers', 'motor_p3_electric_powers',
+    'motor_p2_electric_powers', 'motor_p1_electric_powers',
+    'motor_p0_electric_powers'
+])
+def predict_motors_electric_powers(
+        ems_data, catalyst_warm_up, hybrid_modes, engine_speeds_out_hot):
+    """
+    Predicts motors electric power split [kW].
+
+    :param ems_data:
+        EMS decision data.
+    :type ems_data: dict
+
+    :param catalyst_warm_up:
+        Catalyst warm up phase.
+    :type catalyst_warm_up: numpy.array
+
+    :param hybrid_modes:
+        Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
+    :type hybrid_modes: numpy.array
+
+    :param engine_speeds_out_hot:
+        Engine speed at hot condition [RPM].
+    :type engine_speeds_out_hot: numpy.array
+
+    :return:
+        Motors electric powers [kW].
+    :rtype: tuple[numpy.array]
+    """
+    mode = np.where(catalyst_warm_up & (hybrid_modes == 2), 0, hybrid_modes)
+    return np.choose(mode, [
+        d['battery_power_split'](d['power_bat'].ravel(), engine_speeds_out_hot)
+        for d in (ems_data[k] for k in ('electric', 'parallel', 'serial'))
+    ])

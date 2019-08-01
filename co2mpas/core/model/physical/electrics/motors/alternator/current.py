@@ -121,7 +121,7 @@ def calibrate_alternator_current_model(
     Calibrates an alternator current model that predicts alternator current [A].
 
     :param alternator_currents:
-        Alternator current vector [A].
+        Alternator currents [A].
     :type alternator_currents: numpy.array
 
     :param on_engine:
@@ -162,3 +162,50 @@ def calibrate_alternator_current_model(
         service_battery_charging_statuses, motive_powers, accelerations,
         init_time=service_battery_initialization_time
     )
+
+
+@sh.add_function(dsp, outputs=['alternator_currents'])
+def predict_alternator_currents(
+        alternator_current_model, times, service_battery_state_of_charges,
+        service_battery_charging_statuses, motive_powers, accelerations,
+        service_battery_initialization_time):
+    """
+    Predict alternator currents [A].
+
+    :param alternator_current_model:
+        Alternator current model.
+    :type alternator_current_model: callable
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param service_battery_state_of_charges:
+        State of charge of the service battery [%].
+    :type service_battery_state_of_charges: numpy.array
+
+    :param service_battery_charging_statuses:
+        Service battery charging statuses (0: Discharge, 1: Charging, 2: BERS,
+        3: Initialization) [-].
+    :type service_battery_charging_statuses: numpy.array
+
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
+
+    :param accelerations:
+        Acceleration vector [m/s2].
+    :type accelerations: numpy.array
+
+    :param service_battery_initialization_time:
+        Service battery initialization time delta [s].
+    :type service_battery_initialization_time: float
+
+    :return:
+        DC/DC converter current model.
+    :rtype: callable
+    """
+    return alternator_current_model.predict(np.column_stack((
+        times, service_battery_state_of_charges,
+        service_battery_charging_statuses, motive_powers, accelerations
+    )), init_time=service_battery_initialization_time)

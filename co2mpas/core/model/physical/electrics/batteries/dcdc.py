@@ -84,7 +84,7 @@ def calibrate_dcdc_current_model(
         dcdc_converter_currents, times, service_battery_state_of_charges,
         service_battery_charging_statuses, service_battery_initialization_time):
     """
-    Calibrates an alternator current model that predicts alternator current [A].
+    Calibrates an DC/DC current model that predicts DC/DC current [A].
 
     :param dcdc_converter_currents:
         DC/DC converter currents [A].
@@ -118,3 +118,41 @@ def calibrate_dcdc_current_model(
         service_battery_state_of_charges, statuses,
         init_time=service_battery_initialization_time
     )
+
+
+@sh.add_function(dsp, outputs=['dcdc_converter_currents'])
+def predict_dcdc_converter_currents(
+        dcdc_current_model, times, service_battery_state_of_charges,
+        service_battery_charging_statuses, service_battery_initialization_time):
+    """
+    Predict DC/DC converter current [A].
+
+    :param dcdc_current_model:
+        DC/DC converter current model.
+    :type dcdc_current_model: callable
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param service_battery_state_of_charges:
+        State of charge of the service battery [%].
+    :type service_battery_state_of_charges: numpy.array
+
+    :param service_battery_charging_statuses:
+        Service battery charging statuses (0: Discharge, 1: Charging, 2: BERS,
+        3: Initialization) [-].
+    :type service_battery_charging_statuses: numpy.array
+
+    :param service_battery_initialization_time:
+        Service battery initialization time delta [s].
+    :type service_battery_initialization_time: float
+
+    :return:
+        DC/DC converter currents [A].
+    :rtype: numpy.array
+    """
+    return dcdc_current_model.predict(np.column_stack((
+        times, service_battery_state_of_charges,
+        service_battery_charging_statuses
+    )), init_time=service_battery_initialization_time)

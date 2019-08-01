@@ -97,7 +97,7 @@ dsp.add_dispatcher(
     ),
     outputs=(
         'dcdc_converter_electric_powers_demand', 'dcdc_current_model',
-        'dcdc_converter_electric_powers'
+        'dcdc_converter_electric_powers', 'dcdc_converter_currents'
     ),
     include_defaults=True
 )

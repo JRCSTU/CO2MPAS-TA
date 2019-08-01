@@ -26,7 +26,7 @@ def check_sign_currents(battery_currents, alternator_currents):
     :type battery_currents: numpy.array
 
     :param alternator_currents:
-        Alternator current vector [A].
+        Alternator currents [A].
     :type alternator_currents: numpy.array
 
     :return:

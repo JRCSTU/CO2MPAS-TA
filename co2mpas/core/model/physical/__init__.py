@@ -438,19 +438,23 @@ dsp.add_dispatcher(
         'start_stop_hybrid_params', 'motor_p2_maximum_powers', 'has_start_stop',
         'motor_p4_maximum_power', 'motor_p0_maximum_power_function', 'fuel_map',
         'drive_battery_state_of_charges', 'is_hybrid', 'motor_p2_maximum_power',
-        'correct_start_stop_with_gears', 'on_engine', 'auxiliaries_power_loss',
-        'clutch_tc_mean_efficiency', 'engine_thermostat_temperature', 'times',
-        'motor_p0_speed_ratio', 'motor_p2_efficiency', 'motor_p3_efficiency',
-        'delta_time_engine_starter', 'motor_p1_speed_ratio', 'motive_powers',
-        'min_time_engine_on_after_start', 'motor_p1_maximum_power_function',
-        'motor_p1_efficiency', 'motor_p4_efficiency',
+        'motor_p0_speed_ratio', 'motor_p2_efficiency', 'auxiliaries_power_loss',
+        'motor_p2_electric_powers', 'motor_p3_electric_powers', 'motive_powers',
+        'delta_time_engine_starter', 'motor_p1_electric_powers', 'hybrid_modes',
+        'motor_p1_efficiency', 'motor_p1_speed_ratio', 'engine_speeds_out_hot',
+        'motor_p1_maximum_power_function', 'motor_p4_electric_powers', 'times',
+        'clutch_tc_mean_efficiency', 'motor_p0_electric_powers', 'on_engine',
+        'min_time_engine_on_after_start', 'correct_start_stop_with_gears',
+        'motor_p3_efficiency', 'catalyst_warm_up', 'motor_p4_efficiency',
+        'engine_thermostat_temperature',
     ),
     outputs=(
         'correct_start_stop_with_gears', 'start_stop_activation_time', 'ecms_s',
         'motor_p0_electric_powers', 'motor_p1_electric_powers', 'engine_starts',
         'engine_speeds_out_hot', 'start_stop_hybrid_params', 'start_stop_model',
+        'motor_p3_electric_powers', 'motor_p4_electric_powers', 'hybrid_modes',
         'catalyst_warm_up_duration', 'motor_p2_electric_powers', 'on_engine',
-        'motor_p3_electric_powers', 'motor_p4_electric_powers',
+        'catalyst_warm_up'
     )
 )
 
