@@ -527,9 +527,7 @@ def define_service_battery_status_model(
     m = service_battery_state_of_charge_balance
     w = service_battery_state_of_charge_balance_window / 2
     return BatteryStatusModel(
-        bers_pred=lambda x: [x[0][0] < 0],
-        min_soc=m - w,
-        max_soc=m + w
+        bers_pred=lambda x: [x[0][0] < 0], min_soc=m - w, max_soc=m + w
     )
 
 

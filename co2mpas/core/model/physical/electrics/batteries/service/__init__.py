@@ -407,7 +407,7 @@ class ServiceBatteryModel:
         status_ = self.status(time, prev_status, prev_soc, motive_power)
         if status_:
             if status_ == 1:
-                dcdc_c = self.dcdc(time, 0, status_)
+                dcdc_c = self.dcdc(time, prev_soc, status_)
             if on_engine:
                 alt_c = self.alternator(
                     time, prev_soc, status_, motive_power, acceleration
