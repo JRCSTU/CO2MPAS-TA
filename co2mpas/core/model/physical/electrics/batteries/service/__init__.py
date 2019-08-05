@@ -121,7 +121,8 @@ def calculate_service_battery_electric_powers(
 
 @sh.add_function(dsp, outputs=['service_battery_electric_powers_supply'])
 def calculate_service_battery_electric_powers_supply(
-        alternator_electric_powers, dcdc_converter_electric_powers):
+        alternator_electric_powers, dcdc_converter_electric_powers,
+        starter_electric_powers):
     """
     Calculate the service battery electric power supply [kW].
 
@@ -133,17 +134,22 @@ def calculate_service_battery_electric_powers_supply(
         DC/DC converter electric power [kW].
     :type dcdc_converter_electric_powers: numpy.array
 
+    :param starter_electric_powers:
+        Starter electric power [kW].
+    :type starter_electric_powers: numpy.array
+
     :return:
         Service battery electric power supply [kW].
     :rtype: numpy.array
     """
-    return alternator_electric_powers + dcdc_converter_electric_powers
+    p = alternator_electric_powers + dcdc_converter_electric_powers
+    p += starter_electric_powers
+    return p
 
 
 @sh.add_function(dsp, outputs=['service_battery_electric_powers'], weight=1)
 def calculate_service_battery_electric_powers_v1(
-        service_battery_loads, service_battery_electric_powers_supply,
-        starter_electric_powers):
+        service_battery_loads, service_battery_electric_powers_supply):
     """
     Calculate the service battery electric power [kW].
 
@@ -155,17 +161,11 @@ def calculate_service_battery_electric_powers_v1(
         Service battery electric power supply [kW].
     :type service_battery_electric_powers_supply: numpy.array
 
-    :param starter_electric_powers:
-        Starter electric power [kW].
-    :type starter_electric_powers: numpy.array
-
     :return:
         Service battery electric power [kW].
     :rtype: numpy.array
     """
-    p = service_battery_loads - service_battery_electric_powers_supply
-    p -= starter_electric_powers
-    return p
+    return service_battery_loads - service_battery_electric_powers_supply
 
 
 @sh.add_function(dsp, outputs=['initial_service_battery_state_of_charge'])
@@ -246,8 +246,7 @@ def calculate_service_battery_state_of_charges(
 
 @sh.add_function(dsp, outputs=['service_battery_loads'])
 def calculate_service_battery_loads(
-        service_battery_electric_powers, service_battery_electric_powers_supply,
-        starter_electric_powers):
+        service_battery_electric_powers, service_battery_electric_powers_supply):
     """
     Calculates service battery load vector [kW].
 
@@ -259,16 +258,11 @@ def calculate_service_battery_loads(
         Service battery electric power supply [kW].
     :type service_battery_electric_powers_supply: numpy.array
 
-    :param starter_electric_powers:
-        Starter electric power [kW].
-    :type starter_electric_powers: numpy.array
-
     :return:
         Service battery load vector [kW].
     :rtype: numpy.array
     """
     p = service_battery_electric_powers - service_battery_electric_powers_supply
-    p -= starter_electric_powers
     return p
 
 
@@ -398,7 +392,8 @@ class ServiceBatteryModel:
         self._prev_soc = self.init_soc
 
     def __call__(self, time, motive_power, acceleration, on_engine,
-                 prev_soc=None, prev_status=None, update=True):
+                 starter_current=0, prev_soc=None, prev_status=None,
+                 update=True):
         if prev_status is None:
             prev_status = self._prev_status
         if prev_soc is None:
@@ -412,8 +407,7 @@ class ServiceBatteryModel:
                 alt_c = self.alternator(
                     time, prev_soc, status_, motive_power, acceleration
                 )
-        c = self.current_load[int(on_engine)] - alt_c - dcdc_c
-
+        c = self.current_load[int(on_engine)] - alt_c - dcdc_c - starter_current
         dsoc = (c + self._prev_current) * (time - self._prev_time) / self._d_soc
         soc = max(0.0, min(prev_soc + dsoc, 100.0))
 

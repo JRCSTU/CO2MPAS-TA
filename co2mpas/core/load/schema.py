@@ -666,7 +666,7 @@ def define_data_schema(read=True):
         'clutch_tc_prediction_model': _clutch_tc_prediction_model(read=read),
         'wheels_prediction_model': _wheels_prediction_model(read=read),
         'engine_type': string,
-        'start_demand_function': function,
+        'starter_model': function,
         'drive_battery_model': function,
         'motor_p0_maximum_power_function': function,
         'motor_p1_maximum_power_function': function,

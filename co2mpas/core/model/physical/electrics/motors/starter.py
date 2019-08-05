@@ -43,7 +43,7 @@ def define_engine_start_demand_function(engine_moment_inertia):
 
 @sh.add_function(dsp, outputs=['starter_powers'])
 def calculate_starter_powers(
-        start_demand_function, times, engine_starts, delta_time_engine_starter,
+        start_demand_function, times, on_engine, delta_time_engine_starter,
         engine_speeds_out):
     """
     Calculates starter power [kW].
@@ -56,9 +56,9 @@ def calculate_starter_powers(
         Time vector.
     :type times: numpy.array
 
-    :param engine_starts:
-        When the engine starts [-].
-    :type engine_starts: numpy.array
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
 
     :param delta_time_engine_starter:
         Time elapsed to turn on the engine with electric starter [s].
@@ -72,13 +72,15 @@ def calculate_starter_powers(
         Starter power [kW].
     :rtype: numpy.array
     """
-    ts, dt = times[engine_starts], delta_time_engine_starter + dfl.EPS
-    k = np.searchsorted(times, np.column_stack((ts, ts + dt)))
-    e = start_demand_function(engine_speeds_out[k[:, 1]])
-    e /= np.diff(times[k]).ravel()
+    i = np.where(np.bitwise_xor(on_engine[:-1], on_engine[1:]))[0]
+    start = on_engine[i + 1]
+    j = np.searchsorted(times, times[i] + delta_time_engine_starter + dfl.EPS)
+    e = start_demand_function(engine_speeds_out[i + start.astype(int)])
+    e /= (times[j] - times[i])
+    e[~start] *= -1
     p = np.zeros_like(times, float)
-    for (i, j), v in zip(k, e):
-        p[i:j] += v
+    for i, j, e in zip(i, j, e):
+        p[i:j] += e
     return p
 
 
@@ -99,4 +101,67 @@ def calculate_starter_electric_powers(starter_powers, starter_efficiency):
         Starter electric power [kW].
     :rtype: numpy.array | float
     """
-    return starter_powers / starter_efficiency
+    eff = starter_efficiency
+    return starter_powers * np.where(starter_powers <= 0, eff, 1 / eff)
+
+
+@sh.add_function(dsp, outputs=['starter_currents'])
+def calculate_starter_currents(
+        starter_electric_powers, starter_nominal_voltage):
+    """
+    Calculates starter currents [A].
+
+    :param starter_electric_powers:
+        Starter electric power [kW].
+    :type starter_electric_powers: numpy.array | float
+
+    :param starter_nominal_voltage:
+        Starter nominal voltage [V].
+    :type starter_nominal_voltage: float
+
+    :return:
+        Starter currents [A].
+    :rtype: numpy.array | float
+    """
+    from .alternator import calculate_alternator_currents as func
+    return func(starter_electric_powers, starter_nominal_voltage)
+
+
+class StarterModel:
+    def __init__(self, start_demand_function, starter_nominal_voltage,
+                 starter_efficiency):
+        self.power_demand = start_demand_function
+        self.nominal_voltage = starter_nominal_voltage
+        self.efficiency = starter_efficiency
+
+    def __call__(self, start_engine_speed):
+        return calculate_starter_electric_powers(
+            self.power_demand(start_engine_speed), self.efficiency
+        )
+
+
+@sh.add_function(dsp, outputs=['starter_model'])
+def define_starter_model(
+        start_demand_function, starter_nominal_voltage, starter_efficiency):
+    """
+    Defines the starter model.
+
+    :param start_demand_function:
+        Energy required to start the engine function.
+    :type start_demand_function: function
+
+    :param starter_nominal_voltage:
+        Starter nominal voltage [V].
+    :type starter_nominal_voltage: float
+
+    :param starter_efficiency:
+        Starter efficiency [-].
+    :type starter_efficiency: float
+
+    :return:
+        Starter model.
+    :rtype: StarterModel
+    """
+    return StarterModel(
+        start_demand_function, starter_nominal_voltage, starter_efficiency
+    )

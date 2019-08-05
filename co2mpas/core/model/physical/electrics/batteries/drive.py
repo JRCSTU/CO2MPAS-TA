@@ -368,11 +368,12 @@ class DriveBatteryModel:
         return (self._ocv / 1e3 + currents * self._r0 / 1e3) * currents
 
     def __call__(self, current, time, motive_power, acceleration, on_engine,
-                 prev_soc=None, update=True, service_kw=None):
+                 starter_current=0, prev_soc=None, update=True,
+                 service_kw=None):
         dt = time - self.service._prev_time
         dcdc_p = self.service(
-            time, motive_power, acceleration, on_engine, update=update,
-            **(service_kw or {})
+            time, motive_power, acceleration, on_engine, starter_current,
+            update=update, **(service_kw or {})
         )[2] * self._dcdc_p
 
         if prev_soc is None:

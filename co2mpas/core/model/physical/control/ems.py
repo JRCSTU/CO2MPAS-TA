@@ -431,20 +431,19 @@ def define_engine_power_losses_function(
 # noinspection PyMissingOrEmptyDocstring
 class EMS:
     def __init__(self, battery_model, hev_power_model, fuel_map_model,
-                 serial_motor_maximum_power_function, start_demand_function,
-                 delta_time_engine_starter, starter_efficiency,
-                 engine_power_losses_function, s_ch=None, s_ds=None):
+                 serial_motor_maximum_power_function, starter_model,
+                 dcdc_converter_efficiency, engine_power_losses_function,
+                 s_ch=None, s_ds=None):
         self.battery_model = battery_model
         self.hev_power_model = hev_power_model
         self.fuel_map_model = fuel_map_model
         self.s_ch, self.s_ds = s_ch, s_ds
         self.battery_fuel_mode = 'current'
         self._battery_power = None
-        self.starter_efficiency = starter_efficiency
-        self.start_demand_function = start_demand_function
-        self.delta_time_engine_starter = delta_time_engine_starter
+        self.starter_model = starter_model
         self.serial_motor_maximum_power = serial_motor_maximum_power_function
         self.engine_power_losses = engine_power_losses_function
+        self.dcdc_converter_efficiency = dcdc_converter_efficiency
 
     def set_virtual(self, motors_maximum_powers):
         from scipy.interpolate import UnivariateSpline as Spline
@@ -577,9 +576,9 @@ class EMS:
         return self.starter_penalties(res)
 
     def starter_penalties(self, res):
-        cf, dt = self.battery_model.currents, 4
-        eff = np.array([self.starter_efficiency, -1 / self.starter_efficiency])
-        pb = (self.start_demand_function(res['speed_ice']) / dt)[None, :]
+        cf, eff = self.battery_model.currents, self.dcdc_converter_efficiency
+        eff, dt = np.array([eff, -1 / eff]), 4
+        pb = (self.starter_model(res['speed_ice']) / dt)[None, :]
         res['power_stop'], res['power_start'] = pb = pb * eff[:, None, None]
         res['current_stop'], res['current_start'] = bc = cf(pb)
         res['fc_stop'], res['fc_start'] = self.battery_fuel(bc)
@@ -626,10 +625,9 @@ class EMS:
 @sh.add_function(dsp, outputs=['ecms_s'])
 def calibrate_ems_model(
         drive_battery_model, hev_power_model, fuel_map_model, hybrid_modes,
-        serial_motor_maximum_power_function, motive_powers, starter_efficiency,
+        serial_motor_maximum_power_function, motive_powers, starter_model,
         motors_maximums_powers, engine_powers_out, engine_speeds_out, times,
-        engine_power_losses_function, start_demand_function,
-        delta_time_engine_starter):
+        engine_power_losses_function, dcdc_converter_efficiency):
     """
     Calibrate Energy Management Strategy model.
 
@@ -657,10 +655,6 @@ def calibrate_ems_model(
         Motive power [kW].
     :type motive_powers: numpy.array
 
-    :param starter_efficiency:
-        Starter efficiency [-].
-    :type starter_efficiency: float
-
     :param motors_maximums_powers:
         Maximum powers of electric motors [kW].
     :type motors_maximums_powers: numpy.array
@@ -681,23 +675,14 @@ def calibrate_ems_model(
         Engine power losses function.
     :type engine_power_losses_function: function
 
-    :param start_demand_function:
-        Energy required to start the engine function.
-    :type start_demand_function: function
-
-    :param delta_time_engine_starter:
-        Time elapsed to turn on the engine with electric starter [s].
-    :type delta_time_engine_starter: float
-
     :return:
         Equivalent Consumption Minimization Strategy params.
     :rtype: tuple[float]
     """
     model = EMS(
         drive_battery_model, hev_power_model, fuel_map_model,
-        serial_motor_maximum_power_function, start_demand_function,
-        delta_time_engine_starter, starter_efficiency,
-        engine_power_losses_function).fit(
+        serial_motor_maximum_power_function, starter_model,
+        dcdc_converter_efficiency, engine_power_losses_function).fit(
         hybrid_modes, times, motive_powers, motors_maximums_powers,
         engine_powers_out, engine_speeds_out
     )
@@ -707,9 +692,8 @@ def calibrate_ems_model(
 @sh.add_function(dsp, outputs=['ems_model'])
 def define_ems_model(
         drive_battery_model, hev_power_model, fuel_map_model,
-        serial_motor_maximum_power_function, start_demand_function,
-        delta_time_engine_starter, starter_efficiency,
-        engine_power_losses_function, ecms_s):
+        serial_motor_maximum_power_function, starter_model,
+        dcdc_converter_efficiency, engine_power_losses_function, ecms_s):
     """
     Define Energy Management Strategy model.
 
@@ -729,21 +713,9 @@ def define_ems_model(
         Serial motor maximum power function.
     :type serial_motor_maximum_power_function: function
 
-    :param starter_efficiency:
-        Starter efficiency [-].
-    :type starter_efficiency: float
-
     :param engine_power_losses_function:
         Engine power losses function.
     :type engine_power_losses_function: function
-
-    :param start_demand_function:
-        Energy required to start the engine function.
-    :type start_demand_function: function
-
-    :param delta_time_engine_starter:
-        Time elapsed to turn on the engine with electric starter [s].
-    :type delta_time_engine_starter: float
 
     :param ecms_s:
         Equivalent Consumption Minimization Strategy params.
@@ -755,9 +727,9 @@ def define_ems_model(
     """
     return EMS(
         drive_battery_model, hev_power_model, fuel_map_model,
-        serial_motor_maximum_power_function, start_demand_function,
-        delta_time_engine_starter, starter_efficiency,
-        engine_power_losses_function, s_ch=ecms_s[0], s_ds=ecms_s[1]
+        serial_motor_maximum_power_function, starter_model,
+        dcdc_converter_efficiency, engine_power_losses_function, s_ch=ecms_s[0],
+        s_ds=ecms_s[1]
     )
 
 
@@ -1057,11 +1029,14 @@ def predict_hybrid_modes(
         i: v['current_bat'].ravel() for i, v in enumerate((ele, par, ser, ele))
     }
     starter_bat = {
-        i: v['current_start'].ravel() for i, v in enumerate((par, ser, ser), 1)
+        i: v['power_start'].ravel() for i, v in enumerate((par, ser, ser), 1)
     }
     starter_bat[0] = np.where(
-        r['hybrid_modes'].T[0] == 1, *(v['current_stop'].T for v in (par, ser))
+        r['hybrid_modes'].T[0] == 1, *(v['power_stop'].T for v in (par, ser))
     ).ravel()
+    from ..electrics.motors.starter import calculate_starter_currents as func
+    nom_volt = drive_battery_model.service.nominal_voltage
+    starter_bat = {k: func(v, nom_volt) for k, v in starter_bat.items()}
 
     # noinspection PyUnresolvedReferences
     hybrid_modes = r['force_on_engine'].astype(int)
@@ -1077,7 +1052,7 @@ def predict_hybrid_modes(
         j = int(bool(pre_mode))
         if not mode and (t < t0 or k_ref[j] > start_stop_hybrid(soc)):
             mode = mode_ref[j]
-        starter_current = 0
+        starter_curr = 0
         if bool(pre_mode) ^ bool(mode) and i:
             if mode:
                 t0 = t + min_time_engine_on_after_start
@@ -1087,10 +1062,9 @@ def predict_hybrid_modes(
                     j = np.searchsorted(times, t + catalyst_warm_up_duration)
                     j += 1
                     hybrid_modes[i:j][hybrid_modes[i:j] == 0], is_warm = 3, True
-            starter_current = starter_bat[mode][i]
+            starter_curr = starter_bat[mode][i]
         soc = drive_battery_model(
-            starter_current + current_bat[mode][i], t, motive_power, acc,
-            bool(mode)
+            current_bat[mode][i], t, motive_power, acc, bool(mode), starter_curr
         )
         hybrid_modes[i] = mode
     return np.minimum(hybrid_modes, 2)
