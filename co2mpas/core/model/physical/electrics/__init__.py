@@ -31,62 +31,52 @@ dsp.add_dispatcher(
     dsp_id='motors',
     dsp=_motors,
     inputs=(
-        'motor_p0_electric_powers', 'motor_p0_loss_param_a', 'motor_p0_torques',
         'motor_p0_efficiency', 'motor_p0_maximum_power', 'motor_p0_speed_ratio',
-        'motor_p0_loss_param_b', 'motor_p0_rated_speed', 'motor_p0_powers',
-        'motor_p0_electric_power_loss_function', 'motor_p0_maximum_torque',
+        'motor_p0_electric_powers', 'motor_p0_torques', 'motor_p0_rated_speed',
+        'motor_p0_powers', 'motor_p0_maximum_torque', 'motor_p0_speeds',
         'motor_p1_efficiency', 'motor_p1_maximum_power', 'motor_p1_speed_ratio',
-        'motor_p1_electric_powers', 'motor_p1_loss_param_a', 'motor_p1_torques',
-        'motor_p1_loss_param_b', 'motor_p1_rated_speed', 'motor_p1_powers',
-        'motor_p1_electric_power_loss_function', 'motor_p1_maximum_torque',
+        'motor_p1_electric_powers', 'motor_p1_torques', 'motor_p1_rated_speed',
+        'motor_p1_powers', 'motor_p1_maximum_torque', 'motor_p1_speeds',
         'motor_p2_efficiency', 'motor_p2_maximum_power', 'motor_p2_speed_ratio',
-        'motor_p2_electric_powers', 'motor_p2_loss_param_a', 'motor_p2_torques',
-        'motor_p2_loss_param_b', 'motor_p2_rated_speed', 'motor_p2_powers',
-        'motor_p2_electric_power_loss_function', 'motor_p2_maximum_torque',
+        'motor_p2_electric_powers', 'motor_p2_torques', 'motor_p2_rated_speed',
+        'motor_p2_powers', 'motor_p2_maximum_torque', 'motor_p2_speeds',
         'motor_p3_efficiency', 'motor_p3_maximum_power', 'motor_p3_speed_ratio',
-        'motor_p3_electric_powers', 'motor_p3_loss_param_a', 'motor_p3_torques',
-        'motor_p3_loss_param_b', 'motor_p3_rated_speed', 'motor_p3_powers',
-        'motor_p3_electric_power_loss_function', 'motor_p3_maximum_torque',
+        'motor_p3_electric_powers', 'motor_p3_torques', 'motor_p3_rated_speed',
+        'motor_p3_powers', 'motor_p3_maximum_torque', 'motor_p3_speeds',
         'motor_p4_efficiency', 'motor_p4_maximum_power', 'motor_p4_speed_ratio',
-        'motor_p4_electric_powers', 'motor_p4_loss_param_a', 'motor_p4_torques',
-        'motor_p4_loss_param_b', 'motor_p4_rated_speed', 'motor_p4_powers',
-        'motor_p4_electric_power_loss_function', 'motor_p4_maximum_torque',
-        'motor_p0_speeds', 'motor_p1_speeds', 'alternator_charging_currents',
-        'motor_p2_speeds', 'alternator_current_model', 'engine_moment_inertia',
-        'motor_p3_speeds', 'motor_p4_speeds', 'alternator_electric_powers',
-        'service_battery_state_of_charges', 'alternator_currents', 'on_engine',
-        'final_drive_speeds_in', 'engine_speeds_out', 'alternator_efficiency',
-        'service_battery_charging_statuses', 'motive_powers', 'wheel_speeds',
-        'engine_starts', 'accelerations', 'alternator_nominal_voltage', 'times',
+        'motor_p4_electric_powers', 'motor_p4_torques', 'motor_p4_rated_speed',
+        'motor_p4_powers', 'motor_p4_maximum_torque', 'motor_p4_speeds',
+        'service_battery_initialization_time', 'engine_starts', 'accelerations',
         'starter_efficiency', 'delta_time_engine_starter', 'gear_box_speeds_in',
-        'service_battery_initialization_time'
+        'service_battery_charging_statuses', 'alternator_currents', 'on_engine',
+        'starter_nominal_voltage', 'engine_speeds_out', 'alternator_efficiency',
+        'service_battery_state_of_charges', 'alternator_current_model', 'times',
+        'alternator_charging_currents', 'engine_moment_inertia', 'wheel_speeds',
+        'alternator_electric_powers', 'final_drive_speeds_in', 'motive_powers',
+        'alternator_nominal_voltage',
     ),
     outputs=(
-        'motor_p0_speeds', 'motor_p0_speed_ratio', 'motor_p0_efficiency_ratios',
-        'motor_p0_maximum_torque', 'motor_p0_maximum_powers', 'motor_p0_powers',
-        'motor_p0_maximum_power', 'motor_p0_rated_speed', 'motor_p0_torques',
-        'motor_p0_electric_power_loss_function', 'motor_p0_electric_powers',
-        'motor_p0_maximum_power_function', 'wheel_speeds', 'gear_box_speeds_in',
-        'motor_p1_speeds', 'motor_p1_speed_ratio', 'motor_p1_efficiency_ratios',
-        'motor_p1_maximum_torque', 'motor_p1_maximum_powers', 'motor_p1_powers',
-        'motor_p1_maximum_power', 'motor_p1_rated_speed', 'motor_p1_torques',
-        'motor_p1_electric_power_loss_function', 'motor_p1_electric_powers',
-        'motor_p1_maximum_power_function', 'alternator_electric_powers',
-        'motor_p2_speeds', 'motor_p2_speed_ratio', 'motor_p2_efficiency_ratios',
-        'motor_p2_maximum_torque', 'motor_p2_maximum_powers', 'motor_p2_powers',
-        'motor_p2_maximum_power', 'motor_p2_rated_speed', 'motor_p2_torques',
-        'motor_p2_electric_power_loss_function', 'motor_p2_electric_powers',
-        'motor_p3_speeds', 'motor_p3_speed_ratio', 'motor_p3_efficiency_ratios',
-        'motor_p3_maximum_torque', 'motor_p3_maximum_powers', 'motor_p3_powers',
-        'motor_p3_maximum_power', 'motor_p3_rated_speed', 'motor_p3_torques',
-        'motor_p3_electric_power_loss_function', 'motor_p3_electric_powers',
-        'motor_p4_speeds', 'motor_p4_speed_ratio', 'motor_p4_efficiency_ratios',
-        'motor_p4_maximum_torque', 'motor_p4_maximum_powers', 'motor_p4_powers',
-        'motor_p4_maximum_power', 'motor_p4_rated_speed', 'motor_p4_torques',
-        'motor_p4_electric_power_loss_function', 'motor_p4_electric_powers',
-        'alternator_current_model', 'starter_powers', 'starter_electric_powers',
-        'delta_time_engine_starter', 'alternator_currents', 'engine_speeds_out',
-        'alternator_powers', 'final_drive_speeds_in', 'start_demand_function',
+        'motor_p0_electric_powers', 'motor_p0_maximum_power', 'motor_p0_powers',
+        'motor_p0_maximum_torque', 'motor_p0_speed_ratio', 'motor_p0_torques',
+        'motor_p0_maximum_powers', 'motor_p0_rated_speed', 'motor_p0_speeds',
+        'motor_p0_maximum_power_function', 'motor_p1_maximum_power_function',
+        'motor_p1_electric_powers', 'motor_p1_maximum_power', 'motor_p1_powers',
+        'motor_p1_maximum_torque', 'motor_p1_speed_ratio', 'motor_p1_torques',
+        'motor_p1_maximum_powers', 'motor_p1_rated_speed', 'motor_p1_speeds',
+        'motor_p2_electric_powers', 'motor_p2_maximum_power', 'motor_p2_powers',
+        'motor_p2_maximum_torque', 'motor_p2_speed_ratio', 'motor_p2_torques',
+        'motor_p2_maximum_powers', 'motor_p2_rated_speed', 'motor_p2_speeds',
+        'motor_p3_electric_powers', 'motor_p3_maximum_power', 'motor_p3_powers',
+        'motor_p3_maximum_torque', 'motor_p3_speed_ratio', 'motor_p3_torques',
+        'motor_p3_maximum_powers', 'motor_p3_rated_speed', 'motor_p3_speeds',
+        'motor_p4_electric_powers', 'motor_p4_maximum_power', 'motor_p4_powers',
+        'motor_p4_maximum_torque', 'motor_p4_speed_ratio', 'motor_p4_torques',
+        'motor_p4_maximum_powers', 'motor_p4_rated_speed', 'motor_p4_speeds',
+        'starter_electric_powers', 'final_drive_speeds_in', 'alternator_powers',
+        'alternator_electric_powers', 'engine_speeds_out', 'gear_box_speeds_in',
+        'delta_time_engine_starter', 'alternator_currents', 'starter_currents',
+        'alternator_current_model', 'starter_powers', 'starter_model',
+        'wheel_speeds',
     ),
     include_defaults=True
 )
@@ -109,12 +99,12 @@ dsp.add_dispatcher(
         'service_battery_state_of_charges', 'motor_p1_electric_powers', 'times',
         'service_battery_currents', 'motor_p4_electric_powers', 'engine_starts',
         'service_battery_initialization_time', 'dcdc_converter_electric_powers',
+        'has_energy_recuperation', 'drive_battery_voltages', 'starter_currents',
         'service_battery_state_of_charge_balance', 'dcdc_converter_efficiency',
         'drive_battery_n_parallel_cells', 'electrical_hybridization_degree',
         'service_battery_capacity', 'drive_battery_electric_powers',
         'dcdc_converter_currents', 'starter_electric_powers',
-        'drive_battery_capacity', 'drive_battery_voltages',
-        'has_energy_recuperation', 'drive_battery_load',
+        'drive_battery_capacity', 'drive_battery_load',
     ),
     outputs=(
         'service_battery_electric_powers_supply_threshold', 'drive_battery_ocv',
@@ -123,16 +113,35 @@ dsp.add_dispatcher(
         'initial_drive_battery_state_of_charge', 'drive_battery_n_series_cells',
         'dcdc_converter_currents', 'drive_battery_capacity', 'drive_battery_r0',
         'service_battery_delta_state_of_charge', 'service_battery_status_model',
+        'service_battery_state_of_charges', 'service_battery_charging_statuses',
         'service_battery_load', 'service_battery_loads', 'drive_battery_loads',
         'dcdc_current_model', 'drive_battery_load', 'service_battery_currents',
         'service_battery_initialization_time', 'drive_battery_electric_powers',
         'initial_service_battery_state_of_charge', 'service_battery_capacity',
-        'service_battery_electric_powers', 'service_battery_state_of_charges',
-        'service_battery_charging_statuses', 'drive_battery_n_parallel_cells',
+        'service_battery_electric_powers', 'drive_battery_n_parallel_cells',
         'service_battery_state_of_charge_balance', 'drive_battery_currents',
         'dcdc_converter_electric_powers_demand', 'drive_battery_voltages',
+        'starter_currents', 'dcdc_converter_efficiency', 'service_battery_model'
     ),
     include_defaults=True
+)
+
+dsp.add_function(
+    function=sh.bypass,
+    inputs=['service_battery_nominal_voltage'],
+    outputs=['alternator_nominal_voltage'],
+)
+
+dsp.add_function(
+    function=sh.bypass,
+    inputs=['alternator_nominal_voltage'],
+    outputs=['starter_nominal_voltage'],
+)
+
+dsp.add_function(
+    function=sh.bypass,
+    inputs=['starter_nominal_voltage'],
+    outputs=['service_battery_nominal_voltage'],
 )
 
 
@@ -141,7 +150,8 @@ dsp.add_dispatcher(
     'dcdc_converter_currents', 'alternator_currents'
 ])
 def predict_service_battery_flows(
-        service_battery_model, times, motive_powers, accelerations, on_engine):
+        service_battery_model, times, motive_powers, accelerations, on_engine,
+        starter_currents):
     """
     Predict the service battery currents flows.
 
@@ -165,6 +175,10 @@ def predict_service_battery_flows(
         If the engine is on [-].
     :type on_engine: numpy.array
 
+    :param starter_currents:
+        Starter currents [A].
+    :type starter_currents: numpy.array
+
     :return:
         - State of charge of the service battery [%].
         - Service battery charging statuses (0: Discharge, 1: Charging, 2: BERS,
@@ -174,5 +188,5 @@ def predict_service_battery_flows(
     :rtype: numpy.array
     """
     service_battery_model.reset()
-    it = zip(times, motive_powers, accelerations, on_engine)
+    it = zip(times, motive_powers, accelerations, on_engine, starter_currents)
     return np.array([service_battery_model(*a) for a in it]).T

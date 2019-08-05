@@ -272,92 +272,8 @@ def calculate_motor_p4_speeds_v1(motor_p4_powers, motor_p4_torques):
 dsp.add_data('motor_p4_efficiency', 0.9)
 
 
-@sh.add_function(
-    dsp, outputs=['motor_p4_electric_power_loss_function'], weight=1
-)
-def define_motor_p4_electric_power_loss_function(motor_p4_efficiency):
-    """
-    Define motor P4 electric power loss function from constant efficiency input.
-
-    :param motor_p4_efficiency:
-        Motor P4 efficiency [-].
-    :type motor_p4_efficiency: float
-
-    :return:
-        Motor P4 electric power loss function.
-    :rtype: function
-    """
-    eff = 1.0 / motor_p4_efficiency - 1.0, motor_p4_efficiency - 1.0
-
-    # noinspection PyUnusedLocal,PyMissingOrEmptyDocstring
-    def motor_p4_electric_power_loss_function(motor_p4_powers, *args):
-        return motor_p4_powers * np.where(motor_p4_powers >= 0, *eff)
-
-    return motor_p4_electric_power_loss_function
-
-
-@sh.add_function(dsp, outputs=['motor_p4_electric_power_loss_function'])
-def define_motor_p4_electric_power_loss_function_v1(
-        motor_p4_loss_param_a, motor_p4_loss_param_b):
-    """
-        Define motor P4 electric power loss function from power loss model.
-
-        :param motor_p4_loss_param_a:
-            Motor P4 electric power loss parameter a [-].
-        :type motor_p4_loss_param_a: float
-
-        :param motor_p4_loss_param_b:
-            Motor P4 electric power loss parameter b [-].
-        :type motor_p4_loss_param_b: float
-
-        :return:
-            Motor P4 electric power loss function.
-        :rtype: function
-        """
-    a, b = motor_p4_loss_param_a, motor_p4_loss_param_b
-
-    # noinspection PyUnusedLocal,PyMissingOrEmptyDocstring
-    def motor_p4_electric_power_loss_function(
-            motor_p4_powers, motor_p4_torques, motor_p4_speeds):
-        return a * motor_p4_speeds ** 2 + b * motor_p4_torques ** 2
-
-    return motor_p4_electric_power_loss_function
-
-
-@sh.add_function(dsp, outputs=['motor_p4_electric_power_losses'])
-def calculate_motor_p4_electric_power_losses(
-        motor_p4_electric_power_loss_function, motor_p4_powers,
-        motor_p4_torques, motor_p4_speeds):
-    """
-    Calculates motor P4 electric power losses [kW].
-
-    :param motor_p4_electric_power_loss_function:
-        Function that calculates motor P4 electric power losses [kW].
-    :type motor_p4_electric_power_loss_function: function
-
-    :param motor_p4_powers:
-        Power at motor P4 [kW].
-    :type motor_p4_powers: numpy.array | float
-
-    :param motor_p4_torques:
-        Torque at motor P4 [N*m].
-    :type motor_p4_torques: numpy.array | float
-
-    :param motor_p4_speeds:
-        Rotating speed of motor P4 [RPM].
-    :type motor_p4_speeds: numpy.array | float
-
-    :return:
-        Electric power losses of motor P4 [kW].
-    :rtype: numpy.array | float
-    """
-    func = motor_p4_electric_power_loss_function
-    return func(motor_p4_powers, motor_p4_torques, motor_p4_speeds)
-
-
 @sh.add_function(dsp, outputs=['motor_p4_electric_powers'])
-def calculate_motor_p4_electric_powers(
-        motor_p4_powers, motor_p4_electric_power_losses):
+def calculate_motor_p4_electric_powers(motor_p4_powers, motor_p4_efficiency):
     """
     Calculates motor P4 electric power [kW].
 
@@ -365,20 +281,20 @@ def calculate_motor_p4_electric_powers(
         Power at motor P4 [kW].
     :type motor_p4_powers: numpy.array | float
 
-    :param motor_p4_electric_power_losses:
-        Electric power losses of motor P4 [kW].
-    :type motor_p4_electric_power_losses: numpy.array | float
+    :param motor_p4_efficiency:
+        Motor P4 efficiency [-].
+    :type motor_p4_efficiency: float
 
     :return:
         Electric power of motor P4 [kW].
     :rtype: numpy.array | float
     """
-    return motor_p4_powers + motor_p4_electric_power_losses
+    p = motor_p4_powers
+    return p * np.where(p >= 0, 1 / motor_p4_efficiency, motor_p4_efficiency)
 
 
-@sh.add_function(dsp, outputs=['motor_p4_powers'])
-def calculate_motor_p4_powers_v1(
-        motor_p4_electric_powers, motor_p4_electric_power_losses):
+@sh.add_function(dsp, outputs=['motor_p4_powers'], weight=5)
+def calculate_motor_p4_powers_v1(motor_p4_electric_powers, motor_p4_efficiency):
     """
     Calculate motor P4 power from electric power and electric power losses [kW].
 
@@ -386,35 +302,13 @@ def calculate_motor_p4_powers_v1(
         Electric power of motor P4 [kW].
     :type motor_p4_electric_powers: numpy.array | float
 
-    :param motor_p4_electric_power_losses:
-        Electric power losses of motor P4 [kW].
-    :type motor_p4_electric_power_losses: numpy.array | float
+    :param motor_p4_efficiency:
+        Motor P4 efficiency [-].
+    :type motor_p4_efficiency: float
 
     :return:
         Power at motor P4 [kW].
     :rtype: numpy.array | float
     """
-    return motor_p4_electric_powers - motor_p4_electric_power_losses
-
-
-@sh.add_function(dsp, outputs=['motor_p4_efficiency_ratios'])
-def calculate_motor_p4_efficiency_ratios(
-        motor_p4_powers, motor_p4_electric_powers):
-    """
-    Calculates motor P4 efficiency ratio [-]
-
-    :param motor_p4_powers:
-        Power at motor P4 [kW].
-    :type motor_p4_powers: numpy.array | float
-
-    :param motor_p4_electric_powers:
-        Electric power of motor P4 [kW].
-    :type motor_p4_electric_powers: numpy.array | float
-
-    :return:
-        Motor P4 efficiency ratio [-].
-    :rtype: numpy.array | float
-    """
-    with np.errstate(divide='ignore', invalid='ignore'):
-        ratios = motor_p4_powers / motor_p4_electric_powers
-        return np.where(np.isnan(ratios), 1, ratios)
+    p = motor_p4_electric_powers
+    return p * np.where(p < 0, 1 / motor_p4_efficiency, motor_p4_efficiency)
