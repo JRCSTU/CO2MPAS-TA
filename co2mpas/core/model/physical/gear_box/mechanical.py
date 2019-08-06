@@ -81,7 +81,7 @@ def _correct_gear_shifts(
     s = len(gears)
 
     def _err(v, r):
-        v = int(v)
+        v = int(v) or 1
         return np.float32(co2_utl.mae(ratios[slice(v - 1, v + 1, 1)], r))
 
     k = 0
