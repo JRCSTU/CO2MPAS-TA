@@ -577,9 +577,9 @@ class EMS:
 
     def starter_penalties(self, res):
         cf, eff = self.battery_model.currents, self.dcdc_converter_efficiency
-        eff, dt = np.array([eff, -1 / eff]), 4
-        pb = (self.starter_model(res['speed_ice']) / dt)[None, :]
-        res['power_stop'], res['power_start'] = pb = pb * eff[:, None, None]
+        c = np.array([eff, -1 / eff]) / 4
+        pb = self.starter_model(res['speed_ice'])[None, :] * c[:, None, None]
+        res['power_stop'], res['power_start'] = pb
         res['current_stop'], res['current_start'] = bc = cf(pb)
         res['fc_stop'], res['fc_start'] = self.battery_fuel(bc)
         return res
@@ -655,6 +655,14 @@ def calibrate_ems_model(
         Motive power [kW].
     :type motive_powers: numpy.array
 
+    :param starter_model:
+        Starter model.
+    :type starter_model: StarterModel
+
+    :param dcdc_converter_efficiency:
+        DC/DC converter efficiency [-].
+    :type dcdc_converter_efficiency: float
+
     :param motors_maximums_powers:
         Maximum powers of electric motors [kW].
     :type motors_maximums_powers: numpy.array
@@ -712,6 +720,14 @@ def define_ems_model(
     :param serial_motor_maximum_power_function:
         Serial motor maximum power function.
     :type serial_motor_maximum_power_function: function
+
+    :param starter_model:
+        Starter model.
+    :type starter_model: StarterModel
+
+    :param dcdc_converter_efficiency:
+        DC/DC converter efficiency [-].
+    :type dcdc_converter_efficiency: float
 
     :param engine_power_losses_function:
         Engine power losses function.
