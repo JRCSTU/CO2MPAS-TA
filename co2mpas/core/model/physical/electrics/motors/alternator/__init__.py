@@ -86,7 +86,8 @@ def calculate_alternator_powers(
         Alternator power [kW].
     :rtype: numpy.array | float
     """
-    return alternator_electric_powers / alternator_efficiency
+    from ..p4 import calculate_motor_p4_powers_v1 as func
+    return func(alternator_electric_powers, alternator_efficiency)
 
 
 @sh.add_function(dsp, outputs=['alternator_electric_powers'])
@@ -107,7 +108,8 @@ def calculate_alternator_electric_powers_v1(
         Alternator electric power [kW].
     :rtype: numpy.array | float
     """
-    return alternator_powers * alternator_efficiency
+    from ..p4 import calculate_motor_p4_electric_powers as func
+    return func(alternator_powers, alternator_efficiency)
 
 
 dsp.add_dispatcher(

@@ -37,7 +37,8 @@ def calculate_dcdc_converter_electric_powers_demand(
         DC/DC converter electric power demand [kW].
     :rtype: numpy.array | float
     """
-    return dcdc_converter_electric_powers / dcdc_converter_efficiency
+    from ..motors.p4 import calculate_motor_p4_powers_v1 as func
+    return func(dcdc_converter_electric_powers, dcdc_converter_efficiency)
 
 
 @sh.add_function(dsp, outputs=['dcdc_converter_electric_powers'])
