@@ -18,13 +18,13 @@ name = 'electrics_model'
 #: Parameters that constitute the model.
 models = [
     'alternator_current_model', 'dcdc_current_model', 'has_energy_recuperation',
-    'delta_time_engine_starter', 'starter_efficiency', 'service_battery_load',
+    'service_battery_status_model', 'engine_moment_inertia', 'drive_battery_r0',
+    'delta_time_engine_starter', 'drive_battery_capacity', 'drive_battery_load',
+    'alternator_efficiency', 'service_battery_capacity', 'service_battery_load',
+    'drive_battery_n_parallel_cells', 'drive_battery_ocv', 'starter_efficiency',
     'service_battery_initialization_time', 'service_battery_nominal_voltage',
-    'service_battery_status_model', 'service_battery_capacity',
-    'alternator_efficiency', 'dcdc_converter_efficiency',
-    'starter_nominal_voltage', 'engine_moment_inertia',
-    'drive_battery_capacity', 'drive_battery_r0', 'drive_battery_ocv',
-    'drive_battery_n_parallel_cells', 'drive_battery_n_series_cells'
+    'drive_battery_n_series_cells', 'dcdc_converter_efficiency',
+    'starter_nominal_voltage',
 ]
 
 #: Inputs required to run the model.

@@ -25,8 +25,7 @@ models = [
 #: Inputs required to run the model.
 inputs = [
     'velocities', 'gears', 'times', 'on_engine', 'gear_box_type',
-    'accelerations', 'final_drive_powers_in', 'engine_thermostat_temperature',
-    'tyre_code'
+    'accelerations', 'tyre_code'
 ]
 
 #: Relevant outputs of the model.
