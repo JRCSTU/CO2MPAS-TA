@@ -46,6 +46,8 @@ dsp.add_dispatcher(
         'motor_p4_efficiency', 'motor_p4_maximum_power', 'motor_p4_speed_ratio',
         'motor_p4_electric_powers', 'motor_p4_torques', 'motor_p4_rated_speed',
         'motor_p4_powers', 'motor_p4_maximum_torque', 'motor_p4_speeds',
+        'has_motor_p0', 'has_motor_p1', 'has_motor_p2', 'has_motor_p3',
+        'has_motor_p4',
         'service_battery_initialization_time', 'engine_starts', 'accelerations',
         'starter_efficiency', 'delta_time_engine_starter', 'gear_box_speeds_in',
         'service_battery_charging_statuses', 'alternator_currents', 'on_engine',
@@ -53,7 +55,7 @@ dsp.add_dispatcher(
         'service_battery_state_of_charges', 'alternator_current_model', 'times',
         'alternator_charging_currents', 'engine_moment_inertia', 'wheel_speeds',
         'alternator_electric_powers', 'final_drive_speeds_in', 'motive_powers',
-        'alternator_nominal_voltage',
+        'alternator_nominal_voltage', 'clutch_tc_speeds'
     ),
     outputs=(
         'motor_p0_electric_powers', 'motor_p0_maximum_power', 'motor_p0_powers',
@@ -76,7 +78,8 @@ dsp.add_dispatcher(
         'alternator_electric_powers', 'engine_speeds_out', 'gear_box_speeds_in',
         'delta_time_engine_starter', 'alternator_currents', 'starter_currents',
         'alternator_current_model', 'starter_powers', 'starter_model',
-        'wheel_speeds',
+        'wheel_speeds', 'has_motor_p0', 'has_motor_p1', 'has_motor_p2',
+        'has_motor_p3', 'has_motor_p4', 'is_hybrid'
     ),
     include_defaults=True
 )

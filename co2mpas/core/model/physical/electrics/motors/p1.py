@@ -307,3 +307,44 @@ def calculate_motor_p1_powers_v1(motor_p1_electric_powers, motor_p1_efficiency):
     """
     from .p4 import calculate_motor_p4_powers_v1 as func
     return func(motor_p1_electric_powers, motor_p1_efficiency)
+
+
+dsp.add_data('has_motor_p1', False, sh.inf(10, 3))
+
+
+@sh.add_function(dsp, outputs=['has_motor_p1'])
+def identify_has_motor_p1(motor_p1_maximum_power):
+    """
+    Identify if the vehicle has a motor P1 [kW].
+
+    :param motor_p1_maximum_power:
+        Maximum power of motor P1 [kW].
+    :type motor_p1_maximum_power: float
+
+    :return:
+        Has the vehicle a motor in P1?
+    :rtype: bool
+    """
+    from .p4 import identify_has_motor_p4 as func
+    return func(motor_p1_maximum_power)
+
+
+@sh.add_function(dsp, outputs=['motor_p1_powers'])
+def default_motor_p1_powers(times, has_motor_p1):
+    """
+    Return zero power if the vehicle has not a motor P1 [kW].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param has_motor_p1:
+        Has the vehicle a motor in P1?
+    :type has_motor_p1: bool
+
+    :return:
+        Power at motor P1 [kW].
+    :rtype: numpy.array
+    """
+    from .p4 import default_motor_p4_powers as func
+    return func(times, has_motor_p1)

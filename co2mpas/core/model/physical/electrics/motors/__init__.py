@@ -59,13 +59,13 @@ dsp.add_dispatcher(
         'motor_p0_electric_powers', 'motor_p0_maximum_power', 'motor_p0_powers',
         'motor_p0_maximum_torque', 'motor_p0_speed_ratio', 'motor_p0_torques',
         'motor_p0_efficiency', 'motor_p0_rated_speed', 'motor_p0_speeds',
-        'engine_speeds_out',
+        'engine_speeds_out', 'has_motor_p0', 'times'
     ),
     outputs=(
         'motor_p0_electric_powers', 'motor_p0_maximum_power', 'motor_p0_powers',
         'motor_p0_maximum_torque', 'motor_p0_speed_ratio', 'motor_p0_torques',
         'motor_p0_maximum_powers', 'motor_p0_rated_speed', 'motor_p0_speeds',
-        'engine_speeds_out', 'motor_p0_maximum_power_function',
+        'engine_speeds_out', 'motor_p0_maximum_power_function', 'has_motor_p0',
     ),
     include_defaults=True
 )
@@ -77,13 +77,13 @@ dsp.add_dispatcher(
         'motor_p1_electric_powers', 'motor_p1_maximum_power', 'motor_p1_powers',
         'motor_p1_maximum_torque', 'motor_p1_speed_ratio', 'motor_p1_torques',
         'motor_p1_efficiency', 'motor_p1_rated_speed', 'motor_p1_speeds',
-        'engine_speeds_out',
+        'engine_speeds_out', 'has_motor_p1', 'times'
     ),
     outputs=(
         'motor_p1_electric_powers', 'motor_p1_maximum_power', 'motor_p1_powers',
         'motor_p1_maximum_torque', 'motor_p1_speed_ratio', 'motor_p1_torques',
         'motor_p1_maximum_powers', 'motor_p1_rated_speed', 'motor_p1_speeds',
-        'engine_speeds_out', 'motor_p1_maximum_power_function',
+        'engine_speeds_out', 'motor_p1_maximum_power_function', 'has_motor_p1',
     ),
     include_defaults=True
 )
@@ -95,13 +95,13 @@ dsp.add_dispatcher(
         'motor_p2_electric_powers', 'motor_p2_maximum_power', 'motor_p2_powers',
         'motor_p2_maximum_torque', 'motor_p2_speed_ratio', 'motor_p2_torques',
         'motor_p2_efficiency', 'motor_p2_rated_speed', 'motor_p2_speeds',
-        'gear_box_speeds_in',
+        'gear_box_speeds_in', 'has_motor_p2', 'times'
     ),
     outputs=(
         'motor_p2_electric_powers', 'motor_p2_maximum_power', 'motor_p2_powers',
         'motor_p2_maximum_torque', 'motor_p2_speed_ratio', 'motor_p2_torques',
         'motor_p2_maximum_powers', 'motor_p2_rated_speed', 'motor_p2_speeds',
-        'gear_box_speeds_in',
+        'gear_box_speeds_in', 'has_motor_p2',
     ),
     include_defaults=True
 )
@@ -113,13 +113,13 @@ dsp.add_dispatcher(
         'motor_p3_electric_powers', 'motor_p3_maximum_power', 'motor_p3_powers',
         'motor_p3_maximum_torque', 'motor_p3_speed_ratio', 'motor_p3_torques',
         'motor_p3_efficiency', 'motor_p3_rated_speed', 'motor_p3_speeds',
-        'final_drive_speeds_in',
+        'final_drive_speeds_in', 'has_motor_p3', 'times'
     ),
     outputs=(
         'motor_p3_electric_powers', 'motor_p3_maximum_power', 'motor_p3_powers',
         'motor_p3_maximum_torque', 'motor_p3_speed_ratio', 'motor_p3_torques',
         'motor_p3_maximum_powers', 'motor_p3_rated_speed', 'motor_p3_speeds',
-        'final_drive_speeds_in',
+        'final_drive_speeds_in', 'has_motor_p3',
     ),
     include_defaults=True
 )
@@ -131,13 +131,13 @@ dsp.add_dispatcher(
         'motor_p4_electric_powers', 'motor_p4_maximum_power', 'motor_p4_powers',
         'motor_p4_maximum_torque', 'motor_p4_speed_ratio', 'motor_p4_torques',
         'motor_p4_efficiency', 'motor_p4_rated_speed', 'motor_p4_speeds',
-        'wheel_speeds',
+        'wheel_speeds', 'has_motor_p4', 'times'
     ),
     outputs=(
         'motor_p4_electric_powers', 'motor_p4_maximum_power', 'motor_p4_powers',
         'motor_p4_maximum_torque', 'motor_p4_speed_ratio', 'motor_p4_torques',
         'motor_p4_maximum_powers', 'motor_p4_rated_speed', 'motor_p4_speeds',
-        'wheel_speeds',
+        'wheel_speeds', 'has_motor_p4',
     ),
     include_defaults=True
 )
@@ -147,7 +147,7 @@ dsp.add_dispatcher(
     dsp=_starter,
     inputs=(
         'delta_time_engine_starter', 'times', 'on_engine', 'starter_efficiency',
-        'engine_moment_inertia', 'engine_speeds_out', 'starter_nominal_voltage',
+        'engine_moment_inertia', 'starter_nominal_voltage', 'clutch_tc_speeds',
     ),
     outputs=(
         'starter_electric_powers', 'starter_powers', 'starter_currents',
@@ -155,3 +155,37 @@ dsp.add_dispatcher(
     ),
     include_defaults=True
 )
+
+
+@sh.add_function(dsp, outputs=['is_hybrid'])
+def identify_is_hybrid(
+        has_motor_p0, has_motor_p1, has_motor_p2, has_motor_p3, has_motor_p4):
+    """
+    Identifies if the the vehicle is hybrid.
+
+    :param has_motor_p0:
+        Has the vehicle a motor in P0?
+    :type has_motor_p0: bool
+
+    :param has_motor_p1:
+        Has the vehicle a motor in P1?
+    :type has_motor_p1: bool
+
+    :param has_motor_p2:
+        Has the vehicle a motor in P2?
+    :type has_motor_p2: bool
+
+    :param has_motor_p3:
+        Has the vehicle a motor in P3?
+    :type has_motor_p3: bool
+
+    :param has_motor_p4:
+        Has the vehicle a motor in P4?
+    :type has_motor_p4: bool
+
+    :return:
+        Is the vehicle hybrid?
+    :rtype: bool
+    """
+    b = has_motor_p0, has_motor_p1, has_motor_p2, has_motor_p3, has_motor_p4
+    return any(b)
