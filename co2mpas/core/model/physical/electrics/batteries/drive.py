@@ -161,7 +161,7 @@ def calculate_drive_battery_electric_powers_v1(
     :rtype: numpy.array
     """
     p = drive_battery_loads - motors_electric_powers
-    p -= dcdc_converter_electric_powers_demand
+    p += dcdc_converter_electric_powers_demand
     return p
 
 
@@ -260,7 +260,7 @@ def calculate_drive_battery_loads(
     :rtype: numpy.array
     """
     p = drive_battery_electric_powers + motors_electric_powers
-    p += dcdc_converter_electric_powers_demand
+    p -= dcdc_converter_electric_powers_demand
     return p
 
 
@@ -318,9 +318,9 @@ def calculate_drive_battery_delta_state_of_charge(
     return func(drive_battery_state_of_charges)
 
 
-# noinspection PyMissingOrEmptyDocstring
+# noinspection PyMissingOrEmptyDocstring,PyProtectedMember
 class DriveBatteryModel:
-    def __init__(self, service_battery_model,
+    def __init__(self, service_battery_model, drive_battery_load,
                  initial_drive_battery_state_of_charge, drive_battery_capacity,
                  dcdc_converter_efficiency=.95, r0=None, ocv=None,
                  n_parallel_cells=1, n_series_cells=1):
@@ -331,10 +331,12 @@ class DriveBatteryModel:
         self.dcdc_converter_efficiency = dcdc_converter_efficiency
         self._d_soc = drive_battery_capacity * 36.0 * 2
         self.init_soc = initial_drive_battery_state_of_charge
+        self.drive_battery_load = drive_battery_load
         self.reset()
         self._dcdc_p = self.service.nominal_voltage / dcdc_converter_efficiency
         self._dcdc_p /= 1000
 
+    # noinspection PyAttributeOutsideInit
     def reset(self):
         self.service.reset()
         self._prev_current = 0
@@ -374,7 +376,7 @@ class DriveBatteryModel:
         dcdc_p = self.service(
             time, motive_power, acceleration, on_engine, starter_current,
             update=update, **(service_kw or {})
-        )[2] * self._dcdc_p
+        )[2] * self._dcdc_p + self.drive_battery_load
 
         if prev_soc is None:
             prev_soc = self._prev_soc
@@ -394,7 +396,7 @@ def calibrate_drive_battery_model(
         service_battery_model, initial_drive_battery_state_of_charge,
         drive_battery_capacity, drive_battery_n_parallel_cells,
         drive_battery_n_series_cells, drive_battery_currents,
-        drive_battery_voltages):
+        dcdc_converter_efficiency, drive_battery_load, drive_battery_voltages):
     """
     Calibrate the drive battery current model.
 
@@ -422,6 +424,14 @@ def calibrate_drive_battery_model(
         Drive battery current vector [A].
     :type drive_battery_currents: numpy.array
 
+    :param dcdc_converter_efficiency:
+        DC/DC converter efficiency [-].
+    :type dcdc_converter_efficiency: float
+
+    :param drive_battery_load:
+        Drive electric load [kW].
+    :type drive_battery_load: float
+
     :param drive_battery_voltages:
         Drive battery voltage [V].
     :type drive_battery_voltages: numpy.array
@@ -431,8 +441,10 @@ def calibrate_drive_battery_model(
     :rtype: DriveBatteryModel
     """
     return DriveBatteryModel(
-        service_battery_model, initial_drive_battery_state_of_charge,
-        drive_battery_capacity, n_parallel_cells=drive_battery_n_parallel_cells,
+        service_battery_model, drive_battery_load,
+        initial_drive_battery_state_of_charge, drive_battery_capacity,
+        dcdc_converter_efficiency,
+        n_parallel_cells=drive_battery_n_parallel_cells,
         n_series_cells=drive_battery_n_series_cells
     ).fit(drive_battery_currents, drive_battery_voltages)
 
@@ -459,15 +471,24 @@ dsp.add_data('drive_battery_n_series_cells', 1)
 
 @sh.add_function(dsp, outputs=['drive_battery_model'])
 def define_drive_battery_model(
-        service_battery_model, initial_drive_battery_state_of_charge,
-        drive_battery_capacity, drive_battery_r0, drive_battery_ocv,
-        drive_battery_n_parallel_cells, drive_battery_n_series_cells):
+        service_battery_model, drive_battery_load, dcdc_converter_efficiency,
+        initial_drive_battery_state_of_charge, drive_battery_capacity,
+        drive_battery_r0, drive_battery_ocv, drive_battery_n_parallel_cells,
+        drive_battery_n_series_cells):
     """
     Define the drive battery current model.
 
     :param service_battery_model:
          Service battery model.
     :type service_battery_model: ServiceBatteryModel
+
+    :param dcdc_converter_efficiency:
+        DC/DC converter efficiency [-].
+    :type dcdc_converter_efficiency: float
+
+    :param drive_battery_load:
+        Drive electric load [kW].
+    :type drive_battery_load: float
 
     :param initial_drive_battery_state_of_charge:
         Initial state of charge of the drive battery [%].
@@ -498,8 +519,9 @@ def define_drive_battery_model(
     :rtype: DriveBatteryModel
     """
     return DriveBatteryModel(
-        service_battery_model, initial_drive_battery_state_of_charge,
-        drive_battery_capacity, drive_battery_r0, drive_battery_ocv,
+        service_battery_model, drive_battery_load,
+        initial_drive_battery_state_of_charge, drive_battery_capacity,
+        dcdc_converter_efficiency, drive_battery_r0, drive_battery_ocv,
         drive_battery_n_parallel_cells, drive_battery_n_series_cells
     )
 

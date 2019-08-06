@@ -69,10 +69,10 @@ dsp.add_dispatcher(
         'initial_drive_battery_state_of_charge', 'drive_battery_ocv', 'times',
         'drive_battery_n_parallel_cells', 'electrical_hybridization_degree',
         'drive_battery_electric_powers', 'drive_battery_state_of_charges',
-        'motor_p2_electric_powers', 'motor_p3_electric_powers',
-        'motor_p0_electric_powers', 'drive_battery_voltages',
-        'motor_p1_electric_powers', 'service_battery_model',
-
+        'dcdc_converter_efficiency', 'motor_p2_electric_powers',
+        'motor_p3_electric_powers', 'motor_p0_electric_powers',
+        'motor_p1_electric_powers', 'drive_battery_voltages',
+        'service_battery_model',
     ),
     outputs=(
         'drive_battery_currents', 'drive_battery_loads', 'drive_battery_load',

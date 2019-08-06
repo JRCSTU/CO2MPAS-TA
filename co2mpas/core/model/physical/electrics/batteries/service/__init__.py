@@ -246,7 +246,8 @@ def calculate_service_battery_state_of_charges(
 
 @sh.add_function(dsp, outputs=['service_battery_loads'])
 def calculate_service_battery_loads(
-        service_battery_electric_powers, service_battery_electric_powers_supply):
+        service_battery_electric_powers,
+        service_battery_electric_powers_supply):
     """
     Calculates service battery load vector [kW].
 
