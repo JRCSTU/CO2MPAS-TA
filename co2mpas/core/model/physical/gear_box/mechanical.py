@@ -8,7 +8,6 @@
 Functions and a model `dsp` to model the basic mechanics of the gear box.
 """
 import math
-import functools
 import numpy as np
 import schedula as sh
 from ..defaults import dfl
@@ -18,58 +17,6 @@ dsp = sh.BlueDispatcher(
     name='mechanical model',
     description='Models the gear box mechanical.'
 )
-
-
-def _identify_gear(idle, vsr, stop_vel, plateau_acc, ratio, vel, acc):
-    """
-    Identifies a gear [-].
-
-    :param idle:
-        Engine speed idle median and median + std [RPM].
-    :type idle: (float, float)
-
-    :param vsr:
-        Constant velocity speed ratios of the gear box [km/(h*RPM)].
-    :type vsr: iterable
-
-    :param stop_vel:
-        Maximum velocity to consider the vehicle stopped [km/h].
-    :type stop_vel: float
-
-    :param plateau_acc:
-        Maximum acceleration to be at constant velocity [m/s2].
-    :type plateau_acc: float
-
-    :param ratio:
-        Vehicle velocity speed ratio [km/(h*RPM)].
-    :type ratio: float
-
-    :param vel:
-        Vehicle velocity [km/h].
-    :type vel: float
-
-    :param acc:
-        Vehicle acceleration [m/s2].
-    :type acc: float
-
-    :return:
-        A gear [-].
-    :rtype: int
-    """
-
-    if vel <= stop_vel:
-        return 0
-
-    m, (gear, vs) = min((abs(v - ratio), (k, v)) for k, v in vsr)
-
-    if acc < 0 and (vel <= idle[0] * vs or
-                    (idle[1] and abs(vel / idle[1] - ratio) < m)):
-        return 0
-
-    if gear == 0 and ((vel > stop_vel and acc > 0) or acc > plateau_acc):
-        return 1
-
-    return gear
 
 
 def _correct_gear_shifts(
@@ -216,27 +163,32 @@ def identify_gears_v1(
     """
 
     with np.errstate(divide='ignore', invalid='ignore'):
-        ratios = velocities / engine_speeds_out
+        r = velocities / engine_speeds_out
 
-    idle_speed = (idle_engine_speed[0] - idle_engine_speed[1],
-                  idle_engine_speed[0] + idle_engine_speed[1])
-    ratios[engine_speeds_out < idle_speed[0]] = 0
-    vsr = [v for v in velocity_speed_ratios.items() if v[0] != 0]
+    idle = (idle_engine_speed[0] - idle_engine_speed[1],
+            idle_engine_speed[0] + idle_engine_speed[1])
+    r[engine_speeds_out < idle[0]] = 0
 
-    id_gear = functools.partial(
-        _identify_gear, idle_speed, vsr, stop_velocity, plateau_acceleration
-    )
-
-    # noinspection PyArgumentList
-    gear = list(map(id_gear, *(ratios, velocities, accelerations)))
+    vsr = velocity_speed_ratios
+    g, vsr = np.array([(k, v) for k, v in sorted(vsr.items()) if k != 0]).T
+    dr = np.abs(vsr[:, None] - r)
+    i, j = np.argmin(dr, 0), np.arange(times.shape[0])
+    b = velocities <= vsr[i] * idle[0]
+    if idle[1]:
+        b |= np.abs(velocities / idle[1] - r) < dr[i, j]
+    b = (velocities <= stop_velocity) | (b & (accelerations < 0))
+    gear = np.where(b, 0, g[i])
+    b = (velocities > stop_velocity) & (accelerations > 0)
+    b |= accelerations > plateau_acceleration
+    gear[(gear == 0) & b] = 1
 
     gear = co2_utl.median_filter(times, gear, change_gear_window_width)
 
-    gear = _correct_gear_shifts(times, ratios, gear, velocity_speed_ratios)
+    gear = _correct_gear_shifts(times, r, gear, velocity_speed_ratios)
 
     gear = co2_utl.clear_fluctuations(times, gear, change_gear_window_width)
 
-    return gear
+    return gear.astype(int)
 
 
 @sh.add_function(dsp, outputs=['gear_box_speeds_in'])
