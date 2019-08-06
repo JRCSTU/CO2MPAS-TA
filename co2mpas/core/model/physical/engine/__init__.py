@@ -550,19 +550,18 @@ dsp.add_dispatcher(
     dsp=_thermal,
     dsp_id='thermal',
     inputs=(
-        'accelerations', 'engine_coolant_temperatures',
-        'engine_speeds_out_hot', 'engine_temperature_regression_model',
-        'engine_thermostat_temperature',
-        'engine_thermostat_temperature_window', 'final_drive_powers_in',
-        'idle_engine_speed', 'initial_engine_temperature',
-        'max_engine_coolant_temperature', 'on_engine', 'times'),
+        'accelerations', 'engine_coolant_temperatures', 'engine_speeds_out_hot',
+        'max_engine_coolant_temperature', 'initial_engine_temperature', 'times',
+        'engine_thermostat_temperature_window', 'engine_thermostat_temperature',
+        'engine_temperature_regression_model', 'idle_engine_speed', 'on_engine',
+        'gross_engine_powers_out', 'gear_box_powers_out'
+    ),
     outputs=(
-        'engine_temperature_derivatives',
-        'engine_temperature_regression_model',
-        'engine_thermostat_temperature',
-        'engine_thermostat_temperature_window',
-        'initial_engine_temperature', 'max_engine_coolant_temperature',
-        'engine_temperature_prediction_model')
+        'engine_temperature_derivatives', 'engine_temperature_prediction_model',
+        'engine_thermostat_temperature_window', 'engine_thermostat_temperature',
+        'engine_temperature_regression_model', 'max_engine_coolant_temperature',
+        'engine_coolant_temperatures', 'initial_engine_temperature',
+    )
 )
 
 dsp.add_dispatcher(

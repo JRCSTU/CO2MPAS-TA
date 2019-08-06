@@ -133,18 +133,13 @@ class ThermalModel:
         self.min_temp = -float('inf')
 
     # noinspection PyProtectedMember,PyPep8Naming
-    def fit(self, idle_engine_speed, on_engine, temperature_derivatives,
-            temperatures, *args):
+    def fit(self, on_engine, temperature_derivatives, temperatures, *args):
         """
         Calibrates an engine temperature regression model to predict engine
         temperatures.
 
         This model returns the delta temperature function of temperature
         (previous), acceleration, and power at the wheel.
-
-        :param idle_engine_speed:
-            Engine speed idle median and std [RPM].
-        :type idle_engine_speed: (float, float)
 
         :param on_engine:
             If the engine is on [-].
@@ -164,8 +159,6 @@ class ThermalModel:
         """
         import sklearn.pipeline as sk_pip
         X, Y = _build_samples(temperature_derivatives, temperatures, *args)
-        self.thermostat = self._identify_thermostat(X, Y, idle_engine_speed)
-
         X, Y = _filter_temperature_samples(X, Y, on_engine, self.thermostat)
         opt = {
             'random_state': 0,
@@ -215,20 +208,6 @@ class ThermalModel:
         self.mask_cold = np.where(model.steps[0][-1]._get_support_mask())[0] + 1
 
         return self
-
-    # noinspection PyPep8Naming
-    def _identify_thermostat(self, X, Y, idle_engine_speed):
-        X, Y = np.column_stack((Y, X[:, 1:])), X[:, 0]
-        t_max, t_min = Y.max(), Y.min()
-        b = (t_max - (t_max - t_min) / 3) <= Y
-
-        model = xgb.XGBRegressor()
-        model.fit(X[b], Y[b])
-        ratio = np.arange(1, 1.5, 0.1) * idle_engine_speed[0]
-        spl = np.zeros((len(ratio), 4))
-        spl[:, 2] = ratio
-        # noinspection PyTypeChecker
-        return float(np.median(model.predict(spl)))
 
     def __call__(self, deltas_t, *args, initial_temperature=23, max_temp=100.0):
         func, temp = self.temperature, np.zeros(len(deltas_t) + 1, dtype=float)
