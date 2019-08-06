@@ -120,12 +120,8 @@ def identify_clutch_tc_speeds_delta(
         Engine speed delta due to the clutch or torque converter [RPM].
     :rtype: numpy.array
     """
-    delta = np.where(
-        clutch_phases,
-        engine_speeds_out - engine_speeds_out_hot - cold_start_speeds_delta,
-        0
-    )
-    return delta
+    ds = engine_speeds_out - engine_speeds_out_hot - cold_start_speeds_delta
+    return np.where(clutch_phases, ds, 0)
 
 
 @sh.add_function(dsp, outputs=['clutch_tc_speeds_delta'])
@@ -230,10 +226,30 @@ def identify_clutch_tc_mean_efficiency(clutch_tc_powers, clutch_tc_powers_out):
     return func(clutch_tc_powers, clutch_tc_powers_out)
 
 
+@sh.add_function(dsp, outputs=['clutch_tc_speeds'])
+def calculate_clutch_tc_speeds(engine_speeds_out_hot, clutch_tc_speeds_delta):
+    """
+    Calculate clutch or torque converter speed (no cold start) [RPM].
+
+    :param engine_speeds_out_hot:
+        Engine speed at hot condition [RPM].
+    :type engine_speeds_out_hot: numpy.array
+
+    :param clutch_tc_speeds_delta:
+        Engine speed delta due to the clutch or torque converter [RPM].
+    :type clutch_tc_speeds_delta: numpy.array
+
+    :return:
+        Clutch or torque converter speed (no cold start) [RPM].
+    :rtype: numpy.array
+    """
+    return engine_speeds_out_hot + clutch_tc_speeds_delta
+
+
 @sh.add_function(dsp, outputs=['clutch_tc_powers'])
 def calculate_clutch_tc_powers(
         clutch_tc_speeds_delta, k_factor_curve, gear_box_speeds_in,
-        clutch_tc_powers_out, engine_speeds_out):
+        clutch_tc_powers_out, clutch_tc_speeds):
     """
     Calculates the power that flows in the clutch or torque converter [kW].
 
@@ -253,20 +269,20 @@ def calculate_clutch_tc_powers(
         Clutch or torque converter power out [kW].
     :type clutch_tc_powers_out: numpy.array
 
-    :param engine_speeds_out:
-        Engine speed [RPM].
-    :type engine_speeds_out: numpy.array
+    :param clutch_tc_speeds:
+        Clutch or torque converter speed (no cold start) [RPM].
+    :type clutch_tc_speeds: numpy.array
 
     :return:
         Clutch or torque converter power [kW].
     :rtype: numpy.array
     """
-    is_not_eng2gb = gear_box_speeds_in >= engine_speeds_out
-    speed_out = np.where(is_not_eng2gb, engine_speeds_out, gear_box_speeds_in)
-    speed_in = np.where(is_not_eng2gb, gear_box_speeds_in, engine_speeds_out)
+    is_not_eng2gb = gear_box_speeds_in >= clutch_tc_speeds
+    speed_out = np.where(is_not_eng2gb, clutch_tc_speeds, gear_box_speeds_in)
+    speed_in = np.where(is_not_eng2gb, gear_box_speeds_in, clutch_tc_speeds)
 
     ratios = np.ones_like(clutch_tc_powers_out, dtype=float)
-    b = (speed_in > 0) & (clutch_tc_speeds_delta != 0)
+    b = (speed_in > 0) & ~np.isclose(clutch_tc_speeds_delta, 0)
     ratios[b] = speed_out[b] / speed_in[b]
 
     eff = k_factor_curve(ratios) * ratios
