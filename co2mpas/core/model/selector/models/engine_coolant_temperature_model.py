@@ -23,8 +23,8 @@ models = [
 
 #: Inputs required to run the model.
 inputs = [
-    'times', 'accelerations', 'gross_engine_powers_out',
-    'engine_speeds_out_hot', 'initial_engine_temperature'
+    'times', 'on_engine', 'velocities', 'engine_speeds_out_hot',
+    'accelerations', 'initial_engine_temperature'
 ]
 
 #: Relevant outputs of the model.

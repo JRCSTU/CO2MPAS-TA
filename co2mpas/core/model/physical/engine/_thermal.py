@@ -122,115 +122,42 @@ class _XGBRegressor(xgb.XGBRegressor):
 
 # noinspection PyMethodMayBeStatic,PyMethodMayBeStatic,PyMissingOrEmptyDocstring
 class ThermalModel:
-    def __init__(self, thermostat=100.0):
-        default_model = NoDelta()
-        self.model = default_model
-        self.mask = None
-        self.cold = default_model
-        self.mask_cold = None
-        self.base_model = _XGBRegressor
-        self.thermostat = thermostat
-        self.min_temp = -float('inf')
+    def __init__(self, engine_thermostat_temperature=100.0):
+        self.on = self.off = lambda *args: 0
+        self.thermostat = engine_thermostat_temperature
 
     # noinspection PyProtectedMember,PyPep8Naming
-    def fit(self, on_engine, temperature_derivatives, temperatures, *args):
-        """
-        Calibrates an engine temperature regression model to predict engine
-        temperatures.
-
-        This model returns the delta temperature function of temperature
-        (previous), acceleration, and power at the wheel.
-
-        :param on_engine:
-            If the engine is on [-].
-        :type on_engine: numpy.array
-
-        :param temperature_derivatives:
-            Derivative temperature vector [°C].
-        :type temperature_derivatives: numpy.array
-
-        :param temperatures:
-            Temperature vector [°C].
-        :type temperatures: numpy.array
-
-        :return:
-            The calibrated engine temperature regression model.
-        :rtype: ThermalModel
-        """
-        import sklearn.pipeline as sk_pip
-        X, Y = _build_samples(temperature_derivatives, temperatures, *args)
-        X, Y = _filter_temperature_samples(X, Y, on_engine, self.thermostat)
-        opt = {
-            'random_state': 0,
-            'max_depth': 2,
-            'n_estimators': int(min(300.0, 0.25 * (len(X) - 1)))
-        }
-
-        model = _SafeRANSACRegressor(
-            base_estimator=self.base_model(**opt),
-            random_state=0,
-            min_samples=0.85,
-            max_trials=10
+    def fit(self, engine_coolant_temperatures, engine_temperature_derivatives,
+            on_engine, velocities, engine_speeds_out_hot, accelerations):
+        opt = dict(
+            base_estimator=_XGBRegressor(random_state=0),
+            random_state=0, min_samples=0.85, max_trials=10
         )
-
-        model = sk_pip.Pipeline([
-            ('feature_selection', _SelectFromModel(model, '0.8*median',
-                                                   in_mask=(0, 2))),
-            ('classification', model)
-        ])
-        model.fit(X, Y)
-
-        self.model = model.steps[-1][-1]
-        self.mask = np.where(model.steps[0][-1]._get_support_mask())[0]
-
-        self.min_temp = X[:, 0].min()
-        i = co2_utl.argmax(self.thermostat <= X[:, 0])
-        X, Y = X[:i], Y[:i]
-
-        if not X.any():
-            self.min_temp = -float('inf')
-            return self
-        i = co2_utl.argmax(np.percentile(X[:, 0], 60) <= X[:, 0])
-        X, Y = X[:i], Y[:i]
-        opt = {
-            'random_state': 0,
-            'max_depth': 2,
-            'n_estimators': int(min(300.0, 0.25 * (len(X) - 1)))
-        }
-        model = self.base_model(**opt)
-        model = sk_pip.Pipeline([
-            ('feature_selection', _SelectFromModel(model, '0.8*median',
-                                                   in_mask=(1,))),
-            ('classification', model)
-        ])
-        model.fit(X[:, 1:], Y)
-        self.cold = model.steps[-1][-1]
-        self.mask_cold = np.where(model.steps[0][-1]._get_support_mask())[0] + 1
-
+        x = np.column_stack((velocities, np.append(
+            [engine_coolant_temperatures[0]], engine_coolant_temperatures[:-1]
+        ), engine_speeds_out_hot, accelerations))
+        self.on = _SafeRANSACRegressor(**opt).fit(
+            x[on_engine, 1:], engine_temperature_derivatives[on_engine]
+        ).predict
+        if ~on_engine.all():
+            self.off = _SafeRANSACRegressor(**opt).fit(
+                x[~on_engine, :2], engine_temperature_derivatives[~on_engine]
+            ).predict
         return self
 
-    def __call__(self, deltas_t, *args, initial_temperature=23, max_temp=100.0):
-        func, temp = self.temperature, np.zeros(len(deltas_t) + 1, dtype=float)
-        t = temp[0] = initial_temperature
-
-        for i, a in enumerate(zip(*((deltas_t,) + args)), start=1):
-            temp[i] = t = func(*a, prev_temp=t, max_temp=max_temp)
-
+    def __call__(self, times, on_engine, velocities, engine_speeds_out_hot,
+                 accelerations, initial_temperature=23, max_temp=100.0):
+        t, temp = initial_temperature, np.zeros_like(times, dtype=float)
+        it = enumerate(zip(
+            np.ediff1d(times, to_begin=0), on_engine, velocities, accelerations,
+            engine_speeds_out_hot,
+        ))
+        x = np.array([[.0] * 4])
+        for i, (dt, b, v, a, s) in it:
+            x[:] = v, t, s, a
+            t += (self.on(x[:, 1:]) if b else self.off(x[:, :2])) * dt
+            temp[i] = t = min(t, max_temp)
         return temp
-
-    def temperature(self, dt, *args, prev_temp=23, max_temp=100.0):
-        if prev_temp < self.min_temp:
-            model, mask = self.cold, self.mask_cold
-        else:
-            model, mask = self.model, self.mask
-
-        delta_temp = self._derivative(model, mask, prev_temp, *args) * dt
-
-        return min(prev_temp + delta_temp, max_temp)
-
-    @staticmethod
-    def _derivative(model, mask, *args):
-        return model.predict(np.array([args])[:, mask])[0]
 
 
 # noinspection PyMissingOrEmptyDocstring

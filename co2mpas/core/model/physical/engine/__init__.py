@@ -554,7 +554,7 @@ dsp.add_dispatcher(
         'max_engine_coolant_temperature', 'initial_engine_temperature', 'times',
         'engine_thermostat_temperature_window', 'engine_thermostat_temperature',
         'engine_temperature_regression_model', 'idle_engine_speed', 'on_engine',
-        'gross_engine_powers_out', 'gear_box_powers_out'
+        'gear_box_powers_out', 'velocities'
     ),
     outputs=(
         'engine_temperature_derivatives', 'engine_temperature_prediction_model',

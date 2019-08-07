@@ -65,9 +65,9 @@ def identify_max_engine_coolant_temperature(engine_coolant_temperatures):
 
 @sh.add_function(dsp, outputs=['engine_temperature_regression_model'])
 def calibrate_engine_temperature_regression_model(
-        engine_thermostat_temperature, on_engine,
-        engine_temperature_derivatives, engine_coolant_temperatures,
-        gross_engine_powers_out, engine_speeds_out_hot, accelerations):
+        engine_thermostat_temperature, engine_coolant_temperatures, velocities,
+        engine_temperature_derivatives, on_engine, engine_speeds_out_hot,
+        accelerations):
     """
     Calibrates an engine temperature regression model to predict engine
     temperatures.
@@ -88,9 +88,9 @@ def calibrate_engine_temperature_regression_model(
         Engine coolant temperature vector [°C].
     :type engine_coolant_temperatures: numpy.array
 
-    :param gross_engine_powers_out:
-        Gross engine power (pre-losses) [kW].
-    :type gross_engine_powers_out: numpy.array
+    :param velocities:
+        Velocity [km/h].
+    :type velocities: numpy.array
 
     :param engine_speeds_out_hot:
         Engine speed at hot condition [RPM].
@@ -106,15 +106,14 @@ def calibrate_engine_temperature_regression_model(
     """
     from ._thermal import ThermalModel
     return ThermalModel(engine_thermostat_temperature).fit(
-        on_engine, engine_temperature_derivatives,
-        engine_coolant_temperatures, gross_engine_powers_out,
-        engine_speeds_out_hot, accelerations
+        engine_coolant_temperatures, engine_temperature_derivatives, on_engine,
+        velocities, engine_speeds_out_hot, accelerations
     )
 
 
 @sh.add_function(dsp, outputs=['engine_coolant_temperatures'])
 def predict_engine_coolant_temperatures(
-        engine_temperature_regression_model, times, gross_engine_powers_out,
+        engine_temperature_regression_model, times, on_engine, velocities,
         engine_speeds_out_hot, accelerations, initial_engine_temperature,
         max_engine_coolant_temperature):
     """
@@ -132,9 +131,13 @@ def predict_engine_coolant_temperatures(
         Acceleration vector [m/s2].
     :type accelerations: numpy.array
 
-    :param gross_engine_powers_out:
-        Gross engine power (pre-losses) [kW].
-    :type gross_engine_powers_out: numpy.array
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :param velocities:
+        Velocity [km/h].
+    :type velocities: numpy.array
 
     :param engine_speeds_out_hot:
         Engine speed at hot condition [RPM].
@@ -152,14 +155,11 @@ def predict_engine_coolant_temperatures(
         Engine coolant temperature vector [°C].
     :rtype: numpy.array
     """
-
-    temp = engine_temperature_regression_model(
-        np.diff(times), gross_engine_powers_out, engine_speeds_out_hot,
-        accelerations, initial_temperature=initial_engine_temperature,
+    return engine_temperature_regression_model(
+        times, on_engine, velocities, engine_speeds_out_hot, accelerations,
+        initial_temperature=initial_engine_temperature,
         max_temp=max_engine_coolant_temperature
     )
-
-    return temp
 
 
 # noinspection PyPep8Naming
@@ -199,8 +199,7 @@ def identify_engine_thermostat_temperature(
         Engine thermostat temperature [°C].
     :rtype: float
     """
-    import xgboost as xgb
-    from ._thermal import _build_samples
+    from ._thermal import _build_samples, _XGBRegressor
     X, Y = _build_samples(
         engine_temperature_derivatives, engine_coolant_temperatures,
         gear_box_powers_out, engine_speeds_out_hot, accelerations
@@ -209,8 +208,7 @@ def identify_engine_thermostat_temperature(
     t_max, t_min = Y.max(), Y.min()
     b = (t_max - (t_max - t_min) / 3) <= Y
 
-    model = xgb.XGBRegressor()
-    model.fit(X[b], Y[b])
+    model = _XGBRegressor().fit(X[b], Y[b])
     ratio = np.arange(1, 1.5, 0.1) * idle_engine_speed[0]
     spl = np.zeros((len(ratio), 4))
     spl[:, 2] = ratio
