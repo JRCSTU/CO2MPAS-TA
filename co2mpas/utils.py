@@ -8,6 +8,7 @@
 """
 It contains classes and functions of general utility.
 """
+import contextlib
 import schedula as sh
 import statistics
 import numpy as np
@@ -93,6 +94,23 @@ class List(list):
 
     def toarray(self, dtype=None, *args, **kwargs):
         return np.array(self, dtype or self.dtype, *args, **kwargs)
+
+
+@contextlib.contextmanager
+def numpy_random_seed(seed):
+    """
+    Set temporary the numpy random state.
+
+    :param seed:
+        Seed for `RandomState`.
+    :type seed: int
+    """
+    state = np.random.get_state()
+    np.random.seed(seed)
+    try:
+        yield
+    finally:
+        np.random.set_state(state)
 
 
 def argmax(values, **kws):

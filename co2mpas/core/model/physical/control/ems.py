@@ -10,6 +10,7 @@ Functions and a model `dsp` to model the Energy Management System.
 import numpy as np
 import schedula as sh
 from ..defaults import dfl
+import co2mpas.utils as co2_utl
 
 dsp = sh.BlueDispatcher(
     name='ems',
@@ -925,8 +926,9 @@ class StartStopHybrid:
         p.add('soc0', 0, min=0, max=100)
         p.add('alpha', 0, min=0)
         p.add('beta', 0, min=0)
-        # noinspection PyUnresolvedReferences
-        self.params = lmfit.minimize(_, p, method='ampgo').params.valuesdict()
+        with co2_utl.numpy_random_seed(0):
+            # noinspection PyUnresolvedReferences
+            self.params = lmfit.minimize(_, p, 'ampgo').params.valuesdict()
         return self
 
     @staticmethod
