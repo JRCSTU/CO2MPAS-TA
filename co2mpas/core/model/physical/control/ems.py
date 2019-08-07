@@ -932,7 +932,7 @@ class StartStopHybrid:
     @staticmethod
     def _k(p, soc):
         dsoc = soc - p['soc0']
-        return p['alpha'] * dsoc + p['beta'] * dsoc ** 3 + p['k0']
+        return dsoc * (p['alpha'] + p['beta'] * dsoc ** 2) + p['k0']
 
     def __call__(self, drive_battery_state_of_charges):
         return self._k(self.params, drive_battery_state_of_charges)
