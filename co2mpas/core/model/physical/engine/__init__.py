@@ -27,7 +27,6 @@ import numpy as np
 import schedula as sh
 from ..defaults import dfl
 from .idle import dsp as _idle
-from co2mpas.utils import BaseModel
 from .thermal import dsp as _thermal
 from .cold_start import dsp as _cold_start
 from .co2_emission import dsp as _co2_emission
@@ -557,10 +556,10 @@ dsp.add_dispatcher(
         'gear_box_powers_out', 'velocities'
     ),
     outputs=(
-        'engine_temperature_derivatives', 'engine_temperature_prediction_model',
         'engine_thermostat_temperature_window', 'engine_thermostat_temperature',
         'engine_temperature_regression_model', 'max_engine_coolant_temperature',
-        'engine_coolant_temperatures', 'initial_engine_temperature',
+        'engine_temperature_derivatives', 'engine_coolant_temperatures',
+        'initial_engine_temperature',
     )
 )
 
@@ -1042,116 +1041,3 @@ dsp.add_dispatcher(
     ),
     inp_weight={'co2_params': dfl.EPS}
 )
-
-
-# noinspection PyMissingOrEmptyDocstring
-class EngineModel(BaseModel):
-    key_outputs = (
-        'on_engine', 'engine_starts', 'engine_speeds_out_hot',
-        'engine_coolant_temperatures'
-    )
-    contract_outputs = 'engine_coolant_temperatures',
-    types = {
-        float: {'engine_speeds_out_hot', 'engine_coolant_temperatures'},
-        bool: {'on_engine', 'engine_starts'}
-    }
-
-    def __init__(self,
-                 start_stop_prediction_model=None, idle_engine_speed=None,
-                 engine_temperature_prediction_model=None, outputs=None):
-        self.start_stop_prediction_model = start_stop_prediction_model
-        self.idle_engine_speed = idle_engine_speed
-        self.engine_temperature_prediction_model = \
-            engine_temperature_prediction_model
-        super(EngineModel, self).__init__(outputs)
-
-    def set_outputs(self, outputs=None):
-        super(EngineModel, self).set_outputs(outputs)
-
-        if self.start_stop_prediction_model:
-            self.start_stop_prediction_model.set_outputs(outputs)
-        if self.engine_temperature_prediction_model:
-            self.engine_temperature_prediction_model.set_outputs(outputs)
-
-    def init_on_start(self, times, velocities, accelerations,
-                      engine_coolant_temperatures, state_of_charges, gears):
-        return self.start_stop_prediction_model.init_results(
-            times, velocities, accelerations, engine_coolant_temperatures,
-            state_of_charges, gears
-        )
-
-    def init_speed(self, on_engine, gear_box_speeds_in):
-        key = 'engine_speeds_out_hot'
-        if self._outputs is not None and key in self._outputs:
-            out = self._outputs[key]
-            return lambda i: out[i]
-
-        def _next(i):
-            return calculate_engine_speeds_out_hot(
-                gear_box_speeds_in[i], on_engine[i], self.idle_engine_speed
-            )
-
-        return _next
-
-    def init_thermal(self, times, accelerations, final_drive_powers_in,
-                     engine_speeds_out_hot):
-        return self.engine_temperature_prediction_model.init_results(
-            times, accelerations, final_drive_powers_in, engine_speeds_out_hot
-        )
-
-    def init_results(self, times, velocities, accelerations, state_of_charges,
-                     final_drive_powers_in, gears, gear_box_speeds_in):
-        outputs = self.outputs
-        on_engine, temp, starts, speeds = (
-            outputs['on_engine'], outputs['engine_coolant_temperatures'],
-            outputs['engine_starts'], outputs['engine_speeds_out_hot']
-        )
-        ss_gen = self.init_on_start(
-            times, velocities, accelerations, temp, state_of_charges, gears
-        )
-        s_gen = self.init_speed(on_engine, gear_box_speeds_in)
-        t_gen = self.init_thermal(
-            times, accelerations, final_drive_powers_in, speeds
-        )
-
-        def _next(i):
-            on_engine[i], starts[i] = on, start = ss_gen(i)
-            speeds[i] = eng_s = s_gen(i)
-            try:
-                temp[i + 1] = t_gen(i)
-            except IndexError:
-                pass
-            return on, start, eng_s, temp[i]
-
-        return _next
-
-
-@sh.add_function(dsp, outputs=['engine_prediction_model'], weight=4000)
-def define_engine_prediction_model(
-        start_stop_prediction_model, idle_engine_speed,
-        engine_temperature_prediction_model):
-    """
-    Defines the engine prediction model.
-
-    :param start_stop_prediction_model:
-        Engine start/stop prediction model.
-    :type start_stop_prediction_model: EngineStartStopModel
-
-    :param idle_engine_speed:
-        Engine speed idle median and std [RPM].
-    :type idle_engine_speed: (float, float)
-
-    :param engine_temperature_prediction_model:
-        Engine temperature prediction model.
-    :type engine_temperature_prediction_model: .thermal.EngineTemperatureModel
-
-    :return:
-        Engine prediction model.
-    :rtype: EngineModel
-    """
-    model = EngineModel(
-        start_stop_prediction_model, idle_engine_speed,
-        engine_temperature_prediction_model
-    )
-
-    return model

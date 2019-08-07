@@ -55,22 +55,19 @@ dsp.add_dispatcher(
     dsp_id='driver_model',
     dsp=_driver,
     inputs=(
-        'accelerations', 'bag_phases', 'cycle_type', 'downscale_factor',
-        'downscale_factor_threshold', 'downscale_phases', 'engine_max_power',
-        'engine_max_speed', 'engine_speed_at_max_power', 'full_load_curve',
-        'gear_box_type', 'gears', 'idle_engine_speed', 'inertial_factor', 'k1',
-        'k2', 'k5', 'max_gear', 'wltp_class', 'max_speed_velocity_ratio',
-        'max_time', 'max_velocity', 'motive_powers', 'road_loads',
-        'speed_velocity_ratios', 'time_sample_frequency', 'times',
-        'unladen_mass', 'vehicle_mass', 'velocities', 'wltp_base_model',
-        'use_driver', 'path_velocities', 'path_distances', 'static_friction',
-        'wheel_drive_load_fraction', 'distances', 'auxiliaries_power_loss',
-        'auxiliaries_torque_loss', 'maximum_velocity', 'engine_moment_inertia',
-        'driver_style_ratio', 'driver_style'
+        'max_speed_velocity_ratio', 'engine_speed_at_max_power', 'unladen_mass',
+        'downscale_factor_threshold', 'speed_velocity_ratios', 'path_distances',
+        'time_sample_frequency', 'driver_style_ratio', 'downscale_factor', 'k1',
+        'idle_engine_speed', 'downscale_phases', 'engine_max_power', 'max_gear',
+        'path_velocities', 'wltp_base_model', 'inertial_factor', 'vehicle_mass',
+        'engine_max_speed', 'full_load_curve', 'accelerations', 'motive_powers',
+        'gear_box_type', 'road_loads', 'cycle_type', 'use_driver', 'wltp_class',
+        'max_velocity', 'velocities', 'distances', 'driver_style', 'bag_phases',
+        'max_time', 'times', 'gears', 'k2', 'k5',
     ),
     outputs=(
-        'gears', 'initial_temperature', 'phases_integration_times', 'times',
-        'velocities', 'driver_prediction_model', 'desired_velocities'
+        'initial_temperature', 'phases_integration_times', 'desired_velocities',
+        'times', 'velocities', 'gears',
     )
 )
 
@@ -79,24 +76,23 @@ dsp.add_dispatcher(
     dsp_id='vehicle_model',
     dsp=_vehicle,
     inputs=(
-        'aerodynamic_drag_coefficient', 'air_density', 'angle_slope',
-        'angle_slopes', 'cargo_mass', 'correct_f0', 'cycle_type', 'curb_mass',
-        'elevations', 'f0', 'f0_uncorrected', 'f1', 'f2', 'frontal_area',
-        'fuel_mass', 'has_roof_box', 'inertial_factor', 'n_dyno_axes',
-        'n_passengers', 'n_wheel_drive', 'obd_velocities', 'passenger_mass',
-        'road_loads', 'rolling_resistance_coeff', 'times', 'tyre_category',
-        'tyre_class', 'unladen_mass', 'vehicle_body', 'vehicle_category',
-        'vehicle_height', 'vehicle_mass', 'vehicle_width', 'velocities',
-        'traction_acceleration_limit', 'traction_deceleration_limit',
-        'wheel_drive_load_fraction', 'n_wheel', 'tyre_state', 'road_state',
-        'static_friction', 'initial_velocity'
+        'traction_acceleration_limit', 'traction_deceleration_limit', 'n_wheel',
+        'aerodynamic_drag_coefficient', 'rolling_resistance_coeff', 'fuel_mass',
+        'wheel_drive_load_fraction', 'n_wheel_drive', 'obd_velocities', 'times',
+        'static_friction', 'initial_velocity', 'tyre_category', 'vehicle_width',
+        'vehicle_body', 'road_state', 'cargo_mass', 'angle_slope', 'tyre_class',
+        'n_passengers', 'passenger_mass', 'air_density', 'f0_uncorrected', 'f1',
+        'n_dyno_axes', 'velocities', 'angle_slopes', 'correct_f0', 'cycle_type',
+        'curb_mass', 'elevations', 'frontal_area', 'has_roof_box', 'road_loads',
+        'unladen_mass', 'inertial_factor', 'vehicle_height', 'vehicle_category',
+        'tyre_state', 'vehicle_mass', 'f0', 'f2',
     ),
     outputs=(
-        'accelerations', 'angle_slopes', 'curb_mass', 'distances', 'f0', 'f1',
-        'f2', 'inertial_factor', 'motive_powers', 'n_dyno_axes', 'road_loads',
-        'unladen_mass', 'vehicle_mass', 'velocities', 'static_friction',
-        'vehicle_prediction_model', 'wheel_drive_load_fraction',
-        'traction_acceleration_limit', 'traction_deceleration_limit'
+        'wheel_drive_load_fraction', 'traction_acceleration_limit', 'curb_mass',
+        'traction_deceleration_limit', 'inertial_factor', 'motive_powers', 'f0',
+        'static_friction', 'accelerations', 'angle_slopes', 'n_dyno_axes', 'f1',
+        'unladen_mass', 'vehicle_mass', 'velocities', 'road_loads', 'distances',
+        'f2',
     )
 )
 
@@ -115,7 +111,6 @@ dsp.add_dispatcher(
     outputs=(
         'r_dynamic', 'r_wheels', 'tyre_code', 'wheel_powers', 'wheel_speeds',
         'tyre_dynamic_rolling_coefficient', 'wheel_torques',
-        'wheels_prediction_model'
     ),
     inp_weight={'r_dynamic': 3}
 )
@@ -152,8 +147,7 @@ dsp.add_dispatcher(
     ),
     outputs=(
         'final_drive_powers_in', 'final_drive_ratios', 'final_drive_speeds_in',
-        'final_drive_torques_in', 'final_drive_prediction_model',
-        'final_drive_mean_efficiency'
+        'final_drive_torques_in', 'final_drive_mean_efficiency'
     )
 )
 
@@ -214,8 +208,7 @@ dsp.add_dispatcher(
         'gear_box_torque_losses', 'gear_box_torques_in', 'gear_shifts', 'gears',
         'last_gear_box_ratio', 'max_gear', 'max_speed_velocity_ratio',
         'maximum_velocity', 'specific_gear_shifting', 'velocity_speed_ratios',
-        'speed_velocity_ratios', 'gear_box_prediction_model', 'n_gears',
-        'gear_box_mean_efficiency'
+        'speed_velocity_ratios', 'n_gears', 'gear_box_mean_efficiency'
     ),
     inp_weight={'initial_temperature': 5}
 )
@@ -259,8 +252,7 @@ dsp.add_dispatcher(
         'clutch_speed_model', 'clutch_phases', 'clutch_tc_mean_efficiency',
         'clutch_window', 'clutch_tc_speeds_delta', 'has_torque_converter',
         'lockup_speed_ratio', 'stand_still_torque_ratio', 'm1000_curve_factor',
-        'torque_converter_speed_model', 'clutch_tc_prediction_model',
-        'clutch_tc_powers', 'clutch_tc_speeds'
+        'torque_converter_speed_model', 'clutch_tc_powers', 'clutch_tc_speeds'
     )
 )
 
@@ -389,7 +381,6 @@ dsp.add_dispatcher(
         'idle_engine_speed_median', 'idle_engine_speed_std', 'full_load_powers',
         'ki_multiplicative', 'max_engine_coolant_temperature', 'missing_powers',
         'fuel_map', 'optimal_efficiency', 'phases_co2_emissions', 'ki_additive',
-        'engine_prediction_model', 'full_load_speeds', 'auxiliaries_power_loss',
         'co2_emission_value', 'active_variable_valves', 'engine_speeds_out_hot',
         'engine_temperature_regression_model', 'engine_speeds_out', 'fuel_type',
         'engine_thermostat_temperature', 'engine_thermostat_temperature_window',
@@ -407,10 +398,11 @@ dsp.add_dispatcher(
         'co2_error_function_on_emissions', 'calibration_status', 'brake_powers',
         'engine_speed_at_max_power', 'belt_mean_efficiency', 'engine_max_power',
         'initial_engine_temperature', 'auxiliaries_torque_loss', 'fuel_density',
+        'co2_rescaling_scores', 'auxiliaries_power_loss', 'co2_emissions_model',
         'extended_phases_integration_times', 'engine_fuel_lower_heating_value',
         'co2_error_function_on_phases', 'engine_coolant_temperatures',
         'cold_start_speeds_phases', 'phases_fuel_consumptions',
-        'co2_rescaling_scores', 'co2_emissions_model',
+        'full_load_speeds',
     ),
     inp_weight={'initial_temperature': 5}
 )
@@ -452,151 +444,3 @@ dsp.add_dispatcher(
         'catalyst_warm_up'
     )
 )
-
-OUTPUTS_PREDICTION_LOOP = [
-    'times',
-    'accelerations',
-
-    'velocities',
-    'distances',
-    'angle_slopes',
-    'motive_powers',
-
-    'wheel_torques',
-    'wheel_speeds',
-    'wheel_powers',
-
-    'final_drive_powers_in',
-    'final_drive_torques_in',
-    'final_drive_speeds_in',
-
-    'gears',
-    'gear_box_torques_in',
-    'gear_box_temperatures',
-    'gear_box_speeds_in',
-    'gear_box_powers_in',
-    'gear_box_efficiencies',
-
-    'engine_starts',
-    'on_engine',
-    'engine_speeds_out_hot',
-    'engine_coolant_temperatures',
-
-    'alternator_currents',
-    'alternator_statuses',
-    'alternator_powers',
-    'battery_currents',
-    'state_of_charges',
-
-    'clutch_phases',
-    'clutch_tc_speeds_delta',
-    'clutch_tc_powers'
-]
-
-
-@sh.add_function(dsp, outputs=OUTPUTS_PREDICTION_LOOP, weight=10)
-def prediction_loop(
-        driver_prediction_model, vehicle_prediction_model,
-        wheels_prediction_model, final_drive_prediction_model,
-        gear_box_prediction_model, engine_prediction_model,
-        electrics_prediction_model, clutch_tc_prediction_model):
-    """
-    Predicts vehicle time-series.
-
-    :param driver_prediction_model:
-        Driver prediction model.
-    :type driver_prediction_model: .driver.DriverModel
-
-    :param vehicle_prediction_model:
-        Vehicle prediction model.
-    :type vehicle_prediction_model: .vehicle.VehicleModel
-
-    :param wheels_prediction_model:
-        Wheels prediction model.
-    :type wheels_prediction_model: .wheels.WheelsModel
-
-    :param final_drive_prediction_model:
-        Final drive prediction model.
-    :type final_drive_prediction_model: .final_drive.FinalDriveModel
-
-    :param gear_box_prediction_model:
-        Gear box prediction model.
-    :type gear_box_prediction_model: .gear_box.GearBoxModel
-
-    :param engine_prediction_model:
-        Engine prediction model.
-    :type engine_prediction_model: .engine.EngineModel
-
-    :param electrics_prediction_model:
-        Electrics prediction model.
-    :type electrics_prediction_model: .electrics.ElectricModel
-
-    :param clutch_tc_prediction_model:
-        Clutch or torque converter prediction model.
-    :type clutch_tc_prediction_model: .clutch_tc.ClutchTCModel
-
-    :return:
-        Vehicle time-series
-    :rtype: tuple[numpy.array]
-    """
-    outputs = {}
-    driver_prediction_model.set_outputs(outputs)
-    vehicle_prediction_model.set_outputs(outputs)
-    wheels_prediction_model.set_outputs(outputs)
-    final_drive_prediction_model.set_outputs(outputs)
-    gear_box_prediction_model.set_outputs(outputs)
-    engine_prediction_model.set_outputs(outputs)
-    electrics_prediction_model.set_outputs(outputs)
-    clutch_tc_prediction_model.set_outputs(outputs)
-
-    vhl = vehicle_prediction_model.init_results(
-        outputs['times'], outputs['accelerations']
-    )
-
-    whl = wheels_prediction_model.init_results(
-        outputs['velocities'], outputs['motive_powers']
-    )
-
-    fd = final_drive_prediction_model.init_results(
-        outputs['gears'], outputs['wheel_speeds'], outputs['wheel_torques'],
-        outputs['wheel_powers']
-    )
-
-    gb = gear_box_prediction_model.init_results(
-        outputs['times'], outputs['velocities'], outputs['accelerations'],
-        outputs['motive_powers'], outputs['engine_coolant_temperatures'],
-        outputs['final_drive_speeds_in'], outputs['final_drive_powers_in']
-    )
-
-    eng = engine_prediction_model.init_results(
-        outputs['times'], outputs['velocities'], outputs['accelerations'],
-        outputs['state_of_charges'], outputs['final_drive_powers_in'],
-        outputs['gears'], outputs['gear_box_speeds_in']
-    )
-
-    ele = electrics_prediction_model.init_results(
-        outputs['times'], outputs['accelerations'], outputs['on_engine'],
-        outputs['engine_starts'], outputs['gear_box_powers_in']
-    )
-
-    ctc = clutch_tc_prediction_model.init_results(
-        outputs['accelerations'], outputs['velocities'],
-        outputs['gear_box_speeds_in'], outputs['gears'], outputs['times'],
-        outputs['gear_box_powers_in'], outputs['engine_speeds_out_hot'],
-        outputs['gear_box_torques_in']
-    )
-
-    for _ in driver_prediction_model.yield_results(
-            vhl, whl, fd, gb, eng, ele, ctc):
-        pass
-
-    driver_prediction_model.format_results()
-    vehicle_prediction_model.format_results()
-    wheels_prediction_model.format_results()
-    final_drive_prediction_model.format_results()
-    gear_box_prediction_model.format_results()
-    engine_prediction_model.format_results()
-    electrics_prediction_model.format_results()
-    clutch_tc_prediction_model.format_results()
-
-    return sh.selector(OUTPUTS_PREDICTION_LOOP, outputs, output_type='list')

@@ -523,12 +523,6 @@ class Functions(co2_utl.Constants):
         theoretical = True
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-    class calibrate_clutch_prediction_model(co2_utl.Constants):
-        #: Delta time that identifies the previous engine speed to calibrate
-        #: the clutch model [s].
-        prev_dt = 1
-
-    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class _tech_mult_factors(co2_utl.Constants):
         #: Multiplication factors of the engine parameters [-].
         factors = {

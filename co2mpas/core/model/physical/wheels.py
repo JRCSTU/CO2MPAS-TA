@@ -11,7 +11,6 @@ import math
 import regex
 import schedula as sh
 from .defaults import dfl
-from co2mpas.utils import BaseModel
 
 dsp = sh.BlueDispatcher(
     name='Wheel model', description='It models the wheel dynamics.'
@@ -72,7 +71,8 @@ def calculate_wheel_torques(wheel_powers, wheel_speeds, coef=30000 / math.pi):
     """
     import numpy as np
     with np.errstate(divide='ignore', invalid='ignore'):
-        return np.where(wheel_speeds, np.divide(wheel_powers, wheel_speeds) * coef, 0)
+        torques = np.divide(wheel_powers, wheel_speeds) * coef
+        return np.where(wheel_speeds, torques, 0)
 
 
 @sh.add_function(dsp, outputs=['wheel_powers'])
@@ -644,106 +644,3 @@ def identify_tyre_dynamic_rolling_coefficient(r_wheels, r_dynamic):
 dsp.add_function(
     function=sh.bypass, inputs=['motive_powers'], outputs=['wheel_powers']
 )
-
-
-# noinspection PyMissingOrEmptyDocstring
-class WheelsModel(BaseModel):
-    key_outputs = [
-        'wheel_speeds',
-        'wheel_powers',
-        'wheel_torques'
-    ]
-    types = {float: set(key_outputs)}
-
-    def __init__(self, r_dynamic=None, outputs=None):
-        self.r_dynamic = r_dynamic
-        super(WheelsModel, self).__init__(outputs)
-
-    def init_speed(self, velocities):
-        key = 'wheel_speeds'
-        if self._outputs is not None and key in self._outputs:
-            out = self._outputs[key]
-            return lambda i: out[i]
-        func = _compile_speed_function(self.r_dynamic)
-        return lambda i: func(velocities[i])
-
-    def init_power(self, motive_powers):
-        key = 'wheel_powers'
-        if self._outputs is not None and key in self._outputs:
-            out = self._outputs[key]
-        else:
-            out = motive_powers
-        return lambda i: out[i]
-
-    def init_torque(self, wheel_powers, wheel_speeds):
-        key = 'wheel_torques'
-        if self._outputs is not None and key in self._outputs:
-            out = self._outputs[key]
-            return lambda i: out[i]
-
-        def _next(i):
-            return calculate_wheel_torques(wheel_powers[i], wheel_speeds[i])
-
-        return _next
-
-    def init_results(self, velocities, motive_powers):
-        out = self.outputs
-        powers, speeds, torques = (
-            out['wheel_powers'], out['wheel_speeds'], out['wheel_torques']
-        )
-        s_gen = self.init_speed(velocities)
-        p_gen = self.init_power(motive_powers)
-        t_gen = self.init_torque(powers, speeds)
-
-        def _next(i):
-            speeds[i], powers[i] = (s, p) = s_gen(i), p_gen(i)
-            torques[i] = t = t_gen(i)
-            return s, p, t
-
-        return _next
-
-
-@sh.add_function(dsp, outputs=['wheels_prediction_model'])
-def define_fake_wheels_prediction_model(
-        wheel_speeds, wheel_powers, wheel_torques):
-    """
-    Defines a fake wheels prediction model.
-
-    :param wheel_speeds:
-        Rotating speed of the wheel [RPM].
-    :type wheel_speeds: numpy.array
-
-    :param wheel_powers:
-        Power at the wheels [kW].
-    :type wheel_powers: numpy.array
-
-    :param wheel_torques:
-        Torque at the wheel [N*m].
-    :type wheel_torques: numpy.array
-
-    :return:
-        Wheels prediction model.
-    :rtype: WheelsModel
-    """
-    model = WheelsModel(outputs={
-        'wheel_speeds': wheel_speeds,
-        'wheel_powers': wheel_powers,
-        'wheel_torques': wheel_torques
-    })
-    return model
-
-
-@sh.add_function(dsp, outputs=['wheels_prediction_model'], weight=4000)
-def define_wheels_prediction_model(r_dynamic):
-    """
-    Defines the wheels prediction model.
-
-    :param r_dynamic:
-        Dynamic radius of the wheels [m].
-    :type r_dynamic: float
-
-    :return:
-        Wheels prediction model.
-    :rtype: WheelsModel
-    """
-    return WheelsModel(r_dynamic)

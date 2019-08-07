@@ -95,56 +95,6 @@ class List(list):
         return np.array(self, dtype or self.dtype, *args, **kwargs)
 
 
-# noinspection PyMissingOrEmptyDocstring
-class BaseModel:
-    key_outputs = ()
-    contract_outputs = ()
-    types = {}
-
-    def __init__(self, outputs=None):
-        self._outputs = outputs
-        self.outputs = None
-
-    def __call__(self, *args, n=None):
-        n = len(args[0]) if n is None else n
-        self.set_outputs()
-        for _ in self.yield_results(*args, n=n):
-            pass
-        self.format_results()
-        return sh.selector(self.key_outputs, self.outputs, output_type='list')
-
-    def format_results(self):
-        keys = self.contract_outputs
-        for k in self.key_outputs:
-            v = self.outputs[k]
-            if isinstance(v, List):
-                self.outputs[k] = (v[:-1] if k in keys else v).toarray()
-
-    def set_outputs(self, outputs=None):
-        if outputs is None:
-            outputs = {}
-        outputs.update(self._outputs or {})
-
-        for t, names in self.types.items():
-            for k in names - set(outputs):
-                outputs[k] = List(dtype=t)
-        self.outputs = outputs
-
-    def init_results(self, *args):
-        raise NotImplementedError
-
-    def yield_results(self, *args, n=-1):
-        i, _next = 0, self.init_results(*args)
-
-        while n != 0:
-            try:
-                yield _next(i)
-                i += 1
-                n -= 1
-            except StopIteration:
-                break
-
-
 def argmax(values, **kws):
     """
     Returns the indices of the maximum values along an axis.

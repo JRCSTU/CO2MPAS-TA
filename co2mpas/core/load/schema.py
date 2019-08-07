@@ -227,54 +227,6 @@ def _engine_temperature_regression_model(error=None, **kwargs):
 
 
 # noinspection PyUnusedLocal
-def _vehicle_prediction_model(error=None, **kwargs):
-    from ..model.physical.vehicle import VehicleModel
-    return _type(type=VehicleModel, error=error)
-
-
-# noinspection PyUnusedLocal
-def _driver_prediction_model(error=None, **kwargs):
-    from ..model.physical.driver import DriverModel
-    return _type(type=DriverModel, error=error)
-
-
-# noinspection PyUnusedLocal
-def _clutch_tc_prediction_model(error=None, **kwargs):
-    from ..model.physical.clutch_tc import ClutchTCModel
-    return _type(type=ClutchTCModel, error=error)
-
-
-# noinspection PyUnusedLocal
-def _electrics_prediction_model(error=None, **kwargs):
-    from ..model.physical.electrics import ElectricModel
-    return _type(type=ElectricModel, error=error)
-
-
-# noinspection PyUnusedLocal
-def _engine_prediction_model(error=None, **kwargs):
-    from ..model.physical.engine import EngineModel
-    return _type(type=EngineModel, error=error)
-
-
-# noinspection PyUnusedLocal
-def _gear_box_prediction_model(error=None, **kwargs):
-    from ..model.physical.gear_box import GearBoxModel
-    return _type(type=GearBoxModel, error=error)
-
-
-# noinspection PyUnusedLocal
-def _final_drive_prediction_model(error=None, **kwargs):
-    from ..model.physical.final_drive import FinalDriveModel
-    return _type(type=FinalDriveModel, error=error)
-
-
-# noinspection PyUnusedLocal
-def _wheels_prediction_model(error=None, **kwargs):
-    from ..model.physical.wheels import WheelsModel
-    return _type(type=WheelsModel, error=error)
-
-
-# noinspection PyUnusedLocal
 def _fmep_model(error=None, **kwargs):
     from ..model.physical.engine.co2_emission import FMEP
     return _type(type=FMEP, error=error)
@@ -631,7 +583,8 @@ def define_data_schema(read=True):
         'alternator_charging_currents': tuplefloat2,
         'alternator_current_model': _alternator_current_model(read=read),
         'dcdc_current_model': _alternator_current_model(read=read),
-        'service_battery_status_model': _service_battery_status_model(read=read),
+        'service_battery_status_model': _service_battery_status_model(
+            read=read),
         'clutch_speed_model': function,
         'co2_emissions_model': function,
         'co2_error_function_on_emissions': function,
@@ -656,15 +609,6 @@ def define_data_schema(read=True):
         'engine_thermostat_temperature_window': tuplefloat2,
         'engine_temperature_regression_model':
             _engine_temperature_regression_model(read=read),
-        'driver_prediction_model': _driver_prediction_model(read=read),
-        'vehicle_prediction_model': _vehicle_prediction_model(read=read),
-        # 'electrics_prediction_model': _electrics_prediction_model(read=read),
-        'engine_prediction_model': _engine_prediction_model(read=read),
-        'gear_box_prediction_model': _gear_box_prediction_model(read=read),
-        'final_drive_prediction_model':
-            _final_drive_prediction_model(read=read),
-        'clutch_tc_prediction_model': _clutch_tc_prediction_model(read=read),
-        'wheels_prediction_model': _wheels_prediction_model(read=read),
         'engine_type': string,
         'starter_model': function,
         'drive_battery_model': function,
