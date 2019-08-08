@@ -121,10 +121,11 @@ dsp.add_dispatcher(
         'dcdc_current_model', 'drive_battery_load', 'service_battery_currents',
         'service_battery_initialization_time', 'drive_battery_electric_powers',
         'initial_service_battery_state_of_charge', 'service_battery_capacity',
+        'motors_electric_powers', 'starter_currents', 'service_battery_model',
         'service_battery_electric_powers', 'drive_battery_n_parallel_cells',
         'service_battery_state_of_charge_balance', 'drive_battery_currents',
         'dcdc_converter_electric_powers_demand', 'drive_battery_voltages',
-        'starter_currents', 'dcdc_converter_efficiency', 'service_battery_model'
+        'dcdc_converter_efficiency',
     ),
     include_defaults=True
 )

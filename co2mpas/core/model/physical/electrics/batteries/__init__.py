@@ -81,6 +81,7 @@ dsp.add_dispatcher(
         'drive_battery_delta_state_of_charge', 'drive_battery_n_parallel_cells',
         'drive_battery_electric_powers', 'drive_battery_state_of_charges',
         'drive_battery_model', 'drive_battery_voltages',
+        'motors_electric_powers',
     ),
     include_defaults=True
 )

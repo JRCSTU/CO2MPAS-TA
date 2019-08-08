@@ -95,7 +95,7 @@ dsp.add_data(
 )
 
 
-@sh.add_function(dsp, outputs=['on_engine'])
+@sh.add_function(dsp, outputs=['on_engine'], weight=sh.inf(1, 0))
 def predict_on_engine(
         times, velocities, gears, accelerations, start_stop_model,
         start_stop_activation_time, min_time_engine_on_after_start,

@@ -289,7 +289,7 @@ class HEV:
         )
 
         def battery_power_split(battery_powers):
-            return bps(battery_powers - pb_ev) + bps_ev(pb_ev)
+            return bps(battery_powers - pb_ev.T) + bps_ev(pb_ev.T)
 
         return pi, pb + pb_ev, battery_power_split
 
@@ -1213,4 +1213,46 @@ def predict_motors_electric_powers(
     return np.choose(mode, [
         d['battery_power_split'](d['power_bat'].ravel(), engine_speeds_out_hot)
         for d in (ems_data[k] for k in ('electric', 'parallel', 'serial'))
+    ])
+
+
+@sh.add_function(dsp, outputs=[
+    'motor_p4_electric_powers', 'motor_p3_electric_powers',
+    'motor_p2_electric_powers', 'motor_p1_electric_powers',
+    'motor_p0_electric_powers'
+])
+def identify_motors_electric_powers(
+        hev_power_model, hybrid_modes, motive_powers, motors_maximums_powers,
+        motors_electric_powers):
+    """
+    Identify motors electric power split [kW].
+
+    :param hev_power_model:
+        Hybrid Electric Vehicle power balance model.
+    :type hev_power_model: HEV
+
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
+
+    :param hybrid_modes:
+        Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
+    :type hybrid_modes: numpy.array
+
+    :param motors_maximums_powers:
+        Maximum powers of electric motors [kW].
+    :type motors_maximums_powers: numpy.array
+
+    :param motors_electric_powers:
+        Cumulative motors electric power [kW].
+    :type motors_electric_powers: numpy.array
+
+    :return:
+        Motors electric powers [kW].
+    :rtype: tuple[numpy.array]
+    """
+    hev, pb = hev_power_model, -motors_electric_powers[None, :]
+    return np.choose(hybrid_modes, [
+        func(motive_powers, motors_maximums_powers, 0)[-1](pb)
+        for func in (hev.ev, hev.parallel, hev.serial)
     ])

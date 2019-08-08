@@ -149,7 +149,7 @@ def calculate_drive_battery_electric_powers_v1(
     :type drive_battery_loads: numpy.array
 
     :param motors_electric_powers:
-        Motors electric power [kW].
+        Cumulative motors electric power [kW].
     :type motors_electric_powers: numpy.array
 
     :param dcdc_converter_electric_powers_demand:
@@ -248,7 +248,7 @@ def calculate_drive_battery_loads(
     :type drive_battery_electric_powers: numpy.array
 
     :param motors_electric_powers:
-        Motors electric power [kW].
+        Cumulative motors electric power [kW].
     :type motors_electric_powers: numpy.array
 
     :param dcdc_converter_electric_powers_demand:
@@ -262,6 +262,9 @@ def calculate_drive_battery_loads(
     p = drive_battery_electric_powers + motors_electric_powers
     p -= dcdc_converter_electric_powers_demand
     return p
+
+
+dsp.add_data('drive_battery_load', 0, sh.inf(11, 0))
 
 
 @sh.add_function(dsp, outputs=['drive_battery_loads'])
@@ -576,11 +579,39 @@ def calculate_motors_electric_powers(
     :type motor_p4_electric_powers: numpy.array | float
 
     :return:
-        Motors electric power [kW].
+        Cumulative motors electric power [kW].
     :rtype: numpy.array | float
     """
     p = motor_p0_electric_powers + motor_p1_electric_powers
     p += motor_p2_electric_powers
     p += motor_p3_electric_powers
     p += motor_p4_electric_powers
+    return p
+
+
+@sh.add_function(dsp, outputs=['motors_electric_powers'])
+def calculate_motors_electric_powers_v1(
+        drive_battery_electric_powers, dcdc_converter_electric_powers_demand,
+        drive_battery_loads):
+    """
+    Calculates drive battery load vector [kW].
+
+    :param drive_battery_electric_powers:
+        Drive battery electric power [kW].
+    :type drive_battery_electric_powers: numpy.array
+
+    :param drive_battery_loads:
+        Drive battery load vector [kW].
+    :type drive_battery_loads: numpy.array
+
+    :param dcdc_converter_electric_powers_demand:
+        DC/DC converter electric power demand [kW].
+    :type dcdc_converter_electric_powers_demand: numpy.array
+
+    :return:
+        Cumulative motors electric power [kW].
+    :rtype: numpy.array
+    """
+    p = drive_battery_loads - drive_battery_electric_powers
+    p += dcdc_converter_electric_powers_demand
     return p
