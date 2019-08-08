@@ -127,9 +127,6 @@ class Values(co2_utl.Constants):
     #: Apply the eco-mode gear shifting?
     fuel_saving_at_strategy = True
 
-    #: Is the vehicle hybrid?
-    is_hybrid = False
-
     #: Cold and hot gear box reference temperatures [°C].
     gear_box_temperature_references = (40.0, 80.0)
 
