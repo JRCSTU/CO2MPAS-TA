@@ -130,10 +130,11 @@ def calculate_starter_currents(
 # noinspection PyMissingOrEmptyDocstring
 class StarterModel:
     def __init__(self, start_demand_function, starter_nominal_voltage,
-                 starter_efficiency):
+                 starter_efficiency, delta_time_engine_starter):
         self.power_demand = start_demand_function
         self.nominal_voltage = starter_nominal_voltage
         self.efficiency = starter_efficiency
+        self.time = delta_time_engine_starter
 
     def __call__(self, start_engine_speed):
         return calculate_starter_electric_powers(
@@ -143,7 +144,8 @@ class StarterModel:
 
 @sh.add_function(dsp, outputs=['starter_model'])
 def define_starter_model(
-        start_demand_function, starter_nominal_voltage, starter_efficiency):
+        start_demand_function, starter_nominal_voltage, starter_efficiency,
+        delta_time_engine_starter):
     """
     Defines the starter model.
 
@@ -159,10 +161,15 @@ def define_starter_model(
         Starter efficiency [-].
     :type starter_efficiency: float
 
+    :param delta_time_engine_starter:
+        Time elapsed to turn on the engine with electric starter [s].
+    :type delta_time_engine_starter: float
+
     :return:
         Starter model.
     :rtype: StarterModel
     """
     return StarterModel(
-        start_demand_function, starter_nominal_voltage, starter_efficiency
+        start_demand_function, starter_nominal_voltage, starter_efficiency,
+        delta_time_engine_starter
     )
