@@ -16,6 +16,7 @@ Sub-Modules:
 
     current
 """
+import numpy as np
 import schedula as sh
 from ....defaults import dfl
 from .current import dsp as _current
@@ -123,3 +124,25 @@ dsp.add_dispatcher(
     ),
     outputs=('alternator_current_model', 'alternator_currents')
 )
+
+
+@sh.add_function(dsp, outputs=['alternator_currents'], weight=sh.inf(10, 3))
+def default_alternator_currents(times, is_hybrid):
+    """
+    Return zero current if the vehicle is hybrid [A].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
+    :return:
+        Alternator currents [A].
+    :rtype: numpy.array
+    """
+    if is_hybrid:
+        return np.zeros_like(times, float)
+    return sh.NONE
