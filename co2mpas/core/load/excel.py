@@ -217,6 +217,7 @@ def _parse_key(scope='base', usage='input', **match):
 def _parse_values(data, default=None, where=''):
     default = default or {}
     for k, v in data.items():
+        k = k.strip(' ')
         match = _re_params_name.match(k) if k is not None else None
         if not match and default.get('scope') == 'meta':
             # noinspection PyTypeChecker
@@ -377,7 +378,7 @@ def parse_excel_file(input_file_name, input_file):
 
     xl_file, res, plans = pd.ExcelFile(input_file), {'base': {}}, []
     for sheet_name in xl_file.sheet_names:
-        match = _re_input_sheet_name.match(sheet_name)
+        match = _re_input_sheet_name.match(sheet_name.strip(' '))
         if not match:
             log.debug("Sheet name '%s' cannot be parsed!", sheet_name)
             continue
