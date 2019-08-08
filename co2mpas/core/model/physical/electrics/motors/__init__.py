@@ -43,7 +43,7 @@ dsp.add_dispatcher(
         'alternator_electric_powers', 'alternator_efficiency', 'accelerations',
         'service_battery_state_of_charges', 'service_battery_charging_statuses',
         'alternator_current_model', 'on_engine', 'alternator_charging_currents',
-        'service_battery_initialization_time', 'times',
+        'service_battery_initialization_time', 'times', 'is_hybrid',
     ),
     outputs=(
         'alternator_current_model', 'alternator_currents', 'alternator_powers',

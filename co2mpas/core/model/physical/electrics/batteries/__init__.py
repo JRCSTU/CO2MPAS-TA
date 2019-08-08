@@ -44,7 +44,7 @@ dsp.add_dispatcher(
         'dcdc_converter_electric_powers', 'service_battery_state_of_charges',
         'service_battery_state_of_charge_balance_window', 'motive_powers',
         'service_battery_loads', 'times', 'has_energy_recuperation',
-        'dcdc_current_model', 'alternator_current_model'
+        'dcdc_current_model', 'alternator_current_model',
     ),
     outputs=(
         'initial_service_battery_state_of_charge', 'service_battery_currents',
@@ -94,7 +94,7 @@ dsp.add_dispatcher(
         'dcdc_converter_electric_powers', 'service_battery_initialization_time',
         'service_battery_nominal_voltage', 'dcdc_converter_efficiency', 'times',
         'dcdc_converter_currents', 'dcdc_charging_currents', 'on_engine',
-        'dcdc_current_model',
+        'dcdc_current_model', 'is_hybrid',
     ),
     outputs=(
         'dcdc_converter_electric_powers_demand', 'dcdc_current_model',

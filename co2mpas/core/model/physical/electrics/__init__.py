@@ -103,10 +103,10 @@ dsp.add_dispatcher(
         'service_battery_currents', 'motor_p4_electric_powers', 'engine_starts',
         'service_battery_initialization_time', 'dcdc_converter_electric_powers',
         'has_energy_recuperation', 'drive_battery_voltages', 'starter_currents',
+        'dcdc_converter_currents', 'drive_battery_electric_powers', 'is_hybrid',
         'service_battery_state_of_charge_balance', 'dcdc_converter_efficiency',
         'drive_battery_n_parallel_cells', 'electrical_hybridization_degree',
-        'service_battery_capacity', 'drive_battery_electric_powers',
-        'dcdc_converter_currents', 'starter_electric_powers',
+        'service_battery_capacity', 'starter_electric_powers',
         'drive_battery_capacity', 'drive_battery_load',
     ),
     outputs=(
