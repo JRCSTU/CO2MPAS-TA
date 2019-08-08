@@ -157,3 +157,24 @@ def predict_dcdc_converter_currents(
         times, service_battery_state_of_charges,
         service_battery_charging_statuses
     )), init_time=service_battery_initialization_time)
+
+
+@sh.add_function(dsp, outputs=['dcdc_converter_currents'], weight=sh.inf(10, 3))
+def default_dcdc_converter_currents(times, is_hybrid):
+    """
+    Return zero current if the vehicle is not hybrid [A].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
+    :return:
+        DC/DC converter currents [A].
+    :rtype: numpy.array
+    """
+    from ..motors.p4 import default_motor_p4_powers as func
+    return func(times, is_hybrid)
