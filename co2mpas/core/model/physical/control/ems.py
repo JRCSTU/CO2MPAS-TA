@@ -347,9 +347,14 @@ def define_hev_power_model(motors_efficiencies, drive_line_efficiencies):
 
 @sh.add_function(dsp, outputs=['hybrid_modes'])
 def identify_hybrid_modes(
-        gear_box_speeds_in, engine_speeds_out, idle_engine_speed, on_engine):
+        times, gear_box_speeds_in, engine_speeds_out, idle_engine_speed,
+        on_engine):
     """
     Identify the hybrid mode status (0: EV, 1: Parallel, 2: Serial).
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
 
     :param gear_box_speeds_in:
         Gear box speed [RPM].
@@ -373,9 +378,10 @@ def identify_hybrid_modes(
     """
     mode = on_engine.astype(int)
     b = idle_engine_speed[0] > gear_box_speeds_in
-    b |= (gear_box_speeds_in - idle_engine_speed[1]) > engine_speeds_out
+    b |= (gear_box_speeds_in - idle_engine_speed[1] * 2) > engine_speeds_out
     mode[on_engine & b] = 2
-    return mode
+    mode = co2_utl.median_filter(times, mode, 4)
+    return co2_utl.clear_fluctuations(times, mode, 4).astype(int)
 
 
 @sh.add_function(dsp, outputs=['serial_motor_maximum_power_function'])
