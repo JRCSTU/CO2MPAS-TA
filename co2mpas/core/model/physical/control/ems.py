@@ -1109,8 +1109,11 @@ def predict_hybrid_modes(
     for i, (t, motive_power, acc, mode, k_ref, mode_ref) in it:
         pre_mode = hybrid_modes.take(i - 1, mode='clip')
         j = int(bool(pre_mode))
-        if not mode and (t < t0 or k_ref[j] > start_stop_hybrid(soc)):
-            mode = mode_ref
+        if not mode:
+            if t < t0:
+                mode = pre_mode
+            elif k_ref[j] > start_stop_hybrid(soc):
+                mode = mode_ref
         starter_curr = 0
         if bool(pre_mode) ^ bool(mode) and i:
             if mode:
