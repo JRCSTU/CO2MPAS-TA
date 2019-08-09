@@ -604,10 +604,12 @@ class EMS:
             times, motive_powers, motors_maximums_powers,
             battery_power_losses=battery_power_losses
         )
-        c_ser = np.column_stack((s['current_start'], -s['current_stop']))
-        k_ser = ((s['current_bat'] - e['current_bat'] + c_ser) / s['fc_ice']).T
-        c_par = np.column_stack((p['current_start'], -p['current_stop']))
-        k_par = ((p['current_bat'] - e['current_bat'] + c_par) / p['fc_ice']).T
+        with np.errstate(divide='ignore', invalid='ignore'):
+            k = 'current_bat'
+            c_ser = np.column_stack((s['current_start'], -s['current_stop']))
+            k_ser = ((s[k] - e[k] + c_ser) / s['fc_ice']).T
+            c_par = np.column_stack((p['current_start'], -p['current_stop']))
+            k_par = ((p[k] - e[k] + c_par) / p['fc_ice']).T
 
         fc_ser = s['fc_eq'] + np.column_stack((s['fc_start'], -s['fc_stop']))
         fc_par = p['fc_eq'] + np.column_stack((p['fc_start'], -p['fc_stop']))
@@ -913,7 +915,7 @@ class StartStopHybrid:
         k = np.where(~on_engine, *ems_data['k_reference'].T)
 
         # Filter data.
-        b = ~catalyst_warm_up & ~ ems_data['force_on_engine']
+        b = ~catalyst_warm_up & ~ems_data['force_on_engine'] & np.isfinite(k)
         s = np.where(on_engine[b], 1, -1)
         k, soc = k[b].T, drive_battery_state_of_charges[b]
         del b
