@@ -42,7 +42,7 @@ dsp.add_function(
 @sh.add_function(dsp, outputs=['motors_maximums_powers'])
 def define_motors_maximums_powers(
         motor_p4_maximum_powers, motor_p3_maximum_powers,
-        motor_p2_maximum_powers, hypothetical_engine_speeds,
+        motor_p2_maximum_powers, engine_speeds_parallel,
         motor_p1_maximum_power_function, motor_p1_speed_ratio,
         motor_p0_maximum_power_function, motor_p0_speed_ratio):
     """
@@ -60,9 +60,9 @@ def define_motors_maximums_powers(
         Maximum power vector of motor P2 [kW].
     :type motor_p2_maximum_powers: numpy.array
 
-    :param hypothetical_engine_speeds:
-        Hypothetical engine speed [RPM].
-    :type hypothetical_engine_speeds: numpy.array
+    :param engine_speeds_parallel:
+        Hypothetical engine speed in parallel mode [RPM].
+    :type engine_speeds_parallel: numpy.array
 
     :param motor_p1_maximum_power_function:
         Maximum power function of motor P1.
@@ -84,7 +84,7 @@ def define_motors_maximums_powers(
         Maximum powers of electric motors [kW].
     :rtype: numpy.array
     """
-    es, p2_powers = hypothetical_engine_speeds, motor_p2_maximum_powers
+    es, p2_powers = engine_speeds_parallel, motor_p2_maximum_powers
     return np.column_stack((
         motor_p4_maximum_powers, motor_p3_maximum_powers, p2_powers,
         motor_p1_maximum_power_function(es * motor_p1_speed_ratio),
@@ -125,10 +125,11 @@ def define_drive_line_efficiencies(
     )
 
 
-@sh.add_function(dsp, outputs=['hypothetical_engine_speeds'])
-def calculate_hypothetical_engine_speeds(gear_box_speeds_in, idle_engine_speed):
+@sh.add_function(dsp, outputs=['engine_speeds_parallel'],
+                 weight=sh.inf(11, 0))
+def calculate_engine_speeds_parallel(gear_box_speeds_in, idle_engine_speed):
     """
-    Calculate hypothetical engine speed [RPM].
+    Calculate hypothetical engine speed in parallel mode [RPM].
 
     :param gear_box_speeds_in:
         Gear box speed [RPM].
@@ -139,10 +140,40 @@ def calculate_hypothetical_engine_speeds(gear_box_speeds_in, idle_engine_speed):
     :type idle_engine_speed: (float, float)
 
     :return:
-        Hypothetical engine speed [RPM].
+        Hypothetical engine speed in parallel mode [RPM].
     :rtype: numpy.array | float
     """
     return np.maximum(gear_box_speeds_in, idle_engine_speed[0])
+
+
+@sh.add_function(dsp, outputs=['engine_speeds_parallel'])
+def calculate_engine_speeds_parallel_v1(
+        on_engine, engine_speeds_out, gear_box_speeds_in, idle_engine_speed):
+    """
+    Calculate hypothetical engine speed [RPM].
+
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :param engine_speeds_out:
+        Engine speed [RPM].
+    :type engine_speeds_out: numpy.array
+
+    :param gear_box_speeds_in:
+        Gear box speed [RPM].
+    :type gear_box_speeds_in: numpy.array | float
+
+    :param idle_engine_speed:
+        Idle engine speed and its standard deviation [RPM].
+    :type idle_engine_speed: (float, float)
+
+    :return:
+        Hypothetical engine speed in parallel mode [RPM].
+    :rtype: numpy.array | float
+    """
+    s = calculate_engine_speeds_parallel(gear_box_speeds_in, idle_engine_speed)
+    return np.where(on_engine, engine_speeds_out, s)
 
 
 def _invert(y, xp, fp):
@@ -593,11 +624,12 @@ class EMS:
         return res
 
     def __call__(self, times, motive_powers, motors_maximums_powers,
-                 gear_box_speeds_in, idle_engine_speed, battery_power_losses=0):
+                 gear_box_speeds_in, engine_speeds_parallel,
+                 idle_engine_speed, battery_power_losses=0):
         e = self.electric(motive_powers, motors_maximums_powers)
         p = self.parallel(
             times, motive_powers, motors_maximums_powers,
-            np.maximum(gear_box_speeds_in, idle_engine_speed[0]),
+            engine_speeds_parallel,
             battery_power_losses=battery_power_losses
         )
         s = self.serial(
@@ -755,7 +787,7 @@ def define_ems_model(
 @sh.add_function(dsp, outputs=['ems_data'])
 def calculate_ems_data(
         ems_model, times, motive_powers, motors_maximums_powers,
-        gear_box_speeds_in, idle_engine_speed):
+        gear_box_speeds_in, engine_speeds_parallel, idle_engine_speed):
     """
     Calculate EMS decision data.
 
@@ -779,6 +811,10 @@ def calculate_ems_data(
         Gear box speed [RPM].
     :type gear_box_speeds_in: numpy.array
 
+    :param engine_speeds_parallel:
+        Hypothetical engine speed in parallel mode [RPM].
+    :type engine_speeds_parallel: numpy.array
+
     :param idle_engine_speed:
         Engine speed idle median and std [RPM].
     :type idle_engine_speed: (float, float)
@@ -789,7 +825,7 @@ def calculate_ems_data(
     """
     return ems_model(
         times, motive_powers, motors_maximums_powers, gear_box_speeds_in,
-        idle_engine_speed
+        engine_speeds_parallel, idle_engine_speed
     )
 
 
