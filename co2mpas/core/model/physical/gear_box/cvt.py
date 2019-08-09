@@ -30,8 +30,9 @@ def default_correct_gear():
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming,PyUnusedLocal
 class CVT:
     def __init__(self):
-        import xgboost as xgb
-        self.base_model = xgb.XGBRegressor
+        # noinspection PyProtectedMember
+        from ..engine._thermal import _XGBRegressor
+        self.base_model = _XGBRegressor
         self.model = None
 
     def fit(self, on_engine, gear_box_speeds_in, velocities, accelerations,

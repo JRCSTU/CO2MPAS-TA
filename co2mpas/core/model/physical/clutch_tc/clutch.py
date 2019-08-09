@@ -70,19 +70,20 @@ def calibrate_clutch_speed_model(
     """
     model = _no_model
     if clutch_phases.sum() > 10:
-        import xgboost as xgb
         from co2mpas.utils import mae
         from sklearn.pipeline import Pipeline
         # noinspection PyProtectedMember
-        from ..engine._thermal import _SelectFromModel
+        from ..engine._thermal import _SelectFromModel, _XGBRegressor
         X = np.column_stack(
             (accelerations, velocities, gear_box_speeds_in, gears)
         )[clutch_phases]
         y = clutch_tc_speeds_delta[clutch_phases]
 
-        mdl = xgb.XGBRegressor(
+        # noinspection PyArgumentEqualDefault
+        mdl = _XGBRegressor(
             max_depth=2,
-            n_estimators=int(min(300., 0.25 * (len(y) - 1)))
+            n_estimators=int(min(300., 0.25 * (len(y) - 1))),
+            random_state=0
         )
         mdl = Pipeline([
             ('feature_selection', _SelectFromModel(mdl, '0.8*median')),

@@ -42,12 +42,13 @@ class AlternatorCurrentModel:
 
             return np.where(b, *alternator_charging_currents)
 
-        import xgboost as xgb
+        # noinspection PyProtectedMember
+        from ....engine._thermal import _XGBRegressor
         self.model = default_model
         self.mask = None
         self.init_model = default_model
         self.init_mask = None
-        self.base_model = xgb.XGBRegressor
+        self.base_model = _XGBRegressor
 
     def predict(self, X, init_time=0.0):
         X = np.asarray(X)

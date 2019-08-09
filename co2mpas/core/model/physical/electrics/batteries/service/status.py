@@ -221,13 +221,10 @@ def identify_service_battery_initialization_time(
         s = alternator_electric_powers < s
         n, i = len(times), int(co2_utl.argmax((s[:-1] != s[1:]) & s[:-1]))
         i = min(n - 1, i)
-        opt = {
-            'random_state': 0, 'max_depth': 2
-        }
+        opt = {'random_state': 0, 'max_depth': 2}
 
-        import xgboost as xgb
         # noinspection PyProtectedMember
-        from ....engine._thermal import _build_samples
+        from ....engine._thermal import _build_samples, _XGBRegressor
 
         x, y = _build_samples(
             alternator_electric_powers, service_battery_state_of_charges, bats,
@@ -236,7 +233,7 @@ def identify_service_battery_initialization_time(
 
         j = min(i, int(n / 2))
         opt['n_estimators'] = int(min(100.0, 0.25 * (n - j))) or 1
-        model = xgb.XGBRegressor(**opt)
+        model = _XGBRegressor(**opt)
         model.fit(x[j:], y[j:])
         err = np.abs(y - model.predict(x))
         sets = np.array(co2_utl.get_inliers(err)[0], dtype=int)[:i]

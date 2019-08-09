@@ -208,7 +208,8 @@ def identify_engine_thermostat_temperature(
     t_max, t_min = Y.max(), Y.min()
     b = (t_max - (t_max - t_min) / 3) <= Y
 
-    model = _XGBRegressor().fit(X[b], Y[b])
+    # noinspection PyArgumentEqualDefault
+    model = _XGBRegressor(random_state=0).fit(X[b], Y[b])
     ratio = np.arange(1, 1.5, 0.1) * idle_engine_speed[0]
     spl = np.zeros((len(ratio), 4))
     spl[:, 2] = ratio
