@@ -609,7 +609,7 @@ class EMS:
 
     def starter_penalties(self, res):
         cf, eff = self.battery_model.currents, self.dcdc_converter_efficiency
-        c = np.array([eff, -1 / eff]) / 4
+        c = np.array([eff, -1 / eff]) / self.starter_model.time
         pb = self.starter_model(res['speed_ice'])[None, :] * c[:, None, None]
         res['power_stop'], res['power_start'] = pb
         res['current_stop'], res['current_start'] = bc = cf(pb)
