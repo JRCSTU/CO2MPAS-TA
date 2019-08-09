@@ -681,13 +681,14 @@ dsp.add_dispatcher(
     dsp=_mechanical,
     inputs=(
         'accelerations', 'change_gear_window_width', 'engine_max_torque',
-        'engine_speed_at_max_velocity', 'engine_speeds_out', 'f0',
+        'engine_speed_at_max_velocity', 'engine_speeds_out', 'f0', 'on_engine',
         'final_drive_ratios', 'first_gear_box_ratio', 'full_load_curve',
         'gear_box_ratios', 'gear_box_speeds_out', 'gears', 'idle_engine_speed',
         'last_gear_box_ratio', 'maximum_vehicle_laden_mass', 'maximum_velocity',
         'n_gears', 'plateau_acceleration', 'r_dynamic', 'road_loads',
         'stop_velocity', 'times', 'velocities', 'velocity_speed_ratios',
-        'gear_box_speeds_in', {'gear_box_type': sh.SINK}
+        'motive_powers', 'correct_gear', 'gear_box_speeds_in',
+        {'gear_box_type': sh.SINK}
     ),
     outputs=(
         'engine_speed_at_max_velocity', 'first_gear_box_ratio', 'max_gear',

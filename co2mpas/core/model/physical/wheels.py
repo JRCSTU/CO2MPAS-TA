@@ -212,7 +212,7 @@ def identify_r_dynamic_v1(
     )
     with np.errstate(divide='ignore', invalid='ignore'):
         r_dynamic = speed_x_r_dyn_ratios / gear_box_speeds_in
-    r_dynamic = r_dynamic[~np.isnan(r_dynamic)]
+    r_dynamic = r_dynamic[np.isfinite(r_dynamic)]
     r_dynamic = reject_outliers(r_dynamic)[0]
     return r_dynamic
 
@@ -327,7 +327,7 @@ def identify_r_dynamic_v3(
         gear_box_ratios, final_drive_ratios, r_wheels
     )
 
-    gears = gb_mec.identify_gears_v1(
+    gears = gb_mec.identify_gears(
         times, velocities, accelerations, gear_box_speeds_in,
         gb_mec.calculate_velocity_speed_ratios(svr), stop_velocity,
         plateau_acceleration, change_gear_window_width, idle_engine_speed

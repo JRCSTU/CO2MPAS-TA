@@ -66,7 +66,7 @@ dsp.add_data('change_gear_window_width', dfl.values.change_gear_window_width)
 def identify_gears(
         times, velocities, accelerations, gear_box_speeds_in,
         velocity_speed_ratios, stop_velocity, plateau_acceleration,
-        change_gear_window_width):
+        change_gear_window_width, idle_engine_speed=(0, 0)):
     """
     Identifies gear time series [-].
 
@@ -102,22 +102,53 @@ def identify_gears(
         Time window used to apply gear change filters [s].
     :type change_gear_window_width: float
 
+    :param idle_engine_speed:
+        Engine speed idle median and std [RPM].
+    :type idle_engine_speed: (float, float)
+
     :return:
         Gear vector identified [-].
     :rtype: numpy.array
     """
-    return identify_gears_v1(
-        times, velocities, accelerations, gear_box_speeds_in,
-        velocity_speed_ratios, stop_velocity, plateau_acceleration,
-        change_gear_window_width, (0, 0)
-    )
+    with np.errstate(divide='ignore', invalid='ignore'):
+        r = velocities / gear_box_speeds_in
+
+    idle = (idle_engine_speed[0] - idle_engine_speed[1],
+            idle_engine_speed[0] + idle_engine_speed[1])
+    r[gear_box_speeds_in <= idle[0]] = 0
+
+    vsr = velocity_speed_ratios
+    g, vsr = np.array([(k, v) for k, v in sorted(vsr.items()) if k != 0]).T
+    dr = np.abs(vsr[:, None] - r)
+    i, j = np.argmin(dr, 0), np.arange(times.shape[0])
+    b = velocities <= vsr[i] * idle[0]
+    if idle[1]:
+        b |= np.abs(velocities / idle[1] - r) < dr[i, j]
+    b = (velocities <= stop_velocity) | (b & (accelerations < 0))
+    gear = np.where(b, 0, g[i])
+    b = (velocities > stop_velocity) & (accelerations > 0)
+    b |= accelerations > plateau_acceleration
+    gear[(gear == 0) & b] = 1
+
+    gear = co2_utl.median_filter(times, gear, change_gear_window_width)
+
+    gear = _correct_gear_shifts(times, r, gear, velocity_speed_ratios)
+
+    gear = co2_utl.clear_fluctuations(times, gear, change_gear_window_width)
+
+    return gear.astype(int)
+
+
+def _shift(a):
+    return np.where(np.ediff1d(a.astype(float), [1], [1]) != 0)[0].tolist()
 
 
 @sh.add_function(dsp, outputs=['gears'], weight=10)
 def identify_gears_v1(
-        times, velocities, accelerations, engine_speeds_out,
-        velocity_speed_ratios, stop_velocity, plateau_acceleration,
-        change_gear_window_width, idle_engine_speed):
+        times, velocities, accelerations, motive_powers, on_engine,
+        engine_speeds_out, velocity_speed_ratios, stop_velocity,
+        plateau_acceleration, change_gear_window_width, idle_engine_speed,
+        correct_gear):
     """
     Identifies gear time series [-].
 
@@ -132,6 +163,14 @@ def identify_gears_v1(
     :param accelerations:
         Acceleration vector [m/s2].
     :type accelerations: numpy.array
+
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
+
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
 
     :param engine_speeds_out:
         Engine speed [RPM].
@@ -157,37 +196,81 @@ def identify_gears_v1(
         Engine speed idle median and std [RPM].
     :type idle_engine_speed: (float, float)
 
+    :param correct_gear:
+        A function to correct the gear predicted.
+    :type correct_gear: callable
+
     :return:
         Gear vector identified [-].
     :rtype: numpy.array
     """
-
+    from sklearn.ensemble import IsolationForest
+    # noinspection PyProtectedMember
+    from .at_gear.cmv import CMV, _filter_gear_shifting_velocity as filter_gs
     with np.errstate(divide='ignore', invalid='ignore'):
         r = velocities / engine_speeds_out
 
     idle = (idle_engine_speed[0] - idle_engine_speed[1],
             idle_engine_speed[0] + idle_engine_speed[1])
-    r[engine_speeds_out < idle[0]] = 0
+    r[engine_speeds_out <= idle[0]] = 0
 
-    vsr = velocity_speed_ratios
-    g, vsr = np.array([(k, v) for k, v in sorted(vsr.items()) if k != 0]).T
+    _vsr = sh.combine_dicts(velocity_speed_ratios, base={0: 0})
+    g, vsr = np.array([(k, v) for k, v in sorted(_vsr.items())]).T
     dr = np.abs(vsr[:, None] - r)
     i, j = np.argmin(dr, 0), np.arange(times.shape[0])
     b = velocities <= vsr[i] * idle[0]
     if idle[1]:
         b |= np.abs(velocities / idle[1] - r) < dr[i, j]
     b = (velocities <= stop_velocity) | (b & (accelerations < 0))
-    gear = np.where(b, 0, g[i])
-    b = (velocities > stop_velocity) & (accelerations > 0)
-    b |= accelerations > plateau_acceleration
-    gear[(gear == 0) & b] = 1
+    gear = np.where(b, 0, g[i]).astype(int)
+    shift = _shift(gear)
 
     gear = co2_utl.median_filter(times, gear, change_gear_window_width)
-
     gear = _correct_gear_shifts(times, r, gear, velocity_speed_ratios)
-
     gear = co2_utl.clear_fluctuations(times, gear, change_gear_window_width)
 
+    b = (velocities > stop_velocity) & ((accelerations > 0) | ~on_engine)
+    b |= accelerations > plateau_acceleration
+    b = (gear == 0) & b
+    i = np.where(on_engine)[0]
+    x = np.column_stack((r[i], vsr[gear[i]]))
+    # noinspection PyUnresolvedReferences
+    b[i] |= IsolationForest(
+        random_state=0, behaviour='new', contamination='auto'
+    ).fit(x).predict(x) == -1
+    for i, j in sh.pairwise(shift):
+        b[i:j] = b[i:j].mean() > .3
+
+    limits = {0: {False: [0]}, max(_vsr): {True: [dfl.INF]}}
+    for i, j in sh.pairwise(np.unique(sum(map(_shift, (on_engine, b)), []))):
+        if on_engine[i:j].all() and not b[i:j].any():
+            for v in np.array(list(sh.pairwise(_shift(gear[i:j])))) + i:
+                if j != v[1]:
+                    v, (g, ng) = velocities[slice(*v)], gear[[v[1] - 1, v[1]]]
+                    up = g < ng
+                    sh.get_nested_dicts(limits, g, up, default=list).append(
+                        v.max() if up else v.min()
+                    )
+
+    for k, v in list(limits.items()):
+        limits[k] = v.get(False, [_vsr[k] * idle[0]] * 10), v.get(True, [])
+    d = {j: i for i, j in enumerate(sorted(limits))}
+    gsm = CMV(filter_gs(sh.map_dict(d, limits), stop_velocity))
+    gsm.velocity_speed_ratios = sh.selector(gsm, sh.map_dict(d, _vsr))
+    for k, v in gsm.items():
+        v[0] = max(v[0], gsm.velocity_speed_ratios[k] * idle[0])
+    gsm.convert(velocity_speed_ratios)
+    gsm[1][0] = stop_velocity
+
+    gen = gsm.init_gear(
+        gear, times, velocities, accelerations, motive_powers,
+        correct_gear=correct_gear
+    )
+    for i, v in enumerate(b):
+        if v:
+            gear[i] = gen(i)
+    gear = co2_utl.median_filter(times, gear, change_gear_window_width)
+    gear = co2_utl.clear_fluctuations(times, gear, change_gear_window_width)
     return gear.astype(int)
 
 

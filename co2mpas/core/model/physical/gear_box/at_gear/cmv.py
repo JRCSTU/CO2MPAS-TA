@@ -62,6 +62,35 @@ def _correct_gsv(gsv, stop_velocity):
     return gsv
 
 
+def _filter_gear_shifting_velocity(limits, stop_velocity):
+    def _rjt_out(x, default):
+        if x:
+            x = np.asarray(x)
+
+            # noinspection PyTypeChecker
+            m, (n, s) = np.median(x), (len(x), np.std(x))
+
+            y = s and 2 > (abs(x - m) / s)
+
+            if s and y.any():
+                y = x[y]
+
+                # noinspection PyTypeChecker
+                m, (n, s) = np.median(y), (len(y), np.std(y))
+
+            return m, (n, s)
+        else:
+            return default
+
+    max_gear = max(limits)
+    gsv = collections.OrderedDict()
+    for k in range(max_gear + 1):
+        v0, v1 = limits.get(k, [[], []])
+        gsv[k] = [_rjt_out(v0, (-1, (0, 0))), _rjt_out(v1, (dfl.INF, (0, 0)))]
+
+    return _correct_gsv(gsv, stop_velocity)
+
+
 def _identify_gear_shifting_velocity_limits(gears, velocities, stop_velocity):
     """
     Identifies gear shifting velocity matrix.
@@ -89,34 +118,7 @@ def _identify_gear_shifting_velocity_limits(gears, velocities, stop_velocity):
         if v >= stop_velocity and g0 != g1:
             limits[g0] = limits.get(g0, [[], []])
             limits[g0][int(g0 < g1)].append(v)
-
-    def _rjt_out(x, default):
-        if x:
-            x = np.asarray(x)
-
-            # noinspection PyTypeChecker
-            m, (n, s) = np.median(x), (len(x), np.std(x))
-
-            y = s and 2 > (abs(x - m) / s)
-
-            if s and y.any():
-                y = x[y]
-
-                # noinspection PyTypeChecker
-                m, (n, s) = np.median(y), (len(y), np.std(y))
-
-            return m, (n, s)
-        else:
-            return default
-
-    max_gear = max(limits)
-    gsv = collections.OrderedDict()
-    for k in range(max_gear + 1):
-        v0, v1 = limits.get(k, [[], []])
-        gsv[k] = [_rjt_out(v0, (-1, (0, 0))),
-                  _rjt_out(v1, (dfl.INF, (0, 0)))]
-
-    return _correct_gsv(gsv, stop_velocity)
+    return _filter_gear_shifting_velocity(limits, stop_velocity)
 
 
 # noinspection PyPep8Naming
@@ -390,7 +392,7 @@ class CMV(collections.OrderedDict):
             self.clear()
 
             for k, l, u in sorted(zip(K, L, U), reverse=it[0][0] > it[1][0]):
-                self[k] = (l, u)
+                self[k] = [l, u]
 
             self.velocity_speed_ratios = n_vsr
 
