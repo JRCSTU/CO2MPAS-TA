@@ -480,14 +480,9 @@ def calculate_engine_speeds_out_hot(
     :rtype: numpy.array, float
     """
 
-    if isinstance(gear_box_speeds_in, float):
-        s = max(idle_engine_speed[0], gear_box_speeds_in) if on_engine else 0
-    else:
-        s = np.where(
-            on_engine, np.maximum(gear_box_speeds_in, idle_engine_speed[0]), 0
-        )
-
-    return s
+    return np.where(
+        on_engine, np.maximum(gear_box_speeds_in, idle_engine_speed[0]), 0
+    )
 
 
 @sh.add_function(dsp, outputs=['on_idle'])

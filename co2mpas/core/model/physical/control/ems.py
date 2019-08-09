@@ -1202,7 +1202,7 @@ def predict_catalyst_warm_up_v1(times, is_cycle_hot):
     return sh.NONE
 
 
-@sh.add_function(dsp, outputs=['engine_speeds_out_hot'], weight=2)
+@sh.add_function(dsp, outputs=['engine_speeds_out_hot'])
 def predict_engine_speeds_out_hot(ems_data, hybrid_modes):
     """
     Predicts the engine speed at hot condition [RPM].
