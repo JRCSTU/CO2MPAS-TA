@@ -61,7 +61,8 @@ class _SelectFromModel(SelectFromModel):
                 'Either fit the model before transform or set "prefit=True"'
                 ' while passing the fitted estimator to the constructor.')
         try:
-            importances = getattr(estimator, "feature_importances_", None)
+            with np.errstate(divide='ignore', invalid='ignore'):
+                importances = getattr(estimator, "feature_importances_", None)
             if importances is not None and np.isnan(importances).all():
                 mask = np.ones(importances.shape, bool)
             else:
