@@ -648,11 +648,8 @@ class EMS:
             k_ser = ((s[k] - e[k] + c_ser) / s['fc_ice']).T
             c_par = np.column_stack((p['current_start'], -p['current_stop']))
             k_par = ((p[k] - e[k] + c_par) / p['fc_ice']).T
-
-        fc_ser = s['fc_eq'] + np.column_stack((s['fc_start'], -s['fc_stop']))
-        fc_par = p['fc_eq'] + np.column_stack((p['fc_start'], -p['fc_stop']))
         # noinspection PyUnresolvedReferences
-        mode = (fc_ser < fc_par).astype(int) + 1
+        mode = (s['fc_eq'] < p['fc_eq']).astype(int) + 1
         mode[gear_box_speeds_in < -np.diff(idle_engine_speed)] = 2
         be_serial = (e['power_ice'].ravel() > dfl.EPS) & (motive_powers > 0.01)
         mode[be_serial] = 1
@@ -896,7 +893,7 @@ def identify_catalyst_warm_up(
     from sklearn.ensemble import IsolationForest
     i = np.where(on_engine)[0]
     p = np.column_stack((engine_powers_out[i], np.choose(
-        ems_data['hybrid_modes'][:, 1] - 1,
+        ems_data['hybrid_modes'] - 1,
         [ems_data[k]['power_ice'].ravel() for k in ('parallel', 'serial')]
     )[i]))
 
@@ -1094,7 +1091,7 @@ def predict_hybrid_modes(
         i: v['power_start'].ravel() for i, v in enumerate((par, ser, ser), 1)
     }
     starter_bat[0] = np.where(
-        r['hybrid_modes'].T[0] == 1, *(v['power_stop'].T for v in (par, ser))
+        r['hybrid_modes'] == 1, *(v['power_stop'].T for v in (par, ser))
     ).ravel()
     from ..electrics.motors.starter import calculate_starter_currents as func
     nom_volt = drive_battery_model.service.nominal_voltage
@@ -1106,14 +1103,14 @@ def predict_hybrid_modes(
     soc, t0 = drive_battery_model.init_soc, start_stop_activation_time
     it = enumerate(zip(
         times, motive_powers, accelerations, hybrid_modes, r['k_reference'],
-        r['hybrid_modes']
+        r['hybrid_modes'].ravel()
     ))
     is_warm = is_cycle_hot
     for i, (t, motive_power, acc, mode, k_ref, mode_ref) in it:
         pre_mode = hybrid_modes.take(i - 1, mode='clip')
         j = int(bool(pre_mode))
         if not mode and (t < t0 or k_ref[j] > start_stop_hybrid(soc)):
-            mode = mode_ref[j]
+            mode = mode_ref
         starter_curr = 0
         if bool(pre_mode) ^ bool(mode) and i:
             if mode:
