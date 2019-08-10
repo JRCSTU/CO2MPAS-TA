@@ -331,13 +331,12 @@ class DriveBatteryModel:
         self.np, self.ns = n_parallel_cells, n_series_cells
         r0 is not None and ocv is not None and self.compile()
         self.service = service_battery_model
-        self.dcdc_converter_efficiency = dcdc_converter_efficiency
+        self.dcdc_efficiency = dcdc_converter_efficiency
         self._d_soc = drive_battery_capacity * 36.0 * 2
         self.init_soc = initial_drive_battery_state_of_charge
         self.drive_battery_load = drive_battery_load
         self.reset()
-        self._dcdc_p = self.service.nominal_voltage / dcdc_converter_efficiency
-        self._dcdc_p /= 1000
+        self._dcdc_p = self.service.nominal_voltage / 1e3
 
     # noinspection PyAttributeOutsideInit
     def reset(self):
@@ -376,10 +375,11 @@ class DriveBatteryModel:
                  starter_current=0, prev_soc=None, update=True,
                  service_kw=None):
         dt = time - self.service._prev_time
-        dcdc_p = self.service(
+        from ..motors.p4 import calculate_motor_p4_powers_v1 as f
+        dcdc_p = f(self.service(
             time, motive_power, acceleration, on_engine, starter_current,
             update=update, **(service_kw or {})
-        )[2] * self._dcdc_p + self.drive_battery_load
+        )[2] * self._dcdc_p, self.dcdc_efficiency) + self.drive_battery_load
 
         if prev_soc is None:
             prev_soc = self._prev_soc
