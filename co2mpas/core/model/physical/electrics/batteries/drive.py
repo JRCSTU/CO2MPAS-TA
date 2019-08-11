@@ -346,14 +346,16 @@ class DriveBatteryModel:
 
     # noinspection PyAttributeOutsideInit
     def compile(self):
-        self.c = self.np / (2 * self.r0)
-        self.a = - self.ocv * self.c
-        self.b = self.a ** 2
-        m = (4e3 * self.r0 / (self.ns * self.np))
-        self.c *= self.c * m
-        self._ocv = self.ocv * self.ns
-        self._r0 = self.r0 * self.ns / self.np
-        self.min_power = not self.r0 and float('inf') or -self.ocv ** 2 / m
+        n = self.np / self.r0
+        self.c_b, self.c_ac4 = -self.ocv * n / 2, 1e3 / self.ns * n
+        self.c_b2 = self.c_b ** 2
+
+        self.v_b = self.ocv * self.ns / 2
+        self.v_ac4 = self.ns / n * 1e3
+        self.v_b2 = self.v_b ** 2
+
+        self._ocv = self.ocv * self.ns / 1e3
+        self._r0 = self.ns / n / 1e3
 
     def fit(self, currents, voltages):
         from sklearn.linear_model import RANSACRegressor
@@ -366,10 +368,13 @@ class DriveBatteryModel:
         return self
 
     def currents(self, powers):
-        return self.a + np.nan_to_num(np.sqrt(self.b + self.c * powers))
+        return self.c_b + np.sqrt(self.c_b2 + self.c_ac4 * powers)
 
     def powers(self, currents):
-        return (self._ocv / 1e3 + currents * self._r0 / 1e3) * currents
+        return (self._ocv + currents * self._r0) * currents
+
+    def voltages(self, powers):
+        return self.v_b + np.sqrt(self.v_b2 + self.v_ac4 * powers)
 
     def __call__(self, current, time, motive_power, acceleration, on_engine,
                  starter_current=0, prev_soc=None, update=True,
@@ -529,8 +534,8 @@ def define_drive_battery_model(
     )
 
 
-@sh.add_function(dsp, outputs=['drive_battery_currents'])
-def calculate_drive_battery_currents_v2(
+@sh.add_function(dsp, outputs=['drive_battery_voltages'])
+def calculate_drive_battery_voltages_v1(
         drive_battery_electric_powers, drive_battery_model):
     """
     Calculate the drive battery current vector [A].
@@ -547,7 +552,7 @@ def calculate_drive_battery_currents_v2(
         Drive battery current vector [A].
     :rtype: numpy.array
     """
-    return drive_battery_model.currents(drive_battery_electric_powers)
+    return drive_battery_model.voltages(drive_battery_electric_powers)
 
 
 @sh.add_function(dsp, outputs=['motors_electric_powers'])
