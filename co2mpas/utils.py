@@ -149,7 +149,7 @@ def mae(x, y, w=None):
     :rtype: float
     """
     if w is not None:
-        return np.mean(np.abs(x - y) * w)
+        return (np.abs(x - y) * w).sum() / w.sum()
     return np.mean(np.abs(x - y))
 
 
