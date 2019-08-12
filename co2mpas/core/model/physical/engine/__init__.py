@@ -27,6 +27,7 @@ import numpy as np
 import schedula as sh
 from ..defaults import dfl
 from .idle import dsp as _idle
+import co2mpas.utils as co2_utl
 from .thermal import dsp as _thermal
 from .cold_start import dsp as _cold_start
 from .co2_emission import dsp as _co2_emission
@@ -475,6 +476,10 @@ def calculate_engine_speeds_out_hot(
         Idle engine speed and its standard deviation [RPM].
     :type idle_engine_speed: (float, float)
 
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
     :return:
         Engine speed at hot condition [RPM].
     :rtype: numpy.array, float
@@ -488,10 +493,14 @@ def calculate_engine_speeds_out_hot(
 
 @sh.add_function(dsp, outputs=['on_idle'])
 def identify_on_idle(
-        velocities, engine_speeds_out_hot, gears, stop_velocity,
-        min_engine_on_speed):
+        times, velocities, engine_speeds_out_hot, gear_box_speeds_in, gears,
+        stop_velocity, min_engine_on_speed, on_engine, idle_engine_speed):
     """
     Identifies when the engine is on idle [-].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
 
     :param velocities:
         Velocity vector [km/h].
@@ -500,6 +509,10 @@ def identify_on_idle(
     :param engine_speeds_out_hot:
         Engine speed at hot condition [RPM].
     :type engine_speeds_out_hot: numpy.array
+
+    :param gear_box_speeds_in:
+        Gear box speed [RPM].
+    :type gear_box_speeds_in: numpy.array
 
     :param gears:
         Gear vector [-].
@@ -513,15 +526,33 @@ def identify_on_idle(
         Minimum engine speed to consider the engine to be on [RPM].
     :type min_engine_on_speed: float
 
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :param idle_engine_speed:
+        Engine speed idle median and std [RPM].
+    :type idle_engine_speed: (float, float)
+
     :return:
         If the engine is on idle [-].
     :rtype: numpy.array
     """
+    # noinspection PyProtectedMember
+    from ..gear_box.mechanical import _shift
+    b = engine_speeds_out_hot > min_engine_on_speed
+    b &= (gears == 0) | (velocities <= stop_velocity)
 
-    on_idle = engine_speeds_out_hot > min_engine_on_speed
-    on_idle &= (gears == 0) | (velocities <= stop_velocity)
-
-    return on_idle
+    on_idle = np.zeros_like(times, int)
+    i = np.where(on_engine)[0]
+    ds = np.abs(gear_box_speeds_in[i] - engine_speeds_out_hot[i])
+    on_idle[i[ds > idle_engine_speed[1]]] = 1
+    on_idle = co2_utl.median_filter(times, on_idle, 4)
+    on_idle[b] = 1
+    for i, j in sh.pairwise(_shift(on_idle)):
+        if not on_idle[i] and times[j - 1] - times[i] <= 2:
+            on_idle[i:j] = True
+    return co2_utl.clear_fluctuations(times, on_idle, 4).astype(bool)
 
 
 dsp.add_dispatcher(
