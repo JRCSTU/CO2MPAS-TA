@@ -153,6 +153,14 @@ def mae(x, y, w=None):
     return np.mean(np.abs(x - y))
 
 
+def mad(x, med=None):
+    """
+    Median Absolute Deviation.
+    """
+    med = np.nanmedian(x) if med is None else med
+    return np.nanmedian(np.abs(x - med))
+
+
 def sliding_window(xy, dx_window):
     """
     Returns a sliding window (of width dx) over data from the iterable.
