@@ -944,17 +944,15 @@ def identify_catalyst_warm_up(
     if is_cycle_hot or not on_engine.any():
         return anomalies.astype(bool)
     from co2mpas.utils import clear_fluctuations, median_filter
-    from sklearn.ensemble import IsolationForest
     i = np.where(on_engine)[0]
-    p = np.column_stack((engine_powers_out[i], np.choose(
-        ems_data['hybrid_modes'] - 1,
-        [ems_data[k]['power_ice'].ravel() for k in ('parallel', 'serial')]
-    )[i]))
+    p = np.choose(ems_data['hybrid_modes'] - 1, [
+        ems_data[k]['power_ice'].ravel() for k in ('parallel', 'serial')
+    ])[i]
 
     # noinspection PyUnresolvedReferences
-    anomalies[i[IsolationForest(
-        random_state=0, behaviour='new', contamination='auto'
-    ).fit(p).predict(p) == -1]] = 1
+    anomalies[i[~co2_utl.get_inliers(
+        engine_powers_out[i] / p, 2, np.nanmedian, co2_utl.mad
+    )[0]]] = 1
     anomalies = median_filter(times, anomalies, 5)
     anomalies = clear_fluctuations(times, anomalies, 5).astype(bool)
     i, temp = _index_anomalies(anomalies), engine_coolant_temperatures
