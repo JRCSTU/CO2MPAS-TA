@@ -457,9 +457,9 @@ def calculate_engine_max_power_v1(
     return engine_max_torque / c
 
 
-@sh.add_function(dsp, outputs=['engine_speeds_out_hot'])
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['engine_speeds_out_hot'])
 def calculate_engine_speeds_out_hot(
-        gear_box_speeds_in, on_engine, idle_engine_speed):
+        gear_box_speeds_in, on_engine, idle_engine_speed, is_hybrid=False):
     """
     Calculates the engine speed at hot condition [RPM].
 
@@ -479,7 +479,8 @@ def calculate_engine_speeds_out_hot(
         Engine speed at hot condition [RPM].
     :rtype: numpy.array, float
     """
-
+    if is_hybrid:
+        return sh.NONE
     return np.where(
         on_engine, np.maximum(gear_box_speeds_in, idle_engine_speed[0]), 0
     )

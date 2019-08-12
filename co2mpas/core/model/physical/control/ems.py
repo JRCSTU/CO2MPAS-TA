@@ -376,12 +376,66 @@ def identify_hybrid_modes(
         Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
     :rtype: numpy.array
     """
+    # noinspection PyProtectedMember
+    from ..gear_box.mechanical import _shift
+    from ....report import _correlation_coefficient
     mode = on_engine.astype(int)
-    b = idle_engine_speed[0] > gear_box_speeds_in
-    b |= (gear_box_speeds_in - idle_engine_speed[1] * 2) > engine_speeds_out
+    es, gbs = engine_speeds_out, gear_box_speeds_in
+    b = idle_engine_speed[0] > gbs
+    b |= (gbs - idle_engine_speed[1]) > es
     mode[on_engine & b] = 2
+    i = np.where(mode == 1)[0]
+    mode[i[~co2_utl.get_inliers(gbs[i] / es[i], 3)[0]]] = 2
     mode = co2_utl.median_filter(times, mode, 4)
-    return co2_utl.clear_fluctuations(times, mode, 4).astype(int)
+    mode = co2_utl.clear_fluctuations(times, mode, 4).astype(int)
+    mode[~on_engine] = 0
+    with np.errstate(divide='ignore', invalid='ignore'):
+        for i, j in sh.pairwise(_shift(mode)):
+            if mode[i] and times[j - 1] - times[i] < 5:
+                if _correlation_coefficient(es[i:j], gbs[i:j]) < .6:
+                    mode[i:j] = 3 - mode[i]
+    return mode
+
+
+@sh.add_function(dsp, outputs=['engine_speeds_out_hot'])
+def identify_engine_speeds_out_hot(
+        hybrid_modes, on_engine, engine_speeds_out, gear_box_speeds_in,
+        idle_engine_speed):
+    """
+    Identify the engine speed at hot condition [RPM].
+
+    :param hybrid_modes:
+        Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
+    :type hybrid_modes: numpy.array
+
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :param engine_speeds_out:
+        Engine speed [RPM].
+    :type engine_speeds_out: numpy.array
+
+    :param gear_box_speeds_in:
+        Gear box speed [RPM].
+    :type gear_box_speeds_in: numpy.array
+
+    :param idle_engine_speed:
+        Engine speed idle median and std [RPM].
+    :type idle_engine_speed: (float, float)
+
+    :return:
+        Engine speed at hot condition [RPM].
+    :rtype: numpy.array, float
+    """
+    # noinspection PyProtectedMember
+    from ..engine._idle import _IdleDetector
+    from ..engine import calculate_engine_speeds_out_hot as func
+    b = hybrid_modes == 2
+    mdl = _IdleDetector(idle_engine_speed[1]).fit(engine_speeds_out[b, None])
+    speeds = func(gear_box_speeds_in, on_engine, idle_engine_speed)
+    speeds[b] = np.min(mdl.cluster_centers_[mdl.labels_])
+    return speeds
 
 
 @sh.add_function(dsp, outputs=['serial_motor_maximum_power_function'])
