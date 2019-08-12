@@ -945,14 +945,14 @@ def identify_catalyst_warm_up(
         return anomalies.astype(bool)
     from co2mpas.utils import clear_fluctuations, median_filter
     i = np.where(on_engine)[0]
-    p = np.choose(ems_data['hybrid_modes'] - 1, [
+    p = np.choose(ems_data['hybrid_modes'].ravel() - 1, [
         ems_data[k]['power_ice'].ravel() for k in ('parallel', 'serial')
     ])[i]
-
-    # noinspection PyUnresolvedReferences
-    anomalies[i[~co2_utl.get_inliers(
-        engine_powers_out[i] / p, 2, np.nanmedian, co2_utl.mad
-    )[0]]] = 1
+    with np.errstate(divide='ignore', invalid='ignore'):
+        # noinspection PyUnresolvedReferences
+        anomalies[i[~co2_utl.get_inliers(
+            engine_powers_out[i] / p, 2, np.nanmedian, co2_utl.mad
+        )[0]]] = 1
     anomalies = median_filter(times, anomalies, 5)
     anomalies = clear_fluctuations(times, anomalies, 5).astype(bool)
     i, temp = _index_anomalies(anomalies), engine_coolant_temperatures
