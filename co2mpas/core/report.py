@@ -353,11 +353,11 @@ def _map_cycle_report_graphs():
         }
     }
 
-    _map['service_battery_powers'] = {
-        'label': 'service battery power',
+    _map['service_battery_electric_powers'] = {
+        'label': 'service battery electric power',
         'set': {
-            'title': {'name': 'Service battery power [kW]'},
-            'y_axis': {'name': 'Service battery power [kW]'},
+            'title': {'name': 'Service battery electric power [kW]'},
+            'y_axis': {'name': 'Service battery electric power [kW]'},
             'x_axis': {'name': 'Time [s]'},
             'legend': {'position': 'bottom'}
         }
