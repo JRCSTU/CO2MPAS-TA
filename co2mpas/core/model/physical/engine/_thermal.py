@@ -137,12 +137,14 @@ class ThermalModel:
         x = np.column_stack((velocities, np.append(
             [engine_coolant_temperatures[0]], engine_coolant_temperatures[:-1]
         ), engine_speeds_out_hot, accelerations))
+        b = on_engine & (np.abs(engine_temperature_derivatives) > dfl.EPS)
         self.on = _SafeRANSACRegressor(**opt).fit(
-            x[on_engine, 1:], engine_temperature_derivatives[on_engine]
+            x[b, 1:], engine_temperature_derivatives[b]
         ).predict
-        if ~on_engine.all():
+        b = ~on_engine
+        if b.all():
             self.off = _SafeRANSACRegressor(**opt).fit(
-                x[~on_engine, :2], engine_temperature_derivatives[~on_engine]
+                x[b, :2], engine_temperature_derivatives[b]
             ).predict
         return self
 
