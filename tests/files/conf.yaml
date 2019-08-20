@@ -1,6 +1,6 @@
 INF: 222222.0
 functions:
   __constants__:
-    AlternatorStatusModel:
+    default_fuel_density:
       __constants__:
-        min_delta_soc: 3
+        ENABLE: True
