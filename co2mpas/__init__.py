@@ -215,9 +215,8 @@ def wait_site(site):
     site.shutdown()
 
 
-def _yield_files(*paths, cache=None):
+def _yield_files(*paths, cache=None, ext=('co2mpas.ta', 'xlsx', 'dill', 'xls')):
     import glob
-    ext = ('co2mpas.ta', 'xlsx', 'dill', 'xls')
     cache = set() if cache is None else cache
     for path in paths:
         path = osp.abspath(path)
@@ -228,10 +227,10 @@ def _yield_files(*paths, cache=None):
             yield from _yield_files(
                 *filter(osp.isfile, glob.glob(osp.join(path, '*'))), cache=cache
             )
-        elif osp.isfile(path) and path.endswith(ext):
+        elif osp.isfile(path) and path.lower().endswith(ext):
             yield path
-        elif path.endswith(ext):
-            raise FileNotFoundError
+        else:
+            log.info('Skipping file "%s".' % path)
 
 
 class _ProgressBar(tqdm.tqdm):
