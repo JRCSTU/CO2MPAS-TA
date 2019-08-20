@@ -263,7 +263,7 @@ def calculate_service_battery_loads(
         Service battery load vector [kW].
     :rtype: numpy.array
     """
-    p = service_battery_electric_powers - service_battery_electric_powers_supply
+    p = service_battery_electric_powers + service_battery_electric_powers_supply
     return p
 
 
