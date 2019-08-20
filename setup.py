@@ -89,13 +89,14 @@ if __name__ == '__main__':
         ('Documentation', 'http://%s.readthedocs.io' % name),
         ('Issue tracker', '%s/issues' % url),
     ))
-    try:
-        long_description = get_long_description()
-    except Exception as ex:
-        import logging
 
-        logging.getLogger(__name__).warning('%r', ex)
-        long_description = ''
+    long_description = ''
+    if os.environ.get('ENABLE_SETUP_LONG_DESCRIPTION') == 'TRUE':
+        try:
+            long_description = get_long_description()
+            print('LONG DESCRIPTION ENABLED!')
+        except Exception as ex:
+            print('LONG DESCRIPTION ERROR:\n %r', ex)
 
     extras = {
         'cli': ['click', 'click-log'],
