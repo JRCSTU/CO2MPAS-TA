@@ -335,11 +335,12 @@ dsp.add_dispatcher(
         'dcdc_current_model', 'drive_battery_loads', 'service_battery_currents',
         'starter_currents', 'service_battery_load', 'dcdc_converter_efficiency',
         'drive_battery_voltages', 'service_battery_loads', 'drive_battery_load',
+        'service_battery_state_of_charge_balance', 'alternator_nominal_voltage',
         'service_battery_initialization_time', 'drive_battery_electric_powers',
         'initial_service_battery_state_of_charge', 'service_battery_capacity',
-        'service_battery_electric_powers', 'drive_battery_n_parallel_cells',
-        'service_battery_state_of_charge_balance', 'drive_battery_currents',
+        'service_battery_electric_powers', 'service_battery_nominal_voltage',
         'dcdc_converter_electric_powers_demand', 'starter_nominal_voltage',
+        'drive_battery_n_parallel_cells', 'drive_battery_currents',
     )
 )
 

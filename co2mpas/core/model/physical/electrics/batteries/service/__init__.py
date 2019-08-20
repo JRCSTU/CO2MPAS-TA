@@ -42,7 +42,7 @@ def calculate_service_battery_currents(
     return service_battery_electric_powers * c
 
 
-@sh.add_function(dsp, outputs=['service_battery_currents'], weight=1)
+@sh.add_function(dsp, outputs=['service_battery_currents'], weight=sh.inf(1, 0))
 def calculate_service_battery_currents_v1(
         service_battery_capacity, times, service_battery_state_of_charges):
     """
