@@ -101,8 +101,8 @@ if __name__ == '__main__':
     extras = {
         'cli': ['click', 'click-log'],
         'sync': ['syncing', 'pandas>=0.21.0'],
-        'plot': ['flask', 'regex', 'graphviz', 'Pygments', 'lxml', 'bs4',
-                 'jinja2', 'docutils', 'matplotlib'],
+        'plot': ['flask', 'regex', 'graphviz', 'Pygments', 'lxml',
+                 'beautifulsoup4', 'jinja2', 'docutils', 'matplotlib'],
         'io': ['pandas>=0.21.0', 'dill', 'regex', 'pandalone[xlrd]', 'pip',
                'xlrd', 'asteval']
     }
