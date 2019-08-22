@@ -182,7 +182,6 @@ if __name__ == '__main__':
         extras_require=extras,
         tests_require=['nose>=1.0', 'ddt'],
         test_suite='nose.collector',
-        setup_requires=['nose>=1.0'],
         package_data={
             'co2mpas': [
                 'demos/*.xlsx',
