@@ -172,7 +172,8 @@ if __name__ == '__main__':
             'schema',
             'scipy',
             'wltp',
-            'xgboost'
+            'xgboost',
+            'statsmodels'
         ],
         entry_points={
             'console_scripts': [

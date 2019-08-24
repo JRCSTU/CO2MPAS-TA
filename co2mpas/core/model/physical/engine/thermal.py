@@ -16,6 +16,14 @@ dsp = sh.BlueDispatcher(
 )
 
 
+def _derivative(times, temp):
+    import scipy.misc as sci_misc
+    import scipy.interpolate as sci_itp
+    par = dfl.functions.calculate_engine_temperature_derivatives
+    func = sci_itp.InterpolatedUnivariateSpline(times, temp, k=1)
+    return sci_misc.derivative(func, times, dx=par.dx, order=par.order)
+
+
 @sh.add_function(dsp, outputs=['engine_temperature_derivatives'])
 def calculate_engine_temperature_derivatives(
         times, engine_coolant_temperatures):
@@ -34,16 +42,13 @@ def calculate_engine_temperature_derivatives(
         Derivative of the engine temperature [°C/s].
     :rtype: numpy.array
     """
-
-    import scipy.misc as sci_misc
-    import scipy.interpolate as sci_itp
+    from statsmodels.nonparametric.smoothers_lowess import lowess
     par = dfl.functions.calculate_engine_temperature_derivatives
-
-    func = sci_itp.InterpolatedUnivariateSpline(
-        times, engine_coolant_temperatures, k=1
-    )
-
-    return sci_misc.derivative(func, times, dx=par.dx, order=par.order)
+    temp = lowess(
+        engine_coolant_temperatures, times, is_sorted=True,
+        frac=par.tw * len(times) / (times[-1] - times[0]) ** 2, missing='none'
+    )[:, 1].ravel()
+    return _derivative(times, temp)
 
 
 @sh.add_function(dsp, outputs=['max_engine_coolant_temperature'])
@@ -165,9 +170,8 @@ def predict_engine_coolant_temperatures(
 # noinspection PyPep8Naming
 @sh.add_function(dsp, outputs=['engine_thermostat_temperature'])
 def identify_engine_thermostat_temperature(
-        idle_engine_speed, engine_temperature_derivatives, accelerations,
-        engine_coolant_temperatures, gear_box_powers_out,
-        engine_speeds_out_hot):
+        idle_engine_speed, times, accelerations, engine_coolant_temperatures,
+        gear_box_powers_out, engine_speeds_out_hot):
     """
     Identifies thermostat engine temperature and its limits [°C].
 
@@ -175,9 +179,9 @@ def identify_engine_thermostat_temperature(
         Engine speed idle median and std [RPM].
     :type idle_engine_speed: (float, float)
 
-    :param engine_temperature_derivatives:
-        Derivative of the engine temperature [°C/s].
-    :type engine_temperature_derivatives: numpy.array
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
 
     :param engine_coolant_temperatures:
         Engine coolant temperature vector [°C].
@@ -201,8 +205,9 @@ def identify_engine_thermostat_temperature(
     """
     from ._thermal import _build_samples, _XGBRegressor
     X, Y = _build_samples(
-        engine_temperature_derivatives, engine_coolant_temperatures,
-        gear_box_powers_out, engine_speeds_out_hot, accelerations
+        _derivative(times, engine_coolant_temperatures),
+        engine_coolant_temperatures, gear_box_powers_out, engine_speeds_out_hot,
+        accelerations
     )
     X, Y = np.column_stack((Y, X[:, 1:])), X[:, 0]
     t_max, t_min = Y.max(), Y.min()

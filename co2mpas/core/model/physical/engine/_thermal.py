@@ -125,6 +125,7 @@ class _XGBRegressor(xgb.XGBRegressor):
 class ThermalModel:
     def __init__(self, engine_thermostat_temperature=100.0):
         self.on = self.off = lambda *args: 0
+        self.ntemp = 5
         self.thermostat = engine_thermostat_temperature
 
     # noinspection PyProtectedMember,PyPep8Naming
@@ -137,6 +138,8 @@ class ThermalModel:
         x = np.column_stack((velocities, np.append(
             [engine_coolant_temperatures[0]], engine_coolant_temperatures[:-1]
         ), engine_speeds_out_hot, accelerations))
+        n = self.ntemp
+        x[:, 1] = np.round((self.thermostat + n / 2 - x[:, 1]) / n) * n
         b = on_engine & (np.abs(engine_temperature_derivatives) > dfl.EPS)
         self.on = _SafeRANSACRegressor(**opt).fit(
             x[b, 1:], engine_temperature_derivatives[b]
@@ -155,9 +158,9 @@ class ThermalModel:
             np.ediff1d(times, to_begin=0), on_engine, velocities, accelerations,
             engine_speeds_out_hot,
         ))
-        x = np.array([[.0] * 4])
+        x, t0 = np.array([[.0] * 4]), self.thermostat + self.ntemp / 2
         for i, (dt, b, v, a, s) in it:
-            x[:] = v, t, s, a
+            x[:] = v, t0 - t, s, a
             t += (self.on(x[:, 1:]) if b else self.off(x[:, :2])) * dt
             temp[i] = t = min(t, max_temp)
         return temp

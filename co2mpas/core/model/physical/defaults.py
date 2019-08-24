@@ -283,6 +283,9 @@ class Functions(co2_utl.Constants):
         #: Degree of the smoothing spline [-].
         order = 7
 
+        #: Time window for smoother [s].
+        tw = 20
+
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class default_clutch_window(co2_utl.Constants):
         #: Clutching time window [s].

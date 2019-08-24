@@ -9,3 +9,4 @@ schema
 scipy
 wltp
 xgboost
+statsmodels
