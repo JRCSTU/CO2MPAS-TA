@@ -15,7 +15,14 @@ dsp = sh.BlueDispatcher(
 )
 
 
-@sh.add_function(dsp, outputs=['motor_p3_maximum_power'])
+@sh.add_function(
+    dsp, inputs=['motor_p3_front_powers'],
+    outputs=['motor_p3_front_maximum_power']
+)
+@sh.add_function(
+    dsp, inputs=['motor_p3_rear_powers'],
+    outputs=['motor_p3_rear_maximum_power']
+)
 def identify_motor_p3_maximum_power(motor_p3_powers):
     """
     Identify the maximum power of motor P3 [kW].
@@ -32,7 +39,14 @@ def identify_motor_p3_maximum_power(motor_p3_powers):
     return func(motor_p3_powers)
 
 
-@sh.add_function(dsp, outputs=['motor_p3_maximum_torque'])
+@sh.add_function(
+    dsp, inputs=['motor_p3_front_torques'],
+    outputs=['motor_p3_front_maximum_torque']
+)
+@sh.add_function(
+    dsp, inputs=['motor_p3_rear_torques'],
+    outputs=['motor_p3_rear_maximum_torque']
+)
 def identify_motor_p3_maximum_torque(motor_p3_torques):
     """
     Identify the maximum torque of motor P3 [N*m].
@@ -49,7 +63,14 @@ def identify_motor_p3_maximum_torque(motor_p3_torques):
     return func(motor_p3_torques)
 
 
-@sh.add_function(dsp, outputs=['motor_p3_maximum_power'])
+@sh.add_function(
+    dsp, inputs=['motor_p3_front_rated_speed', 'motor_p3_front_maximum_torque'],
+    outputs=['motor_p3_front_maximum_power']
+)
+@sh.add_function(
+    dsp, inputs=['motor_p3_rear_rated_speed', 'motor_p3_rear_maximum_torque'],
+    outputs=['motor_p3_rear_maximum_power']
+)
 def calculate_motor_p3_maximum_power(
         motor_p3_rated_speed, motor_p3_maximum_torque):
     """
@@ -71,7 +92,14 @@ def calculate_motor_p3_maximum_power(
     return func(motor_p3_rated_speed, motor_p3_maximum_torque)
 
 
-@sh.add_function(dsp, outputs=['motor_p3_rated_speed'])
+@sh.add_function(
+    dsp, outputs=['motor_p3_front_rated_speed'],
+    inputs=['motor_p3_front_maximum_power', 'motor_p3_front_maximum_torque']
+)
+@sh.add_function(
+    dsp, outputs=['motor_p3_rear_rated_speed'],
+    inputs=['motor_p3_rear_maximum_power', 'motor_p3_rear_maximum_torque']
+)
 def calculate_motor_p3_rated_speed(
         motor_p3_maximum_power, motor_p3_maximum_torque):
     """
@@ -93,7 +121,14 @@ def calculate_motor_p3_rated_speed(
     return func(motor_p3_maximum_power, motor_p3_maximum_torque)
 
 
-@sh.add_function(dsp, outputs=['motor_p3_maximum_power_function'])
+@sh.add_function(
+    dsp, inputs=['motor_p3_front_maximum_power', 'motor_p3_front_rated_speed'],
+    outputs=['motor_p3_front_maximum_power_function']
+)
+@sh.add_function(
+    dsp, inputs=['motor_p3_rear_maximum_power', 'motor_p3_rear_rated_speed'],
+    outputs=['motor_p3_rear_maximum_power_function']
+)
 def define_motor_p3_maximum_power_function(
         motor_p3_maximum_power, motor_p3_rated_speed):
     """
@@ -115,7 +150,14 @@ def define_motor_p3_maximum_power_function(
     return func(motor_p3_maximum_power, motor_p3_rated_speed)
 
 
-@sh.add_function(dsp, outputs=['motor_p3_maximum_powers'])
+@sh.add_function(
+    dsp, outputs=['motor_p3_front_maximum_powers'],
+    inputs=['motor_p3_front_speeds, motor_p3_front_maximum_power_function']
+)
+@sh.add_function(
+    dsp, outputs=['motor_p3_rear_maximum_powers'],
+    inputs=['motor_p3_rear_speeds, motor_p3_rear_maximum_power_function']
+)
 def calculate_motor_p3_maximum_powers(
         motor_p3_speeds, motor_p3_maximum_power_function):
     """
@@ -137,7 +179,14 @@ def calculate_motor_p3_maximum_powers(
     return func(motor_p3_speeds, motor_p3_maximum_power_function)
 
 
-@sh.add_function(dsp, outputs=['motor_p3_speed_ratio'])
+@sh.add_function(
+    dsp, inputs=['final_drive_speeds_in', 'motor_p3_front_speeds'],
+    outputs=['motor_p3_front_speed_ratio']
+)
+@sh.add_function(
+    dsp, inputs=['final_drive_speeds_in', 'motor_p3_rear_speeds'],
+    outputs=['motor_p3_rear_speed_ratio']
+)
 def identify_motor_p3_speed_ratio(final_drive_speeds_in, motor_p3_speeds):
     """
     Identifies motor P3 speed ratio.
@@ -158,10 +207,18 @@ def identify_motor_p3_speed_ratio(final_drive_speeds_in, motor_p3_speeds):
     return func(final_drive_speeds_in, motor_p3_speeds)
 
 
-dsp.add_data('motor_p3_speed_ratio', 1, sh.inf(10, 1))
+dsp.add_data('motor_p3_front_speed_ratio', 1, sh.inf(10, 1))
+dsp.add_data('motor_p3_rear_speed_ratio', 1, sh.inf(10, 1))
 
 
-@sh.add_function(dsp, inputs_kwargs=True, outputs=['motor_p3_speeds'])
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['motor_p3_front_speeds'],
+    inputs=['final_drive_speeds_in', 'motor_p3_front_speed_ratio']
+)
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['motor_p3_rear_speeds'],
+    inputs=['final_drive_speeds_in', 'motor_p3_rear_speed_ratio']
+)
 def calculate_motor_p3_speeds(final_drive_speeds_in, motor_p3_speed_ratio=1):
     """
     Calculates rotating speed of motor P3 [RPM].
@@ -181,7 +238,14 @@ def calculate_motor_p3_speeds(final_drive_speeds_in, motor_p3_speed_ratio=1):
     return final_drive_speeds_in * motor_p3_speed_ratio
 
 
-@sh.add_function(dsp, inputs_kwargs=True, outputs=['final_drive_speeds_in'])
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['final_drive_speeds_in'],
+    inputs=['motor_p3_front_speeds', 'motor_p3_front_speed_ratio']
+)
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['final_drive_speeds_in'],
+    inputs=['motor_p3_rear_speeds', 'motor_p3_rear_speed_ratio']
+)
 def calculate_final_drive_speeds_in(motor_p3_speeds, motor_p3_speed_ratio=1):
     """
     Calculates final drive speed [RPM].
@@ -201,7 +265,14 @@ def calculate_final_drive_speeds_in(motor_p3_speeds, motor_p3_speed_ratio=1):
     return motor_p3_speeds / motor_p3_speed_ratio
 
 
-@sh.add_function(dsp, outputs=['motor_p3_torques'])
+@sh.add_function(
+    dsp, inputs=['motor_p3_front_powers', 'motor_p3_front_speeds'],
+    outputs=['motor_p3_front_torques']
+)
+@sh.add_function(
+    dsp, inputs=['motor_p3_rear_powers', 'motor_p3_rear_speeds'],
+    outputs=['motor_p3_rear_torques']
+)
 def calculate_motor_p3_torques(motor_p3_powers, motor_p3_speeds):
     """
     Calculates torque at motor P3 [N*m].
@@ -222,7 +293,14 @@ def calculate_motor_p3_torques(motor_p3_powers, motor_p3_speeds):
     return calculate_wheel_torques(motor_p3_powers, motor_p3_speeds)
 
 
-@sh.add_function(dsp, outputs=['motor_p3_powers'])
+@sh.add_function(
+    dsp, inputs=['motor_p3_front_torques', 'motor_p3_front_speeds'],
+    outputs=['motor_p3_front_powers']
+)
+@sh.add_function(
+    dsp, inputs=['motor_p3_rear_torques', 'motor_p3_rear_speeds'],
+    outputs=['motor_p3_rear_powers']
+)
 def calculate_motor_p3_powers(motor_p3_torques, motor_p3_speeds):
     """
     Calculates power at motor P3 [kW].
@@ -243,7 +321,14 @@ def calculate_motor_p3_powers(motor_p3_torques, motor_p3_speeds):
     return calculate_wheel_powers(motor_p3_torques, motor_p3_speeds)
 
 
-@sh.add_function(dsp, outputs=['motor_p3_speeds'])
+@sh.add_function(
+    dsp, inputs=['motor_p3_front_powers', 'motor_p3_front_torques'],
+    outputs=['motor_p3_front_speeds']
+)
+@sh.add_function(
+    dsp, inputs=['motor_p3_rear_powers', 'motor_p3_rear_torques'],
+    outputs=['motor_p3_rear_speeds']
+)
 def calculate_motor_p3_speeds_v1(motor_p3_powers, motor_p3_torques):
     """
     Calculates rotating speed of motor P3 [RPM].
@@ -264,10 +349,18 @@ def calculate_motor_p3_speeds_v1(motor_p3_powers, motor_p3_torques):
     return calculate_wheel_torques(motor_p3_powers, motor_p3_torques)
 
 
-dsp.add_data('motor_p3_efficiency', 0.9)
+dsp.add_data('motor_p3_front_efficiency', 0.9)
+dsp.add_data('motor_p3_rear_efficiency', 0.9)
 
 
-@sh.add_function(dsp, outputs=['motor_p3_electric_powers'])
+@sh.add_function(
+    dsp, inputs=['motor_p3_front_powers', 'motor_p3_front_efficiency'],
+    outputs=['motor_p3_front_electric_powers']
+)
+@sh.add_function(
+    dsp, inputs=['motor_p3_rear_powers', 'motor_p3_rear_efficiency'],
+    outputs=['motor_p3_rear_electric_powers']
+)
 def calculate_motor_p3_electric_powers(motor_p3_powers, motor_p3_efficiency):
     """
     Calculates motor P3 electric power [kW].
@@ -288,7 +381,14 @@ def calculate_motor_p3_electric_powers(motor_p3_powers, motor_p3_efficiency):
     return func(motor_p3_powers, motor_p3_efficiency)
 
 
-@sh.add_function(dsp, outputs=['motor_p3_powers'])
+@sh.add_function(
+    dsp, inputs=['motor_p3_front_electric_powers', 'motor_p3_front_efficiency'],
+    outputs=['motor_p3_front_powers']
+)
+@sh.add_function(
+    dsp, inputs=['motor_p3_rear_electric_powers', 'motor_p3_rear_efficiency'],
+    outputs=['motor_p3_rear_powers']
+)
 def calculate_motor_p3_powers_v1(motor_p3_electric_powers, motor_p3_efficiency):
     """
     Calculate motor P3 power from electric power and electric power losses [kW].
@@ -309,10 +409,16 @@ def calculate_motor_p3_powers_v1(motor_p3_electric_powers, motor_p3_efficiency):
     return func(motor_p3_electric_powers, motor_p3_efficiency)
 
 
-dsp.add_data('has_motor_p3', False, sh.inf(10, 3))
+dsp.add_data('has_motor_p3_front', False, sh.inf(10, 3))
+dsp.add_data('has_motor_p3_rear', False, sh.inf(10, 3))
 
 
-@sh.add_function(dsp, outputs=['has_motor_p3'])
+@sh.add_function(
+    dsp, inputs=['motor_p3_front_maximum_power'], outputs=['has_motor_p3_front']
+)
+@sh.add_function(
+    dsp, inputs=['motor_p3_rear_maximum_power'], outputs=['has_motor_p3_rear']
+)
 def identify_has_motor_p3(motor_p3_maximum_power):
     """
     Identify if the vehicle has a motor P3 [kW].
@@ -329,7 +435,13 @@ def identify_has_motor_p3(motor_p3_maximum_power):
     return func(motor_p3_maximum_power)
 
 
-@sh.add_function(dsp, outputs=['motor_p3_powers'])
+@sh.add_function(
+    dsp, inputs=['times', 'has_motor_p3_front'],
+    outputs=['motor_p3_front_powers']
+)
+@sh.add_function(
+    dsp, inputs=['times', 'has_motor_p3_rear'], outputs=['motor_p3_rear_powers']
+)
 def default_motor_p3_powers(times, has_motor_p3):
     """
     Return zero power if the vehicle has not a motor P3 [kW].

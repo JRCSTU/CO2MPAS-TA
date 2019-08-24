@@ -21,7 +21,8 @@ dsp.add_function(
     function_id='define_motors_efficiencies',
     function=sh.bypass,
     inputs=[
-        'motor_p4_efficiency', 'motor_p3_efficiency', 'motor_p2_efficiency',
+        'motor_p4_efficiency', 'motor_p3_front_efficiency',
+        'motor_p3_rear_efficiency', 'motor_p2_efficiency',
         'motor_p1_efficiency', 'motor_p0_efficiency'
     ],
     outputs=['motors_efficiencies']
@@ -31,9 +32,9 @@ dsp.add_function(
     function_id='define_motors_maximum_powers',
     function=sh.bypass,
     inputs=[
-        'motor_p4_maximum_power', 'motor_p3_maximum_power',
-        'motor_p2_maximum_power', 'motor_p1_maximum_power',
-        'motor_p0_maximum_power'
+        'motor_p4_maximum_power', 'motor_p3_front_maximum_power',
+        'motor_p3_rear_maximum_power', 'motor_p2_maximum_power',
+        'motor_p1_maximum_power', 'motor_p0_maximum_power'
     ],
     outputs=['motors_maximum_powers']
 )
@@ -41,10 +42,11 @@ dsp.add_function(
 
 @sh.add_function(dsp, outputs=['motors_maximums_powers'])
 def define_motors_maximums_powers(
-        motor_p4_maximum_powers, motor_p3_maximum_powers,
-        motor_p2_maximum_powers, engine_speeds_parallel,
-        motor_p1_maximum_power_function, motor_p1_speed_ratio,
-        motor_p0_maximum_power_function, motor_p0_speed_ratio):
+        motor_p4_maximum_powers, motor_p3_front_maximum_powers,
+        motor_p3_rear_maximum_powers, motor_p2_maximum_powers,
+        engine_speeds_parallel, motor_p1_maximum_power_function,
+        motor_p1_speed_ratio, motor_p0_maximum_power_function,
+        motor_p0_speed_ratio):
     """
     Defines maximum powers of electric motors [kW].
 
@@ -52,9 +54,13 @@ def define_motors_maximums_powers(
         Maximum power vector of motor P4 [kW].
     :type motor_p4_maximum_powers: numpy.array
 
-    :param motor_p3_maximum_powers:
-        Maximum power vector of motor P3 [kW].
-    :type motor_p3_maximum_powers: numpy.array
+    :param motor_p3_front_maximum_powers:
+        Maximum power vector of motor P3 front [kW].
+    :type motor_p3_front_maximum_powers: numpy.array
+
+    :param motor_p3_rear_maximum_powers:
+        Maximum power vector of motor P3 rear [kW].
+    :type motor_p3_rear_maximum_powers: numpy.array
 
     :param motor_p2_maximum_powers:
         Maximum power vector of motor P2 [kW].
@@ -86,7 +92,8 @@ def define_motors_maximums_powers(
     """
     es, p2_powers = engine_speeds_parallel, motor_p2_maximum_powers
     return np.column_stack((
-        motor_p4_maximum_powers, motor_p3_maximum_powers, p2_powers,
+        motor_p4_maximum_powers, motor_p3_front_maximum_powers,
+        motor_p3_rear_maximum_powers, p2_powers,
         motor_p1_maximum_power_function(es * motor_p1_speed_ratio),
         motor_p0_maximum_power_function(es * motor_p0_speed_ratio)
     ))
@@ -251,7 +258,7 @@ class HEV:
         self.m_eff = np.array(motors_efficiencies)
         m_dl_eff = np.multiply.accumulate(drive_line_efficiencies)
         self.ice_eff = m_dl_eff[-2]
-
+        m_dl_eff = np.insert(m_dl_eff, 1, m_dl_eff[1])
         # Electric assist (dp < 0).
         self.m_ds = m_dl_eff / self.ice_eff
         self.i_ds = np.argsort(self.m_eff * self.m_ds)[::-1]
@@ -1276,9 +1283,9 @@ def predict_engine_speeds_out_hot(ems_data, hybrid_modes):
 
 
 @sh.add_function(dsp, outputs=[
-    'motor_p4_electric_powers', 'motor_p3_electric_powers',
-    'motor_p2_electric_powers', 'motor_p1_electric_powers',
-    'motor_p0_electric_powers'
+    'motor_p4_electric_powers', 'motor_p3_front_electric_powers',
+    'motor_p3_rear_electric_powers', 'motor_p2_electric_powers',
+    'motor_p1_electric_powers', 'motor_p0_electric_powers'
 ])
 def predict_motors_electric_powers(
         ems_data, catalyst_warm_up, hybrid_modes, engine_speeds_out_hot):
@@ -1313,7 +1320,8 @@ def predict_motors_electric_powers(
 
 
 @sh.add_function(dsp, outputs=[
-    'motor_p4_electric_powers', 'motor_p3_electric_powers',
+    'motor_p4_electric_powers', 'motor_p3_front_electric_powers',
+    'motor_p3_rear_electric_powers',
     'motor_p2_electric_powers', 'motor_p1_electric_powers',
     'motor_p0_electric_powers'
 ])

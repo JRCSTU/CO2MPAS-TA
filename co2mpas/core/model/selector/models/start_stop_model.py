@@ -17,27 +17,29 @@ name = 'start_stop_model'
 #: Parameters that constitute the model.
 models = [
     'start_stop_model', 'start_stop_hybrid_params', 'catalyst_warm_up_duration',
-    'motor_p3_efficiency', 'motor_p4_efficiency', 'final_drive_mean_efficiency',
-    'belt_mean_efficiency', 'clutch_tc_mean_efficiency', 'motor_p2_efficiency',
-    'motor_p0_efficiency', 'motor_p1_efficiency', 'gear_box_mean_efficiency',
-    'ecms_s', 'motor_p0_maximum_power', 'motor_p0_rated_speed',
-    'motor_p1_maximum_power', 'motor_p1_rated_speed', 'motor_p2_maximum_power',
-    'motor_p2_rated_speed', 'motor_p3_maximum_power', 'motor_p3_rated_speed',
-    'motor_p4_maximum_power', 'motor_p4_rated_speed'
+    'motor_p1_maximum_power', 'motor_p1_efficiency', 'gear_box_mean_efficiency',
+    'belt_mean_efficiency', 'clutch_tc_mean_efficiency', 'motor_p1_rated_speed',
+    'final_drive_mean_efficiency', 'motor_p0_efficiency', 'motor_p4_efficiency',
+    'motor_p3_rear_rated_speed', 'motor_p4_rated_speed', 'motor_p0_rated_speed',
+    'motor_p3_front_rated_speed', 'motor_p2_rated_speed', 'motor_p2_efficiency',
+    'motor_p3_front_maximum_power', 'motor_p3_rear_maximum_power', 'ecms_s',
+    'motor_p3_front_efficiency', 'motor_p3_rear_efficiency',
+    'motor_p4_maximum_power', 'motor_p0_maximum_power',
+    'motor_p2_maximum_power',
+
 ]
 
 #: Inputs required to run the model.
 inputs = [
-    'times', 'velocities', 'accelerations', 'gears', 'motive_powers',
-    'correct_start_stop_with_gears', 'start_stop_activation_time',
-    'min_time_engine_on_after_start', 'has_start_stop', 'is_hybrid',
-    'drive_battery_model', 'fuel_map', 'full_load_curve', 'is_cycle_hot',
-    'motor_p1_maximum_power_function', 'motor_p0_maximum_power_function',
-    'motor_p1_speed_ratio', 'motor_p0_speed_ratio', 'gear_box_speeds_in',
-    'idle_engine_speed', 'motor_p4_maximum_powers', 'motor_p3_maximum_powers',
-    'motor_p2_maximum_powers', 'starter_model', 'engine_moment_inertia',
-    'auxiliaries_torque_loss', 'auxiliaries_power_loss',
-    'dcdc_converter_efficiency'
+    'idle_engine_speed', 'motor_p4_maximum_powers', 'dcdc_converter_efficiency',
+    'correct_start_stop_with_gears', 'motor_p0_maximum_power_function', 'gears',
+    'motor_p1_maximum_power_function', 'motor_p3_front_maximum_powers', 'times',
+    'min_time_engine_on_after_start', 'start_stop_activation_time', 'is_hybrid',
+    'motor_p3_rear_maximum_powers', 'motor_p2_maximum_powers', 'has_start_stop',
+    'auxiliaries_torque_loss', 'auxiliaries_power_loss', 'motor_p1_speed_ratio',
+    'engine_moment_inertia', 'drive_battery_model', 'accelerations', 'fuel_map',
+    'motor_p0_speed_ratio', 'gear_box_speeds_in', 'starter_model', 'velocities',
+    'full_load_curve', 'motive_powers', 'is_cycle_hot',
 ]
 
 #: Relevant outputs of the model.

@@ -110,16 +110,29 @@ dsp.add_dispatcher(
     dsp_id='motor_p3',
     dsp=_p3,
     inputs=(
-        'motor_p3_electric_powers', 'motor_p3_maximum_power', 'motor_p3_powers',
-        'motor_p3_maximum_torque', 'motor_p3_speed_ratio', 'motor_p3_torques',
-        'motor_p3_efficiency', 'motor_p3_rated_speed', 'motor_p3_speeds',
-        'final_drive_speeds_in', 'has_motor_p3', 'times'
+        'motor_p3_front_electric_powers', 'motor_p3_front_maximum_power',
+        'motor_p3_front_powers', 'motor_p3_front_maximum_torque',
+        'motor_p3_front_speed_ratio', 'motor_p3_front_torques',
+        'motor_p3_front_efficiency', 'motor_p3_front_rated_speed',
+        'motor_p3_front_speeds', 'has_motor_p3_front',
+        'motor_p3_rear_electric_powers', 'motor_p3_rear_maximum_power',
+        'motor_p3_rear_powers', 'motor_p3_rear_maximum_torque',
+        'motor_p3_rear_speed_ratio', 'motor_p3_rear_torques',
+        'motor_p3_rear_efficiency', 'motor_p3_rear_rated_speed',
+        'motor_p3_rear_speeds', 'has_motor_p3_rear', 'final_drive_speeds_in',
+        'times',
     ),
     outputs=(
-        'motor_p3_electric_powers', 'motor_p3_maximum_power', 'motor_p3_powers',
-        'motor_p3_maximum_torque', 'motor_p3_speed_ratio', 'motor_p3_torques',
-        'motor_p3_maximum_powers', 'motor_p3_rated_speed', 'motor_p3_speeds',
-        'final_drive_speeds_in', 'has_motor_p3',
+        'motor_p3_front_electric_powers', 'motor_p3_front_maximum_power',
+        'motor_p3_front_powers', 'motor_p3_front_maximum_torque',
+        'motor_p3_front_speed_ratio', 'motor_p3_front_torques',
+        'motor_p3_front_maximum_powers', 'motor_p3_front_rated_speed',
+        'motor_p3_front_speeds', 'has_motor_p3_front',
+        'motor_p3_rear_electric_powers', 'motor_p3_rear_maximum_power',
+        'motor_p3_rear_powers', 'motor_p3_rear_maximum_torque',
+        'motor_p3_rear_speed_ratio', 'motor_p3_rear_torques',
+        'motor_p3_rear_maximum_powers', 'motor_p3_rear_rated_speed',
+        'motor_p3_rear_speeds', 'has_motor_p3_rear', 'final_drive_speeds_in'
     ),
     include_defaults=True
 )
@@ -159,7 +172,8 @@ dsp.add_dispatcher(
 
 @sh.add_function(dsp, outputs=['is_hybrid'])
 def identify_is_hybrid(
-        has_motor_p0, has_motor_p1, has_motor_p2, has_motor_p3, has_motor_p4):
+        has_motor_p0, has_motor_p1, has_motor_p2, has_motor_p3_front,
+        has_motor_p3_rear, has_motor_p4):
     """
     Identifies if the the vehicle is hybrid.
 
@@ -175,9 +189,13 @@ def identify_is_hybrid(
         Has the vehicle a motor in P2?
     :type has_motor_p2: bool
 
-    :param has_motor_p3:
-        Has the vehicle a motor in P3?
-    :type has_motor_p3: bool
+    :param has_motor_p3_front:
+        Has the vehicle a motor in P3 front?
+    :type has_motor_p3_front: bool
+
+    :param has_motor_p3_rear:
+        Has the vehicle a motor in P3 rear?
+    :type has_motor_p3_rear: bool
 
     :param has_motor_p4:
         Has the vehicle a motor in P4?
@@ -187,5 +205,6 @@ def identify_is_hybrid(
         Is the vehicle hybrid?
     :rtype: bool
     """
-    b = has_motor_p0, has_motor_p1, has_motor_p2, has_motor_p3, has_motor_p4
+    b = has_motor_p0, has_motor_p1, has_motor_p2, has_motor_p3_front
+    b += has_motor_p3_rear, has_motor_p4
     return any(b)
