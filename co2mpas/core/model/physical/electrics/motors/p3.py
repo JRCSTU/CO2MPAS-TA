@@ -152,11 +152,11 @@ def define_motor_p3_maximum_power_function(
 
 @sh.add_function(
     dsp, outputs=['motor_p3_front_maximum_powers'],
-    inputs=['motor_p3_front_speeds, motor_p3_front_maximum_power_function']
+    inputs=['motor_p3_front_speeds', 'motor_p3_front_maximum_power_function']
 )
 @sh.add_function(
     dsp, outputs=['motor_p3_rear_maximum_powers'],
-    inputs=['motor_p3_rear_speeds, motor_p3_rear_maximum_power_function']
+    inputs=['motor_p3_rear_speeds', 'motor_p3_rear_maximum_power_function']
 )
 def calculate_motor_p3_maximum_powers(
         motor_p3_speeds, motor_p3_maximum_power_function):
