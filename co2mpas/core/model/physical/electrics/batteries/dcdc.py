@@ -59,7 +59,29 @@ def calculate_dcdc_converter_electric_powers(
         DC/DC converter electric power [kW].
     :rtype: numpy.array | float
     """
-    return dcdc_converter_currents * service_battery_nominal_voltage / 1000
+    return dcdc_converter_currents * (service_battery_nominal_voltage / 1000)
+
+
+@sh.add_function(dsp, outputs=['dcdc_converter_currents'])
+def calculate_dcdc_converter_currents(
+        dcdc_converter_electric_powers, service_battery_nominal_voltage):
+    """
+    Calculate DC/DC converter current [A].
+
+    :param dcdc_converter_electric_powers:
+        DC/DC converter electric power [kW].
+    :type dcdc_converter_electric_powers: numpy.array | float
+
+    :param service_battery_nominal_voltage:
+        Service battery nominal voltage [V].
+    :type service_battery_nominal_voltage: float
+
+    :return:
+        DC/DC converter currents [A].
+    :rtype: numpy.array | float
+    """
+    c = 1000 / service_battery_nominal_voltage
+    return dcdc_converter_electric_powers * c
 
 
 @sh.add_function(dsp, outputs=['dcdc_current_model'])
