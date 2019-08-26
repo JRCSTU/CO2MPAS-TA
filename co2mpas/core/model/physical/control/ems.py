@@ -320,7 +320,7 @@ class HEV:
 
         pi, pb, bps = self.parallel(
             np.zeros_like(motive_powers), np.pad(
-                motors_maximums_powers[:, -2:], ((0, 0), (3, 0)), 'constant'
+                motors_maximums_powers[:, -2:], ((0, 0), (4, 0)), 'constant'
             ), engine_powers_out=engine_powers_out,
             ice_power_losses=ice_power_losses,
             battery_power_losses=battery_power_losses
@@ -480,7 +480,7 @@ def define_serial_motor_maximum_power_function(
             np.column_stack((
                 motor_p1_maximum_power_function(es * motor_p1_speed_ratio),
                 motor_p0_maximum_power_function(es * motor_p0_speed_ratio)
-            )), ((0, 0), (3, 0)), 'constant'
+            )), ((0, 0), (4, 0)), 'constant'
         )
 
     return calculate_serial_motor_maximum_power
