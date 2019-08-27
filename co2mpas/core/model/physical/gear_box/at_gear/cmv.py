@@ -130,6 +130,9 @@ def _convert_limits(it, X):
     _inf = u[-1]
     x = np.asarray(x)
     l, u = np.asarray(l) / x, np.asarray(u) / x
+    if x.size == 1:
+        x = np.array([x[0] - 1, x[0], x[0] + 1])
+        l, u = np.tile(l[0], 3), np.tile(u[0], 3)
     L = Spline(x, l, k=1)(X) * X
     U = np.append(Spline(x[:-1], u[:-1], k=1)(X[:-1]) * X[:-1], [_inf])
     L[0], U[0] = it[0][1:]
