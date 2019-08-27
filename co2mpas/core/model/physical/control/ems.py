@@ -1089,6 +1089,41 @@ def define_start_stop_hybrid(start_stop_hybrid_params):
 
 
 @sh.add_function(dsp, outputs=['hybrid_modes'])
+def calculate_hybrid_modes(
+        times, ems_data, on_engine, catalyst_warm_up_duration):
+    """
+    Calculate the hybrid mode status (0: EV, 1: Parallel, 2: Serial).
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param ems_data:
+        EMS decision data.
+    :type ems_data: dict
+
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :param catalyst_warm_up_duration:
+        Catalyst warm up duration [s].
+    :type catalyst_warm_up_duration: float
+
+    :return:
+        Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
+    :rtype: numpy.array
+    """
+    modes, i = np.zeros_like(times, int), np.where(on_engine)[0]
+    if i.size:
+        modes[i] = ems_data['hybrid_modes'].ravel()[i]
+        t = times[i]
+        i = i[t <= t[0] + catalyst_warm_up_duration]
+        modes[i] = 2
+    return modes
+
+
+@sh.add_function(dsp, outputs=['hybrid_modes'])
 def predict_hybrid_modes(
         start_stop_hybrid, ems_data, drive_battery_model, times, motive_powers,
         accelerations, catalyst_warm_up_duration, start_stop_activation_time,
@@ -1321,9 +1356,8 @@ def predict_motors_electric_powers(
 
 @sh.add_function(dsp, outputs=[
     'motor_p4_electric_powers', 'motor_p3_front_electric_powers',
-    'motor_p3_rear_electric_powers',
-    'motor_p2_electric_powers', 'motor_p1_electric_powers',
-    'motor_p0_electric_powers'
+    'motor_p3_rear_electric_powers', 'motor_p2_electric_powers',
+    'motor_p1_electric_powers', 'motor_p0_electric_powers'
 ])
 def identify_motors_electric_powers(
         hev_power_model, hybrid_modes, motive_powers, motors_maximums_powers,
