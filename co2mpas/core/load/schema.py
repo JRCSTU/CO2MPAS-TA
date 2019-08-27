@@ -595,7 +595,8 @@ def define_data_schema(read=True):
         'motor_p0_electric_power_loss_function': function,
         'motor_p1_electric_power_loss_function': function,
         'motor_p2_electric_power_loss_function': function,
-        'motor_p3_electric_power_loss_function': function,
+        'motor_p3_front_electric_power_loss_function': function,
+        'motor_p3_rear_electric_power_loss_function': function,
         'motor_p4_electric_power_loss_function': function,
         'cold_start_speed_model': cssm,
         'clutch_window': tuplefloat2,
@@ -634,6 +635,7 @@ def define_data_schema(read=True):
         'k2': positive_int,
         'k5': positive_int,
         'max_gear': positive_int,
+        'hybrid_modes':  np_array_int,
 
         'road_loads': _type(type=And(Use(tuple), (_type(float),)),
                             length=3,

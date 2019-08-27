@@ -669,7 +669,7 @@ class EMS:
             battery_power_split=battery_power_split
         )
         if engine_speeds_out is None and opt:
-            i, j = np.arange(pi.shape[0]), np.argmax(pi / fc_ice, 1)
+            i, j = np.arange(pi.shape[0]), np.nanargmax(pi / fc_ice, 1)
             res = self.min(res, i, j)
             res['speed_ice'] = res['speed_ice'][i, j, None]
         return self.starter_penalties(res)
