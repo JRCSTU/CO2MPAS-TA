@@ -178,7 +178,8 @@ def _get_summary_results(data):
     keys = ('f0', 'f1', 'f2', 'vehicle_mass', 'gear_box_type', 'has_start_stop',
             'r_dynamic', 'ki_multiplicative', 'ki_addittive', 'fuel_type',
             'engine_capacity', 'engine_is_turbo', 'engine_max_power',
-            'engine_speed_at_max_power', 'delta_state_of_charge')
+            'engine_speed_at_max_power', 'drive_battery_delta_state_of_charge',
+            'service_battery_delta_state_of_charge')
     _get_values(data, keys, tag=('vehicle',), base=res)
 
     return res
