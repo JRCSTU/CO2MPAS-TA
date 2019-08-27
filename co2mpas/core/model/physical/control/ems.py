@@ -669,7 +669,10 @@ class EMS:
             battery_power_split=battery_power_split
         )
         if engine_speeds_out is None and opt:
-            i, j = np.arange(pi.shape[0]), np.nanargmax(pi / fc_ice, 1)
+            eff, b = pi / fc_ice, bc < 0
+            b[np.all(np.isnan(eff) | b, 1)] = False
+            eff[b] = np.nan
+            i, j = np.arange(pi.shape[0]), np.nanargmax(eff, 1)
             res = self.min(res, i, j)
             res['speed_ice'] = res['speed_ice'][i, j, None]
         return self.starter_penalties(res)
@@ -711,6 +714,8 @@ class EMS:
             k_par = ((p[k] - e[k] + c_par) / p['fc_ice']).T
         # noinspection PyUnresolvedReferences
         mode = (s['fc_eq'] < p['fc_eq']).astype(int) + 1
+        mode[(s['current_bat'] < 0) & (p['current_bat'] >= 0)] = 1
+        mode[(s['current_bat'] >= 0) & (p['current_bat'] < 0)] = 2
         mode[gear_box_speeds_in < -np.diff(idle_engine_speed)] = 2
         be_serial = (e['power_ice'].ravel() > dfl.EPS) & (motive_powers > 0.01)
         mode[be_serial] = 1
