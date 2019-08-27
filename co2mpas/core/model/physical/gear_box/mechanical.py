@@ -236,7 +236,11 @@ def identify_gears_v1(
         Gear vector identified [-].
     :rtype: numpy.array
     """
-
+    n = [k for k in velocity_speed_ratios if k != 0]
+    if len(n) == 1:
+        gears = np.ones_like(times, int) * n[0]
+        gears[velocities <= stop_velocity] = 0
+        return gears
     with np.errstate(divide='ignore', invalid='ignore'):
         r = velocities / engine_speeds_out
 
