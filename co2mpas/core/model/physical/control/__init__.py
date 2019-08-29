@@ -142,7 +142,7 @@ dsp.add_dispatcher(
         'motor_p3_rear_electric_powers', 'motor_p3_front_maximum_power',
         'motor_p3_rear_maximum_powers', 'engine_coolant_temperatures',
         'motor_p3_rear_maximum_power', 'motor_p0_electric_powers',
-        {'is_hybrid': sh.SINK},
+        'gear_box_mean_efficiency_guess', {'is_hybrid': sh.SINK},
     ),
     outputs=(
         'motor_p4_electric_powers', 'engine_speeds_out_hot', 'catalyst_warm_up',

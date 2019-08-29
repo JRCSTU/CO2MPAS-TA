@@ -257,8 +257,7 @@ def calculate_gear_box_heat(
 
 @sh.add_function(dsp, outputs=['gear_box_temperature'])
 def calculate_next_gear_box_temperature(
-        gear_box_heat, gear_box_temperature, equivalent_gear_box_heat_capacity,
-        thermostat_temperature):
+        gear_box_heat, gear_box_temperature, equivalent_gear_box_heat_capacity):
     """
     Calculates the gear box temperature not finalized [°C].
 
@@ -274,30 +273,21 @@ def calculate_next_gear_box_temperature(
         Equivalent gear box capacity (from cold start model) [W/°C].
     :type equivalent_gear_box_heat_capacity: float
 
-    :param thermostat_temperature:
-        Engine thermostat temperature [°C].
-    :type thermostat_temperature: float
-
     :return:
         Gear box temperature not finalized [°C].
     :rtype: float
     """
-
-    temp = gear_box_temperature
-    temp += gear_box_heat / equivalent_gear_box_heat_capacity
-
-    return min(temp, thermostat_temperature - 5.0)
+    dtemp = gear_box_heat / equivalent_gear_box_heat_capacity
+    return gear_box_temperature + dtemp
 
 
 def _thermal(
         gear_box_temperature, gear_box_torque, gear, delta_time,
-        gear_box_power_out, gear_box_speed_out,
-        gear_box_speed_in, thermostat_temperature,
+        gear_box_power_out, gear_box_speed_out, gear_box_speed_in,
         equivalent_gear_box_heat_capacity,
         gear_box_efficiency_parameters_cold_hot,
         gear_box_temperature_references, gear_box_ratios=None,
         min_engine_on_speed=None):
-
     if gear_box_torque is None:
         gear_box_torque = calculate_gear_box_torque(
             gear_box_power_out, gear_box_speed_out, gear_box_speed_in,
@@ -320,7 +310,6 @@ def _thermal(
         gear_box_efficiency, gear_box_power_out, delta_time
     )
     gear_box_temperature = calculate_next_gear_box_temperature(
-        gear_box_heat, gear_box_temperature, equivalent_gear_box_heat_capacity,
-        thermostat_temperature
+        gear_box_heat, gear_box_temperature, equivalent_gear_box_heat_capacity
     )
     return gear_box_temperature, gear_box_torque_in, gear_box_efficiency

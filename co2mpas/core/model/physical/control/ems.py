@@ -132,8 +132,7 @@ def define_drive_line_efficiencies(
     )
 
 
-@sh.add_function(dsp, outputs=['engine_speeds_parallel'],
-                 weight=sh.inf(11, 0))
+@sh.add_function(dsp, outputs=['engine_speeds_parallel'], weight=sh.inf(11, 0))
 def calculate_engine_speeds_parallel(gear_box_speeds_in, idle_engine_speed):
     """
     Calculate hypothetical engine speed in parallel mode [RPM].
@@ -1399,3 +1398,61 @@ def identify_motors_electric_powers(
         func(motive_powers, motors_maximums_powers, 0)[-1](pb)
         for func in (hev.ev, hev.parallel, hev.serial)
     ])
+
+
+@sh.add_function(dsp, outputs=[
+    'motor_p4_electric_powers', 'motor_p3_front_electric_powers',
+    'motor_p3_rear_electric_powers', 'motor_p2_electric_powers',
+    'motor_p1_electric_powers', 'motor_p0_electric_powers'
+], weight=sh.inf(1, 0))
+def identify_motors_electric_powers_v1(
+        final_drive_mean_efficiency, gear_box_mean_efficiency_guess,
+        belt_mean_efficiency, motors_efficiencies, hybrid_modes, motive_powers,
+        motors_maximums_powers, motors_electric_powers):
+    """
+    Identify motors electric power split [kW].
+
+    :param final_drive_mean_efficiency:
+        Final drive mean efficiency [-].
+    :type final_drive_mean_efficiency: float
+
+    :param gear_box_mean_efficiency_guess:
+        Gear box mean efficiency guess [-].
+    :type final_drive_mean_efficiency: float
+
+    :param belt_mean_efficiency:
+        Belt mean efficiency [-].
+    :type belt_mean_efficiency: float
+
+    :param motors_efficiencies:
+        Electric motors efficiencies vector.
+    :type motors_efficiencies: tuple[float]
+
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
+
+    :param hybrid_modes:
+        Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
+    :type hybrid_modes: numpy.array
+
+    :param motors_maximums_powers:
+        Maximum powers of electric motors [kW].
+    :type motors_maximums_powers: numpy.array
+
+    :param motors_electric_powers:
+        Cumulative motors electric power [kW].
+    :type motors_electric_powers: numpy.array
+
+    :return:
+        Motors electric powers [kW].
+    :rtype: tuple[numpy.array]
+    """
+    drive_line_efficiencies = (
+        1.0, final_drive_mean_efficiency, gear_box_mean_efficiency_guess, .99,
+        belt_mean_efficiency
+    )
+    return identify_motors_electric_powers(
+        HEV(drive_line_efficiencies, motors_efficiencies), hybrid_modes,
+        motive_powers, motors_maximums_powers, motors_electric_powers
+    )
