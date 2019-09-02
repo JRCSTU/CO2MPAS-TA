@@ -18,8 +18,6 @@ Sub-Modules:
 
     NEDC
     WLTP
-    logic
-
 """
 import numpy as np
 import schedula as sh
