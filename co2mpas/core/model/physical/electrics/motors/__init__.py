@@ -160,7 +160,7 @@ dsp.add_dispatcher(
     dsp=_starter,
     inputs=(
         'delta_time_engine_starter', 'times', 'on_engine', 'starter_efficiency',
-        'engine_moment_inertia', 'starter_nominal_voltage', 'clutch_tc_speeds',
+        'engine_moment_inertia', 'starter_nominal_voltage', 'engine_speeds_out',
     ),
     outputs=(
         'starter_electric_powers', 'starter_powers', 'starter_currents',

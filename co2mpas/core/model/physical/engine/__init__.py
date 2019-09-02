@@ -27,7 +27,6 @@ import numpy as np
 import schedula as sh
 from ..defaults import dfl
 from .idle import dsp as _idle
-import co2mpas.utils as co2_utl
 from .thermal import dsp as _thermal
 from .cold_start import dsp as _cold_start
 from .co2_emission import dsp as _co2_emission
@@ -458,103 +457,6 @@ def calculate_engine_max_power_v1(
     return engine_max_torque / c
 
 
-@sh.add_function(dsp, inputs_kwargs=True, outputs=['engine_speeds_out_hot'])
-def calculate_engine_speeds_out_hot(
-        gear_box_speeds_in, on_engine, idle_engine_speed, is_hybrid=False):
-    """
-    Calculates the engine speed at hot condition [RPM].
-
-    :param gear_box_speeds_in:
-        Gear box speed [RPM].
-    :type gear_box_speeds_in: numpy.array | float
-
-    :param on_engine:
-        If the engine is on [-].
-    :type on_engine: numpy.array, bool
-
-    :param idle_engine_speed:
-        Idle engine speed and its standard deviation [RPM].
-    :type idle_engine_speed: (float, float)
-
-    :param is_hybrid:
-        Is the vehicle hybrid?
-    :type is_hybrid: bool
-
-    :return:
-        Engine speed at hot condition [RPM].
-    :rtype: numpy.array, float
-    """
-    if is_hybrid:
-        return sh.NONE
-    return np.where(
-        on_engine, np.maximum(gear_box_speeds_in, idle_engine_speed[0]), 0
-    )
-
-
-@sh.add_function(dsp, outputs=['on_idle'])
-def identify_on_idle(
-        times, velocities, engine_speeds_out_hot, gear_box_speeds_in, gears,
-        stop_velocity, min_engine_on_speed, on_engine, idle_engine_speed):
-    """
-    Identifies when the engine is on idle [-].
-
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
-    :param velocities:
-        Velocity vector [km/h].
-    :type velocities: numpy.array
-
-    :param engine_speeds_out_hot:
-        Engine speed at hot condition [RPM].
-    :type engine_speeds_out_hot: numpy.array
-
-    :param gear_box_speeds_in:
-        Gear box speed [RPM].
-    :type gear_box_speeds_in: numpy.array
-
-    :param gears:
-        Gear vector [-].
-    :type gears: numpy.array
-
-    :param stop_velocity:
-        Maximum velocity to consider the vehicle stopped [km/h].
-    :type stop_velocity: float
-
-    :param min_engine_on_speed:
-        Minimum engine speed to consider the engine to be on [RPM].
-    :type min_engine_on_speed: float
-
-    :param on_engine:
-        If the engine is on [-].
-    :type on_engine: numpy.array
-
-    :param idle_engine_speed:
-        Engine speed idle median and std [RPM].
-    :type idle_engine_speed: (float, float)
-
-    :return:
-        If the engine is on idle [-].
-    :rtype: numpy.array
-    """
-    # noinspection PyProtectedMember
-    from ..gear_box.mechanical import _shift
-    b = engine_speeds_out_hot > min_engine_on_speed
-    b &= (gears == 0) | (velocities <= stop_velocity)
-
-    on_idle = np.zeros_like(times, int)
-    i = np.where(on_engine)[0]
-    ds = np.abs(gear_box_speeds_in[i] - engine_speeds_out_hot[i])
-    on_idle[i[ds > idle_engine_speed[1]]] = 1
-    on_idle = co2_utl.median_filter(times, on_idle, 4)
-    on_idle[b] = 1
-    for i, j in sh.pairwise(_shift(on_idle)):
-        if not on_idle[i] and times[j - 1] - times[i] <= 2:
-            on_idle[i:j] = True
-    return co2_utl.clear_fluctuations(times, on_idle, 4).astype(bool)
-
-
 dsp.add_dispatcher(
     include_defaults=True,
     dsp=_idle,
@@ -574,11 +476,11 @@ dsp.add_dispatcher(
     dsp=_thermal,
     dsp_id='thermal',
     inputs=(
-        'accelerations', 'engine_coolant_temperatures', 'engine_speeds_out_hot',
         'max_engine_coolant_temperature', 'initial_engine_temperature', 'times',
         'engine_thermostat_temperature_window', 'engine_thermostat_temperature',
         'engine_temperature_regression_model', 'idle_engine_speed', 'on_engine',
-        'gear_box_powers_out', 'velocities'
+        'engine_coolant_temperatures', 'gear_box_powers_out', 'accelerations',
+        'engine_speeds_out', 'velocities',
     ),
     outputs=(
         'engine_thermostat_temperature_window', 'engine_thermostat_temperature',
@@ -591,13 +493,15 @@ dsp.add_dispatcher(
 dsp.add_dispatcher(
     dsp=_cold_start,
     inputs=(
-        'cold_start_speed_model', 'cold_start_speeds_phases', 'on_engine',
-        'engine_coolant_temperatures', 'engine_speeds_out', 'idle_engine_speed',
-        'engine_speeds_out_hot', 'engine_thermostat_temperature', 'on_idle'
+        'cold_start_speeds_phases', 'engine_speeds_out_hot', 'on_idle', 'times',
+        'cold_start_speeds_delta', 'engine_thermostat_temperature', 'on_engine',
+        'cold_start_speed_model', 'idle_engine_speed', 'gears', 'stop_velocity',
+        'min_engine_on_speed', 'gear_box_speeds_in', 'engine_speeds_base',
+        'engine_speeds_out', 'velocities',
     ),
     outputs=(
-        'cold_start_speed_model', 'cold_start_speeds_delta',
-        'cold_start_speeds_phases'
+        'cold_start_speeds_phases', 'cold_start_speeds_delta', 'on_idle',
+        'cold_start_speed_model', 'engine_speeds_base',
     )
 )
 

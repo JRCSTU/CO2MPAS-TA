@@ -164,3 +164,46 @@ def predict_on_engine(
             ts = t + min_time_engine_on_after_start
         on_engine[i] = on
     return on_engine
+
+
+@sh.add_function(dsp, outputs=['hybrid_modes'], weight=sh.inf(1, 0))
+def default_hybrid_modes(times):
+    """
+    Identify the hybrid mode status (0: EV, 1: Parallel, 2: Serial).
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :return:
+        Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
+    :rtype: numpy.array
+    """
+    return np.ones_like(times, int)
+
+
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['engine_speeds_out_hot'])
+def calculate_engine_speeds_out_hot(
+        gear_box_speeds_in, on_engine, idle_engine_speed):
+    """
+    Calculates the engine speed at hot condition [RPM].
+
+    :param gear_box_speeds_in:
+        Gear box speed [RPM].
+    :type gear_box_speeds_in: numpy.array | float
+
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array, bool
+
+    :param idle_engine_speed:
+        Idle engine speed and its standard deviation [RPM].
+    :type idle_engine_speed: (float, float)
+
+    :return:
+        Engine speed at hot condition [RPM].
+    :rtype: numpy.array, float
+    """
+    return np.where(
+        on_engine, np.maximum(gear_box_speeds_in, idle_engine_speed[0]), 0
+    )

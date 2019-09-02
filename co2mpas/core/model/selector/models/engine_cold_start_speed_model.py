@@ -7,11 +7,9 @@
 """
 Functions and constants to define the engine_cold_start_speed_model selector.
 """
-import copy
 import schedula as sh
 from ._core import define_sub_model
 from ...physical.engine.cold_start import dsp as _cold_start
-from ...physical.engine import calculate_engine_speeds_out
 
 #: Model name.
 name = 'engine_cold_start_speed_model'
@@ -20,23 +18,20 @@ name = 'engine_cold_start_speed_model'
 models = ['cold_start_speed_model']
 
 #: Inputs required to run the model.
-inputs = [
-    'engine_speeds_out_hot', 'engine_coolant_temperatures', 'on_engine',
-    'idle_engine_speed'
-]
+inputs = ['times', 'on_engine', 'engine_speeds_out_hot']
 
 #: Relevant outputs of the model.
-outputs = ['engine_speeds_out']
+outputs = ['engine_speeds_base']
 
 #: Targets to compare the outputs of the model.
 targets = outputs
 
 #: Extra inputs for the metrics.
-metrics_inputs = ['cold_start_speeds_phases', 'engine_coolant_temperatures']
+metrics_inputs = ['cold_start_speeds_phases']
 
 
 def metric_engine_cold_start_speed_model(
-        y_true, y_pred, cold_start_speeds_phases, engine_coolant_temperatures):
+        y_true, y_pred, cold_start_speeds_phases):
     """
     Metric for the `engine_cold_start_speed_model`.
 
@@ -52,10 +47,6 @@ def metric_engine_cold_start_speed_model(
         Phases when engine speed is affected by the cold start [-].
     :type cold_start_speeds_phases: numpy.array
 
-    :param engine_coolant_temperatures:
-        Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
-
     :return:
         Error.
     :rtype: float
@@ -63,9 +54,7 @@ def metric_engine_cold_start_speed_model(
     b = cold_start_speeds_phases
     if b.any():
         from co2mpas.utils import mae
-        t = engine_coolant_temperatures
-        w = (t.max() + 1) - t[b]
-        return float(mae(y_true[b], y_pred[b], w))
+        return float(mae(y_true[b], y_pred[b]))
     else:
         return 0
 
@@ -78,9 +67,6 @@ up_limit = sh.map_list(targets, 160)
 
 #: Prediction model.
 # noinspection PyProtectedMember
-dsp = sh.Blueprint(copy.deepcopy(_cold_start).add_function(
-    function=calculate_engine_speeds_out,
-    inputs=['on_engine', 'idle_engine_speed', 'engine_speeds_out_hot',
-            'cold_start_speeds_delta'],
-    outputs=['engine_speeds_out']
-), inputs, outputs, models)._set_cls(define_sub_model)
+dsp = sh.Blueprint(_cold_start, inputs, outputs, models)._set_cls(
+    define_sub_model
+)

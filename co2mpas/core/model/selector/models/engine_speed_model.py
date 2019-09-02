@@ -25,24 +25,25 @@ models = [
 #: Inputs required to run the model.
 inputs = [
     'velocities', 'gears', 'times', 'on_engine', 'gear_box_type',
-    'accelerations', 'tyre_code'
+    'accelerations', 'tyre_code', 'cold_start_speeds_delta', 'hybrid_modes'
 ]
 
 #: Relevant outputs of the model.
-outputs = ['engine_speeds_out_hot']
+outputs = ['gear_box_speeds_in']
 
 #: Targets to compare the outputs of the model.
 targets = ['engine_speeds_out']
 
 #: Extra inputs for the metrics.
 metrics_inputs = [
-    'times', 'velocities', 'gear_shifts', 'on_engine', 'stop_velocity'
+    'times', 'velocities', 'gear_shifts', 'on_engine', 'stop_velocity',
+    'hybrid_modes', 'cold_start_speeds_phases'
 ]
 
 
 def metric_engine_speed_model(
         y_true, y_pred, times, velocities, gear_shifts, on_engine,
-        stop_velocity):
+        stop_velocity, hybrid_modes, cold_start_speeds_phases):
     """
     Metric for the `engine_cold_start_speed_model`.
 
@@ -74,13 +75,22 @@ def metric_engine_speed_model(
         Maximum velocity to consider the vehicle stopped [km/h].
     :type stop_velocity: float
 
+    :param hybrid_modes:
+        Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
+    :type hybrid_modes: numpy.array
+
+    :param cold_start_speeds_phases:
+        Phases when engine speed is affected by the cold start [-].
+    :type cold_start_speeds_phases: numpy.array
+
     :return:
         Error.
     :rtype: float
     """
     from co2mpas.utils import mae
     b = ~calculate_clutch_phases(times, 1, 1, gear_shifts, 0, (-4.0, 4.0))
-    b &= (velocities > stop_velocity) & (times > 100) & on_engine
+    b &= (velocities > stop_velocity) & ~cold_start_speeds_phases & on_engine
+    b &= hybrid_modes == 1
     return float(mae(y_true[b], y_pred[b]))
 
 

@@ -9,25 +9,98 @@ Functions and a model `dsp` to model the engine cold start.
 """
 import numpy as np
 import schedula as sh
+import co2mpas.utils as co2_utl
 
 dsp = sh.BlueDispatcher(
     name='cold_start', description='Models the engine cold start strategy.'
 )
 
 
+@sh.add_function(dsp, inputs=[
+    'times', 'velocities', 'engine_speeds_base', 'gear_box_speeds_in', 'gears',
+    'stop_velocity', 'min_engine_on_speed', 'on_engine', 'idle_engine_speed'
+], outputs=['on_idle'])
+@sh.add_function(dsp, outputs=['on_idle'])
+def identify_on_idle(
+        times, velocities, engine_speeds_out_hot, gear_box_speeds_in, gears,
+        stop_velocity, min_engine_on_speed, on_engine, idle_engine_speed):
+    """
+    Identifies when the engine is on idle [-].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array
+
+    :param engine_speeds_out_hot:
+        Engine speed at hot condition [RPM].
+    :type engine_speeds_out_hot: numpy.array
+
+    :param gear_box_speeds_in:
+        Gear box speed [RPM].
+    :type gear_box_speeds_in: numpy.array
+
+    :param gears:
+        Gear vector [-].
+    :type gears: numpy.array
+
+    :param stop_velocity:
+        Maximum velocity to consider the vehicle stopped [km/h].
+    :type stop_velocity: float
+
+    :param min_engine_on_speed:
+        Minimum engine speed to consider the engine to be on [RPM].
+    :type min_engine_on_speed: float
+
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :param idle_engine_speed:
+        Engine speed idle median and std [RPM].
+    :type idle_engine_speed: (float, float)
+
+    :return:
+        If the engine is on idle [-].
+    :rtype: numpy.array
+    """
+    # noinspection PyProtectedMember
+    from ..gear_box.mechanical import _shift
+    b = engine_speeds_out_hot > min_engine_on_speed
+    b &= (gears == 0) | (velocities <= stop_velocity)
+
+    on_idle = np.zeros_like(times, int)
+    i = np.where(on_engine)[0]
+    ds = np.abs(gear_box_speeds_in[i] - engine_speeds_out_hot[i])
+    on_idle[i[ds > idle_engine_speed[1]]] = 1
+    on_idle = co2_utl.median_filter(times, on_idle, 4)
+    on_idle[b] = 1
+    for i, j in sh.pairwise(_shift(on_idle)):
+        if not on_idle[i] and times[j - 1] - times[i] <= 2:
+            on_idle[i:j] = True
+    return co2_utl.clear_fluctuations(times, on_idle, 4).astype(bool)
+
+
 @sh.add_function(dsp, outputs=['cold_start_speeds_phases'])
 def identify_cold_start_speeds_phases(
-        engine_coolant_temperatures, engine_thermostat_temperature, on_idle):
+        times, engine_speeds_out, engine_speeds_out_hot, on_idle):
     """
     Identifies phases when engine speed is affected by the cold start [-].
 
-    :param engine_coolant_temperatures:
-        Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
 
-    :param engine_thermostat_temperature:
-        Engine thermostat temperature [°C].
-    :type engine_thermostat_temperature: float
+    :param engine_speeds_out:
+        Engine speed [RPM].
+    :type engine_speeds_out: numpy.array
+
+    :param engine_speeds_out_hot:
+        Engine speed at hot condition [RPM].
+    :type engine_speeds_out_hot: numpy.array
 
     :param on_idle:
         If the engine is on idle [-].
@@ -37,12 +110,28 @@ def identify_cold_start_speeds_phases(
         Phases when engine speed is affected by the cold start [-].
     :rtype: numpy.array
     """
-    import co2mpas.utils as co2_utl
-    temp = engine_coolant_temperatures
-    i = co2_utl.argmax(temp > engine_thermostat_temperature)
-    p = on_idle.copy()
-    p[i:] = False
-    return p
+    # noinspection PyProtectedMember
+    from ..control.ems import _index_anomalies
+    i = np.where(on_idle)[0]
+    phases = np.zeros_like(times, int)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        # noinspection PyUnresolvedReferences
+        phases[i[~co2_utl.get_inliers(
+            engine_speeds_out[i] / engine_speeds_out_hot[i], 2, np.nanmedian,
+            co2_utl.mad
+        )[0]]] = 1
+    phases = co2_utl.median_filter(times, phases, 5)
+    phases = co2_utl.clear_fluctuations(times, phases, 5).astype(bool)
+    i = _index_anomalies(phases)
+    b = np.diff(times[i], axis=1) > 5
+    i = i[b.ravel()]
+    phases[:] = False
+    if i.shape[0]:
+        i, j = i[0]
+        while i and on_idle.take(i - 1, mode='clip'):
+            i -= 1
+        phases[i:j + 1] = True
+    return phases
 
 
 @sh.add_function(dsp, outputs=['cold_start_speeds_delta'])
@@ -56,7 +145,7 @@ def identify_cold_start_speeds_delta(
     :type cold_start_speeds_phases: numpy.array
 
     :param engine_speeds_out:
-        Engine speed vector [RPM].
+        Engine speed [RPM].
     :type engine_speeds_out: numpy.array
 
     :param engine_speeds_out_hot:
@@ -73,113 +162,75 @@ def identify_cold_start_speeds_delta(
     return speeds
 
 
-# noinspection PyMissingOrEmptyDocstring
+@sh.add_function(dsp, outputs=['engine_speeds_base'])
+def calculate_engine_speeds_base(
+        engine_speeds_out_hot, cold_start_speeds_delta):
+    """
+    Calculate base engine speed (i.e., without clutch/TC effect) [RPM].
+
+    :param engine_speeds_out_hot:
+        Engine speed at hot condition [RPM].
+    :type engine_speeds_out_hot: numpy.array
+
+    :param cold_start_speeds_delta:
+        Engine speed delta due to the cold start [RPM].
+    :type cold_start_speeds_delta: numpy.array
+
+    :return:
+        Base engine speed (i.e., without clutch/TC effect) [RPM].
+    :rtype: numpy.array
+    """
+    return engine_speeds_out_hot + cold_start_speeds_delta
+
+
+# noinspection PyMissingOrEmptyDocstring, PyProtectedMember
 class ColdStartModel:
-    def __init__(self, ds=0, m=np.inf, temp_limit=30):
-        self.ds = ds
-        self.m = m
-        self.temp_limit = temp_limit
+    def __init__(self, model=None, warming_time=0, cooling_time=float('inf')):
+        self.model = model
+        self.cooling_time = cooling_time
+        self.warming_time = warming_time
 
-    def __repr__(self):
-        s = '{}(ds={}, m={}, temp_limit={})'.format(
-            self.__class__.__name__, self.ds, self.m, self.temp_limit
-        )
-        return s.replace('inf', "float('inf')")
-
-    def set(self, **params):
-        for k, v in params.items():
-            setattr(self, k, v)
-        return self
-
-    @staticmethod
-    def initial_guess_temp_limit(
-            cold_start_speeds_delta, engine_coolant_temperatures):
-        from sklearn.tree import DecisionTreeRegressor
-        reg = DecisionTreeRegressor(random_state=0, max_leaf_nodes=10)
-        reg.fit(engine_coolant_temperatures[:, None], cold_start_speeds_delta)
-        t = np.unique(engine_coolant_temperatures)
-        i = np.searchsorted(t, np.unique(reg.tree_.threshold))
-        n = len(t) - 1
-        if i[-1] != n:
-            i = np.append(i, (n,))
-        return t[i]
-
-    def correct_ds(self, min_t):
-        if not np.isinf(self.m):
-            self.ds = max(min(self.ds, (self.temp_limit - min_t) * self.m), 0)
-        return self
-
-    # noinspection PyProtectedMember
-    def fit(self, cold_start_speeds_delta, engine_coolant_temperatures,
-            engine_speeds_out_hot, on_engine, idle_engine_speed,
-            cold_start_speeds_phases):
+    def fit(self, times, cold_start_speeds_delta, cold_start_speeds_phases):
         if not cold_start_speeds_phases.any():
             return self
-        import lmfit
-        from co2mpas.utils import mae
-        from .co2_emission import _calibrate_model_params, _set_attr
-
-        temp = engine_coolant_temperatures
-        w = temp.max() + 1 - temp
-
-        delta = cold_start_speeds_delta[cold_start_speeds_phases]
-        temp = engine_coolant_temperatures[cold_start_speeds_phases]
-        ds = delta / idle_engine_speed[0]
-
-        def _err(_x=None):
-            if _x is not None:
-                self.set(**_x.valuesdict())
-
-            s = self(
-                idle_engine_speed, on_engine, engine_coolant_temperatures,
-                engine_speeds_out_hot
-            )
-            return float(mae(s, cold_start_speeds_delta, w))
-
-        t_min, t_max = temp.min(), temp.max()
-        d = dict(min=t_min, max=t_max) if t_min < t_max else dict(vary=False)
-        p = lmfit.Parameters()
-        p.add('temp_limit', 0, **d)
-        p.add('ds', 0, min=0)
-        p.add('m', 0, min=0)
-
-        res = [(
-            round(_err(), 1), 0,
-            dict(ds=self.ds, m=self.m, temp_limit=self.temp_limit)
-        )]
-
-        for i, t in enumerate(self.initial_guess_temp_limit(delta, temp), 1):
-            _set_attr(p, {'temp_limit': t}, attr='value')
-            ds_max = ds[temp <= t].max()
-            if not np.isclose(ds_max, 0.0):
-                _set_attr(p, {'ds': ds_max}, attr='max')
-                x = dict(_calibrate_model_params(_err, p)[0].valuesdict())
-                x['ds'] = self.set(**x).correct_ds(t_min).ds
-                res.append((round(_err(), 1), i, x))
-        self.set(**min(res)[-1])
+        from ..control.ems import _index_anomalies
+        from sklearn.isotonic import IsotonicRegression
+        indices = _index_anomalies(cold_start_speeds_phases)
+        x, y, model = [], [], IsotonicRegression(increasing=False)
+        indices = indices[np.diff(times[indices], axis=1)[:, 0] > 5]
+        for i, j in indices:
+            x.extend(times[i:j + 1] - times[i])
+            y.extend(cold_start_speeds_delta[i:j + 1])
+        self.warming_time = np.max(x)
+        dt = np.diff(times[indices].ravel())[1::2]
+        self.cooling_time = np.mean(dt) if dt.size else float('inf')
+        # noinspection PyUnresolvedReferences
+        self.model = model.fit(x, y).predict
         return self
 
-    def __call__(self, idle_engine_speed, on_engine,
-                 engine_coolant_temperatures, engine_speeds_out_hot):
-        add_speeds = np.zeros_like(on_engine, dtype=float)
-        if self.ds > 0:
-            b = on_engine & (engine_coolant_temperatures <= self.temp_limit)
-            if b.any():
-                ds, m = self.ds, self.m
-                if not np.isinf(m):
-                    dtemp = self.temp_limit - engine_coolant_temperatures[b]
-                    ds = np.minimum(ds, dtemp * m)
-                s = (ds + 1) * idle_engine_speed[0]
-                add_speeds[b] = np.maximum(s - engine_speeds_out_hot[b], 0)
-        return add_speeds
+    def __call__(self, times, on_engine, is_warm=False):
+        speeds_delta, w_time = np.zeros_like(times, float), self.warming_time
+        if w_time and self.model:
+            from ..control.ems import _index_anomalies
+            indices = _index_anomalies(on_engine)
+            indices = indices[np.append(not is_warm, np.diff(
+                times[indices].ravel()
+            )[1::2] > self.cooling_time)]
+            for i, j in indices:
+                t = times[i:j + 1] - times[i]
+                speeds_delta[i:j + 1] = np.where(t < w_time, self.model(t), 0)
+        return speeds_delta
 
 
 @sh.add_function(dsp, outputs=['cold_start_speed_model'])
 def calibrate_cold_start_speed_model(
-        cold_start_speeds_phases, cold_start_speeds_delta, idle_engine_speed,
-        on_engine, engine_coolant_temperatures, engine_speeds_out_hot):
+        times, cold_start_speeds_phases, cold_start_speeds_delta):
     """
     Calibrates the engine cold start speed model.
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
 
     :param cold_start_speeds_phases:
         Phases when engine speed is affected by the cold start [-].
@@ -189,71 +240,34 @@ def calibrate_cold_start_speed_model(
         Engine speed delta due to the cold start [RPM].
     :type cold_start_speeds_delta: numpy.array
 
-    :param idle_engine_speed:
-        Engine speed idle median and std [RPM].
-    :type idle_engine_speed: (float, float)
-
-    :param on_engine:
-        If the engine is on [-].
-    :type on_engine: numpy.array
-
-    :param engine_coolant_temperatures:
-        Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
-
-    :param engine_speeds_out_hot:
-        Engine speed at hot condition [RPM].
-    :type engine_speeds_out_hot: numpy.array
-
     :return:
         Cold start speed model.
     :rtype: ColdStartModel
     """
-
-    model = ColdStartModel().fit(
-        cold_start_speeds_delta, engine_coolant_temperatures,
-        engine_speeds_out_hot, on_engine, idle_engine_speed,
-        cold_start_speeds_phases
+    return ColdStartModel().fit(
+        times, cold_start_speeds_delta, cold_start_speeds_phases
     )
-
-    return model
 
 
 @sh.add_function(dsp, outputs=['cold_start_speeds_delta'])
-def calculate_cold_start_speeds_delta(
-        cold_start_speed_model, on_engine, engine_coolant_temperatures,
-        engine_speeds_out_hot, idle_engine_speed):
+def calculate_cold_start_speeds_delta(cold_start_speed_model, times, on_engine):
     """
-    Calculates the engine speed delta and phases due to the cold start [RPM, -].
+    Calculates the engine speed delta due to the cold start [RPM].
 
     :param cold_start_speed_model:
         Cold start speed model.
     :type cold_start_speed_model: ColdStartModel
 
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
     :param on_engine:
         If the engine is on [-].
     :type on_engine: numpy.array
 
-    :param engine_coolant_temperatures:
-        Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
-
-    :param engine_speeds_out_hot:
-        Engine speed at hot condition [RPM].
-    :type engine_speeds_out_hot: numpy.array
-
-    :param idle_engine_speed:
-        Engine speed idle median and std [RPM].
-    :type idle_engine_speed: (float, float)
-
     :return:
-        Engine speed delta due to the cold start and its phases [RPM, -].
-    :rtype: numpy.array, numpy.array
+        Engine speed delta due to the cold start [RPM].
+    :rtype: numpy.array
     """
-
-    delta = cold_start_speed_model(
-        idle_engine_speed, on_engine, engine_coolant_temperatures,
-        engine_speeds_out_hot
-    )
-
-    return delta
+    return cold_start_speed_model(times, on_engine)

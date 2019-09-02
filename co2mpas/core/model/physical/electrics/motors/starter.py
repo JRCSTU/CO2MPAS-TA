@@ -44,7 +44,7 @@ def define_engine_start_demand_function(engine_moment_inertia):
 @sh.add_function(dsp, outputs=['starter_powers'])
 def calculate_starter_powers(
         start_demand_function, times, on_engine, delta_time_engine_starter,
-        clutch_tc_speeds):
+        engine_speeds_out):
     """
     Calculates starter power [kW].
 
@@ -64,9 +64,9 @@ def calculate_starter_powers(
         Time elapsed to turn on the engine with electric starter [s].
     :type delta_time_engine_starter: float
 
-    :param clutch_tc_speeds:
-        Clutch or torque converter speed (no cold start) [RPM].
-    :type clutch_tc_speeds: numpy.array
+    :param engine_speeds_out:
+        Engine speed [RPM].
+    :type engine_speeds_out: numpy.array
 
     :return:
         Starter power [kW].
@@ -75,7 +75,7 @@ def calculate_starter_powers(
     i = np.where(np.bitwise_xor(on_engine[:-1], on_engine[1:]))[0]
     start = on_engine[i + 1]
     j = np.searchsorted(times, times[i] + delta_time_engine_starter + dfl.EPS)
-    e = start_demand_function(clutch_tc_speeds[i + start.astype(int)])
+    e = start_demand_function(engine_speeds_out[i + start.astype(int)])
     e /= (times[j] - times[i])
     e[~start] *= -1
     p = np.zeros_like(times, float)

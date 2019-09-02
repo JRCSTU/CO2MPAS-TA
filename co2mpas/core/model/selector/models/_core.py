@@ -33,9 +33,9 @@ def define_sub_model(dsp, inputs, outputs, models):
         A sub-model.
     :rtype: schedula.Dispatcher
     """
-    assert not set(models).difference(dsp.nodes)
+    assert not set(models).difference(dsp.nodes), models
     sub = dsp.shrink_dsp(set(inputs or []).union(models), outputs)
-    assert set(sub.nodes).issuperset(set(inputs).union(outputs))
+    assert set(sub.nodes).issuperset(set(inputs).union(outputs)), models
     return sub
 
 

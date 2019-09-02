@@ -209,9 +209,14 @@ class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+    class identify_catalyst_warm_up(co2_utl.Constants):
+        #: Catalyst cooling time [s].
+        cooling_time = 600
+
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class define_service_battery_electric_powers_supply_threshold(
         co2_utl.Constants):
-        #: Minimum SOC variation to define service battery charging status[%].
+        #: Minimum SOC variation to define service battery charging status [%].
         min_soc = 0.1
 
         #: Maximum allowed negative current for the service battery being

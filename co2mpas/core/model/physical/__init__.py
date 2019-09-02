@@ -244,20 +244,20 @@ dsp.add_dispatcher(
     dsp=_clutch_torque_converter,
     dsp_id='clutch_torque_converter_model',
     inputs=(
-        'accelerations', 'clutch_window', 'cold_start_speeds_delta', 'gears',
-        'engine_speeds_out', 'clutch_speed_model', 'has_torque_converter',
-        'engine_speeds_out_hot', 'clutch_tc_powers_out', 'gear_box_speeds_in',
-        'gear_box_type', 'gear_shifts', 'full_load_curve', 'idle_engine_speed',
-        'lockup_speed_ratio', 'stand_still_torque_ratio', 'engine_max_speed',
-        'stop_velocity', 'times', 'torque_converter_speed_model', 'velocities',
-        'm1000_curve_factor', 'm1000_curve_ratios', 'm1000_curve_norm_torques',
-        'gear_box_torques_in', 'clutch_tc_speeds'
+        'engine_speeds_base', 'gear_box_torques_in', 'm1000_curve_norm_torques',
+        'engine_speeds_out', 'stand_still_torque_ratio', 'has_torque_converter',
+        'engine_speeds_out_hot', 'm1000_curve_ratios', 'clutch_window', 'gears',
+        'torque_converter_speed_model', 'm1000_curve_factor', 'full_load_curve',
+        'engine_max_speed', 'idle_engine_speed', 'accelerations', 'gear_shifts',
+        'clutch_tc_powers_out', 'gear_box_speeds_in', 'stop_velocity', 'times',
+        'lockup_speed_ratio', 'clutch_speed_model', 'gear_box_type',
+        'velocities',
     ),
     outputs=(
         'clutch_speed_model', 'clutch_phases', 'clutch_tc_mean_efficiency',
         'clutch_window', 'clutch_tc_speeds_delta', 'has_torque_converter',
         'lockup_speed_ratio', 'stand_still_torque_ratio', 'm1000_curve_factor',
-        'torque_converter_speed_model', 'clutch_tc_powers', 'clutch_tc_speeds'
+        'torque_converter_speed_model', 'clutch_tc_powers'
     )
 )
 
@@ -307,11 +307,11 @@ dsp.add_dispatcher(
         'drive_battery_currents', 'service_battery_loads', 'drive_battery_load',
         'service_battery_state_of_charge_balance', 'alternator_nominal_voltage',
         'dcdc_converter_efficiency', 'has_energy_recuperation', 'motive_powers',
-        'dcdc_converter_currents', 'drive_battery_voltages', 'clutch_tc_speeds',
         'dcdc_converter_electric_powers', 'electrical_hybridization_degree',
         'drive_battery_state_of_charges', 'drive_battery_n_parallel_cells',
         'drive_battery_electric_powers', 'service_battery_capacity',
         'starter_electric_powers', 'service_battery_currents',
+        'dcdc_converter_currents', 'drive_battery_voltages',
         'drive_battery_capacity',
     ),
     outputs=(
@@ -394,7 +394,8 @@ dsp.add_dispatcher(
         'enable_willans', 'engine_n_cylinders', 'fuel_type', 'co2_emission_low',
         'engine_max_power', 'clutch_tc_powers', 'full_load_speeds', 'is_hybrid',
         'engine_mass', 'ignition_type', 'engine_stroke', 'gear_box_powers_out',
-        'belt_efficiency', {'initial_temperature': 'initial_engine_temperature'}
+        'engine_speeds_base', 'belt_efficiency', 'cold_start_speeds_delta',
+        {'initial_temperature': 'initial_engine_temperature'}
     ),
     outputs=(
         'has_exhausted_gas_recirculation', 'full_load_curve', 'willans_factors',
@@ -420,10 +421,10 @@ dsp.add_dispatcher(
         'engine_speed_at_max_power', 'belt_mean_efficiency', 'engine_max_power',
         'initial_engine_temperature', 'auxiliaries_torque_loss', 'fuel_density',
         'co2_rescaling_scores', 'auxiliaries_power_loss', 'co2_emissions_model',
+        'engine_coolant_temperatures', 'full_load_speeds', 'engine_speeds_base',
         'extended_phases_integration_times', 'engine_fuel_lower_heating_value',
-        'co2_error_function_on_phases', 'engine_coolant_temperatures',
-        'cold_start_speeds_phases', 'phases_fuel_consumptions',
-        'full_load_speeds',
+        'co2_error_function_on_phases', 'cold_start_speeds_phases',
+        'phases_fuel_consumptions',
     ),
     inp_weight={'initial_temperature': 5}
 )
@@ -464,5 +465,6 @@ dsp.add_dispatcher(
         'catalyst_warm_up_duration', 'motor_p2_electric_powers', 'hybrid_modes',
         'motor_p3_front_electric_powers', 'catalyst_warm_up', 'on_engine',
         'motor_p3_rear_electric_powers', 'motor_p4_electric_powers',
+        'engine_speeds_base'
     )
 )

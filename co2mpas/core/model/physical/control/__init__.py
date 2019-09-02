@@ -104,14 +104,15 @@ dsp.add_dispatcher(
     dsp=_start_stop,
     dsp_id='start_stop',
     inputs=(
-        'accelerations', 'correct_start_stop_with_gears', 'start_stop_model',
-        'engine_starts', 'has_start_stop', 'on_engine', 'gears',
-        'gear_box_type', 'start_stop_activation_time', 'times', 'velocities',
-        'min_time_engine_on_after_start', {'is_hybrid': sh.SINK}
+        'gear_box_type', 'start_stop_activation_time', 'accelerations', 'times',
+        'idle_engine_speed', 'min_time_engine_on_after_start', 'engine_starts',
+        'has_start_stop', 'correct_start_stop_with_gears', 'start_stop_model',
+        'gear_box_speeds_in', 'velocities', 'on_engine', 'gears',
+        {'is_hybrid': sh.SINK}
     ),
     outputs=(
-        'start_stop_model', 'correct_start_stop_with_gears',
-        'on_engine', 'start_stop_activation_time'
+        'correct_start_stop_with_gears', 'engine_speeds_out_hot', 'on_engine',
+        'start_stop_activation_time', 'start_stop_model', 'hybrid_modes',
     ),
     input_domain=is_not_hybrid
 )
@@ -149,7 +150,7 @@ dsp.add_dispatcher(
         'motor_p3_front_electric_powers', 'catalyst_warm_up_duration', 'ecms_s',
         'motor_p1_electric_powers', 'start_stop_hybrid_params', 'hybrid_modes',
         'motor_p2_electric_powers', 'motor_p0_electric_powers', 'on_engine',
-        'motor_p3_rear_electric_powers',
+        'motor_p3_rear_electric_powers', 'engine_speeds_base'
     ),
     input_domain=is_hybrid
 )

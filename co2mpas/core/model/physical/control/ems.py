@@ -403,12 +403,16 @@ def identify_hybrid_modes(
     return mode
 
 
-@sh.add_function(dsp, outputs=['engine_speeds_out_hot'])
-def identify_engine_speeds_out_hot(
-        hybrid_modes, on_engine, engine_speeds_out, gear_box_speeds_in,
+@sh.add_function(dsp, outputs=['engine_speeds_base'])
+def identify_engine_speeds_base(
+        times, hybrid_modes, on_engine, engine_speeds_out, gear_box_speeds_in,
         idle_engine_speed):
     """
     Identify the engine speed at hot condition [RPM].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
 
     :param hybrid_modes:
         Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
@@ -434,13 +438,11 @@ def identify_engine_speeds_out_hot(
         Engine speed at hot condition [RPM].
     :rtype: numpy.array, float
     """
-    # noinspection PyProtectedMember
-    from ..engine._idle import _IdleDetector
-    from ..engine import calculate_engine_speeds_out_hot as func
     b = hybrid_modes == 2
-    mdl = _IdleDetector(idle_engine_speed[1]).fit(engine_speeds_out[b, None])
+    from .start_stop import calculate_engine_speeds_out_hot as func
     speeds = func(gear_box_speeds_in, on_engine, idle_engine_speed)
-    speeds[b] = np.min(mdl.cluster_centers_[mdl.labels_])
+    speeds[b] = engine_speeds_out[b]
+    speeds[b] = co2_utl.median_filter(times, speeds, 5)[b]
     return speeds
 
 
@@ -904,6 +906,8 @@ def _index_anomalies(anomalies):
             i = np.append([0], i)
         if anomalies[-1]:
             i = np.append(i, [len(anomalies) - 1])
+    elif anomalies[0]:
+        i = np.append([0, len(anomalies) - 1], i)
     return i.reshape(-1, 2)
 
 
@@ -952,7 +956,7 @@ def identify_catalyst_warm_up(
     :rtype: numpy.array
     """
     anomalies = np.zeros_like(times)
-    if is_cycle_hot or not on_engine.any():
+    if not on_engine.any():
         return anomalies.astype(bool)
     from co2mpas.utils import clear_fluctuations, median_filter
     i = np.where(on_engine)[0]
@@ -973,13 +977,16 @@ def identify_catalyst_warm_up(
     b &= np.apply_along_axis(
         lambda a: np.in1d(2, hybrid_modes[slice(*a)]), 1, i
     )
+    if is_cycle_hot:
+        t0 = times[0] + dfl.functions.identify_catalyst_warm_up.cooling_time
+        b &= times[i[:, 0]] > t0
     i = i[b.ravel()]
     anomalies[:] = False
     if i.shape[0]:
         i, j = i[0]
         while i and hybrid_modes.take(i - 1, mode='clip'):
             i -= 1
-        anomalies[i:j] = True
+        anomalies[i:j + 1] = True
     return anomalies
 
 
@@ -1002,7 +1009,7 @@ def identify_catalyst_warm_up_duration(times, catalyst_warm_up):
     """
     i = _index_anomalies(catalyst_warm_up)
     if i.shape[0]:
-        return float(np.diff(times[i[0]]))
+        return float(np.mean(np.diff(times[i], axis=1)))
     return .0
 
 
@@ -1272,36 +1279,47 @@ def predict_catalyst_warm_up(
         Catalyst warm up phase.
     :rtype: numpy.array
     """
-    if not is_cycle_hot and on_engine.any():
-        t1 = times[on_engine][0] + catalyst_warm_up_duration
-        return on_engine & (times <= t1)
-    return np.zeros_like(times, bool)
+    res = np.zeros_like(times, bool)
+    if on_engine.any():
+        dt = dfl.functions.identify_catalyst_warm_up.cooling_time
+        tc = times[0] + (dt if is_cycle_hot else 0)
 
-
-@sh.add_function(dsp, outputs=['catalyst_warm_up'])
-def predict_catalyst_warm_up_v1(times, is_cycle_hot):
-    """
-    Predict catalyst warm up phase.
-
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
-    :param is_cycle_hot:
-        Is an hot cycle?
-    :type is_cycle_hot: bool, optional
-
-    :return:
-        Catalyst warm up phase.
-    :rtype: numpy.array
-    """
-    if is_cycle_hot:
-        return np.zeros_like(times, bool)
-    return sh.NONE
+        for i, j in _index_anomalies(on_engine):
+            t0 = times[i]
+            if t0 >= tc:
+                res[i:j + 1] = times[i:j + 1] < t0 + catalyst_warm_up_duration
+            tc = times[j] + dt
+    return res
 
 
 @sh.add_function(dsp, outputs=['engine_speeds_out_hot'])
-def predict_engine_speeds_out_hot(ems_data, hybrid_modes):
+def identify_engine_speeds_out_hot(
+        engine_speeds_base, catalyst_warm_up, idle_engine_speed):
+    """
+    Predicts the engine speed at hot condition [RPM].
+
+    :param engine_speeds_base:
+        Base engine speed (i.e., without clutch/TC effect) [RPM].
+    :type engine_speeds_base: numpy.array
+
+    :param catalyst_warm_up:
+        Catalyst warm up phase.
+    :type catalyst_warm_up: numpy.array
+
+    :param idle_engine_speed:
+        Engine speed idle median and std [RPM].
+    :type idle_engine_speed: (float, float)
+
+    :return:
+        Engine speed at hot condition [RPM].
+    :rtype: numpy.array
+    """
+    return np.where(catalyst_warm_up, idle_engine_speed[0], engine_speeds_base)
+
+
+@sh.add_function(dsp, outputs=['engine_speeds_out_hot'], weight=1)
+def predict_engine_speeds_out_hot(
+        ems_data, hybrid_modes, catalyst_warm_up, idle_engine_speed):
     """
     Predicts the engine speed at hot condition [RPM].
 
@@ -1313,12 +1331,22 @@ def predict_engine_speeds_out_hot(ems_data, hybrid_modes):
         Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
     :type hybrid_modes: numpy.array
 
+    :param catalyst_warm_up:
+        Catalyst warm up phase.
+    :type catalyst_warm_up: numpy.array
+
+    :param idle_engine_speed:
+        Engine speed idle median and std [RPM].
+    :type idle_engine_speed: (float, float)
+
     :return:
         Engine speed at hot condition [RPM].
     :rtype: numpy.array
     """
     it = ems_data['electric'], ems_data['parallel'], ems_data['serial']
-    return np.choose(hybrid_modes, [d['speed_ice'].ravel() for d in it])
+    speeds = np.choose(hybrid_modes, [d['speed_ice'].ravel() for d in it])
+    speeds[catalyst_warm_up] = idle_engine_speed[0]
+    return speeds
 
 
 @sh.add_function(dsp, outputs=[
