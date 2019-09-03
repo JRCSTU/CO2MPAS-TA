@@ -449,7 +449,7 @@ def identify_engine_speeds_base(
     :rtype: numpy.array, float
     """
     b = hybrid_modes == 2
-    from .start_stop import calculate_engine_speeds_out_hot as func
+    from .conventional import calculate_engine_speeds_out_hot as func
     speeds = func(gear_box_speeds_in, on_engine, idle_engine_speed)
     speeds[b] = engine_speeds_out[b]
     speeds[b] = co2_utl.median_filter(times, speeds, 5)[b]
