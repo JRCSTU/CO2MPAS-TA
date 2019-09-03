@@ -5,15 +5,13 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Functions and a model `dsp` to model the engine cold start.
+Functions and a model `dsp` to model the catalyst.
 """
 import numpy as np
 import schedula as sh
 import co2mpas.utils as co2_utl
 
-dsp = sh.BlueDispatcher(
-    name='cold_start', description='Models the engine cold start strategy.'
-)
+dsp = sh.BlueDispatcher(name='Catalyst', description='Models the catalyst.')
 
 
 @sh.add_function(dsp, inputs=[
@@ -68,7 +66,7 @@ def identify_on_idle(
     :rtype: numpy.array
     """
     # noinspection PyProtectedMember
-    from ..gear_box.mechanical import _shift
+    from .gear_box.mechanical import _shift
     b = engine_speeds_out_hot > min_engine_on_speed
     b &= (gears == 0) | (velocities <= stop_velocity)
 
@@ -84,11 +82,11 @@ def identify_on_idle(
     return co2_utl.clear_fluctuations(times, on_idle, 4).astype(bool)
 
 
-@sh.add_function(dsp, outputs=['cold_start_speeds_phases'])
-def identify_cold_start_speeds_phases(
+@sh.add_function(dsp, outputs=['catalyst_warm_up_phases'])
+def identify_catalyst_warm_up_phases(
         times, engine_speeds_out, engine_speeds_out_hot, on_idle):
     """
-    Identifies phases when engine speed is affected by the cold start [-].
+    Identifies Phases when engine speed is affected by the catalyst warm up [-].
 
     :param times:
         Time vector [s].
@@ -107,11 +105,10 @@ def identify_cold_start_speeds_phases(
     :type on_idle: numpy.array
 
     :return:
-        Phases when engine speed is affected by the cold start [-].
+        Phases when engine speed is affected by the catalyst warm up [-].
     :rtype: numpy.array
     """
     # noinspection PyProtectedMember
-    from ..control.ems import _index_anomalies
     i = np.where(on_idle)[0]
     phases = np.zeros_like(times, int)
     with np.errstate(divide='ignore', invalid='ignore'):
@@ -122,7 +119,7 @@ def identify_cold_start_speeds_phases(
         )[0]]] = 1
     phases = co2_utl.median_filter(times, phases, 5)
     phases = co2_utl.clear_fluctuations(times, phases, 5).astype(bool)
-    i = _index_anomalies(phases)
+    i = co2_utl.index_phases(phases)
     b = np.diff(times[i], axis=1) > 5
     i = i[b.ravel()]
     phases[:] = False
@@ -134,15 +131,15 @@ def identify_cold_start_speeds_phases(
     return phases
 
 
-@sh.add_function(dsp, outputs=['cold_start_speeds_delta'])
-def identify_cold_start_speeds_delta(
-        cold_start_speeds_phases, engine_speeds_out, engine_speeds_out_hot):
+@sh.add_function(dsp, outputs=['catalyst_speeds_delta'])
+def identify_catalyst_speeds_delta(
+        catalyst_warm_up_phases, engine_speeds_out, engine_speeds_out_hot):
     """
-    Identifies the engine speed delta due to the engine cold start [RPM].
+    Identifies the Engine speed delta due to the catalyst warm up [RPM].
 
-    :param cold_start_speeds_phases:
-        Phases when engine speed is affected by the cold start [-].
-    :type cold_start_speeds_phases: numpy.array
+    :param catalyst_warm_up_phases:
+        Phases when engine speed is affected by the catalyst warm up [-].
+    :type catalyst_warm_up_phases: numpy.array
 
     :param engine_speeds_out:
         Engine speed [RPM].
@@ -153,18 +150,18 @@ def identify_cold_start_speeds_delta(
     :type engine_speeds_out_hot: numpy.array
 
     :return:
-        Engine speed delta due to the engine cold start [RPM].
+        Engine speed delta due to the catalyst warm up [RPM].
     :rtype: numpy.array
     """
     speeds = np.zeros_like(engine_speeds_out, dtype=float)
-    b = cold_start_speeds_phases
+    b = catalyst_warm_up_phases
     speeds[b] = np.maximum(0, engine_speeds_out[b] - engine_speeds_out_hot[b])
     return speeds
 
 
 @sh.add_function(dsp, outputs=['engine_speeds_base'])
 def calculate_engine_speeds_base(
-        engine_speeds_out_hot, cold_start_speeds_delta):
+        engine_speeds_out_hot, catalyst_speeds_delta):
     """
     Calculate base engine speed (i.e., without clutch/TC effect) [RPM].
 
@@ -172,35 +169,34 @@ def calculate_engine_speeds_base(
         Engine speed at hot condition [RPM].
     :type engine_speeds_out_hot: numpy.array
 
-    :param cold_start_speeds_delta:
-        Engine speed delta due to the cold start [RPM].
-    :type cold_start_speeds_delta: numpy.array
+    :param catalyst_speeds_delta:
+        Engine speed delta due to the catalyst warm up [RPM].
+    :type catalyst_speeds_delta: numpy.array
 
     :return:
         Base engine speed (i.e., without clutch/TC effect) [RPM].
     :rtype: numpy.array
     """
-    return engine_speeds_out_hot + cold_start_speeds_delta
+    return engine_speeds_out_hot + catalyst_speeds_delta
 
 
 # noinspection PyMissingOrEmptyDocstring, PyProtectedMember
-class ColdStartModel:
+class CatalystSpeedModel:
     def __init__(self, model=None, warming_time=0, cooling_time=float('inf')):
         self.model = model
         self.cooling_time = cooling_time
         self.warming_time = warming_time
 
-    def fit(self, times, cold_start_speeds_delta, cold_start_speeds_phases):
-        if not cold_start_speeds_phases.any():
+    def fit(self, times, catalyst_speeds_delta, catalyst_warm_up_phases):
+        if not catalyst_warm_up_phases.any():
             return self
-        from ..control.ems import _index_anomalies
         from sklearn.isotonic import IsotonicRegression
-        indices = _index_anomalies(cold_start_speeds_phases)
+        indices = co2_utl.index_phases(catalyst_warm_up_phases)
         x, y, model = [], [], IsotonicRegression(increasing=False)
         indices = indices[np.diff(times[indices], axis=1)[:, 0] > 5]
         for i, j in indices:
             x.extend(times[i:j + 1] - times[i])
-            y.extend(cold_start_speeds_delta[i:j + 1])
+            y.extend(catalyst_speeds_delta[i:j + 1])
         self.warming_time = np.max(x)
         dt = np.diff(times[indices].ravel())[1::2]
         self.cooling_time = np.mean(dt) if dt.size else float('inf')
@@ -211,8 +207,7 @@ class ColdStartModel:
     def __call__(self, times, on_engine, is_warm=False):
         speeds_delta, w_time = np.zeros_like(times, float), self.warming_time
         if w_time and self.model:
-            from ..control.ems import _index_anomalies
-            indices = _index_anomalies(on_engine)
+            indices = co2_utl.index_phases(on_engine)
             indices = indices[np.append(not is_warm, np.diff(
                 times[indices].ravel()
             )[1::2] > self.cooling_time)]
@@ -222,41 +217,41 @@ class ColdStartModel:
         return speeds_delta
 
 
-@sh.add_function(dsp, outputs=['cold_start_speed_model'])
-def calibrate_cold_start_speed_model(
-        times, cold_start_speeds_phases, cold_start_speeds_delta):
+@sh.add_function(dsp, outputs=['catalyst_speed_model'])
+def calibrate_catalyst_speed_model(
+        times, catalyst_warm_up_phases, catalyst_speeds_delta):
     """
-    Calibrates the engine cold start speed model.
+    Calibrates the engine catalyst speed model.
 
     :param times:
         Time vector [s].
     :type times: numpy.array
 
-    :param cold_start_speeds_phases:
-        Phases when engine speed is affected by the cold start [-].
-    :type cold_start_speeds_phases: numpy.array
+    :param catalyst_warm_up_phases:
+        Phases when engine speed is affected by the catalyst warm up [-].
+    :type catalyst_warm_up_phases: numpy.array
 
-    :param cold_start_speeds_delta:
-        Engine speed delta due to the cold start [RPM].
-    :type cold_start_speeds_delta: numpy.array
+    :param catalyst_speeds_delta:
+        Engine speed delta due to the catalyst warm up [RPM].
+    :type catalyst_speeds_delta: numpy.array
 
     :return:
-        Cold start speed model.
-    :rtype: ColdStartModel
+        Catalyst speed model.
+    :rtype: CatalystSpeedModel
     """
-    return ColdStartModel().fit(
-        times, cold_start_speeds_delta, cold_start_speeds_phases
+    return CatalystSpeedModel().fit(
+        times, catalyst_speeds_delta, catalyst_warm_up_phases
     )
 
 
-@sh.add_function(dsp, outputs=['cold_start_speeds_delta'])
-def calculate_cold_start_speeds_delta(cold_start_speed_model, times, on_engine):
+@sh.add_function(dsp, outputs=['catalyst_speeds_delta'])
+def calculate_catalyst_speeds_delta(catalyst_speed_model, times, on_engine):
     """
-    Calculates the engine speed delta due to the cold start [RPM].
+    Calculates the engine speed delta due to the catalyst warm up [RPM].
 
-    :param cold_start_speed_model:
-        Cold start speed model.
-    :type cold_start_speed_model: ColdStartModel
+    :param catalyst_speed_model:
+        Catalyst speed model.
+    :type catalyst_speed_model: CatalystSpeedModel
 
     :param times:
         Time vector [s].
@@ -267,7 +262,7 @@ def calculate_cold_start_speeds_delta(cold_start_speed_model, times, on_engine):
     :type on_engine: numpy.array
 
     :return:
-        Engine speed delta due to the cold start [RPM].
+        Engine speed delta due to the catalyst warm up [RPM].
     :rtype: numpy.array
     """
-    return cold_start_speed_model(times, on_engine)
+    return catalyst_speed_model(times, on_engine)

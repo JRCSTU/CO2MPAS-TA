@@ -1187,7 +1187,7 @@ time-series (see :doc:`reference`):
 2. *electric_model*,
 3. *clutch_torque_converter_model*,
 4. *co2_params*,
-5. *engine_cold_start_speed_model*,
+5. *catalyst_speed_model*,
 6. *engine_coolant_temperature_model*,
 7. *engine_speed_model*, and
 8. *start_stop_model*.

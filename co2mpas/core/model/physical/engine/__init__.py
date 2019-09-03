@@ -28,7 +28,6 @@ import schedula as sh
 from ..defaults import dfl
 from .idle import dsp as _idle
 from .thermal import dsp as _thermal
-from .cold_start import dsp as _cold_start
 from .co2_emission import dsp as _co2_emission
 
 dsp = sh.BlueDispatcher(name='Engine', description='Models the vehicle engine.')
@@ -490,27 +489,12 @@ dsp.add_dispatcher(
     )
 )
 
-dsp.add_dispatcher(
-    dsp=_cold_start,
-    inputs=(
-        'cold_start_speeds_phases', 'engine_speeds_out_hot', 'on_idle', 'times',
-        'cold_start_speeds_delta', 'engine_thermostat_temperature', 'on_engine',
-        'cold_start_speed_model', 'idle_engine_speed', 'gears', 'stop_velocity',
-        'min_engine_on_speed', 'gear_box_speeds_in', 'engine_speeds_base',
-        'engine_speeds_out', 'velocities',
-    ),
-    outputs=(
-        'cold_start_speeds_phases', 'cold_start_speeds_delta', 'on_idle',
-        'cold_start_speed_model', 'engine_speeds_base',
-    )
-)
-
 
 @sh.add_function(
     dsp,
     inputs=[
         'on_engine', 'idle_engine_speed', 'engine_speeds_out_hot',
-        'cold_start_speeds_delta', 'clutch_tc_speeds_delta'
+        'catalyst_speeds_delta', 'clutch_tc_speeds_delta'
     ],
     outputs=['engine_speeds_out']
 )

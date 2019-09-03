@@ -20,7 +20,7 @@ Sub-Modules:
     at_model
     clutch_torque_converter_model
     co2_params
-    engine_cold_start_speed_model
+    catalyst_speed_model
     engine_coolant_temperature_model
     engine_speed_model
     start_stop_model

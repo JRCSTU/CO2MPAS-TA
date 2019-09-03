@@ -239,9 +239,9 @@ def _start_stop_model(error=None, **kwargs):
 
 
 # noinspection PyUnusedLocal
-def _cold_start_speed_model(error=None, **kwargs):
-    from ..model.physical.engine.cold_start import ColdStartModel
-    return _type(type=ColdStartModel, error=error)
+def _catalyst_speed_model(error=None, **kwargs):
+    from ..model.physical.catalyst import CatalystSpeedModel
+    return _type(type=CatalystSpeedModel, error=error)
 
 
 # noinspection PyUnusedLocal
@@ -401,7 +401,7 @@ def define_data_schema(read=True):
         Data schema.
     :rtype: schema.Schema
     """
-    cssm = _cold_start_speed_model(read=read)
+    csm = _catalyst_speed_model(read=read)
     cmv = _cmv(read=read)
     dtc = _dtc(read=read)
     cvt = _cvt(read=read)
@@ -598,7 +598,7 @@ def define_data_schema(read=True):
         'motor_p3_front_electric_power_loss_function': function,
         'motor_p3_rear_electric_power_loss_function': function,
         'motor_p4_electric_power_loss_function': function,
-        'cold_start_speed_model': cssm,
+        'catalyst_speed_model': csm,
         'clutch_window': tuplefloat2,
         'co2_params_calibrated': parameters,
         'co2_params_initial_guess': parameters,
@@ -669,7 +669,7 @@ def define_data_schema(read=True):
         'clutch_tc_powers': np_array,
         'clutch_tc_speeds_delta': np_array,
         'co2_emissions': np_array,
-        'cold_start_speeds_delta': np_array,
+        'catalyst_speeds_delta': np_array,
         'engine_coolant_temperatures': np_array,
         'engine_powers_out': np_array,
         'engine_speeds_out': np_array,
@@ -692,7 +692,7 @@ def define_data_schema(read=True):
         'motive_powers': np_array,
         'on_engine': np_array_bool,
         'clutch_phases': np_array_bool,
-        'cold_start_speeds_phases': np_array_bool,
+        'catalyst_warm_up_phases': np_array_bool,
         'on_idle': np_array_bool,
         _convert_str('state_of_charges',
                      'service_battery_state_of_charges'): np_array,
