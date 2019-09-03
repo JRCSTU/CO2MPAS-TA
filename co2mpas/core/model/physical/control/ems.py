@@ -183,9 +183,10 @@ def calculate_engine_speeds_parallel_v1(
 
 
 def _invert(y, xp, fp):
-    x = xp[:-1] + (np.diff(xp) / np.diff(fp)) * (y[:, None] - fp[:-1])
-    b = (xp[:-1] - dfl.EPS <= x) & (x <= (xp[1:] + dfl.EPS))
-    return x[np.arange(b.shape[0]), np.nanargmax(b, 1)], y
+    with np.errstate(divide='ignore', invalid='ignore'):
+        x = xp[:-1] + (np.diff(xp) / np.diff(fp)) * (y[:, None] - fp[:-1])
+        b = (xp[:-1] - dfl.EPS <= x) & (x <= (xp[1:] + dfl.EPS))
+        return x[np.arange(b.shape[0]), np.nanargmax(b, 1)], y
 
 
 # noinspection PyMissingOrEmptyDocstring
@@ -351,10 +352,13 @@ def define_hev_power_model(motors_efficiencies, drive_line_efficiencies):
     return HEV(drive_line_efficiencies, motors_efficiencies)
 
 
+dsp.add_data('is_serial', dfl.values.is_serial)
+
+
 @sh.add_function(dsp, outputs=['hybrid_modes'])
 def identify_hybrid_modes(
         times, gear_box_speeds_in, engine_speeds_out, idle_engine_speed,
-        on_engine):
+        on_engine, is_serial):
     """
     Identify the hybrid mode status (0: EV, 1: Parallel, 2: Serial).
 
@@ -378,6 +382,10 @@ def identify_hybrid_modes(
         If the engine is on [-].
     :type on_engine: numpy.array
 
+    :param is_serial:
+        Is the vehicle serial hybrid?
+    :type is_serial: bool
+
     :return:
         Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
     :rtype: numpy.array
@@ -385,6 +393,8 @@ def identify_hybrid_modes(
     # noinspection PyProtectedMember
     from ..gear_box.mechanical import _shift
     from ....report import _correlation_coefficient
+    if is_serial:
+        return np.where(on_engine, 2, 0)
     mode = on_engine.astype(int)
     es, gbs = engine_speeds_out, gear_box_speeds_in
     b = idle_engine_speed[0] > gbs
@@ -530,10 +540,10 @@ def define_engine_power_losses_function(
 
 # noinspection PyMissingOrEmptyDocstring
 class EMS:
-    def __init__(self, battery_model, hev_power_model, fuel_map_model,
-                 serial_motor_maximum_power_function, starter_model,
-                 dcdc_converter_efficiency, engine_power_losses_function,
-                 s_ch=None, s_ds=None):
+    def __init__(self, is_serial, battery_model, hev_power_model,
+                 fuel_map_model, serial_motor_maximum_power_function,
+                 starter_model, dcdc_converter_efficiency,
+                 engine_power_losses_function, s_ch=None, s_ds=None):
         self.battery_model = battery_model
         self.hev_power_model = hev_power_model
         self.fuel_map_model = fuel_map_model
@@ -544,6 +554,7 @@ class EMS:
         self.serial_motor_maximum_power = serial_motor_maximum_power_function
         self.engine_power_losses = engine_power_losses_function
         self.dcdc_converter_efficiency = dcdc_converter_efficiency
+        self.is_serial = is_serial
 
     def set_virtual(self, motors_maximum_powers):
         from scipy.interpolate import UnivariateSpline as Spline
@@ -713,13 +724,18 @@ class EMS:
             k_ser = ((s[k] - e[k] + c_ser) / s['fc_ice']).T
             c_par = np.column_stack((p['current_start'], -p['current_stop']))
             k_par = ((p[k] - e[k] + c_par) / p['fc_ice']).T
-        # noinspection PyUnresolvedReferences
-        mode = (s['fc_eq'] < p['fc_eq']).astype(int) + 1
-        mode[(s['current_bat'] < 0) & (p['current_bat'] >= 0)] = 1
-        mode[(s['current_bat'] >= 0) & (p['current_bat'] < 0)] = 2
-        mode[gear_box_speeds_in < -np.diff(idle_engine_speed)] = 2
-        be_serial = (e['power_ice'].ravel() > dfl.EPS) & (motive_powers > 0.01)
-        mode[be_serial] = 1
+        if self.is_serial:
+            mode = np.zeros_like(s['fc_eq'], int) + 2
+            be_serial = np.zeros_like(times, bool)
+        else:
+            # noinspection PyUnresolvedReferences
+            mode = (s['fc_eq'] < p['fc_eq']).astype(int) + 1
+            mode[(s['current_bat'] < 0) & (p['current_bat'] >= 0)] = 1
+            mode[(s['current_bat'] >= 0) & (p['current_bat'] < 0)] = 2
+            mode[gear_box_speeds_in < -np.diff(idle_engine_speed)] = 2
+            be_serial = e['power_ice'].ravel() > dfl.EPS
+            be_serial &= motive_powers > 0.01
+            mode[be_serial] = 1
         k_ref = np.choose(mode - 1, [k_par.T, k_ser.T])
         return dict(
             hybrid_modes=mode, k_serial=k_ser, k_parallel=k_par, serial=s,
@@ -732,7 +748,7 @@ def calibrate_ems_model(
         drive_battery_model, hev_power_model, fuel_map_model, hybrid_modes,
         serial_motor_maximum_power_function, motive_powers, starter_model,
         motors_maximums_powers, engine_powers_out, engine_speeds_out, times,
-        engine_power_losses_function, dcdc_converter_efficiency):
+        engine_power_losses_function, dcdc_converter_efficiency, is_serial):
     """
     Calibrate Energy Management Strategy model.
 
@@ -788,12 +804,16 @@ def calibrate_ems_model(
         Engine power losses function.
     :type engine_power_losses_function: function
 
+    :param is_serial:
+        Is the vehicle serial hybrid?
+    :type is_serial: bool
+
     :return:
         Equivalent Consumption Minimization Strategy params.
     :rtype: tuple[float]
     """
     model = EMS(
-        drive_battery_model, hev_power_model, fuel_map_model,
+        is_serial, drive_battery_model, hev_power_model, fuel_map_model,
         serial_motor_maximum_power_function, starter_model,
         dcdc_converter_efficiency, engine_power_losses_function).fit(
         hybrid_modes, times, motive_powers, motors_maximums_powers,
@@ -804,11 +824,15 @@ def calibrate_ems_model(
 
 @sh.add_function(dsp, outputs=['ems_model'])
 def define_ems_model(
-        drive_battery_model, hev_power_model, fuel_map_model,
+        is_serial, drive_battery_model, hev_power_model, fuel_map_model,
         serial_motor_maximum_power_function, starter_model,
         dcdc_converter_efficiency, engine_power_losses_function, ecms_s):
     """
     Define Energy Management Strategy model.
+
+    :param is_serial:
+        Is the vehicle serial hybrid?
+    :type is_serial: bool
 
     :param drive_battery_model:
         Drive battery current model.
@@ -847,7 +871,7 @@ def define_ems_model(
     :rtype: EMS
     """
     return EMS(
-        drive_battery_model, hev_power_model, fuel_map_model,
+        is_serial, drive_battery_model, hev_power_model, fuel_map_model,
         serial_motor_maximum_power_function, starter_model,
         dcdc_converter_efficiency, engine_power_losses_function, s_ch=ecms_s[0],
         s_ds=ecms_s[1]

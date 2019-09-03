@@ -91,7 +91,7 @@ def metric_engine_speed_model(
     b = ~calculate_clutch_phases(times, 1, 1, gear_shifts, 0, (-4.0, 4.0))
     b &= (velocities > stop_velocity) & ~catalyst_warm_up_phases & on_engine
     b &= hybrid_modes == 1
-    return float(mae(y_true[b], y_pred[b]))
+    return b.any() and float(mae(y_true[b], y_pred[b])) or .0
 
 
 #: Metrics to compare outputs with targets.

@@ -577,6 +577,7 @@ def define_data_schema(read=True):
         'has_nox_storage_catalyst': _bool,
         'has_torque_converter': _bool,
         'is_cycle_hot': _bool,
+        'is_serial': _bool,
         'use_dt_gear_shifting': _bool,
         _convert_str('eco_mode', 'fuel_saving_at_strategy'): _bool,
         'correct_start_stop_with_gears': _bool,

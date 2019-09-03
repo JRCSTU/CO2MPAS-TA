@@ -139,10 +139,10 @@ dsp.add_dispatcher(
         'motor_p2_electric_powers', 'motor_p0_speed_ratio', 'engine_speeds_out',
         'motor_p3_rear_efficiency', 'motor_p1_maximum_power', 'full_load_curve',
         'motor_p3_front_efficiency', 'motor_p4_maximum_powers', 'starter_model',
+        'motor_p3_rear_maximum_powers', 'motor_p0_electric_powers', 'is_serial',
         'motor_p3_front_electric_powers', 'motor_p3_front_maximum_powers',
         'motor_p3_rear_electric_powers', 'motor_p3_front_maximum_power',
-        'motor_p3_rear_maximum_powers', 'engine_coolant_temperatures',
-        'motor_p3_rear_maximum_power', 'motor_p0_electric_powers',
+        'engine_coolant_temperatures', 'motor_p3_rear_maximum_power',
         'gear_box_mean_efficiency_guess', {'is_hybrid': sh.SINK},
     ),
     outputs=(
