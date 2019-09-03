@@ -250,14 +250,6 @@ class Functions(co2_utl.Constants):
         )
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-    class define_max_acceleration_model(co2_utl.Constants):
-        #: Factor to reduce the maximum acceleration [-].
-        factor = dict(manual=.0, automatic=2 / 3)
-
-        #: Time window from last gear shift where to apply the correction [s].
-        clutch_acceleration_window = .5
-
-    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class default_n_wheel(co2_utl.Constants):
         #: Total number of wheels [-].
         n_wheel = 4
@@ -736,19 +728,6 @@ class Functions(co2_utl.Constants):
         }
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-    class identify_charging_statuses(co2_utl.Constants):
-        time_window = 4
-
-    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-    class restrict_bounds(co2_utl.Constants):
-        #: Multipliers applied into the `restrict_bounds` function.
-        CO2_PARAMS_LIMIT_MULTIPLIERS = {
-            't0': (0.5, 1.5), 't1': (0.5, 1.5), 'trg': (0.9, 1.1),
-            'a': (0.8, 1.2), 'b': (0.8, 1.2), 'c': (1.2, 0.8),
-            'a2': (1.2, 0.8), 'l': (1.2, 0.8), 'l2': (1.2, 0.0),
-        }
-
-    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class default_specific_gear_shifting(co2_utl.Constants):
         #: Specific gear shifting model.
         SPECIFIC_GEAR_SHIFTING = 'ALL'
@@ -966,30 +945,6 @@ class Functions(co2_utl.Constants):
             'propane': 2.99,
             'biodiesel': 2.81,
         }
-
-    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-    class calibrate_cold_start_speed_model_v1(co2_utl.Constants):
-        #: Cold start engine speed model v1 params.
-        PARAMS = {
-            'first_seconds': 10.0,  # [s]
-            'delta_speed_limits': (0.05, 0.2),  # [-, -]
-            'max_temperature': 30.0  # [°C]
-        }
-
-    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-    class calculate_cold_start_speeds_delta(co2_utl.Constants):
-        #: Maximum cold start speed delta percentage of idle [-].
-        MAX_COLD_START_SPEED_DELTA_PERCENTAGE = 1.0
-
-    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-    class _yield_on_start(co2_utl.Constants):
-        #: Minimum velocity that allow to switch off stop the engine after an
-        #: off [km/h].
-        VEL = 1.0
-
-        #: Minimum acceleration that allow to switch off stop the engine after
-        #: an off [m/s2].
-        ACC = 0.05
 
 
 # noinspection PyPep8Naming,PyMissingOrEmptyDocstring
