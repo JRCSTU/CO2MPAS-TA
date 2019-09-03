@@ -899,18 +899,6 @@ def calculate_ems_data(
     )
 
 
-def _index_anomalies(anomalies):
-    i = np.where(np.logical_xor(anomalies[:-1], anomalies[1:]))[0] + 1
-    if i.shape[0]:
-        if i[0] and anomalies[0]:
-            i = np.append([0], i)
-        if anomalies[-1]:
-            i = np.append(i, [len(anomalies) - 1])
-    elif anomalies[0]:
-        i = np.append([0, len(anomalies) - 1], i)
-    return i.reshape(-1, 2)
-
-
 @sh.add_function(dsp, inputs_kwargs=True, outputs=['catalyst_warm_up'])
 def identify_catalyst_warm_up(
         times, engine_powers_out, engine_coolant_temperatures, on_engine,
@@ -958,7 +946,6 @@ def identify_catalyst_warm_up(
     anomalies = np.zeros_like(times)
     if not on_engine.any():
         return anomalies.astype(bool)
-    from co2mpas.utils import clear_fluctuations, median_filter
     i = np.where(on_engine)[0]
     p = np.choose(ems_data['hybrid_modes'].ravel() - 1, [
         ems_data[k]['power_ice'].ravel() for k in ('parallel', 'serial')
@@ -968,9 +955,9 @@ def identify_catalyst_warm_up(
         anomalies[i[~co2_utl.get_inliers(
             engine_powers_out[i] / p, 2, np.nanmedian, co2_utl.mad
         )[0]]] = 1
-    anomalies = median_filter(times, anomalies, 5)
-    anomalies = clear_fluctuations(times, anomalies, 5).astype(bool)
-    i, temp = _index_anomalies(anomalies), engine_coolant_temperatures
+    anomalies = co2_utl.median_filter(times, anomalies, 5)
+    anomalies = co2_utl.clear_fluctuations(times, anomalies, 5).astype(bool)
+    i, temp = co2_utl.index_phases(anomalies), engine_coolant_temperatures
     b = np.diff(temp[i], axis=1) > 4
     b &= temp[i[:, 0], None] < (engine_thermostat_temperature - 10)
     b &= np.diff(times[i], axis=1) > 5
@@ -1007,7 +994,7 @@ def identify_catalyst_warm_up_duration(times, catalyst_warm_up):
         Catalyst warm up duration [s].
     :rtype: float
     """
-    i = _index_anomalies(catalyst_warm_up)
+    i = co2_utl.index_phases(catalyst_warm_up)
     if i.shape[0]:
         return float(np.mean(np.diff(times[i], axis=1)))
     return .0
@@ -1284,7 +1271,7 @@ def predict_catalyst_warm_up(
         dt = dfl.functions.identify_catalyst_warm_up.cooling_time
         tc = times[0] + (dt if is_cycle_hot else 0)
 
-        for i, j in _index_anomalies(on_engine):
+        for i, j in co2_utl.index_phases(on_engine):
             t0 = times[i]
             if t0 >= tc:
                 res[i:j + 1] = times[i:j + 1] < t0 + catalyst_warm_up_duration

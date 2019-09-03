@@ -379,3 +379,26 @@ def check_first_arg_false(first, *args):
     :rtype: bool
     """
     return not bool(first)
+
+
+def index_phases(phases):
+    """
+    Return the indices of the phases when is true.
+
+    :param phases:
+        Phases vector.
+    :type phases: numpy.array
+
+    :return:
+        Indices of the phases when is true.
+    :rtype: numpy.array
+    """
+    i = np.where(np.logical_xor(phases[:-1], phases[1:]))[0] + 1
+    if i.shape[0]:
+        if i[0] and phases[0]:
+            i = np.append([0], i)
+        if phases[-1]:
+            i = np.append(i, [len(phases) - 1])
+    elif phases[0]:
+        i = np.append([0, len(phases) - 1], i)
+    return i.reshape(-1, 2)
