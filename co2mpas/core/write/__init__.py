@@ -142,7 +142,7 @@ if _dice is not None:
         'co2mpas_version'
     ]
 
-    # noinspection PyProtectedMember
+    # noinspection PyProtectedMember,PyTypeChecker
     dsp.add_function(
         function=sh.Blueprint(
             sh.SubDispatchFunction(_dice, inputs=_inp, outputs=_out)

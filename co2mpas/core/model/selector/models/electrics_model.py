@@ -9,7 +9,7 @@ Functions and constants to define the alternator_model selector.
 """
 import schedula as sh
 import co2mpas.utils as co2_utl
-from ._core import define_sub_model, _accuracy_score
+from ._core import define_sub_model
 from ...physical.electrics import dsp as _electrics
 
 #: Model name.

@@ -111,6 +111,7 @@ if _dice is not None:
         'input_file_name', 'input_file', 'encryption_keys',
         'encryption_keys_passwords'
     ]
+    # noinspection PyTypeChecker
     dsp.add_function(
         function=sh.SubDispatchFunction(_dice, inputs=_inp, outputs=_out),
         function_id='load_ta_file',

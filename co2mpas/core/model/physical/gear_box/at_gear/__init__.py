@@ -269,6 +269,7 @@ class CorrectGear:
                 return 0
             return g
 
+        # noinspection PyShadowingNames
         def up_clip(arr, k):
             return arr[min(i + 1, len(arr) - 1)]
 

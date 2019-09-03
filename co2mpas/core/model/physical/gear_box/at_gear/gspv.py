@@ -154,6 +154,7 @@ class GSPV(CMV):
                 matrix[k] = self[k], (keys[max(0, i - 1)], keys[min(i + 1, c)])
 
             def _next(gear, index):
+                # noinspection PyShadowingNames
                 v, p = velocities[index], motive_powers[index]
                 (_down, _up), (g0, g1) = matrix[gear]
                 if v >= _up(p):
