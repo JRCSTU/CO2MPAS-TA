@@ -62,7 +62,7 @@ dsp.add_dispatcher(
         'service_battery_state_of_charges', 'alternator_current_model', 'times',
         'alternator_charging_currents', 'engine_moment_inertia', 'wheel_speeds',
         'alternator_electric_powers', 'final_drive_speeds_in', 'motive_powers',
-        'alternator_nominal_voltage', 'clutch_tc_speeds'
+        'alternator_nominal_voltage'
     ),
     outputs=(
         'motor_p0_electric_powers', 'motor_p0_maximum_power', 'motor_p0_powers',
