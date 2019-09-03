@@ -15,14 +15,14 @@ Sub-Modules:
     :nosignatures:
     :toctree: control/
 
-    ecms
-    start_stop
+    conventional
+    hybrid
 """
 import numpy as np
 import schedula as sh
 from ..defaults import dfl
-from .start_stop import dsp as _start_stop
-from .ems import dsp as _ems
+from .conventional import dsp as _conventional
+from .hybrid import dsp as _hybrid
 
 dsp = sh.BlueDispatcher(
     name='Control', description='Models the vehicle control strategy.'
@@ -101,8 +101,8 @@ def is_not_hybrid(kwargs):
 
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp=_start_stop,
-    dsp_id='start_stop',
+    dsp=_conventional,
+    dsp_id='conventional_control',
     inputs=(
         'gear_box_type', 'start_stop_activation_time', 'accelerations', 'times',
         'idle_engine_speed', 'min_time_engine_on_after_start', 'engine_starts',
@@ -119,8 +119,8 @@ dsp.add_dispatcher(
 
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp=_ems,
-    dsp_id='energy_management_system',
+    dsp=_hybrid,
+    dsp_id='hybrid_control',
     inputs=(
         'clutch_tc_mean_efficiency', 'idle_engine_speed', 'motor_p0_efficiency',
         'motor_p4_efficiency', 'gear_box_speeds_in', 'gear_box_mean_efficiency',
