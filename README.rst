@@ -1184,13 +1184,13 @@ There are potentially eight models calibrated from input scalar-values and
 time-series (see :doc:`reference`):
 
 1. *AT_model*,
-2. *electric_model*,
+2. *electrics_model*,
 3. *clutch_torque_converter_model*,
 4. *co2_params*,
-5. *catalyst_speed_model*,
+5. *catalyst_model*,
 6. *engine_coolant_temperature_model*,
 7. *engine_speed_model*, and
-8. *start_stop_model*.
+8. *control_model*.
 
 Each model is calibrated separately over *WLTP_H* and *WLTP_L*.
 A model can contain one or several functions predicting different quantities.

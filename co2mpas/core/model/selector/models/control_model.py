@@ -12,7 +12,7 @@ from ._core import define_sub_model, _accuracy_score
 from ...physical import dsp as _physical
 
 #: Model name.
-name = 'start_stop_model'
+name = 'control_model'
 
 #: Parameters that constitute the model.
 models = [

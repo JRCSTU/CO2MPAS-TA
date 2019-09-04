@@ -16,14 +16,14 @@ Sub-Modules:
     :toctree: models/
 
     _core
-    alternator_model
     at_model
+    catalyst_model
     clutch_torque_converter_model
     co2_params
-    catalyst_speed_model
+    control_model
+    electrics_model
     engine_coolant_temperature_model
     engine_speed_model
-    start_stop_model
 """
 import logging
 import functools
