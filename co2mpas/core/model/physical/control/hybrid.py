@@ -1220,7 +1220,7 @@ def predict_hybrid_modes(
                         mode = 3
                     j = np.searchsorted(times, t + catalyst_warm_up_duration)
                     j += 1
-                    hybrid_modes[i:j][hybrid_modes[i:j] == 0], is_warm = 3, True
+                    hybrid_modes[i:j][hybrid_modes[i:j] == 0] = 3
             else:
                 t_catalyst = t + catalyst_cooling_duration
             starter_curr = starter_bat[mode][i]
