@@ -15,10 +15,11 @@ from ...physical.catalyst import dsp as _catalyst
 name = 'catalyst_model'
 
 #: Parameters that constitute the model.
-models = ['catalyst_speed_model']
+models = ['catalyst_speed_model', 'catalyst_warm_up_duration',
+          'catalyst_cooling_duration']
 
 #: Inputs required to run the model.
-inputs = ['times', 'on_engine', 'engine_speeds_out_hot']
+inputs = ['times', 'on_engine', 'engine_speeds_out_hot', 'is_cycle_hot']
 
 #: Relevant outputs of the model.
 outputs = ['engine_speeds_base']

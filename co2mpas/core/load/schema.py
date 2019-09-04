@@ -239,12 +239,6 @@ def _start_stop_model(error=None, **kwargs):
 
 
 # noinspection PyUnusedLocal
-def _catalyst_speed_model(error=None, **kwargs):
-    from ..model.physical.catalyst import CatalystSpeedModel
-    return _type(type=CatalystSpeedModel, error=error)
-
-
-# noinspection PyUnusedLocal
 def _cmv(error=None, **kwargs):
     from ..model.physical.gear_box.at_gear.cmv import CMV
     return _type(type=CMV, error=error)
@@ -401,7 +395,6 @@ def define_data_schema(read=True):
         Data schema.
     :rtype: schema.Schema
     """
-    csm = _catalyst_speed_model(read=read)
     cmv = _cmv(read=read)
     dtc = _dtc(read=read)
     cvt = _cvt(read=read)
@@ -599,7 +592,7 @@ def define_data_schema(read=True):
         'motor_p3_front_electric_power_loss_function': function,
         'motor_p3_rear_electric_power_loss_function': function,
         'motor_p4_electric_power_loss_function': function,
-        'catalyst_speed_model': csm,
+        'catalyst_speed_model': function,
         'clutch_window': tuplefloat2,
         'co2_params_calibrated': parameters,
         'co2_params_initial_guess': parameters,
@@ -636,7 +629,7 @@ def define_data_schema(read=True):
         'k2': positive_int,
         'k5': positive_int,
         'max_gear': positive_int,
-        'hybrid_modes':  np_array_int,
+        'hybrid_modes': np_array_int,
 
         'road_loads': _type(type=And(Use(tuple), (_type(float),)),
                             length=3,

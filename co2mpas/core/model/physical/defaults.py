@@ -212,9 +212,9 @@ class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-    class identify_catalyst_warm_up(co2_utl.Constants):
+    class identify_catalyst_warm_up_phases(co2_utl.Constants):
         #: Catalyst cooling time [s].
-        cooling_time = 600
+        cooling_time = 400
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class define_service_battery_electric_powers_supply_threshold(

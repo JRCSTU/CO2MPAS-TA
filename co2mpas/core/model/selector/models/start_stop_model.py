@@ -16,16 +16,15 @@ name = 'start_stop_model'
 
 #: Parameters that constitute the model.
 models = [
-    'start_stop_model', 'start_stop_hybrid_params', 'catalyst_warm_up_duration',
+    'motor_p3_front_efficiency', 'motor_p3_rear_efficiency', 'start_stop_model',
     'motor_p1_maximum_power', 'motor_p1_efficiency', 'gear_box_mean_efficiency',
     'belt_mean_efficiency', 'clutch_tc_mean_efficiency', 'motor_p1_rated_speed',
     'final_drive_mean_efficiency', 'motor_p0_efficiency', 'motor_p4_efficiency',
     'motor_p3_rear_rated_speed', 'motor_p4_rated_speed', 'motor_p0_rated_speed',
     'motor_p3_front_rated_speed', 'motor_p2_rated_speed', 'motor_p2_efficiency',
     'motor_p3_front_maximum_power', 'motor_p3_rear_maximum_power', 'ecms_s',
-    'motor_p3_front_efficiency', 'motor_p3_rear_efficiency',
-    'motor_p4_maximum_power', 'motor_p0_maximum_power',
-    'motor_p2_maximum_power',
+    'start_stop_hybrid_params', 'motor_p4_maximum_power',
+    'motor_p0_maximum_power', 'motor_p2_maximum_power',
 
 ]
 
@@ -39,7 +38,8 @@ inputs = [
     'auxiliaries_torque_loss', 'auxiliaries_power_loss', 'motor_p1_speed_ratio',
     'engine_moment_inertia', 'drive_battery_model', 'accelerations', 'fuel_map',
     'motor_p0_speed_ratio', 'gear_box_speeds_in', 'starter_model', 'velocities',
-    'full_load_curve', 'motive_powers', 'is_cycle_hot',
+    'catalyst_warm_up_duration', 'full_load_curve', 'motive_powers',
+    'is_cycle_hot', 'catalyst_cooling_duration'
 ]
 
 #: Relevant outputs of the model.

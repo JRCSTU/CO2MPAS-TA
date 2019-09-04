@@ -131,6 +131,52 @@ def identify_catalyst_warm_up_phases(
     return phases
 
 
+@sh.add_function(dsp, outputs=['catalyst_warm_up_duration'])
+def identify_catalyst_warm_up_duration(times, catalyst_warm_up_phases):
+    """
+    Identify catalyst warm up duration [s].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param catalyst_warm_up_phases:
+        Phases when engine speed is affected by the catalyst warm up [-].
+    :type catalyst_warm_up_phases: numpy.array
+
+    :return:
+        Catalyst warm up duration [s].
+    :rtype: float
+    """
+    i = co2_utl.index_phases(catalyst_warm_up_phases)
+    if i.shape[0]:
+        return float(np.mean(np.diff(times[i], axis=1)))
+    return .0
+
+
+@sh.add_function(dsp, outputs=['catalyst_cooling_duration'])
+def identify_catalyst_cooling_duration(times, catalyst_warm_up_phases):
+    """
+    Identify catalyst cooling duration [s].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param catalyst_warm_up_phases:
+        Phases when engine speed is affected by the catalyst warm up [-].
+    :type catalyst_warm_up_phases: numpy.array
+
+    :return:
+        Catalyst cooling duration [s].
+    :rtype: float
+    """
+    i = co2_utl.index_phases(catalyst_warm_up_phases)
+    if i.shape[0] > 2:
+        return float(np.mean(np.diff(times[i].ravel())[1::2]))
+    return float('inf')
+
+
 @sh.add_function(dsp, outputs=['catalyst_speeds_delta'])
 def identify_catalyst_speeds_delta(
         catalyst_warm_up_phases, engine_speeds_out, engine_speeds_out_hot):
@@ -180,43 +226,6 @@ def calculate_engine_speeds_base(
     return engine_speeds_out_hot + catalyst_speeds_delta
 
 
-# noinspection PyMissingOrEmptyDocstring, PyProtectedMember
-class CatalystSpeedModel:
-    def __init__(self, model=None, warming_time=0, cooling_time=float('inf')):
-        self.model = model
-        self.cooling_time = cooling_time
-        self.warming_time = warming_time
-
-    def fit(self, times, catalyst_speeds_delta, catalyst_warm_up_phases):
-        if not catalyst_warm_up_phases.any():
-            return self
-        from sklearn.isotonic import IsotonicRegression
-        indices = co2_utl.index_phases(catalyst_warm_up_phases)
-        x, y, model = [], [], IsotonicRegression(increasing=False)
-        indices = indices[np.diff(times[indices], axis=1)[:, 0] > 5]
-        for i, j in indices:
-            x.extend(times[i:j + 1] - times[i])
-            y.extend(catalyst_speeds_delta[i:j + 1])
-        self.warming_time = np.max(x)
-        dt = np.diff(times[indices].ravel())[1::2]
-        self.cooling_time = np.mean(dt) if dt.size else float('inf')
-        # noinspection PyUnresolvedReferences
-        self.model = model.fit(x, y).predict
-        return self
-
-    def __call__(self, times, on_engine, is_warm=False):
-        speeds_delta, w_time = np.zeros_like(times, float), self.warming_time
-        if w_time and self.model:
-            indices = co2_utl.index_phases(on_engine)
-            indices = indices[np.append(not is_warm, np.diff(
-                times[indices].ravel()
-            )[1::2] > self.cooling_time)]
-            for i, j in indices:
-                t = times[i:j + 1] - times[i]
-                speeds_delta[i:j + 1] = np.where(t < w_time, self.model(t), 0)
-        return speeds_delta
-
-
 @sh.add_function(dsp, outputs=['catalyst_speed_model'])
 def calibrate_catalyst_speed_model(
         times, catalyst_warm_up_phases, catalyst_speeds_delta):
@@ -237,21 +246,34 @@ def calibrate_catalyst_speed_model(
 
     :return:
         Catalyst speed model.
-    :rtype: CatalystSpeedModel
+    :rtype: function
     """
-    return CatalystSpeedModel().fit(
-        times, catalyst_speeds_delta, catalyst_warm_up_phases
-    )
+    if catalyst_warm_up_phases.any():
+        from sklearn.isotonic import IsotonicRegression
+        indices = co2_utl.index_phases(catalyst_warm_up_phases)
+        x, y, model = [], [], IsotonicRegression(increasing=False)
+        indices = indices[np.diff(times[indices], axis=1)[:, 0] > 5]
+        for i, j in indices:
+            x.extend(times[i:j + 1] - times[i])
+            y.extend(catalyst_speeds_delta[i:j + 1])
+        # noinspection PyUnresolvedReferences
+        return model.fit(x, y).predict
 
 
-@sh.add_function(dsp, outputs=['catalyst_speeds_delta'])
-def calculate_catalyst_speeds_delta(catalyst_speed_model, times, on_engine):
+@sh.add_function(dsp, outputs=['catalyst_warm_up_phases'])
+def predict_catalyst_warm_up_phases(
+        catalyst_warm_up_duration, catalyst_cooling_duration, times, on_engine,
+        is_cycle_hot):
     """
     Calculates the engine speed delta due to the catalyst warm up [RPM].
 
-    :param catalyst_speed_model:
-        Catalyst speed model.
-    :type catalyst_speed_model: CatalystSpeedModel
+    :param catalyst_warm_up_duration:
+        Catalyst warm up duration [s].
+    :type catalyst_warm_up_duration: float
+
+    :param catalyst_cooling_duration:
+        Catalyst cooling duration [s].
+    :type catalyst_cooling_duration: float
 
     :param times:
         Time vector [s].
@@ -261,8 +283,50 @@ def calculate_catalyst_speeds_delta(catalyst_speed_model, times, on_engine):
         If the engine is on [-].
     :type on_engine: numpy.array
 
+    :param is_cycle_hot:
+        Is an hot cycle?
+    :type is_cycle_hot: bool
+
+    :return:
+        Phases when engine speed is affected by the catalyst warm up [-].
+    :rtype: numpy.array
+    """
+    phases = np.zeros_like(times, bool)
+    if catalyst_warm_up_duration:
+        indices = co2_utl.index_phases(on_engine)
+        indices = indices[np.append(not is_cycle_hot, np.diff(
+            times[indices].ravel()
+        )[1::2] > catalyst_cooling_duration)]
+        for i, j in indices:
+            t = times[i:j + 1] - times[i]
+            phases[i:j + 1] = t < catalyst_warm_up_duration
+    return phases
+
+
+@sh.add_function(dsp, outputs=['catalyst_speeds_delta'])
+def predict_catalyst_speeds_delta(
+        catalyst_speed_model, times, catalyst_warm_up_phases):
+    """
+    Predicts the engine speed delta due to the catalyst warm up [RPM].
+
+    :param catalyst_speed_model:
+        Catalyst speed model.
+    :type catalyst_speed_model: function
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param catalyst_warm_up_phases:
+        Phases when engine speed is affected by the catalyst warm up [-].
+    :type catalyst_warm_up_phases: numpy.array
+
     :return:
         Engine speed delta due to the catalyst warm up [RPM].
     :rtype: numpy.array
     """
-    return catalyst_speed_model(times, on_engine)
+    delta = np.zeros_like(times, float)
+    if catalyst_speed_model:
+        for i, j in co2_utl.index_phases(catalyst_warm_up_phases):
+            delta[i:j + 1] = catalyst_speed_model(times[i:j + 1] - times[i])
+    return delta
