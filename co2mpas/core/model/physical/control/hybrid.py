@@ -1000,6 +1000,8 @@ def identify_catalyst_warm_up_phases(
         if warming_phases[i]:
             while i and warming_phases.take(i - 1, mode='clip'):
                 i -= 1
+            while hybrid_modes[j] == 1 and j>i:
+                j -= 1
             warm_up[i:j + 1] = True
     return warm_up
 
