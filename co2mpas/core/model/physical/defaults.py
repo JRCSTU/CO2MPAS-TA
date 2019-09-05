@@ -212,8 +212,8 @@ class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-    class identify_catalyst_warm_up_phases(co2_utl.Constants):
-        #: Catalyst cooling time [s].
+    class identify_after_treatment_warm_up_phases(co2_utl.Constants):
+        #: After treatment cooling time [s].
         cooling_time = 400
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming

@@ -494,7 +494,7 @@ dsp.add_dispatcher(
     dsp,
     inputs=[
         'on_engine', 'idle_engine_speed', 'engine_speeds_out_hot',
-        'catalyst_speeds_delta', 'clutch_tc_speeds_delta'
+        'after_treatment_speeds_delta', 'clutch_tc_speeds_delta'
     ],
     outputs=['engine_speeds_out']
 )

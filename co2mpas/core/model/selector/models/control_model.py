@@ -38,8 +38,8 @@ inputs = [
     'auxiliaries_torque_loss', 'auxiliaries_power_loss', 'motor_p1_speed_ratio',
     'engine_moment_inertia', 'drive_battery_model', 'accelerations', 'fuel_map',
     'motor_p0_speed_ratio', 'gear_box_speeds_in', 'starter_model', 'velocities',
-    'catalyst_warm_up_duration', 'full_load_curve', 'motive_powers',
-    'is_cycle_hot', 'catalyst_cooling_duration'
+    'after_treatment_warm_up_duration', 'full_load_curve', 'motive_powers',
+    'is_cycle_hot', 'after_treatment_cooling_duration'
 ]
 
 #: Relevant outputs of the model.

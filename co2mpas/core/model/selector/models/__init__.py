@@ -17,7 +17,7 @@ Sub-Modules:
 
     _core
     at_model
-    catalyst_model
+    after_treatment_model
     clutch_torque_converter_model
     co2_params
     control_model

@@ -923,13 +923,15 @@ def calculate_ems_data(
     )
 
 
-@sh.add_function(dsp, inputs_kwargs=True, outputs=['catalyst_warm_up_phases'])
-def identify_catalyst_warm_up_phases(
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['after_treatment_warm_up_phases']
+)
+def identify_after_treatment_warm_up_phases(
         times, engine_powers_out, engine_coolant_temperatures, on_engine,
         engine_thermostat_temperature, ems_data, hybrid_modes,
         is_cycle_hot=False):
     """
-    Identifies catalyst warm up phase.
+    Identifies after treatment warm up phase.
 
     :param times:
         Time vector [s].
@@ -964,7 +966,7 @@ def identify_catalyst_warm_up_phases(
     :type is_cycle_hot: bool
 
     :return:
-        Catalyst warm up phase.
+        After treatment warm up phase.
     :rtype: numpy.array
     """
     warm_up = np.zeros_like(times)
@@ -988,19 +990,19 @@ def identify_catalyst_warm_up_phases(
     b &= np.apply_along_axis(
         lambda a: np.in1d(2, hybrid_modes[slice(*a)]), 1, indices
     )
-    t_cooling = dfl.functions.identify_catalyst_warm_up_phases.cooling_time
-    t0 = is_cycle_hot and times[0] + t_cooling or 0
+    t_cool = dfl.functions.identify_after_treatment_warm_up_phases.cooling_time
+    t0 = is_cycle_hot and times[0] + t_cool or 0
     warming_phases = np.zeros_like(on_engine, bool)
     for i, j in co2_utl.index_phases(on_engine):
         warming_phases[i:j + 1] = times[i] >= t0
-        t0 = times[j] + t_cooling
+        t0 = times[j] + t_cool
 
     warm_up[:] = False
     for i, j in indices[b.ravel()]:
         if warming_phases[i]:
             while i and warming_phases.take(i - 1, mode='clip'):
                 i -= 1
-            while hybrid_modes[j] == 1 and j>i:
+            while hybrid_modes[j] == 1 and j > i:
                 j -= 1
             warm_up[i:j + 1] = True
     return warm_up
@@ -1012,12 +1014,12 @@ class StartStopHybrid:
         self.params = params
 
     def fit(self, ems_data, on_engine, drive_battery_state_of_charges,
-            catalyst_warm_up_phases):
+            after_treatment_warm_up_phases):
         import lmfit
         k = np.where(~on_engine, *ems_data['k_reference'].T)
 
         # Filter data.
-        b = ~catalyst_warm_up_phases & ~ems_data['force_on_engine']
+        b = ~after_treatment_warm_up_phases & ~ems_data['force_on_engine']
         b &= np.isfinite(k)
         s = np.where(on_engine[b], 1, -1)
         k, soc = k[b].T, drive_battery_state_of_charges[b]
@@ -1048,7 +1050,7 @@ class StartStopHybrid:
 @sh.add_function(dsp, outputs=['start_stop_hybrid_params'])
 def calibrate_start_stop_hybrid_params(
         ems_data, on_engine, drive_battery_state_of_charges,
-        catalyst_warm_up_phases):
+        after_treatment_warm_up_phases):
     """
     Calibrate start stop model for hybrid electric vehicles.
 
@@ -1064,9 +1066,9 @@ def calibrate_start_stop_hybrid_params(
         State of charge of the drive battery [%].
     :type drive_battery_state_of_charges: numpy.array
 
-    :param catalyst_warm_up_phases:
-        Phases when engine speed is affected by the catalyst warm up [-].
-    :type catalyst_warm_up_phases: numpy.array
+    :param after_treatment_warm_up_phases:
+        Phases when engine is affected by the after treatment warm up [-].
+    :type after_treatment_warm_up_phases: numpy.array
 
     :return:
         Params of start stop model for hybrid electric vehicles.
@@ -1074,7 +1076,7 @@ def calibrate_start_stop_hybrid_params(
     """
     return StartStopHybrid().fit(
         ems_data, on_engine, drive_battery_state_of_charges,
-        catalyst_warm_up_phases
+        after_treatment_warm_up_phases
     ).params
 
 
@@ -1095,7 +1097,7 @@ def define_start_stop_hybrid(start_stop_hybrid_params):
 
 
 @sh.add_function(dsp, outputs=['hybrid_modes'])
-def calculate_hybrid_modes(ems_data, on_engine, catalyst_warm_up_phases):
+def calculate_hybrid_modes(ems_data, on_engine, after_treatment_warm_up_phases):
     """
     Calculate the hybrid mode status (0: EV, 1: Parallel, 2: Serial).
 
@@ -1107,16 +1109,16 @@ def calculate_hybrid_modes(ems_data, on_engine, catalyst_warm_up_phases):
         If the engine is on [-].
     :type on_engine: numpy.array
 
-    :param catalyst_warm_up_phases:
-        Phases when engine speed is affected by the catalyst warm up [-].
-    :type catalyst_warm_up_phases: numpy.array
+    :param after_treatment_warm_up_phases:
+        Phases when engine is affected by the after treatment warm up [-].
+    :type after_treatment_warm_up_phases: numpy.array
 
     :return:
         Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
     :rtype: numpy.array
     """
     modes = ems_data['hybrid_modes'].ravel().copy()
-    modes[catalyst_warm_up_phases] = 2
+    modes[after_treatment_warm_up_phases] = 2
     modes[~on_engine] = 0
     return modes
 
@@ -1124,9 +1126,9 @@ def calculate_hybrid_modes(ems_data, on_engine, catalyst_warm_up_phases):
 @sh.add_function(dsp, outputs=['hybrid_modes'])
 def predict_hybrid_modes(
         start_stop_hybrid, ems_data, drive_battery_model, times, motive_powers,
-        accelerations, catalyst_warm_up_duration, catalyst_cooling_duration,
-        start_stop_activation_time, min_time_engine_on_after_start,
-        is_cycle_hot):
+        accelerations, after_treatment_warm_up_duration,
+        after_treatment_cooling_duration, start_stop_activation_time,
+        min_time_engine_on_after_start, is_cycle_hot):
     """
     Predicts the hybrid mode status (0: EV, 1: Parallel, 2: Serial).
 
@@ -1154,13 +1156,13 @@ def predict_hybrid_modes(
         Acceleration [m/s2].
     :type accelerations: numpy.array
 
-    :param catalyst_warm_up_duration:
-        Catalyst warm up duration [s].
-    :type catalyst_warm_up_duration: float
+    :param after_treatment_warm_up_duration:
+        After treatment warm up duration [s].
+    :type after_treatment_warm_up_duration: float
 
-    :param catalyst_cooling_duration:
-        Catalyst cooling duration [s].
-    :type catalyst_cooling_duration: float
+    :param after_treatment_cooling_duration:
+        After treatment cooling duration [s].
+    :type after_treatment_cooling_duration: float
 
     :param min_time_engine_on_after_start:
         Minimum time of engine on after a start [s].
@@ -1202,9 +1204,9 @@ def predict_hybrid_modes(
         times, motive_powers, accelerations, hybrid_modes, r['k_reference'],
         r['hybrid_modes'].ravel()
     ))
-    t_catalyst = times[0]
+    t_after_treatment = times[0]
     if is_cycle_hot:
-        t_catalyst += catalyst_cooling_duration
+        t_after_treatment += after_treatment_cooling_duration
     for i, (t, motive_power, acc, mode, k_ref, mode_ref) in it:
         pre_mode = hybrid_modes.take(i - 1, mode='clip')
         j = int(bool(pre_mode))
@@ -1217,14 +1219,15 @@ def predict_hybrid_modes(
         if bool(pre_mode) ^ bool(mode) and i:
             if mode:
                 t0 = t + min_time_engine_on_after_start
-                if t >= t_catalyst:
+                if t >= t_after_treatment:
                     if not hybrid_modes[i]:
                         mode = 3
-                    j = np.searchsorted(times, t + catalyst_warm_up_duration)
-                    j += 1
+                    j = np.searchsorted(
+                        times, t + after_treatment_warm_up_duration
+                    ) + 1
                     hybrid_modes[i:j][hybrid_modes[i:j] == 0] = 3
             else:
-                t_catalyst = t + catalyst_cooling_duration
+                t_after_treatment = t + after_treatment_cooling_duration
             starter_curr = starter_bat[mode][i]
         soc = drive_battery_model(
             current_bat[mode][i], t, motive_power, acc, bool(mode), starter_curr
@@ -1251,7 +1254,7 @@ def identify_on_engine(hybrid_modes):
 
 @sh.add_function(dsp, outputs=['engine_speeds_out_hot'])
 def identify_engine_speeds_out_hot(
-        engine_speeds_base, catalyst_warm_up_phases, idle_engine_speed):
+        engine_speeds_base, after_treatment_warm_up_phases, idle_engine_speed):
     """
     Predicts the engine speed at hot condition [RPM].
 
@@ -1259,9 +1262,9 @@ def identify_engine_speeds_out_hot(
         Base engine speed (i.e., without clutch/TC effect) [RPM].
     :type engine_speeds_base: numpy.array
 
-    :param catalyst_warm_up_phases:
-        Phases when engine speed is affected by the catalyst warm up [-].
-    :type catalyst_warm_up_phases: numpy.array
+    :param after_treatment_warm_up_phases:
+        Phases when engine is affected by the after treatment warm up [-].
+    :type after_treatment_warm_up_phases: numpy.array
 
     :param idle_engine_speed:
         Engine speed idle median and std [RPM].
@@ -1272,13 +1275,14 @@ def identify_engine_speeds_out_hot(
     :rtype: numpy.array
     """
     return np.where(
-        catalyst_warm_up_phases, idle_engine_speed[0], engine_speeds_base
+        after_treatment_warm_up_phases, idle_engine_speed[0], engine_speeds_base
     )
 
 
 @sh.add_function(dsp, outputs=['engine_speeds_out_hot'], weight=1)
 def predict_engine_speeds_out_hot(
-        ems_data, hybrid_modes, catalyst_warm_up_phases, idle_engine_speed):
+        ems_data, hybrid_modes, after_treatment_warm_up_phases,
+        idle_engine_speed):
     """
     Predicts the engine speed at hot condition [RPM].
 
@@ -1290,9 +1294,9 @@ def predict_engine_speeds_out_hot(
         Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
     :type hybrid_modes: numpy.array
 
-    :param catalyst_warm_up_phases:
-        Phases when engine speed is affected by the catalyst warm up [-].
-    :type catalyst_warm_up_phases: numpy.array
+    :param after_treatment_warm_up_phases:
+        Phases when engine is affected by the after treatment warm up [-].
+    :type after_treatment_warm_up_phases: numpy.array
 
     :param idle_engine_speed:
         Engine speed idle median and std [RPM].
@@ -1304,7 +1308,7 @@ def predict_engine_speeds_out_hot(
     """
     it = ems_data['electric'], ems_data['parallel'], ems_data['serial']
     speeds = np.choose(hybrid_modes, [d['speed_ice'].ravel() for d in it])
-    speeds[catalyst_warm_up_phases] = idle_engine_speed[0]
+    speeds[after_treatment_warm_up_phases] = idle_engine_speed[0]
     return speeds
 
 
@@ -1314,7 +1318,8 @@ def predict_engine_speeds_out_hot(
     'motor_p1_electric_powers', 'motor_p0_electric_powers'
 ])
 def predict_motors_electric_powers(
-        ems_data, catalyst_warm_up_phases, hybrid_modes, engine_speeds_out_hot):
+        ems_data, after_treatment_warm_up_phases, hybrid_modes,
+        engine_speeds_out_hot):
     """
     Predicts motors electric power split [kW].
 
@@ -1322,9 +1327,9 @@ def predict_motors_electric_powers(
         EMS decision data.
     :type ems_data: dict
 
-    :param catalyst_warm_up_phases:
-        Phases when engine speed is affected by the catalyst warm up [-].
-    :type catalyst_warm_up_phases: numpy.array
+    :param after_treatment_warm_up_phases:
+        Phases when engine is affected by the after treatment warm up [-].
+    :type after_treatment_warm_up_phases: numpy.array
 
     :param hybrid_modes:
         Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
@@ -1339,7 +1344,7 @@ def predict_motors_electric_powers(
     :rtype: tuple[numpy.array]
     """
     mode = np.where(
-        catalyst_warm_up_phases & (hybrid_modes == 2), 0, hybrid_modes
+        after_treatment_warm_up_phases & (hybrid_modes == 2), 0, hybrid_modes
     )
     return np.choose(mode, [
         d['battery_power_split'](d['power_bat'].ravel(), engine_speeds_out_hot)

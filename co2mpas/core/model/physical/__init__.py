@@ -26,7 +26,7 @@ Sub-Modules:
     electrics
     engine
     control
-    catalyst
+    after_treat
     defaults
 """
 
@@ -40,7 +40,7 @@ from .clutch_tc import dsp as _clutch_torque_converter
 from .electrics import dsp as _electrics
 from .engine import dsp as _engine
 from .control import dsp as _control
-from .catalyst import dsp as _catalyst
+from .after_treat import dsp as _after_treat
 
 dsp = sh.BlueDispatcher(
     name='CO2MPAS physical model',
@@ -394,9 +394,9 @@ dsp.add_dispatcher(
         'co2_params_calibrated', 'co2_emission_extra_high', 'co2_emission_high',
         'enable_willans', 'engine_n_cylinders', 'fuel_type', 'co2_emission_low',
         'engine_max_power', 'clutch_tc_powers', 'full_load_speeds', 'is_hybrid',
-        'belt_efficiency', 'catalyst_speeds_delta', 'fuel_density', 'on_idle',
-        'engine_mass', 'ignition_type', 'engine_stroke', 'gear_box_powers_out',
-        'full_load_powers', {
+        'after_treatment_speeds_delta', 'engine_stroke', 'gear_box_powers_out',
+        'full_load_powers', 'belt_efficiency', 'fuel_density', 'ignition_type',
+        'engine_mass', 'on_idle', {
             'initial_temperature': 'initial_engine_temperature'
         }),
     outputs=(
@@ -435,7 +435,6 @@ dsp.add_dispatcher(
     dsp=_control,
     inputs=(
         'full_load_curve', 'gear_box_speeds_in', 'motor_p0_efficiency', 'gears',
-        'drive_battery_model', 'idle_engine_speed', 'catalyst_warm_up_duration',
         'motor_p3_front_maximum_power', 'motor_p3_rear_maximum_power', 'ecms_s',
         'motor_p4_maximum_powers', 'motor_p1_maximum_power', 'start_stop_model',
         'engine_coolant_temperatures', 'engine_moment_inertia', 'gear_box_type',
@@ -454,37 +453,39 @@ dsp.add_dispatcher(
         'motor_p4_electric_powers', 'engine_speeds_out', 'belt_mean_efficiency',
         'motor_p3_front_maximum_powers', 'auxiliaries_torque_loss', 'on_engine',
         'engine_speeds_out_hot', 'motor_p1_speed_ratio', 'motor_p1_efficiency',
-        'motor_p3_front_electric_powers', 'gear_box_mean_efficiency_guess',
-        'engine_thermostat_temperature', 'correct_start_stop_with_gears',
-        'motor_p3_rear_maximum_powers', 'catalyst_warm_up_phases',
-        'engine_powers_out', 'catalyst_cooling_duration',
-
+        'after_treatment_cooling_duration', 'after_treatment_warm_up_duration',
+        'after_treatment_warm_up_phases', 'motor_p3_front_electric_powers',
+        'gear_box_mean_efficiency_guess', 'engine_thermostat_temperature',
+        'correct_start_stop_with_gears', 'motor_p3_rear_maximum_powers',
+        'drive_battery_model', 'engine_powers_out', 'idle_engine_speed',
     ),
     outputs=(
         'correct_start_stop_with_gears', 'start_stop_activation_time', 'ecms_s',
         'motor_p0_electric_powers', 'motor_p1_electric_powers', 'engine_starts',
         'engine_speeds_out_hot', 'start_stop_hybrid_params', 'start_stop_model',
-        'motor_p3_rear_electric_powers', 'catalyst_warm_up_phases', 'on_engine',
-        'motor_p4_electric_powers', 'motor_p2_electric_powers', 'hybrid_modes',
-        'motor_p3_front_electric_powers', 'engine_speeds_base',
+        'motor_p3_front_electric_powers', 'engine_speeds_base', 'hybrid_modes',
+        'motor_p2_electric_powers', 'motor_p4_electric_powers', 'on_engine',
+        'after_treatment_warm_up_phases', 'motor_p3_rear_electric_powers',
     )
 )
 
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp_id='catalyst_model',
-    dsp=_catalyst,
+    dsp_id='after_treat_model',
+    dsp=_after_treat,
     inputs=(
-        'min_engine_on_speed', 'engine_speeds_base', 'velocities', 'on_engine',
-        'catalyst_warm_up_phases', 'engine_speeds_out_hot', 'on_idle', 'times',
-        'catalyst_speed_model', 'idle_engine_speed', 'gears', 'stop_velocity',
-        'catalyst_speeds_delta', 'gear_box_speeds_in', 'engine_speeds_out',
-        'catalyst_cooling_duration', 'catalyst_warm_up_duration',
-        'engine_powers_out', 'catalyst_power_model', 'is_cycle_hot',
+        'after_treatment_warm_up_phases', 'engine_speeds_out_hot', 'velocities',
+        'after_treatment_speed_model', 'engine_speeds_out', 'engine_powers_out',
+        'min_engine_on_speed', 'gear_box_speeds_in', 'stop_velocity', 'on_idle',
+        'after_treatment_cooling_duration', 'after_treatment_warm_up_duration',
+        'after_treatment_speeds_delta', 'after_treatment_power_model', 'times',
+        'engine_speeds_base', 'idle_engine_speed', 'is_cycle_hot', 'on_engine',
+        'gears',
     ),
     outputs=(
-        'catalyst_warm_up_phases', 'catalyst_speed_model', 'engine_speeds_base',
-        'catalyst_warm_up_duration', 'catalyst_cooling_duration', 'on_idle',
-        'catalyst_speeds_delta', 'catalyst_power_model'
+        'after_treatment_power_model', 'after_treatment_speed_model', 'on_idle',
+        'after_treatment_warm_up_duration', 'after_treatment_cooling_duration',
+        'after_treatment_warm_up_phases', 'after_treatment_speeds_delta',
+        'engine_speeds_base',
     )
 )
