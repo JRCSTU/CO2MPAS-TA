@@ -250,14 +250,45 @@ def calibrate_catalyst_speed_model(
     """
     if catalyst_warm_up_phases.any():
         from sklearn.isotonic import IsotonicRegression
-        indices = co2_utl.index_phases(catalyst_warm_up_phases)
         x, y, model = [], [], IsotonicRegression(increasing=False)
-        indices = indices[np.diff(times[indices], axis=1)[:, 0] > 5]
-        for i, j in indices:
+        for i, j in co2_utl.index_phases(catalyst_warm_up_phases):
             x.extend(times[i:j + 1] - times[i])
             y.extend(catalyst_speeds_delta[i:j + 1])
         # noinspection PyUnresolvedReferences
         return model.fit(x, y).predict
+
+
+@sh.add_function(dsp, outputs=['catalyst_power_model'])
+def calibrate_catalyst_power_model(
+        times, catalyst_warm_up_phases, engine_powers_out):
+    """
+    Calibrates the engine catalyst speed model.
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param catalyst_warm_up_phases:
+        Phases when engine speed is affected by the catalyst warm up [-].
+    :type catalyst_warm_up_phases: numpy.array
+
+    :param engine_powers_out:
+        Engine power vector [kW].
+    :type engine_powers_out: numpy.array
+
+    :return:
+        Catalyst speed model.
+    :rtype: function
+    """
+    if catalyst_warm_up_phases.any():
+        from sklearn.isotonic import IsotonicRegression
+        x, y = [], []
+        for i, j in co2_utl.index_phases(catalyst_warm_up_phases):
+            t = times[i:j + 1] - times[i]
+            x.extend(t)
+            y.extend(co2_utl.median_filter(t, engine_powers_out[i:j + 1], 4))
+        # noinspection PyUnresolvedReferences
+        return IsotonicRegression().fit(x, np.maximum(0, y)).predict
 
 
 @sh.add_function(dsp, outputs=['catalyst_warm_up_phases'])

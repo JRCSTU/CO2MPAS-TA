@@ -479,11 +479,12 @@ dsp.add_dispatcher(
         'catalyst_warm_up_phases', 'engine_speeds_out_hot', 'on_idle', 'times',
         'catalyst_speed_model', 'idle_engine_speed', 'gears', 'stop_velocity',
         'catalyst_speeds_delta', 'gear_box_speeds_in', 'engine_speeds_out',
-        'is_cycle_hot', 'catalyst_cooling_duration', 'catalyst_warm_up_duration'
+        'catalyst_cooling_duration', 'catalyst_warm_up_duration',
+        'engine_powers_out', 'catalyst_power_model', 'is_cycle_hot',
     ),
     outputs=(
         'catalyst_warm_up_phases', 'catalyst_speed_model', 'engine_speeds_base',
         'catalyst_warm_up_duration', 'catalyst_cooling_duration', 'on_idle',
-        'catalyst_speeds_delta',
+        'catalyst_speeds_delta', 'catalyst_power_model'
     )
 )

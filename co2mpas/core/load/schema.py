@@ -593,6 +593,7 @@ def define_data_schema(read=True):
         'motor_p3_rear_electric_power_loss_function': function,
         'motor_p4_electric_power_loss_function': function,
         'catalyst_speed_model': function,
+        'catalyst_power_model': function,
         'clutch_window': tuplefloat2,
         'co2_params_calibrated': parameters,
         'co2_params_initial_guess': parameters,
