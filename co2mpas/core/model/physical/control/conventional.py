@@ -167,19 +167,29 @@ def predict_on_engine(
 
 
 @sh.add_function(dsp, outputs=['hybrid_modes'], weight=sh.inf(1, 0))
-def default_hybrid_modes(times):
+def default_hybrid_modes(on_engine, gear_box_speeds_in, idle_engine_speed):
     """
     Identify the hybrid mode status (0: EV, 1: Parallel, 2: Serial).
 
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
+    :param gear_box_speeds_in:
+        Gear box speed [RPM].
+    :type gear_box_speeds_in: numpy.array | float
+
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array, bool
+
+    :param idle_engine_speed:
+        Idle engine speed and its standard deviation [RPM].
+    :type idle_engine_speed: (float, float)
 
     :return:
         Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
     :rtype: numpy.array
     """
-    return np.ones_like(times, int)
+    modes = on_engine.astype(int)
+    modes[on_engine & (gear_box_speeds_in < -np.diff(idle_engine_speed))] = 2
+    return modes
 
 
 @sh.add_function(dsp, inputs_kwargs=True, outputs=['engine_speeds_out_hot'])
