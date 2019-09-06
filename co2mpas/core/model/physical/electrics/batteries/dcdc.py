@@ -42,6 +42,28 @@ def calculate_dcdc_converter_electric_powers_demand(
 
 
 @sh.add_function(dsp, outputs=['dcdc_converter_electric_powers'])
+def calculate_dcdc_converter_electric_powers_v1(
+        dcdc_converter_electric_powers_demand, dcdc_converter_efficiency):
+    """
+    Calculate DC/DC converter electric power [kW].
+
+    :param dcdc_converter_electric_powers_demand:
+        DC/DC converter electric power demand [kW].
+    :type dcdc_converter_electric_powers_demand: numpy.array | float
+
+    :param dcdc_converter_efficiency:
+        DC/DC converter efficiency [-].
+    :type dcdc_converter_efficiency: float
+
+    :return:
+        DC/DC converter electric power [kW].
+    :rtype: numpy.array | float
+    """
+    from ..motors.p4 import calculate_motor_p4_electric_powers as f
+    return f(dcdc_converter_electric_powers_demand, dcdc_converter_efficiency)
+
+
+@sh.add_function(dsp, outputs=['dcdc_converter_electric_powers'])
 def calculate_dcdc_converter_electric_powers(
         dcdc_converter_currents, service_battery_nominal_voltage):
     """

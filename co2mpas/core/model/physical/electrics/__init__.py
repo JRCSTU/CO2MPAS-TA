@@ -120,9 +120,9 @@ dsp.add_dispatcher(
         'dcdc_converter_currents', 'drive_battery_electric_powers', 'is_hybrid',
         'service_battery_state_of_charge_balance', 'dcdc_converter_efficiency',
         'drive_battery_n_parallel_cells', 'electrical_hybridization_degree',
+        'dcdc_converter_electric_powers_demand', 'starter_electric_powers',
         'motor_p3_front_electric_powers', 'motor_p3_rear_electric_powers',
-        'starter_electric_powers', 'drive_battery_capacity',
-        'drive_battery_load',
+        'drive_battery_capacity', 'drive_battery_load',
     ),
     outputs=(
         'service_battery_electric_powers_supply_threshold', 'drive_battery_ocv',
