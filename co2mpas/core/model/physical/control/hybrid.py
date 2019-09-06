@@ -577,9 +577,10 @@ class EMS:
         s = -np.diff(fc(engine_speeds_out[b, None], pi), axis=1)
         with np.errstate(divide='ignore', invalid='ignore'):
             s /= np.diff(bc, axis=1)
-        b = bc.mean(1) >= 0
+        b = np.isfinite(s)
+        b, s = bc[b.ravel()].mean(1) >= 0, s[b]
         # noinspection PyUnresolvedReferences
-        self.s_ch, self.s_ds = np.nanmedian(s[b]), np.nanmedian(s[~b])
+        self.s_ch, self.s_ds = np.median(s[b]), np.median(s[~b])
         return self
 
     def battery_fuel(self, battery_currents):
@@ -1308,7 +1309,8 @@ def predict_engine_speeds_out_hot(
     """
     it = ems_data['electric'], ems_data['parallel'], ems_data['serial']
     speeds = np.choose(hybrid_modes, [d['speed_ice'].ravel() for d in it])
-    speeds[after_treatment_warm_up_phases] = idle_engine_speed[0]
+    phases = after_treatment_warm_up_phases
+    speeds[phases & (hybrid_modes == 2)] = idle_engine_speed[0]
     return speeds
 
 
