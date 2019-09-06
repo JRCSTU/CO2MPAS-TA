@@ -14,6 +14,11 @@ import ddt
 @ddt.ddt
 class TyreCode(unittest.TestCase):
     @ddt.data(
+        (0.32, {
+            'nominal_section_width': 205.0, 'diameter': 640.0, 'carcass': 'R',
+            'rim_diameter': 440.0, 'load_range': 'A', 'load_index': '94',
+            'speed_rating': 'T', 'additional_marks': '(94 V, 97 H)',
+            'code': 'pax'}),
         (0.38925, {
             'code': 'iso', 'carcass': 'R',
             'nominal_section_width': 265.0, 'use': 'LT',
@@ -53,6 +58,11 @@ class TyreCode(unittest.TestCase):
         self.assertEqual(result, res)
 
     @ddt.data(
+        ('205-640 R 440 A 94 T (94 V, 97 H)', {
+            'nominal_section_width': 205.0, 'diameter': 640.0, 'carcass': 'R',
+            'rim_diameter': 440.0, 'load_range': 'A', 'load_index': '94',
+            'speed_rating': 'T', 'additional_marks': '(94 V, 97 H)',
+            'code': 'pax'}),
         ('LT265/75R15 D', {
             'code': 'iso', 'carcass': 'R',
             'nominal_section_width': 265.0, 'use': 'LT',

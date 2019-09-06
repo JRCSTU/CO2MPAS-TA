@@ -438,12 +438,25 @@ _re_tyre_code_numeric = regex.compile(
     (\s+(?P<additional_marks>.*))?$
     """, regex.IGNORECASE | regex.X | regex.DOTALL)
 
+_re_tyre_code_pax = regex.compile(
+    r"""
+    ^(?P<use>([a-z]){1,2})?\s*
+    (?P<nominal_section_width>(\d){3})\s*-\s*
+    (?P<diameter>(\d){2,3})
+    ((\s*(?P<carcass>[a-z])\s*)|\s+)
+    (?P<rim_diameter>(\d){2,3})
+    ((\s*(?P<load_range>[a-z])?\s*)|\s+)
+    (\s*(?P<load_index>(\d){2,3})\s*
+     (?P<speed_rating>[a-z]))?\s*
+    (\s*(?P<additional_marks>.*))?
+    """, regex.IGNORECASE | regex.X | regex.DOTALL)
+
 
 def _format_tyre_dimensions(tyre_dimensions):
     import schema
     frt = schema.Schema({
         schema.Optional('additional_marks'): schema.Use(str),
-        'aspect_ratio': schema.Use(float),
+        schema.Optional('aspect_ratio'): schema.Use(float),
         schema.Optional('carcass'): schema.Use(str),
         'rim_diameter': schema.Use(float),
         schema.Optional('diameter'): schema.Use(float),
@@ -472,7 +485,11 @@ def calculate_tyre_dimensions(tyre_code):
     :rtype: dict
     """
     import schema
-    it = ('iso', _re_tyre_code_iso), ('numeric', _re_tyre_code_numeric)
+    it = [
+        ('iso', _re_tyre_code_iso),
+        ('numeric', _re_tyre_code_numeric),
+        ('pax', _re_tyre_code_pax)
+    ]
     for c, _r in it:
         try:
             m = _r.match(tyre_code).groupdict()
@@ -496,11 +513,16 @@ def _format_tyre_code(
             '%s%d/%d%s%d' % (use, nominal_section_width, aspect_ratio,
                              carcass or ' ', rim_diameter),
         )
-    else:
+    elif code == 'numeric':
         diameter = '%.2fx' % diameter if diameter is not None else ''
         parts = (
             '%s%.2f%s%.2f %s' % (diameter, nominal_section_width,
                                  carcass or ' ', rim_diameter, use),
+        )
+    else:
+        parts = (
+            '%d-%d%s%d%s' % (nominal_section_width, diameter, carcass or ' ',
+                             rim_diameter, load_range),
         )
 
     parts += (
@@ -581,6 +603,8 @@ def calculate_r_wheels(tyre_dimensions):
     :rtype: float
     """
     if 'diameter' in tyre_dimensions:
+        if tyre_dimensions['code'] == 'pax':
+            return tyre_dimensions['diameter'] / 2000  # Diameter is in mm.
         return tyre_dimensions['diameter'] * 0.0254  # Diameter is in inches.
     a = tyre_dimensions['aspect_ratio'] / 100  # Aspect ratio is Height/Width.
     w = tyre_dimensions['nominal_section_width']
