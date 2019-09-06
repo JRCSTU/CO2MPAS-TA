@@ -8,5 +8,5 @@ numpy
 schema
 scipy
 wltp
-xgboost
+xgboost<=0.82
 statsmodels
