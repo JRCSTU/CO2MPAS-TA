@@ -365,4 +365,4 @@ def predict_after_treatment_speeds_delta(
     if after_treatment_speed_model:
         for i, j in co2_utl.index_phases(after_treatment_warm_up_phases):
             ds[i:j + 1] = after_treatment_speed_model(times[i:j + 1] - times[i])
-    return ds
+    return np.nan_to_num(ds)
