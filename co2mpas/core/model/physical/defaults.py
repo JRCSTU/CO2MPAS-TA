@@ -178,9 +178,6 @@ class Values(co2_utl.Constants):
     #: Time frequency [1/s].
     time_sample_frequency = 1.0
 
-    #: Use driver model?
-    use_driver = False
-
     #: Initial temperature of the test cell of NEDC [°C].
     initial_temperature_NEDC = 25.0
 
@@ -264,11 +261,6 @@ class Functions(co2_utl.Constants):
             new=dict(dry=.85, wet=.65, rainfall=.55, puddles=.5, ice=.1),
             worm=dict(dry=1, wet=.5, rainfall=.4, puddles=.25, ice=.1)
         )
-
-    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-    class default_driver_style_ratio(co2_utl.Constants):
-        #: Driver style ratio [-].
-        ratios = dict(gentle=.4, normal=.6, aggressive=.8)
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class calculate_velocities(co2_utl.Constants):

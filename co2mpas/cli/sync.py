@@ -48,7 +48,7 @@ def template(output_file, cycle_type, gear_box_type, wltp_class):
     """
 
     import pandas as pd
-    from co2mpas.core.model.physical.driver import dsp
+    from co2mpas.core.model.physical.cycle import dsp
     theoretical = sh.selector(['times', 'velocities'], dsp(inputs=dict(
         cycle_type=cycle_type.upper(), gear_box_type=gear_box_type,
         wltp_class=wltp_class, downscale_factor=0

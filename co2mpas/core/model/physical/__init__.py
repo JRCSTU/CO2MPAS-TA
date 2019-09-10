@@ -31,7 +31,7 @@ Sub-Modules:
 """
 
 import schedula as sh
-from .driver import dsp as _driver
+from .cycle import dsp as _cycle
 from .vehicle import dsp as _vehicle
 from .wheels import dsp as _wheels
 from .final_drive import dsp as _final_drive
@@ -48,28 +48,25 @@ dsp = sh.BlueDispatcher(
                 'light-vehicles\' CO2 emissions.'
 )
 
-dsp.add_data('path_velocities', wildcard=True)
-dsp.add_data('path_distances', wildcard=True)
 dsp.add_data('path_elevations', wildcard=True)
 
 dsp.add_dispatcher(
     include_defaults=True,
-    dsp_id='driver_model',
-    dsp=_driver,
+    dsp_id='cycle_model',
+    dsp=_cycle,
     inputs=(
         'max_speed_velocity_ratio', 'engine_speed_at_max_power', 'unladen_mass',
-        'downscale_factor_threshold', 'speed_velocity_ratios', 'path_distances',
-        'time_sample_frequency', 'driver_style_ratio', 'downscale_factor', 'k1',
+        'downscale_factor_threshold', 'speed_velocity_ratios', 'k1', 'k2', 'k5',
         'idle_engine_speed', 'downscale_phases', 'engine_max_power', 'max_gear',
-        'path_velocities', 'wltp_base_model', 'inertial_factor', 'vehicle_mass',
         'engine_max_speed', 'full_load_curve', 'accelerations', 'motive_powers',
-        'gear_box_type', 'road_loads', 'cycle_type', 'use_driver', 'wltp_class',
-        'max_velocity', 'velocities', 'distances', 'driver_style', 'bag_phases',
-        'max_time', 'times', 'gears', 'k2', 'k5',
+        'gear_box_type', 'road_loads', 'cycle_type', 'wltp_class', 'bag_phases',
+        'downscale_factor', 'inertial_factor', 'vehicle_mass', 'times', 'gears',
+        'time_sample_frequency', 'wltp_base_model', 'max_velocity', 'max_time',
+        'velocities',
     ),
     outputs=(
-        'initial_temperature', 'phases_integration_times', 'desired_velocities',
-        'times', 'velocities', 'gears',
+        'initial_temperature', 'phases_integration_times', 'times', 'gears',
+        'velocities',
     )
 )
 
@@ -87,7 +84,8 @@ dsp.add_dispatcher(
         'n_dyno_axes', 'velocities', 'angle_slopes', 'correct_f0', 'cycle_type',
         'curb_mass', 'elevations', 'frontal_area', 'has_roof_box', 'road_loads',
         'unladen_mass', 'inertial_factor', 'vehicle_height', 'vehicle_category',
-        'tyre_state', 'vehicle_mass', 'f0', 'f2',
+        'tyre_state', 'vehicle_mass', 'f0', 'path_distances', 'path_elevations',
+        'f2',
     ),
     outputs=(
         'wheel_drive_load_fraction', 'traction_acceleration_limit', 'curb_mass',

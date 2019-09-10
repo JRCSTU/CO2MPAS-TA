@@ -6,15 +6,15 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Functions and a model `dsp` to define driver strategies.
+Functions and a model `dsp` to define theoretical times, velocities, and gears.
 
 Sub-Modules:
 
-.. currentmodule:: co2mpas.core.model.physical.driver
+.. currentmodule:: co2mpas.core.model.physical.cycle
 
 .. autosummary::
     :nosignatures:
-    :toctree: driver/
+    :toctree: cycle/
 
     NEDC
     WLTP
@@ -26,26 +26,20 @@ from .NEDC import dsp as _nedc_cycle, is_manual
 from .WLTP import dsp as _wltp_cycle
 
 dsp = sh.BlueDispatcher(
-    name='Driver model',
+    name='Cycle model',
     description='Returns the theoretical times, velocities, and gears.'
 )
 dsp.add_data('time_sample_frequency', dfl.values.time_sample_frequency)
-dsp.add_data('use_driver', dfl.values.use_driver)
 
 
 # noinspection PyMissingOrEmptyDocstring
 def is_nedc(kw):
-    return kw.get('cycle_type') == 'NEDC' and not kw.get('use_driver', True)
+    return kw.get('cycle_type') == 'NEDC'
 
 
 # noinspection PyMissingOrEmptyDocstring
 def is_wltp(kw):
-    return kw.get('cycle_type') == 'WLTP' and not kw.get('use_driver', True)
-
-
-# noinspection PyMissingOrEmptyDocstring
-def is_driver(kw):
-    return kw.get('use_driver')
+    return kw.get('cycle_type') == 'WLTP'
 
 
 dsp.add_dispatcher(
@@ -53,7 +47,7 @@ dsp.add_dispatcher(
     dsp=_nedc_cycle,
     inputs=(
         'gear_box_type', 'gears', 'k1', 'k2', 'k5', 'max_gear', 'times',
-        {'cycle_type': sh.SINK, 'use_driver': sh.SINK}
+        {'cycle_type': sh.SINK}
     ),
     outputs=('gears', 'initial_temperature', 'max_time', 'velocities'),
     input_domain=is_nedc
@@ -69,9 +63,7 @@ dsp.add_dispatcher(
         'gears', 'idle_engine_speed', 'speed_velocity_ratios', 'max_velocity',
         'max_speed_velocity_ratio', 'inertial_factor', 'road_loads', 'times',
         'unladen_mass', 'vehicle_mass', 'velocities', 'wltp_base_model',
-        'engine_max_speed', 'wltp_class', {
-            'cycle_type': sh.SINK, 'use_driver': sh.SINK
-        }
+        'engine_max_speed', 'wltp_class', {'cycle_type': sh.SINK}
     ),
     outputs=('gears', 'initial_temperature', 'max_time', 'velocities'),
     input_domain=is_wltp
@@ -174,52 +166,3 @@ def select_phases_integration_times(cycle_type):
     from ..defaults import dfl
     v = dfl.functions.select_phases_integration_times.INTEGRATION_TIMES
     return tuple(sh.pairwise(v[cycle_type.upper()]))
-
-
-@sh.add_function(
-    dsp, inputs_kwargs=True, inputs_defaults=True,
-    outputs=['driver_style_ratio']
-)
-def default_driver_style_ratio(driver_style='normal'):
-    """
-    Return the default driver style ratio [-].
-
-    :param driver_style:
-        Driver style (aggressive, normal, gentle).
-    :type driver_style: str
-
-    :return:
-        Driver style ratio [-].
-    :rtype: float
-    """
-    from ...physical.defaults import dfl
-    return dfl.functions.default_driver_style_ratio.ratios[driver_style]
-
-
-dsp.add_data('path_velocities', wildcard=True)
-dsp.add_data('path_distances', wildcard=True)
-
-
-@sh.add_function(dsp, outputs=['desired_velocities'])
-def calculate_desired_velocities(path_distances, path_velocities, distances):
-    """
-    Calculates the desired velocity vector [km/h].
-
-    :param path_distances:
-        Cumulative distance vector [m].
-    :type path_distances: numpy.array
-
-    :param path_velocities:
-        Desired velocity vector [km/h].
-    :type path_velocities: numpy.array
-
-    :param distances:
-        Cumulative distance vector [m].
-    :type distances: numpy.array
-
-    :return:
-        Desired velocity vector [km/h].
-    :rtype: numpy.array
-    """
-    i = np.searchsorted(path_distances, distances, side='right')
-    return path_velocities.take(i, mode='clip')

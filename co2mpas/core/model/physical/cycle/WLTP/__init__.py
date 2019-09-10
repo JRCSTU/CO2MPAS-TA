@@ -10,7 +10,7 @@ Functions and a model `dsp` to define theoretical profiles of WLTP cycle.
 
 Sub-Modules:
 
-.. currentmodule:: co2mpas.core.model.physical.driver.WLTP
+.. currentmodule:: co2mpas.core.model.physical.cycle.WLTP
 
 .. autosummary::
     :nosignatures:
