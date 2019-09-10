@@ -652,7 +652,7 @@ def calculate_gear_box_efficiencies_torques_temperatures(
     .. note:: Torque entering the gearbox can be from engine side
        (power mode or from wheels in motoring mode).
     """
-    temp, to_in, eff = List(dtype=float), List(dtype=float), List(dtype=float)
+    temp, to_in, eff = List(), List(), List()
 
     func = gear_box_loss_model.init_losses(
         temp, times, gear_box_powers_out, gear_box_speeds_out,

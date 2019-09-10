@@ -71,7 +71,7 @@ class List(list):
     empty = sh.EMPTY
     dtype = None
 
-    def __new__(cls, *args, dtype=None, **kwargs):
+    def __new__(cls, *args, dtype=float, **kwargs):
         obj = super(List, cls).__new__(cls, *args, **kwargs)
         obj.dtype = dtype
         return obj
