@@ -628,7 +628,6 @@ def define_data_schema(read=True):
         'k5': positive_int,
         'max_gear': positive_int,
         'hybrid_modes': np_array_int,
-
         'road_loads': _type(type=And(Use(tuple), (_type(float),)),
                             length=3,
                             read=read),
@@ -695,6 +694,12 @@ def define_data_schema(read=True):
         'wheel_speeds': np_array,
         'wheel_torques': np_array,
     }
+    try:
+        from co2mpas_driver.co2mpas import plugin_schema
+
+        schema = plugin_schema(schema)
+    except ImportError:
+        pass
 
     schema = {Optional(k): Or(Empty(), v) for k, v in schema.items()}
     schema[Optional(str)] = Or(_type(type=float, read=read), np_array)

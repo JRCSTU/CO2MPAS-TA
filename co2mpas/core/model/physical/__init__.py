@@ -487,3 +487,10 @@ dsp.add_dispatcher(
         'engine_speeds_base',
     )
 )
+
+try:
+    from co2mpas_driver.co2mpas import plugin_physycal
+
+    dsp = plugin_physycal(dsp)
+except ImportError:
+    pass
