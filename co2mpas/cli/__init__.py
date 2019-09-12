@@ -17,6 +17,7 @@ import click
 import logging
 import click_log
 import schedula as sh
+import os.path as osp
 from co2mpas import dsp as _process
 from co2mpas._version import __version__
 
@@ -26,6 +27,7 @@ except ImportError:
     _sync = None
 
 log = logging.getLogger('co2mpas.cli')
+CO2MPAS_HOME = os.environ.get('CO2MPAS_HOME', '.')
 
 
 class _Logger(logging.Logger):
@@ -136,12 +138,13 @@ def plot(cache_folder, host, port):
 )
 @click.option(
     '-EK', '--encryption-keys', help='Encryption keys for TA mode.',
-    default='./DICE_KEYS/dice.co2mpas.keys', type=click.Path(),
-    show_default=True
+    default=osp.join(CO2MPAS_HOME, 'DICE_KEYS/dice.co2mpas.keys'),
+    type=click.Path(), show_default=True
 )
 @click.option(
     '-SK', '--sign-key', help='User signature key for TA mode.',
-    default='./DICE_KEYS/sign.co2mpas.key', type=click.Path(), show_default=True
+    default=osp.join(CO2MPAS_HOME, 'DICE_KEYS/sign.co2mpas.key'),
+    type=click.Path(), show_default=True
 )
 @click.option(
     '-C', '--cache-folder', help='Folder to save temporary html files.',
