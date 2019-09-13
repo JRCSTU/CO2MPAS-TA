@@ -25,6 +25,10 @@ try:
     from co2mpas.cli.sync import cli as _sync
 except ImportError:
     _sync = None
+try:  # TODO: to be changed to co2mpas_gui.
+    from co2wui.cli import cli as _gui
+except ImportError:
+    _gui = None
 
 log = logging.getLogger('co2mpas.cli')
 CO2MPAS_HOME = os.environ.get('CO2MPAS_HOME', '.')
@@ -213,6 +217,9 @@ def run(input_files, cache_folder, host, port, plot_workflow, **kwargs):
 
 if _sync is not None:
     cli.add_command(_sync, 'syncing')
+
+if _gui is not None:
+    cli.add_command(_gui, 'gui')
 
 if __name__ == '__main__':
     cli()
