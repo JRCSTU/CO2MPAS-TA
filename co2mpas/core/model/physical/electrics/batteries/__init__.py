@@ -64,15 +64,16 @@ dsp.add_dispatcher(
     dsp=_drive,
     inputs=(
         'dcdc_converter_electric_powers_demand', 'drive_battery_n_series_cells',
-        'motor_p4_electric_powers', 'drive_battery_loads', 'drive_battery_load',
         'drive_battery_currents', 'drive_battery_capacity', 'drive_battery_r0',
         'initial_drive_battery_state_of_charge', 'drive_battery_ocv', 'times',
         'drive_battery_n_parallel_cells', 'electrical_hybridization_degree',
         'drive_battery_electric_powers', 'drive_battery_state_of_charges',
         'dcdc_converter_efficiency', 'motor_p2_electric_powers',
         'motor_p3_front_electric_powers', 'motor_p3_rear_electric_powers',
+        'motor_p4_front_electric_powers', 'motor_p4_rear_electric_powers',
         'motor_p0_electric_powers', 'motor_p1_electric_powers',
         'drive_battery_voltages', 'service_battery_model',
+        'drive_battery_loads', 'drive_battery_load',
     ),
     outputs=(
         'drive_battery_currents', 'drive_battery_loads', 'drive_battery_load',

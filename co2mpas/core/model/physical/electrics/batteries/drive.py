@@ -559,7 +559,8 @@ def calculate_drive_battery_voltages_v1(
 def calculate_motors_electric_powers(
         motor_p0_electric_powers, motor_p1_electric_powers,
         motor_p2_electric_powers, motor_p3_front_electric_powers,
-        motor_p3_rear_electric_powers, motor_p4_electric_powers):
+        motor_p3_rear_electric_powers, motor_p4_front_electric_powers,
+        motor_p4_rear_electric_powers):
     """
     Calculate motors electric power [kW].
 
@@ -583,9 +584,13 @@ def calculate_motors_electric_powers(
         Electric power of motor P3 rear [kW].
     :type motor_p3_rear_electric_powers: numpy.array | float
 
-    :param motor_p4_electric_powers:
-        Electric power of motor P4 [kW].
-    :type motor_p4_electric_powers: numpy.array | float
+    :param motor_p4_front_electric_powers:
+        Electric power of motor P4 front [kW].
+    :type motor_p4_front_electric_powers: numpy.array | float
+
+    :param motor_p4_rear_electric_powers:
+        Electric power of motor P4 rear [kW].
+    :type motor_p4_rear_electric_powers: numpy.array | float
 
     :return:
         Cumulative motors electric power [kW].
@@ -595,7 +600,8 @@ def calculate_motors_electric_powers(
     p += motor_p2_electric_powers
     p += motor_p3_front_electric_powers
     p += motor_p3_rear_electric_powers
-    p += motor_p4_electric_powers
+    p += motor_p4_front_electric_powers
+    p += motor_p4_rear_electric_powers
     return p
 
 

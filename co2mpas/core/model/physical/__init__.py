@@ -117,7 +117,8 @@ dsp.add_dispatcher(
 
 
 @sh.add_function(dsp, outputs=['final_drive_powers_out'])
-def calculate_final_drive_powers_out(wheel_powers, motor_p4_powers):
+def calculate_final_drive_powers_out(
+        wheel_powers, motor_p4_front_powers, motor_p4_rear_powers):
     """
     Calculate final drive power out [kW].
 
@@ -125,15 +126,19 @@ def calculate_final_drive_powers_out(wheel_powers, motor_p4_powers):
         Power at the wheels [kW].
     :type wheel_powers: numpy.array | float
 
-    :param motor_p4_powers:
-        Power at motor P4 [kW].
-    :type motor_p4_powers: numpy.array | float
+    :param motor_p4_front_powers:
+        Power at motor P4 front [kW].
+    :type motor_p4_front_powers: numpy.array | float
+
+    :param motor_p4_rear_powers:
+        Power at motor P4 rear [kW].
+    :type motor_p4_rear_powers: numpy.array | float
 
     :return:
         Final drive power out [kW].
     :rtype: numpy.array | float
     """
-    return wheel_powers - motor_p4_powers
+    return wheel_powers - motor_p4_front_powers - motor_p4_rear_powers
 
 
 dsp.add_dispatcher(
@@ -285,11 +290,18 @@ dsp.add_dispatcher(
         'motor_p3_rear_torques', 'motor_p3_rear_rated_speed',
         'motor_p3_rear_powers', 'motor_p3_rear_maximum_torque',
         'motor_p3_rear_speeds',
-        'motor_p4_efficiency', 'motor_p4_maximum_power', 'motor_p4_speed_ratio',
-        'motor_p4_electric_powers', 'motor_p4_torques', 'motor_p4_rated_speed',
-        'motor_p4_powers', 'motor_p4_maximum_torque', 'motor_p4_speeds',
+        'motor_p4_front_efficiency', 'motor_p4_front_maximum_power',
+        'motor_p4_front_speed_ratio', 'motor_p4_front_electric_powers',
+        'motor_p4_front_torques', 'motor_p4_front_rated_speed',
+        'motor_p4_front_powers', 'motor_p4_front_maximum_torque',
+        'motor_p4_front_speeds',
+        'motor_p4_rear_efficiency', 'motor_p4_rear_maximum_power',
+        'motor_p4_rear_speed_ratio', 'motor_p4_rear_electric_powers',
+        'motor_p4_rear_torques', 'motor_p4_rear_rated_speed',
+        'motor_p4_rear_powers', 'motor_p4_rear_maximum_torque',
+        'motor_p4_rear_speeds',
         'has_motor_p0', 'has_motor_p1', 'has_motor_p2', 'has_motor_p3_front',
-        'has_motor_p3_rear', 'has_motor_p4',
+        'has_motor_p3_rear', 'has_motor_p4_front', 'has_motor_p4_rear',
         'service_battery_initialization_time', 'engine_starts', 'accelerations',
         'starter_efficiency', 'delta_time_engine_starter', 'gear_box_speeds_in',
         'service_battery_charging_statuses', 'alternator_currents', 'on_engine',
@@ -335,12 +347,19 @@ dsp.add_dispatcher(
         'motor_p3_rear_speed_ratio', 'motor_p3_rear_torques',
         'motor_p3_rear_maximum_powers', 'motor_p3_rear_rated_speed',
         'motor_p3_rear_speeds',
-        'motor_p4_electric_powers', 'motor_p4_maximum_power', 'motor_p4_powers',
-        'motor_p4_maximum_torque', 'motor_p4_speed_ratio', 'motor_p4_torques',
-        'motor_p4_maximum_powers', 'motor_p4_rated_speed', 'motor_p4_speeds',
+        'motor_p4_front_electric_powers', 'motor_p4_front_maximum_power',
+        'motor_p4_front_powers', 'motor_p4_front_maximum_torque',
+        'motor_p4_front_speed_ratio', 'motor_p4_front_torques',
+        'motor_p4_front_maximum_powers', 'motor_p4_front_rated_speed',
+        'motor_p4_front_speeds',
+        'motor_p4_rear_electric_powers', 'motor_p4_rear_maximum_power',
+        'motor_p4_rear_powers', 'motor_p4_rear_maximum_torque',
+        'motor_p4_rear_speed_ratio', 'motor_p4_rear_torques',
+        'motor_p4_rear_maximum_powers', 'motor_p4_rear_rated_speed',
+        'motor_p4_rear_speeds',
         'has_motor_p0', 'has_motor_p1', 'has_motor_p2', 'has_motor_p3_front',
-        'has_motor_p3_rear', 'has_motor_p4', 'is_hybrid',
-        'motors_electric_powers',
+        'has_motor_p3_rear', 'has_motor_p4_front', 'has_motor_p4_rear',
+        'is_hybrid', 'motors_electric_powers',
         'starter_electric_powers', 'final_drive_speeds_in', 'alternator_powers',
         'alternator_electric_powers', 'engine_speeds_out', 'gear_box_speeds_in',
         'delta_time_engine_starter', 'alternator_current_model', 'wheel_speeds',
@@ -434,36 +453,40 @@ dsp.add_dispatcher(
     inputs=(
         'full_load_curve', 'gear_box_speeds_in', 'motor_p0_efficiency', 'gears',
         'motor_p3_front_maximum_power', 'motor_p3_rear_maximum_power', 'ecms_s',
-        'motor_p4_maximum_powers', 'motor_p1_maximum_power', 'start_stop_model',
         'engine_coolant_temperatures', 'engine_moment_inertia', 'gear_box_type',
         'final_drive_mean_efficiency', 'gear_box_mean_efficiency', 'velocities',
         'start_stop_hybrid_params', 'motor_p2_maximum_powers', 'has_start_stop',
-        'motor_p4_maximum_power', 'motor_p0_maximum_power_function', 'fuel_map',
         'drive_battery_state_of_charges', 'is_hybrid', 'motor_p2_maximum_power',
         'motor_p0_speed_ratio', 'motor_p2_efficiency', 'auxiliaries_power_loss',
-        'motor_p3_rear_electric_powers', 'motive_powers', 'motor_p4_efficiency',
         'start_stop_activation_time', 'motor_p0_maximum_power', 'starter_model',
         'is_cycle_hot', 'motor_p2_electric_powers', 'clutch_tc_mean_efficiency',
         'motor_p3_rear_efficiency', 'motor_p0_electric_powers', 'accelerations',
         'min_time_engine_on_after_start', 'motors_electric_powers', 'is_serial',
         'motor_p1_electric_powers', 'dcdc_converter_efficiency', 'hybrid_modes',
         'motor_p1_maximum_power_function', 'motor_p3_front_efficiency', 'times',
-        'motor_p4_electric_powers', 'engine_speeds_out', 'belt_mean_efficiency',
         'motor_p3_front_maximum_powers', 'auxiliaries_torque_loss', 'on_engine',
-        'engine_speeds_out_hot', 'motor_p1_speed_ratio', 'motor_p1_efficiency',
+        'motor_p1_maximum_power', 'belt_mean_efficiency', 'drive_battery_model',
+        'motor_p4_front_maximum_power', 'motor_p1_speed_ratio', 'motive_powers',
+        'motor_p3_rear_maximum_powers', 'motor_p4_front_efficiency', 'fuel_map',
+        'motor_p4_rear_efficiency', 'engine_speeds_out_hot', 'start_stop_model',
+        'motor_p4_rear_maximum_power', 'engine_powers_out', 'idle_engine_speed',
         'after_treatment_cooling_duration', 'after_treatment_warm_up_duration',
+        'motor_p0_maximum_power_function', 'motor_p4_front_electric_powers',
         'after_treatment_warm_up_phases', 'motor_p3_front_electric_powers',
-        'gear_box_mean_efficiency_guess', 'engine_thermostat_temperature',
-        'correct_start_stop_with_gears', 'motor_p3_rear_maximum_powers',
-        'drive_battery_model', 'engine_powers_out', 'idle_engine_speed',
+        'gear_box_mean_efficiency_guess', 'motor_p3_rear_electric_powers',
+        'motor_p4_rear_electric_powers', 'engine_thermostat_temperature',
+        'correct_start_stop_with_gears', 'motor_p4_front_maximum_powers',
+        'motor_p4_rear_maximum_powers', 'motor_p1_efficiency',
+        'engine_speeds_out',
     ),
     outputs=(
         'correct_start_stop_with_gears', 'start_stop_activation_time', 'ecms_s',
         'motor_p0_electric_powers', 'motor_p1_electric_powers', 'engine_starts',
         'engine_speeds_out_hot', 'start_stop_hybrid_params', 'start_stop_model',
         'motor_p3_front_electric_powers', 'engine_speeds_base', 'hybrid_modes',
-        'motor_p2_electric_powers', 'motor_p4_electric_powers', 'on_engine',
-        'after_treatment_warm_up_phases', 'motor_p3_rear_electric_powers',
+        'motor_p4_front_electric_powers', 'after_treatment_warm_up_phases',
+        'motor_p4_rear_electric_powers', 'motor_p3_rear_electric_powers',
+        'motor_p2_electric_powers', 'on_engine',
     )
 )
 

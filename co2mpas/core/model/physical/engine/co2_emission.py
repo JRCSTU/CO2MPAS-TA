@@ -1097,7 +1097,7 @@ def _calculate_co2_emissions(
     lhv = engine_fuel_lower_heating_value
     idle_fc_model = idle_fuel_consumption_model.consumption
     fc, ac, vva, lb, egr = np.zeros((5, len(e_p)), dtype=float)
-
+    ac[:] = 1
     # Idle fc correction for temperature
     n = (e_s < idle_engine_speed[0] + min_engine_on_speed)
     _b = (e_s >= min_engine_on_speed)
