@@ -43,7 +43,7 @@ metrics_inputs = [
 
 def metric_engine_speed_model(
         y_true, y_pred, times, velocities, gear_shifts, on_engine,
-        stop_velocity, hybrid_modes, after_treatment_warm_up_phases):
+        stop_velocity, hybrid_modes, after_treatment_warm_up_phases=False):
     """
     Metric for the `engine_speed_model`.
 

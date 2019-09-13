@@ -87,11 +87,14 @@ def calculate_errors(references, predictions, metrics, metrics_kwargs):
         Error coefficients.
     :rtype: dict
     """
-    return {
-        k: metrics[k](references[k], predictions[k], **metrics_kwargs)
-        for k in set(predictions).intersection(references).intersection(metrics)
-    }
-
+    it = set(predictions).intersection(references).intersection(metrics)
+    try:
+        return {
+            k: metrics[k](references[k], predictions[k], **metrics_kwargs)
+            for k in it
+        }
+    except TypeError:
+        return {}
 
 def _check_limit(limit, errors, check=lambda e, l: e <= l):
     it = set(limit).intersection(errors)
