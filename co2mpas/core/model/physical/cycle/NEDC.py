@@ -6,7 +6,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Functions and a model `dsp` to define theoretical profiles of NEDC cycle.
+Functions and `dsp` model to define theoretical profiles of NEDC cycle.
 """
 import schedula as sh
 from ..defaults import dfl

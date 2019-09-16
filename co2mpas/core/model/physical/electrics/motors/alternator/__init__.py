@@ -5,7 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Functions and a model `dsp` to model the alternator.
+Functions and `dsp` model to model the alternator.
 Sub-Modules:
 
 .. currentmodule:: co2mpas.core.model.physical.electrics.motors.alternator

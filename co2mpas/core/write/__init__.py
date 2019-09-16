@@ -5,7 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Functions and a model `dsp` to write CO2MPAS output data.
+Functions and `dsp` model to write CO2MPAS output data.
 
 Sub-Modules:
 

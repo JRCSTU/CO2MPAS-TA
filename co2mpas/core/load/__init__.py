@@ -5,7 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Functions and a model `dsp` to load data from a CO2MPAS input file.
+Functions and `dsp` model to load data from a CO2MPAS input file.
 
 Sub-Modules:
 

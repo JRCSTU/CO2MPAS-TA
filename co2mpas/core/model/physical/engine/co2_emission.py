@@ -5,7 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Functions and a model `dsp` to predict the CO2 emissions.
+Functions and `dsp` model to predict the CO2 emissions.
 """
 import copy
 import functools

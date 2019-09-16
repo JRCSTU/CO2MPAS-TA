@@ -5,7 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Functions and a model `dsp` to model the mechanic of the vehicle.
+Functions and `dsp` model to model the mechanic of the vehicle.
 """
 import numpy as np
 import schedula as sh
@@ -604,7 +604,7 @@ def define_slope_model(distances, elevations):
     :rtype: function
     """
     from scipy.interpolate import InterpolatedUnivariateSpline as Spl
-    i = np.append([0], np.where(np.diff(distances) > 0)[0] + 1)
+    i = np.append([0], np.where(np.diff(distances) > dfl.EPS)[0] + 1)
     func = Spl(distances[i], elevations[i]).derivative()
     return lambda d: np.arctan(func(d))
 
