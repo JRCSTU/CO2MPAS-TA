@@ -501,8 +501,9 @@ def define_data_schema(read=True):
         'electrical_hybridization_degree': _select(
             types=('mild', 'full', 'plugin', 'electric'), read=read
         ),
-        'gear_box_type': _select(types=('manual', 'automatic', 'cvt'),
-                                 read=read),
+        'gear_box_type': _select(
+            types=('manual', 'automatic', 'cvt', 'planetary'), read=read
+        ),
         'ignition_type': _select(types=('positive', 'compression'), read=read),
         'start_stop_activation_time': positive,
         'alternator_nominal_voltage': positive,
@@ -611,6 +612,7 @@ def define_data_schema(read=True):
         'drive_battery_model': function,
         'motor_p0_maximum_power_function': function,
         'motor_p1_maximum_power_function': function,
+        'motor_p2_planetary_maximum_power_function': function,
         'start_stop_hybrid_params': dictstrfloat,
         'full_load_curve': function,
         'fmep_model': _fmep_model(read=read),

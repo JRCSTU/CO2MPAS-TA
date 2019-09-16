@@ -5,7 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Functions and a model `dsp` to model the Energy Management System.
+Functions and `dsp` model to model the Energy Management System.
 """
 import numpy as np
 import schedula as sh
@@ -23,7 +23,8 @@ dsp.add_function(
     inputs=[
         'motor_p4_front_efficiency', 'motor_p4_rear_efficiency',
         'motor_p3_front_efficiency', 'motor_p3_rear_efficiency',
-        'motor_p2_efficiency', 'motor_p1_efficiency', 'motor_p0_efficiency'
+        'motor_p2_efficiency', 'motor_p2_planetary_efficiency',
+        'motor_p1_efficiency', 'motor_p0_efficiency'
     ],
     outputs=['motors_efficiencies']
 )
@@ -34,8 +35,8 @@ dsp.add_function(
     inputs=[
         'motor_p4_front_maximum_power', 'motor_p4_rear_maximum_power',
         'motor_p3_front_maximum_power', 'motor_p3_rear_maximum_power',
-        'motor_p2_maximum_power', 'motor_p1_maximum_power',
-        'motor_p0_maximum_power'
+        'motor_p2_maximum_power', 'motor_p2_planetary_maximum_power',
+        'motor_p1_maximum_power', 'motor_p0_maximum_power'
     ],
     outputs=['motors_maximum_powers']
 )
@@ -45,9 +46,11 @@ dsp.add_function(
 def define_motors_maximums_powers(
         motor_p4_front_maximum_powers, motor_p4_rear_maximum_powers,
         motor_p3_front_maximum_powers, motor_p3_rear_maximum_powers,
-        motor_p2_maximum_powers, engine_speeds_parallel,
-        motor_p1_maximum_power_function, motor_p1_speed_ratio,
-        motor_p0_maximum_power_function, motor_p0_speed_ratio):
+        motor_p2_maximum_powers, engine_speeds_parallel, final_drive_speeds_in,
+        motor_p2_planetary_maximum_power_function, planetary_ratio,
+        motor_p2_planetary_speed_ratio, motor_p1_maximum_power_function,
+        motor_p1_speed_ratio, motor_p0_maximum_power_function,
+        motor_p0_speed_ratio):
     """
     Defines maximum powers of electric motors [kW].
 
@@ -75,6 +78,22 @@ def define_motors_maximums_powers(
         Hypothetical engine speed in parallel mode [RPM].
     :type engine_speeds_parallel: numpy.array
 
+    :param final_drive_speeds_in:
+        Final drive speed in [RPM].
+    :type final_drive_speeds_in: numpy.array
+
+    :param motor_p2_planetary_maximum_power_function:
+        Maximum power function of planetary motor P2.
+    :type motor_p2_planetary_maximum_power_function: function
+
+    :param planetary_ratio:
+        Fundamental planetary speed ratio [-].
+    :type planetary_ratio: float
+
+    :param motor_p2_planetary_speed_ratio:
+        Ratio between planetary motor P2 speed and planetary speed [-].
+    :type motor_p2_planetary_speed_ratio: float
+
     :param motor_p1_maximum_power_function:
         Maximum power function of motor P1.
     :type motor_p1_maximum_power_function: function
@@ -96,9 +115,13 @@ def define_motors_maximums_powers(
     :rtype: numpy.array
     """
     es, p2_powers = engine_speeds_parallel, motor_p2_maximum_powers
+    planet_f = motor_p2_planetary_maximum_power_function
+    from ..electrics.motors.planet import calculate_planetary_speeds_in as func
+    ps = func(es, final_drive_speeds_in, planetary_ratio)
     return np.column_stack((
         motor_p4_front_maximum_powers, motor_p4_rear_maximum_powers,
         motor_p3_front_maximum_powers, motor_p3_rear_maximum_powers, p2_powers,
+        planet_f(ps * motor_p2_planetary_speed_ratio),
         motor_p1_maximum_power_function(es * motor_p1_speed_ratio),
         motor_p0_maximum_power_function(es * motor_p0_speed_ratio)
     ))
@@ -107,7 +130,8 @@ def define_motors_maximums_powers(
 @sh.add_function(dsp, outputs=['drive_line_efficiencies'])
 def define_drive_line_efficiencies(
         final_drive_mean_efficiency, gear_box_mean_efficiency,
-        clutch_tc_mean_efficiency, belt_mean_efficiency):
+        clutch_tc_mean_efficiency, planetary_mean_efficiency,
+        belt_mean_efficiency):
     """
     Defines drive line efficiencies vector.
 
@@ -123,6 +147,10 @@ def define_drive_line_efficiencies(
         Clutch or torque converter mean efficiency [-].
     :type clutch_tc_mean_efficiency: float
 
+    :param planetary_mean_efficiency:
+        Planetary mean efficiency [-].
+    :type planetary_mean_efficiency: float
+
     :param belt_mean_efficiency:
         Belt mean efficiency [-].
     :type belt_mean_efficiency: float
@@ -133,7 +161,8 @@ def define_drive_line_efficiencies(
     """
     return (
         1.0, final_drive_mean_efficiency, gear_box_mean_efficiency,
-        clutch_tc_mean_efficiency, belt_mean_efficiency
+        clutch_tc_mean_efficiency, planetary_mean_efficiency,
+        belt_mean_efficiency
     )
 
 
@@ -317,7 +346,7 @@ class HEV:
 
     def ev(self, motive_powers, motors_maximums_powers, battery_power_losses=0):
         return self.parallel(motive_powers, np.pad(
-            motors_maximums_powers[:, :-2], ((0, 0), (0, 2)), 'constant'
+            motors_maximums_powers[:, :-3], ((0, 0), (0, 3)), 'constant'
         ), 0, battery_power_losses=battery_power_losses)
 
     def serial(self, motive_powers, motors_maximums_powers, engine_powers_out,
@@ -326,7 +355,7 @@ class HEV:
 
         pi, pb, bps = self.parallel(
             np.zeros_like(motive_powers), np.pad(
-                motors_maximums_powers[:, -2:], ((0, 0), (4, 0)), 'constant'
+                motors_maximums_powers[:, -3:], ((0, 0), (5, 0)), 'constant'
             ), engine_powers_out=engine_powers_out,
             ice_power_losses=ice_power_losses,
             battery_power_losses=battery_power_losses
@@ -464,10 +493,24 @@ def identify_engine_speeds_base(
 
 @sh.add_function(dsp, outputs=['serial_motor_maximum_power_function'])
 def define_serial_motor_maximum_power_function(
+        motor_p2_planetary_maximum_power_function, planetary_ratio,
         motor_p1_maximum_power_function, motor_p0_maximum_power_function,
-        motor_p1_speed_ratio, motor_p0_speed_ratio):
+        motor_p2_planetary_speed_ratio, motor_p1_speed_ratio,
+        motor_p0_speed_ratio):
     """
     Define serial motor maximum power function.
+
+    :param motor_p2_planetary_maximum_power_function:
+        Maximum power function of planetary motor P2.
+    :type motor_p2_planetary_maximum_power_function: function
+
+    :param planetary_ratio:
+        Fundamental planetary speed ratio [-].
+    :type planetary_ratio: float
+
+    :param motor_p2_planetary_speed_ratio:
+        Ratio between planetary motor P2 speed and planetary speed [-].
+    :type motor_p2_planetary_speed_ratio: float
 
     :param motor_p1_maximum_power_function:
         Maximum power function of motor P1.
@@ -489,15 +532,19 @@ def define_serial_motor_maximum_power_function(
         Serial motor maximum power function.
     :rtype: function
     """
+    planet_f = motor_p2_planetary_maximum_power_function
+    from ..electrics.motors.planet import calculate_planetary_speeds_in as func
 
     # noinspection PyMissingOrEmptyDocstring
-    def calculate_serial_motor_maximum_power(engine_speed):
+    def calculate_serial_motor_maximum_power(engine_speed, final_drive_speed):
         es = np.atleast_1d(engine_speed)
+        ps = func(engine_speed, final_drive_speed, planetary_ratio)
         return np.pad(
             np.column_stack((
+                planet_f(ps * motor_p2_planetary_speed_ratio),
                 motor_p1_maximum_power_function(es * motor_p1_speed_ratio),
                 motor_p0_maximum_power_function(es * motor_p0_speed_ratio)
-            )), ((0, 0), (4, 0)), 'constant'
+            )), ((0, 0), (5, 0)), 'constant'
         )
 
     return calculate_serial_motor_maximum_power
@@ -600,7 +647,7 @@ class EMS:
                  battery_power_losses=0):
         res, hev = {}, self.hev_power_model
         pi, pb, bps = hev.ice_power(motive_powers, np.pad(
-            motors_maximums_powers[:, :-2], ((0, 0), (0, 2)), 'constant'
+            motors_maximums_powers[:, :-3], ((0, 0), (0, 3)), 'constant'
         ))
         res['power_bat'], res['power_ice'] = pb, pi = _interp(0, pi.T, pb.T)
         pb += np.atleast_2d(battery_power_losses).T
@@ -638,14 +685,15 @@ class EMS:
             res = self.min(res, i, j)
         return res
 
-    def serial(self, times, motive_powers, motors_maximums_powers,
-               engine_speeds_out=None, ice_power_losses=None,
-               battery_power_losses=0, opt=True):
+    def serial(self, times, motive_powers, final_drive_speeds_in,
+               motors_maximums_powers, engine_speeds_out=None,
+               ice_power_losses=None, battery_power_losses=0, opt=True):
         hev, fc, n = self.hev_power_model, self.fuel_map_model, 200
         pi, pb, bps_ev = hev.ice_power(motive_powers, np.pad(
-            motors_maximums_powers[:, :-2], ((0, 0), (0, 2)), 'constant'
+            motors_maximums_powers[:, :-3], ((0, 0), (0, 3)), 'constant'
         ))
         pb_ev, pl = _interp(0, pi.T, pb.T)[0].ravel(), ice_power_losses
+        fds = final_drive_speeds_in[:, None]
         if engine_speeds_out is None:
             # noinspection PyProtectedMember
             es = self.fuel_map_model.speed_power._data[0]
@@ -657,11 +705,12 @@ class EMS:
             if ice_power_losses is None:
                 pl = self.engine_power_losses(times, es, inertia=False)
             es, pl = es.ravel()[:, None], pl.ravel()
+            fds = np.tile(fds, n).ravel()[:, None]
         else:
             es = engine_speeds_out[:, None]
             if pl is None:
                 pl = self.engine_power_losses(times, engine_speeds_out)
-        mmp = self.serial_motor_maximum_power(es)
+        mmp = self.serial_motor_maximum_power(es, fds)
         pi, pb, bps = hev.ice_power(0, mmp)
         pi += np.atleast_2d(pl)
         pb, pi = _interp(fc.speed_power(es), pi.T, pb.T)
@@ -674,9 +723,12 @@ class EMS:
         fc_bat = self.battery_fuel(bc)
         fc_eq = fc_ice + fc_bat
 
-        def battery_power_split(battery_powers, engine_speeds):
+        def battery_power_split(
+                battery_powers, engine_speeds, final_drive_speeds):
             return hev.ice_power(
-                0, self.serial_motor_maximum_power(engine_speeds)
+                0, self.serial_motor_maximum_power(
+                    engine_speeds, final_drive_speeds
+                )
             )[-1](battery_powers - battery_power_losses - pb_ev) + bps_ev(pb_ev)
 
         res = dict(
@@ -700,9 +752,10 @@ class EMS:
             res[k] = res[k][i, j, None]
         return res
 
-    def __call__(self, times, motive_powers, motors_maximums_powers,
-                 gear_box_speeds_in, engine_speeds_parallel,
-                 idle_engine_speed, battery_power_losses=0):
+    def __call__(self, times, motive_powers, final_drive_speeds_in,
+                 motors_maximums_powers, gear_box_speeds_in,
+                 engine_speeds_parallel, idle_engine_speed,
+                 battery_power_losses=0):
         e = self.electric(motive_powers, motors_maximums_powers)
         p = self.parallel(
             times, motive_powers, motors_maximums_powers,
@@ -710,7 +763,7 @@ class EMS:
             battery_power_losses=battery_power_losses
         )
         s = self.serial(
-            times, motive_powers, motors_maximums_powers,
+            times, motive_powers, final_drive_speeds_in, motors_maximums_powers,
             battery_power_losses=battery_power_losses
         )
         if self.is_serial:
@@ -850,8 +903,9 @@ def define_ems_model(
 
 @sh.add_function(dsp, outputs=['ems_data'])
 def calculate_ems_data(
-        ems_model, times, motive_powers, motors_maximums_powers,
-        gear_box_speeds_in, engine_speeds_parallel, idle_engine_speed):
+        ems_model, times, motive_powers, final_drive_speeds_in,
+        motors_maximums_powers, gear_box_speeds_in, engine_speeds_parallel,
+        idle_engine_speed):
     """
     Calculate EMS decision data.
 
@@ -866,6 +920,10 @@ def calculate_ems_data(
     :param motive_powers:
         Motive power [kW].
     :type motive_powers: numpy.array
+
+    :param final_drive_speeds_in:
+        Final drive speed in [RPM].
+    :type final_drive_speeds_in: numpy.array
 
     :param motors_maximums_powers:
         Maximum powers of electric motors [kW].
@@ -888,8 +946,8 @@ def calculate_ems_data(
     :rtype: dict
     """
     return ems_model(
-        times, motive_powers, motors_maximums_powers, gear_box_speeds_in,
-        engine_speeds_parallel, idle_engine_speed
+        times, motive_powers, final_drive_speeds_in, motors_maximums_powers,
+        gear_box_speeds_in, engine_speeds_parallel, idle_engine_speed
     )
 
 
@@ -1355,12 +1413,12 @@ def predict_engine_speeds_out_hot(
 @sh.add_function(dsp, outputs=[
     'motor_p4_front_electric_powers', 'motor_p4_rear_electric_powers',
     'motor_p3_front_electric_powers', 'motor_p3_rear_electric_powers',
-    'motor_p2_electric_powers', 'motor_p1_electric_powers',
-    'motor_p0_electric_powers'
+    'motor_p2_electric_powers', 'motor_p2_planetary_electric_powers',
+    'motor_p1_electric_powers', 'motor_p0_electric_powers'
 ])
 def predict_motors_electric_powers(
         ems_data, after_treatment_warm_up_phases, hybrid_modes,
-        engine_speeds_out_hot):
+        engine_speeds_out_hot, final_drive_speeds_in):
     """
     Predicts motors electric power split [kW].
 
@@ -1380,6 +1438,10 @@ def predict_motors_electric_powers(
         Engine speed at hot condition [RPM].
     :type engine_speeds_out_hot: numpy.array
 
+    :param final_drive_speeds_in:
+        Final drive speed in [RPM].
+    :type final_drive_speeds_in: numpy.array
+
     :return:
         Motors electric powers [kW].
     :rtype: tuple[numpy.array]
@@ -1388,16 +1450,17 @@ def predict_motors_electric_powers(
         after_treatment_warm_up_phases & (hybrid_modes == 2), 0, hybrid_modes
     )
     return np.choose(mode, [
-        d['battery_power_split'](d['power_bat'].ravel(), engine_speeds_out_hot)
-        for d in (ems_data[k] for k in ('electric', 'parallel', 'serial'))
+        d['battery_power_split'](
+            d['power_bat'].ravel(), engine_speeds_out_hot, final_drive_speeds_in
+        ) for d in (ems_data[k] for k in ('electric', 'parallel', 'serial'))
     ])
 
 
 @sh.add_function(dsp, outputs=[
     'motor_p4_front_electric_powers', 'motor_p4_rear_electric_powers',
     'motor_p3_front_electric_powers', 'motor_p3_rear_electric_powers',
-    'motor_p2_electric_powers', 'motor_p1_electric_powers',
-    'motor_p0_electric_powers'
+    'motor_p2_electric_powers', 'motor_p2_planetary_electric_powers',
+    'motor_p1_electric_powers', 'motor_p0_electric_powers'
 ])
 def identify_motors_electric_powers(
         hev_power_model, hybrid_modes, motive_powers, motors_maximums_powers,
@@ -1439,13 +1502,14 @@ def identify_motors_electric_powers(
 @sh.add_function(dsp, outputs=[
     'motor_p4_front_electric_powers', 'motor_p4_rear_electric_powers',
     'motor_p3_front_electric_powers', 'motor_p3_rear_electric_powers',
-    'motor_p2_electric_powers', 'motor_p1_electric_powers',
-    'motor_p0_electric_powers'
+    'motor_p2_electric_powers', 'motor_p2_planetary_electric_powers',
+    'motor_p1_electric_powers', 'motor_p0_electric_powers'
 ], weight=sh.inf(1, 0))
 def identify_motors_electric_powers_v1(
         final_drive_mean_efficiency, gear_box_mean_efficiency_guess,
-        belt_mean_efficiency, motors_efficiencies, hybrid_modes, motive_powers,
-        motors_maximums_powers, motors_electric_powers):
+        planetary_mean_efficiency, belt_mean_efficiency, motors_efficiencies,
+        hybrid_modes, motive_powers, motors_maximums_powers,
+        motors_electric_powers):
     """
     Identify motors electric power split [kW].
 
@@ -1456,6 +1520,10 @@ def identify_motors_electric_powers_v1(
     :param gear_box_mean_efficiency_guess:
         Gear box mean efficiency guess [-].
     :type final_drive_mean_efficiency: float
+
+    :param planetary_mean_efficiency:
+        Planetary mean efficiency [-].
+    :type planetary_mean_efficiency: float
 
     :param belt_mean_efficiency:
         Belt mean efficiency [-].
@@ -1487,7 +1555,7 @@ def identify_motors_electric_powers_v1(
     """
     drive_line_efficiencies = (
         1.0, final_drive_mean_efficiency, gear_box_mean_efficiency_guess, .99,
-        belt_mean_efficiency
+        planetary_mean_efficiency, belt_mean_efficiency
     )
     return identify_motors_electric_powers(
         HEV(drive_line_efficiencies, motors_efficiencies), hybrid_modes,

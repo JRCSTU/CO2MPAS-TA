@@ -5,7 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Functions and a model `dsp` to model the electrics of the vehicle.
+Functions and `dsp` model to model the electrics of the vehicle.
 
 Sub-Modules:
 
@@ -37,6 +37,11 @@ dsp.add_dispatcher(
         'motor_p1_efficiency', 'motor_p1_maximum_power', 'motor_p1_speed_ratio',
         'motor_p1_electric_powers', 'motor_p1_torques', 'motor_p1_rated_speed',
         'motor_p1_powers', 'motor_p1_maximum_torque', 'motor_p1_speeds',
+        'motor_p2_planetary_efficiency', 'motor_p2_planetary_maximum_power',
+        'motor_p2_planetary_speed_ratio', 'planetary_ratio',
+        'motor_p2_planetary_electric_powers', 'motor_p2_planetary_torques',
+        'motor_p2_planetary_powers', 'motor_p2_planetary_maximum_torque',
+        'motor_p2_planetary_rated_speed', 'motor_p2_planetary_speeds',
         'motor_p2_efficiency', 'motor_p2_maximum_power', 'motor_p2_speed_ratio',
         'motor_p2_electric_powers', 'motor_p2_torques', 'motor_p2_rated_speed',
         'motor_p2_powers', 'motor_p2_maximum_torque', 'motor_p2_speeds',
@@ -69,7 +74,8 @@ dsp.add_dispatcher(
         'service_battery_state_of_charges', 'alternator_current_model', 'times',
         'alternator_charging_currents', 'engine_moment_inertia', 'wheel_speeds',
         'alternator_electric_powers', 'final_drive_speeds_in', 'motive_powers',
-        'alternator_nominal_voltage'
+        'alternator_nominal_voltage', 'planetary_mean_efficiency',
+        'planetary_speeds_in',
     ),
     outputs=(
         'motor_p0_electric_powers', 'motor_p0_maximum_power', 'motor_p0_powers',
@@ -79,6 +85,12 @@ dsp.add_dispatcher(
         'motor_p1_electric_powers', 'motor_p1_maximum_power', 'motor_p1_powers',
         'motor_p1_maximum_torque', 'motor_p1_speed_ratio', 'motor_p1_torques',
         'motor_p1_maximum_powers', 'motor_p1_rated_speed', 'motor_p1_speeds',
+        'motor_p2_planetary_maximum_power_function',
+        'motor_p2_planetary_electric_powers', 'planetary_ratio',
+        'motor_p2_planetary_maximum_power', 'motor_p2_planetary_powers',
+        'motor_p2_planetary_maximum_torque', 'motor_p2_planetary_speed_ratio',
+        'motor_p2_planetary_maximum_powers', 'motor_p2_planetary_rated_speed',
+        'motor_p2_planetary_torques', 'motor_p2_planetary_speeds',
         'motor_p2_electric_powers', 'motor_p2_maximum_power', 'motor_p2_powers',
         'motor_p2_maximum_torque', 'motor_p2_speed_ratio', 'motor_p2_torques',
         'motor_p2_maximum_powers', 'motor_p2_rated_speed', 'motor_p2_speeds',
@@ -106,9 +118,10 @@ dsp.add_dispatcher(
         'alternator_electric_powers', 'engine_speeds_out', 'gear_box_speeds_in',
         'delta_time_engine_starter', 'alternator_currents', 'starter_currents',
         'alternator_current_model', 'starter_powers', 'starter_model',
-        'wheel_speeds', 'has_motor_p0', 'has_motor_p1', 'has_motor_p2',
-        'has_motor_p3_front', 'has_motor_p3_rear', 'has_motor_p4_front',
-        'has_motor_p4_rear', 'is_hybrid'
+        'wheel_speeds', 'planetary_speeds_in', 'has_motor_p0', 'has_motor_p1',
+        'has_motor_p2_planetary', 'has_motor_p2', 'has_motor_p3_front',
+        'has_motor_p3_rear', 'has_motor_p4_front', 'has_motor_p4_rear',
+        'is_hybrid', 'planetary_mean_efficiency'
     ),
     include_defaults=True
 )
@@ -138,7 +151,7 @@ dsp.add_dispatcher(
         'dcdc_converter_electric_powers_demand', 'starter_electric_powers',
         'motor_p3_front_electric_powers', 'motor_p3_rear_electric_powers',
         'motor_p4_front_electric_powers', 'motor_p4_rear_electric_powers',
-        'drive_battery_load',
+        'drive_battery_load', 'motor_p2_planetary_electric_powers',
     ),
     outputs=(
         'service_battery_electric_powers_supply_threshold', 'drive_battery_ocv',

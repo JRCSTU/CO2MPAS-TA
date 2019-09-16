@@ -5,7 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Functions and a model `dsp` to model the drive battery (high voltage).
+Functions and `dsp` model to model the drive battery (high voltage).
 """
 
 import numpy as np
@@ -558,9 +558,9 @@ def calculate_drive_battery_voltages_v1(
 @sh.add_function(dsp, outputs=['motors_electric_powers'])
 def calculate_motors_electric_powers(
         motor_p0_electric_powers, motor_p1_electric_powers,
-        motor_p2_electric_powers, motor_p3_front_electric_powers,
-        motor_p3_rear_electric_powers, motor_p4_front_electric_powers,
-        motor_p4_rear_electric_powers):
+        motor_p2_planetary_electric_powers, motor_p2_electric_powers,
+        motor_p3_front_electric_powers, motor_p3_rear_electric_powers,
+        motor_p4_front_electric_powers, motor_p4_rear_electric_powers):
     """
     Calculate motors electric power [kW].
 
@@ -571,6 +571,10 @@ def calculate_motors_electric_powers(
     :param motor_p1_electric_powers:
         Electric power of motor P1 [kW].
     :type motor_p1_electric_powers: numpy.array | float
+
+    :param motor_p2_planetary_electric_powers:
+        Electric power of planetary motor P2 [kW].
+    :type motor_p2_planetary_electric_powers: numpy.array | float
 
     :param motor_p2_electric_powers:
         Electric power of motor P2 [kW].
@@ -597,6 +601,7 @@ def calculate_motors_electric_powers(
     :rtype: numpy.array | float
     """
     p = motor_p0_electric_powers + motor_p1_electric_powers
+    p += motor_p2_planetary_electric_powers
     p += motor_p2_electric_powers
     p += motor_p3_front_electric_powers
     p += motor_p3_rear_electric_powers

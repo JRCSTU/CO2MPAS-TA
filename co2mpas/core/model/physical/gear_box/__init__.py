@@ -5,7 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Functions and a model `dsp` to model the gear box.
+Functions and `dsp` model to model the gear box.
 
 Sub-Modules:
 
@@ -31,6 +31,7 @@ from .cvt import dsp as _cvt_model
 from .at_gear import dsp as _at_gear
 from .mechanical import dsp as _mechanical
 from .manual import dsp as _manual
+from .planet import dsp as _planet_model
 from co2mpas.utils import List, reject_outliers
 
 dsp = sh.BlueDispatcher(
@@ -743,8 +744,13 @@ def is_cvt(kwargs):
 
 
 # noinspection PyMissingOrEmptyDocstring
-def not_cvt(kwargs):
-    return kwargs.get('gear_box_type', 'cvt') != 'cvt'
+def is_planetary(kwargs):
+    return kwargs.get('gear_box_type') == 'planetary'
+
+
+# noinspection PyMissingOrEmptyDocstring
+def is_manual_or_automatic(kwargs):
+    return kwargs.get('gear_box_type') in ('manual', 'automatic')
 
 
 dsp.add_dispatcher(
@@ -767,7 +773,7 @@ dsp.add_dispatcher(
         'maximum_velocity', 'speed_velocity_ratios', 'n_gears',
         'velocity_speed_ratios'
     ),
-    input_domain=not_cvt
+    input_domain=is_manual_or_automatic
 )
 
 dsp.add_dispatcher(
@@ -825,6 +831,22 @@ dsp.add_dispatcher(
         'max_speed_velocity_ratio', {'CVT': ('CVT', 'gear_shifting_model')}
     ),
     input_domain=is_cvt
+)
+
+dsp.add_dispatcher(
+    include_defaults=True,
+    dsp=_planet_model,
+    dsp_id='no_model',
+    inputs=(
+        'accelerations', 'engine_speeds_out', 'idle_engine_speed', 'velocities',
+        'stop_velocity', 'gear_box_speeds_in', 'gear_box_speeds_out',
+        {'gear_box_type': sh.SINK}
+    ),
+    outputs=(
+        'max_speed_velocity_ratio', 'gear_shifting_model', 'gear_box_speeds_in',
+        'correct_gear', 'max_gear', 'gears',
+    ),
+    input_domain=is_planetary
 )
 
 

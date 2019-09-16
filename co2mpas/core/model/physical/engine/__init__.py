@@ -5,7 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Functions and a model `dsp` to model the engine.
+Functions and `dsp` model to model the engine.
 
 Sub-Modules:
 
@@ -572,7 +572,8 @@ dsp.add_function(
 @sh.add_function(dsp, outputs=['gross_engine_powers_out'])
 def calculate_gross_engine_powers_out(
         clutch_tc_powers, belt_efficiency, on_engine, gear_box_type, on_idle,
-        alternator_powers, motor_p0_powers, motor_p1_powers):
+        alternator_powers, motor_p0_powers, motor_p1_powers,
+        motor_p2_planetary_powers):
     """
     Calculates the gross engine power (pre-losses) [kW].
 
@@ -608,6 +609,10 @@ def calculate_gross_engine_powers_out(
         Power at motor P1 [kW].
     :type motor_p1_powers: numpy.array
 
+    :param motor_p2_planetary_powers:
+        Power at planetary motor P2 [kW].
+    :type motor_p2_planetary_powers: numpy.array
+
     :return:
         Gross engine power (pre-losses) [kW].
     :rtype: numpy.array
@@ -619,7 +624,8 @@ def calculate_gross_engine_powers_out(
     if gear_box_type == 'manual':
         p[on_idle & (p < 0)] = 0.0
     eff = np.where(motor_p0_powers[b] < 0, belt_efficiency, 1 / belt_efficiency)
-    p[b] += alternator_powers[b] - motor_p0_powers[b] * eff - motor_p1_powers[b]
+    p[b] += alternator_powers[b] - motor_p0_powers[b] * eff
+    p[b] -= motor_p1_powers[b] + motor_p2_planetary_powers[b]
     return p
 
 

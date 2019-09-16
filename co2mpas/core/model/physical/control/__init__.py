@@ -5,7 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Functions and a model `dsp` to model the vehicle control strategy.
+Functions and `dsp` model to model the vehicle control strategy.
 
 Sub-Modules:
 
@@ -138,24 +138,27 @@ dsp.add_dispatcher(
         'after_treatment_warm_up_duration', 'engine_powers_out', 'hybrid_modes',
         'motor_p2_maximum_power', 'engine_speeds_out_hot', 'gear_box_speeds_in',
         'gear_box_mean_efficiency', 'motor_p1_electric_powers', 'starter_model',
-        'after_treatment_cooling_duration', 'after_treatment_warm_up_phases',
+        'motor_p2_planetary_maximum_power_function', 'motor_p4_rear_efficiency',
+        'motor_p3_front_efficiency', 'final_drive_speeds_in', 'planetary_ratio',
+        'after_treatment_cooling_duration', 'motor_p2_planetary_maximum_power',
+        'motor_p2_planetary_electric_powers', 'after_treatment_warm_up_phases',
         'gear_box_mean_efficiency_guess', 'motor_p3_front_electric_powers',
-        'motor_p4_front_electric_powers', 'motor_p4_rear_electric_powers',
+        'motor_p2_planetary_speed_ratio', 'motor_p4_front_electric_powers',
+        'motor_p2_planetary_efficiency', 'motor_p4_rear_electric_powers',
         'motor_p3_front_maximum_powers', 'motor_p3_rear_electric_powers',
         'motor_p4_front_maximum_powers', 'motor_p4_rear_maximum_powers',
         'motor_p4_front_maximum_power', 'motor_p3_front_maximum_power',
         'engine_coolant_temperatures', 'motor_p3_rear_maximum_power',
         'motor_p4_rear_maximum_power', 'motor_p4_front_efficiency',
-        'motor_p3_front_efficiency', 'motor_p4_rear_efficiency',
-        {'is_hybrid': sh.SINK},
+        'planetary_mean_efficiency', {'is_hybrid': sh.SINK},
     ),
     outputs=(
         'motor_p3_front_electric_powers', 'motor_p2_electric_powers', 'ecms_s',
         'motor_p4_front_electric_powers', 'engine_speeds_base', 'hybrid_modes',
         'after_treatment_warm_up_phases', 'engine_speeds_out_hot', 'on_engine',
-        'motor_p4_rear_electric_powers', 'motor_p3_rear_electric_powers',
-        'start_stop_hybrid_params', 'motor_p1_electric_powers',
-        'motor_p0_electric_powers',
+        'motor_p2_planetary_electric_powers', 'motor_p3_rear_electric_powers',
+        'motor_p4_rear_electric_powers', 'start_stop_hybrid_params',
+        'motor_p1_electric_powers', 'motor_p0_electric_powers',
     ),
     input_domain=is_hybrid
 )

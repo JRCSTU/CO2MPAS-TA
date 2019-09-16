@@ -21,12 +21,14 @@ models = [
     'belt_mean_efficiency', 'clutch_tc_mean_efficiency', 'motor_p1_rated_speed',
     'motor_p3_front_rated_speed', 'motor_p2_rated_speed', 'motor_p2_efficiency',
     'start_stop_hybrid_params', 'motor_p0_maximum_power', 'motor_p0_efficiency',
-    'motor_p3_front_maximum_power', 'motor_p3_rear_maximum_power', 'ecms_s',
-    'motor_p4_front_maximum_power', 'motor_p4_rear_maximum_power',
-    'final_drive_mean_efficiency', 'motor_p4_front_rated_speed',
-    'motor_p3_rear_rated_speed', 'motor_p4_rear_rated_speed',
+    'motor_p2_planetary_rated_speed', 'motor_p2_planetary_efficiency', 'ecms_s',
+    'motor_p3_rear_rated_speed', 'motor_p4_rear_rated_speed', 'planetary_ratio',
+    'motor_p2_planetary_maximum_power', 'motor_p3_front_maximum_power',
+    'motor_p4_front_maximum_power', 'motor_p3_rear_maximum_power',
+    'motor_p4_rear_maximum_power', 'final_drive_mean_efficiency',
+    'motor_p4_front_rated_speed', 'planetary_mean_efficiency',
     'motor_p4_front_efficiency', 'motor_p4_rear_efficiency',
-    'motor_p0_rated_speed', 'motor_p2_maximum_power',
+    'motor_p2_maximum_power', 'motor_p0_rated_speed',
 ]
 
 #: Inputs required to run the model.
@@ -40,8 +42,9 @@ inputs = [
     'motor_p0_speed_ratio', 'gear_box_speeds_in', 'starter_model', 'velocities',
     'motor_p4_rear_maximum_powers', 'is_cycle_hot', 'dcdc_converter_efficiency',
     'after_treatment_cooling_duration', 'idle_engine_speed', 'full_load_curve',
-    'after_treatment_warm_up_duration', 'motor_p4_front_maximum_powers',
-    'motive_powers',
+    'after_treatment_warm_up_duration', 'motor_p2_planetary_speed_ratio',
+    'motor_p2_planetary_maximum_power_function', 'final_drive_speeds_in',
+    'motor_p4_front_maximum_powers', 'motive_powers',
 ]
 
 #: Relevant outputs of the model.

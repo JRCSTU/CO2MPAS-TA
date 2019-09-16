@@ -5,7 +5,7 @@
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
-Functions and a model `dsp` to model the electric motors of the vehicle.
+Functions and `dsp` model to model the electric motors of the vehicle.
 
 Sub-Modules:
 
@@ -21,6 +21,7 @@ Sub-Modules:
     p2
     p3
     p4
+    planet
     starter
 """
 
@@ -31,6 +32,7 @@ from .p1 import dsp as _p1
 from .p2 import dsp as _p2
 from .p3 import dsp as _p3
 from .p4 import dsp as _p4
+from .planet import dsp as _planet
 from .starter import dsp as _starter
 
 dsp = sh.BlueDispatcher(name='Motors', description='Models the vehicle motors.')
@@ -84,6 +86,30 @@ dsp.add_dispatcher(
         'motor_p1_maximum_torque', 'motor_p1_speed_ratio', 'motor_p1_torques',
         'motor_p1_maximum_powers', 'motor_p1_rated_speed', 'motor_p1_speeds',
         'engine_speeds_out', 'motor_p1_maximum_power_function', 'has_motor_p1',
+    ),
+    include_defaults=True
+)
+
+dsp.add_dispatcher(
+    dsp_id='motor_p2_planetary',
+    dsp=_planet,
+    inputs=(
+        'motor_p2_planetary_powers', 'final_drive_speeds_in', 'planetary_ratio',
+        'motor_p2_planetary_maximum_power', 'motor_p2_planetary_maximum_torque',
+        'motor_p2_planetary_electric_powers', 'motor_p2_planetary_speed_ratio',
+        'motor_p2_planetary_rated_speed', 'motor_p2_planetary_speeds', 'times',
+        'has_motor_p2_planetary', 'planetary_speeds_in', 'engine_speeds_out',
+        'motor_p2_planetary_efficiency', 'motor_p2_planetary_torques',
+        'planetary_mean_efficiency'
+    ),
+    outputs=(
+        'motor_p2_planetary_powers', 'planetary_speeds_in', 'engine_speeds_out',
+        'motor_p2_planetary_maximum_power', 'motor_p2_planetary_maximum_torque',
+        'motor_p2_planetary_speeds', 'final_drive_speeds_in', 'planetary_ratio',
+        'motor_p2_planetary_electric_powers', 'motor_p2_planetary_speed_ratio',
+        'motor_p2_planetary_maximum_powers', 'motor_p2_planetary_rated_speed',
+        'motor_p2_planetary_maximum_power_function', 'has_motor_p2_planetary',
+        'motor_p2_planetary_torques', 'planetary_mean_efficiency'
     ),
     include_defaults=True
 )
@@ -184,8 +210,9 @@ dsp.add_dispatcher(
 
 @sh.add_function(dsp, outputs=['is_hybrid'])
 def identify_is_hybrid(
-        has_motor_p0, has_motor_p1, has_motor_p2, has_motor_p3_front,
-        has_motor_p3_rear, has_motor_p4_front, has_motor_p4_rear):
+        has_motor_p0, has_motor_p1, has_motor_p2, has_motor_p2_planetary,
+        has_motor_p3_front, has_motor_p3_rear, has_motor_p4_front,
+        has_motor_p4_rear):
     """
     Identifies if the the vehicle is hybrid.
 
@@ -200,6 +227,10 @@ def identify_is_hybrid(
     :param has_motor_p2:
         Has the vehicle a motor in P2?
     :type has_motor_p2: bool
+
+    :param has_motor_p2_planetary:
+        Has the vehicle a motor in planetary P2?
+    :type has_motor_p2_planetary: bool
 
     :param has_motor_p3_front:
         Has the vehicle a motor in P3 front?
@@ -221,6 +252,7 @@ def identify_is_hybrid(
         Is the vehicle hybrid?
     :rtype: bool
     """
-    b = has_motor_p0, has_motor_p1, has_motor_p2, has_motor_p3_front
-    b += has_motor_p3_rear, has_motor_p4_front, has_motor_p4_rear
+    b = has_motor_p0, has_motor_p1, has_motor_p2, has_motor_p2_planetary,
+    b += has_motor_p3_front, has_motor_p3_rear, has_motor_p4_front
+    b += has_motor_p4_rear,
     return any(b)
