@@ -7,6 +7,7 @@
 """
 Functions and `dsp` model to model the electric motor in planetary P2 position.
 """
+import numpy as np
 import schedula as sh
 import co2mpas.utils as co2_utl
 from ...defaults import dfl
@@ -117,7 +118,12 @@ def define_motor_p2_planetary_maximum_power_function(
     :rtype: function
     """
     from .p4 import define_motor_p4_maximum_power_function as f
-    return f(motor_p2_planetary_maximum_power, motor_p2_planetary_rated_speed)
+    func = f(motor_p2_planetary_maximum_power, motor_p2_planetary_rated_speed)
+
+    def _maximum_power_function(speeds):
+        return func(np.abs(speeds))
+
+    return _maximum_power_function
 
 
 @sh.add_function(dsp, outputs=['motor_p2_planetary_maximum_powers'])
