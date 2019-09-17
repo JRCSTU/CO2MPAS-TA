@@ -368,13 +368,15 @@ class DriveBatteryModel:
         return self
 
     def currents(self, powers):
-        return self.c_b + np.sqrt(self.c_b2 + self.c_ac4 * powers)
+        cur = np.sqrt(np.maximum(self.c_b2 + self.c_ac4 * powers, 0)) + self.c_b
+        return cur
 
     def powers(self, currents):
         return (self._ocv + currents * self._r0) * currents
 
     def voltages(self, powers):
-        return self.v_b + np.sqrt(self.v_b2 + self.v_ac4 * powers)
+        vol = self.v_b + np.sqrt(np.maximum(self.v_b2 + self.v_ac4 * powers, 0))
+        return vol
 
     def __call__(self, current, time, motive_power, acceleration, on_engine,
                  starter_current=0, prev_soc=None, update=True,
