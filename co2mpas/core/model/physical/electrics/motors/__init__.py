@@ -98,18 +98,18 @@ dsp.add_dispatcher(
         'motor_p2_planetary_maximum_power', 'motor_p2_planetary_maximum_torque',
         'motor_p2_planetary_electric_powers', 'motor_p2_planetary_speed_ratio',
         'motor_p2_planetary_rated_speed', 'motor_p2_planetary_speeds', 'times',
+        'motor_p2_planetary_torques', 'planetary_mean_efficiency', 'is_serial',
         'has_motor_p2_planetary', 'planetary_speeds_in', 'engine_speeds_out',
-        'motor_p2_planetary_efficiency', 'motor_p2_planetary_torques',
-        'planetary_mean_efficiency'
+        'motor_p2_planetary_efficiency',
     ),
     outputs=(
         'motor_p2_planetary_powers', 'planetary_speeds_in', 'engine_speeds_out',
         'motor_p2_planetary_maximum_power', 'motor_p2_planetary_maximum_torque',
         'motor_p2_planetary_speeds', 'final_drive_speeds_in', 'planetary_ratio',
         'motor_p2_planetary_electric_powers', 'motor_p2_planetary_speed_ratio',
+        'motor_p2_planetary_torques', 'planetary_mean_efficiency', 'is_serial',
         'motor_p2_planetary_maximum_powers', 'motor_p2_planetary_rated_speed',
         'motor_p2_planetary_maximum_power_function', 'has_motor_p2_planetary',
-        'motor_p2_planetary_torques', 'planetary_mean_efficiency'
     ),
     include_defaults=True
 )

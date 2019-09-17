@@ -387,9 +387,6 @@ def define_hev_power_model(motors_efficiencies, drive_line_efficiencies):
     return HEV(drive_line_efficiencies, motors_efficiencies)
 
 
-dsp.add_data('is_serial', dfl.values.is_serial)
-
-
 @sh.add_function(dsp, outputs=['hybrid_modes'])
 def identify_hybrid_modes(
         times, gear_box_speeds_in, engine_speeds_out, idle_engine_speed,

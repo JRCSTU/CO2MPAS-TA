@@ -74,7 +74,7 @@ dsp.add_dispatcher(
         'service_battery_state_of_charges', 'alternator_current_model', 'times',
         'alternator_charging_currents', 'engine_moment_inertia', 'wheel_speeds',
         'alternator_electric_powers', 'final_drive_speeds_in', 'motive_powers',
-        'alternator_nominal_voltage', 'planetary_mean_efficiency',
+        'alternator_nominal_voltage', 'planetary_mean_efficiency', 'is_serial',
         'planetary_speeds_in',
     ),
     outputs=(
@@ -121,7 +121,7 @@ dsp.add_dispatcher(
         'wheel_speeds', 'planetary_speeds_in', 'has_motor_p0', 'has_motor_p1',
         'has_motor_p2_planetary', 'has_motor_p2', 'has_motor_p3_front',
         'has_motor_p3_rear', 'has_motor_p4_front', 'has_motor_p4_rear',
-        'is_hybrid', 'planetary_mean_efficiency'
+        'is_hybrid', 'planetary_mean_efficiency', 'is_serial',
     ),
     include_defaults=True
 )
