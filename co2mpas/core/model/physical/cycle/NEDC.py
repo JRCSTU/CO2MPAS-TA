@@ -177,7 +177,7 @@ def nedc_velocities(times, gear_box_type):
     for k, v in parts.items():
         v[1] = v[2] = v[3] = v[0]
 
-    parts['cvt'] = parts['automatic']
+    parts['cvt'] = parts['planetary'] = parts['automatic']
 
     tv = _repeat_parts(times, parts[gear_box_type])
 
