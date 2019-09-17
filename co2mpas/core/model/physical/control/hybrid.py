@@ -706,7 +706,7 @@ class EMS:
                 pl = self.engine_power_losses(times, es, inertia=False)
             es, pl = es.ravel()[:, None], pl.ravel()
             fds = np.tile(fds, n).ravel()[:, None]
-            pi =  np.tile(pi[:, None], n).ravel()
+            pi = np.tile(pi[:, None], n).ravel()
         else:
             es = engine_speeds_out[:, None]
             if pl is None:
