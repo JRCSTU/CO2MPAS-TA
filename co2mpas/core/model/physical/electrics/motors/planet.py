@@ -9,6 +9,7 @@ Functions and `dsp` model to model the electric motor in planetary P2 position.
 """
 import schedula as sh
 import co2mpas.utils as co2_utl
+from ...defaults import dfl
 
 dsp = sh.BlueDispatcher(
     name='Motor P2 planetary',
@@ -364,9 +365,6 @@ def default_motor_p2_planetary_powers(times, has_motor_p2_planetary):
     return func(times, has_motor_p2_planetary)
 
 
-dsp.add_data('planetary_ratio', 0, sh.inf(10, 5))
-
-
 @sh.add_function(dsp, outputs=['planetary_speeds_in'])
 def calculate_planetary_speeds_in(
         engine_speeds_out, final_drive_speeds_in, planetary_ratio):
@@ -390,7 +388,7 @@ def calculate_planetary_speeds_in(
     :rtype: numpy.array
     """
     r = planetary_ratio
-    return engine_speeds_out * (1 - r) + final_drive_speeds_in * r
+    return engine_speeds_out * (1 + r) - final_drive_speeds_in * r
 
 
 @sh.add_function(dsp, outputs=['engine_speeds_out'])
@@ -415,10 +413,10 @@ def calculate_engine_speeds_out(
         Engine speed vector [RPM].
     :rtype: numpy.array
     """
-    if planetary_ratio == 1:
+    if planetary_ratio == -1:
         return sh.NONE
     r = planetary_ratio
-    return (planetary_speeds_in - final_drive_speeds_in * r) / (1 - r)
+    return (planetary_speeds_in + final_drive_speeds_in * r) / (1 + r)
 
 
 @sh.add_function(dsp, outputs=['final_drive_speeds_in'])
@@ -446,7 +444,7 @@ def calculate_final_drive_speeds_in(
     if not planetary_ratio:
         return sh.NONE
     r = planetary_ratio
-    return (planetary_speeds_in - engine_speeds_out * (1 - r)) / r
+    return (engine_speeds_out * (1 + r) - planetary_speeds_in) / r
 
 
 @sh.add_function(dsp, outputs=['planetary_ratio'])
@@ -472,12 +470,41 @@ def identify_planetary_ratio(
     :rtype: numpy.array
     """
     r = planetary_speeds_in - engine_speeds_out
-    r /= final_drive_speeds_in - engine_speeds_out
+    r /= engine_speeds_out - final_drive_speeds_in
     return co2_utl.reject_outliers(r)
 
 
 @sh.add_function(dsp, outputs=['planetary_mean_efficiency'])
 def default_planetary_mean_efficiency(has_motor_p2_planetary):
+    """
+    Returns the default planetary mean efficiency [-].
+
+    :param has_motor_p2_planetary:
+        Has the vehicle a motor in planetary P2?
+    :type has_motor_p2_planetary: bool
+
+    :return:
+        Planetary mean efficiency [-].
+    :rtype: float
+    """
     if has_motor_p2_planetary:
-        return .93
+        return dfl.functions.default_planetary_mean_efficiency.efficiency
     return 1
+
+
+@sh.add_function(dsp, outputs=['planetary_ratio'], weight=sh.inf(10, 5))
+def default_planetary_ratio(has_motor_p2_planetary):
+    """
+    Returns the default fundamental planetary speed ratio [-].
+
+    :param has_motor_p2_planetary:
+        Has the vehicle a motor in planetary P2?
+    :type has_motor_p2_planetary: bool
+
+    :return:
+        Fundamental planetary speed ratio [-].
+    :rtype: float
+    """
+    if has_motor_p2_planetary:
+        return dfl.functions.default_planetary_ratio.ratio
+    return 0

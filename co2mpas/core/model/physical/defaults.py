@@ -209,6 +209,16 @@ class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+    class default_planetary_mean_efficiency(co2_utl.Constants):
+        #: Planetary mean efficiency [-].
+        efficiency = .97
+
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+    class default_planetary_ratio(co2_utl.Constants):
+        #: Fundamental planetary speed ratio [-].
+        ratio = 2.6
+
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class identify_after_treatment_warm_up_phases(co2_utl.Constants):
         #: After treatment cooling time [s].
         cooling_time = 400
