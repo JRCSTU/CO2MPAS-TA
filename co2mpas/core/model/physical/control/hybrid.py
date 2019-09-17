@@ -641,11 +641,13 @@ class EMS:
         return fc
 
     def electric(self, motive_powers, motors_maximums_powers,
-                 battery_power_losses=0):
+                 final_drive_speeds_in, battery_power_losses=0):
         res, hev = {}, self.hev_power_model
-        pi, pb, bps = hev.ice_power(motive_powers, np.pad(
-            motors_maximums_powers[:, :-3], ((0, 0), (0, 3)), 'constant'
-        ))
+        mmp = self.serial_motor_maximum_power(
+            np.zeros_like(motive_powers), final_drive_speeds_in
+        )
+        mmp[:, :-3] = motors_maximums_powers[:, :-3]
+        pi, pb, bps = hev.ice_power(motive_powers, mmp)
         res['power_bat'], res['power_ice'] = pb, pi = _interp(0, pi.T, pb.T)
         pb += np.atleast_2d(battery_power_losses).T
         res['current_bat'] = bc = self.battery_model.currents(pb)
@@ -689,8 +691,9 @@ class EMS:
         pi, pb, bps_ev = hev.ice_power(motive_powers, np.pad(
             motors_maximums_powers[:, :-3], ((0, 0), (0, 3)), 'constant'
         ))
-        pb_ev, pl = _interp(0, pi.T, pb.T)[0].ravel(), ice_power_losses
-        fds = final_drive_speeds_in[:, None]
+        (pb_ev, pi), pl = _interp(0, pi.T, pb.T), ice_power_losses
+        pb_ev, fds = pb_ev.ravel(), final_drive_speeds_in[:, None]
+        pi = pi.ravel() * hev.ice_eff
         if engine_speeds_out is None:
             # noinspection PyProtectedMember
             es = self.fuel_map_model.speed_power._data[0]
@@ -703,12 +706,13 @@ class EMS:
                 pl = self.engine_power_losses(times, es, inertia=False)
             es, pl = es.ravel()[:, None], pl.ravel()
             fds = np.tile(fds, n).ravel()[:, None]
+            pi =  np.tile(pi[:, None], n).ravel()
         else:
             es = engine_speeds_out[:, None]
             if pl is None:
                 pl = self.engine_power_losses(times, engine_speeds_out)
         mmp = self.serial_motor_maximum_power(es, fds)
-        pi, pb, bps = hev.ice_power(0, mmp)
+        pi, pb, bps = hev.ice_power(pi, mmp)
         pi += np.atleast_2d(pl)
         pb, pi = _interp(fc.speed_power(es), pi.T, pb.T)
         if engine_speeds_out is None:
@@ -734,7 +738,7 @@ class EMS:
             battery_power_split=battery_power_split
         )
         if engine_speeds_out is None and opt:
-            eff, b = pi / fc_ice, bc < 0
+            eff, b = pi / fc_ice, (bc < 0) | (pi < 0)
             b[np.all(np.isnan(eff) | b, 1)] = False
             eff[b] = np.nan
             i, j = np.arange(pi.shape[0]), np.nanargmax(eff, 1)
@@ -753,11 +757,12 @@ class EMS:
                  motors_maximums_powers, gear_box_speeds_in,
                  engine_speeds_parallel, idle_engine_speed,
                  battery_power_losses=0):
-        e = self.electric(motive_powers, motors_maximums_powers)
+        e = self.electric(
+            motive_powers, motors_maximums_powers, final_drive_speeds_in
+        )
         p = self.parallel(
             times, motive_powers, motors_maximums_powers,
-            engine_speeds_parallel,
-            battery_power_losses=battery_power_losses
+            engine_speeds_parallel, battery_power_losses=battery_power_losses
         )
         s = self.serial(
             times, motive_powers, final_drive_speeds_in, motors_maximums_powers,
@@ -1084,12 +1089,11 @@ class StartStopHybrid:
         ))
 
     def reference(self, ems_data, starter_time=None):
-        starter_time = starter_time or self.params and self.params[
-            'starter_time']
-        starter_time = starter_time or self.starter_model.time
+        st = starter_time or self.params and self.params['starter_time']
+        st = st or self.starter_model.time
         e, res = ems_data['electric'], ems_data.copy()
-        p = res['parallel'] = self.penalties(ems_data['parallel'], starter_time)
-        s = res['serial'] = self.penalties(ems_data['serial'], starter_time)
+        p = res['parallel'] = self.penalties(ems_data['parallel'], st)
+        s = res['serial'] = self.penalties(ems_data['serial'], st)
         with np.errstate(divide='ignore', invalid='ignore'):
             k = 'current_bat'
             c_ser = np.column_stack((s['current_start'], -s['current_stop']))
