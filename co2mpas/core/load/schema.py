@@ -596,6 +596,7 @@ def define_data_schema(read=True):
         'clutch_window': tuplefloat2,
         'co2_params_calibrated': parameters,
         'co2_params_initial_guess': parameters,
+        'drive_battery_technology_type': string,
         'cycle_type': string,
         'cycle_name': string,
         'specific_gear_shifting': string,
