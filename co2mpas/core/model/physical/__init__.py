@@ -330,8 +330,9 @@ dsp.add_dispatcher(
         'dcdc_converter_electric_powers_demand', 'planetary_mean_efficiency',
         'electrical_hybridization_degree', 'drive_battery_n_parallel_cells',
         'drive_battery_state_of_charges', 'drive_battery_electric_powers',
-        'service_battery_currents', 'service_battery_capacity',
-        'drive_battery_capacity',
+        'drive_battery_nominal_voltage', 'service_battery_currents',
+        'service_battery_capacity', 'drive_battery_technology',
+        'drive_battery_n_cells', 'drive_battery_capacity',
     ),
     outputs=(
         'motor_p0_electric_powers', 'motor_p0_maximum_power', 'motor_p0_powers',
@@ -389,12 +390,12 @@ dsp.add_dispatcher(
         'drive_battery_voltages', 'service_battery_loads', 'drive_battery_load',
         'service_battery_state_of_charge_balance', 'alternator_nominal_voltage',
         'drive_battery_n_parallel_cells', 'drive_battery_currents', 'is_serial',
+        'planetary_mean_efficiency', 'drive_battery_n_cells', 'planetary_ratio',
         'service_battery_initialization_time', 'drive_battery_electric_powers',
         'initial_service_battery_state_of_charge', 'service_battery_capacity',
         'service_battery_electric_powers', 'service_battery_nominal_voltage',
         'dcdc_converter_electric_powers_demand', 'starter_nominal_voltage',
-        'planetary_mean_efficiency', 'motors_electric_powers',
-        'planetary_ratio',
+        'drive_battery_nominal_voltage', 'motors_electric_powers',
     )
 )
 

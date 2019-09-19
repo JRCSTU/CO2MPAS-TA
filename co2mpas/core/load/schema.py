@@ -415,6 +415,10 @@ def define_data_schema(read=True):
         check=lambda x: x >= 1
     )
     positive_int = _positive(type=int, read=read)
+    greater_than_one_int = _positive(
+        type=int, read=read, error='should be as <int> and greater than one!',
+        check=lambda x: x >= 1
+    )
     limits = _limits(read=read)
     index_dict = _index_dict(read=read)
     np_array = _np_array(read=read)
@@ -460,6 +464,10 @@ def define_data_schema(read=True):
             'ki_factor', 'ki_multiplicative'
         ): greater_than_one,
         'ki_additive': positive,
+        'drive_battery_technology': string,
+        'drive_battery_n_cells': greater_than_one_int,
+        'drive_battery_n_series_cells': greater_than_one_int,
+        'drive_battery_n_parallel_cells': greater_than_one_int,
         'tyre_dimensions': tyre_dimensions,
         'tyre_code': tyre_code,
         'wltp_base_model': _dict(format=dict, read=read),

@@ -14,6 +14,9 @@ import co2mpas.utils as co2_utl
 #: Container of node default values.
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class Values(co2_utl.Constants):
+    #: Drive battery technology type.
+    drive_battery_technology = ''
+
     #: Belt efficiency [-].
     belt_efficiency = 0.8
 
@@ -204,6 +207,19 @@ class Values(co2_utl.Constants):
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
+
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+    class calculate_drive_battery_n_parallel_cells_v1(co2_utl.Constants):
+        #: Voltage for calculating the number of parallel battery cells [V].
+        reference_volt = {
+            '': 2.9,
+            'NiMH': 1.1,
+            'Li-NCA (Li-Ni-Co-Al)': 2.9,
+            'Li-NCM (Li-Ni-Mn-Co)': 2.9,
+            'Li-MO (Li-Mn)': 2.9,
+            'Li-FP (Li-Fe-P)': 2.4,
+            'Li-TO (Li-Ti)': 1.7
+        }  # source: batteryuniversity.com
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class default_planetary_mean_efficiency(co2_utl.Constants):

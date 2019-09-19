@@ -475,8 +475,141 @@ def get_drive_battery_r0_and_ocv(drive_battery_model):
     return drive_battery_model.r0, drive_battery_model.ocv
 
 
-dsp.add_data('drive_battery_n_parallel_cells', 1)
-dsp.add_data('drive_battery_n_series_cells', 1)
+dsp.add_data('drive_battery_n_cells', 1)
+
+
+@sh.add_function(dsp, outputs=['drive_battery_nominal_voltage'])
+def identify_drive_battery_nominal_voltage(drive_battery_voltages):
+    """
+    Identify the drive battery nominal voltage [V].
+
+    :param drive_battery_voltages:
+        Drive battery voltage [V].
+    :type drive_battery_voltages: numpy.array
+
+    :return:
+        Drive battery nominal voltage [V].
+    :rtype: float
+    """
+    return np.median(drive_battery_voltages)
+
+
+@sh.add_function(dsp, outputs=['drive_battery_voltages'], weight=sh.inf(11, 0))
+def define_drive_battery_voltages(times, drive_battery_nominal_voltage):
+    """
+    Defines drive battery voltage vector [V].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param drive_battery_nominal_voltage:
+        Drive battery nominal voltage [V].
+    :type drive_battery_nominal_voltage: float
+
+    :return:
+        Drive battery voltage [V].
+    :rtype: numpy.array
+    """
+    return np.tile(drive_battery_nominal_voltage, times.size)
+
+
+@sh.add_function(dsp, outputs=['drive_battery_n_parallel_cells'])
+def calculate_drive_battery_n_parallel_cells(
+        drive_battery_n_cells, drive_battery_n_series_cells):
+    """
+    Calculate the number of battery cells in parallel [-].
+
+    :param drive_battery_n_cells:
+        Number of battery cells [-].
+    :type drive_battery_n_cells: int
+
+    :param drive_battery_n_series_cells:
+        Number of battery cells in series [-].
+    :type drive_battery_n_series_cells: int
+
+    :return:
+        Number of battery cells in parallel [-].
+    :rtype: int
+    """
+    return drive_battery_n_cells / drive_battery_n_series_cells
+
+
+dsp.add_data('drive_battery_technology', dfl.values.drive_battery_technology)
+
+
+@sh.add_function(dsp, outputs=['drive_battery_n_parallel_cells'], weight=5)
+def calculate_drive_battery_n_parallel_cells_v1(
+        drive_battery_technology, drive_battery_nominal_voltage,
+        drive_battery_n_cells):
+    """
+    Calculate the number of battery cells in parallel [-].
+
+    :param drive_battery_technology:
+        Drive battery technology type (e.g., NiMH, Li-NCA (Li-Ni-Co-Al), etc.).
+    :type drive_battery_technology: str
+
+    :param drive_battery_n_cells:
+        Number of battery cells [-].
+    :type drive_battery_n_cells: int
+
+    :param drive_battery_nominal_voltage:
+        Drive battery nominal voltage [V].
+    :type drive_battery_nominal_voltage: float
+
+    :return:
+        Number of battery cells in parallel [-].
+    :rtype: int
+    """
+    v = dfl.functions.calculate_drive_battery_n_parallel_cells_v1.reference_volt
+    v = v.get(drive_battery_technology, v[None])
+    n = np.ceil(v / drive_battery_nominal_voltage * drive_battery_n_cells)
+    n = int(min(n, drive_battery_n_cells))
+    while n < drive_battery_n_cells and drive_battery_n_cells % n:
+        n += 1
+    return n
+
+
+@sh.add_function(dsp, outputs=['drive_battery_n_series_cells'])
+def calculate_drive_battery_n_series_cells(
+        drive_battery_n_cells, drive_battery_n_parallel_cells):
+    """
+    Calculate the number of battery cells in parallel [-].
+
+    :param drive_battery_n_cells:
+        Number of battery cells [-].
+    :type drive_battery_n_cells: int
+
+    :param drive_battery_n_parallel_cells:
+        Number of battery cells in parallel [-].
+    :type drive_battery_n_parallel_cells: int
+
+    :return:
+        Number of battery cells in series [-].
+    :rtype: int
+    """
+    return drive_battery_n_cells / drive_battery_n_parallel_cells
+
+
+@sh.add_function(dsp, outputs=['drive_battery_n_cells'])
+def calculate_drive_battery_n_cells(
+        drive_battery_n_parallel_cells, drive_battery_n_series_cells):
+    """
+    Calculate the number of battery cells [-].
+
+    :param drive_battery_n_parallel_cells:
+        Number of battery cells in parallel [-].
+    :type drive_battery_n_parallel_cells: int
+
+    :param drive_battery_n_series_cells:
+        Number of battery cells in series [-].
+    :type drive_battery_n_series_cells: int
+
+    :return:
+        Number of battery cells [-].
+    :rtype: int
+    """
+    return drive_battery_n_parallel_cells * drive_battery_n_series_cells
 
 
 @sh.add_function(dsp, outputs=['drive_battery_model'])

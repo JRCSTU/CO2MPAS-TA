@@ -147,11 +147,13 @@ dsp.add_dispatcher(
         'dcdc_converter_currents', 'drive_battery_electric_powers', 'is_hybrid',
         'service_battery_state_of_charge_balance', 'dcdc_converter_efficiency',
         'service_battery_currents', 'drive_battery_capacity', 'engine_starts',
+        'motor_p2_planetary_electric_powers', 'drive_battery_nominal_voltage',
         'drive_battery_n_parallel_cells', 'electrical_hybridization_degree',
         'dcdc_converter_electric_powers_demand', 'starter_electric_powers',
         'motor_p3_front_electric_powers', 'motor_p3_rear_electric_powers',
         'motor_p4_front_electric_powers', 'motor_p4_rear_electric_powers',
-        'drive_battery_load', 'motor_p2_planetary_electric_powers',
+        'drive_battery_technology', 'drive_battery_n_cells',
+        'drive_battery_load',
     ),
     outputs=(
         'service_battery_electric_powers_supply_threshold', 'drive_battery_ocv',
@@ -169,7 +171,8 @@ dsp.add_dispatcher(
         'service_battery_electric_powers', 'drive_battery_n_parallel_cells',
         'service_battery_state_of_charge_balance', 'drive_battery_currents',
         'dcdc_converter_electric_powers_demand', 'drive_battery_voltages',
-        'dcdc_converter_efficiency',
+        'drive_battery_nominal_voltage', 'dcdc_converter_efficiency',
+        'drive_battery_n_cells',
     ),
     include_defaults=True
 )
