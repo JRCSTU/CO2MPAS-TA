@@ -51,9 +51,7 @@ def default_start_time():
     return datetime.datetime.today()
 
 
-dsp.add_func(
-    convert2df, inputs_kwargs=True, outputs=['dfs']
-)
+dsp.add_func(convert2df, outputs=['dfs'])
 
 
 @sh.add_function(dsp, outputs=['output_template'], weight=sh.inf(1, 0))

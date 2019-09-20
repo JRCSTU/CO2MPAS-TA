@@ -39,8 +39,8 @@ def _clone_excel(file_name):
 
 def _sort_sheets(x):
     x = x[0]
-    imp = ['summary', 'graphs', 'plan', 'nedc_h', 'nedc_l', 'wltp_h', 'wltp_l',
-           'wltp_p', 'prediction', 'calibration', 'input', 'pa', 'ts']
+    imp = ['summary', 'dice', 'graphs', 'plan', 'nedc_h', 'nedc_l', 'wltp_h',
+           'wltp_l', 'wltp_p', 'prediction', 'calibration', 'input', 'pa', 'ts']
 
     w = ()
     for i, k in enumerate(imp):

@@ -465,7 +465,17 @@ def _proc_info2df(data, start_time, main_flags):
     return {'proc_info': res}
 
 
-def convert2df(report, start_time, flag=None):
+def _dice2df(dice):
+    if dice:
+        import pandas as pd
+        df = pd.DataFrame(sorted(dice.items()), columns=['Parameter', 'Value'])
+        df.set_index(['Parameter'], inplace=True)
+        setattr(df, 'name', 'dice')
+        return {'dice': [df]}
+    return {}
+
+
+def convert2df(report, start_time, flag, dice):
     """
     Convert vehicle output report to DataFrames.
 
@@ -481,6 +491,10 @@ def convert2df(report, start_time, flag=None):
         Command line flags.
     :type flag: dict
 
+    :param dice:
+        DICE data.
+    :type dice: dict
+
     :return:
         DataFrames of vehicle output report.
     :rtype: dict[str, pandas.DataFrame]
@@ -492,6 +506,8 @@ def convert2df(report, start_time, flag=None):
     res.update(_scores2df(report))
 
     res.update(_summary2df(report))
+
+    res.update(_dice2df(dice))
 
     res.update(_proc_info2df(report, start_time, flag or {}))
 
