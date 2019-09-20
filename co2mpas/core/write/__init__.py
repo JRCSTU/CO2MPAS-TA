@@ -52,7 +52,7 @@ def default_start_time():
 
 
 dsp.add_func(
-    convert2df, inputs_kwargs=True, inputs_defaults=True, outputs=['dfs']
+    convert2df, inputs_kwargs=True, outputs=['dfs']
 )
 
 
