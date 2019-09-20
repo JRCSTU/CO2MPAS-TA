@@ -562,7 +562,7 @@ def calculate_drive_battery_n_parallel_cells_v1(
     :rtype: int
     """
     v = dfl.functions.calculate_drive_battery_n_parallel_cells_v1.reference_volt
-    v = v.get(drive_battery_technology, v[None])
+    v = v.get(drive_battery_technology, v['unknown'])
     n = np.ceil(v / drive_battery_nominal_voltage * drive_battery_n_cells)
     n = int(min(n, drive_battery_n_cells))
     while n < drive_battery_n_cells and drive_battery_n_cells % n:

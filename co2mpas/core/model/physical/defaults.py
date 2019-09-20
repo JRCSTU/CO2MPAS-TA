@@ -15,7 +15,7 @@ import co2mpas.utils as co2_utl
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class Values(co2_utl.Constants):
     #: Drive battery technology type.
-    drive_battery_technology = ''
+    drive_battery_technology = 'unknown'
 
     #: Belt efficiency [-].
     belt_efficiency = 0.8
@@ -212,7 +212,7 @@ class Functions(co2_utl.Constants):
     class calculate_drive_battery_n_parallel_cells_v1(co2_utl.Constants):
         #: Voltage for calculating the number of parallel battery cells [V].
         reference_volt = {
-            '': 2.9,
+            'unknown': 2.9,
             'NiMH': 1.1,
             'Li-NCA (Li-Ni-Co-Al)': 2.9,
             'Li-NCM (Li-Ni-Mn-Co)': 2.9,
