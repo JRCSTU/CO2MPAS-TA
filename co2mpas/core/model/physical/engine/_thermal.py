@@ -140,8 +140,7 @@ class ThermalModel:
             [engine_coolant_temperatures[0]], engine_coolant_temperatures[:-1]
         ), engine_speeds_out, accelerations))
         n = self.ntemp
-        b = x[:, 1] < self.thermostat - n
-        x[b, 1] = np.round((self.thermostat + n / 2 - x[b, 1]) / n) * n
+        x[:, 1] = np.round((self.thermostat + n - x[:, 1]) / n) * n
         b = on_engine & (np.abs(engine_temperature_derivatives) > dfl.EPS)
         self.on = _SafeRANSACRegressor(**opt).fit(
             x[b, 1:], engine_temperature_derivatives[b]
@@ -160,7 +159,7 @@ class ThermalModel:
             np.ediff1d(times, to_begin=0), on_engine, velocities, accelerations,
             engine_speeds_out,
         ))
-        x, t0 = np.array([[.0] * 4]), self.thermostat + self.ntemp / 2
+        x, t0 = np.array([[.0] * 4]), self.thermostat + self.ntemp
         for i, (dt, b, v, a, s) in it:
             x[:] = v, t0 - t, s, a
             t += (self.on(x[:, 1:]) if b else self.off(x[:, :2])) * dt
