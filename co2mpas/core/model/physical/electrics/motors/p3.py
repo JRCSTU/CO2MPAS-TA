@@ -122,6 +122,35 @@ def calculate_motor_p3_rated_speed(
 
 
 @sh.add_function(
+    dsp, outputs=['motor_p3_front_maximum_torque'],
+    inputs=['motor_p3_front_maximum_power', 'motor_p3_front_rated_speed']
+)
+@sh.add_function(
+    dsp, outputs=['motor_p3_rear_maximum_torque'],
+    inputs=['motor_p3_rear_maximum_power', 'motor_p3_rear_rated_speed']
+)
+def calculate_motor_p3_maximum_torque(
+        motor_p3_maximum_power, motor_p3_rated_speed):
+    """
+    Calculate the maximum torque of motor P3 [N*m].
+
+    :param motor_p3_maximum_power:
+        Maximum power of motor P3 [kW].
+    :type motor_p3_maximum_power: float
+
+    :param motor_p3_rated_speed:
+        Rated speed of motor P3 [RPM].
+    :type motor_p3_rated_speed: float
+
+    :return:
+        Maximum torque of motor P3 [N*m].
+    :rtype: float
+    """
+    from .p4 import calculate_motor_p4_maximum_torque as func
+    return func(motor_p3_maximum_power, motor_p3_rated_speed)
+
+
+@sh.add_function(
     dsp, inputs=['motor_p3_front_maximum_power', 'motor_p3_front_rated_speed'],
     outputs=['motor_p3_front_maximum_power_function']
 )

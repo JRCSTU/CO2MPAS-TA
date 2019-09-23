@@ -99,6 +99,28 @@ def calculate_motor_p2_planetary_rated_speed(
     )
 
 
+@sh.add_function(dsp, outputs=['motor_p2_planetary_maximum_torque'])
+def calculate_motor_p2_planetary_maximum_torque(
+        motor_p2_planetary_maximum_power, motor_p2_planetary_rated_speed):
+    """
+    Calculate the maximum torque of planetary motor P2 [N*m].
+
+    :param motor_p2_planetary_maximum_power:
+        Maximum power of planetary motor P2 [kW].
+    :type motor_p2_planetary_maximum_power: float
+
+    :param motor_p2_planetary_rated_speed:
+        Rated speed of planetary motor P2 [RPM].
+    :type motor_p2_planetary_rated_speed: float
+
+    :return:
+        Maximum torque of planetary motor P2 [N*m].
+    :rtype: float
+    """
+    from .p4 import calculate_motor_p4_maximum_torque as f
+    return f(motor_p2_planetary_maximum_power, motor_p2_planetary_rated_speed)
+
+
 @sh.add_function(dsp, outputs=['motor_p2_planetary_maximum_power_function'])
 def define_motor_p2_planetary_maximum_power_function(
         motor_p2_planetary_maximum_power, motor_p2_planetary_rated_speed):
