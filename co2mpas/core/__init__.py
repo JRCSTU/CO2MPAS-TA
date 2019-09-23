@@ -79,7 +79,7 @@ dsp.add_dispatcher(
     inputs=(
         'input_file_name', 'hard_validation', 'declaration_mode', 'cmd_flags',
         'type_approval_mode', 'input_file', 'raw_data', 'encryption_keys',
-        'sign_key', 'encryption_keys_passwords'
+        'sign_key', 'encryption_keys_passwords', 'enable_selector'
     ),
     outputs=('plan', 'flag', 'dice', 'meta', 'base', 'input_file'),
 )

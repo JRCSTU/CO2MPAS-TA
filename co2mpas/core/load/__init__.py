@@ -126,7 +126,8 @@ if _dice is not None:
 @sh.add_function(dsp, inputs_kwargs=True, outputs=['data'])
 def merge_data(
         raw_data, cmd_flags=None, hard_validation=False, declaration_mode=False,
-        type_approval_mode=False, encryption_keys=None, sign_key=None):
+        type_approval_mode=False, encryption_keys=None, sign_key=None,
+        enable_selector=False):
     """
     Merge raw data with model flags.
 
@@ -158,6 +159,10 @@ def merge_data(
         User signature key for TA mode.
     :type sign_key: str
 
+    :param enable_selector:
+        Enable the selection of the best model to predict both H/L cycles.
+    :type enable_selector: bool
+
     :return:
         Merged raw data.
     :rtype: dict
@@ -167,7 +172,8 @@ def merge_data(
         declaration_mode=declaration_mode,
         type_approval_mode=type_approval_mode,
         encryption_keys=encryption_keys,
-        sign_key=sign_key
+        sign_key=sign_key,
+        enable_selector=enable_selector
     ).items() if v is not None}
     data = sh.combine_dicts(raw_data, flag)
     data['flag'] = sh.combine_dicts(data.get('flag', {}), cmd_flags or {}, flag)
