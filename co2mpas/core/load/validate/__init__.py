@@ -60,7 +60,8 @@ def _log_errors_msg(errors):
 
 
 def _mode_parser(
-        type_approval_mode, declaration_mode, hard_validation, inputs, errors):
+        type_approval_mode, declaration_mode, hard_validation, inputs, errors,
+        is_hybrid=None):
     """
     Parse input data for the declaration mode.
 
@@ -92,7 +93,7 @@ def _mode_parser(
     if type_approval_mode or declaration_mode:
         from co2mpas_dice.co2mpas.declaration import declaration_validation
         inputs, errors = declaration_validation(
-            type_approval_mode, inputs, errors
+            type_approval_mode, inputs, errors, is_hybrid=is_hybrid
         )
 
     if hard_validation:
@@ -107,10 +108,14 @@ _kw = dict(inputs_kwargs=True, inputs_defaults=True)
 
 @sh.add_function(dsp, outputs=['validated_base'], **_kw)
 def validate_base(
-        base=None, declaration_mode=False, hard_validation=False,
+        is_hybrid, base=None, declaration_mode=False, hard_validation=False,
         enable_selector=False, type_approval_mode=False):
     """
     Validate base data.
+
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
 
     :param base:
         Base data.
@@ -139,7 +144,7 @@ def validate_base(
     i, e = _validate_base_with_schema(base or {})
 
     i, e = _mode_parser(
-        type_approval_mode, declaration_mode, hard_validation, i, e
+        type_approval_mode, declaration_mode, hard_validation, i, e, is_hybrid
     )
 
     if _log_errors_msg(e):
@@ -209,6 +214,22 @@ def validate_dice(dice=None):
     return inputs
 
 
+@sh.add_function(dsp, outputs=['is_hybrid'], **_kw)
+def get_is_hybrid(validated_dice):
+    """
+    Return if the vehicle is hybrid.
+
+    :param validated_dice:
+        Validated DICE data.
+    :type validated_dice: dict
+
+    :return:
+        Is the vehicle hybrid?
+    :rtype: bool
+    """
+    return validated_dice.get('is_hybrid')
+
+
 @sh.add_function(dsp, outputs=['validated_flag'], **_kw)
 def validate_flag(flag=None):
     """
@@ -233,10 +254,14 @@ def validate_flag(flag=None):
 
 @sh.add_function(dsp, outputs=['validated_plan'], **_kw)
 def validate_plan(
-        plan=None, declaration_mode=False, hard_validation=False,
+        is_hybrid, plan=None, declaration_mode=False, hard_validation=False,
         type_approval_mode=False):
     """
     Validate plan data.
+
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
 
     :param plan:
         Plan data.
@@ -283,7 +308,8 @@ def validate_plan(
                 sh.get_nested_dicts(data, '.'.join(k[2:-1]))[k[-1]] = v
 
         e = _mode_parser(
-            type_approval_mode, declaration_mode, hard_validation, i, e
+            type_approval_mode, declaration_mode, hard_validation, i, e,
+            is_hybrid
         )[1]
         add(sh.combine_dicts({'data': data}, base=sh.selector(keys, d)))
 

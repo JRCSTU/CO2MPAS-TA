@@ -850,6 +850,7 @@ def define_dice_schema(read=True):
             types=('-', 'a', 'b', 'c', 'd', 'ab', 'ac', 'ad', 'bc', 'bd', 'cd',
                    'abc', 'abd', 'abcd'), read=read),
         _compare_str('parent_vehicle_family_id'): _vehicle_family_id(read=read),
+        _compare_str('is_hybrid'): _bool,
         str: Or(Use(float), object)
     }
 
