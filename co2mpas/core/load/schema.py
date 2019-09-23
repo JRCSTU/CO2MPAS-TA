@@ -515,6 +515,7 @@ def define_data_schema(read=True):
         'ignition_type': _select(types=('positive', 'compression'), read=read),
         'start_stop_activation_time': positive,
         'alternator_nominal_voltage': positive,
+        _convert_str('battery_voltage', 'service_battery_nominal_voltage'): positive,
         _convert_str('battery_capacity', 'service_battery_capacity'): positive,
         _convert_str('state_of_charge_balance',
                      'service_battery_state_of_charge_balance'): limits,

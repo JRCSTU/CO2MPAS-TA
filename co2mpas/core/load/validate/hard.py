@@ -56,7 +56,7 @@ def check_sign_currents(battery_currents, alternator_currents):
 
 # noinspection PyUnusedLocal
 def _check_sign_currents(data, *args):
-    c = ('battery_currents', 'alternator_currents')
+    c = ('service_battery_currents', 'alternator_currents')
     try:
         a = sh.selector(c, data, output_type='list')
         s = check_sign_currents(*a)
