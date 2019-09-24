@@ -168,7 +168,7 @@ dsp.add_dispatcher(
     inputs=[
         'input_file_name', 'input_file', 'base', 'dice', 'meta', 'vehicle_name',
         'output_file_name', 'report', 'flag', 'type_approval_mode', 'timestamp',
-        'encryption_keys', 'output_folder', 'sign_key',
+        'encryption_keys', 'output_folder', 'sign_key', 'output_template',
         {'only_summary': sh.SINK}
     ],
     outputs=[
