@@ -71,6 +71,14 @@ def parse_cmd_flags(cmd_flags=None):
     })
     flags['declaration_mode'] |= flags['type_approval_mode']
     flags['hard_validation'] |= flags['declaration_mode']
+    if flags['declaration_mode'] and not flags['type_approval_mode'] and \
+            flags['enable_selector']:
+        log.info(
+            'Since CO2MPAS is launched in declaration mode the option '
+            '--enable-selector is not used.\n'
+            'If you want to use it remove -DM from the cmd.'
+        )
+        flags['enable_selector'] = False
     return sh.selector(_cmd_flags, flags, output_type='list')
 
 

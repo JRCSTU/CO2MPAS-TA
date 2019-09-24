@@ -36,7 +36,7 @@ _base_params = r"""
                       ALL)(recon)?)?\s*$
 """
 
-_flag_params = r"""^(?P<scope>flag)(\.|\s+)(?P<flag>[^\s.]*)\s*$"""
+_flag_params = r"""^(?P<scope>flag)(\.|\s+)(?P<flag>(input_version|vehicle_family_id))\s*$"""
 
 _dice_params = r"""^(?P<scope>dice)(\.|\s+)(?P<dice>[^\s.]*)\s*$"""
 

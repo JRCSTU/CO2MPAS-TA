@@ -231,13 +231,21 @@ def get_is_hybrid(validated_dice):
 
 
 @sh.add_function(dsp, outputs=['validated_flag'], **_kw)
-def validate_flag(flag=None):
+def validate_flag(flag=None, declaration_mode=False, type_approval_mode=False):
     """
     Validate flags data.
 
     :param flag:
         Flags data.
     :type flag: dict
+
+    :param declaration_mode:
+        Use only the declaration data.
+    :type declaration_mode: bool
+
+    :param type_approval_mode:
+        Is launched for TA?
+    :type type_approval_mode: bool
 
     :return:
         Validated flags data.
@@ -247,6 +255,10 @@ def validate_flag(flag=None):
     inputs, errors, validate = {}, {}, define_flags_schema().validate
     for k, v in sorted((flag or {}).items()):
         _add_validated_input(inputs, validate, ('flag', k), v, errors)
+    if declaration_mode or type_approval_mode:
+        from co2mpas_dice.co2mpas.verify import verify_flag
+        if not verify_flag(inputs):
+            return sh.NONE
     if _log_errors_msg(errors):
         return sh.NONE
     return inputs
