@@ -1,13 +1,13 @@
 .. meta::
     :theme-color:   #CCCC00
 
-.. image:: _static/CO2MPAS_banner.svg
-   :width: 600 px
-   :align: center
+.. include:: ../README.rst
+    :start-after: .. _start-quick:
+    :end-before: .. _end-quick:
 
 .. include:: ../README.rst
-    :start-after: .. _start-opening:
-    :end-before: .. _end-opening:
+    :start-after: .. _start-badges:
+    :end-before: .. _end-badges:
 
 .. toctree::
     :maxdepth: 4
@@ -15,13 +15,12 @@
     :caption: Table of Contents
     :name: mastertoc
 
-    changes
-    install
-    explanation
-    usage
-    developers
-    reference
+    doc
+    contrib
+    tutorial
     glossary
+    api
+    change
 
 
 Indices and tables
@@ -30,6 +29,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-.. include:: ../README.rst
-    :start-after: .. _substs:

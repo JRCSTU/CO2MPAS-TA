@@ -1,16 +1,13 @@
-###############
-CO2MPAS Changes
-###############
-.. contents::
-.. _changes:
+Changelog
+=========
 
 
 ``v2.0.0``, 31 Aug 2018: "Unleash"
-==================================
+----------------------------------
 Changes since 1.7.4.post0:
 
 BREAKING:
----------
+~~~~~~~~~
 1. The ``pip`` utility contained in the old AIO is outdated (9.0.1) and
    cannot correctly install the transitive dependencies of new ``co2mpas``, even for
    development purposes.  Please upgrade your ``pip`` before following the installation
@@ -61,7 +58,7 @@ BREAKING:
 
 
 Model:
-------
+~~~~~~
 
 - feat(co2_emissions): Add ``engine_n_cylinders`` as input value and a TA parameter.
 
@@ -128,7 +125,7 @@ Model:
 
 
 IO Data
--------
+~~~~~~~
 - BREAK: Bumped input-file version from ``2.2.8 --> 2.3.0``.  And improved
   file-version comparison (:term:`Semantic Versioning`)
 
@@ -146,7 +143,7 @@ IO Data
 
 
 Dice
-----
+~~~~
 - FEAT: Added a new **"Stamp" button** on the GUI, stamping with *WebStamper*
   in the background in one step; internally it invokes the new ``dicer`` command
   (see below)(:gh:`378`).
@@ -233,7 +230,7 @@ Dice
 
 
 Various
--------
+~~~~~~~
 - FIX: Support `pip >= 10+` (see :ghp:`26`).
 - break: changed cmd-line scripts entry-points; if you install from sources,
   remember to run first: :code:`pip install -e {co2mpas-dir}`
@@ -247,7 +244,7 @@ Various
 
 
 Known Limitations
------------------
+~~~~~~~~~~~~~~~~~
 - Reproducibility of results has been greatly enhanced, with quasi-identical results
   in different platforms (*linux/Windows*).
 - DICE:
