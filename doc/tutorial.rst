@@ -591,13 +591,13 @@ Debugging and investigating results
 
   .. module:: co2mpas
 
-  .. dispatcher:: d
+  .. dispatcher:: dsp
      :alt: Flow-diagram Wheel-to-Engine speed ratio calculations.
      :height: 240
      :width: 320
 
-     >>> import co2mpas
-     >>> d = co2mpas.model.physical.wheels.wheels()
+     >>> from co2mpas.core.model.physical.wheels import dsp
+     >>> dsp = dsp.register(memo={})
 
 - Inspect the functions mentioned in the workflow and models and search them
   in `CO2MPAS documentation <http://co2mpas.io/>`_ ensuring you are

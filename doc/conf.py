@@ -48,6 +48,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'schedula.ext.autosummary',
     'schedula.ext.dispatcher',
+    'sphinx_click.ext'
 ]
 
 autosummary_generate = True

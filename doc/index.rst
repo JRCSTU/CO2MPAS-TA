@@ -18,6 +18,7 @@
     doc
     contrib
     tutorial
+    faq
     glossary
     api
     change
