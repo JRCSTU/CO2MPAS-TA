@@ -413,9 +413,13 @@ def _co2mpas_info2df(start_time, main_flags=None):
 
 def _freeze2df():
     import pandas as pd
-    # noinspection PyProtectedMember
-    from pip._internal.operations.freeze import get_installed_distributions
-    d = dict((v.key, v.version) for v in get_installed_distributions())
+    from conda.base.context import context
+    from conda.core.prefix_data import PrefixData
+    prefix = context.target_prefix
+    d = dict(
+        (prec.name, prec.version)
+        for prec in PrefixData(prefix, pip_interop_enabled=True).iter_records()
+    )
     df = pd.Series(d).to_frame()
     df.columns = ['version']
     df.index.name = 'package'
