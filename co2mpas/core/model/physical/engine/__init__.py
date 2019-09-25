@@ -16,9 +16,7 @@ Sub-Modules:
     :toctree: engine/
 
     co2_emission
-    cold_start
     idle
-    start_stop
     thermal
 """
 import math
