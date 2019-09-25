@@ -296,11 +296,10 @@ dsp.add_dispatcher(
     dsp=_clutch,
     dsp_id='clutch',
     inputs=(
-        'times', 'clutch_phases', 'gear_box_speeds_in',
-        'gear_shifts', 'gears', 'clutch_speed_model', 'max_clutch_window_width',
-        'stand_still_torque_ratio', 'stop_velocity', 'clutch_tc_speeds_delta',
+        'engine_speeds_out', 'stop_velocity', 'clutch_tc_speeds_delta', 'times',
+        'stand_still_torque_ratio', 'gear_box_speeds_in', 'clutch_speed_model',
         'accelerations', 'clutch_window', 'lockup_speed_ratio', 'velocities',
-        'engine_speeds_out', dict(
+        'gear_shifts', 'gears', 'clutch_phases', dict(
             gear_box_type=sh.SINK, has_torque_converter=sh.SINK
         )),
     outputs=(

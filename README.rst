@@ -178,8 +178,8 @@ as shown in the "active" flow-diagram of the execution, below:
    :alt: Flow-diagram of the execution of various Stages and Cycles sub-models.
    :width: 640
 
-   >>> import co2mpas
-   >>> dsp = co2mpas.model.model()
+   >>> from co2mpas.core.model import dsp
+   >>> dsp = dsp.register(memo={})
 
 .. Tip:: The models in the diagram are nested; explore by clicking on them.
 
@@ -403,7 +403,8 @@ The following table describes the scores, targets, and metrics for each model:
    :width: 600 px
    :align: center
 
-.. _substs:
+.. _end-intro:
+.. _start-badges:
 
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
 .. |CO2| replace:: CO\ :sub:`2`
@@ -411,3 +412,5 @@ The following table describes the scores, targets, and metrics for each model:
 .. _clink: http://mridgers.github.io/clink/
 .. |EUPL| replace:: *EUPL*
 .. _EUPL: https://joinup.ec.europa.eu/page/eupl-text-11-12
+
+.. _end-badges:

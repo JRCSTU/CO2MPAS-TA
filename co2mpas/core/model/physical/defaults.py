@@ -96,9 +96,6 @@ class Values(co2_utl.Constants):
     #: Service battery start window width [s].
     service_battery_start_window_width = 4.0
 
-    #: Maximum clutch window width [s].
-    max_clutch_window_width = 2.0
-
     #: Threshold vehicle velocity for gear correction due to full load curve
     #: [km/h].
     max_velocity_full_load_correction = 100.0
