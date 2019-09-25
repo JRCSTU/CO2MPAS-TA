@@ -52,7 +52,12 @@ _prediction_data = [
     'has_periodically_regenerating_systems', 'n_dyno_axes',
     'has_selective_catalytic_reduction', 'has_exhausted_gas_recirculation',
     'start_stop_activation_time', 'engine_n_cylinders',
-    'initial_drive_battery_state_of_charge'
+    'initial_drive_battery_state_of_charge',
+    'motor_p0_speed_ratio', 'motor_p1_speed_ratio',
+    'motor_p2_speed_ratio', 'motor_p2_planetary_speed_ratio',
+    'motor_p3_front_speed_ratio', 'motor_p3_rear_speed_ratio',
+    'motor_p4_front_speed_ratio', 'motor_p4_rear_speed_ratio'
+
 ]
 
 _prediction_data_ts = ['times', 'velocities', 'gears']
