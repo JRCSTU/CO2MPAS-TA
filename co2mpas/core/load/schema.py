@@ -158,6 +158,12 @@ def _index_dict(error=None, **kwargs):
     return Or(s, And(_dict(), c), And(_type(), Use(_f), c), error=error)
 
 
+def _np_array2list(x):
+    r = x.astype(object)
+    r[np.isnan(x)] = None
+    return r.tolist()
+
+
 # noinspection PyUnusedLocal
 def _np_array(dtype=None, error=None, read=True, **kwargs):
     dtype = dtype or float
@@ -168,9 +174,7 @@ def _np_array(dtype=None, error=None, read=True, **kwargs):
             c, usersyms={'np.array': np.array}
         )), c, And(_type(), c), Empty(), error=error)
     else:
-        return And(
-            _np_array(dtype=dtype), Use(lambda x: x.tolist()), error=error
-        )
+        return And(_np_array(dtype=dtype), Use(_np_array2list), error=error)
 
 
 def _check_np_array_positive(x):
@@ -204,38 +208,53 @@ def _np_array_positive(dtype=None, error=None, read=True,
 
 
 # noinspection PyUnusedLocal
-def _alternator_current_model(error=None, **kwargs):
-    from ..model.physical.electrics.motors.alternator.current import (
-        AlternatorCurrentModel
+def _alternator_current_model(error=None, read=True, **kwargs):
+    if read:
+        from ..model.physical.electrics.motors.alternator.current import (
+            AlternatorCurrentModel
+        )
+        return _type(type=AlternatorCurrentModel, error=error)
+    return And(_alternator_current_model(), Use(lambda x: sh.NONE), error=error)
+
+
+# noinspection PyUnusedLocal
+def _service_battery_status_model(error=None, read=True, **kwargs):
+    if read:
+        from ..model.physical.electrics.batteries.service.status import (
+            BatteryStatusModel
+        )
+        return _type(type=BatteryStatusModel, error=error)
+    return And(
+        _service_battery_status_model(), Use(lambda x: sh.NONE), error=error
     )
-    return _type(type=AlternatorCurrentModel, error=error)
 
 
 # noinspection PyUnusedLocal
-def _service_battery_status_model(error=None, **kwargs):
-    from ..model.physical.electrics.batteries.service.status import (
-        BatteryStatusModel
+def _engine_temperature_regression_model(error=None, read=True, **kwargs):
+    if read:
+        # noinspection PyProtectedMember
+        from ..model.physical.engine._thermal import ThermalModel
+        return _type(type=ThermalModel, error=error)
+    return And(
+        _engine_temperature_regression_model(), Use(lambda x: sh.NONE),
+        error=error
     )
-    return _type(type=BatteryStatusModel, error=error)
 
 
 # noinspection PyUnusedLocal
-def _engine_temperature_regression_model(error=None, **kwargs):
-    # noinspection PyProtectedMember
-    from ..model.physical.engine._thermal import ThermalModel
-    return _type(type=ThermalModel, error=error)
+def _fmep_model(error=None, read=True, **kwargs):
+    if read:
+        from ..model.physical.engine.co2_emission import FMEP
+        return _type(type=FMEP, error=error)
+    return And(_fmep_model(), Use(lambda x: sh.NONE), error=error)
 
 
 # noinspection PyUnusedLocal
-def _fmep_model(error=None, **kwargs):
-    from ..model.physical.engine.co2_emission import FMEP
-    return _type(type=FMEP, error=error)
-
-
-# noinspection PyUnusedLocal
-def _start_stop_model(error=None, **kwargs):
-    from sklearn.tree import DecisionTreeClassifier
-    return _type(type=DecisionTreeClassifier, error=error)
+def _start_stop_model(error=None, read=True, **kwargs):
+    if read:
+        from sklearn.tree import DecisionTreeClassifier
+        return _type(type=DecisionTreeClassifier, error=error)
+    return And(_start_stop_model(), Use(lambda x: sh.NONE), error=error)
 
 
 # noinspection PyUnusedLocal
@@ -515,7 +534,8 @@ def define_data_schema(read=True):
         'ignition_type': _select(types=('positive', 'compression'), read=read),
         'start_stop_activation_time': positive,
         'alternator_nominal_voltage': positive,
-        _convert_str('battery_voltage', 'service_battery_nominal_voltage'): positive,
+        _convert_str('battery_voltage',
+                     'service_battery_nominal_voltage'): positive,
         _convert_str('battery_capacity', 'service_battery_capacity'): positive,
         _convert_str('state_of_charge_balance',
                      'service_battery_state_of_charge_balance'): limits,
