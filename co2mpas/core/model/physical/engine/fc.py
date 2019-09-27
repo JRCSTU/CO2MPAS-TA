@@ -516,7 +516,7 @@ class FMEP:
         self.fbc = full_bmep_curve
 
         self.has_cylinder_deactivation = has_cylinder_deactivation
-        self.acr_after_treatment_temp = float(acr_after_treatment_temp)
+        self.acr_after_treatment_temp = float(acr_after_treatment_temp[0])
         self.acr_max_mean_piston_speeds = float(acr_max_mean_piston_speeds)
         self.acr_min_mean_piston_speeds = float(acr_min_mean_piston_speeds)
         self.acr_fbc_percentage = acr_full_bmep_curve_percentage

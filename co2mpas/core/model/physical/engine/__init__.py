@@ -929,7 +929,7 @@ dsp.add_dispatcher(
         'has_exhausted_gas_recirculation', 'fuel_carbon_content', 'engine_type',
         'engine_coolant_temperatures', 'mean_piston_speeds', 'phases_distances',
         'co2_normalization_references', 'phases_co2_emissions', 'is_cycle_hot',
-        'co2_params', 'fuel_type', {
+        'engine_inertia_powers_losses', 'co2_params', 'fuel_type', {
             'co2_params_calibrated': ('co2_params_calibrated', 'co2_params'),
             'engine_idle_fuel_consumption': (
                 'engine_idle_fuel_consumption',

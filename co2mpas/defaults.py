@@ -622,11 +622,12 @@ class Functions(co2_utl.Constants):
     class define_fmep_model(co2_utl.Constants):
         #: Percentage of max full bmep curve used as limit in cylinder
         #: deactivation strategy [-].
-        acr_full_bmep_curve_percentage = 0.45
+        acr_full_bmep_curve_percentage = 0.72
 
         #: Percentage of max mean piston speeds used as limit in cylinder
         #: deactivation strategy [-].
-        acr_max_mean_piston_speeds_percentage = 0.6
+        acr_max_mean_piston_speeds_percentage = 0.45
+        acr_min_mean_piston_speeds_percentage = 1.5
 
         #: Percentage of max full bmep curve used as limit in lean burn
         #: strategy [-].
