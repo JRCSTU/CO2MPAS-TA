@@ -61,7 +61,9 @@ def calculate_distances(times, velocities):
         Cumulative distance vector [m].
     :rtype: numpy.array
     """
-    return _integral(times, velocities / 3.6, 0)
+    d = _integral(times, velocities / 3.6, 0)
+    d[1:] = np.cumsum(np.maximum(0, np.diff(d))) + d[0]
+    return d
 
 
 @sh.add_function(
@@ -87,7 +89,8 @@ def calculate_velocities_v1(times, accelerations, initial_velocity=.0):
         Velocity vector [km/h].
     :rtype: numpy.array
     """
-    return _integral(times, accelerations, initial_velocity / 3.6) * 3.6
+    vel = _integral(times, accelerations, initial_velocity / 3.6) * 3.6
+    return np.maximum(0, vel)
 
 
 @sh.add_function(dsp, outputs=['accelerations'])
