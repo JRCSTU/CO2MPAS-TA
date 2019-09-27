@@ -103,7 +103,7 @@ if __name__ == '__main__':
         'sync': ['syncing', 'pandas>=0.21.0'],
         'plot': ['flask', 'regex', 'graphviz', 'Pygments', 'lxml',
                  'beautifulsoup4', 'jinja2', 'docutils', 'matplotlib'],
-        'io': ['pandas>=0.21.0', 'dill', 'regex', 'pandalone[xlrd]', 'conda',
+        'io': ['pandas>=0.21.0', 'dill', 'regex', 'pandalone[xlrd]',
                'xlrd', 'asteval']
     }
     extras['dice'] = ['co2mpas_dice'] + extras['io']

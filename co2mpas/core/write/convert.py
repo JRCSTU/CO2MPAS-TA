@@ -10,6 +10,7 @@ Functions to convert CO2MPAS output report to DataFrames.
 import regex
 import functools
 import itertools
+import logging
 import collections
 import schedula as sh
 
@@ -411,18 +412,40 @@ def _co2mpas_info2df(start_time, main_flags=None):
     return df
 
 
-def _freeze2df():
+def _collect_installed_packages():
+    """
+    Collect installed packages from `pip` & `conda` commands, if present.
+
+    **Example:**
+    
+    >>> _collect_installed_packages()
+                version
+    package             
+    ...
+    """
+    import json
     import pandas as pd
-    from conda.base.context import context
-    from conda.core.prefix_data import PrefixData
-    prefix = context.target_prefix
-    d = dict(
-        (prec.name, prec.version)
-        for prec in PrefixData(prefix, pip_interop_enabled=True).iter_records()
+    import subprocess as sbp
+
+    cmds = [
+        "pip list --format json",
+        "conda list --json --no-pip",
+    ]
+    packages = []
+    for cmd in cmds:
+        try:
+            out = sbp.check_output(cmd.split())
+            js_packs = json.loads(out)
+        except Exception as ex:
+            logging.getLogger(__name__).info("Failed collecting installation info with cmd: %s\n%s", cmd, ex)
+        else:
+            packages.extend((pack['name'], pack['version']) for pack in js_packs)
+            
+    df = (
+        pd.DataFrame(packages, columns=['package', 'version'])
+        .drop_duplicates('package')
+        .set_index('package')
     )
-    df = pd.Series(d).to_frame()
-    df.columns = ['version']
-    df.index.name = 'package'
     df.name = 'packages'
 
     return df
@@ -456,7 +479,7 @@ def _pipe2list(pipe, i=0, source=()):
 
 
 def _proc_info2df(data, start_time, main_flags):
-    res = (_co2mpas_info2df(start_time, main_flags), _freeze2df())
+    res = (_co2mpas_info2df(start_time, main_flags), _collect_installed_packages())
 
     df, max_l = _pipe2list(data.get('pipe', {}))
 
