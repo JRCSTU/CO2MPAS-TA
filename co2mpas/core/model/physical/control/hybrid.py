@@ -1016,6 +1016,8 @@ def identify_after_treatment_warm_up_phases(
         )[0]]] = 1
     warm_up = co2_utl.median_filter(times, warm_up, 5)
     warm_up = co2_utl.clear_fluctuations(times, warm_up, 5).astype(bool)
+    if not warm_up.any():
+        return warm_up
     indices, temp = co2_utl.index_phases(warm_up), engine_coolant_temperatures
     b = np.diff(temp[indices], axis=1) > 4
     b &= temp[indices[:, 0], None] < (engine_thermostat_temperature - 10)
