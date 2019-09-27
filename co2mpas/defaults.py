@@ -206,6 +206,11 @@ class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+    class calculate_cylinder_deactivation_valid_phases(co2_utl.Constants):
+        #: Engine inertia  [kW].
+        LIMIT = 0.3
+
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class calculate_drive_battery_n_parallel_cells_v1(co2_utl.Constants):
         #: Voltage for calculating the number of parallel battery cells [V].
         reference_volt = {

@@ -495,6 +495,8 @@ class FMEP:
                  has_cylinder_deactivation=False,
                  acr_full_bmep_curve_percentage=0.5,
                  acr_max_mean_piston_speeds=12.0,
+                 acr_min_mean_piston_speeds=3.0,
+                 acr_after_treatment_temp=-273,
                  has_variable_valve_actuation=False,
                  has_lean_burn=False,
                  lb_max_mean_piston_speeds=12.0,
@@ -514,7 +516,9 @@ class FMEP:
         self.fbc = full_bmep_curve
 
         self.has_cylinder_deactivation = has_cylinder_deactivation
+        self.acr_after_treatment_temp = float(acr_after_treatment_temp)
         self.acr_max_mean_piston_speeds = float(acr_max_mean_piston_speeds)
+        self.acr_min_mean_piston_speeds = float(acr_min_mean_piston_speeds)
         self.acr_fbc_percentage = acr_full_bmep_curve_percentage
 
         self.has_variable_valve_actuation = has_variable_valve_actuation
@@ -573,13 +577,19 @@ class FMEP:
 
         return a
 
-    def acr(self, params, n_speeds, n_powers, n_temp, a=None):
+    def acr(self, params, n_speeds, n_powers, n_temp, a=None, acr_valids=None):
         a = a or {'acr': [(self.base_acr, True)]}
         if self.has_cylinder_deactivation and self.active_cylinder_ratios and \
                 'acr' not in params:
             l = a['acr']
-            b = (n_temp == 1) & (n_powers > 0)
+            at_n_temp = _normalized_engine_coolant_temperatures(
+                self.acr_after_treatment_temp, params['trg']
+                )
+            b = (n_temp > at_n_temp) & (n_powers > 0)
+            b &= (self.acr_min_mean_piston_speeds < n_speeds)
             b &= (n_speeds < self.acr_max_mean_piston_speeds)
+            if acr_valids is not None:
+                b &= acr_valids
             ac = n_powers / (self.fbc(n_speeds) * self.acr_fbc_percentage)
             for acr in sorted(self.active_cylinder_ratios):
                 l.append((acr, b & (ac < acr)))
@@ -664,6 +674,17 @@ class FMEP:
         return s['fmep'], s['v'], acr, vva, lb, egr
 
 
+@sh.add_function(dsp, outputs=['cylinder_deactivation_valid_phases'])
+def calculate_cylinder_deactivation_valid_phases(engine_inertia_powers_losses):
+    """
+    Calculates 
+    :param engine_inertia_powers_losses:
+    :
+    """
+    p = dfl.functions.calculate_cylinder_deactivation_valid_phases.LIMIT
+    return engine_inertia_powers_losses <= p
+
+
 dsp.add_data('active_cylinder_ratios', dfl.values.active_cylinder_ratios)
 dsp.add_data(
     'engine_has_cylinder_deactivation',
@@ -686,7 +707,7 @@ def define_fmep_model(
         active_cylinder_ratios, engine_has_cylinder_deactivation,
         engine_has_variable_valve_actuation, has_lean_burn,
         has_exhausted_gas_recirculation, has_selective_catalytic_reduction,
-        engine_type):
+        engine_type, idle_engine_speed, after_treatment_temperature_threshold):
     """
     Defines the vehicle FMEP model.
 
@@ -740,7 +761,9 @@ def define_fmep_model(
     lb_fbcp = d.lb_full_bmep_curve_percentage
     egr_fbcp = d.egr_full_bmep_curve_percentage
 
-    acr_mps = d.acr_max_mean_piston_speeds_percentage * engine_max_speed
+    acr_maps = d.acr_max_mean_piston_speeds_percentage * engine_max_speed
+    acr_mips = d.acr_min_mean_piston_speeds_percentage * idle_engine_speed[0]
+    
     lb_mps = d.lb_max_mean_piston_speeds_percentage * engine_max_speed
     egr_mps = d.egr_max_mean_piston_speeds_percentage * engine_max_speed
 
@@ -752,7 +775,9 @@ def define_fmep_model(
         active_cylinder_ratios=active_cylinder_ratios,
         has_cylinder_deactivation=engine_has_cylinder_deactivation,
         acr_full_bmep_curve_percentage=acr_fbcp,
-        acr_max_mean_piston_speeds=bmep(acr_mps, engine_stroke),
+        acr_max_mean_piston_speeds=bmep(acr_maps, engine_stroke),
+        acr_min_mean_piston_speeds=bmep(acr_mips, engine_stroke),
+        acr_after_treatment_temp=after_treatment_temperature_threshold,
         has_variable_valve_actuation=engine_has_variable_valve_actuation,
         has_lean_burn=has_lean_burn,
         lb_max_mean_piston_speeds=bmep(lb_mps, engine_stroke),
