@@ -352,9 +352,10 @@ class HEV:
     def serial(self, motive_powers, motors_maximums_powers, engine_powers_out,
                ice_power_losses=0, battery_power_losses=0):
         pi, pb_ev, bps_ev = self.ev(motive_powers, motors_maximums_powers)
-
+        from ..electrics.motors.p4 import calculate_motor_p4_powers_v1 as func
+        pw = func(pi.ravel(), self.ice_eff)
         pi, pb, bps = self.parallel(
-            np.zeros_like(motive_powers), np.pad(
+            pw, np.pad(
                 motors_maximums_powers[:, -3:], ((0, 0), (5, 0)), 'constant'
             ), engine_powers_out=engine_powers_out,
             ice_power_losses=ice_power_losses,
@@ -693,7 +694,9 @@ class EMS:
         ))
         (pb_ev, pi), pl = _interp(0, pi.T, pb.T), ice_power_losses
         pb_ev, fds = pb_ev.ravel(), final_drive_speeds_in[:, None]
-        pi = pi.ravel() * hev.ice_eff
+        from ..electrics.motors.p4 import calculate_motor_p4_powers_v1 as func
+        pw = func(pi.ravel(), hev.ice_eff)
+        del pi
         if engine_speeds_out is None:
             # noinspection PyProtectedMember
             es = self.fuel_map_model.speed_power._data[0]
@@ -706,13 +709,13 @@ class EMS:
                 pl = self.engine_power_losses(times, es, inertia=False)
             es, pl = es.ravel()[:, None], pl.ravel()
             fds = np.tile(fds, n).ravel()[:, None]
-            pi = np.tile(pi[:, None], n).ravel()
+            pw = np.tile(pw[:, None], n).ravel()
         else:
             es = engine_speeds_out[:, None]
             if pl is None:
                 pl = self.engine_power_losses(times, engine_speeds_out)
         mmp = self.serial_motor_maximum_power(es, fds)
-        pi, pb, bps = hev.ice_power(pi, mmp)
+        pi, pb, bps = hev.ice_power(pw, mmp)
         pi += np.atleast_2d(pl)
         pb, pi = _interp(fc.speed_power(es), pi.T, pb.T)
         if engine_speeds_out is None:
