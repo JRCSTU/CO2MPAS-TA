@@ -66,6 +66,22 @@ def calculate_distances(times, velocities):
     return d
 
 
+@sh.add_function(dsp, outputs=['driven_distance'])
+def identify_driven_distance(distances):
+    """
+    Identifies driven distance [km].
+
+    :param distances:
+        Cumulative distance vector [m].
+    :type distances: numpy.array
+
+    :return:
+        Driven distance [km].
+    :rtype: float
+    """
+    return distances[-1] / 1000
+
+
 @sh.add_function(
     dsp, inputs_kwargs=True, inputs_defaults=True, outputs=['velocities']
 )

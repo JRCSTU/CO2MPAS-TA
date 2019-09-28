@@ -912,9 +912,6 @@ class Functions(co2_utl.Constants):
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class default_fuel_density(co2_utl.Constants):
-        #: Enable function?
-        ENABLE = False
-
         #: Fuel density [g/l].
         FUEL_DENSITY = {
             'gasoline': 745.0,
@@ -959,6 +956,30 @@ class Functions(co2_utl.Constants):
             'methanol': 1.37,
             'propane': 2.99,
             'biodiesel': 2.81,
+        }
+
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+    class calculate_corrected_co2_emission_value(co2_utl.Constants):
+        #: Willans factors [gCO2/MJ].
+        WILLANS = {
+            'gasoline': {
+                'positive turbo': 184, 'positive natural aspiration': 174
+            },
+            'diesel': {'compression': 161},
+            'LPG': {'positive turbo': 164, 'positive natural aspiration': 155},
+            'NG': {'positive turbo': 137, 'positive natural aspiration': 129},
+            'ethanol': {
+                'positive turbo': 179, 'positive natural aspiration': 169
+            },
+            'methanol': {
+                'positive turbo': 184 * 1.37 / 3.17 * 432.0 / 198.0,
+                'positive natural aspiration': 174 * 1.37 / 3.17 * 432.0 / 198.0
+            },
+            'propane': {
+                'positive turbo': 184 * 2.99 / 3.17 * 432.0 / 496.8,
+                'positive natural aspiration': 174 * 2.99 / 3.17 * 432.0 / 496.8
+            },
+            'biodiesel': {'compression': 161 * 2.81 / 3.16 * 431.0 / 379.0},
         }
 
 

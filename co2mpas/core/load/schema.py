@@ -244,7 +244,7 @@ def _engine_temperature_regression_model(error=None, read=True, **kwargs):
 # noinspection PyUnusedLocal
 def _fmep_model(error=None, read=True, **kwargs):
     if read:
-        from ..model.physical.engine.co2_emission import FMEP
+        from ..model.physical.engine.fc import FMEP
         return _type(type=FMEP, error=error)
     return And(_fmep_model(), Use(lambda x: sh.NONE), error=error)
 

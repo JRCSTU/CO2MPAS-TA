@@ -9,29 +9,31 @@ Changes since 1.7.4.post0:
 BREAKING:
 ~~~~~~~~~
 1. The ``pip`` utility contained in the old AIO is outdated (9.0.1) and
-   cannot correctly install the transitive dependencies of new ``co2mpas``, even for
-   development purposes.  Please upgrade your ``pip`` before following the installation
-   or upgrade instructions for developers (e.g. in :term:`AIO`
+   cannot correctly install the transitive dependencies of new ``co2mpas``, even
+   for development purposes.  Please upgrade your ``pip`` before following the
+   installation or upgrade instructions for developers (e.g. in :term:`AIO`
    use ``../Apps/WinPython/scripts/upgrade_pip.bat``).
 
-2. The ``vehicle_family_id`` format has changed (but old format is still supported)::
+2. The ``vehicle_family_id`` format has changed (but old format is still
+   supported)::
 
        OLD: FT-TA-WMI-yyyy-nnnn
        NEW: FT-nnnnnnnnnnnnnnn-WMI-x
 
-3. The co2mpas python package has been splitted (see :gh:`408`), and is now served
-   by 4 python packages listed below.  In practice this means that you can still receive
-   bug-fixes and new features for the DICE or the GUI, while keeping the simulation-model
-   intact.
+3. The co2mpas python package has been splitted (see :gh:`408`), and is now
+   served by 4 python packages listed below.  In practice this means that you
+   can still receive bug-fixes and new features for the DICE or the GUI, while
+   keeping the simulation-model intact.
 
-   1. ``co2sim``: the simulator, for standalone/engineering work. Now all IO-libraries
-      and graph-drawing are optional, specified the ``io`` & ``plot`` "extras".
-      If you need just the simulator to experiment, you need this command
-      to install/upgrade it with::
+   1. ``co2sim``: the simulator, for standalone/engineering work. Now all
+      IO-libraries and graph-drawing are optional, specified the ``io`` &
+      ``plot`` "extras". If you need just the simulator to experiment, you need
+      this command to install/upgrade it with::
 
           pip install co2sim[io,plot] -U
 
-   2. ``co2dice``: the backend & commands for :abbr:`DICE (Distributed Impromptu Co2mpas Evaluation)`.
+   2. ``co2dice``: the backend & commands for :abbr:`DICE (Distributed Impromptu
+      Co2mpas Evaluation)`.
 
    3. ``co2gui``: the GUI.
 
@@ -49,9 +51,9 @@ BREAKING:
        co2mpas
 
    .. Note::
-     ``co2sim`` on startup checks if the old ``co2mpas-v1.x`` is still installed,
-     and aborts In that case, uninstall all projects and re-install them,
-     to be on the safe side, with this commands::
+     ``co2sim`` on startup checks if the old ``co2mpas-v1.x`` is still
+     installed, and aborts In that case, uninstall all projects and re-install
+     them, to be on the safe side, with this commands::
 
          pip uninstall -y co2sim co2dice co2gui co2mpas
          pip install co2sim co2dice co2gui co2mpas -U
@@ -60,19 +62,20 @@ BREAKING:
 Model:
 ~~~~~~
 
-- feat(co2_emissions): Add ``engine_n_cylinders`` as input value and a TA parameter.
+- feat(co2_emissions): Add ``engine_n_cylinders`` as input value and a TA
+  parameter.
 
 - feat(ta): New TA output file.
 
-  Running CO2MPAS in TA mode, will produce an extra file containing the DICE report.
-  This file will be used in the feature version of DICE.
+  Running CO2MPAS in TA mode, will produce an extra file containing the DICE
+  report. This file will be used in the feature version of DICE.
 
 - feat(core): Improve calibration performances 60%.
 
 - feat(manual): Add a manual prediction model according GTR.
 
-- feat(gearbox): Add utility to design gearbox ratios if they cannot be identified
-  based on ``maximum_velocity`` and ``maximum_vehicle_laden_mass``.
+- feat(gearbox): Add utility to design gearbox ratios if they cannot be
+  identified based on ``maximum_velocity`` and ``maximum_vehicle_laden_mass``.
 
   This is not affecting the TA mode.
 
@@ -103,8 +106,8 @@ Model:
 
 - fix(vva): Remove ``_check_vva``.
 
-  ``engine_has_variable_valve_actuation = True`` and ``ignition_type = 'compression'``
-  is permitted.
+  ``engine_has_variable_valve_actuation = True`` and
+  ``ignition_type = 'compression'`` is permitted.
 
 - fix(ki_factor): Rename ``ki_factor`` to ``ki_multiplicative`` and add
   ``ki_additive value``.
@@ -135,11 +138,11 @@ IO Data
         OLD: FT-TA-WMI-yyyy-nnnn
         NEW: FT-nnnnnnnnnnnnnnn-WMI-x
 
-- feat: Input-template provide separate H/L fields for both *ki multiplicative* and
-  *Ki additive* parameters.
+- feat: Input-template provide separate H/L fields for both *ki multiplicative*
+  and *Ki additive* parameters.
 
-- drop: remove deprecated  ``co2mpas gui`` sub-command - ``co2gui`` top-level command
-  is the norm since January 2017.
+- drop: remove deprecated  ``co2mpas gui`` sub-command - ``co2gui`` top-level
+  command is the norm since January 2017.
 
 
 Dice
@@ -155,39 +158,40 @@ Dice
       co2dice dicer -i co2mpas_demo-1.xlsx -o O/20180812_213917-co2mpas_demo-1.xlsx
 
   Specifically when the project exists, e.g. when clicking again the *GUI-button,
-  it compares the given files *bit-by-bit* with the ones present already in the project,
-  and proceeds *only when there are no differences.
+  it compares the given files *bit-by-bit* with the ones present already in the
+  project, and proceeds *only when there are no differences.
 
   Otherwise (or on network error), falling back to cli commands is needed,
   similar to what is done with abnormal cases such as ``--recertify``,
   over-writing files, etc.
 
 - All dice-commands and *WebStamper* now also work with files, since *Dices*
-  can potentially be MBs in size; **Copy + Paste** becomes problematic in these cases.
+  can potentially be MBs in size; **Copy + Paste** becomes problematic in these
+  cases.
 
-- Added low-level ``co2dice tstamp wstamp`` cli-command that Stamps a pre-generated
-  :term:`Dice` through *WebStamper*.
+- Added low-level ``co2dice tstamp wstamp`` cli-command that Stamps a
+  pre-generated :term:`Dice` through *WebStamper*.
 
 
 - FEAT: The commands ``co2dice dicer|init|append|report|recv|parse`` and
-  ``co2dice tstamp wstamp``, support one or more ``--write-file <path>/-W`` options,
-  to and every time they run,  they can *append* or *overwrite* into all given ``<path>``
-  these 3 items as they are generated/received:
+  ``co2dice tstamp wstamp``, support one or more ``--write-file <path>/-W``
+  options, to and every time they run,  they can *append* or *overwrite* into
+  all given ``<path>`` these 3 items as they are generated/received:
 
     1. :term:`Dice report`;
     2. :term:`Stamp`  (or any errors received from :term:`WebStamper`;
     3. :term:`Decision`.
 
-  By default, one ``<path>`` is always ``~/.co2dice/reports.txt``, so this becomes
-  the de-facto "keeper" of all reports exchanged (to mitigate a *known limitation*
-  about not being able to retrieve old *stamps*).
+  By default, one ``<path>`` is always ``~/.co2dice/reports.txt``, so this
+  becomes the de-facto "keeper" of all reports exchanged (to mitigate a *known
+  limitation* about not being able to retrieve old *stamps*).
   The location of the *reports.txt* file is configurable with
 
     - ``c.ReportsKeeper.default_reports_fpath`` configuration property, and/or
     - :envvar:`CO2DICE_REPORTS_FPATH` (the env-var takes precedence).
 
-- feat: command ``co2dice project report <report-index>`` can retrieve older reports
-  (not just the latest one).  Negative indexes count from the end, and
+- feat: command ``co2dice project report <report-index>`` can retrieve older
+  reports (not just the latest one).  Negative indexes count from the end, and
   need a trick to use them::
 
        co2dice project report -- -2
@@ -200,7 +204,9 @@ Dice
 
 - feat(:gh:`466`, :gh:`467`, io, dice):
   Add ``--with-inputs`` on ``co2dice project init|append|report|dicer`` commands
-  that override flag in user-data `.xlsx` file, and attached all inputs encrypted in dice.
+  that override flag in user-data `.xlsx` file, and attached all inputs
+  encrypted in dice.
+
 - feat: add 2 sub-commands in `report` standalone command::
 
       co2dice report extract  # that's the old `co2dice report`
@@ -245,11 +251,11 @@ Various
 
 Known Limitations
 ~~~~~~~~~~~~~~~~~
-- Reproducibility of results has been greatly enhanced, with quasi-identical results
-  in different platforms (*linux/Windows*).
+- Reproducibility of results has been greatly enhanced, with quasi-identical
+  results in different platforms (*linux/Windows*).
 - DICE:
-  - Fixed known limitation of `1.7.3` (:gh:`448`) of importing stamps from an older
-    duplicate dice.
+  - Fixed known limitation of `1.7.3` (:gh:`448`) of importing stamps from an
+    older duplicate dice.
   - It is not possible to ``-recertify`` from ``nedc`` state
     (when mored files have been appended after stamping).
   - There is still no high level command to view Stamps (see low-level command
@@ -547,6 +553,9 @@ Model:
 - fix: remove some pandas warnings
 
 
+Intermediate releases for ``1.8.x``:
+------------------------------------
+
 ``v1.8.1a2``, 12 Jun 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 Tagged as ``co2mpas_v1.8.1a0`` just to switch *polyversion* repo-scheme,
@@ -609,15 +618,16 @@ Pre-``v1.8.0.dev0``, 15 Nov 2017
 - Dice & WebStamper updates...
 
 
-
+Intermediate releases for ``1.7.x``:
+------------------------------------
 
 ``v1.7.4.post3``, 10 Aug 2018
-=============================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Settled dependencies for :command:`pip` and :command:`conda` environments.
 
 
 ``v1.7.4.post2``, 8 Aug 2018
-============================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Fixed regression by "piping to stdout" of previous broken release `1.7.1.post1`.
 - Pinned dependencies needed for downgrading from `v1.9.x`.
 
@@ -638,7 +648,7 @@ Settled dependencies for :command:`pip` and :command:`conda` environments.
     and then run the command ``pip install -r <git-repo>/requirements/exe.pip``.
 
 ``v1.7.4.post1``, 3 Aug 2018 (BROKEN!)
---------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Backport fixes to facilitate comparisons with forthcoming release 1.9+.
 
 - Support `pip >= 10+` (fixes :ghp:`26`).
@@ -647,14 +657,14 @@ Backport fixes to facilitate comparisons with forthcoming release 1.9+.
 
 
 v1.7.4.post0, 11 Dec 2017
-=========================
+~~~~~~~~~~~~~~~~~~~~~~~~~
 Never released in *PyPi*, just for fixes for WebStamper and the site for "Toketos".
 
 - feat(wstamp): cache last sender+recipient in cookies.
 
 
 v1.7.4, 15 Nov 2017: "Toketos"
-==============================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - feat(dice, :gh:`447`): Allow skipping ``tsend -n`` command to facilitate
   :term:`WebStamper`, and transition from ``tagged`` --> ``sample`` / ``nosample``.
 
@@ -663,7 +673,7 @@ v1.7.4, 15 Nov 2017: "Toketos"
 
 
 v1.7.3.post0, 16 Oct 2017
-=========================
+~~~~~~~~~~~~~~~~~~~~~~~~~
 - feat(co2p): The new option ``--recertify`` to ``co2dice project append`` allows to extend
   certification files for some vehile-family with new ones
 
@@ -688,7 +698,7 @@ v1.7.3.post0, 16 Oct 2017
   invalid signatures.
 
 Known Limitations
------------------
+^^^^^^^^^^^^^^^^^
 co2dice(:gh:`448`): if more than one dice-report is generated for a project,
 it is still possible to parse anyone tstamp on the project - no check against
 the hash-1 performed.  So practically in this case, the history of the project
@@ -697,13 +707,13 @@ is corrupted.
 
 
 v1.7.3, 16 August 2017: "T-REA" Release
-=======================================
+---------------------------------------
 - Dice & model fine-tuning.
 - Includes changes also from **RETRACTED** ``v1.6.1.post0``, 13 July 2017,
   "T-bone" release.
 
 The Dice:
----------
+~~~~~~~~~
 - feat(config): stop accepting test-key (``'CBBB52FF'``); you would receive this
   error message::
 
@@ -777,7 +787,7 @@ The Dice:
   - ``co2dice project backup``: add ``--erase-afterwards`` option.
 
 Known Limitations
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
   - Microsoft Outlook Servers are known to corrupt the dice-emails; depending
     on the version and the configurations, most of the times they can be fixed.
     If not, as a last resort, another email-account may be used.
@@ -816,7 +826,7 @@ Known Limitations
 
 
 Datasync
---------
+~~~~~~~~
 - :gh:`390`: Datasync was producing 0 values in the first and/or in the last
   cells. This has been fixed extending the given signal with the first and last
   values.
@@ -824,12 +834,12 @@ Datasync
 
 
 Model-changes
--------------
+~~~~~~~~~~~~~
 - :git:`d21b665`, :git:`5f8f58b`, :git:`33538be`: Speedup the model avoiding
   useless identifications during the prediction phase.
 
 Vehicle model
-~~~~~~~~~~~~~
+^^^^^^^^^^^^^
 - :git:`d90c697`: Add road loads calculation from vehicle and tyre category.
 - :git:`952f16b`: Update the `rolling_resistance_coeff` according to table A4/1
   of EU legislation not world wide.
@@ -837,23 +847,23 @@ Vehicle model
   vehicle_body.
 
 Thermal model
-~~~~~~~~~~~~~
+^^^^^^^^^^^^^
 - :gh:`169`: Add a filter to remove invalid temperature derivatives (i.e.,
   `abs(DT) >= 0.7`) during the cold phase.
 
 Clutch model
-~~~~~~~~~~~~
+^^^^^^^^^^^^
 - :gh:`330`: Some extra RPM (peaks) has been verified before the engine's stops.
   This problem has been resolved filtering out `clutch_delta > 0` when `acc < 0`
   and adding a `features selection` in the calibration of the model.
 
 Engine model
-~~~~~~~~~~~~
+^^^^^^^^^^^^
 - :git:`4c07751`: The `auxiliaries_torque_losses` are function of
   `engine_capacity`.
 
 CO2 model
-~~~~~~~~~
+^^^^^^^^^
 - :gh:`350`: Complete fuel default characteristics (LHV, Carbon Content, and
   Density).
 - :git:`2e890f0`: Fix of the bug in `tau_function` when a hot cycle is given.
@@ -868,7 +878,7 @@ CO2 model
 
 
 IO & Data:
-----------
+~~~~~~~~~
 - fix(xlsx, :gh:`426`): excel validation formulas on input-template & demos did
   not accept *vehicle-family-id* with single-digit TA-ids.
 - :gh:`314`, gh:`410`: MOVED MOST DEMO-FILES to AIO archive - 2 files are left.
@@ -882,21 +892,21 @@ IO & Data:
   ``--override-cache --> use-cache``.
 
 Known Limitations
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 - The ``co2mpas modelgraph`` command cannot plot flow-diagrams if Internet
   Explorer (IE) is the default browser.
 
 
 GUI
----
+~~~
 - feat: ``co2gui`` command  does not block, and stores logs in temporary-file.
   It launches this file in a text-editor in case of failures.
 - feat: remember position and size between launches (stored in *persistent* JSON
   file).
 
 
-AIO:
-----
+AIO
+~~~
 - Detect 32bit Windows early, and notify user with an error-popup.
 - Possible to extract archive into path with SPACES (not recommended though).
 - Switched from Cygwin-->MSYS2 for the POSIX layer, for better support in
@@ -910,9 +920,3 @@ AIO:
 
 - Use ``[AIO]`` to signify the ALLINONE base-folder in the documentation; use it
   in co2mpas to suppress excessive development warnings.
-
-
-Older Changes
-=============
-.. _changes-end:
-See also the `historic changes of "unofficial" releases <doc/changes-unofficial.html>`_.

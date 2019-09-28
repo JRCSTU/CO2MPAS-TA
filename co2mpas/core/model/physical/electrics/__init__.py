@@ -172,7 +172,7 @@ dsp.add_dispatcher(
         'service_battery_state_of_charge_balance', 'drive_battery_currents',
         'dcdc_converter_electric_powers_demand', 'drive_battery_voltages',
         'drive_battery_nominal_voltage', 'dcdc_converter_efficiency',
-        'drive_battery_n_cells',
+        'service_battery_delta_energy', 'drive_battery_n_cells',
     ),
     include_defaults=True
 )

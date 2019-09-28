@@ -47,14 +47,15 @@ dsp.add_dispatcher(
         'dcdc_current_model', 'alternator_current_model',
     ),
     outputs=(
+        'service_battery_delta_state_of_charge', 'service_battery_delta_energy',
+        'service_battery_charging_statuses', 'service_battery_state_of_charges',
         'initial_service_battery_state_of_charge', 'service_battery_currents',
-        'service_battery_electric_powers', 'service_battery_state_of_charges',
-        'service_battery_initialization_time', 'service_battery_status_model',
         'service_battery_state_of_charge_balance', 'service_battery_capacity',
-        'service_battery_delta_state_of_charge', 'service_battery_loads',
-        'service_battery_charging_statuses', 'service_battery_model',
+        'service_battery_initialization_time', 'service_battery_status_model',
+        'service_battery_electric_powers', 'service_battery_model',
         'service_battery_electric_powers_supply_threshold',
-        'service_battery_state_of_charge_balance_window', 'service_battery_load'
+        'service_battery_state_of_charge_balance_window',
+        'service_battery_loads', 'service_battery_load'
     ),
     include_defaults=True
 )
