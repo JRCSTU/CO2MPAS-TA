@@ -107,7 +107,7 @@ dsp.add_function(
 )
 
 if _dice is not None:
-    _out, _inp = ['base', 'meta'], [
+    _out, _inp = ['base', 'meta', 'dice'], [
         'input_file_name', 'input_file', 'encryption_keys',
         'encryption_keys_passwords'
     ]
@@ -118,8 +118,19 @@ if _dice is not None:
         description='Load inputs from .co2mpas.ta file.',
         inputs=_inp,
         outputs=['raw_data'],
-        filters=[lambda x: dict(zip(_out, x))],
+        filters=[functools.partial(sh.map_list, [_out])],
         input_domain=functools.partial(check_file_format, ext=('.co2mpas.ta',))
+    )
+
+    _out, _inp = ['data', 'dice'], ['input_file_name', 'input_file']
+    dsp.add_function(
+        function=sh.SubDispatchFunction(_dice, inputs=_inp, outputs=_out),
+        function_id='load_co2mpas_file',
+        description='Load inputs from .co2mpas file.',
+        inputs=_inp,
+        outputs=['raw_data'],
+        filters=[functools.partial(sh.map_list, [{}, 'dice'])],
+        input_domain=functools.partial(check_file_format, ext=('.co2mpas',))
     )
 
 
