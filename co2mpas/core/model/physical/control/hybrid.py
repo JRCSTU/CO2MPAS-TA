@@ -238,8 +238,9 @@ class FuelMapModel:
         with np.errstate(divide='ignore', invalid='ignore'):
             e = np.maximum(0, p / fc)
         e[(p > full_load_curve(s)[:, None]) | (p < 0)] = np.nan
+        b = ~np.isnan(e).all(1)
+        (s, i), e = np.unique(s[b], return_index=True), e[b]
         b = ~np.isnan(e).all(0)
-        s, i = np.unique(s, return_index=True)
         p = p[b][np.nanargmax(e[:, b], 1)][i]
 
         func = Spl(s, p, w=1 / np.clip(p * .01, dfl.EPS, 1))
