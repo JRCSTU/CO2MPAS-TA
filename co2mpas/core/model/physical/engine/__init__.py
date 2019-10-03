@@ -23,7 +23,7 @@ import math
 import functools
 import numpy as np
 import schedula as sh
-from ..defaults import dfl
+from co2mpas.defaults import dfl
 from .idle import dsp as _idle
 from .thermal import dsp as _thermal
 from .fc import dsp as _fc

@@ -20,7 +20,7 @@ Sub-Modules:
 """
 import numpy as np
 import schedula as sh
-from ..defaults import dfl
+from co2mpas.defaults import dfl
 from .clutch import dsp as _clutch
 from .torque_converter import dsp as _torque_converter
 

@@ -16,6 +16,7 @@ Defines the file processing chain model `dsp`.
     ~core
     ~cli
     ~utils
+    ~defaults
 """
 import os
 import tqdm
@@ -25,7 +26,6 @@ import os.path as osp
 import schedula as sh
 from co2mpas._version import *
 from co2mpas.utils import check_first_arg
-from co2mpas.core.write import default_start_time, default_timestamp
 
 log = logging.getLogger(__name__)
 dsp = sh.BlueDispatcher(name='process')
@@ -44,7 +44,7 @@ def init_conf(inputs):
     :rtype: dict | schedula.Token
     """
     if inputs is not sh.NONE and inputs.get('model_conf'):
-        from .core.model.physical.defaults import dfl
+        from co2mpas.defaults import dfl
         dfl.load(inputs['model_conf'])
     return inputs
 
@@ -102,7 +102,7 @@ def save_co2mpas_conf(output_file):
         Output file.
     :type output_file: str
     """
-    from .core.model.physical.defaults import dfl
+    from co2mpas.defaults import dfl
     os.makedirs(osp.dirname(output_file) or '.', exist_ok=True)
     dfl.dump(output_file)
     log.info('CO2MPAS model configurations written into (%s).', output_file)
@@ -252,8 +252,33 @@ class _ProgressBar(tqdm.tqdm):
             return bar
 
 
-dsp.add_func(default_start_time, outputs=['start_time'])
-dsp.add_func(default_timestamp, outputs=['timestamp'])
+@sh.add_function(dsp, outputs=['start_time'])
+def default_start_time():
+    """
+    Returns the default run start time.
+
+    :return:
+        Run start time.
+    :rtype: datetime.datetime
+    """
+    import datetime
+    return datetime.datetime.today()
+
+
+@sh.add_function(dsp, outputs=['timestamp'])
+def default_timestamp(start_time):
+    """
+    Returns the default timestamp.
+
+    :param start_time:
+        Run start time.
+    :type start_time: datetime.datetime
+
+    :return:
+        Run timestamp.
+    :rtype: str
+    """
+    return start_time.strftime('%Y%m%d_%H%M%S')
 
 
 @sh.add_function(dsp, outputs=['core_solutions'])

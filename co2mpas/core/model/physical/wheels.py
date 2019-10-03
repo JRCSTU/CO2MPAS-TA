@@ -10,7 +10,7 @@ Functions and `dsp` model to model the mechanic of the wheels.
 import math
 import regex
 import schedula as sh
-from .defaults import dfl
+from co2mpas.defaults import dfl
 
 dsp = sh.BlueDispatcher(
     name='Wheel model', description='It models the wheel dynamics.'

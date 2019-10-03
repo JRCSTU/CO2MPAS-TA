@@ -8,7 +8,7 @@
 Core functions to predict the A/T gear shifting.
 """
 import collections
-from ...defaults import dfl
+from co2mpas.defaults import dfl
 
 
 def define_gear_filter(

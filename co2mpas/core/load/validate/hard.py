@@ -12,7 +12,7 @@ import logging
 import functools
 import numpy as np
 import schedula as sh
-from ...model.physical.defaults import dfl as ph_dfl
+from co2mpas.defaults import dfl
 
 log = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ def _check_acr(data, *args):
     s = ('active_cylinder_ratios', 'engine_has_cylinder_deactivation')
     acr = data.get(s[0], (1,))
 
-    has_acr = data.get(s[1], ph_dfl.values.engine_has_cylinder_deactivation)
+    has_acr = data.get(s[1], dfl.values.engine_has_cylinder_deactivation)
 
     if has_acr and len(acr) <= 1:
         msg = "Please since `engine_has_cylinder_deactivation` is True set " \
@@ -91,8 +91,7 @@ def _check_ki_factor(data, *args):
     s = 'has_periodically_regenerating_systems', 'ki_multiplicative', \
         'ki_additive'
 
-    has_prs = data.get(s[0],
-                       ph_dfl.values.has_periodically_regenerating_systems)
+    has_prs = data.get(s[0], dfl.values.has_periodically_regenerating_systems)
 
     if data.get(s[1], 1) > 1 and data.get(s[2], 0) > 0:
         msg = "Please since `ki_multiplicative` is > 1 and `ki_additive` " \
@@ -131,7 +130,7 @@ def _get_engine_model(outputs):
 def _check_lean_burn_tech(data, *args):
     s = ('has_lean_burn', 'ignition_type')
     it = _get_engine_model(s[1:])(data, outputs=s[1:]).get(s[1], None)
-    has_lb = data.get(s[0], ph_dfl.values.has_lean_burn)
+    has_lb = data.get(s[0], dfl.values.has_lean_burn)
     if has_lb and it not in ('positive', None):
         msg = "`has_lean_burn` cannot be enable with `ignition_type = '%s'`." \
               "Hence, set `has_lean_burn = False` or " \
@@ -158,7 +157,7 @@ def _check_full_load(data, *args):
 def _warn_vva(data, *args):
     s = ('engine_has_variable_valve_actuation', 'ignition_type')
     it = _get_engine_model(s[1:]).dispatch(data, outputs=s[1:]).get(s[1], None)
-    has_vva = data.get(s[0], ph_dfl.values.engine_has_variable_valve_actuation)
+    has_vva = data.get(s[0], dfl.values.engine_has_variable_valve_actuation)
     if has_vva and it not in ('positive', None):
         msg = "Please, ensure that the input combination " \
               "`engine_has_variable_valve_actuation = True` and " \
@@ -176,7 +175,7 @@ def _check_scr(data, *args):
     s = ('has_selective_catalytic_reduction', 'ignition_type')
     out = _get_engine_model(s[1:]).dispatch(data, outputs=s[1:])
     it = out.get(s[1], None)
-    has_scr = data.get(s[0], ph_dfl.values.has_selective_catalytic_reduction)
+    has_scr = data.get(s[0], dfl.values.has_selective_catalytic_reduction)
     if has_scr and it == 'positive':
         msg = "`has_selective_catalytic_reduction` cannot be enable with " \
               "`ignition_type = '%s'`." \

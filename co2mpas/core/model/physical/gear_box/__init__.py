@@ -26,7 +26,7 @@ import math
 import functools
 import numpy as np
 import schedula as sh
-from ..defaults import dfl
+from co2mpas.defaults import dfl
 from .cvt import dsp as _cvt_model
 from .at_gear import dsp as _at_gear
 from .mechanical import dsp as _mechanical

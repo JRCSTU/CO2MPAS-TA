@@ -166,7 +166,7 @@ def select_prediction_data(data, *new_data):
     """
 
     ids = _prediction_data
-    from .physical.defaults import dfl
+    from co2mpas.defaults import dfl
     if not dfl.functions.select_prediction_data.theoretical:
         ids = ids + _prediction_data_ts
 

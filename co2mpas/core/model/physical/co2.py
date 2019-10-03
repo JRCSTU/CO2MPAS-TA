@@ -11,7 +11,7 @@ import functools
 import numpy as np
 import schedula as sh
 import co2mpas.utils as co2_utl
-from .defaults import dfl
+from co2mpas.defaults import dfl
 
 dsp = sh.BlueDispatcher(
     name='Legislation', description='Models the legislation corrections.'

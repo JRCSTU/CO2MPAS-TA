@@ -9,7 +9,7 @@ Functions and `dsp` model to model the mechanic of the torque converter.
 """
 import numpy as np
 import schedula as sh
-from ..defaults import dfl
+from co2mpas.defaults import dfl
 
 dsp = sh.BlueDispatcher(
     name='Torque_converter', description='Models the torque converter.'
@@ -76,7 +76,7 @@ def default_tc_k_factor_curve():
         k factor curve.
     :rtype: callable
     """
-    from ..defaults import dfl
+    from co2mpas.defaults import dfl
     par = dfl.functions.default_tc_k_factor_curve
     a = par.STAND_STILL_TORQUE_RATIO, par.LOCKUP_SPEED_RATIO
     return define_k_factor_curve(*a)
@@ -93,7 +93,7 @@ def default_tc_normalized_m1000_curve():
         Speed ratios and normalized torques of m1000 curve.
     :rtype: tuple[numpy.array]
     """
-    from ..defaults import dfl
+    from co2mpas.defaults import dfl
     curve = dfl.functions.default_tc_normalized_m1000_curve.curve
     return np.array(curve['x']), np.array(curve['y'])
 

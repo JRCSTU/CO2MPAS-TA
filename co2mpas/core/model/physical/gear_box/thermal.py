@@ -9,7 +9,7 @@ Functions and `dsp` model to model torque losses and temperature of gearbox.
 """
 import math
 import schedula as sh
-from ..defaults import dfl
+from co2mpas.defaults import dfl
 
 dsp = sh.BlueDispatcher(
     name='Gear box thermal sub model',

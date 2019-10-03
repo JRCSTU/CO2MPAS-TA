@@ -11,7 +11,7 @@ import itertools
 import collections
 import numpy as np
 import schedula as sh
-from ...defaults import dfl
+from co2mpas.defaults import dfl
 from .core import prediction_gears_gsm, define_gear_filter
 
 dsp = sh.BlueDispatcher(name='Corrected Matrix Velocity Approach')

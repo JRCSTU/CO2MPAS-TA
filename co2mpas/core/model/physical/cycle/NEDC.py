@@ -9,7 +9,7 @@
 Functions and `dsp` model to define theoretical profiles of NEDC cycle.
 """
 import schedula as sh
-from ..defaults import dfl
+from co2mpas.defaults import dfl
 
 dsp = sh.BlueDispatcher(
     name='NEDC cycle model',

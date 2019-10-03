@@ -10,7 +10,7 @@ Functions to model the engine coolant temperature.
 import itertools
 import numpy as np
 import xgboost as xgb
-from ..defaults import dfl
+from co2mpas.defaults import dfl
 import co2mpas.utils as co2_utl
 # noinspection SpellCheckingInspection
 from sklearn.feature_selection import SelectFromModel

@@ -10,7 +10,7 @@ Functions and `dsp` model to model the basic mechanics of the gear box.
 import math
 import numpy as np
 import schedula as sh
-from ..defaults import dfl
+from co2mpas.defaults import dfl
 import co2mpas.utils as co2_utl
 
 dsp = sh.BlueDispatcher(

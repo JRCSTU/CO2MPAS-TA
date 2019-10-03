@@ -9,7 +9,7 @@
 Functions and `dsp` model to calculate the WLTP theoretical velocities.
 """
 import schedula as sh
-from ...defaults import dfl
+from co2mpas.defaults import dfl
 from ...vehicle import dsp as _vehicle
 
 dsp = sh.BlueDispatcher(

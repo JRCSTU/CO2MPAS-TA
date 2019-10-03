@@ -10,7 +10,7 @@ Functions and `dsp` model to model the electric motor in planetary P2 position.
 import numpy as np
 import schedula as sh
 import co2mpas.utils as co2_utl
-from ...defaults import dfl
+from co2mpas.defaults import dfl
 
 dsp = sh.BlueDispatcher(
     name='Motor P2 planetary',

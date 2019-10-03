@@ -24,6 +24,7 @@ import os.path as osp
 import schedula as sh
 from .excel import write_to_excel
 from .convert import convert2df
+from ... import default_start_time, default_timestamp
 from co2mpas._version import __version__
 from co2mpas.utils import check_first_arg, check_first_arg_false
 
@@ -37,20 +38,7 @@ dsp = sh.BlueDispatcher(
     name='write', description='Write the outputs of the CO2MPAS model.'
 )
 
-
-@sh.add_function(dsp, outputs=['start_time'])
-def default_start_time():
-    """
-    Returns the default run start time.
-
-    :return:
-        Run start time.
-    :rtype: datetime.datetime
-    """
-    import datetime
-    return datetime.datetime.today()
-
-
+dsp.add_func(default_start_time, outputs=['start_time'])
 dsp.add_func(convert2df, outputs=['dfs'])
 
 
@@ -76,21 +64,7 @@ dsp.add_function(
     input_domain=check_first_arg_false
 )
 
-
-@sh.add_function(dsp, outputs=['timestamp'])
-def default_timestamp(start_time):
-    """
-    Returns the default timestamp.
-
-    :param start_time:
-        Run start time.
-    :type start_time: datetime.datetime
-
-    :return:
-        Run timestamp.
-    :rtype: str
-    """
-    return start_time.strftime('%Y%m%d_%H%M%S')
+dsp.add_func(default_timestamp, outputs=['timestamp'])
 
 
 def default_output_file_name(

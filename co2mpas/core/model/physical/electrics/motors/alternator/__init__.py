@@ -18,7 +18,7 @@ Sub-Modules:
 """
 import numpy as np
 import schedula as sh
-from ....defaults import dfl
+from co2mpas.defaults import dfl
 from .current import dsp as _current
 
 dsp = sh.BlueDispatcher(name='Alternator', description='Models the alternator.')

@@ -22,7 +22,7 @@ import logging
 import copy
 import schedula as sh
 from ..NEDC import is_manual
-from ...defaults import dfl
+from co2mpas.defaults import dfl
 from .vel import dsp as _vel
 
 logging.getLogger('wltp.experiment').setLevel(logging.WARNING)

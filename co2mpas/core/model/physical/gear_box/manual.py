@@ -70,7 +70,7 @@ class MGS(CMV):
             engine_max_speed_95, velocity_speed_ratios, idle_engine_speed):
         self.velocity_speed_ratios = velocity_speed_ratios
         # noinspection PyProtectedMember
-        from ..defaults import dfl
+        from co2mpas.defaults import dfl
         from .mechanical import _calculate_req_power as calc_power_req
 
         d = dfl.functions.MGS

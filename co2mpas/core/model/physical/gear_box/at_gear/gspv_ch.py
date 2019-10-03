@@ -8,7 +8,7 @@
 Functions and `dsp` model to model the GSPV Approach with Cold/Hot.
 """
 import schedula as sh
-from ...defaults import dfl
+from co2mpas.defaults import dfl
 from .core import prediction_gears_gsm, GSMColdHot
 
 dsp = sh.BlueDispatcher(

@@ -9,7 +9,7 @@ Functions and `dsp` model to model the engine coolant temperature.
 """
 import numpy as np
 import schedula as sh
-from ..defaults import dfl
+from co2mpas.defaults import dfl
 
 dsp = sh.BlueDispatcher(
     name='thermal', description='Models the engine thermal behaviour.'

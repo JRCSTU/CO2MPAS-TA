@@ -9,7 +9,7 @@ Functions and `dsp` model to model the mechanic of the vehicle.
 """
 import numpy as np
 import schedula as sh
-from .defaults import dfl
+from co2mpas.defaults import dfl
 
 dsp = sh.BlueDispatcher(
     name='Vehicle free body diagram',

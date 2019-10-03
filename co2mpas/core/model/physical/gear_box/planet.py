@@ -8,7 +8,7 @@
 Functions and `dsp` model to bypass the gear box.
 """
 import schedula as sh
-from ..defaults import dfl
+from co2mpas.defaults import dfl
 from .cvt import (
     default_correct_gear, identify_max_speed_velocity_ratio, predict_gears, CVT
 )

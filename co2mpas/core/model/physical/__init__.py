@@ -28,7 +28,6 @@ Sub-Modules:
     control
     after_treat
     co2
-    defaults
 """
 
 import schedula as sh

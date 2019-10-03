@@ -11,7 +11,7 @@ import copy
 import numpy as np
 import schedula as sh
 from .cmv import CMV
-from ...defaults import dfl
+from co2mpas.defaults import dfl
 from .core import prediction_gears_gsm
 
 dsp = sh.BlueDispatcher(name='Gear Shifting Power Velocity Approach')

@@ -74,7 +74,7 @@ class CLI(unittest.TestCase):
     def test_conf(self, options):
         import yaml
         import schedula as sh
-        from co2mpas.core.model.physical.defaults import dfl
+        from co2mpas.defaults import dfl
         from co2mpas.cli import conf
         kw = conf.make_context('conf', list(options)).params
         t = {k for k, _ in sh.stack_nested_keys(dfl.to_dict())}

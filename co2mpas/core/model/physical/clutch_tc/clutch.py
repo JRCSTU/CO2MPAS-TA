@@ -9,7 +9,7 @@ Functions and model `dsp` to model the mechanic of the clutch.
 """
 import numpy as np
 import schedula as sh
-from ..defaults import dfl
+from co2mpas.defaults import dfl
 from .torque_converter import define_k_factor_curve
 
 dsp = sh.BlueDispatcher(name='Clutch', description='Models the clutch.')
@@ -115,7 +115,7 @@ def default_clutch_k_factor_curve():
         k factor curve.
     :rtype: callable
     """
-    from ..defaults import dfl
+    from co2mpas.defaults import dfl
     par = dfl.functions.default_clutch_k_factor_curve
     a = par.STAND_STILL_TORQUE_RATIO, par.LOCKUP_SPEED_RATIO
     from .torque_converter import define_k_factor_curve
