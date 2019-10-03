@@ -65,7 +65,10 @@ dsp.add_dispatcher(
         'unladen_mass', 'vehicle_mass', 'velocities', 'wltp_base_model',
         'engine_max_speed', 'wltp_class', {'cycle_type': sh.SINK}
     ),
-    outputs=('gears', 'initial_temperature', 'max_time', 'velocities'),
+    outputs=(
+        'theoretical_motive_powers', 'gears', 'initial_temperature', 'max_time',
+        'velocities', 'theoretical_velocities'
+    ),
     input_domain=is_wltp
 )
 

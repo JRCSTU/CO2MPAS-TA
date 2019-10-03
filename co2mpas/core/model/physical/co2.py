@@ -7,6 +7,7 @@
 """
 Functions and `dsp` model to model the legislation corrections.
 """
+import functools
 import numpy as np
 import schedula as sh
 import co2mpas.utils as co2_utl
@@ -17,11 +18,10 @@ dsp = sh.BlueDispatcher(
 )
 
 
-@sh.add_function(dsp, inputs_kwargs=True, outputs=['phases_co2_emissions'])
-def calculate_phases_co2_emissions(
-        times, phases_integration_times, co2_emissions, phases_distances=1.0):
+@sh.add_function(dsp, outputs=['phases_indices'])
+def identify_phases_indices(times, phases_integration_times):
     """
-    Calculates CO2 emission or cumulative CO2 of cycle phases [CO2g/km or CO2g].
+    Identifies the indices of the cycle phases [-].
 
     If phases_distances is not given the result is the cumulative CO2 of cycle
     phases [CO2g] otherwise it is CO2 emission of cycle phases [CO2g/km].
@@ -33,6 +33,30 @@ def calculate_phases_co2_emissions(
     :param phases_integration_times:
         Cycle phases integration times [s].
     :type phases_integration_times: tuple
+
+    :return:
+        Indices of the cycle phases [-].
+    :rtype: numpy.array
+    """
+    return np.searchsorted(times, phases_integration_times)
+
+
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['phases_co2_emissions'])
+def calculate_phases_co2_emissions(
+        times, phases_indices, co2_emissions, phases_distances=1.0):
+    """
+    Calculates CO2 emission or cumulative CO2 of cycle phases [CO2g/km or CO2g].
+
+    If phases_distances is not given the result is the cumulative CO2 of cycle
+    phases [CO2g] otherwise it is CO2 emission of cycle phases [CO2g/km].
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :param phases_indices:
+        Indices of the cycle phases [-].
+    :type phases_indices: numpy.array
 
     :param co2_emissions:
         CO2 instantaneous emissions vector [CO2g/s].
@@ -48,8 +72,7 @@ def calculate_phases_co2_emissions(
     """
     from scipy.integrate import trapz
     co2 = []
-    for p in phases_integration_times:
-        i, j = np.searchsorted(times, p)
+    for i, j in phases_indices:
         co2.append(trapz(co2_emissions[i:j], times[i:j]))
 
     with np.errstate(divide='ignore', invalid='ignore'):
@@ -117,34 +140,6 @@ def default_ki_multiplicative(
     return par.get(has_periodically_regenerating_systems, 1.0)
 
 
-@sh.add_function(dsp, outputs=['declared_co2_emission_value'])
-def calculate_declared_co2_emission(
-        co2_emission_value, ki_multiplicative, ki_additive):
-    """
-    Calculates the declared CO2 emission of the cycle [CO2g/km].
-
-    :param co2_emission_value:
-        CO2 emission value of the cycle [CO2g/km].
-    :type co2_emission_value: float
-
-    :param ki_multiplicative:
-        Multiplicative correction for vehicles with periodically regenerating
-        systems [-].
-    :type ki_multiplicative: float
-
-    :param ki_additive:
-        Additive correction for vehicles with periodically regenerating
-        systems [CO2g/km].
-    :type ki_multiplicative: float
-
-    :return:
-        Declared CO2 emission value of the cycle [CO2g/km].
-    :rtype: float
-    """
-
-    return co2_emission_value * ki_multiplicative + ki_additive
-
-
 @sh.add_function(dsp, outputs=['phases_co2_emissions'])
 def merge_wltp_phases_co2_emission(
         co2_emission_low, co2_emission_medium, co2_emission_high,
@@ -197,13 +192,439 @@ def merge_wltp_phases_co2_emission(co2_emission_UDC, co2_emission_EUDC):
     return co2_emission_UDC, co2_emission_EUDC
 
 
-@sh.add_function(dsp, outputs=['corrected_co2_emission_value'])
-def calculate_corrected_co2_emission_value(
-        is_hybrid, rcb_correction, cycle_type, service_battery_delta_energy,
-        driven_distance, alternator_efficiency, engine_type, fuel_type):
-    par = dfl.functions.calculate_corrected_co2_emission_value.WILLANS
-    n = par[fuel_type][engine_type] * service_battery_delta_energy * 0.0036
-    return n / (driven_distance * alternator_efficiency)
+def _rcb_correction(
+        phases_delta_energy, phases_distances, fuel_type, engine_type,
+        alternator_efficiency):
+    # noinspection PyProtectedMember
+    par = dfl.functions._rcb_correction.WILLANS
+    dco2 = -phases_delta_energy / phases_distances
+    dco2 *= par[fuel_type][engine_type] * 0.0036 / alternator_efficiency
+    return dco2
+
+
+@sh.add_function(dsp, outputs=['theoretical_phases_distances'])
+def calculate_theoretical_phases_distances(
+        times, theoretical_velocities, phases_indices):
+    """
+    Calculates theoretical cycle phases distances [km].
+
+    :param times:
+        Time vector.
+    :type times: numpy.array
+
+    :param theoretical_velocities:
+        Theoretical velocity vector [km/h].
+    :type theoretical_velocities: numpy.array
+
+    :param phases_indices:
+        Indices of the cycle phases [-].
+    :type phases_indices: numpy.array
+
+    :return:
+        Theoretical cycle phases distances [km].
+    :rtype:  numpy.array
+    """
+    from .vehicle import calculate_distances
+    return calculate_phases_distances(
+        phases_indices, calculate_distances(times, theoretical_velocities)
+    )
+
+
+dsp.add_data('rcb_correction', True)
+dsp.add_data('speed_distance_correction', True)
+
+
+@sh.add_function(
+    dsp, inputs_kwargs=True,
+    outputs=['speed_distance_corrected_co2_emission_value']
+)
+def calculate_speed_distance_corrected_co2_emission_value(
+        phases_co2_emissions, phases_times, batteries_phases_delta_energy,
+        theoretical_phases_distances, phases_distances, alternator_efficiency,
+        engine_type, fuel_type, motive_powers, theoretical_motive_powers, times,
+        phases_indices, engine_max_power, speed_distance_correction=True,
+        is_hybrid=False, cycle_type='WLTP'):
+    """
+    Calculates the CO2 emission value corrected for speed & distance [CO2g/km].
+
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
+    :param cycle_type:
+        Cycle type (WLTP or NEDC).
+    :type cycle_type: str
+
+    :param phases_co2_emissions:
+        CO2 emission of cycle phases [CO2g/km].
+    :type phases_co2_emissions: numpy.array
+
+    :param phases_times:
+        Cycle phases times [s].
+    :type phases_times: numpy.array
+
+    :param batteries_phases_delta_energy:
+        Phases delta energy of the batteries [Wh].
+    :type batteries_phases_delta_energy: numpy.array
+
+    :param theoretical_phases_distances:
+        Theoretical cycle phases distances [km].
+    :type theoretical_phases_distances: numpy.array
+
+    :param phases_distances:
+        Cycle phases distances [km].
+    :type phases_distances: numpy.array
+
+    :param alternator_efficiency:
+        Alternator efficiency [-].
+    :type alternator_efficiency: float
+
+    :param engine_type:
+        Engine type (positive turbo, positive natural aspiration, compression).
+    :type engine_type: str
+
+    :param fuel_type:
+        Fuel type (diesel, gasoline, LPG, NG, ethanol, methanol, biodiesel,
+        propane).
+    :type fuel_type: str
+
+    :param motive_powers:
+        Motive power [kW].
+    :type motive_powers: numpy.array
+
+    :param theoretical_motive_powers:
+        Theoretical motive power [kW].
+    :type theoretical_motive_powers: numpy.array
+
+    :param times:
+        Time vector.
+    :type times: numpy.array
+
+    :param phases_indices:
+        Indices of the cycle phases [-].
+    :type phases_indices: numpy.array
+
+    :param engine_max_power:
+        Engine nominal power [kW].
+    :type engine_max_power: float
+
+    :param speed_distance_correction:
+        Apply speed distance correction?
+    :type speed_distance_correction: bool
+
+    :return:
+        CO2 emission value corrected for speed & distance [CO2g/km].
+    :rtype: float
+    """
+    if is_hybrid:
+        return sh.NONE
+    p_co2, p_dist = np.array(phases_co2_emissions), phases_distances
+    if cycle_type == 'WLTP' and speed_distance_correction:
+        p_co2 = np.column_stack((p_co2, _rcb_correction(
+            batteries_phases_delta_energy, phases_distances, fuel_type,
+            engine_type, alternator_efficiency
+        ))) * np.nan_to_num(phases_distances / phases_times)[:, None]
+
+        from sklearn.linear_model import LinearRegression
+        mdl = LinearRegression()
+        cpmp = functools.partial(
+            calculate_phases_co2_emissions, times, phases_indices,
+            phases_distances=phases_times
+        )
+        y, p_co2 = p_co2.sum(axis=1).ravel(), p_co2[:, 0].ravel()
+        x = cpmp(np.maximum(-.2 * engine_max_power, motive_powers))
+        mdl.fit(x[:, None], y)
+        p2 = -mdl.intercept_ / mdl.coef_
+        dp_mp = cpmp(np.maximum(p2, motive_powers))
+        mdl.fit(dp_mp[:, None], y)
+        dp_mp -= cpmp(np.maximum(p2, theoretical_motive_powers))
+        p_co2 -= mdl.coef_ * dp_mp
+        p_co2 *= np.nan_to_num(phases_times / theoretical_phases_distances)
+        p_dist = theoretical_phases_distances
+    return calculate_co2_emission_value(p_co2, p_dist)
+
+
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['rcb_corrected_co2_emission_value']
+)
+def calculate_rcb_corrected_co2_emission_value(
+        speed_distance_corrected_co2_emission_value, engine_type, fuel_type,
+        alternator_efficiency, phases_distances, theoretical_phases_distances,
+        batteries_phases_delta_energy, speed_distance_correction=True,
+        rcb_correction=True, is_hybrid=False, cycle_type='WLTP'):
+    """
+    Calculates the CO2 emission value corrected for RCB [CO2g/km].
+
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
+    :param cycle_type:
+        Cycle type (WLTP or NEDC).
+    :type cycle_type: str
+
+    :param speed_distance_corrected_co2_emission_value:
+        CO2 emission value corrected for speed & distance [CO2g/km].
+    :type speed_distance_corrected_co2_emission_value: float
+
+    :param batteries_phases_delta_energy:
+        Phases delta energy of the batteries [Wh].
+    :type batteries_phases_delta_energy: numpy.array
+
+    :param theoretical_phases_distances:
+        Theoretical cycle phases distances [km].
+    :type theoretical_phases_distances: numpy.array
+
+    :param phases_distances:
+        Cycle phases distances [km].
+    :type phases_distances: numpy.array
+
+    :param alternator_efficiency:
+        Alternator efficiency [-].
+    :type alternator_efficiency: float
+
+    :param engine_type:
+        Engine type (positive turbo, positive natural aspiration, compression).
+    :type engine_type: str
+
+    :param fuel_type:
+        Fuel type (diesel, gasoline, LPG, NG, ethanol, methanol, biodiesel,
+        propane).
+    :type fuel_type: str
+
+    :param rcb_correction:
+        Apply RCB correction?
+    :type rcb_correction: bool
+
+    :param speed_distance_correction:
+        Apply speed distance correction?
+    :type speed_distance_correction: bool
+
+    :return:
+        CO2 emission value corrected for RCB [CO2g/km].
+    :rtype: float
+    """
+    if is_hybrid:
+        return sh.NONE
+    if cycle_type == 'WLTP' and rcb_correction:
+        d = phases_distances
+        if speed_distance_correction:
+            d = theoretical_phases_distances
+        return speed_distance_corrected_co2_emission_value + _rcb_correction(
+            np.sum(batteries_phases_delta_energy), np.sum(d), fuel_type,
+            engine_type, alternator_efficiency
+        )
+    return speed_distance_corrected_co2_emission_value
+
+
+@sh.add_function(dsp, outputs=['batteries_phases_delta_energy'])
+def calculate_batteries_phases_delta_energy(
+        times, phases_indices, drive_battery_electric_powers,
+        service_battery_electric_powers):
+    """
+    Calculates the phases delta energy of the batteries [Wh].
+
+    :param times:
+        Time vector.
+    :type times: numpy.array
+
+    :param phases_indices:
+        Indices of the cycle phases [-].
+    :type phases_indices: numpy.array
+
+    :param drive_battery_electric_powers:
+        Drive battery electric power [kW].
+    :type drive_battery_electric_powers: numpy.array
+
+    :param service_battery_electric_powers:
+        Service battery electric power [kW].
+    :type service_battery_electric_powers: numpy.array
+
+    :return:
+        Phases delta energy of the batteries [Wh].
+    :rtype: numpy.array
+    """
+    from scipy.integrate import cumtrapz
+    p = service_battery_electric_powers + drive_battery_electric_powers
+    e = cumtrapz(p, times, initial=0)
+    return np.diff(e[phases_indices], axis=1).ravel() * 10 / 36
+
+
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['kco2_correction_factor'])
+def identify_kco2_correction_factor(
+        drive_battery_electric_powers, service_battery_electric_powers,
+        co2_emissions, times, force_on_engine, after_treatment_warm_up_phases,
+        velocities, is_hybrid=True):
+    """
+    Identifies the kco2 correction factor [g/Wh].
+
+    :param drive_battery_electric_powers:
+        Drive battery electric power [kW].
+    :type drive_battery_electric_powers: numpy.array
+
+    :param service_battery_electric_powers:
+        Service battery electric power [kW].
+    :type service_battery_electric_powers: numpy.array
+
+    :param force_on_engine:
+        Phases when engine is on because parallel mode is forced [-].
+    :type force_on_engine: numpy.array
+
+    :param after_treatment_warm_up_phases:
+        Phases when engine speed is affected by the after treatment warm up [-].
+    :type after_treatment_warm_up_phases: numpy.array
+
+    :param velocities:
+        Vehicle velocity [km/h].
+    :type velocities: numpy.array
+
+    :param co2_emissions:
+        CO2 instantaneous emissions vector [CO2g/s].
+    :type co2_emissions: numpy.array
+
+    :param times:
+        Time vector.
+    :type times: numpy.array
+
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
+    :return:
+        kco2 correction factor [g/Wh].
+    :rtype: float
+    """
+    if not is_hybrid:
+        return sh.NONE
+    from scipy.integrate import cumtrapz
+    from sklearn.linear_model import RANSACRegressor, Lasso
+    b = ~(force_on_engine | after_treatment_warm_up_phases)
+    e = np.where(
+        b, drive_battery_electric_powers + service_battery_electric_powers, 0
+    )
+    e = cumtrapz(e, times, initial=0) / 3.6
+    co2 = cumtrapz(np.where(b, co2_emissions, 0), times, initial=0)
+    km = cumtrapz(np.where(b, velocities / 3.6, 0), times, initial=0) / 1000
+    # noinspection PyTypeChecker
+    it = co2_utl.sliding_window(list(zip(km, zip(km, e, co2))), 5)
+    d = np.diff(np.array([(v[0][1], v[-1][1]) for v in it]), axis=1)[:, 0, :].T
+    e, co2 = d[1:] / d[0]
+    d0 = t0 = -float('inf')
+    b, dkm = [], .5
+    dt = dkm / np.mean(velocities) * 3600
+    for i, (d, t) in enumerate(zip(km, times)):
+        if d > d0 and t > t0:
+            d0, t0 = d + dkm, t + dt
+            b.append(i)
+    b = np.array(b)
+    m = RANSACRegressor(
+        random_state=0,
+        base_estimator=Lasso(random_state=0, positive=True)
+    ).fit(e[b, None], co2[b])
+    return float(m.estimator_.coef_)
+
+
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['rcb_corrected_co2_emission_value']
+)
+def calculate_rcb_corrected_co2_emission_value_v1(
+        co2_emission_value, batteries_phases_delta_energy,
+        kco2_correction_factor, phases_distances, rcb_correction=True,
+        is_hybrid=True, cycle_type='WLTP'):
+    """
+    Calculates the CO2 emission value corrected for RCB [CO2g/km].
+
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
+    :param cycle_type:
+        Cycle type (WLTP or NEDC).
+    :type cycle_type: str
+
+    :param co2_emission_value:
+        CO2 emission value of the cycle [CO2g/km].
+    :type co2_emission_value: float
+
+    :param batteries_phases_delta_energy:
+        Phases delta energy of the batteries [Wh].
+    :type batteries_phases_delta_energy: numpy.array
+
+    :param kco2_correction_factor:
+        kco2 correction factor [g/Wh].
+    :type kco2_correction_factor: float
+
+    :param phases_distances:
+        Cycle phases distances [km].
+    :type phases_distances: numpy.array
+
+    :param rcb_correction:
+        Apply RCB correction?
+    :type rcb_correction: bool
+
+    :return:
+        CO2 emission value corrected for RCB [CO2g/km].
+    :rtype: float
+    """
+    if not is_hybrid:
+        return sh.NONE
+
+    if cycle_type == 'WLTP' and rcb_correction and kco2_correction_factor:
+        de = np.sum(batteries_phases_delta_energy) / np.sum(phases_distances)
+        return co2_emission_value - kco2_correction_factor * de
+    return co2_emission_value
+
+
+dsp.add_data('atct_family_correction_factor', 1.0)
+
+
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['corrected_co2_emission_value']
+)
+def calculate_corrected_co2_emission(
+        rcb_corrected_co2_emission_value, ki_multiplicative, ki_additive,
+        atct_family_correction_factor=1.0):
+    """
+    Calculates the corrected CO2 emission of the cycle [CO2g/km].
+
+    :param rcb_corrected_co2_emission_value:
+        CO2 emission value corrected for RCB [CO2g/km].
+    :type rcb_corrected_co2_emission_value: float
+
+    :param ki_multiplicative:
+        Multiplicative correction for vehicles with periodically regenerating
+        systems [-].
+    :type ki_multiplicative: float
+
+    :param ki_additive:
+        Additive correction for vehicles with periodically regenerating
+        systems [CO2g/km].
+    :type ki_multiplicative: float
+
+    :param atct_family_correction_factor:
+        Family correction factor for the representative regional temperature.
+    :type atct_family_correction_factor: float
+
+    :return:
+        Corrected CO2 emission value of the cycle [CO2g/km].
+    :rtype: float
+    """
+    v = rcb_corrected_co2_emission_value * ki_multiplicative + ki_additive
+    return v * atct_family_correction_factor
+
+
+dsp.add_function(
+    function=sh.add_args(calculate_corrected_co2_emission),
+    inputs=['cycle_type', 'co2_emission_value', 'ki_multiplicative',
+            'ki_additive'],
+    outputs=['corrected_co2_emission_value'],
+    input_domain=lambda cycle_type, *args: cycle_type == 'NEDC'
+)
+dsp.add_function(
+    function=sh.bypass,
+    inputs=['corrected_co2_emission_value'],
+    outputs=['declared_co2_emission_value']
+)
 
 
 def calculate_willans_factors(
@@ -413,7 +834,7 @@ dsp.add_function(
 
 def calculate_phases_willans_factors(
         params, engine_fuel_lower_heating_value, engine_stroke, engine_capacity,
-        min_engine_on_speed, fmep_model, times, phases_integration_times,
+        min_engine_on_speed, fmep_model, times, phases_indices,
         engine_speeds_out, engine_powers_out, velocities, accelerations,
         motive_powers, engine_coolant_temperatures, missing_powers,
         angle_slopes):
@@ -450,9 +871,9 @@ def calculate_phases_willans_factors(
         Time vector [s].
     :type times: numpy.array
 
-    :param phases_integration_times:
-        Cycle phases integration times [s].
-    :type phases_integration_times: tuple
+    :param phases_indices:
+        Indices of the cycle phases [-].
+    :type phases_indices: numpy.array
 
     :param engine_speeds_out:
         Engine speed vector [RPM].
@@ -518,9 +939,7 @@ def calculate_phases_willans_factors(
 
     factors = []
 
-    for p in phases_integration_times:
-        i, j = np.searchsorted(times, p)
-
+    for i, j in phases_indices:
         factors.append(calculate_willans_factors(
             params, engine_fuel_lower_heating_value, engine_stroke,
             engine_capacity, min_engine_on_speed, fmep_model,
@@ -544,10 +963,10 @@ dsp.add_function(
     inputs=[
         'enable_phases_willans', 'co2_params_calibrated',
         'engine_fuel_lower_heating_value', 'engine_stroke', 'engine_capacity',
-        'min_engine_on_speed', 'fmep_model', 'times',
-        'phases_integration_times', 'engine_speeds_out', 'engine_powers_out',
-        'velocities', 'accelerations', 'motive_powers',
-        'engine_coolant_temperatures', 'missing_powers', 'angle_slopes'
+        'min_engine_on_speed', 'fmep_model', 'times', 'phases_indices',
+        'engine_speeds_out', 'engine_powers_out', 'velocities', 'accelerations',
+        'motive_powers', 'engine_coolant_temperatures', 'missing_powers',
+        'angle_slopes'
     ],
     outputs=['phases_willans_factors'],
     input_domain=co2_utl.check_first_arg
@@ -626,31 +1045,67 @@ def calculate_phases_fuel_consumptions(
     return tuple(np.asarray(phases_co2_emissions) * c)
 
 
+@sh.add_function(dsp, outputs=['fuel_consumption_value'])
+def calculate_fuel_consumption_value(
+        phases_fuel_consumptions, phases_distances):
+    """
+    Calculates the fuel consumption of the cycle [l/100km].
+
+    :param phases_fuel_consumptions:
+        Fuel consumption of cycle phases [l/100km].
+    :type phases_fuel_consumptions: numpy.array
+
+    :param phases_distances:
+        Cycle phases distances [km].
+    :type phases_distances: numpy.array | float
+
+    :return:
+        Fuel consumption of the cycle [l/100km].
+    :rtype: float
+    """
+    return calculate_co2_emission_value(
+        phases_fuel_consumptions, phases_distances
+    )
+
+
 @sh.add_function(dsp, outputs=['phases_distances'])
-def calculate_phases_distances(times, phases_integration_times, velocities):
+def calculate_phases_distances(phases_indices, distances):
     """
     Calculates cycle phases distances [km].
 
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
+    :param phases_indices:
+        Indices of the cycle phases [-].
+    :type phases_indices: numpy.array
 
-    :param phases_integration_times:
-        Cycle phases integration times [s].
-    :type phases_integration_times: tuple
-
-    :param velocities:
-        Velocity vector [km/h].
-    :type velocities: numpy.array
+    :param distances:
+        Cumulative distance vector [m].
+    :type distances: numpy.array
 
     :return:
         Cycle phases distances [km].
     :rtype: numpy.array
     """
+    return np.diff(distances[phases_indices], axis=1).ravel() / 1000.0
 
-    vel = velocities / 3600.0
 
-    return calculate_phases_co2_emissions(times, phases_integration_times, vel)
+@sh.add_function(dsp, outputs=['phases_times'])
+def calculate_phases_times(phases_indices, times):
+    """
+    Calculates cycle phases times [s].
+
+    :param phases_indices:
+        Indices of the cycle phases [-].
+    :type phases_indices: numpy.array
+
+    :param times:
+        Time vector [s].
+    :type times: numpy.array
+
+    :return:
+        Cycle phases times [s].
+    :rtype: numpy.array
+    """
+    return np.diff(times[phases_indices], axis=1).ravel()
 
 
 @sh.add_function(dsp, outputs=['fuel_density'])

@@ -159,6 +159,7 @@ dsp.add_dispatcher(
         'motor_p2_planetary_electric_powers', 'motor_p3_rear_electric_powers',
         'motor_p4_rear_electric_powers', 'start_stop_hybrid_params',
         'motor_p1_electric_powers', 'motor_p0_electric_powers',
+        'force_on_engine'
     ),
     input_domain=is_hybrid
 )

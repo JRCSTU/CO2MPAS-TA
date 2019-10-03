@@ -70,7 +70,10 @@ dsp.add_dispatcher(
         'unladen_mass', 'road_loads', 'engine_max_power', 'wltp_class',
         'engine_speed_at_max_power', 'max_speed_velocity_ratio'
     ),
-    outputs=('velocities',)
+    outputs=(
+        'theoretical_motive_powers',
+        {'theoretical_velocities': ('theoretical_velocities', 'velocities')}
+    )
 )
 
 

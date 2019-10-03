@@ -175,13 +175,14 @@ def get_class_velocities(class_data, times):
 
 
 i = ['vehicle_mass', 'road_loads', 'inertial_factor', 'times']
+calculate_class_powers = sh.SubDispatchPipe(
+    _vehicle,
+    function_id='calculate_class_powers',
+    inputs=['velocities'] + i,
+    outputs=['motive_powers']
+)
 dsp.add_function(
-    function=sh.SubDispatchPipe(
-        _vehicle,
-        function_id='calculate_class_powers',
-        inputs=['velocities'] + i,
-        outputs=['motive_powers']
-    ),
+    function=calculate_class_powers,
     inputs=['class_velocities'] + i,
     outputs=['class_powers']
 )
@@ -256,7 +257,7 @@ def get_downscale_phases(class_data):
     return class_data['downscale']['phases']
 
 
-@sh.add_function(dsp, outputs=['velocities'])
+@sh.add_function(dsp, outputs=['theoretical_velocities'])
 def wltp_velocities(
         downscale_factor, class_velocities, downscale_phases, times):
     """
@@ -279,7 +280,7 @@ def wltp_velocities(
     :type times: numpy.array
 
     :return:
-        Velocity vector [km/h].
+        Theoretical velocity vector [km/h].
     :rtype: numpy.array
     """
 
@@ -291,3 +292,15 @@ def wltp_velocities(
     else:
         v = class_velocities
     return v
+
+dsp.add_function(
+    function_id='calculate_theoretical_motive_powers',
+    function=calculate_class_powers,
+    inputs=['theoretical_velocities'] + i,
+    outputs=['theoretical_motive_powers']
+)
+dsp.add_function(
+    function=sh.bypass,
+    inputs=['theoretical_velocities'],
+    outputs=['velocities']
+)

@@ -1285,7 +1285,7 @@ def define_initial_co2_emission_model_params_guess(
 def calculate_extended_phases_distances(
         times, extended_phases_integration_times, velocities):
     """
-    Calculates cycle phases distances [km].
+    Calculates extended cycle phases distances [km].
 
     :param times:
         Time vector [s].
@@ -1303,8 +1303,9 @@ def calculate_extended_phases_distances(
         Extended cycle phases distances [km].
     :rtype: numpy.array
     """
-    from ..co2 import calculate_phases_distances as func
-    return func(times, extended_phases_integration_times, velocities)
+    from ..co2 import calculate_phases_distances, identify_phases_indices
+    indices = identify_phases_indices(times, extended_phases_integration_times)
+    return calculate_phases_distances(times, indices, velocities)
 
 
 @sh.add_function(dsp, outputs=['extended_phases_co2_emissions'])
@@ -1363,8 +1364,7 @@ def _define_rescaling_function(
         co2_emissions_model, cumulative_co2_emissions, phases_integration_times,
         times, rescaling_matrix):
     dx, it = np.append(np.diff(times), [0]), []
-    for p in phases_integration_times:
-        ii, jj = np.searchsorted(times, p)
+    for ii, jj in np.searchsorted(times, phases_integration_times):
         d = dx[ii:jj].copy()
         d[1:-1] = d[1:-1] + d[:-2]
         it.append((ii, jj, d[:, None] * rescaling_matrix[ii:jj, :] / 2))
@@ -1474,8 +1474,7 @@ def identify_co2_emissions(
     )
     rescale = _define_rescaling_function(
         co2_emissions_model, extended_cumulative_co2_emissions,
-        extended_phases_integration_times,
-        times, rescaling_matrix
+        extended_phases_integration_times, times, rescaling_matrix
     )
 
     d = dfl.functions.identify_co2_emissions

@@ -1043,6 +1043,22 @@ def identify_after_treatment_warm_up_phases(
     return warm_up
 
 
+@sh.add_function(dsp, outputs=['force_on_engine'])
+def get_force_on_engine(ems_data):
+    """
+    Returns the phases when engine is on because parallel mode is forced [-].
+
+    :param ems_data:
+        EMS decision data.
+    :type ems_data: dict
+
+    :return:
+        Phases when engine is on because parallel mode is forced [-].
+    :rtype: numpy.array
+    """
+    return ems_data['force_on_engine']
+
+
 # noinspection PyMissingOrEmptyDocstring
 class StartStopHybrid:
     def __init__(self, ems_model, dcdc_converter_efficiency, starter_model,

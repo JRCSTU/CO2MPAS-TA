@@ -959,7 +959,7 @@ class Functions(co2_utl.Constants):
         }
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-    class calculate_corrected_co2_emission_value(co2_utl.Constants):
+    class _rcb_correction(co2_utl.Constants):
         #: Willans factors [gCO2/MJ].
         WILLANS = {
             'gasoline': {

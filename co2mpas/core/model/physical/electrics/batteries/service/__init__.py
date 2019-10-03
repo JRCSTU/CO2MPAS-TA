@@ -342,32 +342,6 @@ def calculate_service_battery_delta_state_of_charge(
     return soc[-1] - soc[0]
 
 
-@sh.add_function(dsp, outputs=['service_battery_delta_energy'])
-def calculate_service_battery_delta_energy(
-        service_battery_delta_state_of_charge, service_battery_nominal_voltage,
-        service_battery_capacity):
-    """
-
-    :param service_battery_delta_state_of_charge:
-        Overall delta state of charge of the service battery [%].
-    :type service_battery_delta_state_of_charge: float
-
-    :param service_battery_nominal_voltage:
-        Service battery nominal voltage [V].
-    :type service_battery_nominal_voltage: float
-
-    :param service_battery_capacity:
-        Service battery capacity [Ah].
-    :type service_battery_capacity: float
-
-    :return:
-        Overall delta energy of the service battery [Wh].
-    :rtype: float
-    """
-    e = service_battery_delta_state_of_charge * service_battery_capacity
-    return e * service_battery_nominal_voltage / 100
-
-
 dsp.add_dispatcher(
     dsp_id='status_model',
     dsp=_status,

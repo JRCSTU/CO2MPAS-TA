@@ -27,7 +27,7 @@ Sub-Modules:
     engine
     control
     after_treat
-    legislation
+    co2
     defaults
 """
 
@@ -68,7 +68,7 @@ dsp.add_dispatcher(
     ),
     outputs=(
         'initial_temperature', 'phases_integration_times', 'times', 'gears',
-        'velocities',
+        'velocities', 'theoretical_motive_powers', 'theoretical_velocities'
     )
 )
 
@@ -94,7 +94,7 @@ dsp.add_dispatcher(
         'traction_deceleration_limit', 'inertial_factor', 'motive_powers', 'f0',
         'static_friction', 'accelerations', 'angle_slopes', 'n_dyno_axes', 'f1',
         'unladen_mass', 'vehicle_mass', 'velocities', 'road_loads', 'distances',
-        'f2', 'driven_distance'
+        'f2'
     )
 )
 
@@ -333,8 +333,8 @@ dsp.add_dispatcher(
         'electrical_hybridization_degree', 'drive_battery_n_parallel_cells',
         'drive_battery_state_of_charges', 'drive_battery_electric_powers',
         'drive_battery_nominal_voltage', 'service_battery_currents',
-        'service_battery_capacity', 'drive_battery_technology',
-        'drive_battery_n_cells', 'drive_battery_capacity',
+        'drive_battery_technology', 'drive_battery_capacity',
+        'service_battery_capacity', 'drive_battery_n_cells',
     ),
     outputs=(
         'motor_p0_electric_powers', 'motor_p0_maximum_power', 'motor_p0_powers',
@@ -393,12 +393,11 @@ dsp.add_dispatcher(
         'service_battery_state_of_charge_balance', 'alternator_nominal_voltage',
         'drive_battery_n_parallel_cells', 'drive_battery_currents', 'is_serial',
         'planetary_mean_efficiency', 'drive_battery_n_cells', 'planetary_ratio',
-        'dcdc_converter_electric_powers_demand', 'service_battery_delta_energy',
         'service_battery_initialization_time', 'drive_battery_electric_powers',
         'initial_service_battery_state_of_charge', 'service_battery_capacity',
         'service_battery_electric_powers', 'service_battery_nominal_voltage',
-        'drive_battery_nominal_voltage', 'starter_nominal_voltage',
-        'motors_electric_powers',
+        'dcdc_converter_electric_powers_demand', 'starter_nominal_voltage',
+        'drive_battery_nominal_voltage', 'motors_electric_powers',
     )
 )
 
@@ -502,7 +501,7 @@ dsp.add_dispatcher(
         'motor_p2_planetary_electric_powers', 'motor_p3_rear_electric_powers',
         'motor_p4_front_electric_powers', 'after_treatment_warm_up_phases',
         'motor_p4_rear_electric_powers', 'motor_p2_electric_powers',
-        'on_engine',
+        'on_engine', 'force_on_engine'
     )
 )
 
@@ -537,20 +536,25 @@ dsp.add_dispatcher(
         'engine_fuel_lower_heating_value', 'co2_emission_low', 'missing_powers',
         'co2_emission_value', 'ki_multiplicative', 'co2_emission_high', 'times',
         'engine_coolant_temperatures', 'phases_integration_times', 'fmep_model',
-        'phases_distances', 'engine_capacity', 'engine_stroke', 'accelerations',
         'engine_speeds_out', 'co2_emission_UDC', 'fuel_density', 'angle_slopes',
         'has_periodically_regenerating_systems', 'motive_powers', 'ki_additive',
         'min_engine_on_speed', 'fuel_carbon_content', 'velocities', 'fuel_type',
         'fuel_carbon_content_percentage', 'engine_powers_out', 'enable_willans',
-        'co2_emission_EUDC', 'co2_emissions',
+        'speed_distance_correction', 'theoretical_velocities', 'rcb_correction',
+        'theoretical_motive_powers', 'alternator_efficiency', 'engine_capacity',
+        'co2_emission_EUDC', 'engine_max_power', 'engine_stroke', 'engine_type',
+        'atct_family_correction_factor', 'cycle_type', 'distances', 'is_hybrid',
+        'service_battery_electric_powers', 'co2_emissions', 'accelerations',
+        'after_treatment_warm_up_phases', 'kco2_correction_factor',
+        'drive_battery_electric_powers', 'force_on_engine',
     ),
     outputs=(
         'phases_willans_factors', 'phases_co2_emissions', 'fuel_carbon_content',
         'fuel_carbon_content_percentage', 'phases_distances', 'willans_factors',
-        'declared_co2_emission_value',
-        'phases_fuel_consumptions', 'optimal_efficiency', 'co2_emission_value',
-        'ki_multiplicative',
-
+        'declared_co2_emission_value', 'co2_emission_value', 'phases_indices',
+        'phases_fuel_consumptions', 'optimal_efficiency', 'ki_multiplicative',
+        'corrected_co2_emission_value', 'kco2_correction_factor',
+        'rcb_correction',
     )
 )
 
