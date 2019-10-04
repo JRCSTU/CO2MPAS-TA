@@ -18,12 +18,14 @@ import numpy as np
 class Constants(dict):
     def load(self, file, **kw):
         import yaml
+        kw['Loader'] = kw.get('Loader', yaml.CLoader)
         with open(file, 'rb') as f:
             self.from_dict(yaml.load(f, **kw))
         return self
 
     def dump(self, file, default_flow_style=False, **kw):
         import yaml
+        kw['Dumper'] = kw.get('Dumper', yaml.CDumper)
         with open(file, 'w') as f:
             yaml.dump(
                 self.to_dict(), f, default_flow_style=default_flow_style, **kw
