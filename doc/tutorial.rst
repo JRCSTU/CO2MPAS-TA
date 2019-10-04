@@ -1,37 +1,22 @@
+Co2mpas 4.0.3 GUI Usage
+=======================
 
-The sections below constitute a "reference" for |co2mpas| - a **tutorial**
-is maintained in the *wiki* for this project at:
-https://github.com/JRCSTU/CO2MPAS-TA/wiki/CO2MPAS-user-guidelines
+This section explains |co2mpas|' functionalities through video tutorials.
 
-|co2mpas| GUI
--------------
-From *"Rally"* release, |co2mpas| can be launched through a *Graphical User Interface (GUI)*.
-Its core functionality is provided from within the GUI.
-Just ensure that the latest version of |co2mpas| is properly installed, and
-that its version is the latest released, by checking the "About" menu,
-as shown in the animation, below:
-
-.. image:: _static/Co2mpasALLINONE-About.gif
-   :scale: 75%
-   :alt: Check Co2mpas-ALLINONE Version
-   :align: center
-
-
-Alternatively, open the CONSOLE and type the following command:
+To check if you have installed the latest version type the following command in
+the console:
 
 .. code-block:: console
 
-    ## Check co2mpas version.
     $ co2mpas -V
-    co2mpas-|version|
+
 
 
 |co2mpas| command syntax
 ------------------------
-To get the syntax of the |co2mpas| console-command, open a console where
-you have installed |co2mpas| (see :ref:`co2mpas-install` above) and type::
+To know the syntax of |co2mpas| console-commands, open |co2mpas| console and
+type::
 
-    ## co2mpas help.
     $ co2mpas --help
 
     Predict NEDC CO2 emissions from WLTP.
@@ -163,74 +148,131 @@ you have installed |co2mpas| (see :ref:`co2mpas-install` above) and type::
 
 Input template
 --------------
-The sub-commands ``batch`` (Run) and ``ta`` (Run TA) accept either a single
-**input-excel-file** or a folder with multiple input-files for each vehicle.
-You can download an *empty* input excel-file from the GUI:
+.. _glossary:
+
+You can download an empty input excel-file from the GUI.
+
+Check the video to see how:
 
 .. image:: _static/Co2mpasALLINONE-Template.gif
    :scale: 75%
    :alt: Generate |co2mpas| input template
    :align: center
 
-Or you can create an empty vehicle template-file (e.g., ``vehicle_1.xlsx``)
-inside the *input-folder* with the ``template`` sub-command::
+Or you can create it using the command ``template`` in the console::
 
-        $ co2mpas template input/vehicle_1.xlsx -f
-        Creating TEMPLATE INPUT file 'input/vehicle_1.xlsx'...
+        $ co2mpas template
 
 The generated file contains descriptions to help you populate it with vehicle
-data. For items where an array of values is required (e.g. gear-box ratios) you
-may reference different parts of the spreadsheet following the syntax of the
-`"xlref" mini-language <https://pandalone.readthedocs.org/en/latest/reference.html#module-pandalone.xleash>`_.
+data.
 
-.. tip::
-   For an explanation of the naming of the fields, read the :ref:`excel-model`
-   section
+For more details on the fields, read the :ref:`glossary` section.
 
 Demo files
 ----------
-The simulator contains demo-files that are a nice starting point to try out.
-You can generate those *demo* vehicles from the GUI:
+Co2mpas contains 3 demo-files that can be used as starting point to try out:
+
+1. *co2mpas_conventional* ---> for conventional vehicles
+
+2. *co2mpas_simplan* ---> is the simulation plan
+
+3. *co2mpas_hybrid*  ---> for hybrid vehicles
+
+You can download them via the GUI in a folder called *co2mpas-demo*.
+
+Check the video to see how:
 
 .. image:: _static/Co2mpasALLINONE-Demo.gif
    :scale: 75%
    :alt: Generate |co2mpas| demo files
    :align: center
 
-Or you can create the demo files inside the *input-folder* with the ``demo``
-sub-command::
+Or you can use the console to create the demo files inside the *co2mpas_demo*
+folder with the ``demo`` sub-command::
 
-    $ co2mpas demo input -f
-    17:57:43       : INFO:co2mpas_main:Creating INPUT-DEMO file 't\co2mpas_demo-1.xlsx'...
-    17:57:43       : INFO:co2mpas_main:Creating INPUT-DEMO file 't\co2mpas_simplan.xlsx'...
-    17:57:43       : INFO:co2mpas_main:Run generated demo-files with command:
-        co2mpas batch t
-
-    You may find more demos inside `CO2MPAS/Demos` folder of your ALLINONE.
+    $ co2mpas demo co2mpas_demo
 
 
-Demo description
-~~~~~~~~~~~~~~~~
-The generated demos above, along with those inside the ``CO2MPAS/Demos`` AIO-folder
-have the following characteristics:
+Run
+---
+To successfully run |co2mpas| and download the final results, follow these 3
+steps:
 
-======= === ==== ==== === ==== ==== ==== ==== ========== ========
-  id    AT  WLTPcalib S/S BERS NEDCtarg  plan NEDC-error metadata
-------- --- --------- --- ---- --------- ---- ---------- --------
-             H    L             H    L
-======= === ==== ==== === ==== ==== ==== ==== ========== ========
-   0         X                  X                            X
-   1     X        X                  X                       X
-   2         X        X   X     X
-   3         X        X         X
-   4     X        X       X          X
-   5         X            X     X
-   6     X   X        X         X             4.0 (> 4%)
-   7     X   X        X   X     X             -5.65
-   8         X    X             X    X
-   9     X   X        X   X     X
-simplan      X                  X         X
-======= === ==== ==== === ==== ==== ==== ==== ========== ========
+1. upload your file/s (multiple file are accepted)
+
+2. press run
+
+3. download archive
+
+Check the video to see how to upload a file:
+
+.. image:: _static/Co2mpasALLINONE-Batch_Run.gif
+   :scale: 75%
+   :alt: |co2mpas| batch
+   :align: center
+
+
+Check the video to see how to run the file:
+
+Check the video to see how to get your results:
+
+
+.. note:: 5 advanced options are available: *use only declaration mode*,
+    *hard validation*, *enable selector*, *only summary*,
+    *use custom configuration file*. Flag the box to activate them.
+
+Or you can run |co2mpas| with the ``batch`` sub-command::
+
+   $ co2mpas batch input -O output
+   2016-11-15 17:00:31,286: INFO:co2mpas_main:Processing ['../input'] --> '../output'...
+     0%|          | 0/11 [00:00<?, ?it/s]: Processing ../input\co2mpas_demo-0.xlsx
+   ...
+   ...
+   Done! [527.420557 sec]
+
+
+Run Type Approval
+-----------------
+The Type Approval command simulates the NEDC fuel consumption and CO2 emission
+of the given vehicle using just the required `declaration inputs
+<https://github.com/JRCSTU/CO2MPAS-TA/wiki/TA_compulsory_inputs>`_  and produces
+an NEDC prediction. If |co2mpas| finds some extra input it will raise a warning
+and it will not produce any result. The type approval command is fully aligned
+to the WLTP-NEDC correlation `Regulation
+<https://eur-lex.europa.eu/legal-content/it/TXT/?uri=CELEX%3A32017R1151>`_.
+
+To successfully run |co2mpas| TA and download the final results, follow these 4
+steps:
+
+1. upload your file/s (multiple file are accepted)
+
+2. switch TA mode ON
+
+3. press run
+
+3. download archive
+
+Check the video to see how to upload a file:
+
+.. image:: _static/Co2mpasALLINONE-Batch_Run.gif
+   :scale: 75%
+   :alt: |co2mpas| batch
+   :align: center
+
+
+Check the video to see how to run in TA the file:
+
+Check the video to see how to get your results:
+
+
+Or you can run |co2mpas| with the ``ta`` sub-command::
+
+   $ co2mpas ta input -O output
+   2016-11-15 17:00:31,286: INFO:co2mpas_main:Processing ['../input'] --> '../output'...
+     0%|          | 0/1 [00:00<?, ?it/s]: Processing ../input\co2mpas_demo-0.xlsx
+   ...
+   ...
+   Done! [51.6874 sec]
 
 
 Synchronizing time-series
@@ -416,75 +458,6 @@ Or you can synchronize the data with the ``datasync`` command::
    All tables are read from excel-sheets using the `xl-ref syntax
    <https://pandalone.readthedocs.org/en/latest/reference.html#module-pandalone.xleash>`_.
 
-
-Run batch
----------
-The default sub-command (``batch``) accepts either a single **input-excel-file**
-or a folder with multiple input-files for each vehicle, and generates a
-**summary-excel-file** aggregating the major result-values from these vehicles,
-and (optionally) multiple **output-excel-files** for each vehicle run.
-
-To run all demo-files (note, it might take considerable time), you can use the
-GUI as follows:
-
-.. image:: _static/Co2mpasALLINONE-Batch_Run.gif
-   :scale: 75%
-   :alt: |co2mpas| batch
-   :align: center
-
-.. note:: the file ``co2mpas_simplan.xlsx`` has the ``flag.engineering_mode``
-   set to ``True``, because it contains a "simulation-plan" with non declaration
-   data.
-
-Or you can run |co2mpas| with the ``batch`` sub-command::
-
-   $ co2mpas batch input -O output
-   2016-11-15 17:00:31,286: INFO:co2mpas_main:Processing ['../input'] --> '../output'...
-     0%|          | 0/11 [00:00<?, ?it/s]: Processing ../input\co2mpas_demo-0.xlsx
-   ...
-   ...
-   Done! [527.420557 sec]
-
-.. Note::
-  For demonstration purposes, some some of the actual models will fail;
-  check the *summary file*.
-
-Run Type-Approval (``ta``) command
-----------------------------------
-The Type Approval command simulates the NEDC fuel consumption and CO2 emission
-of the given vehicle using just the required `declaration inputs
-<https://github.com/JRCSTU/CO2MPAS-TA/wiki/TA_compulsory_inputs>`_ (marked as
-compulsory inputs in input file version >= 2.2.5) and produces an NEDC
-prediction. If |co2mpas| finds some extra input it will raise a warning and it
-will not produce any result. The type approval command is the |co2mpas| running
-mode that is fully aligned to the WLTP-NEDC correlation `Regulation
-<http://ec.europa.eu/transparency/regcomitology/index.cfm?do=search.documentdeta
-il&gYsYfQyLRa3DqHm8YKXObaxj0Is1LmebRoBfg8saKszVqHZGdIwy2rS97ztb5t8b>`_.
-
-
-The sub-command ``ta`` accepts either a single **input-excel-file** or a folder
-with multiple input-files for each vehicle, and generates a
-**summary-excel-file** aggregating the major result-values from these vehicles,
-and multiple **output-excel-files** for each vehicle run.
-
-.. note::
-   The user can insert just the input files and the output folder.
-
-To run the type approval command you can use the GUI as follows:
-
-.. image:: _static/Co2mpasALLINONE-TA_Run.gif
-   :scale: 75%
-   :alt: |co2mpas| ta
-   :align: center
-
-Or you can run |co2mpas| with the ``ta`` sub-command::
-
-   $ co2mpas ta input -O output
-   2016-11-15 17:00:31,286: INFO:co2mpas_main:Processing ['../input'] --> '../output'...
-     0%|          | 0/1 [00:00<?, ?it/s]: Processing ../input\co2mpas_demo-0.xlsx
-   ...
-   ...
-   Done! [51.6874 sec]
 
 Output files
 ------------
