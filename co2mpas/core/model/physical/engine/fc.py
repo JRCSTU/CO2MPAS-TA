@@ -577,7 +577,7 @@ class FMEP:
 
         return a
 
-    def acr(self, params, n_speeds, n_powers, n_temp, a=None, acr_valids=None):
+    def acr(self, params, n_speeds, n_powers, n_temp, a=None, acr_valid=None):
         a = a or {'acr': [(self.base_acr, True)]}
         if self.has_cylinder_deactivation and self.active_cylinder_ratios and \
                 'acr' not in params:
@@ -588,8 +588,8 @@ class FMEP:
             b = (n_temp > at_n_temp) & (n_powers > 0)
             b &= (self.acr_min_mean_piston_speeds < n_speeds)
             b &= (n_speeds < self.acr_max_mean_piston_speeds)
-            if acr_valids is not None:
-                b &= acr_valids
+            if acr_valid is not None:
+                b &= acr_valid
             ac = n_powers / (self.fbc(n_speeds) * self.acr_fbc_percentage)
             for acr in sorted(self.active_cylinder_ratios):
                 l.append((acr, b & (ac < acr)))
@@ -607,8 +607,8 @@ class FMEP:
                     pass
         return out
 
-    def combination(self, params, n_speeds, n_powers, n_temp):
-        a = self.acr(params, n_speeds, n_powers, n_temp)
+    def combination(self, params, n_speeds, n_powers, n_temp, acr_valid=None):
+        a = self.acr(params, n_speeds, n_powers, n_temp, acr_valid=acr_valid)
         a = self.lb(params, n_speeds, n_powers, n_temp, a=a)
         a = self.vva(params, n_powers, a=a)
         a = self.egr(params, n_speeds, n_powers, n_temp, a=a)
@@ -647,8 +647,8 @@ class FMEP:
                 pass
         return data
 
-    def __call__(self, params, n_speeds, n_powers, n_temp):
-        it = self.combination(params, n_speeds, n_powers, n_temp)
+    def __call__(self, params, n_speeds, n_powers, n_temp, acr_valid=None):
+        it = self.combination(params, n_speeds, n_powers, n_temp, acr_valid)
         s = None
         for p, d, n in it:
             d['fmep'], d['v'] = _calculate_fc(*_fuel_ABC(**p))
@@ -961,14 +961,10 @@ def _normalized_engine_coolant_temperatures(
         Normalized engine coolant temperature [-].
     :rtype: numpy.array
     """
-
-    i = np.searchsorted(engine_coolant_temperatures, (temperature_target,))[0]
-    # Only flatten-out hot-part if `max-theta` is above `trg`.
-    temp = np.ones_like(engine_coolant_temperatures, dtype=float)
-    temp[:i] = engine_coolant_temperatures[:i] + 273.0
-    temp[:i] /= temperature_target + 273.0
-
-    return temp
+    temp = (engine_coolant_temperatures + 273.0) / (temperature_target + 273.0)
+    if isinstance(temp, np.ndarray):
+        temp[np.searchsorted(temp, (1,))[0]:] = 1
+    return np.minimum(1, temp)
 
 
 def _calculate_co2_emissions(
@@ -1039,9 +1035,9 @@ def _calculate_co2_emissions(
     p = params.valuesdict()
     # namespace shortcuts
     if sub_values is not None:
-        e_s, e_p, e_t, n_s, n_p = time_series[:, sub_values]
+        e_s, e_p, e_t, n_s, n_p, acr_v = time_series[:, sub_values]
     else:
-        e_s, e_p, e_t, n_s, n_p = time_series
+        e_s, e_p, e_t, n_s, n_p, acr_v = time_series
     lhv = engine_fuel_lower_heating_value
     idle_fc_model = idle_fuel_consumption_model.consumption
     fc, ac, vva, lb, egr = np.zeros((5, len(e_p)), dtype=float)
@@ -1064,7 +1060,10 @@ def _calculate_co2_emissions(
     else:
         p['t'] = tau_function(p['t0'], p['t1'], e_t)
         n_t = _normalized_engine_coolant_temperatures(e_t, p['trg'])
-        ac_phases = n_t == 1
+        at_n_temp = _normalized_engine_coolant_temperatures(
+            fmep_model.acr_after_treatment_temp, p['trg']
+        )
+        ac_phases = (n_t > at_n_temp) & acr_v.astype(bool)
         ec_p0 = _apply_ac_phases(
             _calculate_p0, fmep_model, p, engine_capacity, engine_stroke,
             idle_cutoff, lhv, ac_phases=ac_phases
@@ -1078,7 +1077,9 @@ def _calculate_co2_emissions(
         p['t'] = p['t'][b]
         n_t = n_t[b]
 
-    fc[b], _, ac[b], vva[b], lb[b], egr[b] = fmep_model(p, n_s[b], n_p[b], n_t)
+    fc[b], _, ac[b], vva[b], lb[b], egr[b] = fmep_model(
+        p, n_s[b], n_p[b], n_t, acr_valid=acr_v[b]
+    )
     fc[b] *= e_s[b] * (engine_capacity / (lhv * 1200))  # [g/sec]
     fc[fc < 0] = 0
 
@@ -1092,9 +1093,10 @@ def _calculate_co2_emissions(
 def define_co2_emissions_model(
         engine_speeds_out, engine_powers_out, mean_piston_speeds,
         brake_mean_effective_pressures, engine_coolant_temperatures, on_engine,
-        engine_fuel_lower_heating_value, idle_engine_speed, engine_stroke,
-        engine_capacity, idle_fuel_consumption_model, fuel_carbon_content,
-        min_engine_on_speed, tau_function, fmep_model):
+        cylinder_deactivation_valid_phases, engine_fuel_lower_heating_value,
+        idle_engine_speed, engine_stroke, engine_capacity,
+        idle_fuel_consumption_model, fuel_carbon_content, min_engine_on_speed,
+        tau_function, fmep_model):
     """
     Returns CO2 emissions model (see :func:`calculate_co2_emissions`).
 
@@ -1121,6 +1123,10 @@ def define_co2_emissions_model(
     :param on_engine:
         If the engine is on [-].
     :type on_engine: numpy.array
+
+    :param cylinder_deactivation_valid_phases:
+        Valid activation phases for cylinder deactivation.
+    :type cylinder_deactivation_valid_phases: numpy.array
 
     :param engine_fuel_lower_heating_value:
         Fuel lower heating value [kJ/kg].
@@ -1163,8 +1169,11 @@ def define_co2_emissions_model(
     :rtype: callable
     """
 
-    ts = (engine_speeds_out, engine_powers_out, engine_coolant_temperatures,
-          mean_piston_speeds, brake_mean_effective_pressures)
+    ts = (
+        engine_speeds_out, engine_powers_out, engine_coolant_temperatures,
+        mean_piston_speeds, brake_mean_effective_pressures,
+        cylinder_deactivation_valid_phases
+    )
 
     model = functools.partial(
         _calculate_co2_emissions, np.array(ts, copy=False),
