@@ -230,8 +230,8 @@ def calculate_theoretical_phases_distances(
     )
 
 
-dsp.add_data('rcb_correction', True)
-dsp.add_data('speed_distance_correction', True)
+dsp.add_data('rcb_correction', dfl.values.rcb_correction)
+dsp.add_data('speed_distance_correction', dfl.values.speed_distance_correction)
 
 
 @sh.add_function(
@@ -450,8 +450,10 @@ def calculate_batteries_phases_delta_energy(
     return np.diff(e[phases_indices], axis=1).ravel() * 10 / 36
 
 
-@sh.add_function(dsp, inputs_kwargs=True, outputs=['kco2_correction_factor'])
-def identify_kco2_correction_factor(
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['kco2_wltp_correction_factor']
+)
+def identify_kco2_wltp_correction_factor(
         drive_battery_electric_powers, service_battery_electric_powers,
         co2_emissions, times, force_on_engine, after_treatment_warm_up_phases,
         velocities, is_hybrid=True):
@@ -529,7 +531,7 @@ def identify_kco2_correction_factor(
 )
 def calculate_rcb_corrected_co2_emission_value_v1(
         co2_emission_value, batteries_phases_delta_energy,
-        kco2_correction_factor, phases_distances, rcb_correction=True,
+        kco2_wltp_correction_factor, phases_distances, rcb_correction=True,
         is_hybrid=True, cycle_type='WLTP'):
     """
     Calculates the CO2 emission value corrected for RCB [CO2g/km].
@@ -550,9 +552,9 @@ def calculate_rcb_corrected_co2_emission_value_v1(
         Phases delta energy of the batteries [Wh].
     :type batteries_phases_delta_energy: numpy.array
 
-    :param kco2_correction_factor:
-        kco2 correction factor [g/Wh].
-    :type kco2_correction_factor: float
+    :param kco2_wltp_correction_factor:
+        kco2 WLTP correction factor [CO2g/Wh].
+    :type kco2_wltp_correction_factor: float
 
     :param phases_distances:
         Cycle phases distances [km].
@@ -566,16 +568,90 @@ def calculate_rcb_corrected_co2_emission_value_v1(
         CO2 emission value corrected for RCB [CO2g/km].
     :rtype: float
     """
-    if not is_hybrid:
+    if not is_hybrid or cycle_type == 'NEDC':
         return sh.NONE
 
-    if cycle_type == 'WLTP' and rcb_correction and kco2_correction_factor:
+    if rcb_correction and kco2_wltp_correction_factor:
         de = np.sum(batteries_phases_delta_energy) / np.sum(phases_distances)
-        return co2_emission_value - kco2_correction_factor * de
+        return co2_emission_value - kco2_wltp_correction_factor * de
     return co2_emission_value
 
 
-dsp.add_data('atct_family_correction_factor', 1.0)
+@sh.add_function(dsp, outputs=['kco2_nedc_correction_factor'])
+def default_kco2_nedc_correction_factor(
+        kco2_wltp_correction_factor, drive_battery_nominal_voltage):
+    """
+    Returns the kco2 NEDC correction factor [CO2g/km/Ah].
+
+    :param kco2_wltp_correction_factor:
+        kco2 WLTP correction factor [CO2g/Wh].
+    :type kco2_wltp_correction_factor: float
+
+    :param drive_battery_nominal_voltage:
+        Drive battery nominal voltage [V].
+    :type drive_battery_nominal_voltage: float
+
+    :return:
+        kco2 NEDC correction factor [CO2g/km/Ah].
+    :rtype: float
+    """
+    return kco2_wltp_correction_factor * drive_battery_nominal_voltage
+
+
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['rcb_corrected_co2_emission_value']
+)
+def calculate_rcb_corrected_co2_emission_value_v2(
+        co2_emission_value, drive_battery_delta_state_of_charge,
+        drive_battery_capacity, kco2_nedc_correction_factor,
+        rcb_correction=True, is_hybrid=True, cycle_type='NEDC'):
+    """
+    Calculates the CO2 emission value corrected for RCB [CO2g/km].
+
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
+    :param cycle_type:
+        Cycle type (WLTP or NEDC).
+    :type cycle_type: str
+
+    :param co2_emission_value:
+        CO2 emission value of the cycle [CO2g/km].
+    :type co2_emission_value: float
+
+    :param drive_battery_delta_state_of_charge:
+        Overall delta state of charge of the drive battery [%].
+    :type drive_battery_delta_state_of_charge: numpy.array
+
+    :param kco2_nedc_correction_factor:
+        kco2 NEDC correction factor [CO2g/km/Ah].
+    :type kco2_nedc_correction_factor: float
+
+    :param drive_battery_capacity:
+        Drive battery capacity [Ah].
+    :type drive_battery_capacity: float
+
+    :param rcb_correction:
+        Apply RCB correction?
+    :type rcb_correction: bool
+
+    :return:
+        CO2 emission value corrected for RCB [CO2g/km].
+    :rtype: float
+    """
+    if not is_hybrid or cycle_type != 'NEDC':
+        return sh.NONE
+
+    if rcb_correction and kco2_nedc_correction_factor:
+        di = drive_battery_delta_state_of_charge * drive_battery_capacity / 100
+        return co2_emission_value - kco2_nedc_correction_factor * di
+    return co2_emission_value
+
+
+dsp.add_data(
+    'atct_family_correction_factor', dfl.values.atct_family_correction_factor
+)
 
 
 @sh.add_function(
@@ -602,7 +678,7 @@ def calculate_corrected_co2_emission(
     :type ki_multiplicative: float
 
     :param atct_family_correction_factor:
-        Family correction factor for the representative regional temperature.
+        Family correction factor for representative regional temperatures [-].
     :type atct_family_correction_factor: float
 
     :return:

@@ -491,7 +491,7 @@ def identify_drive_battery_nominal_voltage(drive_battery_voltages):
         Drive battery nominal voltage [V].
     :rtype: float
     """
-    return np.median(drive_battery_voltages)
+    return np.median(drive_battery_voltages[drive_battery_voltages > dfl.EPS])
 
 
 @sh.add_function(dsp, outputs=['drive_battery_voltages'], weight=sh.inf(11, 0))

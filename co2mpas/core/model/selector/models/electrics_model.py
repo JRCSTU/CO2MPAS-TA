@@ -23,8 +23,8 @@ models = [
     'alternator_efficiency', 'service_battery_capacity', 'service_battery_load',
     'drive_battery_n_parallel_cells', 'drive_battery_ocv', 'starter_efficiency',
     'service_battery_initialization_time', 'service_battery_nominal_voltage',
-    'drive_battery_n_series_cells', 'dcdc_converter_efficiency',
-    'starter_nominal_voltage',
+    'drive_battery_nominal_voltage', 'drive_battery_n_series_cells',
+    'dcdc_converter_efficiency', 'starter_nominal_voltage',
 ]
 
 #: Inputs required to run the model.

@@ -57,7 +57,7 @@ _prediction_data = [
     'motor_p2_speed_ratio', 'motor_p2_planetary_speed_ratio',
     'motor_p3_front_speed_ratio', 'motor_p3_rear_speed_ratio',
     'motor_p4_front_speed_ratio', 'motor_p4_rear_speed_ratio',
-    'kco2_correction_factor', 'rcb_correction', 'speed_distance_correction',
+    'rcb_correction', 'speed_distance_correction',
     'atct_family_correction_factor'
 ]
 

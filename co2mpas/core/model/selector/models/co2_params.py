@@ -18,7 +18,7 @@ name = 'co2_params'
 #: Parameters that constitute the model.
 models = [
     'co2_params_calibrated', 'calibration_status', 'initial_friction_params',
-    'engine_idle_fuel_consumption'
+    'engine_idle_fuel_consumption', 'kco2_wltp_correction_factor'
 ]
 
 #: Inputs required to run the model.

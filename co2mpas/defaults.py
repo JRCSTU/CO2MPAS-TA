@@ -14,6 +14,15 @@ import co2mpas.utils as co2_utl
 #: Container of node default values.
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class Values(co2_utl.Constants):
+    #: Apply RCB correction?
+    rcb_correction = True
+
+    #: Apply speed distance correction?
+    speed_distance_correction = True
+
+    #: Family correction factor for representative regional temperatures [-].
+    atct_family_correction_factor = 1.0
+
     #: Drive battery technology type.
     drive_battery_technology = 'unknown'
 
