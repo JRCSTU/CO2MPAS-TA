@@ -496,7 +496,7 @@ class FMEP:
                  acr_full_bmep_curve_percentage=0.5,
                  acr_max_mean_piston_speeds=12.0,
                  acr_min_mean_piston_speeds=3.0,
-                 acr_after_treatment_temp=-273,
+                 acr_after_treatment_temp=-273.0,
                  has_variable_valve_actuation=False,
                  has_lean_burn=False,
                  lb_max_mean_piston_speeds=12.0,
@@ -516,7 +516,7 @@ class FMEP:
         self.fbc = full_bmep_curve
 
         self.has_cylinder_deactivation = has_cylinder_deactivation
-        self.acr_after_treatment_temp = float(acr_after_treatment_temp[0])
+        self.acr_after_treatment_temp = float(acr_after_treatment_temp)
         self.acr_max_mean_piston_speeds = float(acr_max_mean_piston_speeds)
         self.acr_min_mean_piston_speeds = float(acr_min_mean_piston_speeds)
         self.acr_fbc_percentage = acr_full_bmep_curve_percentage
@@ -584,7 +584,7 @@ class FMEP:
             l = a['acr']
             at_n_temp = _normalized_engine_coolant_temperatures(
                 self.acr_after_treatment_temp, params['trg']
-                )
+            )
             b = (n_temp > at_n_temp) & (n_powers > 0)
             b &= (self.acr_min_mean_piston_speeds < n_speeds)
             b &= (n_speeds < self.acr_max_mean_piston_speeds)
@@ -677,9 +677,15 @@ class FMEP:
 @sh.add_function(dsp, outputs=['cylinder_deactivation_valid_phases'])
 def calculate_cylinder_deactivation_valid_phases(engine_inertia_powers_losses):
     """
-    Calculates 
+    Calculates valid activation phases for cylinder deactivation.
+
     :param engine_inertia_powers_losses:
-    :
+        Engine power losses due to inertia [kW].
+    :type engine_inertia_powers_losses: numpy.array
+
+    :return:
+        Valid activation phases for cylinder deactivation.
+    :rtype: numpy.array
     """
     p = dfl.functions.calculate_cylinder_deactivation_valid_phases.LIMIT
     return engine_inertia_powers_losses <= p
@@ -751,6 +757,15 @@ def define_fmep_model(
         Engine type (positive turbo, positive natural aspiration, compression).
     :type engine_type: str
 
+    :param idle_engine_speed:
+        Engine speed idle median and std [RPM].
+    :type idle_engine_speed: (float, float)
+
+    :param after_treatment_temperature_threshold:
+        Engine coolant temperature threshold when the after treatment system is
+        warm [°C].
+    :type after_treatment_temperature_threshold: (float, float)
+
     :return:
         Vehicle FMEP model.
     :rtype: FMEP
@@ -763,7 +778,7 @@ def define_fmep_model(
 
     acr_maps = d.acr_max_mean_piston_speeds_percentage * engine_max_speed
     acr_mips = d.acr_min_mean_piston_speeds_percentage * idle_engine_speed[0]
-    
+
     lb_mps = d.lb_max_mean_piston_speeds_percentage * engine_max_speed
     egr_mps = d.egr_max_mean_piston_speeds_percentage * engine_max_speed
 
@@ -777,7 +792,7 @@ def define_fmep_model(
         acr_full_bmep_curve_percentage=acr_fbcp,
         acr_max_mean_piston_speeds=bmep(acr_maps, engine_stroke),
         acr_min_mean_piston_speeds=bmep(acr_mips, engine_stroke),
-        acr_after_treatment_temp=after_treatment_temperature_threshold,
+        acr_after_treatment_temp=after_treatment_temperature_threshold[0],
         has_variable_valve_actuation=engine_has_variable_valve_actuation,
         has_lean_burn=has_lean_burn,
         lb_max_mean_piston_speeds=bmep(lb_mps, engine_stroke),
