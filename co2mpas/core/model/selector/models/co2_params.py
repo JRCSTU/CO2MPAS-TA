@@ -7,6 +7,7 @@
 """
 Functions and constants to define the co2_params selector.
 """
+import copy
 import schedula as sh
 from co2mpas.utils import mae
 from ._core import define_sub_model
@@ -62,4 +63,6 @@ up_limit = {'identified_co2_emissions': 0.5}
 
 #: Prediction model.
 # noinspection PyProtectedMember
-dsp = sh.Blueprint(_fc, inputs, outputs, models)._set_cls(define_sub_model)
+dsp = sh.Blueprint(copy.deepcopy(_fc).add_data(
+    'kco2_wltp_correction_factor'
+), inputs, outputs, models)._set_cls(define_sub_model)
