@@ -25,13 +25,13 @@ models = [
     'service_battery_initialization_time', 'service_battery_nominal_voltage',
     'drive_battery_nominal_voltage', 'drive_battery_n_series_cells',
     'dcdc_converter_efficiency', 'starter_nominal_voltage',
+    'initial_drive_battery_state_of_charge'
 ]
 
 #: Inputs required to run the model.
 inputs = [
     'drive_battery_electric_powers', 'times', 'motive_powers', 'accelerations',
-    'on_engine', 'starter_currents', 'initial_drive_battery_state_of_charge',
-    'initial_service_battery_state_of_charge'
+    'on_engine', 'starter_currents', 'initial_service_battery_state_of_charge'
 ]
 
 #: Relevant outputs of the model.
