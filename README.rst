@@ -11,7 +11,7 @@
                 | `4.1.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r4.1.2>`_: from 20-Oct-2019
 
 :release:       4.1.0
-:rel_date:      2019-09-16 19:00:00
+:rel_date:      2019-10-06 21:00:00
 :home:          http://co2mpas.io/
 :repository:    https://github.com/JRCSTU/CO2MPAS-TA
 :pypi-repo:     https://pypi.org/project/co2mpas/
