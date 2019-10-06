@@ -16,7 +16,7 @@ __all__ = ['__version__', '__updated__', '__title__', '__author__',
 __version__ = version = "4.0.0"  # Also update README.rst
 
 #: The :term:`Semantic Version` for Input/Output files.
-__file_version__ = "3.0.1"
+__file_version__ = "3.1.0"
 
 # Please UPDATE TIMESTAMP WHEN BUMPING VERSIONS AND BEFORE RELEASE.
 #: Release date.

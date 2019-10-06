@@ -87,10 +87,16 @@ def _limits(limits=(0, 100), error=None, **kwargs):
     return And(Use(float), _check_limits, error=error)
 
 
+_usersyms = {
+    'no_model': lambda *x: 0
+}
+
+
 # noinspection PyUnusedLocal
 def _eval(s, error=None, usersyms=None, **kwargs):
     error = error or 'cannot be eval!'
     from asteval import Interpreter
+    usersyms = sh.combine_dicts(_usersyms, usersyms or {})
     return Or(And(str, Use(Interpreter(usersyms=usersyms).eval), s), s,
               error=error)
 
