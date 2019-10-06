@@ -106,7 +106,7 @@ if __name__ == '__main__':
         'io': ['pandas>=0.21.0', 'dill', 'regex', 'pandalone[xlrd]',
                'xlrd', 'asteval']
     }
-    extras['dice'] = ['co2mpas_dice'] + extras['io']
+    extras['dice'] = ['co2mpas_dice>=3.3.0'] + extras['io']
     # noinspection PyTypeChecker
     extras['all'] = list(functools.reduce(set.union, extras.values(), set()))
     extras['dev'] = extras['all'] + [
