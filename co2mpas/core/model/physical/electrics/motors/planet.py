@@ -536,19 +536,3 @@ def default_planetary_ratio(has_motor_p2_planetary):
     if has_motor_p2_planetary:
         return dfl.functions.default_planetary_ratio.ratio
     return 0
-
-
-@sh.add_function(dsp, outputs=['is_serial'])
-def default_planetary_ratio(has_motor_p2_planetary):
-    """
-    Returns the default value if the vehicle serial hybrid.
-
-    :param has_motor_p2_planetary:
-        Has the vehicle a motor in planetary P2?
-    :type has_motor_p2_planetary: bool
-
-    :return:
-        Is the vehicle serial hybrid?
-    :rtype: bool
-    """
-    return has_motor_p2_planetary

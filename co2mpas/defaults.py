@@ -14,6 +14,9 @@ import co2mpas.utils as co2_utl
 #: Container of node default values.
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class Values(co2_utl.Constants):
+    #: Is the vehicle serial hybrid?
+    is_serial = False
+
     #: Apply RCB correction?
     rcb_correction = True
 

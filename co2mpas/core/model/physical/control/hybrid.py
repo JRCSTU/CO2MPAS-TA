@@ -392,7 +392,7 @@ def define_hev_power_model(motors_efficiencies, drive_line_efficiencies):
 @sh.add_function(dsp, outputs=['hybrid_modes'])
 def identify_hybrid_modes(
         times, gear_box_speeds_in, engine_speeds_out, idle_engine_speed,
-        on_engine, is_serial):
+        on_engine, is_serial, has_motor_p2_planetary):
     """
     Identify the hybrid mode status (0: EV, 1: Parallel, 2: Serial).
 
@@ -420,6 +420,10 @@ def identify_hybrid_modes(
         Is the vehicle serial hybrid?
     :type is_serial: bool
 
+    :param has_motor_p2_planetary:
+        Has the vehicle a motor in planetary P2?
+    :type has_motor_p2_planetary: bool
+
     :return:
         Hybrid mode status (0: EV, 1: Parallel, 2: Serial).
     :rtype: numpy.array
@@ -427,6 +431,8 @@ def identify_hybrid_modes(
     # noinspection PyProtectedMember
     from ..gear_box.mechanical import _shift
     from ....report import _correlation_coefficient
+    if has_motor_p2_planetary:
+        return on_engine.astype(int)
     if is_serial:
         return np.where(on_engine, 2, 0)
     mode = on_engine.astype(int)
@@ -592,8 +598,9 @@ def define_engine_power_losses_function(
 
 # noinspection PyMissingOrEmptyDocstring
 class EMS:
-    def __init__(self, is_serial, battery_model, hev_power_model,
-                 fuel_map_model, serial_motor_maximum_power_function,
+    def __init__(self, has_motor_p2_planetary, is_serial, battery_model,
+                 hev_power_model, fuel_map_model,
+                 serial_motor_maximum_power_function,
                  engine_power_losses_function, s_ch=None, s_ds=None):
         self.battery_model = battery_model
         self.hev_power_model = hev_power_model
@@ -603,6 +610,7 @@ class EMS:
         self._battery_power = None
         self.serial_motor_maximum_power = serial_motor_maximum_power_function
         self.engine_power_losses = engine_power_losses_function
+        self.has_motor_p2_planetary = has_motor_p2_planetary
         self.is_serial = is_serial
 
     def set_virtual(self, motors_maximum_powers):
@@ -785,6 +793,8 @@ class EMS:
             be_serial = e['power_ice'].ravel() > dfl.EPS
             be_serial &= motive_powers > 0.01
             mode[be_serial] = 1
+        if self.has_motor_p2_planetary:
+            mode[mode == 2] = 1
         return dict(
             hybrid_modes=mode, serial=s, parallel=p, electric=e,
             force_on_engine=be_serial
@@ -796,7 +806,7 @@ def calibrate_ems_model(
         drive_battery_model, hev_power_model, fuel_map_model, hybrid_modes,
         serial_motor_maximum_power_function, motive_powers,
         motors_maximums_powers, engine_powers_out, engine_speeds_out, times,
-        engine_power_losses_function, is_serial):
+        engine_power_losses_function, is_serial, has_motor_p2_planetary):
     """
     Calibrate Energy Management Strategy model.
 
@@ -848,13 +858,19 @@ def calibrate_ems_model(
         Is the vehicle serial hybrid?
     :type is_serial: bool
 
+    :param has_motor_p2_planetary:
+        Has the vehicle a motor in planetary P2?
+    :type has_motor_p2_planetary: bool
+
     :return:
         Equivalent Consumption Minimization Strategy params.
     :rtype: tuple[float]
     """
     model = EMS(
-        is_serial, drive_battery_model, hev_power_model, fuel_map_model,
-        serial_motor_maximum_power_function, engine_power_losses_function).fit(
+        has_motor_p2_planetary, is_serial, drive_battery_model, hev_power_model,
+        fuel_map_model, serial_motor_maximum_power_function,
+        engine_power_losses_function
+    ).fit(
         hybrid_modes, times, motive_powers, motors_maximums_powers,
         engine_powers_out, engine_speeds_out
     )
@@ -863,11 +879,15 @@ def calibrate_ems_model(
 
 @sh.add_function(dsp, outputs=['ems_model'])
 def define_ems_model(
-        is_serial, drive_battery_model, hev_power_model, fuel_map_model,
-        serial_motor_maximum_power_function, engine_power_losses_function,
-        ecms_s):
+        has_motor_p2_planetary, is_serial, drive_battery_model, hev_power_model,
+        fuel_map_model, serial_motor_maximum_power_function,
+        engine_power_losses_function, ecms_s):
     """
     Define Energy Management Strategy model.
+
+    :param has_motor_p2_planetary:
+        Has the vehicle a motor in planetary P2?
+    :type has_motor_p2_planetary: bool
 
     :param is_serial:
         Is the vehicle serial hybrid?
@@ -902,9 +922,9 @@ def define_ems_model(
     :rtype: EMS
     """
     return EMS(
-        is_serial, drive_battery_model, hev_power_model, fuel_map_model,
-        serial_motor_maximum_power_function, engine_power_losses_function,
-        s_ch=ecms_s[0], s_ds=ecms_s[1]
+        has_motor_p2_planetary, is_serial, drive_battery_model, hev_power_model,
+        fuel_map_model, serial_motor_maximum_power_function,
+        engine_power_losses_function, s_ch=ecms_s[0], s_ds=ecms_s[1]
     )
 
 
@@ -1478,6 +1498,9 @@ def predict_motors_electric_powers(
             d['power_bat'].ravel(), engine_speeds_out_hot, final_drive_speeds_in
         ) for d in (ems_data[k] for k in ('electric', 'parallel', 'serial'))
     ])
+
+
+dsp.add_data('is_serial', dfl.values.is_serial)
 
 
 @sh.add_function(dsp, outputs=[
