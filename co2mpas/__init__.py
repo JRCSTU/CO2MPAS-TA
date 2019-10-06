@@ -46,6 +46,7 @@ def init_conf(inputs):
     if inputs is not sh.NONE and inputs.get('model_conf'):
         from co2mpas.defaults import dfl
         dfl.load(inputs['model_conf'])
+        log.info('Model configuration file (%s) loaded.' % inputs['model_conf'])
     return inputs
 
 
