@@ -1038,7 +1038,7 @@ def _calculate_co2_emissions(
         e_s, e_p, e_t, n_s, n_p, acr_v = time_series[:, sub_values]
     else:
         e_s, e_p, e_t, n_s, n_p, acr_v = time_series
-    lhv = engine_fuel_lower_heating_value
+    lhv, acr_v = engine_fuel_lower_heating_value, acr_v.astype(bool)
     idle_fc_model = idle_fuel_consumption_model.consumption
     fc, ac, vva, lb, egr = np.zeros((5, len(e_p)), dtype=float)
     ac[:] = 1
@@ -1063,7 +1063,7 @@ def _calculate_co2_emissions(
         at_n_temp = _normalized_engine_coolant_temperatures(
             fmep_model.acr_after_treatment_temp, p['trg']
         )
-        ac_phases = (n_t > at_n_temp) & acr_v.astype(bool)
+        ac_phases = (n_t > at_n_temp) & acr_v
         ec_p0 = _apply_ac_phases(
             _calculate_p0, fmep_model, p, engine_capacity, engine_stroke,
             idle_cutoff, lhv, ac_phases=ac_phases
