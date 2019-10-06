@@ -742,7 +742,8 @@ class EMS:
             battery_power_split=battery_power_split
         )
         if engine_speeds_out is None and opt:
-            eff, b = pi / fc_ice, (bc < 0) | (pi < 0)
+            with np.errstate(divide='ignore', invalid='ignore'):
+                eff, b = pi / fc_ice, (bc < 0) | (pi < 0)
             b[np.all(np.isnan(eff) | b, 1)] = False
             eff[b] = np.nan
             i, j = np.arange(pi.shape[0]), np.nanargmax(eff, 1)
