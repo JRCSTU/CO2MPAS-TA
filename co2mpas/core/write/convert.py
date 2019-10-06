@@ -14,6 +14,7 @@ import logging
 import collections
 import schedula as sh
 
+log = logging.getLogger(__name__)
 _re_units = regex.compile(r'(\[.*\])')
 
 
@@ -413,40 +414,20 @@ def _co2mpas_info2df(start_time, main_flags=None):
     return df
 
 
-def _collect_installed_packages():
-    """
-    Collect installed packages from `pip` & `conda` commands, if present.
-
-    **Example:**
-    
-    >>> _collect_installed_packages()
-                version
-    package             
-    ...
-    """
+def _get_installed_packages():
     import json
     import pandas as pd
     import subprocess as sbp
 
-    cmds = [
-        "pip list --format json",
-        "conda list --json --no-pip",
-    ]
-    packages = []
-    for cmd in cmds:
-        try:
-            out = sbp.check_output(cmd.split())
-            js_packs = json.loads(out)
-        except Exception as ex:
-            logging.getLogger(__name__).info("Failed collecting installation info with cmd: %s\n%s", cmd, ex)
-        else:
-            packages.extend((pack['name'], pack['version']) for pack in js_packs)
-            
-    df = (
-        pd.DataFrame(packages, columns=['package', 'version'])
-        .drop_duplicates('package')
-        .set_index('package')
-    )
+    pkgs = []
+    try:
+        js_packs = json.loads(sbp.check_output("conda list --json".split()))
+    except Exception as ex:
+        log.info("Failed collecting installation info.\n%s", ex)
+    else:
+        pkgs.extend((pack['name'], pack['version']) for pack in js_packs)
+
+    df = pd.DataFrame(pkgs, columns=['package', 'version']).set_index('package')
     df.name = 'packages'
 
     return df
@@ -480,8 +461,7 @@ def _pipe2list(pipe, i=0, source=()):
 
 
 def _proc_info2df(data, start_time, main_flags):
-    res = (_co2mpas_info2df(start_time, main_flags), _collect_installed_packages())
-
+    res = _co2mpas_info2df(start_time, main_flags), _get_installed_packages()
     df, max_l = _pipe2list(data.get('pipe', {}))
 
     if df:
