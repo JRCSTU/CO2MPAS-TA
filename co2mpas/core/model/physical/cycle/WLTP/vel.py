@@ -8,6 +8,7 @@
 """
 Functions and `dsp` model to calculate the WLTP theoretical velocities.
 """
+import numpy as np
 import schedula as sh
 from co2mpas.defaults import dfl
 from ...vehicle import dsp as _vehicle
@@ -150,40 +151,33 @@ def get_class_data(wltc_data, wltp_class):
     return wltc_data['classes'][wltp_class]
 
 
-@sh.add_function(dsp, outputs=['class_velocities'], weight=25)
-def get_class_velocities(class_data, times):
+@sh.add_function(dsp, outputs=['class_times', 'class_velocities'], weight=25)
+def get_class_velocities(class_data):
     """
-    Returns the velocity profile according to WLTP class data [km/h].
+    Returns time and velocity profiles according to WLTP class data [s, km/h].
 
     :param class_data:
         WLTP class data.
     :type class_data: dict
 
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
     :return:
-        Class velocity vector [km/h].
-    :rtype: numpy.array
+        Class time and velocity vectors [s, km/h].
+    :rtype: tuple[numpy.array]
     """
-    import numpy as np
     vel = np.asarray(class_data['cycle'], dtype=float)
-    n = int(np.ceil(times[-1] / len(vel)))
-    vel = np.tile(vel, (n,))
-    return np.interp(times, np.arange(len(vel)), vel)
+    return np.arange(vel.shape[0], dtype=float), vel
 
 
-i = ['vehicle_mass', 'road_loads', 'inertial_factor', 'times']
+i = ['vehicle_mass', 'road_loads', 'inertial_factor']
 calculate_class_powers = sh.SubDispatchPipe(
     _vehicle,
     function_id='calculate_class_powers',
-    inputs=['velocities'] + i,
+    inputs=['times', 'velocities'] + i,
     outputs=['motive_powers']
 )
 dsp.add_function(
     function=calculate_class_powers,
-    inputs=['class_velocities'] + i,
+    inputs=['class_times', 'class_velocities'] + i,
     outputs=['class_powers']
 )
 
@@ -195,7 +189,7 @@ dsp.add_data(
 @sh.add_function(dsp, outputs=['downscale_factor'])
 def calculate_downscale_factor(
         class_data, downscale_factor_threshold, max_velocity, engine_max_power,
-        class_powers, times):
+        class_powers):
     """
     Calculates velocity downscale factor [-].
 
@@ -219,19 +213,13 @@ def calculate_downscale_factor(
         Class motive power [kW].
     :type class_powers: numpy.array
 
-    :param times:
-        Time vector [s].
-    :type times: numpy.array
-
     :return:
         Velocity downscale factor [-].
     :rtype: float
     """
-    import numpy as np
     from wltp.experiment import calcDownscaleFactor
     dsc_data = class_data['downscale']
     p_max_values = dsc_data['p_max_values']
-    p_max_values[0] = np.searchsorted(times, p_max_values[0])
     downsc_coeffs = dsc_data['factor_coeffs']
     dsc_v_split = dsc_data.get('v_max_split', None)
     downscale_factor = calcDownscaleFactor(
@@ -259,13 +247,18 @@ def get_downscale_phases(class_data):
 
 @sh.add_function(dsp, outputs=['theoretical_velocities'])
 def wltp_velocities(
-        downscale_factor, class_velocities, downscale_phases, times):
+        downscale_factor, class_times, class_velocities, downscale_phases,
+        times):
     """
     Returns the downscaled velocity profile [km/h].
 
     :param downscale_factor:
         Velocity downscale factor [-].
     :type downscale_factor: float
+
+    :param class_times:
+        Class time vector [s].
+    :type class_times: numpy.array
 
     :param class_velocities:
         Class velocity vector [km/h].
@@ -285,18 +278,22 @@ def wltp_velocities(
     """
 
     if downscale_factor > 0:
-        import numpy as np
         from wltp.experiment import downscaleCycle
         downscale_phases = np.searchsorted(times, downscale_phases)
         v = downscaleCycle(class_velocities, downscale_factor, downscale_phases)
     else:
         v = class_velocities
-    return v
+
+    n = int(np.ceil(times[-1] / class_times[-1]))
+    t = np.cumsum(np.tile(np.ediff1d(class_times, to_begin=[0]), (n,)))
+    t += class_times[0]
+    return np.interp(times, t, np.tile(v, (n,)))
+
 
 dsp.add_function(
     function_id='calculate_theoretical_motive_powers',
     function=calculate_class_powers,
-    inputs=['theoretical_velocities'] + i,
+    inputs=['times', 'theoretical_velocities'] + i,
     outputs=['theoretical_motive_powers']
 )
 dsp.add_function(
