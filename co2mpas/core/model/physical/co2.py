@@ -38,7 +38,7 @@ def identify_phases_indices(times, phases_integration_times):
         Indices of the cycle phases [-].
     :rtype: numpy.array
     """
-    return np.searchsorted(times, phases_integration_times)
+    return np.searchsorted(times, phases_integration_times, side='right')
 
 
 @sh.add_function(dsp, inputs_kwargs=True, outputs=['phases_co2_emissions'])
@@ -334,7 +334,7 @@ def calculate_speed_distance_corrected_co2_emission_value(
         y, p_co2 = p_co2.sum(axis=1).ravel(), p_co2[:, 0].ravel()
         x = cpmp(np.maximum(-.2 * engine_max_power, motive_powers))
         mdl.fit(x[:, None], y)
-        p2 = -mdl.intercept_ / mdl.coef_
+        p2 = -mdl.intercept_ / mdl.coef_ if mdl.coef_ else -float('inf')
         dp_mp = cpmp(np.maximum(p2, motive_powers))
         mdl.fit(dp_mp[:, None], y)
         dp_mp -= cpmp(np.maximum(p2, theoretical_motive_powers))
@@ -447,7 +447,9 @@ def calculate_batteries_phases_delta_energy(
     from scipy.integrate import cumtrapz
     p = service_battery_electric_powers + drive_battery_electric_powers
     e = cumtrapz(p, times, initial=0)
-    return np.diff(e[phases_indices], axis=1).ravel() * 10 / 36
+    i = phases_indices.copy()
+    i[:, 1] -= 1
+    return np.diff(e[i], axis=1).ravel() / 3.6
 
 
 @sh.add_function(
@@ -1161,7 +1163,9 @@ def calculate_phases_distances(phases_indices, distances):
         Cycle phases distances [km].
     :rtype: numpy.array
     """
-    return np.diff(distances[phases_indices], axis=1).ravel() / 1000.0
+    i = phases_indices.copy()
+    i[:, 1] -= 1
+    return np.diff(distances[i], axis=1).ravel() / 1000.0
 
 
 @sh.add_function(dsp, outputs=['phases_times'])
@@ -1181,7 +1185,9 @@ def calculate_phases_times(phases_indices, times):
         Cycle phases times [s].
     :rtype: numpy.array
     """
-    return np.diff(times[phases_indices], axis=1).ravel()
+    i = phases_indices.copy()
+    i[:, 1] -= 1
+    return np.diff(times[i], axis=1).ravel()
 
 
 @sh.add_function(dsp, outputs=['fuel_density'])
