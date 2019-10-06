@@ -1278,3 +1278,23 @@ def calculate_fuel_carbon_content_percentage(fuel_carbon_content):
     """
 
     return fuel_carbon_content / calculate_fuel_carbon_content(1.0)
+
+
+@sh.add_function(dsp, outputs=['fuel_heating_value'])
+def calculate_fuel_heating_value(engine_fuel_lower_heating_value, fuel_density):
+    """
+    Calculates the fuel heating value as kWh/l.
+
+    :param engine_fuel_lower_heating_value:
+        Fuel lower heating value [kJ/kg].
+    :type engine_fuel_lower_heating_value: float
+
+    :param fuel_density:
+        Fuel density [g/l].
+    :type fuel_density: float
+
+    :return:
+        Fuel heating value [kWh/l].
+    :rtype: float
+    """
+    return engine_fuel_lower_heating_value * fuel_density / 36e5

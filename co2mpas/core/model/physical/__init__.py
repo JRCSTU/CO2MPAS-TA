@@ -552,10 +552,10 @@ dsp.add_dispatcher(
     outputs=(
         'phases_willans_factors', 'phases_co2_emissions', 'fuel_carbon_content',
         'fuel_carbon_content_percentage', 'phases_distances', 'willans_factors',
+        'corrected_co2_emission_value', 'rcb_correction', 'fuel_heating_value',
         'declared_co2_emission_value', 'co2_emission_value', 'phases_indices',
         'phases_fuel_consumptions', 'optimal_efficiency', 'ki_multiplicative',
-        'corrected_co2_emission_value', 'kco2_wltp_correction_factor',
-        'kco2_nedc_correction_factor', 'rcb_correction',
+        'kco2_wltp_correction_factor', 'kco2_nedc_correction_factor',
     )
 )
 
