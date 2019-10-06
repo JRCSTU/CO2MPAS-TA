@@ -304,6 +304,7 @@ def _param_units():
         'co2_params trg': '[°C]',
         'fuel_consumption': '[l/100km]',
         'co2_emission': '[CO2g/km]',
+        'declared_co2_emission_value': '[CO2g/km]',
         'av_velocities': '[kw/h]',
         'av_vel_pos_mov_pow': '[kw/h]',
         'av_pos_motive_powers': '[kW]',

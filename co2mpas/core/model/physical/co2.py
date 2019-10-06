@@ -691,12 +691,19 @@ def calculate_corrected_co2_emission(
     return v * atct_family_correction_factor
 
 
+# noinspection PyUnusedLocal
+def _domain_calculate_corrected_co2_emission_for_conventional_nedc(
+        cycle_type, is_hybrid, *args):
+    return not is_hybrid and cycle_type == 'NEDC'
+
+
 dsp.add_function(
+    function_id='calculate_corrected_co2_emission_for_conventional_nedc',
     function=sh.add_args(calculate_corrected_co2_emission),
-    inputs=['cycle_type', 'co2_emission_value', 'ki_multiplicative',
-            'ki_additive'],
+    inputs=['cycle_type', 'is_hybrid', 'co2_emission_value',
+            'ki_multiplicative', 'ki_additive'],
     outputs=['corrected_co2_emission_value'],
-    input_domain=lambda cycle_type, *args: cycle_type == 'NEDC'
+    input_domain=_domain_calculate_corrected_co2_emission_for_conventional_nedc
 )
 dsp.add_function(
     function=sh.bypass,
