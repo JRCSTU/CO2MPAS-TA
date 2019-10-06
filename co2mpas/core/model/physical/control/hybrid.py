@@ -1584,3 +1584,15 @@ def identify_motors_electric_powers_v1(
         HEV(drive_line_efficiencies, motors_efficiencies), hybrid_modes,
         motive_powers, motors_maximums_powers, motors_electric_powers
     )
+
+
+@sh.add_function(dsp, outputs=['start_stop_activation_time'])
+def default_start_stop_activation_time():
+    """
+    Returns the default start stop activation time threshold [s].
+
+    :return:
+        Start-stop activation time threshold [s].
+    :rtype: float
+    """
+    return 0
