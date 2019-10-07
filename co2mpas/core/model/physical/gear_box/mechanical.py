@@ -36,17 +36,16 @@ def _correct_gear_shifts(
     dt = shift_window / 2
     for i in np.arange(s)[shifts]:
         g = gears[slice(i - 1, i + 1, 1)]
+        j = int(i)
         if g[0] != 0 and g[-1] != 0:
             t = times[i]
-            n = max(i - (((t - dt) <= times) & (times <= t)).sum(), k)
+            n = max(i - (((t - dt) <= times) & (times <= t)).sum(), min(i, k))
             m = min(i + ((t <= times) & (times <= (t + dt))).sum(), s)
-            # noinspection PyTypeChecker
-            j = int(sci_opt.brute(
-                _err, (slice(n, m, 1),), args=(vsr(g),), finish=None)
-            )
-        else:
-            j = int(i)
-
+            if n + 1 > m:
+                # noinspection PyTypeChecker
+                j = int(sci_opt.brute(
+                    _err, (slice(n, m, 1),), args=(vsr(g),), finish=None)
+                )
         x = slice(j - 1, j + 1, 1)
         new_gears[x] = g
         new_gears[k:x.start] = g[0]
