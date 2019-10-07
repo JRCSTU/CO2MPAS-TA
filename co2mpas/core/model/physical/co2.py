@@ -581,7 +581,7 @@ def calculate_rcb_corrected_co2_emission_value_v1(
 
 @sh.add_function(dsp, outputs=['kco2_nedc_correction_factor'])
 def default_kco2_nedc_correction_factor(
-        kco2_wltp_correction_factor, drive_battery_nominal_voltage):
+        kco2_wltp_correction_factor, drive_battery_nominal_voltage, distances):
     """
     Returns the kco2 NEDC correction factor [CO2g/km/Ah].
 
@@ -593,11 +593,16 @@ def default_kco2_nedc_correction_factor(
         Drive battery nominal voltage [V].
     :type drive_battery_nominal_voltage: float
 
+    :param distances:
+        Cumulative distance vector [m].
+    :type distances: numpy.array
+
     :return:
         kco2 NEDC correction factor [CO2g/km/Ah].
     :rtype: float
     """
-    return kco2_wltp_correction_factor * drive_battery_nominal_voltage
+    d = distances[-1] / 1000
+    return kco2_wltp_correction_factor * drive_battery_nominal_voltage / d
 
 
 @sh.add_function(
