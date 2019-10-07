@@ -1,10 +1,11 @@
-##############
-CO2MPAS F.A.Q.
-##############
+######
+F.A.Q.
+######
 .. contents::
 
 
-This page contains the most Frequently Asked Questions regarding |CO2MPAS| model, regulation and inputs.
+This page contains the most Frequently Asked Questions regarding |CO2MPAS|
+model, regulation and inputs.
 
 *For more questions, please visit:* 
 https://github.com/JRCSTU/CO2MPAS-TA/wiki/F-A-Q
@@ -13,26 +14,16 @@ https://github.com/JRCSTU/CO2MPAS-TA/wiki/F-A-Q
 General
 =======
 
-
-Use
----
-Q: 
-Is the use of |CO2MPAS| correlation tool mandatory for all light-duty vehicles?   
-
-A: 
+Is the use of |CO2MPAS| correlation tool mandatory for all light-duty vehicles?
+-------------------------------------------------------------------------------
 No, the use of |CO2MPAS| is not compulsory for hybrids and plug-in hybrids,
 double testing is allowed instead.
 For all the other technologies, the use of the correlation tool is mandatory.
 For more information and updates please see refer to point 3 
 of `DG CLIMA's note`_. 
 
-Latest version - New Releases
------------------------------
-Q:
-Where can the user download the latest version of the |CO2MPAS|? 
-Where are the release notes and documentation stored?
-
-A: 
+Where can the user download the latest version of the |CO2MPAS|?
+----------------------------------------------------------------
 Visit our GitHub repository
 `CO2MPAS-TA <https://github.com/JRCSTU/CO2MPAS-TA/>`_ to download |CO2MPAS| .
 Subscribe to  `issue #8 <https://github.com/JRCSTU/CO2MPAS-TA/issues/8>`_ 
@@ -40,35 +31,23 @@ to get notifications for the new |CO2MPAS| releases.
 ** You can find the documentation in the
 `wiki <https://github.com/JRCSTU/CO2MPAS-TA/wiki/>`_. **
 
-|CO2MPAS| License
------------------
-Q: 
 Is |CO2MPAS| free and will it be in the future?
-
-A: 
+-----------------------------------------------
 |CO2MPAS| is and will be free.
 To maintain it under the current EUPL license, any modifications made to the
 program, or a copy of it, must be licensed in the same way:
 `EUPL <https://eupl.eu/>`_.
 
 
-Physical background
--------------------
-Q: 
-What is |CO2MPAS| physical background and which formulas are applied? 
-
-A:
+What is |CO2MPAS| physical background and which formulas are applied?
+---------------------------------------------------------------------
 |CO2MPAS| is backward-looking longitudinal-dynamics |CO2| and
 fuel-consumption simulator for light-duty M1 & N1 vehicles (cars and vans).
 **To check the formulas the user can visit the functions' 
 description pages: .....** 
 
-Model Validation
------------------
-Q: 
-Where can the user find information on the status of the validation? 
-
-A: 
+Where can the user find information on the status of the validation?
+--------------------------------------------------------------------
 Detailed validation reports are provided together with every release of
 |CO2MPAS| in the `validation chapter <http://jrcstu.github.io/co2mpas/>`_ of
 the wiki.
@@ -84,12 +63,8 @@ Moreover, some stakeholders have conducted independent validation
 tests on real cars in collaboration with the JRC. The results of these tests
 have been included in the above-mentioned reports as "real cars".
 
-Workshop material
------------------
-Q: 
 Where can the user find |CO2MPAS| workshop material?
-
-A: 
+----------------------------------------------------
 Workshop material is always uploaded in
 `presentation chapter <https://github.com/JRCSTU/CO2MPAS-TA/wiki/Presentations-from-CO2MPAS-meetings>`_.
 
@@ -98,14 +73,8 @@ Workshop material is always uploaded in
 Model
 =====
 
-
-Run: Type Approval mode vs Engineering mode
--------------------------------------------
-Q: 
-What is the difference between Type Approval mode and engineering mode
-in |CO2MPAS| run?
-
-A: 
+What is the difference between Type Approval mode and engineering mode in |CO2MPAS| run?
+----------------------------------------------------------------------------------------
 In Type Approval mode |CO2MPAS| simulates the NEDC |CO2| emission 
 of the given vehicle fully aligned to the WLTP-NEDC correlation Regulation. 
 If |CO2MPAS| finds some extra input it will raise a warning and it will not 
@@ -117,14 +86,9 @@ all the running flags become available to the user.
 Moreover, the user can provide additional inputs beyond the declaration ones 
 and check their effect on the NEDC |CO2| prediction. 
 
-Data synchronization
---------------------
-Q: 
-What is the Data synchronization tool and how does it work? 
-
-A: 
-Synchronization of data from different sources 
-is essential for robust results. 
+What is the Data synchronization tool and how does it work?
+-----------------------------------------------------------
+Synchronization of data from different sources is essential for robust results.
 |CO2MPAS| `syncing` tool uses a common signal as a reference. 
 To avoid time-aligned signals, we advise using the velocity present on the
 dyno and the obd at the same time.
@@ -133,12 +97,8 @@ according to the reference signal provided.
 The user is allowed to apply different ways of re-sampling the original signals. 
 For more information, please see the instructions.  
 
-Enable selector
----------------
-Q:
-What is the model selector? 
-
-A: 
+What is the model selector?
+---------------------------
 |CO2MPAS| consists of several models. 
 If the user provides both WLTP-H and WLTP-L data, 
 the same models will be calibrated twice, 
@@ -149,13 +109,9 @@ no matter if the model was calibrated with another cycle.
 For example, if the alternator model of the High configuration is better, 
 the same model will be used to predict the Low configuration as well.    
 
-Simulation plan
----------------
-Q: 
-Is it possible to simulate other cycles than NEDC or WLTP? How about real
-on-road tests?
 
-A: 
+Is it possible to simulate other cycles than NEDC or WLTP? How about real on-road tests?
+----------------------------------------------------------------------------------------
 Yes, |CO2MPAS| can simulate other cycles, as well as on-road tests. 
 The user can simulate with several extra parameters beyond the 
 official laboratory-measured ones. 
@@ -165,22 +121,12 @@ etc.
 The user will find an example file when downloading the demo files. 
 **Also, please check the instructions.**        
 
-Signals for |CO2MPAS| run
--------------------------
-Q: 
-Is the usage of internal / development signals allowed (if equivalence is shown)
-?
-
-A: 
+Is the usage of internal / development signals allowed (if equivalence is shown)?
+---------------------------------------------------------------------------------
 OBD signals are regulated and the only one to be used.
 
-Start-Stop activation
----------------------
-Q: 
-What is the start-stop (S/S) activation time? What might happen if the user
-declares it wrong?
-
-A: 
+What is the start-stop (S/S) activation time? What might happen if the user declares it wrong?
+----------------------------------------------------------------------------------------------
 S/S is the time elapsed from the beginning of the NEDC test to the first time
 the Start-Stop system is enabled, expressed in seconds [s].
 S/S is one of the variables that are subject to verification in case of random
@@ -194,13 +140,8 @@ manufacturer.
 Regulation
 ==========
 
-
-Correlation Regulation
-----------------------
-Q: 
 Where to find the correlation regulation?
-
-A: 
+-----------------------------------------
 Below some useful links: 
  
 - The correlation regulation for passenger vehicles
@@ -211,44 +152,26 @@ Below some useful links:
   the reader will find some frequently asked question regarding the correlation
   procedure.
 
-Family interpolation
---------------------
-Q:    
 Should |CO2MPAS| be used for each car or each family ID?
-
-A:  
-
+--------------------------------------------------------
 For each interpolation family ID. 
 Vehicle-H and Vehicle-L are utilized to define the interpolation line of
 Interpolation Family ID.
 
-Physical test
--------------
-Q:       
 Is it possible to do a physical test, instead of accepting |CO2MPAS| results?   
-
-A:    
-Yes, there are cases when |CO2MPAS| 
+-----------------------------------------------------------------------------
+Yes, there are cases when |CO2MPAS|
 does not need to be used and physical test shall be performed instead. 
 **where are they described?**
 
-DICE and procedure
-------------------
-Q:     
-What is DICE and who should use it?   
-
-A:
+What is DICE and who should use it?
+-----------------------------------
 DICE is the tool assigning a random number to each IDIF type approved. 
 It is used only for type approving purposes, by designated users. 
 
 
-Deviation and verifications factors
------------------------------------
-Q: 
-What are the verification and deviation factors, and when do they need to be 
-recorded? 
-
-A: 
+What are the verification and deviation factors, and when do they need to be recorded?
+--------------------------------------------------------------------------------------
 These values need to be recorded when the random number is 90, or above,
 and the |CO2MPAS| deviation is equal or higher than 4 percent.
 For more details please refer to the correlation regulation.  

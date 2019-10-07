@@ -1,16 +1,13 @@
 Glossary
 ========
-
-Inputs
-======
+this page shows a list terms used in the input file.
 
 DICE
 ----
-#https://co2mpas.readthedocs.io/en/stable/glossary.html
-#.. glossary:: # TODO:
+.. glossary::
 
     `extension`
-        expansion of the interpolation line (i.e. extension of the CO2 values).
+        expansion of the interpolation line (i.e. extension of the |CO2| values).
         It cannot be performed for any other purposes (EVAP, etc.).
         It is defined in section 3 of Annex I of Regulation (EC) No 692/2008.
 
@@ -45,9 +42,9 @@ DICE
         you may add comments regarding the DICE procedure. In case of extension,
         or resubmission, kindly provide a detailed description.
 
-MODEL INPUTS
+Model Inputs
 ------------
-#.. glossary:: # TODO:
+.. glossary::
     `fuel_type`
         it refers to the type of fuel used during the vehicle test.
         The user must choose the correct one among the following:
@@ -176,7 +173,7 @@ MODEL INPUTS
     `full_load_powers`
         T1 map POWER. See relavant sheet (T1_map).
 
-ROAD LOADS
+Road Loads
 ----------
     `vehicle_mass WLTP-H`
         simulated inertia applied during the WLTP-H test on the dyno [kg].
@@ -212,7 +209,7 @@ ROAD LOADS
         defined by the respective guideline :math:`[\frac{N}{{kmh}^2}]`.
 
 
-TARGETS
+Targets
 -------
     `co2_emission_low WLTP-H`
         phase low, |CO2| emissions bag values [g|CO2|/km], not corrected for
@@ -253,7 +250,7 @@ TARGETS
         corrected.
 
 
-DRIVE MODE
+Drive Mode
 ----------
     `n_wheel_drive WLTP-H`
         specify whether WLTP-H test is conducted on 2-wheel driving or 4-wheel
@@ -264,7 +261,7 @@ DRIVE MODE
          4-wheel driving. The default is 2-wheel drive.
 
 
-TECHNOLOGIES
+Technologies
 ------------
     `engine_is_turbo`
         if the air intake of the engine is equipped with any kind of forced
@@ -380,7 +377,7 @@ TECHNOLOGIES
         `has_selective_catalytic_reduction` to 1; otherwise, set it to 0.
         The default value is 0.
 
-DYNO - VEHICLE CONFIGURATION
+Dyne - Vehicle Configuration
 ----------------------------
     `n_dyno_axes WLTP-H`
         the WLTP regulation states that WLTP tests should be performed using
@@ -389,8 +386,8 @@ DYNO - VEHICLE CONFIGURATION
         during the WLTP-H test.
 
 
-HYBRID - INPUTS
----------------
+Hybrids - Inputs
+----------------
     `planetary_ratio`
         the ratio existing between the planetary and the final drive rotation
         speed during electric drive (engine speed =0). The planetary speed is
@@ -484,8 +481,8 @@ HYBRID - INPUTS
         ratio between rear motor P4 speed and wheel speed.
 
 
-WLTP-H
-======
+Time Series
+-----------
 
     `times`
         qq
@@ -525,446 +522,6 @@ WLTP-H
 
     `dcdc_converter_currents`
         qq
-
-
-
-
-    regulation
-    EU legislation
-        All EU regulations related to the tool:
-
-        - `(EU) 2017/1151 <https://eur-lex.europa.eu/eli/reg/2017/1151/oj>`_:
-          Commission Regulation (EU) 2017/1151 of 1 June 2017
-          supplementing Regulation (EC) No 715/2007 of the European Parliament
-          and of the Council on `type-approval` of motor vehicles with respect to
-          emissions from light passenger and commercial vehicles (Euro 5 and Euro 6)
-          and on access to vehicle repair and maintenance information,
-          amending Directive 2007/46/EC of the European Parliament and of the Council,
-          Commission Regulation (EC) No 692/2008 and Commission Regulation (EU) No 1230/2012
-          and repealing Commission Regulation (EC) No 692/2008 (Text with EEA relevance)
-
-        - `(EU) 2017/1152 <https://eur-lex.europa.eu/eli/reg_impl/2017/1152/oj>`_:
-          Commission Implementing Regulation (EU) 2017/1152 of 2 June 2017
-          setting out a methodology for determining the correlation parameters
-          necessary for reflecting the change in the regulatory test procedure
-          with regard to light commercial vehicles and amending Implementing Regulation
-          (EU) No 293/2012 (Text with EEA relevance)
-
-        - `(EU) 2017/1153 <https://eur-lex.europa.eu/eli/reg_impl/2017/1153/oj>`_:
-          Commission Implementing Regulation (EU) 2017/1153 of 2 June 2017
-          setting out a methodology for determining the correlation parameters
-          necessary for reflecting the change in the regulatory test procedure
-          and amending Regulation (EU) No 1014/2010 (Text with EEA relevance)
-
-    NEDC
-        New European Driving Cycle
-
-    WLTP
-    type-approval
-        Worldwide harmonized Light vehicles Test Procedures
-
-    |co2mpas|
-        May refer to the application, the correlation procedure, or
-        to the `WLTP` --> `NEDC` simulator.
-
-    repeatability
-        The capability of |co2mpas| to duplicate the exact simulation results when running repeatedly
-        **on the same** computer.
-        This is guaranteed by using non-stochastic algorithms (or using always the same random-seed).
-
-    reproducibility
-    replicability
-        The capability of |co2mpas| to duplicate the exact same simulation results on **a different computer**.
-        This is guaranteed when using the All-in-One environment.
-
-
-
-    hash
-    Hash-ID
-        A very big number usually expressed in hexadecimal form (e.g. `SHA1`)
-        that can be generated cryptographically from any kind of `e-file` based
-        exclusively on its contents; even if a single bit of the file changes,
-        its hash-id is guaranteed to be totally different.
-
-
-    SHA1
-        A fast and hashing algorithm with 160bit numbers (20 bytes, 40 hex digits),
-        used, among others, by `Git`.
-
-        Example::
-
-               SHA1("CO2MPAS") = c5badbe95ad77c0ca66abed422c964aa080d8c07
-
-    JSON
-        JavaScript Object Notation:  a lightweight human-readable data-interchange
-        data format, easy for machines to parse and generate.
-        https://en.wikipedia.org/wiki/JSON
-
-    YAML
-        Ain't Markup Language: A human-friendly data serialization language,
-        commonly used for configuration files and data exchnage.
-        https://en.wikipedia.org/wiki/YAML
-
-    IO
-        Input/Output; when referring to a software application, we mean the internal interfaces
-        that read and write files and streams of data from devices, databases or other external resources.
-
-    OEM
-        Original Equipment Manufacturers, eg. a Vehicle manufacturer
-
-    TAA
-        Type Approval Authority: the national supervision body for a `type-approval`
-        procedure
-
-    TS
-        Technical service: the entity running the `WLTP` on behalf of the `OEM`,
-        which reports to some `TAA`.  in some cases, the `TAA` might be also the *TS*.
-
-    designated user
-        Any organizational entity or person (usually a `TS`) running `type-approval`
-        on behalf of some `OEM` and reporting to some `TAA`.
-
-    Capped cycles
-        For vehicles that cannot follow the standard NEDC/WLTP cycles (for example, because they have not enough power to attain the acceleration and maximum speed values required in the operating cycle) it is still possible to use the |co2mpas| tool to predict the NEDC |co2| emission. For these capped cycles, the vehicle has to be operated with the accelerator control fully depressed until they once again reach the required operating curve. Thus, the operated cycle may last more than the standard duration seconds and the subphases may vary in duration. Therefore there is a need to indicate the exact duration of each subphase. This can be done by filling in, the corresponding bag_phases vector in the input file which define the phases integration time [1,1,1,...,2,2,2,...,3,3,3,...,4,4,4]. Providing this input for WLTP cycles together with the other standard vectorial inputs such as speed,engine speed, etc. allows |co2mpas| to process a "modified" WLTP and get calibrated properly. The NEDC that is predicted corresponds to the respective NEDC velocity profile and gearshifting that applies to the capped cycle, which is provided in the appropriate tab. Note that, providing NEDC velocity and gear shifting profile is not allowed for normal vehicles.
-
-    AIO
-    ALLINONE
-        The *All-In-One is a "fat" archive (~1.4GB when inflated) containing
-        all *3rd-party* applications, `WinPython` and all python packages
-        required to run |co2mpas| for `type-approval` purposes.
-
-        The official version to download is specified at the top of
-        |co2mpas| landing page: https://co2mpas.io
-
-    polyvers
-    polyversion
-        A utility that versions python-projects accurately based on git commits
-        & tags.
-
-    WinPython
-        The :term:`WinPython` distribution is just a collection of
-        standard pre-compiled binaries for *Windows* containing all
-        the scientific packages, and much more. It is not update-able,
-        and has a quasi-regular release-cycle of 3 months.
-
-        The `ALLINONE` for official `type-approval` is based on this distribution.
-
-    conda
-    Anaconda
-        A python distribution & package-manager different from the "standard' one.
-        It was crafted originally for scientific python libraries (`numpy/pandas`)
-        but has now evolved to a full blown software delivery platform, that
-        included native packages (e.g. `GCC` & `GLib`).
-
-        Can be downloaded from: http://continuum.io/downloads
-
-    MSYS2
-    MinGW
-    Cygwin
-        Open-source command-line environments for *Windows*, providing a `POSIX`
-        emulation layer and a software development framework (compilers, etc).
-        *Cygwin* was shipped with older `ALLINONE` archives, `MSYS2
-        <https://www.msys2.org/>`_ since `1.7.3`.
-
-    Unix
-    POSIX
-        The `Portable Operating System Interface <https://en.wikipedia.org/wiki/POSIX>`_
-        family of standards that all variants of *Unix* comply with.
-
-
-Input file terminology
-=========================
-Vehicle general characteristics
--------------------------------
-.. glossary::
-
-    Rotational mass
-        The rotational mass is defined in the WLTP GTR (ECE/TRANS/WP.29/GRPE/2016/3) as the equivalent effective mass of all
-        the  wheels and vehicle components rotating with the wheels on the road while the gearbox is placed in neutral, in kg. It shall
-        be measured or calculated using an appropriate technique agreed upon by the responsible authority. Alternatively, it may be
-        estimated to be 3 per cent of the sum of the mass in running order and 25 kg.
-
-    ``input_version``
-        It corresponds to the version of the template file used for |co2mpas| -
-        not to the |co2mpas| version of the code.
-        Different versions of the file have been used throughout the development of the tool.
-        Input files from version >= 2.2.5 can be used for type approving.
-
-        Check the currently supported version with ``co2mpas -vV`` command, or visit
-        the "about" help item of the GUI.
-
-    ``IF_ID``
-    ``VF_ID``
-    ``vehicle_family_id``
-        It corresponds to an individual code for each vehicle that is simulated with the |co2mpas| model.
-        This ID does not affect the NEDC prediction.
-        The ID is allocated in the `output report` and in the `dice report`.
-
-        The new structure of the ID, as defined in paragraph 5.0 of Annex XXI of
-        the *amended* `regulation`, is the following:
-
-            FT-nnnnnnnnnnnnnnn-WMI-x
-
-        Where:
-
-        - ``FT`` (Family Type) is pinned to ``'IP'`` (Interpolation Family)
-          from paragraph 5.6, Annex XXI.
-
-        - ``nnnnnnnnnnnnnnn`` is a string with a maximum of fifteen characters,
-          restricted to using the characters 0-9, A-Z and the underscore character '_'.
-
-        - ``WMI`` (world manufacturer identifier) is a code that identifies
-          the manufacturer in a unique manner and is defined in ISO 3780:2009.
-          See also: https://en.wikibooks.org/wiki/Vehicle_Identification_Numbers_(VIN_codes)/World_Manufacturer_Identifier_(WMI)
-
-        - ``x``: shall be set to '1' or '0' in accordance with the following
-          provisions:
-
-          a. With the agreement of the approval authority and the owner of the WMI,
-             the number shall be set to '1' where a vehicle family is defined
-             for the purpose of covering vehicles of:
-
-             1. a single manufacturer with one single WMI code;
-             2. a manufacturer with several WMI codes, but only in cases when
-                one WMI code is to be used;
-             3. more than one manufacturer, but only in cases when one WMI code
-                is to be used.
-
-             In the cases (1), (2) and (3), the family identifier code shall consist
-             of one unique string of n-characters and one unique WMI code followed by '1';
-
-          b. With the agreement of the approval authority, the number shall be set
-             to '0' in the case that a vehicle family is defined based on the same criteria
-             as the corresponding vehicle family defined in accordance with point (a),
-             but the manufacturer chooses to use a different WMI.
-             In this case the family identifier code shall consist of the same string
-             of n-characters as the one determined for the vehicle family defined
-             in accordance with point (a) and a unique WMI code which shall be different
-             from any of the WMI codes used under case (a), followed by '0'.
-
-        .. Attention::
-            The format has changed in the legislation since May 2018 and in co2mpas
-            after version (and including) ``v1.8.x``.
-            The old format **is still supported** i.e. for extensions
-            (but cell-validations in the input excel file must be disabled)::
-
-                FT-TA-WMI-yyyy-nnnn
-
-            Where:
-
-            - ``FT`` is the identifier of the Family Type according to this:
-
-              - ``'IP'``: Interpolation family as defined in paragraph 5.6, Annex XXI.
-              - ``'RL'``: Road load family as defined in paragraph 5.7, Annex XXI.
-              - ``'RM'``: Road load matrix family as defined in paragraph 5.8, Annex XXI.
-              - ``'PR'``: Periodically regenerating systems (Ki) family as defined
-                in paragraph 5.9, Annex XXI.
-
-            - ``TA`` is the distinguishing number of the EC Member State authority responsible for the family approval
-              as defined in `section 1 of point 1 of Annex VII of Directive (EC) 2007/46
-              <http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32007L0046&from=EN>`_:
-
-              - 1 for Germany;
-              - 2 for France;
-              - 3 for Italy;
-              - 4 for the Netherlands;
-              - 5 for Sweden;
-              - 6 for Belgium;
-              - 7 for Hungary;
-              - 8 for the Czech Republic;
-              - 9 for Spain;
-              - 11 for the United Kingdom;
-              - 12 for Austria;
-              - 13 for Luxembourg;
-              - 17 for Finland;
-              - 18 for Denmark;
-              - 19 for Romania;
-              - 20 for Poland;
-              - 21 for Portugal;
-              - 23 for Greece;
-              - 24 for Ireland;
-              - 26 for Slovenia;
-              - 27 for Slovakia;
-              - 29 for Estonia;
-              - 32 for Latvia;
-              - 34 for Bulgaria;
-              - 36 for Lithuania;
-              - 49 for Cyprus;
-              - 50 for Malta.
-
-            - ``WMI`` (world manufacturer identifier) is a code that identifies the manufacturer
-              in a unique manner and is defined in ISO 3780:2009.
-              For a single manufacturers several WMI codes may be used.
-            - ``yyyy`` is the year when the test for the family were concluded.
-            - ``nnnn`` is a four digit sequence number.
-
-
-DICE
-====
-.. glossary::
-
-    dice
-    dice command
-    sampling procedure
-        The |co2mpas| application, procedure or the ``co2dice`` console command(s)
-        required to produce eventually the `decision flag` defining whether a
-        `type-approval` procedure needs `double testing`:
-
-        .. image:: _static/CO2MPAS-dice_overview.png
-
-        Used also as a verb:
-
-            "The simulation files have been **diced** as ``NOSAMPLE``."
-
-    Git DB
-    Hash DB
-    Git repo
-    Git repo DB
-    projects DB
-        The `Git` repository maintained by the `dice command` that manages `project`
-        instances.
-
-        All `hash` occurences are generated and/or retrieved against this repository.
-
-    project
-    dice project
-    project id
-    project archive
-        The **project** corresponds one-to-one with the `vehicle_family_id`,
-        and it is the entity under which all electronic artifacts of the
-        `type-approval` are stored inside the local `hash DB` of each `dice`
-        installation:
-
-          | *ID* (**project**)  :=  `vehicle_family_id`
-
-        It is created and managed by the `designated user` using `dice command`\s
-        to step through successive `state`\s.
-        Finally it is  **archived** and sent to the supervising `TAA`.
-
-    state
-    project state
-    state transitions
-        A `project` undergoes certain *state transitions* during its lifetime,
-        reacting to various `dice command`\s:
-
-        .. image:: _static/CO2MPAS-states_transitions_cmds-2.png
-
-    dice report sheet
-        A sheet in the output excel-file roughly derived from Input + Output files
-        containing the non-confidential results of the simulation,
-        labelled as "summary report" in the legislation:
-
-            | **dice report sheet** := *non_confidential_data* (input-files + output-files + other-files)
-
-        The `dice report` is derived from it.
-        This sheet is called "summary report" in the `regulation`.
-
-    output report
-    output report sheet
-        A sheet in the output excel-file containing they major simulation results.
-
-    dice report
-    dice request
-    dice email
-        The `dice report sheet` in textual form (`YAML`) stored in the `project` and
-        signed with the electronic key of the `designated user`:
-
-          |        **dice report**  :=  `dice report sheet` + *SIG* (`designated user` key)
-          | *ID* (**dice report**)  :=  `HASH-1`
-
-        It is cryptographically signed to guarantee the authenticity of the contained
-        values.
-        It sent through a `stamper` to prevent its repudiation, and returns
-        as the `dice stamp`.
-
-    stamp
-    dice stamp
-    stamp response
-    stamp email
-        The signed `dice report` as retuned from the `stamper`:
-
-          | **stamp email**  :=  `dice report` + *SIG* (`stamper` key)
-
-        .. image:: _static/CO2MPAS-stamp_elements.png
-           :height: 120px
-
-        The `decision flag` gets derived from its signature while the `project`
-        parses it and generates the `decision report`.
-
-    decision
-    decision flag
-    decision percent
-    double testing
-        A structure containing the ``'OK'``/``'SAMPLE'`` flag and the *percent*
-        derived from the `dice stamp`'s signature (a random number), persisted in the
-        `decision report` and in the `project` as a plain file.
-
-        The meaning of the flag's values is the following:
-
-        - ``'OK'`` means that the declared `NEDC` value is accepted
-          (assuming |co2mpas| prediction does not deviate more than 4% of the
-          declared *NEDC* value).
-        - ``'SAMPLE'`` means that independently of the result of |co2mpas| prediction
-          the vehicle has to undergo an *NEDC* physical test, "double testing";
-          see *decision percent* below for which H/L vehicle to test under *NEDC*.
-
-        The meaning of the *decision percent* is explained in the following table:
-
-        .. image:: _static/dice_co2mpas_dev.PNG
-
-    decision report
-        Since |co2mpas| v1.7.x, this new textual report (`YAML`) is the final outcome
-        of the `sampling procedure` containing the signed and timestamped data
-        from all intermediate reports;
-
-          |        **decision report**  :=  `dice stamp` + `decision` + *SIG* (`designated user` key)
-          | *ID* (**decision report**)  :=  `HASH-2`
-
-        It generated and stored internally in the `project`, and signed by the
-        `designated user` to prevent tampering and repudiation.
-        The final `HASH-2` contained in it may be communicated to the supervising
-        `TAA` earlier that the `project archive`.
-
-    HASH-1
-        The cryptographic `hash` contained in the `dice report` which identifies
-        unequivocally the `type-approval` procedure prior to stamping.
-
-        It is generated by the `project` while parsing the `dice report sheet`.
-
-    HASH-2
-        The cryptographic `hash` contained in the `decision report` which
-        unequivocally identifies a completed `sampling procedure`.
-
-        It is generated by the `project` while importing the `dice stamp`.
-        It may be sent to the `TAA` prior to sending them the `project archive`.
-
-    TAA Report
-        A "printed" PDF file that the `TS` have to send to the `TAA` to generate
-        the Certificate which is unequivocally associated with all files & reports
-        above:
-
-          | **TAA Report**  :=  `output report sheet` + `decision` + `HASH-2`
-
-    stamper
-    timestamper
-    timestamp service
-        Either the `mail stamper` or the `web stamper` services that append
-        a cryptographic signature on an "incoming" `dice report`, and sends it
-        with an email to recipients to prevent repudiation at a later time.
-
-    mail stamper
-        A `stamper` mail-server that stamps and forwards all incoming e-mails to
-        specified recipients.
-
-        The trust on its certifications stems from the list of signatures published
-        daily in its site.
-
-    web stamper
-    WebStamper
-        JRC's user-friendly `stamper` web-application that uses a simple HTTP-form to
-        timestamp a pasted `dice report` and return a `dice stamp`, emailing it also
-        to any specified recipients, always including from CLIMA/JRC.
-
 
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
 .. |CO2| replace:: CO\ :sub:`2`
