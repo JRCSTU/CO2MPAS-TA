@@ -590,7 +590,8 @@ class FMEP:
             b &= (n_speeds < self.acr_max_mean_piston_speeds)
             if acr_valid is not None:
                 b &= acr_valid
-            ac = n_powers / (self.fbc(n_speeds) * self.acr_fbc_percentage)
+            ac = self.fbc(n_speeds) * self.acr_fbc_percentage
+            ac = n_powers / np.maximum(dfl.EPS, ac)
             for acr in sorted(self.active_cylinder_ratios):
                 l.append((acr, b & (ac < acr)))
         return a
