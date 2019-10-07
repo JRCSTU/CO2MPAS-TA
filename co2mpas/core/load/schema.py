@@ -779,13 +779,13 @@ def _vehicle_family_id(error=None, **kwargs):
     return And(_string(**kwargs), _m, error=error)
 
 
-def _input_version(error=None, **kwargs):
+def _input_version(error=None, read=True, **kwargs):
     def _check_data_version(input_version):
         from co2mpas import __file_version__ as exp_ver
         exp_vinfo = tuple(exp_ver.split('.'))
         got_vinfo = tuple(input_version.split('.'))
 
-        if got_vinfo[:2] == exp_vinfo[:2]:
+        if not read or got_vinfo[:2] == exp_vinfo[:2]:
             return True
 
         if got_vinfo[:1] != exp_vinfo[:1]:
