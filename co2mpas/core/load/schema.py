@@ -256,14 +256,6 @@ def _fmep_model(error=None, read=True, **kwargs):
 
 
 # noinspection PyUnusedLocal
-def _start_stop_model(error=None, read=True, **kwargs):
-    if read:
-        from sklearn.tree import DecisionTreeClassifier
-        return _type(type=DecisionTreeClassifier, error=error)
-    return And(_start_stop_model(), Use(lambda x: sh.NONE), error=error)
-
-
-# noinspection PyUnusedLocal
 def _cmv(error=None, **kwargs):
     from ..model.physical.gear_box.at_gear.cmv import CMV
     return _type(type=CMV, error=error)
@@ -670,7 +662,7 @@ def define_data_schema(read=True):
         'road_loads': _type(type=And(Use(tuple), (_type(float),)),
                             length=3,
                             read=read),
-        'start_stop_model': _start_stop_model(read=read),
+        'start_stop_model': function,
         'gear_box_temperature_references': tuplefloat2,
         'torque_converter_speed_model': function,
         'phases_co2_emissions': tuplefloat,

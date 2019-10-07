@@ -33,6 +33,13 @@ def default_start_stop_activation_time(has_start_stop):
     return sh.NONE
 
 
+# noinspection PyPep8Naming
+def _start_stop_model(X):
+    off_engine = X[:, 0] <= dfl.functions.StartStopModel.stop_velocity
+    off_engine &= X[:, 1] <= dfl.functions.StartStopModel.plateau_acceleration
+    return ~off_engine
+
+
 @sh.add_function(dsp, outputs=['start_stop_model'])
 def calibrate_start_stop_model(
         on_engine, velocities, accelerations, times,
@@ -67,10 +74,13 @@ def calibrate_start_stop_model(
     from sklearn.tree import DecisionTreeClassifier
     i = np.searchsorted(times, start_stop_activation_time)
     model = DecisionTreeClassifier(random_state=0, max_depth=3)
+    if i >= velocities.shape[0]:
+        return _start_stop_model
+
     model.fit(
         np.column_stack((velocities[i:], accelerations[i:])), on_engine[i:]
     )
-    return model
+    return model.predict
 
 
 @sh.add_function(dsp, outputs=['correct_start_stop_with_gears'])
@@ -121,7 +131,7 @@ def predict_on_engine(
 
     :param start_stop_model:
         Start/stop model.
-    :type start_stop_model: sklearn.tree.DecisionTreeClassifier
+    :type start_stop_model: callable
 
     :param start_stop_activation_time:
         Start-stop activation time threshold [s].
@@ -151,7 +161,7 @@ def predict_on_engine(
 
     b0 = velocities > dfl.functions.StartStopModel.stop_velocity
     b0 |= accelerations > dfl.functions.StartStopModel.plateau_acceleration
-    b1 = start_stop_model.predict(np.column_stack((velocities, accelerations)))
+    b1 = start_stop_model(np.column_stack((velocities, accelerations)))
 
     ts = min_time_engine_on_after_start
     # noinspection PyTypeChecker
