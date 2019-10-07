@@ -719,9 +719,10 @@ def _domain_calculate_corrected_co2_emission_for_conventional_nedc(
 
 dsp.add_function(
     function_id='calculate_corrected_co2_emission_for_conventional_nedc',
-    function=sh.add_args(calculate_corrected_co2_emission),
+    function=sh.add_args(calculate_corrected_co2_emission, n=2),
     inputs=['cycle_type', 'is_hybrid', 'co2_emission_value',
-            'ki_multiplicative', 'ki_additive'],
+            'ki_multiplicative', 'ki_additive',
+            'atct_family_correction_factor'],
     outputs=['corrected_co2_emission_value'],
     input_domain=_domain_calculate_corrected_co2_emission_for_conventional_nedc
 )
