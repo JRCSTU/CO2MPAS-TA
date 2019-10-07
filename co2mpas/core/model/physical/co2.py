@@ -231,7 +231,22 @@ def calculate_theoretical_phases_distances(
 
 
 dsp.add_data('rcb_correction', dfl.values.rcb_correction)
-dsp.add_data('speed_distance_correction', dfl.values.speed_distance_correction)
+
+
+@sh.add_function(dsp, outputs=['speed_distance_correction'])
+def default_speed_distance_correction(is_hybrid):
+    """
+    Returns if speed distance correction is to be applied.
+
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
+    :return:
+        Apply speed distance correction?
+    :rtype: bool
+    """
+    return not is_hybrid
 
 
 @sh.add_function(

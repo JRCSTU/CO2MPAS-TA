@@ -20,9 +20,6 @@ class Values(co2_utl.Constants):
     #: Apply RCB correction?
     rcb_correction = True
 
-    #: Apply speed distance correction?
-    speed_distance_correction = True
-
     #: Family correction factor for representative regional temperatures [-].
     atct_family_correction_factor = 1.0
 
