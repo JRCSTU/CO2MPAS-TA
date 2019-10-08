@@ -12,7 +12,9 @@ Define SYNCING the command line interface.
    :show-nested:
 
 """
+import os
 import click
+import os.path as osp
 import schedula as sh
 from syncing.cli import cli
 
@@ -60,7 +62,7 @@ def template(output_file, cycle_type, gear_box_type, wltp_class):
         'target co2_emissions', 'target engine_powers_out'
     ), [])
     data = dict(theoretical=theoretical, dyno=base, obd=base)
-
+    os.makedirs(osp.dirname(output_file), exist_ok=True)
     with pd.ExcelWriter(output_file) as writer:
         for k, v in data.items():
             pd.DataFrame(v).to_excel(writer, k, index=False)
