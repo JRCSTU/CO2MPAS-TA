@@ -13,7 +13,7 @@ as shown in the "active" flow-diagram of the execution, below:
 .. module:: co2mpas
 
 .. dispatcher:: dsp
-   :opt: depth=-1
+   :opt: depth=1
    :alt: Flow-diagram of the execution of various Stages and Cycles sub-models.
    :width: 640
 
@@ -48,118 +48,6 @@ as shown in the "active" flow-diagram of the execution, below:
 
 .. _excel-model:
 
-Excel input: data naming conventions
-------------------------------------
-This section describes the data naming convention used in the |co2mpas| template
-(``.xlsx`` file). In it, the names used as **sheet-names**, **parameter-names**
-and **column-names** are "sensitive", in the sense that they construct a
-*data-values tree* which is then fed into into the simulation model as input.
-These names are split in "parts", as explained below with examples:
-
-- **sheet-names** parts::
-
-                  base.input.precondition.WLTP-H.ts
-                  └┬─┘ └─┬─┘ └────┬─────┘ └─┬──┘ └┬┘
-      scope────────┘     │        │         │     │
-      usage──────────────┘        │         │     │
-      stage───────────────────────┘         │     │
-      cycle─────────────────────────────────┘     │
-      sheet_type──────────────────────────────────┘
-
-
-  First 4 parts above are optional, but at least one of them must be present on
-  a **sheet-name**; those parts are then used as defaults for all
-  **parameter-names** contained in that sheet. **type** is optional and specify
-  the type of sheet.
-
-- **parameter-names**/**columns-names** parts::
-
-                     plan.target.prediction.vehicle_mass.WLTP-H
-                     └┬─┘ └─┬─┘ └────┬────┘ └────┬─────┘ └──┬─┘
-      scope(optional)─┘     │        │           │          │
-      usage(optional)───────┘        │           │          │
-      stage(optional)────────────────┘           │          │
-      parameter──────────────────────────────────┘          │
-      cycle(optional)───────────────────────────────────────┘
-
-  OR with the last 2 parts reversed::
-
-                    plan.target.prediction.WLTP-H.vehicle_mass
-                                           └──┬─┘ └────┬─────┘
-      cycle(optional)─────────────────────────┘        │
-      parameter────────────────────────────────────────┘
-
-.. note::
-   - The dot(``.``) may be replaced by space.
-   - The **usage** and **stage** parts may end with an ``s``, denoting plural,
-     and are not case-insensitive, e.g. ``Inputs``.
-
-
-Description of the name-parts
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1. **scope:**
-
-   - ``base`` [default]: values provided by the user as input to |co2mpas|.
-   - ``plan``: values selected (see previous section) to calibrate the models
-     and to predict the |CO2| emission.
-   - ``flag``: values provided by the user as input to ``run_base`` and
-     ``run_plan`` models.
-   - ``meta``: values provided by the user as meta data of the vehicle test.
-
-2. **usage:**
-
-   - ``input`` [default]: values provided by the user as input to |co2mpas|.
-   - ``data``: values selected (see previous section) to calibrate the models
-     and to predict the |CO2| emission.
-   - ``output``: |co2mpas| precondition, calibration, and prediction results.
-   - ``target``: reference-values (**NOT USED IN CALIBRATION OR PREDICTION**) to
-     be compared with the |co2mpas| results. This comparison is performed in the
-     *report* sub-model by ``compare_outputs_vs_targets()`` function.
-   - ``config``: values provided by the user that modify the ``model_selector``.
-
-3. **stage:**
-
-   - ``precondition`` [imposed when: ``wltp-p`` is specified as **cycle**]:
-     data related to the precondition stage.
-   - ``calibration`` [default]: data related to the calibration stage.
-   - ``prediction`` [imposed when: ``nedc`` is specified as **cycle**]:
-     data related to the prediction stage.
-   - ``selector``: data related to the model selection stage.
-
-4. **cycle:**
-
-   - ``nedc-h``: data related to the *NEDC High* cycle.
-   - ``nedc-l``: data related to the *NEDC Low* cycle.
-   - ``wltp-h``: data related to the *WLTP High* cycle.
-   - ``wltp-l``: data related to the *WLTP Low* cycle.
-   - ``wltp-precon``: data related to the preconditioning *WLTP* cycle.
-   - ``wltp-p``: is a shortcut of ``wltp-precon``.
-   - ``nedc`` [default]: is a shortcut to set values for both ``nedc-h`` and
-     ``nedc-l`` cycles.
-   - ``wltp`` [default]: is a shortcut to set values for both ``wltp-h`` and
-     ``wltp-l`` cycles.
-   - ``all``: is a shortcut to set values for ``nedc``, ``wltp``,
-     and ``wltp-p`` cycles.
-
-5. **param:** any data node name (e.g. ``vehicle_mass``) used in the physical
-   model.
-
-6. **sheet_type:** there are three sheet types, which are parsed according to
-   their contained data:
-
-   - **pl** [parsed range is ``#A1:__``]: table of scalar and time-depended
-     values used into the simulation plan as variation from the base model.
-   - **pa** [parsed range is ``#B2:C_``]: scalar or not time-depended
-     values (e.g. ``r_dynamic``, ``gear_box_ratios``, ``full_load_speeds``).
-   - **ts** [parsed range is ``#A2:__``]: time-depended values (e.g.
-     ``times``, ``velocities``, ``gears``). Columns without values are skipped.
-     **COLUMNS MUST HAVE THE SAME LENGTH!**
-
-   ..note:: If it is not defined, the default value follows these rules:
-     When **scope** is ``plan``, the sheet is parsed as **pl**.
-     If **scope** is ``base`` and **cycle** is missing in the **sheet-name**,
-     the sheet is parsed as **pa**, otherwise it is parsed as **ts**.
-
 Calibrated Physical Models
 --------------------------
 There are potentially eight models calibrated from input scalar-values and
@@ -193,7 +81,6 @@ are provided.
     The ``co2_params`` model has a third possible calibration configuration
     (so called `ALL`) using data from both WLTP_H and WLTP_L combined
     (when both are present).
-
 
 Model selection
 ---------------

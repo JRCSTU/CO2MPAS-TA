@@ -1,7 +1,8 @@
 .. image:: doc/_static/CO2MPAS_banner.png
    :width: 100%
 
-.. _start-quick:
+.. _start-pypi:
+.. _start-info:
 
 ######################################################################
 |co2mpas|: Vehicle simulator predicting NEDC |CO2| emissions from WLTP
@@ -21,7 +22,7 @@
 :copyright:     2015-2019 European Commission (`JRC <https://ec.europa.eu/jrc/>`_)
 :license:       `EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_
 
-.. _start-pypi:
+.. _end-info:
 .. _start-intro:
 
 What is |co2mpas|?
@@ -56,20 +57,25 @@ found in `the Comitology Register
 <http://ec.europa.eu/transparency/regcomitology/index.cfm?do=search.documentdetail&dos_id=0&ds_id=45835&version=2>`_
 after its adoption by the *Climate Change Committee* which took place on
 June 23, 2016 and its 2nd vote for modifications, on April 27, 2017.
+.. _end-intro:
+.. _start-install:
 
 Installation
 ============
-There are two installation procedures that can be follow.
+There are two installation procedures that can be followed:
+
+- `Ordinary (for developers and/or researchers)`_
+- `Official (for type approval)`_
 
 Ordinary (for developers and/or researchers)
 --------------------------------------------
-To install it use (with root privileges):
+To install |co2mpas| use (with root privileges):
 
 .. code-block:: console
 
     $ pip install co2mpas
 
-Or download the last git version and use (with root privileges):
+Or download the latest git version and use (with root privileges):
 
 .. code-block:: console
 
@@ -97,79 +103,115 @@ To install co2mpas and all extras, do:
 
 Official (for type approval)
 ----------------------------
-You may find usage Guidelines in the wiki:
-https://github.com/JRCSTU/CO2MPAS-TA/wiki/CO2MPAS-user-guidelines
+To install |co2mpas| you have to download the
+`installer <https://github.com/JRCSTU/CO2MPAS-TA/archive/co2mpas-v4.1.2.exe>`_
+and then execute it (see the steps shown in the video below).
 
-Requirements
-^^^^^^^^^^^^
-- These are the  minimum IT requirements for the Computer to run CO2MPAS & DICE:
-- 64-bit Intel or AMD processor (x86_64, aka x64, aka AMD64);
-- Microsoft Windows 7, or later;
-- 4 GB RAM (more recommended);
-- 2.4 GB hard disk storage for extracting the software, more space for the input/output files;
-- Execution-rights to the installation folder (but no Admin-rights).
-- An e-mail account to send & receive DICE e-mails;
-- Unhindered HTTP/HTTPS  web-access (no firewall on ports 80, 443);
-  or access through HTTP Proxy;
-- (optional) Excel, to view & edit simulation’s input and output files;
-- (optional) GitHub account to submit and resolve issues.
+.. raw:: html
 
+    <video width="100%" height="%100" controls playsinline preload="metadata">
+      <source src="_static/video/install.mp4" type="video/mp4">
+      <source src="doc/_static/video/install.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+    </video>
 
-.. _end-quick:
+.. admonition:: IT Requirements
+
+   To run |co2mpas| for Type Approval purposes (i.e |co2mpas| official) some
+   minimum IT requirements are mandatory:
+
+   - 64-bit Intel or AMD processor (x86_64, aka x64, aka AMD64),
+   - Microsoft Windows 7, or later,
+   - 4 GB RAM (more recommended),
+   - 4 GB hard disk storage for installing the software,
+   - Execution-rights to the installation folder (but no Admin-rights),
+   - (optional) Excel, to view & edit simulation’s input and output files.
+
+.. _end-install:
+.. _end-pypi:
+.. _start-quick:
 
 Quick Start
 ===========
+The following steps are basic commands to get familiar with |co2mpas| procedural
+workflow using the command line interface:
 
-.. code-block:: console
-    ## Create a template excel-file for inputs:
-    $ co2mpas template vehicle_1.xlsx
+- `Run in engineering mode`_
+- `Input file`_
+- `Data synchronization`_
+- `GUI start-up`_
 
-    ###################################################
-    ## Edit generated `./input/vehicle_1.xlsx` file. ##
-    ###################################################
+Run in engineering mode
+-----------------------
+To run |co2mpas| in engineering mode with some sample data, you have to:
 
-    ## Launch GUI, select the edited template as Input, and click `Run`:
+1. Generate some demo files inside the ``./input`` folder, to get familiar with
+   the input data::
+
+    $ co2mpas demo ./input  # Generate the demo files.
+    $ start ./input/co2mpas_conventional.xlsx  # Open a demo file.
+
+2. Run |co2mpas| in engineering mode and inspect the results in the ``./output``
+   folder::
+
+    $ co2mpas run ./input/co2mpas_conventional.xlsx -O ./output # Run co2mpas.
+    $ start ./output  # Open the output folder.
+
+Input file
+----------
+To create an input file with your data, you have to:
+
+1. Generate an empty input template file (i.e., ``vehicle.xlsx``) inside
+   the ``./input`` folder::
+
+    $ co2mpas template ./input/vehicle.xlsx -TT input  # Generate template file.
+
+2. Follow the instructions provided in the excel file to fill the required
+   inputs::
+
+    $ start ./input/vehicle.xlsx  # Open the input template.
+
+.. image:: _static/image/input_template.png
+   :width: 100%
+   :alt: Input template
+   :align: center
+
+Data synchronization
+--------------------
+To synchronize the `dyno` and `OBD` data with the theoretical cycle, you have
+to:
+
+1. Generate a `synchronization template` file ``wltp.xlsx`` (with the command
+   below, the file contains the theoretical ``WLTP`` velocity profile for an
+   ``automatic`` vehicle of ``class3b``. For more info type ``co2mpas syncing
+   template -h``)::
+
+    ## Generate template file.
+    $ co2mpas syncing template ./to_sync/wltp.xlsx -CT wltp -WC class3b -GB automatic
+
+2. Fill the ``dyno`` and ``obd`` sheets with the relative data collected in the
+   laboratory::
+
+    $ start ./to_sync/wltp.xlsx  # Open the input template.
+
+3. Synchronize the data with the theoretical velocity profile::
+
+    $ co2mpas syncing sync ./to_sync/wltp.xlsx ./sync/wltp.sync.xlsx
+
+4. Copy/Paste the synchronized data (``wltp.sync.xlsx``) contained in the
+   ``synced`` sheet into the relative sheet of the input template::
+
+    $ start ./sync/wltp.sync.xlsx
+
+GUI start-up
+------------
+To launch the |co2mpas| GUI from the console, you can use the following
+command::
+
     $ co2mpas gui
 
-And the GUI pops up:
-
-.. image:: _static/CO2MPAS_GUI.png
-   :width: 640
-
-Command-line alternatives:
-
-.. code-block:: console
-
-
-    ## To synchronize the Dyno and OBD data with the theoretical:
-    $ datasync template --cycle wltp.class3b template.xlsx
-    $ datasync -O ./output times velocities template.xlsx#ref! dyno obd -i alternator_currents=integral -i battery_currents=integral
-
-    ## To generate demo-files in you current folder:
-    $ co2mpas demo
-
-    ## Run batch simulator on the first demo.
-    $ co2mpas batch co2mpas_demo-0.xlsx
-
-    #########################################################
-    ## Inspect generated results in you current dicectory. ##
-    #########################################################
-
-    ## Run type approval command on your data.
-    $ co2mpas ta vehicle_1.xlsx -O output
-
-    ## Start using the DICE command-line tool:
-    $ co2dice --help
-
-
-.. _end-intro:
-.. _start-badges:
-
+.. _end-quick:
+.. _start-sub:
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
 .. |CO2| replace:: CO\ :sub:`2`
-.. |clink| replace:: *Clink*
-.. _clink: http://mridgers.github.io/clink/
-.. |EUPL| replace:: *EUPL*
-.. _EUPL: https://joinup.ec.europa.eu/page/eupl-text-11-12
-
-.. _end-badges:
+.. _end-sub:

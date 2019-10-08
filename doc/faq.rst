@@ -10,7 +10,6 @@ model, regulation and inputs.
 *For more questions, please visit:* 
 https://github.com/JRCSTU/CO2MPAS-TA/wiki/F-A-Q
 
-
 General
 =======
 
@@ -68,8 +67,6 @@ Where can the user find |CO2MPAS| workshop material?
 Workshop material is always uploaded in
 `presentation chapter <https://github.com/JRCSTU/CO2MPAS-TA/wiki/Presentations-from-CO2MPAS-meetings>`_.
 
-
-
 Model
 =====
 
@@ -109,7 +106,6 @@ no matter if the model was calibrated with another cycle.
 For example, if the alternator model of the High configuration is better, 
 the same model will be used to predict the Low configuration as well.    
 
-
 Is it possible to simulate other cycles than NEDC or WLTP? How about real on-road tests?
 ----------------------------------------------------------------------------------------
 Yes, |CO2MPAS| can simulate other cycles, as well as on-road tests. 
@@ -135,7 +131,6 @@ in |CO2MPAS| is lower than the span between the beginning of the NEDC test and
 the first engine stop, that will result in Verification Factor equal to 1 and
 this will have implications on the entire fleet of the specific vehicle
 manufacturer.
-
 
 Regulation
 ==========
@@ -169,16 +164,11 @@ What is DICE and who should use it?
 DICE is the tool assigning a random number to each IDIF type approved. 
 It is used only for type approving purposes, by designated users. 
 
-
 What are the verification and deviation factors, and when do they need to be recorded?
 --------------------------------------------------------------------------------------
 These values need to be recorded when the random number is 90, or above,
 and the |CO2MPAS| deviation is equal or higher than 4 percent.
-For more details please refer to the correlation regulation.  
-
-
-
-.. _substs:
+For more details please refer to the correlation regulation.
 
 .. |CO2MPAS| replace:: CO\ :sub:`2`\ MPAS
 .. |CO2| replace:: CO\ :sub:`2`

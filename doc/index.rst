@@ -5,21 +5,24 @@
    :width: 100%
 
 .. include:: ../README.rst
-    :start-after: .. _start-quick:
-    :end-before: .. _end-quick:
+    :start-after: .. _start-info:
+    :end-before: .. _end-info:
 
 .. include:: ../README.rst
-    :start-after: .. _start-badges:
-    :end-before: .. _end-badges:
+    :start-after: .. _start-sub:
+    :end-before: .. _end-sub:
 
 .. toctree::
-    :maxdepth: 4
+    :maxdepth: 1
     :caption: Table of Contents
     :name: mastertoc
 
-    doc
+    intro
+    install
+    quick
     tutorial
     model
+    names
     faq
     glossary
     contrib
