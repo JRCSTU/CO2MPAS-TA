@@ -1,6 +1,6 @@
-#####
-Usage
-#####
+#########
+Tutorials
+#########
 This section explains |co2mpas|' functionalities through video tutorials.
 
 .. contents::
@@ -15,8 +15,8 @@ see how:
 
 .. raw:: html
 
-    <video width="100%" height="%100" controls>
-      <source src="_static/download_input_template.mp4" type="video/mp4">
+    <video width="100%" height="%100" controls playsinline preload="metadata">
+      <source src="_static/video/download_input_template.mp4" type="video/mp4">
     Your browser does not support the video tag.
     </video>
 
@@ -57,8 +57,8 @@ video to see how:
 
 .. raw:: html
 
-    <video width="100%" height="%100" controls>
-      <source src="_static/name.mp4" type="video/mp4">
+    <video width="100%" height="%100" controls playsinline preload="metadata">
+      <source src="_static/video/name.mp4" type="video/mp4">
     Your browser does not support the video tag.
     </video>
 
@@ -90,8 +90,8 @@ Check the video to see how to download an *empty* input excel-file:
 
 .. raw:: html
 
-    <video width="100%" height="%100" controls>
-      <source src="_static/download_datasync_template.mp4" type="video/mp4">
+    <video width="100%" height="%100" controls playsinline preload="metadata">
+      <source src="_static/video/download_datasync_template.mp4" type="video/mp4">
     Your browser does not support the video tag.
     </video>
 
@@ -115,8 +115,8 @@ to synchronize:
 
 .. raw:: html
 
-    <video width="100%" height="%100" controls>
-      <source src="_static/run_datasync.mp4" type="video/mp4">
+    <video width="100%" height="%100" controls playsinline preload="metadata">
+      <source src="_static/video/run_datasync.mp4" type="video/mp4">
     Your browser does not support the video tag.
     </video>
 
@@ -153,8 +153,8 @@ Check the video to see how to **upload a file**:
 
 .. raw:: html
 
-    <video width="100%" height="%100" controls>
-      <source src="_static/run_simulation_1.mp4" type="video/mp4">
+    <video width="100%" height="%100" controls playsinline preload="metadata">
+      <source src="_static/video/run_simulation_1.mp4" type="video/mp4">
     Your browser does not support the video tag.
     </video>
 
@@ -162,8 +162,8 @@ Check the video to see how to **run the file**:
 
 .. raw:: html
 
-    <video width="100%" height="%100" controls>
-      <source src="_static/run_simulation_2.mp4" type="video/mp4">
+    <video width="100%" height="%100" controls playsinline preload="metadata">
+      <source src="_static/video/run_simulation_2.mp4" type="video/mp4">
     Your browser does not support the video tag.
     </video>
 
@@ -171,8 +171,8 @@ Check the video to see how to **get your results**:
 
 .. raw:: html
 
-    <video width="100%" height="%100" controls>
-      <source src="_static/run_simulation_3.mp4" type="video/mp4">
+    <video width="100%" height="%100" controls playsinline preload="metadata">
+      <source src="_static/video/run_simulation_3.mp4" type="video/mp4">
     Your browser does not support the video tag.
     </video>
 
@@ -220,8 +220,8 @@ You can use the GUI as follows:
 
 .. raw:: html
 
-    <video width="100%" height="%100" controls>
-      <source src="_static/run_simulation_3.mp4" type="video/mp4">
+    <video width="100%" height="%100" controls playsinline preload="metadata">
+      <source src="_static/video/run_simulation_3.mp4" type="video/mp4">
     Your browser does not support the video tag.
     </video>
 
@@ -265,8 +265,8 @@ Check the video to see how to **upload a file**:
 
 .. raw:: html
 
-    <video width="100%" height="%100" controls>
-      <source src="_static/run_simulation_TA_1.mp4" type="video/mp4">
+    <video width="100%" height="%100" controls playsinline preload="metadata">
+      <source src="_static/video/run_simulation_TA_1.mp4" type="video/mp4">
     Your browser does not support the video tag.
     </video>
 
@@ -275,8 +275,8 @@ Check the video to see how to **run in TA the file**:
 
 .. raw:: html
 
-    <video width="100%" height="%100" controls>
-      <source src="_static/run_simulation_TA_2.mp4" type="video/mp4">
+    <video width="100%" height="%100" controls playsinline preload="metadata">
+      <source src="_static/video/run_simulation_TA_2.mp4" type="video/mp4">
     Your browser does not support the video tag.
     </video>
 
@@ -284,8 +284,8 @@ Check the video to see how to **get your results**:
 
 .. raw:: html
 
-    <video width="100%" height="%100" controls>
-      <source src="_static/run_simulation_TA_3.mp4" type="video/mp4">
+    <video width="100%" height="%100" controls playsinline preload="metadata">
+      <source src="_static/video/run_simulation_TA_3.mp4" type="video/mp4">
     Your browser does not support the video tag.
     </video>
 

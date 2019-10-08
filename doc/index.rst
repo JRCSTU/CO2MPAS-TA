@@ -1,6 +1,9 @@
 .. meta::
     :theme-color:   #CCCC00
 
+.. image:: _static/CO2MPAS_banner.png
+   :width: 100%
+
 .. include:: ../README.rst
     :start-after: .. _start-quick:
     :end-before: .. _end-quick:
@@ -15,10 +18,11 @@
     :name: mastertoc
 
     doc
-    contrib
     tutorial
+    model
     faq
     glossary
+    contrib
     api
     change
 
