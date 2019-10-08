@@ -7,6 +7,6 @@ lmfit>=0.9.7
 numpy
 schema
 scipy
-wltp
+wltp<1
 xgboost<=0.82
 statsmodels

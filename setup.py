@@ -103,7 +103,7 @@ if __name__ == '__main__':
         'sync': ['syncing', 'pandas>=0.21.0'],
         'plot': ['flask', 'regex', 'graphviz', 'Pygments', 'lxml',
                  'beautifulsoup4', 'jinja2', 'docutils', 'matplotlib'],
-        'io': ['pandas>=0.21.0', 'dill', 'regex', 'pandalone[xlrd]',
+        'io': ['pandas>=0.21.0', 'dill', 'regex', 'pandalone[xlrd]<0.3',
                'xlrd', 'asteval']
     }
     extras['dice'] = ['co2mpas_dice>=3.3.0'] + extras['io']
@@ -171,7 +171,7 @@ if __name__ == '__main__':
             'numpy',
             'schema',
             'scipy',
-            'wltp',
+            'wltp<1',
             'xgboost<=0.82',
             'statsmodels'
         ],

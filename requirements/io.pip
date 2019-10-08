@@ -1,7 +1,7 @@
 pandas>=0.21.0
 dill
 regex
-pandalone[xlrd]
+pandalone[xlrd]<0.3
 conda
 xlrd
 asteval
