@@ -414,23 +414,14 @@ def _co2mpas_info2df(start_time, main_flags=None):
     return df
 
 
+@functools.lru_cache()
 def _get_installed_packages():
     import json
-    import pandas as pd
-    import subprocess as sbp
-
-    pkgs = []
+    from subprocess import check_output
     try:
-        js_packs = json.loads(sbp.check_output("conda list --json".split()))
+        return json.loads(check_output("conda list --json -q".split()))
     except Exception as ex:
         log.info("Failed collecting installation info.\n%s", ex)
-    else:
-        pkgs.extend((pack['name'], pack['version']) for pack in js_packs)
-
-    df = pd.DataFrame(pkgs, columns=['package', 'version']).set_index('package')
-    df.name = 'packages'
-
-    return df
 
 
 def _pipe2list(pipe, i=0, source=()):
@@ -461,14 +452,25 @@ def _pipe2list(pipe, i=0, source=()):
 
 
 def _proc_info2df(data, start_time, main_flags):
-    res = _co2mpas_info2df(start_time, main_flags), _get_installed_packages()
+    res = _co2mpas_info2df(start_time, main_flags),
+
+    df = _get_installed_packages()
+    if df:
+        import pandas as pd
+        df = pd.DataFrame(
+            [(p['name'], p['version']) for p in df],
+            columns=['package', 'version']
+        ).set_index('package')
+        setattr(df, 'name', 'packages')
+        res += df,
+
     df, max_l = _pipe2list(data.get('pipe', {}))
 
     if df:
         import pandas as pd
         df = pd.DataFrame(df)
         setattr(df, 'name', 'pipe')
-        res += (df,)
+        res += df,
 
     return {'proc_info': res}
 
