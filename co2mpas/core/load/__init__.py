@@ -111,10 +111,11 @@ if _dice is not None:
         'input_file_name', 'input_file', 'encryption_keys',
         'encryption_keys_passwords'
     ]
-    # noinspection PyTypeChecker
+    # noinspection PyProtectedMember
     dsp.add_function(
-        function=sh.SubDispatchFunction(_dice, inputs=_inp, outputs=_out),
-        function_id='load_ta_file',
+        function=sh.Blueprint(sh.SubDispatchFunction(
+            _dice, function_id='load_ta_file', inputs=_inp[1:], outputs=_out
+        ))._set_cls(sh.add_args),
         description='Load inputs from .co2mpas.ta file.',
         inputs=_inp,
         outputs=['raw_data'],
@@ -123,8 +124,11 @@ if _dice is not None:
     )
 
     _out, _inp = ['data', 'dice'], ['input_file_name', 'input_file']
+    # noinspection PyProtectedMember
     dsp.add_function(
-        function=sh.SubDispatchFunction(_dice, inputs=_inp, outputs=_out),
+        function=sh.Blueprint(sh.SubDispatchFunction(
+            _dice, inputs=_inp[1:], outputs=_out
+        ))._set_cls(sh.add_args),
         function_id='load_co2mpas_file',
         description='Load inputs from .co2mpas file.',
         inputs=_inp,
