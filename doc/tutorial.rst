@@ -187,22 +187,22 @@ Simulation plan
 ---------------
 The simulation plan is an input file containing some extra parameters/sheets
 with **scope** ``plan.`` (see :doc:`data naming convention <names>`). It
-defines the list of variations (i.e., inputs to be overwritten) to be applied to
-a base dataset (i.e., a normal input file of |co2mpas|).
+defines the list of variations (i.e., inputs to be overwritten) that have to be
+applied to a base dataset (i.e., a normal input file of |co2mpas|).
 
-The simulation plan can save you time because it can calibrate the models just
-once and re-use them to run other predictions changing just some inputs
-(e.g., ``times``, ``velocities``, ``vehicle_mass``, etc.).
+The simulation plan can save you time! It is able to calibrate the models
+just once and re-use them for other subsequent predictions, where only some
+inputs are different (e.g., ``times``, ``velocities``, ``vehicle_mass``, etc.).
 
-To know how to run the simulation plan, follow the `steps in previous section
-<Engineering mode>`_ and uploading the simulation plan as input file.
+To run the simulation plan upload it as input file, and run it as described in
+`the previous section <Engineering mode>`_ .
 
 .. note::
     The simulation plan cannot run in type-approval mode.
 
 Output results
 ==============
-This section shows the three ways to run |co2mpas|. For more information use the
+This section shows three ways to run |co2mpas|. For more information use the
 command ``co2mpas run -h``.
 
 Output files
