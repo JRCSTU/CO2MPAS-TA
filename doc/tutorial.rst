@@ -109,22 +109,17 @@ command ``co2mpas run -h``.
 Type approval mode
 ------------------
 The Type Approval command simulates the NEDC fuel consumption and CO2 emission
-of the given vehicle using just the required `declaration inputs
-<https://github.com/JRCSTU/CO2MPAS-TA/wiki/TA_compulsory_inputs>`_  and produces
-an NEDC prediction. If |co2mpas| finds some extra input it will raise a warning
-and it will not produce any result. The type approval command is fully aligned
-to the WLTP-NEDC correlation `Regulation
+of the given vehicle using just the required declaration inputs and produces an
+NEDC prediction. If |co2mpas| finds some extra input or there is some missing it
+will raise a warning and it will not produce any result. The type approval
+command is fully aligned to the WLTP-NEDC correlation `Regulation
 <https://eur-lex.europa.eu/legal-content/it/TXT/?uri=CELEX%3A32017R1151>`_.
 
-To successfully run |co2mpas| TA and download the final results, follow these 4
-steps:
+To successfully run |co2mpas| in type approval mode, see the following steps:
 
-1. upload your file/s (multiple file are accepted)
-2. switch TA mode ON
-3. press run
-4. download archive
+.. _upload_file:
 
-Check the video to see how to **upload a file**:
+1. Upload your file/s (multiple file are accepted):
 
 .. raw:: html
 
@@ -135,7 +130,7 @@ Check the video to see how to **upload a file**:
       </video>
     </p>
 
-Check the video to see how to **run in TA mode the file**:
+2. Switch TA mode ON and click run:
 
 .. raw:: html
 
@@ -146,7 +141,9 @@ Check the video to see how to **run in TA mode the file**:
       </video>
     </p>
 
-Check the video to see how to **get your results**:
+.. _download_results:
+
+3. Get the results:
 
 .. raw:: html
 
@@ -159,58 +156,30 @@ Check the video to see how to **get your results**:
 
 Engineering mode
 ----------------
-To successfully run |co2mpas| and download the final results, follow these 3
-steps:
+This section explain how to run |co2mpas| in engineering mode:
 
-1. upload your file/s (multiple file are accepted)
-2. press run
-3. download archive
-
-Check the video to see how to **upload a file**:
+1. Upload excel file/s (see :ref:`previous step <upload_file>`),
+2. Switch TA mode ON and click run:
 
 .. raw:: html
 
-    <video width="100%" height="%100" controls playsinline preload="metadata">
-      <source src="_static/video/run_simulation_1.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-    </video>
+    <p>
+      <video width="100%" height="%100" controls playsinline preload="metadata">
+        <source src="_static/video/run_simulation_2.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+      </video>
+    </p>
 
-Check the video to see how to **run the file**:
+.. note:: 5 advanced options are available: **use only declaration mode**,
+    **hard validation**, **enable selector**, **only summary**, and
+    **use custom configuration file**. Flag the box to activate them.
 
-.. raw:: html
+    .. image:: _static/advanced_options.png
+       :width: 100%
+       :alt: |co2mpas| advanced options
+       :align: center
 
-    <video width="100%" height="%100" controls playsinline preload="metadata">
-      <source src="_static/video/run_simulation_2.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-    </video>
-
-Check the video to see how to **get your results**:
-
-.. raw:: html
-
-    <video width="100%" height="%100" controls playsinline preload="metadata">
-      <source src="_static/video/run_simulation_3.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-    </video>
-
-
-.. note:: 5 advanced options are available: *use only declaration mode*,
-    *hard validation*, *enable selector*, *only summary*,
-    *use custom configuration file*. Flag the box to activate them.
-
-.. image:: _static/advanced_options.png
-   :scale: 40%
-   :alt: |co2mpas| advanced options
-   :align: center
-
-.. admonition:: Command Line Interface  #TODO
-
-    Or you can run |co2mpas| with the ``run`` sub-command::
-
-        $ co2mpas run name.xlsx
-
-    For more information about the command ``run``, you can type the command
-    co2mpas ``run`` -h.
+3. Get the results  (see :ref:`previous step <download_results>`).
 
 Simulation plan
 ---------------
@@ -226,39 +195,21 @@ while the columns names are the parameters that the user wishes to vary.
 The columns of these tables can contain the following special names:
 
 - **id**: Identifies the variation id.
-- **base**: this is a file path of a |co2mpas| excel input, this model will be
-  used as new base vehicle.
-- **run_base**: this is a boolean. If true the base model results are computed
+- **base**: It is the file path of a |co2mpas| excel input. The data are used as
+  new base vehicle.
+- **run_base**: If TRUE [default] the base model results are computed
   and stored, otherwise the data are just loaded.
 
-You can use the GUI as follows:
-
-.. raw:: html
-
-    <video width="100%" height="%100" controls playsinline preload="metadata">
-      <source src="_static/video/run_simulation_3.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-    </video>
+To run the simulation plan you can follow the `steps in previous section
+<Engineering mode>`_.
 
 .. note::
-    the simulation plan can be run only in declaration mode.
-
-.. admonition:: Command Line Interface  #TODO
-
-    Or you can run |co2mpas| with the ``batch`` sub-command::
-
-   $ co2mpas batch input/co2mpas_simplan.xlsx -O output
-   2016-11-15 17:00:31,286: INFO:co2mpas_main:Processing ['../input/co2mpas_simplan.xlsx'] --> '../output'...
-     0%|          | 0/4 [00:00<?, ?it/s]: Processing ../input\co2mpas_simplan.xlsx
-   ...
-   ...
-   Done! [180.4692 sec]
-
-
-
+    The simulation plan cannot run in type-approval mode.
 
 Output results
 ==============
+This section shows the three ways to run |co2mpas|. For more information use the
+command ``co2mpas run -h``.
 
 Output files
 ------------
