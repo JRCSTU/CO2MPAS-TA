@@ -87,6 +87,8 @@ def template(**inputs):
 def demo(output_folder):
     """
     Writes a CO2MPAS demo files into OUTPUT_FOLDER.
+
+    OUTPUT_FOLDER: Folder path. [default: ./inputs]]
     """
     return _process({'output_folder': output_folder}, ['demo', 'done'])
 
@@ -204,7 +206,7 @@ def run(input_files, cache_folder, host, port, plot_workflow, **kwargs):
     Run CO2MPAS for all files into INPUT_FILES.
 
     INPUT_FILES: List of input files and/or folders
-                 (format: .xlsx, .dill, .co2mpas.ta).
+                 (format: .xlsx, .dill, .co2mpas.ta, .co2mpas).
     """
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
     inputs = dict(
