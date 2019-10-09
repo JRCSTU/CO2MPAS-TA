@@ -347,7 +347,7 @@ def calculate_speed_distance_corrected_co2_emission_value(
             phases_distances=phases_times
         )
         y, p_co2 = p_co2.sum(axis=1).ravel(), p_co2[:, 0].ravel()
-        x = cpmp(np.maximum(-.2 * engine_max_power, motive_powers))
+        x = cpmp(np.maximum(-.02 * engine_max_power, motive_powers))
         mdl.fit(x[:, None], y)
         p2 = -mdl.intercept_ / mdl.coef_ if mdl.coef_ else -float('inf')
         dp_mp = cpmp(np.maximum(p2, motive_powers))
