@@ -14,12 +14,7 @@ tutorials:
   - `Type approval mode`_
   - `Engineering mode`_
   - `Simulation plan`_
-- `Output results`_
-
-  - `Output files`_
-
-    - `Custom output xl-files as templates`_
-  - `Debugging and investigating results`_
+- `Model plot`_
 
 Inputs
 ======
@@ -156,6 +151,20 @@ approval mode, see the following steps:
       </video>
     </p>
 
+.. _ta_results:
+.. admonition:: Output files of type-approval run.
+
+    - A zip folder per vehicle, named as ``<ip-name>.co2mpas.zip``.
+      This contains 4 files:
+
+        - ``<ip-name>.co2mpas.hash.txt``: Contains the **correlation hash**.
+        - ``<ip-name>.co2mpas.input``: Raw |co2mpas| input file.
+        - ``<ip-name>.co2mpas.output``: |co2mpas| results.
+        - ``<ip-name>.co2mpas.ta``: **Correlation output report** to be uploaded
+          on `dice server <https://dice.jrc.ec.europa.eu>`_.
+    - A summary file, named as ``<timestamp>-summary.xlsx``, that contains the
+      relevant output results.
+
 Engineering mode
 ----------------
 This section explain how to run |co2mpas| in engineering mode:
@@ -183,6 +192,12 @@ This section explain how to run |co2mpas| in engineering mode:
 
 3. Get the results  (see :ref:`previous video <download_results>`).
 
+.. _eng_results:
+.. admonition:: Output files of engineering mode run.
+
+    - A |co2mpas| output per file, named as ``<timestamp>-<file-name>.xlsx``.
+    - A summary file like :ref:`above <ta_results>`.
+
 Simulation plan
 ---------------
 The simulation plan is an input file containing some extra parameters/sheets
@@ -197,96 +212,28 @@ inputs are different (e.g., ``times``, ``velocities``, ``vehicle_mass``, etc.).
 To run the simulation plan upload it as input file, and run it as described in
 `the previous section <Engineering mode>`_ .
 
+.. admonition:: Output files
+
+    - A |co2mpas| output per **file** like :ref:`above <eng_results>`.
+    - A |co2mpas| output per **variation**, named as
+      ``<timestamp>-<variation-id>-<file-name>.xlsx``.
+    - A summary file like :ref:`above <ta_results>`.
+
 .. note::
     The simulation plan cannot run in type-approval mode.
 
-Output results
-==============
-This section shows three ways to run |co2mpas|. For more information use the
-command ``co2mpas run -h``.
+Model plot
+==========
+This section shows the utility to investigate the |co2mpas| model. For more
+information check :doc:`model` and :doc:`api`.
 
-Output files
-------------
-The output-files produced every run are the following:
+.. raw:: html
 
-- One zip folder per vehicle, named as ``<timestamp>-<ip-name>. co2mpas.zip``.
-  This folder contains 4 files:
-
-1. co2mpas.hash    (.txt file)
-
-2. co2mpas.input   (.xlsx file)
-
-3. co2mpas.output  (.xlsx file)
-
-4. co2mpas.ta      (.TA file)
-
-  **co2mpas.output** presents the results of |co2mpas| calculations:
-  scalar-parameters and time series for target, calibration and prediction
-  phases, for all cycles.
-
-
-- A Summary-file named as ``<timestamp>-summary.xlsx``:
-  Major |CO2| emissions values, optimized |CO2| parameters values and
-  success/fail flags of |co2mpas| submodels for all vehicles run.
-
-
-Custom output xl-files as templates
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-You may have defined customized xl-files for summarizing time-series and
-scalar parameters. To have |co2mpas| fill those "output-template" files with
-its results, execute it with the ``-D flag.output_template=file/path.xlsx``
-option.
-
-To create/modify one output-template yourself, do the following:
-
-1. Open a typical |co2mpas| output-file for some vehicle.
-
-2. Add one or more sheets and specify/referring |co2mpas| result-data using
-   `named-ranges <https://www.google.it/search?q=excel+named-ranges>`_.
-
-   .. Warning::
-      Do not use simple/absolute excel references (e.g. ``=B2``).
-      Use excel functions (indirect, lookup, offset, etc.) and array-functions
-      together with string references to the named ranges
-      (e.g. ``=indirect("output.prediction.nedc_h.pa!_co2_emission_value")``).
-
-3. (Optional) Delete the old sheets and save your file.
-
-4. Use that file together with the ``-D flag.output_template=file/path.xlsx``
-   argument.
-
-
-
-Debugging and investigating results
------------------------------------
-
-- Make sure that you have installed `graphviz`, and when running the simulation,
-  append also the ``-D flag.plot_workflow=True`` option.
-
-  .. code-block:: console
-
-        $ co2mpas batch bad-file.xlsx -D flag.plot_workflow=True
-
-  A browser tab will open at the end with the nodes processed.
-
-- Use the ``modelgraph`` sub-command to plot the offending model (or just
-  out of curiosity).  For instance:
-
-  .. code-block:: console
-
-        $ co2mpas modelgraph co2mpas.model.physical.wheels.wheels
-
-  .. module:: co2mpas
-
-  .. dispatcher:: dsp
-     :alt: Flow-diagram Wheel-to-Engine speed ratio calculations.
-     :height: 240
-     :width: 320
-
-     >>> from co2mpas.core.model.physical.wheels import dsp
-     >>> dsp = dsp.register(memo={})
-
-
+    <p>
+      <video width="100%" height="%100" controls playsinline preload="metadata">
+        <source src="_static/video/model_plot.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+      </video>
+    </p>
 
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
-.. |CO2| replace:: CO\ :sub:`2`
