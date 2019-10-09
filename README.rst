@@ -149,15 +149,17 @@ To run |co2mpas| in engineering mode with some sample data, you have to:
    the input data (for more info check
    the `link <_build/co2mpas/co2mpas.cli.html#co2mpas-demo>`__)::
 
-    $ co2mpas demo ./input  # Generate the demo files.
-    $ start ./input/co2mpas_conventional.xlsx  # Open a demo file.
+    ## Generate the demo files and open a demo file.
+    $ co2mpas demo ./input
+    $ start ./input/co2mpas_conventional.xlsx
 
 2. Run |co2mpas| in engineering mode and inspect the results in the ``./output``
    folder. The workflow is plotted on the browser (for more info check the
    `link <_build/co2mpas/co2mpas.cli.html#co2mpas-run>`__)::
 
-    $ co2mpas run ./input/co2mpas_conventional.xlsx -O ./output -WF  # Run.
-    $ start ./output  # Open the output folder.
+    ## Run co2mpas and open the output folder.
+    $ co2mpas run ./input/co2mpas_conventional.xlsx -O ./output -PL
+    $ start ./output
 
 .. image:: _static/image/output_workflow.png
    :width: 100%
@@ -171,12 +173,14 @@ To create an input file with your data, you have to:
 1. Generate an empty input template file (i.e., ``vehicle.xlsx``) inside
    the ``./input`` folder::
 
-    $ co2mpas template ./input/vehicle.xlsx -TT input  # Generate template file.
+    ## Generate template file.
+    $ co2mpas template ./input/vehicle.xlsx -TT input
 
 2. Follow the instructions provided in the excel file to fill the required
    inputs::
 
-    $ start ./input/vehicle.xlsx  # Open the input template.
+    ## Open the input template.
+    $ start ./input/vehicle.xlsx
 
 .. image:: _static/image/input_template.png
    :width: 100%
@@ -201,7 +205,8 @@ to:
 2. Fill the ``dyno`` and ``obd`` sheets with the relative data collected in the
    laboratory::
 
-    $ start ./to_sync/wltp.xlsx  # Open the input template.
+    ## Open the input template.
+    $ start ./to_sync/wltp.xlsx
 
 3. Synchronize the data with the theoretical velocity profile::
 
@@ -210,6 +215,7 @@ to:
 4. Copy/Paste the synchronized data (``wltp.sync.xlsx``) contained in the
    ``synced`` sheet into the relative sheet of the input template::
 
+    ## Open the synchronized data.
     $ start ./sync/wltp.sync.xlsx
 
 GUI start-up
@@ -217,6 +223,7 @@ GUI start-up
 To launch the |co2mpas| GUI from the console, you can use the following
 command::
 
+    ## Open the GUI of co2mpas.
     $ co2mpas gui
 
 .. image:: _static/image/gui_start_up.png
