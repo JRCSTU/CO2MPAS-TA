@@ -16,7 +16,7 @@
 import sys
 import os
 from os.path import abspath, join, dirname
-from schedula._version import __version__
+from co2mpas._version import __version__
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
