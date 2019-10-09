@@ -64,8 +64,34 @@ Installation
 ============
 There are two installation procedures that can be followed:
 
-- `Ordinary (for developers and/or researchers)`_
 - `Official (for type approval)`_
+- `Ordinary (for developers and/or researchers)`_
+
+Official (for type approval)
+----------------------------
+To install |co2mpas| you have to download the
+`installer <https://github.com/JRCSTU/CO2MPAS-TA/archive/co2mpas-v4.1.2.exe>`_
+and then execute it (see the steps shown in the video below).
+
+.. raw:: html
+
+    <video width="100%" height="%100" controls playsinline preload="metadata">
+      <source src="_static/video/install.mp4" type="video/mp4">
+      <source src="doc/_static/video/install.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+    </video>
+
+.. admonition:: IT Requirements
+
+   To run |co2mpas| for Type Approval purposes (i.e |co2mpas| official) some
+   minimum IT requirements are mandatory:
+
+   - 64-bit Intel or AMD processor (x86_64, aka x64, aka AMD64),
+   - Microsoft Windows 7, or later,
+   - 4 GB RAM (more recommended),
+   - 4 GB hard disk storage for installing the software,
+   - Execution-rights to the installation folder (but no Admin-rights),
+   - (optional) Excel, to view & edit simulation’s input and output files.
 
 Ordinary (for developers and/or researchers)
 --------------------------------------------
@@ -100,32 +126,6 @@ To install co2mpas and all extras, do:
 .. code-block:: console
 
     $ pip install co2mpas[all]
-
-Official (for type approval)
-----------------------------
-To install |co2mpas| you have to download the
-`installer <https://github.com/JRCSTU/CO2MPAS-TA/archive/co2mpas-v4.1.2.exe>`_
-and then execute it (see the steps shown in the video below).
-
-.. raw:: html
-
-    <video width="100%" height="%100" controls playsinline preload="metadata">
-      <source src="_static/video/install.mp4" type="video/mp4">
-      <source src="doc/_static/video/install.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-    </video>
-
-.. admonition:: IT Requirements
-
-   To run |co2mpas| for Type Approval purposes (i.e |co2mpas| official) some
-   minimum IT requirements are mandatory:
-
-   - 64-bit Intel or AMD processor (x86_64, aka x64, aka AMD64),
-   - Microsoft Windows 7, or later,
-   - 4 GB RAM (more recommended),
-   - 4 GB hard disk storage for installing the software,
-   - Execution-rights to the installation folder (but no Admin-rights),
-   - (optional) Excel, to view & edit simulation’s input and output files.
 
 .. _end-install:
 .. _end-pypi:
