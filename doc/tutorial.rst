@@ -30,7 +30,8 @@ Get input template
 ------------------
 Check the video to see how to download an empty input excel-file. The generated
 file contains the instructions on how to fill the required inputs. For more
-information use the command ``co2mpas template -h``.
+information use the command ``co2mpas template -h`` or check the
+`link <_build/co2mpas/co2mpas.cli.html#co2mpas-template>`__.
 
 .. raw:: html
 
@@ -49,7 +50,8 @@ rates, the model might fail. As aid tool, you may use the ``syncing`` tool to
 following steps:
 
 - Generate and download an *empty* input excel-file (see the video).
-  For more information use the command ``co2mpas syncing template -h``.
+  For more information use the command ``co2mpas syncing template -h`` or check
+  the `link <_build/co2mpas/co2mpas.cli.html#co2mpas-syncing-template>`__.
 
   .. raw:: html
 
@@ -66,7 +68,8 @@ following steps:
      the theoretical velocity profile.
 
 - Run data synchronization, see the video.
-  For more information use the command ``co2mpas syncing sync -h``.
+  For more information use the command ``co2mpas syncing sync -h`` or check
+  the `link <_build/co2mpas/co2mpas.cli.html#co2mpas-syncing-sync>`__.
 
   .. raw:: html
 
@@ -90,7 +93,8 @@ Download demo files
 3. *co2mpas_hybrid.xlsx*: hybrid parallel vehicle.
 
 Check the video to see how to download them. For more information use the
-command ``co2mpas demo -h``.
+command ``co2mpas demo -h`` or check the
+`link <_build/co2mpas/co2mpas.cli.html#co2mpas-demo>`__.
 
 .. raw:: html
 
@@ -103,19 +107,17 @@ command ``co2mpas demo -h``.
 
 Run
 ===
-This section shows the three ways to run |co2mpas|. For more information use the
-command ``co2mpas run -h``.
+This section displays three ways to run |co2mpas|. For more information use
+the command ``co2mpas run -h`` or check the
+`link <_build/co2mpas/co2mpas.cli.html#co2mpas-run>`__.
 
 Type approval mode
 ------------------
-The Type Approval command simulates the NEDC fuel consumption and CO2 emission
-of the given vehicle using just the required declaration inputs and produces an
-NEDC prediction. If |co2mpas| finds some extra input or there is some missing it
-will raise a warning and it will not produce any result. The type approval
-command is fully aligned to the WLTP-NEDC correlation `Regulation
-<https://eur-lex.europa.eu/legal-content/it/TXT/?uri=CELEX%3A32017R1151>`_.
-
-To successfully run |co2mpas| in type approval mode, see the following steps:
+The Type Approval command simulates the NEDC fuel consumption and CO2 emissions
+of the given vehicle. To produce the NEDC predictions, |co2mpas| utilizes only
+the declaration inputs. If it finds some extra/missing inputs, a warning is
+raised and no results is produced. To successfully run |co2mpas| in type
+approval mode, see the following steps:
 
 .. _upload_file:
 
@@ -158,7 +160,7 @@ Engineering mode
 ----------------
 This section explain how to run |co2mpas| in engineering mode:
 
-1. Upload excel file/s (see :ref:`previous step <upload_file>`),
+1. Upload excel file/s (see :ref:`previous video <upload_file>`),
 2. Switch TA mode ON and click run:
 
 .. raw:: html
@@ -179,29 +181,21 @@ This section explain how to run |co2mpas| in engineering mode:
        :alt: |co2mpas| advanced options
        :align: center
 
-3. Get the results  (see :ref:`previous step <download_results>`).
+3. Get the results  (see :ref:`previous video <download_results>`).
 
 Simulation plan
 ---------------
-It is possible to launch |co2mpas| once, and have it run the model multiple
-times, with variations on the input-data, all contained in a single
-(or more) input file(s).
+The simulation plan is an input file containing some extra parameters/sheets
+with **scope** ``plan.`` (see :doc:`data naming convention <names>`). It
+defines the list of variations (i.e., inputs to be overwritten) to be applied to
+a base dataset (i.e., a normal input file of |co2mpas|).
 
-The data for **base model** are contained in the regular sheets, and any
-variations are provided in additional sheets which names starting with
-the ``plan.`` prefix.
-These sheets must contain a table where each row is a single simulation,
-while the columns names are the parameters that the user wishes to vary.
-The columns of these tables can contain the following special names:
+The simulation plan can save you time because it can calibrate the models just
+once and re-use them to run other predictions changing just some inputs
+(e.g., ``times``, ``velocities``, ``vehicle_mass``, etc.).
 
-- **id**: Identifies the variation id.
-- **base**: It is the file path of a |co2mpas| excel input. The data are used as
-  new base vehicle.
-- **run_base**: If TRUE [default] the base model results are computed
-  and stored, otherwise the data are just loaded.
-
-To run the simulation plan you can follow the `steps in previous section
-<Engineering mode>`_.
+To know how to run the simulation plan, follow the `steps in previous section
+<Engineering mode>`_ and uploading the simulation plan as input file.
 
 .. note::
     The simulation plan cannot run in type-approval mode.

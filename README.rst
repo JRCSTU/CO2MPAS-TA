@@ -146,16 +146,23 @@ Run in engineering mode
 To run |co2mpas| in engineering mode with some sample data, you have to:
 
 1. Generate some demo files inside the ``./input`` folder, to get familiar with
-   the input data::
+   the input data (for more info check
+   the `link <_build/co2mpas/co2mpas.cli.html#co2mpas-demo>`__)::
 
     $ co2mpas demo ./input  # Generate the demo files.
     $ start ./input/co2mpas_conventional.xlsx  # Open a demo file.
 
 2. Run |co2mpas| in engineering mode and inspect the results in the ``./output``
-   folder::
+   folder. The workflow is plotted on the browser (for more info check the
+   `link <_build/co2mpas/co2mpas.cli.html#co2mpas-run>`__)::
 
-    $ co2mpas run ./input/co2mpas_conventional.xlsx -O ./output # Run co2mpas.
+    $ co2mpas run ./input/co2mpas_conventional.xlsx -O ./output -WF  # Run.
     $ start ./output  # Open the output folder.
+
+.. image:: _static/image/output_workflow.png
+   :width: 100%
+   :alt: Output workflow
+   :align: center
 
 Input file
 ----------
@@ -181,14 +188,16 @@ Data synchronization
 To synchronize the `dyno` and `OBD` data with the theoretical cycle, you have
 to:
 
-1. Generate a `synchronization template` file ``wltp.xlsx`` (with the command
-   below, the file contains the theoretical ``WLTP`` velocity profile for an
-   ``automatic`` vehicle of ``class3b``. For more info type ``co2mpas syncing
-   template -h``)::
+1. Generate a `synchronization template` file ``wltp.xlsx``::
 
     ## Generate template file.
     $ co2mpas syncing template ./to_sync/wltp.xlsx -CT wltp -WC class3b -GB automatic
 
+   .. note::
+      With the command above, the file contains the theoretical ``WLTP``
+      velocity profile for an ``automatic`` vehicle of ``class3b``. For more
+      info type ``co2mpas syncing template -h`` or click the
+      `link <_build/co2mpas/co2mpas.cli.html#co2mpas-syncing-template>`__
 2. Fill the ``dyno`` and ``obd`` sheets with the relative data collected in the
    laboratory::
 
@@ -209,6 +218,11 @@ To launch the |co2mpas| GUI from the console, you can use the following
 command::
 
     $ co2mpas gui
+
+.. image:: _static/image/gui_start_up.png
+   :width: 100%
+   :alt: GUI start-up
+   :align: center
 
 .. _end-quick:
 .. _start-sub:

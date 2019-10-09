@@ -97,4 +97,17 @@ There are three sheet types, which are parsed according to their contained data:
    If **scope** is ``base`` and **cycle** is missing in the **sheet-name**,
    the sheet is parsed as **pa**, otherwise it is parsed as **ts**.
 
+The data for **base model** are contained in the regular sheets, and any
+variations are provided in additional sheets which names starting with
+the ``plan.`` prefix.
+These sheets must contain a table where each row is a single simulation,
+while the columns names are the parameters that the user wishes to vary.
+The columns of these tables can contain the following special names:
+
+- **id**: Identifies the variation id.
+- **base**: It is the file path of a |co2mpas| excel input. The data are used as
+  new base vehicle.
+- **run_base**: If TRUE [default] the base model results are computed
+  and stored, otherwise the data are just loaded.
+
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
