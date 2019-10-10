@@ -1,4 +1,4 @@
-.. image:: doc/_static/CO2MPAS_banner.png
+.. image:: doc/_static/image/banner.png
    :width: 100%
 
 .. _start-pypi:
@@ -36,11 +36,9 @@ section, below).
 
 It is an open-source project
 (`EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_) developed for
-Python-3.6+ using :term:`WinPython` & :term:`Anaconda` under Windows 7, Anaconda
-under MacOS, and standard python environment & Anaconda under Linux. It runs
-either as a *console command* or as a *desktop GUI application*, and it uses
-Excel-files or pure python structures (dictionary and lists) for its input &
-output data.
+Python-3.6+. It runs either as a *console command* or as a
+*desktop GUI application*, and it uses Excel-files or pure python structures
+(dictionary and lists) for its input & output data.
 
 History
 -------

@@ -185,7 +185,7 @@ This section explain how to run |co2mpas| in engineering mode:
     **hard validation**, **enable selector**, **only summary**, and
     **use custom configuration file**. Flag the box to activate them.
 
-    .. image:: _static/advanced_options.png
+    .. image:: _static/image/advanced_options.png
        :width: 100%
        :alt: |co2mpas| advanced options
        :align: center

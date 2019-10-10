@@ -1,7 +1,7 @@
 .. meta::
     :theme-color:   #CCCC00
 
-.. image:: _static/CO2MPAS_banner.png
+.. image:: _static/image/banner.png
    :width: 100%
 
 .. include:: ../README.rst

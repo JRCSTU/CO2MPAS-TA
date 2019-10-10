@@ -59,7 +59,6 @@ usage
 stage
 -----
 
-   - ``precondition`` [default, if **cycle** == ``wltp-p``]: precondition data.
    - ``calibration`` [default]: calibration data.
    - ``prediction`` [default, if **cycle** in ``nedc``]: prediction data.
 
@@ -70,10 +69,9 @@ cycle
    - ``nedc-l``: *NEDC Low* cycle data.
    - ``wltp-h``: *WLTP High* cycle data.
    - ``wltp-l``: *WLTP Low* cycle data.
-   - ``wltp-precon``, ``wltp-p``: preconditioning *WLTP* cycle data.
    - ``nedc`` [default]: shortcut to set values for ``nedc-h`` & ``nedc-l``.
    - ``wltp`` [default]: shortcut to set values for ``wltp-h`` & ``wltp-l``.
-   - ``all``: shortcut to set values for ``nedc``, ``wltp``, and ``wltp-p``.
+   - ``all``: shortcut to set values for ``nedc`` and ``wltp``.
 
 param
 -----
