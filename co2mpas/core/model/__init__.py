@@ -63,81 +63,66 @@ _prediction_data = [
 
 _prediction_data_ts = ['times', 'velocities', 'gears']
 
-dsp.add_data(
-    data_id='input.precondition.wltp_p',
-    description='Dictionary that has all inputs of the calibration cycle.',
-    default_value={}
-)
-
 _physical = sh.SubDispatch(_physical)
-dsp.add_function(
-    function_id='calculate_precondition_output',
-    function=_physical,
-    inputs=['input.precondition.wltp_p'],
-    outputs=['output.precondition.wltp_p'],
-    description='Wraps all functions needed to calculate the precondition '
-                'outputs.'
+
+dsp.add_data(
+    data_id='input.calibration.wltp_h',
+    description='User input data of WLTP-H calibration stage.'
 )
-
-dsp.add_data('input.calibration.wltp_h', {})
-dsp.add_data('input.calibration.wltp_l', {})
-
-
-@sh.add_function(
-    dsp, inputs=['input.calibration.wltp_h', 'output.precondition.wltp_p'],
-    outputs=['data.calibration.wltp_h']
+dsp.add_data(
+    data_id='input.calibration.wltp_l',
+    description='User input data of WLTP-L calibration stage.'
 )
-@sh.add_function(
-    dsp, inputs=['input.calibration.wltp_l', 'output.precondition.wltp_p'],
-    outputs=['data.calibration.wltp_l'],
+dsp.add_data(
+    data_id='output.calibration.wltp_h',
+    description='Output data of WLTP-H calibration stage.'
 )
-def select_calibration_data(cycle_inputs, precondition_outputs):
-    """
-    Updates cycle inputs with the precondition outputs.
-
-    :param cycle_inputs:
-        Dictionary that has inputs of the calibration cycle.
-    :type cycle_inputs: dict
-
-    :param precondition_outputs:
-        Dictionary that has all outputs of the precondition cycle.
-    :type precondition_outputs: dict
-
-    :return:
-        Dictionary that has all inputs of the calibration cycle.
-    :rtype: dict
-    """
-
-    pre = precondition_outputs
-
-    p = ('initial_state_of_charge', 'state_of_charges')
-    if not any(k in cycle_inputs for k in p) and p[1] in pre:
-        inputs = cycle_inputs.copy()
-        inputs['initial_state_of_charge'] = pre['state_of_charges'][-1]
-        return inputs
-    return cycle_inputs
-
-
+dsp.add_data(
+    data_id='output.calibration.wltp_l',
+    description='Output data of WLTP-L calibration stage.'
+)
 dsp.add_function(
     function_id='calibrate_with_wltp_h',
     function=_physical,
-    inputs=['data.calibration.wltp_h'],
+    inputs=['input.calibration.wltp_h'],
     outputs=['output.calibration.wltp_h'],
     description='Wraps all functions needed to calibrate the models to '
-                'predict light-vehicles\' CO2 emissions.'
+                'predict CO2 emissions.'
 )
 
 dsp.add_function(
     function_id='calibrate_with_wltp_l',
     function=_physical,
-    inputs=['data.calibration.wltp_l'],
+    inputs=['input.calibration.wltp_l'],
     outputs=['output.calibration.wltp_l'],
     description='Wraps all functions needed to calibrate the models to '
-                'predict light-vehicles\' CO2 emissions.'
+                'predict CO2 emissions.'
 )
 
-dsp.add_data('input.prediction.wltp_h', {})
-dsp.add_data('input.prediction.wltp_l', {})
+dsp.add_data(
+    data_id='input.prediction.wltp_h', default_value={},
+    description='User input data of WLTP-H prediction stage.'
+)
+dsp.add_data(
+    data_id='input.prediction.wltp_l', default_value={},
+    description='User input data of WLTP-L prediction stage.'
+)
+dsp.add_data(
+    data_id='data.prediction.models_wltp_h',
+    description='Calibrated models for WLTP-H prediction stage.'
+)
+dsp.add_data(
+    data_id='data.prediction.models_wltp_l',
+    description='Calibrated models for WLTP-L prediction stage.'
+)
+dsp.add_data(
+    data_id='data.prediction.wltp_h',
+    description='Input data of WLTP-H prediction stage.'
+)
+dsp.add_data(
+    data_id='data.prediction.wltp_l',
+    description='Input data of WLTP-L prediction stage.'
+)
 
 
 @sh.add_function(
@@ -184,7 +169,20 @@ def select_prediction_data(data, *new_data):
     return data
 
 
-dsp.add_data('input.prediction.models', {})
+dsp.add_data(
+    data_id='input.prediction.models', default_value={},
+    description='User input models for prediction stages.'
+)
+dsp.add_data(
+    data_id='enable_selector', default_value=False,
+    description='Enable the selection of the best model to predict both '
+                'H/L cycles.'
+)
+dsp.add_data(
+    data_id='data.calibration.model_scores', default_value={},
+    description='Scores of calibrated models.'
+)
+
 _prediction_models = tuple(map('models_{}'.format, prediction_cycles))
 dsp.add_function(
     function=sh.SubDispatchPipe(
@@ -202,6 +200,14 @@ dsp.add_function(
     ]
 )
 
+dsp.add_data(
+    data_id='output.prediction.wltp_h',
+    description='Output data of WLTP-H prediction stage.'
+)
+dsp.add_data(
+    data_id='output.prediction.wltp_l',
+    description='Output data of WLTP-L prediction stage.'
+)
 dsp.add_function(
     function_id='predict_wltp_h',
     function=_physical,
@@ -219,11 +225,36 @@ dsp.add_function(
 
 )
 
+dsp.add_data(
+    data_id='input.prediction.nedc_h',
+    description='User input data of NEDC-H prediction stage.'
+)
+dsp.add_data(
+    data_id='input.prediction.nedc_l',
+    description='User input data of NEDC-L prediction stage.'
+)
+dsp.add_data(
+    data_id='data.prediction.models_nedc_h',
+    description='Calibrated models for NEDC-H prediction stage.'
+)
+dsp.add_data(
+    data_id='data.prediction.models_nedc_l',
+    description='Calibrated models for NEDC-L prediction stage.'
+)
+dsp.add_data(
+    data_id='output.prediction.nedc_h',
+    description='Output data of NEDC-H prediction stage.'
+)
+dsp.add_data(
+    data_id='output.prediction.nedc_l',
+    description='Output data of NEDC-L prediction stage.'
+)
 dsp.add_function(
     function_id='predict_nedc_h',
     function=_physical,
     inputs=['data.prediction.models_nedc_h', 'input.prediction.nedc_h'],
     outputs=['output.prediction.nedc_h'],
+    description='Wraps all functions needed to predict CO2 emissions.'
 )
 
 dsp.add_function(
@@ -231,4 +262,5 @@ dsp.add_function(
     function=_physical,
     inputs=['data.prediction.models_nedc_l', 'input.prediction.nedc_l'],
     outputs=['output.prediction.nedc_l'],
+    description='Wraps all functions needed to predict CO2 emissions.'
 )
