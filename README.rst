@@ -79,6 +79,14 @@ and then execute it (see the steps shown in the video below).
     Your browser does not support the video tag.
     </video>
 
+After the installation, two icons will appear in your desktop: one for the GUI
+and one for the console.
+
+    .. image:: _static/image/icons.png
+       :width: 50%
+       :alt: |co2mpas| icons
+       :align: center
+
 .. admonition:: IT Requirements
 
    To run |co2mpas| for Type Approval purposes (i.e |co2mpas| official) some
