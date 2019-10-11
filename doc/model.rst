@@ -15,9 +15,9 @@ clicking on them.
    :alt: Flow-diagram of the execution of various Stages and Cycles sub-models.
    :width: 640
 
-  >>> from co2mpas.core.model import dsp
-  >>> import schedula
-  >>> dsp = dsp.register(memo={})
+   >>> from co2mpas.core.model import dsp
+   >>> import schedula
+   >>> dsp = dsp.register(memo={})
 
 The execution of |co2mpas| model for a single vehicle is a procedure in three
 sequential stages:
