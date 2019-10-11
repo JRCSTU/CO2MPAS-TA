@@ -33,13 +33,13 @@ except ImportError:
 log = logging.getLogger('co2mpas.cli')
 CO2MPAS_HOME = os.environ.get('CO2MPAS_HOME', '.')
 
+log_config = dict(format="%(asctime)-15s:%(levelname)5.5s:%(name)s:%(message)s")
 
 class _Logger(logging.Logger):
     # noinspection PyMissingOrEmptyDocstring
     def setLevel(self, level):
         super(_Logger, self).setLevel(level)
-        frmt = "%(asctime)-15s:%(levelname)5.5s:%(name)s:%(message)s"
-        logging.basicConfig(level=level, format=frmt)
+        logging.basicConfig(level=level, **log_config)
         rlog = logging.getLogger()
         # because `basicConfig()` does not reconfig root-logger when re-invoked.
         rlog.level = level
