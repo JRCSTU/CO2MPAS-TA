@@ -95,7 +95,7 @@ command ``co2mpas demo -h`` or check the
 
     <p>
       <video width="100%" height="%100" controls playsinline preload="metadata">
-        <source src="_static/video/name.mp4" type="video/mp4">
+        <source src="_static/video/download_demo.mp4" type="video/mp4">
       Your browser does not support the video tag.
       </video>
     </p>
