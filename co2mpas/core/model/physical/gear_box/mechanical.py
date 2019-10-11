@@ -426,8 +426,8 @@ def identify_speed_velocity_ratios(
         Speed velocity ratios of the gear box [h*RPM/km].
     :rtype: dict
     """
-
-    ratios = gear_box_speeds_in / velocities
+    with np.errstate(divide='ignore', invalid='ignore'):
+        ratios = gear_box_speeds_in / velocities
 
     ratios[velocities < stop_velocity] = 0
 

@@ -237,7 +237,7 @@ def identify_service_battery_initialization_time(
         model.fit(x[j:], y[j:])
         err = np.abs(y - model.predict(x))
         sets = np.array(co2_utl.get_inliers(err)[0], dtype=int)[:i]
-        if sum(sets) / i < 0.5 or i > j:
+        if (i and sum(sets) / i < 0.5) or i > j:
             from sklearn.tree import DecisionTreeClassifier
             reg = DecisionTreeClassifier(max_depth=1, random_state=0)
             reg.fit(times[1:i + 1, None], sets)
