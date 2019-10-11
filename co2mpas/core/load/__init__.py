@@ -27,7 +27,7 @@ from .excel import parse_excel_file
 from .validate import dsp as _validate
 
 try:
-    from co2mpas_dice.co2mpas import dsp as _dice
+    from co2mpas_dice import dsp as _dice
 except ImportError:
     _dice = None
 

@@ -91,7 +91,7 @@ def _mode_parser(
     """
 
     if type_approval_mode or declaration_mode:
-        from co2mpas_dice.co2mpas.declaration import declaration_validation
+        from co2mpas_dice.declaration import declaration_validation
         inputs, errors = declaration_validation(
             type_approval_mode, inputs, errors, is_hybrid=is_hybrid
         )
@@ -256,7 +256,7 @@ def validate_flag(flag=None, declaration_mode=False, type_approval_mode=False):
     for k, v in sorted((flag or {}).items()):
         _add_validated_input(inputs, validate, ('flag', k), v, errors)
     if declaration_mode or type_approval_mode:
-        from co2mpas_dice.co2mpas.verify import verify_flag
+        from co2mpas_dice.verify import verify_flag
         if not verify_flag(inputs):
             return sh.NONE
     if _log_errors_msg(errors):
@@ -367,7 +367,7 @@ def validation_status(
     :rtype: bool
     """
     if type_approval_mode:
-        from co2mpas_dice.co2mpas.verify import verify_data
+        from co2mpas_dice.verify import verify_data
         return verify_data({
             'base': validated_base,
             'flag': validated_flag,

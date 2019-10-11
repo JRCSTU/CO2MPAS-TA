@@ -29,7 +29,7 @@ from co2mpas._version import __version__
 from co2mpas.utils import check_first_arg, check_first_arg_false
 
 try:
-    from co2mpas_dice.co2mpas import dsp as _dice
+    from co2mpas_dice import dsp as _dice
 except ImportError:
     _dice = None
 

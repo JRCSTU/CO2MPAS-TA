@@ -1,4 +1,4 @@
 -r base.pip
 -r io.pip
 
-co2mpas_dice
+co2mpas_dice>=4.0.0
