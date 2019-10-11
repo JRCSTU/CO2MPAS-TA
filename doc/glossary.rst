@@ -523,6 +523,22 @@ Time Series
     ``dcdc_converter_currents``
         qq
 
+General Terms
+-------------
+    ``type-approval``
+        is the authority that grants that a vehicle is conform to the EU
+        Regulation.
+    ``EU legislations``
+        COMMISSION IMPLEMENTING REGULATION (EU) 2017/1152: sets out a methodology
+        for determining the correlation parameters necessary for reflecting the
+        change in the regulatory test procedure with regard to light commercial
+        vehicles.
+        COMMISSION IMPLEMENTING REGULATION (EU) 2017/1153: sets out a methodology
+        for determining the correlation parameters necessary for reflecting the
+        change in the regulatory test procedure and amending Regulation (EU) No
+        1014/2010.
+
+
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
 .. |CO2| replace:: CO\ :sub:`2`
 .. |NOx| replace:: NO\ :sub:`x`\
