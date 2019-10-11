@@ -46,7 +46,7 @@ def calculate_final_drive_ratios(final_drive_ratio, n_gears=1):
 
 # noinspection PyUnusedLocal,PyMissingOrEmptyDocstring
 def is_not_manual_or_automatic(gear_box_type, *args):
-    return gear_box_type in ('manual', 'automatic')
+    return gear_box_type not in ('manual', 'automatic')
 
 
 dsp.add_function(
