@@ -45,15 +45,15 @@ def calculate_final_drive_ratios(final_drive_ratio, n_gears=1):
 
 
 # noinspection PyUnusedLocal,PyMissingOrEmptyDocstring
-def is_cvt(gear_box_type, *args):
-    return gear_box_type == 'cvt'
+def is_not_manual_or_automatic(kwargs):
+    return kwargs.get('gear_box_type') in ('manual', 'automatic')
 
 
 dsp.add_function(
     function=sh.add_args(calculate_final_drive_ratios),
     inputs=['gear_box_type', 'final_drive_ratio'],
     outputs=['final_drive_ratios'],
-    input_domain=is_cvt
+    input_domain=is_not_manual_or_automatic
 )
 
 
@@ -74,7 +74,8 @@ def calculate_final_drive_ratio_vector(final_drive_ratios, gears):
         Final drive ratio vector [-].
     :rtype: numpy.array
     """
-    d = collections.defaultdict(lambda: dfl.values.final_drive_ratio)
+    fdr0 = final_drive_ratios[min(final_drive_ratios)]
+    d = collections.defaultdict(lambda: fdr0)
     d.update(final_drive_ratios)
     return np.vectorize(lambda k: d[k])(gears)
 
