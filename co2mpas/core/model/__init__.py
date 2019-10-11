@@ -179,7 +179,7 @@ dsp.add_data(
                 'H/L cycles.'
 )
 dsp.add_data(
-    data_id='data.calibration.model_scores', default_value={},
+    data_id='data.calibration.model_scores',
     description='Scores of calibrated models.'
 )
 
