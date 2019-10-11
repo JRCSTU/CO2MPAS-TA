@@ -622,7 +622,7 @@ def calculate_gross_engine_powers_out(
     if gear_box_type == 'manual':
         p[on_idle & (p < 0)] = 0.0
     eff = np.where(motor_p0_powers[b] < 0, belt_efficiency, 1 / belt_efficiency)
-    p[b] += alternator_powers[b] - motor_p0_powers[b] * eff
+    p[b] -= alternator_powers[b] + motor_p0_powers[b] * eff
     p[b] -= motor_p1_powers[b] + motor_p2_planetary_powers[b]
     return p
 
