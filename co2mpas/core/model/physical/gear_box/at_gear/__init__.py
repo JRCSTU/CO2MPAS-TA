@@ -429,7 +429,7 @@ class CorrectGear:
 
         # 3.2
         j = i + np.searchsorted(times[i:], times[i] + 1)
-        if not gear and up_clip(velocities, j + 1) >= up_clip(velocities, j):
+        if not gear and up_clip(velocities, j + 1) > up_clip(velocities, j):
             gear = self.min_gear
 
         return gear
