@@ -414,14 +414,22 @@ def _co2mpas_info2df(start_time, main_flags=None):
     return df
 
 
+_re_list = regex.compile(br'^[^\[]*(?P<list>\[.*\])[^\]]*$', regex.DOTALL)
+
+
 @functools.lru_cache()
 def _get_installed_packages():
     import json
     from subprocess import check_output
     try:
-        return json.loads(check_output("conda list --json -q".split()))
+        out = check_output("conda list --json".split())
+        m = _re_list.match(out)
+        if m:
+            return json.loads(m.group('list'))
+        msg = 'Invalid JSON!'
     except Exception as ex:
-        log.info("Failed collecting installation info.\n%s", ex)
+        msg = ex
+    log.info("Failed collecting installation info.\n%s", msg)
 
 
 def _pipe2list(pipe, i=0, source=()):
