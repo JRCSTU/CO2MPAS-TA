@@ -150,7 +150,11 @@ def _calibrate_gsm(
     idle = idle_engine_speed[0] - idle_engine_speed[1]
     _vsr = sh.combine_dicts(velocity_speed_ratios, base={0: 0})
 
-    limits = {0: {False: [0]}, max(_vsr): {True: [dfl.INF]}}
+    limits = {
+        0: {False: [0]},
+        1: {True: [stop_velocity]},
+        max(_vsr): {True: [dfl.INF]}
+    }
     shifts = np.unique(sum(map(_shift, (on_engine, anomalies)), []))
     for i, j in sh.pairwise(shifts):
         if on_engine[i:j].all() and not anomalies[i:j].any():
@@ -163,14 +167,11 @@ def _calibrate_gsm(
                     )
 
     for k, v in list(limits.items()):
-        limits[k] = v.get(False, [_vsr[k] * idle] * 10), v.get(True, [])
+        limits[k] = v.get(False, [_vsr[k] * idle] * 2), v.get(True, [])
     d = {j: i for i, j in enumerate(sorted(limits))}
     gsm = CMV(filter_gs(sh.map_dict(d, limits), stop_velocity))
     gsm.velocity_speed_ratios = sh.selector(gsm, sh.map_dict(d, _vsr))
-    for k, v in gsm.items():
-        v[0] = max(v[0], gsm.velocity_speed_ratios[k] * idle)
-    gsm.convert(velocity_speed_ratios)
-    gsm[1][0] = stop_velocity
+    gsm.convert(_vsr)
     return gsm
 
 
@@ -259,24 +260,26 @@ def identify_gears_v1(
     gears = co2_utl.median_filter(times, gears, change_gear_window_width)
     gears = _correct_gear_shifts(times, r, gears, velocity_speed_ratios)
     gears = co2_utl.clear_fluctuations(times, gears, change_gear_window_width)
-
     anomalies = velocities > stop_velocity
     anomalies &= (accelerations > 0) | ~on_engine
     anomalies |= accelerations > plateau_acceleration
     anomalies &= gears == 0
-    gbs = calculate_gear_box_speeds_in(
+    from ..control.conventional import calculate_engine_speeds_out_hot
+    ds = calculate_engine_speeds_out_hot(calculate_gear_box_speeds_in(
         gears, velocities, velocity_speed_ratios, stop_velocity
-    )
+    ), on_engine, idle_engine_speed) - engine_speeds_out
     i = np.where(on_engine & ~anomalies)[0]
-    ds = gbs - engine_speeds_out
     med = np.nanmedian(ds[i])
-    std = 3 * max(30, co2_utl.mad(ds[i], med=med))
+    std = 3 * max(50, co2_utl.mad(ds[i], med=med))
     anomalies[i] |= np.abs(ds[i] - med) >= std
+    b = (gears == 0) & (velocities <= stop_velocity)
+    anomalies[b] = False
+    anomalies = co2_utl.clear_fluctuations(
+        times, anomalies.astype(int), change_gear_window_width
+    )
     for i, j in sh.pairwise(_shift(gears)):
         anomalies[i:j] = anomalies[i:j].mean() > .3
-    anomalies = co2_utl.clear_fluctuations(
-        times, anomalies, change_gear_window_width
-    )
+
     gsm = _calibrate_gsm(
         velocity_speed_ratios, on_engine, anomalies, gears, velocities,
         stop_velocity, idle_engine_speed

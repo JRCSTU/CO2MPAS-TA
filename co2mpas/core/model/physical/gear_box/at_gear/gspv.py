@@ -188,16 +188,14 @@ class GSPV(CMV):
                     limits[0] = min(min(v[1][0]), limits[0])
                     limits[1] = max(max(v[1][0]), limits[1])
 
-            K, X = zip(*[(k, v) for k, v in sorted(n_vsr.items())])
             cloud = self.cloud = {}
 
             for p in np.linspace(*limits):
-                it = [[vsr.get(k, 0)] + [func(p) for func in v]
-                      for k, v in self.items()]
+                cmv = _convert_limits(
+                    {k: [f(p) for f in v] for k, v in self.items()}, vsr, n_vsr
+                )
 
-                L, U = _convert_limits(it, X)
-
-                for k, l, u in zip(K, L, U):
+                for k, (l, u) in sorted(cmv.items()):
                     c = cloud[k] = cloud.get(k, [[], [[], []]])
                     c[0].append(l)
                     c[1][0].append(p)
