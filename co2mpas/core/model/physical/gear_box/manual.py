@@ -206,14 +206,10 @@ def correct_gear_v4(
     return cg
 
 
-@sh.add_function(
-    dsp,
-    inputs=[
-        'correct_gear', 'MGS', 'times', 'velocities', 'accelerations',
-        'motive_powers'
-    ],
-    outputs=['gears']
-)
+@sh.add_function(dsp, outputs=['gears'], weight=sh.inf(1, 0), inputs=[
+    'correct_gear', 'MGS', 'times', 'velocities', 'accelerations',
+    'motive_powers'
+])
 def prediction_gears_gsm_v1(
         correct_gear, gsm, times, velocities, accelerations, motive_powers):
     """

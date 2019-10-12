@@ -191,5 +191,5 @@ dsp.add_function(
     ),
     outputs=['gears'],
     input_domain=is_manual,
-    weight=10
+    weight=sh.inf(2, 10)
 )
