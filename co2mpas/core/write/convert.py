@@ -465,10 +465,7 @@ def _proc_info2df(data, start_time, main_flags):
     df = _get_installed_packages()
     if df:
         import pandas as pd
-        df = pd.DataFrame(
-            [(p['name'], p['version']) for p in df],
-            columns=['package', 'version']
-        ).set_index('package')
+        df = pd.DataFrame(df).set_index('name')
         setattr(df, 'name', 'packages')
         res += df,
 
