@@ -353,7 +353,8 @@ def select_best_model(rank, enable_selector, selector_id=''):
         _map = {'wltp_h': ('nedc_h', 'wltp_h'), 'wltp_l': ('nedc_l', 'wltp_l')}
 
     for i, (score, scores, err, name, mdl) in enumerate(rank):
-        k = ((sh.NONE,) if i == 0 else ()) + _map.get(name, ())
+        k = ((sh.NONE,) if enable_selector and i == 0 else ())
+        k += _map.get(name, ())
         if not k:
             continue
         success = _check_success(score)
