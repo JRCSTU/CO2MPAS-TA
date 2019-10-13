@@ -131,20 +131,29 @@ class ThermalModel:
     # noinspection PyProtectedMember,PyPep8Naming
     def fit(self, engine_coolant_temperatures, engine_temperature_derivatives,
             on_engine, velocities, engine_speeds_out, accelerations):
+        from sklearn.pipeline import Pipeline
         # noinspection PyArgumentEqualDefault
         opt = dict(
             base_estimator=_XGBRegressor(random_state=0),
             random_state=0, min_samples=0.85, max_trials=10
         )
-        x = np.column_stack((velocities, np.append(
+        t = np.append(
             [engine_coolant_temperatures[0]], engine_coolant_temperatures[:-1]
-        ), engine_speeds_out, accelerations))
+        )
+        x = np.column_stack((
+            velocities, t, np.zeros_like(t), engine_speeds_out, accelerations
+        ))
         n = self.ntemp
+        x[np.searchsorted(t, (self.thermostat,))[0]:, 2] = 1
         x[:, 1] = np.round((self.thermostat + n - x[:, 1]) / n) * n
         b = on_engine & (np.abs(engine_temperature_derivatives) > dfl.EPS)
-        self.on = _SafeRANSACRegressor(**opt).fit(
-            x[b, 1:], engine_temperature_derivatives[b]
-        ).predict
+        # noinspection PyArgumentEqualDefault
+        self.on = Pipeline([
+            ('selection', _SelectFromModel(
+                opt['base_estimator'], '0.8*median', in_mask=(2,)
+            )),
+            ('regression', _SafeRANSACRegressor(**opt))
+        ]).fit(x[b, 1:], engine_temperature_derivatives[b]).predict
         b = ~on_engine
         if b.all():
             self.off = _SafeRANSACRegressor(**opt).fit(
@@ -159,9 +168,10 @@ class ThermalModel:
             np.ediff1d(times, to_begin=0), on_engine, velocities, accelerations,
             engine_speeds_out,
         ))
-        x, t0 = np.array([[.0] * 4]), self.thermostat + self.ntemp
+        x, t0, hot = np.array([[.0] * 5]), self.thermostat + self.ntemp, False
         for i, (dt, b, v, a, s) in it:
-            x[:] = v, t0 - t, s, a
+            hot |= t > self.thermostat
+            x[:] = v, t0 - t, hot, s, a
             t += (self.on(x[:, 1:]) if b else self.off(x[:, :2])) * dt
             temp[i] = t = min(t, max_temp)
         return temp
