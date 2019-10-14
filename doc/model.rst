@@ -60,14 +60,14 @@ in eight macro-models:
 Model selection
 ---------------
 The default model selection criteria (i.e., when ``enable_selector == False``)
-is to use the calibrated models from *WLTP-H* data to predict *WLTP-H* and
+are to use the calibrated models from *WLTP-H* data to predict *WLTP-H* and
 *NEDC-H* and from *WLTP_L* data to predict *WLTP-L* and *NEDC-L* (this logic is
 applied in type-approval mode).
 
 On the contrary, if the selector is enabled, the function
 :py:func:`extract_calibrated_model <co2mpas.core.model.extract_calibrated_model>`
 detects/selects the best macro-model for prediction (from *WLTP-H* or *WLTP-L*).
-The selection is performed according the model's score, that is the model
+The selection is performed according to the model's score, which is the model
 capability to reproduce the input data, i.e. a weighted average of all computed
 metrics.
 
