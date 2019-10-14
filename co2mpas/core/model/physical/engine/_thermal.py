@@ -150,7 +150,7 @@ class ThermalModel:
         # noinspection PyArgumentEqualDefault
         self.on = Pipeline([
             ('selection', _SelectFromModel(
-                opt['base_estimator'], '0.8*median', in_mask=(2,)
+                opt['base_estimator'], '0.8*median', in_mask=(0, 2,)
             )),
             ('regression', _SafeRANSACRegressor(**opt))
         ]).fit(x[b, 1:], engine_temperature_derivatives[b]).predict
