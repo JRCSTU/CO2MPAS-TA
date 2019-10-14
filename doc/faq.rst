@@ -1,11 +1,34 @@
 ######
 F.A.Q.
 ######
-.. contents::
-
 
 This page contains the most Frequently Asked Questions regarding |CO2MPAS|
 model, regulation and inputs.
+
+- `General`_
+
+  - `Is the use of CO2MPAS correlation tool mandatory for all light-duty vehicles?`_
+  - `Where can the user download the latest version of the CO2MPAS?`_
+  - `Is CO2MPAS free and will it be in the future?`_
+  - `What is CO2MPAS physical background and which formulas are applied?`_
+  - `Where can the user find information on the status of the validation?`_
+  - `Where can the user find CO2MPAS workshop material?`_
+- `Model`_
+
+  - `What is the difference between Type Approval mode and engineering mode in CO2MPAS run?`_
+  - `What is the Data synchronization tool and how does it work?`_
+  - `What is the model selector?`_
+  - `Is it possible to simulate other cycles than NEDC or WLTP? How about real on-road tests?`_
+  - `Is the usage of internal / development signals allowed (if equivalence is shown)?`_
+  - `What is the start-stop (S/S) activation time? What might happen if the user declares it wrong?`_
+  - `How to insert a new drive_battery_technology for hybrid vehicles?`_
+- `Regulation`_
+
+  - `Where to find the correlation regulation?`_
+  - `Should CO2MPAS be used for each car or each family ID?`_
+  - `Is it possible to do a physical test, instead of accepting CO2MPAS results?`_
+  - `What is DICE and who should use it?`_
+  - `What are the verification and deviation factors, and when do they need to be recorded?`_
 
 *For more questions, please visit:* 
 https://github.com/JRCSTU/CO2MPAS-TA/wiki/F-A-Q
@@ -96,14 +119,12 @@ For more information, please see the instructions.
 
 What is the model selector?
 ---------------------------
-|CO2MPAS| consists of several models. 
-If the user provides both WLTP-H and WLTP-L data, 
-the same models will be calibrated twice, 
-according to the data provided by each configuration. 
-If the option *model selector* is switched on, 
-|CO2MPAS| will use the model that provides the best scores, 
-no matter if the model was calibrated with another cycle. 
-For example, if the alternator model of the High configuration is better, 
+|CO2MPAS| consists of several models. If the user provides both WLTP-H and WLTP-L
+data, the same models will be calibrated twice, according to the data provided
+by each configuration.
+If the option *model selector* is switched on, |CO2MPAS| will use the model that
+provides the best scores, no matter if the model was calibrated with another
+cycle. For example, if the alternator model of the High configuration is better,
 the same model will be used to predict the Low configuration as well.    
 
 Is it possible to simulate other cycles than NEDC or WLTP? How about real on-road tests?
@@ -131,6 +152,16 @@ in |CO2MPAS| is lower than the span between the beginning of the NEDC test and
 the first engine stop, that will result in Verification Factor equal to 1 and
 this will have implications on the entire fleet of the specific vehicle
 manufacturer.
+
+How to insert a new `drive_battery_technology` for hybrid vehicles?
+-------------------------------------------------------------------
+For TA: please contact us at jrc-co2mpas@ec.europa.eu.
+
+For non TA: the parameter already contains a preselection of
+`drive batteries technologies <https://co2mpas.readthedocs.io/en/stable/glossary.html#drive_battery_technology>`_
+as drop-down menu. If you need to insert a different technology, you should
+remove the "data validation rule" of the excel input file, insert the new data
+and proceed with the co2mpas run.
 
 Regulation
 ==========
