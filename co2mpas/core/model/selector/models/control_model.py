@@ -23,11 +23,11 @@ models = [
     'start_stop_hybrid_params', 'motor_p0_maximum_power', 'motor_p0_efficiency',
     'motor_p2_planetary_rated_speed', 'motor_p2_planetary_efficiency', 'ecms_s',
     'motor_p3_rear_rated_speed', 'motor_p4_rear_rated_speed', 'planetary_ratio',
-    'motor_p2_planetary_maximum_power', 'motor_p3_front_maximum_power',
-    'motor_p4_front_maximum_power', 'motor_p3_rear_maximum_power',
-    'motor_p4_rear_maximum_power', 'final_drive_mean_efficiency',
-    'motor_p4_front_rated_speed', 'planetary_mean_efficiency',
-    'motor_p4_front_efficiency', 'motor_p4_rear_efficiency',
+    'motor_p2_planetary_maximum_power', 'motor_p4_rear_efficiency', 'is_serial',
+    'motor_p3_front_maximum_power', 'motor_p4_front_maximum_power',
+    'motor_p3_rear_maximum_power', 'motor_p4_rear_maximum_power',
+    'final_drive_mean_efficiency', 'motor_p4_front_rated_speed',
+    'planetary_mean_efficiency', 'motor_p4_front_efficiency',
     'motor_p2_maximum_power', 'motor_p0_rated_speed',
 ]
 
