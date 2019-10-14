@@ -121,27 +121,38 @@ def _identify_gear_shifting_velocity_limits(gears, velocities, stop_velocity):
     return _filter_gear_shifting_velocity(limits, stop_velocity)
 
 
+def _interp(r, y, nr):
+    from scipy.interpolate import InterpolatedUnivariateSpline as Spline
+    n = len(r)
+    if n == 0:
+        return np.nan * nr
+    elif n == 1:
+        return (y / r) * nr
+    else:
+        return Spline(r, y / r, k=1)(nr) * nr
+
+
 # noinspection PyPep8Naming
 def _convert_limits(lu, vsr, n_vsr, stop_velocity=dfl.values.stop_velocity):
-    from scipy.interpolate import InterpolatedUnivariateSpline as Spline
     _r, _l, _u = np.array(
         sorted([vsr.get(k, 0)] + list(v) for k, v in lu.items())
     ).T
     nk, nr = np.array(sorted(sh.combine_dicts(n_vsr, base={0: 0}).items())).T
-    it = zip(
-        nk.astype(int), Spline(_r[2:], _l[2:] / _r[2:], k=1)(nr) * nr,
-        Spline(_r[1:-1], _u[1:-1] / _r[1:-1], k=1)(nr) * nr
-    )
+    klu = sorted(zip(
+        nk.astype(int),
+        _interp(_r[2:], _l[2:], nr),
+        _interp(_r[1:-1], _u[1:-1], nr)
+    ))
     res, n0, n1 = {}, min(k for k in n_vsr if k > 0), max(n_vsr)
-    for k, l, u in sorted(it, ):
+    for k, l, u in klu:
         if k == 0:
-            res[k] = list(lu.get(k, [0, stop_velocity + 1]))
-        elif k == n0:
-            res[k] = [lu.get(k, (stop_velocity,))[0], u]
-        elif k == n1:
-            res[k] = [l, lu.get(k, (None, dfl.INF))[1]]
+            l, u = list(lu.get(k, [0, stop_velocity + 1]))
         else:
-            res[k] = [l, u]
+            if k == n0:
+                l = lu.get(k, (stop_velocity,))[0]
+            if k == n1:
+                u = lu.get(k, (None, dfl.INF))[1]
+        res[k] = [l, u]
     return res
 
 
