@@ -1,6 +1,6 @@
 Glossary
 ========
-this page shows a list terms used in the input file.
+this page lists and explains the terms used in the input file.
 
 DICE
 ----
