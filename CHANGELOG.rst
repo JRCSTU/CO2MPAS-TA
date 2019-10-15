@@ -3,6 +3,18 @@ Changelog
 
 (unreleased)
 ------------
+
+Known Limitations
+-----------------
+1) Certain programs (for example Skype) could be pre-empting (or reserving)
+some tcp/ip ports and therefore could conflict with co2mpas graphical interface
+that tries to launch a webserver on a port in the higher range (> 10000)
+
+2) Certain antivirus (for example Avast) could include python in the list of
+malicious software; however, this is not to be considered harmful. If this
+happens the antivirs should be disabled when running co2mpas, or a special
+exclusion should be granted to the co2mpas executable.
+
 Feat
 ~~~~
 - (doc) :gh:`533`: Rephrased one sentence.
@@ -453,7 +465,7 @@ Fix
 - (sim:input): Add dice parameter incomplete.
 
 ``v3.0.0``, 29-Jan-2019: "VOLO" Release
-=======================================
+---------------------------------------
 
 |co2mpas| 3.0.X becomes official on February 1st, 2019.
 
@@ -482,7 +494,7 @@ Fix
   `co2gui <https://pypi.org/project/co2gui/3.0.0/>`_ and `co2mpas <https://pypi.org/project/co2mpas/3.0.0/>`_.
 
 Installation
-------------
+~~~~~~~~~~~~
 This release will not be distributed as an **AllInOne** (AIO) package. It is
 based on the `2.0.0, 31-Aug-2018: "Unleash" Release <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r2.0.0>`_,
 launched on 1 September 2018. There are two options of installation:
@@ -506,7 +518,7 @@ launched on 1 September 2018. There are two options of installation:
    ```
 
 Important Changes since `2.1.0` release
----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Model
 ~~~~~
