@@ -30,6 +30,9 @@ DICE
     ``parent_vehicle_family_id``
         the family identifier code of the parent.
 
+    ``dice.regulation``
+        qq.
+
     ``vehicle_family_id``
         the family identifier code shall consist of one unique string of
         n-characters and one unique WMI code followed by '1'.
@@ -466,8 +469,8 @@ Hybrids - Inputs
         maximum torque output of motor P3 front [Nm].
 
     ``motor_p3_front_speed_ratio``
-        ratio between motor P3 front speed and final drive input speed [-] (
-        motor P3 front speed is proportional to wheels rotational speed
+        ratio between motor P3 front speed and final drive input speed [-]
+        (motor P3 front speed is proportional to wheels rotational speed
         multiplied by the final drive ratio).
 
     ``motor_p3_rear_maximum_power``
@@ -477,8 +480,8 @@ Hybrids - Inputs
         maximum torque output of motor P3 rear [Nm].
 
     ``motor_p3_rear_speed_ratio``
-        ratio between motor P3 rear speed and final drive input speed [-] (
-        motor P3 rear speed is proportional to wheels rotational speed
+        ratio between motor P3 rear speed and final drive input speed [-]
+        (motor P3 rear speed is proportional to wheels rotational speed
         multiplied by the final drive ratio).
 
     ``motor_p4_front_maximum_power``
@@ -556,6 +559,7 @@ General Terms
     ``type-approval``
         is the authority that grants that a vehicle is conform to the EU
         Regulation.
+
     ``EU legislations``
         COMMISSION IMPLEMENTING REGULATION (EU) 2017/1152: sets out a methodology
         for determining the correlation parameters necessary for reflecting the

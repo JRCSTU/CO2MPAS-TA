@@ -154,7 +154,7 @@ this will have implications on the entire fleet of the specific vehicle
 manufacturer.
 
 How to insert a new `drive_battery_technology` for hybrid electric vehicles?
--------------------------------------------------------------------
+----------------------------------------------------------------------------
 For TA: the parameter already contains a preselection of
 `drive batteries technologies <https://co2mpas.readthedocs.io/en/stable/glossary.html#drive_battery_technology>`_
 as drop-down menu. If you need to insert a different technology, please contact
