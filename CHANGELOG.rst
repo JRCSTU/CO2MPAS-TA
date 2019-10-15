@@ -1,8 +1,27 @@
 Changelog
 =========
 
-(unreleased)
-------------
+``v4.X.X``, DATE: "NAME" Release
+--------------------------------
+
+blablabla
+
+Important changes
+-----------------
+
+Model
+~~~~~
+Added Hybrids electric vehicles
+
+
+IO Data
+~~~~~~~
+
+DICE
+~~~~
+
+Demo Files
+~~~~~~~~~~
 
 Known Limitations
 -----------------

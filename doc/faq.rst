@@ -155,7 +155,10 @@ manufacturer.
 
 How to insert a new `drive_battery_technology` for hybrid vehicles?
 -------------------------------------------------------------------
-For TA: please contact us at jrc-co2mpas@ec.europa.eu.
+For TA: the parameter already contains a preselection of
+`drive batteries technologies <https://co2mpas.readthedocs.io/en/stable/glossary.html#drive_battery_technology>`_
+as drop-down menu. If you need to insert a different technology, please contact
+us at jrc-co2mpas@ec.europa.eu.
 
 For non TA: the parameter already contains a preselection of
 `drive batteries technologies <https://co2mpas.readthedocs.io/en/stable/glossary.html#drive_battery_technology>`_
