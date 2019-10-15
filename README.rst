@@ -9,9 +9,9 @@
 ######################################################################
 
 :official:      | `3.0.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-v3.0.0>`_: from 01-Feb-2019 to 20-Oct-2019
-                | `4.1.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r4.1.2>`_: from 20-Oct-2019
-:release:       4.1.2
-:rel_date:      2019-10-14 16:00:00
+                | `4.1.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r4.1.3>`_: from 20-Oct-2019
+:release:       4.1.3
+:rel_date:      2019-10-15 09:40:00
 :home:          http://co2mpas.io/
 :repository:    https://github.com/JRCSTU/CO2MPAS-TA
 :pypi-repo:     https://pypi.org/project/co2mpas/
