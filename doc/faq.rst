@@ -21,7 +21,7 @@ model, regulation and inputs.
   - `Is it possible to simulate other cycles than NEDC or WLTP? How about real on-road tests?`_
   - `Is the usage of internal / development signals allowed (if equivalence is shown)?`_
   - `What is the start-stop (S/S) activation time? What might happen if the user declares it wrong?`_
-  - `How to insert a new drive_battery_technology for hybrid vehicles?`_
+  - `How to insert a new drive_battery_technology for hybrid electric vehicles?`_
 - `Regulation`_
 
   - `Where to find the correlation regulation?`_
@@ -153,7 +153,7 @@ the first engine stop, that will result in Verification Factor equal to 1 and
 this will have implications on the entire fleet of the specific vehicle
 manufacturer.
 
-How to insert a new `drive_battery_technology` for hybrid vehicles?
+How to insert a new `drive_battery_technology` for hybrid electric vehicles?
 -------------------------------------------------------------------
 For TA: the parameter already contains a preselection of
 `drive batteries technologies <https://co2mpas.readthedocs.io/en/stable/glossary.html#drive_battery_technology>`_

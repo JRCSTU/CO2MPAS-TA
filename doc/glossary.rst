@@ -35,8 +35,8 @@ DICE
         n-characters and one unique WMI code followed by '1'.
 
     ``is_hybrid``
-         hybrid vehicle where one of the propulsion energy converters is an
-         electric machine.
+         hybrid electric vehicle where one of the propulsion energy converters
+         is an electric machine.
 
     ``comments``
         you may add comments regarding the DICE procedure. In case of extension,
@@ -132,7 +132,8 @@ Model Inputs
 
     ``gear_box_type``
         the type of gear box among automatic transmission, manual transmission,
-        or continuously variable transmission (CVT).
+        continuously variable transmission (CVT) or planetary (exclusively for
+        hybrid vehicles fitted with a planetary gearset).
 
     ``start_stop_activation_time``
         is the the time elapsed from the beginning of the NEDC test to the first
@@ -162,7 +163,7 @@ Model Inputs
     ``alternator_efficiency``
         efficiency is the ratio of electrical power out of the alternator to
         the mechanical power put into it. If not expressed by the manufacturer,
-        then it is by default =0.67
+        then it is by default =0.67.
 
     ``gear_box_ratios``
         see relevant sheet (gear_box_ratios).
@@ -179,7 +180,7 @@ Road Loads
         simulated inertia applied during the WLTP-H test on the dyno [kg].
         It should reflect correction for rotational mass |mr| as foreseen by
         WLTP regulation for 1-axle chassis dyno testing. (Regulation 2017/1151;
-        Sub-Annex 4; paragraph 2.5.3)
+        Sub-Annex 4; paragraph 2.5.3).
 
     ``f0 WLTP-H``
          set the F0 road load coefficient for WLTP-H. This scalar corresponds
@@ -389,139 +390,166 @@ Dyne - Vehicle Configuration
 Hybrids - Inputs
 ----------------
     ``planetary_ratio``
-        the ratio existing between the planetary and the final drive rotation
-        speed during electric drive (engine speed =0). The planetary speed is
-        the rotational speed of the planetary gearset side that is not the
-        engine nor the final drive side.
+        the ratio existing between the planetary speed and the final
+        drive speed during electric drive (engine speed =0). The planetary speed
+        is the rotational speed of the planetary gearset side that is not the
+        engine nor the final drive side (the branch that goes to the motor P2
+        planetary, referred to as the planetary side in this documentation).
 
     ``drive_battery_initial_state_of_charge WLTP-H``
-        initial state of charge of the high-voltage battery at the beginning of
+        initial state of charge of the drive battery at the beginning of
         the WLTP-H test.
 
     ``drive_battery_n_cells``
-        number of cells of the high-voltage battery.
+        number of cells of the drive battery.
 
     ``drive_battery_technology``
-        the technology of the battery: e.g., NiMH, Li-NCA, etc.
+        the technology of the drive battery (e.g., NiMH, Li-NCA, etc.).
+        Technologies included in |co2mpas|:
+        -NiMH: Nickel-metal hydride
+        -Li-NCA (Li-Ni-Co-Al): Lithium Nickel Cobalt Aluminum Oxide
+        -Li-NCM (Li-Ni-Mn-Co): Lithium Nickel Manganese Cobalt Oxide
+        -Li-MO (Li-Mn): Lithium Manganese Oxide
+        -Li-FP (Li-Fe-P): Lithium Iron Phosphate
+        -Li-TO (Li-Ti): Lithium Titanate Oxide
 
     ``drive_battery_capacity``
-        high voltage battery capacity.
+        drive battery capacity [Ah].
 
     ``motor_p0_maximum_power``
-        rated power of motor P0.
+        maximum power output of motor P0 [kW].
 
     ``motor_p0_maximum_torque``
-        rated torque of motor P0.
+        maximum torque output of motor P0 [Nm].
 
     ``motor_p0_speed_ratio``
-        ratio between motor P0 speed and engine speed.
+        ratio between motor P0 speed and engine speed [-] (e.g. motor P0
+        connected to the engine belt with ratio equal to 3 is spinning three
+        times faster than the engine).
 
     ``motor_p1_maximum_power``
-        rated power of motor P1.
+        maximum power output of motor P1 [kW].
 
     ``motor_p1_maximum_torque``
-        rated torque of motor P1.
+        maximum torque output of motor P1 [Nm].
 
     ``motor_p1_speed_ratio``
-         ratio between motor P1 speed and engine speed.
+        ratio between motor P1 speed and engine speed [-] (e.g. motor P1
+        connected to the engine crankshaft with ratio equal to 3 is spinning
+        three times faster than the engine).
 
     ``motor_p2_maximum_power``
-        rated power of motor P2.
+        maximum power output of motor P2 [kW].
 
     ``motor_p2_maximum_torque``
-        rated torque of motor P2.
+        maximum torque output of motor P2 [Nm].
 
     ``motor_p2_speed_ratio``
-        ratio between motor P2 speed and gearbox speed.
+        ratio between motor P2 speed and transmission input speed [-] (motor P2
+        speed is proportional to wheels rotational speed multiplied by the final
+        drive ratio and the transmission gear ratio).
 
     ``motor_p2_planetary_maximum_power``
-        rated power of planetary motor P2.
+        maximum power output of motor P2 planetary [kW].
 
     ``motor_p2_planetary_maximum_torque``
-        rated torque of planetary motor P2.
+        maximum torque output of motor P2 planetary [Nm].
 
     ``motor_p2_planetary_speed_ratio``
-        ratio between planetary motor P2 speed and planetary speed (branch that
-        goes to planetary motor P2).
+        ratio between planetary motor P2 speed and planetary side (branch that
+        goes to planetary motor P2) speed.
 
     ``motor_p3_front_maximum_power``
-        rated power of front motor P3.
+        maximum power output of motor P3 front [kW].
 
     ``motor_p3_front_maximum_torque``
-        rated torque of front motor P3.
+        maximum torque output of motor P3 front [Nm].
 
     ``motor_p3_front_speed_ratio``
-        ratio between front motor P3 speed and final drive speed in.
+        ratio between motor P3 front speed and final drive input speed [-] (
+        motor P3 front speed is proportional to wheels rotational speed
+        multiplied by the final drive ratio).
 
     ``motor_p3_rear_maximum_power``
-        rated power of rear motor P3.
+        maximum power output of motor P3 rear [kW].
 
     ``motor_p3_rear_maximum_torque``
-        rated torque of rear motor P3.
+        maximum torque output of motor P3 rear [Nm].
 
     ``motor_p3_rear_speed_ratio``
-        ratio between rear motor P3 speed and final drive speed in.
+        ratio between motor P3 rear speed and final drive input speed [-] (
+        motor P3 front speed is proportional to wheels rotational speed
+        multiplied by the final drive ratio).
 
     ``motor_p4_front_maximum_power``
-        rated power of front motor P4.
+        maximum power output of motor P4 front [kW].
 
     ``motor_p4_front_maximum_torque``
-        rated torque of front motor P4.
+        maximum torque output of motor P4 front [Nm].
 
     ``motor_p4_front_speed_ratio``
-        ratio between front motor P4 speed and wheel speed.
+        ratio between motor P4 front speed and wheels speed [-] (motor P4 front
+        speed is proportional to wheels rotational speed).
 
     ``motor_p4_rear_maximum_power``
-        rated power of rear motor P4.
+        maximum power output of motor P4 rear [kW].
 
     ``motor_p4_rear_maximum_torque``
-        rated torque of rear motor P4.
+        maximum torque output of motor P4 rear [Nm].
 
     ``motor_p4_rear_speed_ratio``
-        ratio between rear motor P4 speed and wheel speed.
+        ratio between motor P4 rear speed and wheels speed [-] (motor P4 front
+        speed is proportional to wheels rotational speed).
 
 
 Time Series
 -----------
 
     ``times``
-        qq
+        time values [s].
 
     ``velocities``
-        qq
+        actual vehicle speed [km/h] (dynamometer or other reference).
 
     ``obd_velocities``
-        qq
+        OBD vehicle speed [km/h].
 
     ``target.calibration.gears``
-        qq
+        target gear according to Heinz Steven tool [-].
 
     ``bag_phases``
-        qq
+        array to associate time values with different bag phases (this can be
+        used to modify the phases duration from the default values).
 
     ``engine_speeds_out``
-        qq
+        engine rotational speed [rpm].
 
     ``engine_coolant_temperatures``
-        qq
+        engine coolant temperature [°C].
 
     ``co2_normalization_references``
-        qq
+        normalization reference for |CO2| emissions (e.g. engine load, engine
+        power output).
 
     ``alternator_currents``
-        qq
+        current produced by the alternator [A] (current is negative when the
+        alternator is supplying power to the low-voltage electrical system).
 
     ``service_battery_currents``
-        qq
+        current flowing through the service battery [A] (current is positive
+        when battery is being charged, negative when discharged).
 
     ``drive_battery_voltages``
-        qq
+        voltage of the drive battery [V].
 
     ``drive_battery_currents``
-        qq
+        current flowing through the drive battery [A] (current is positive when
+        battery is being charged, negative when discharged).
 
     ``dcdc_converter_currents``
-        qq
+        current flowing through the DCDC converter measured on the low-voltage
+        side [A] (current is negative when the DCDC converter is supplying power
+        to the low-voltage electrical system).
 
 General Terms
 -------------
