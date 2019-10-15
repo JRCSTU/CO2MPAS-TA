@@ -478,7 +478,7 @@ Hybrids - Inputs
 
     ``motor_p3_rear_speed_ratio``
         ratio between motor P3 rear speed and final drive input speed [-] (
-        motor P3 front speed is proportional to wheels rotational speed
+        motor P3 rear speed is proportional to wheels rotational speed
         multiplied by the final drive ratio).
 
     ``motor_p4_front_maximum_power``
@@ -498,7 +498,7 @@ Hybrids - Inputs
         maximum torque output of motor P4 rear [Nm].
 
     ``motor_p4_rear_speed_ratio``
-        ratio between motor P4 rear speed and wheels speed [-] (motor P4 front
+        ratio between motor P4 rear speed and wheels speed [-] (motor P4 rear
         speed is proportional to wheels rotational speed).
 
 
