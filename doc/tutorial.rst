@@ -40,7 +40,7 @@ information use the command ``co2mpas template -h`` or check the
 Synchronize time-series
 -----------------------
 If you have time-series not well synchronized and/or with different sampling
-rates, the model might fail. As aid tool, you may use the ``syncing`` tool to
+rates, the model might fail. As an aid tool, you may use the ``syncing`` tool to
 "synchronize" and "re-sample" your data. To use the tool you should execute the
 following steps:
 
@@ -58,7 +58,7 @@ following steps:
       </p>
 
   .. note::
-     All sheets must contain values for columns ``times`` and ``velocities``,
+     All sheets must contain values for columns ``times`` and ``velocities``
      because they are the reference signals used to synchronize the data with
      the theoretical velocity profile.
 
@@ -76,12 +76,12 @@ following steps:
       </p>
 
 .. note::
-   The synchronized signals are saved in to the ``synced`` sheet.
+   The synchronized signals are saved into the ``synced`` sheet.
 
 
 Download demo files
 -------------------
-|co2mpas| contains 3 demo-files that can be used as starting point to try out:
+|co2mpas| contains 3 demo-files that can be used as a starting point to try out:
 
 1. *co2mpas_conventional.xlsx*: conventional vehicle,
 2. *co2mpas_simplan.xlsx*: sample simulation plan,
@@ -111,12 +111,12 @@ Type approval mode
 The Type Approval command simulates the NEDC fuel consumption and CO2 emissions
 of the given vehicle. To produce the NEDC predictions, |co2mpas| utilizes only
 the declaration inputs. If it finds some extra/missing inputs, a warning is
-raised and no results is produced. To successfully run |co2mpas| in type
+raised and no results are produced. To successfully run |co2mpas| in type
 approval mode, see the following steps:
 
 .. _upload_file:
 
-1. Upload your file/s (multiple file are accepted):
+1. Upload your file/s (multiple files are accepted):
 
 .. raw:: html
 
@@ -152,7 +152,7 @@ approval mode, see the following steps:
     </p>
 
 .. _ta_results:
-.. admonition:: Output files of type-approval run.
+.. admonition:: Output files of the type-approval run.
 
     - A zip folder per vehicle, named as ``<ip-name>.co2mpas.zip``.
       This contains 4 files:
@@ -167,7 +167,7 @@ approval mode, see the following steps:
 
 Engineering mode
 ----------------
-This section explain how to run |co2mpas| in engineering mode:
+This section explains how to run |co2mpas| in engineering mode:
 
 1. Upload excel file/s (see :ref:`previous video <upload_file>`),
 2. Switch TA mode ON and click run:
@@ -190,7 +190,7 @@ This section explain how to run |co2mpas| in engineering mode:
        :alt: |co2mpas| advanced options
        :align: center
 
-3. Get the results  (see :ref:`previous video <download_results>`).
+3. Get the results  (see the :ref:`previous video <download_results>`).
 
 .. _eng_results:
 .. admonition:: Output files of engineering mode run.
@@ -201,7 +201,7 @@ This section explain how to run |co2mpas| in engineering mode:
 Simulation plan
 ---------------
 The simulation plan is an input file containing some extra parameters/sheets
-with **scope** ``plan.`` (see :doc:`data naming convention <names>`). It
+with a **scope** ``plan.`` (see :doc:`data naming convention <names>`). It
 defines the list of variations (i.e., inputs to be overwritten) that have to be
 applied to a base dataset (i.e., a normal input file of |co2mpas|).
 
@@ -209,7 +209,7 @@ The simulation plan can save you time! It is able to calibrate the models
 just once and re-use them for other subsequent predictions, where only some
 inputs are different (e.g., ``times``, ``velocities``, ``vehicle_mass``, etc.).
 
-To run the simulation plan upload it as input file, and run it as described in
+To run the simulation plan upload it as an input file, and run it as described in
 `the previous section <Engineering mode>`_ .
 
 .. admonition:: Output files

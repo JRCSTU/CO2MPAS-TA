@@ -72,7 +72,7 @@ capability to reproduce the input data, i.e. a weighted average of all computed
 metrics.
 
 In other words, the calibrated models are used to recalculate (**predict**) the
-**inputs** of the *WLTP-H* and *WLTP-L* cycles, while the scores derive from
+**inputs** of the *WLTP-H* and *WLTP-L* cycles, while the scores are derived from
 various metrics comparing **inputs** against **predictions**.
 
 .. note::

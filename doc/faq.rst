@@ -63,7 +63,7 @@ program, or a copy of it, must be licensed in the same way:
 
 What is |CO2MPAS| physical background and which formulas are applied?
 ---------------------------------------------------------------------
-|CO2MPAS| is backward-looking longitudinal-dynamics |CO2| and
+|CO2MPAS| is a backward-looking longitudinal-dynamics |CO2| and
 fuel-consumption simulator for light-duty M1 & N1 vehicles (cars and vans).
 **To check the formulas the user can visit the functions' 
 description pages: .....** 
@@ -87,7 +87,7 @@ have been included in the above-mentioned reports as "real cars".
 
 Where can the user find |CO2MPAS| workshop material?
 ----------------------------------------------------
-Workshop material is always uploaded in
+Workshop material is always uploaded in the
 `presentation chapter <https://github.com/JRCSTU/CO2MPAS-TA/wiki/Presentations-from-CO2MPAS-meetings>`_.
 
 Model
@@ -130,7 +130,7 @@ the same model will be used to predict the Low configuration as well.
 Is it possible to simulate other cycles than NEDC or WLTP? How about real on-road tests?
 ----------------------------------------------------------------------------------------
 Yes, |CO2MPAS| can simulate other cycles, as well as on-road tests. 
-The user can simulate with several extra parameters beyond the 
+The user can simulate using several extra parameters beyond the
 official laboratory-measured ones. 
 The user can input the velocity profile followed, road grade, 
 extra auxiliaries losses, extra passengers, different road loads, temperatures, 
@@ -157,12 +157,12 @@ How to insert a new `drive_battery_technology` for hybrid electric vehicles?
 ----------------------------------------------------------------------------
 For TA: the parameter already contains a preselection of
 `drive batteries technologies <https://co2mpas.readthedocs.io/en/stable/glossary.html#drive_battery_technology>`_
-as drop-down menu. If you need to insert a different technology, please contact
+as a drop-down menu. If you need to insert a different technology, please contact
 us at jrc-co2mpas@ec.europa.eu.
 
 For non TA: the parameter already contains a preselection of
 `drive batteries technologies <https://co2mpas.readthedocs.io/en/stable/glossary.html#drive_battery_technology>`_
-as drop-down menu. If you need to insert a different technology, you should
+as a drop-down menu. If you need to insert a different technology, you should
 remove the "data validation rule" of the excel input file, insert the new data
 and proceed with the co2mpas run.
 
@@ -178,7 +178,7 @@ Below some useful links:
 - The correlation regulation for light commercial vehicles
   `REGULATION (EU) 2017/1152 <https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:02017R1152-20190201&from=EN>`_
 - Also, in this `document, <https://ec.europa.eu/clima/sites/clima/files/transport/vehicles/cars/docs/faq_wltp_correlation_en.pdf](https://ec.europa.eu/clima/sites/clima/files/transport/vehicles/cars/docs/faq_wltp_correlation_en.pdf>`_
-  the reader will find some frequently asked question regarding the correlation
+  the reader will find some frequently asked questions regarding the correlation
   procedure.
 
 Should |CO2MPAS| be used for each car or each family ID?
@@ -190,7 +190,7 @@ Interpolation Family ID.
 Is it possible to do a physical test, instead of accepting |CO2MPAS| results?   
 -----------------------------------------------------------------------------
 Yes, there are cases when |CO2MPAS|
-does not need to be used and physical test shall be performed instead. 
+does not need to be used and a physical test shall be performed instead.
 **where are they described?**
 
 What is DICE and who should use it?

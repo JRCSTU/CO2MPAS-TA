@@ -12,11 +12,11 @@ DICE
         It is defined in section 3 of Annex I of Regulation (EC) No 692/2008.
 
     ``bifuel``
-        vehicle with multifuel engines, capable of running on two fuels.
+        a vehicle with multifuel engines, capable of running on two fuels.
 
     ``incomplete``
-        a vehicle which must undergo at least one further stage of completion
-        before it can be considered a completed.
+        a vehicle that must undergo at least one further stage of completion
+        before it can be considered complete.
 
     ``atct_family_correction_factor``
         family correction factor used to correct for representative regional
@@ -66,7 +66,7 @@ Model Inputs
         of fuel.
 
     ``fuel_heating_value``
-        fuel heating value in kwh/l: Value according to the Table A6.App2/1
+        fuel heating value in kwh/l: Value according to Table A6.App2/1
         in Regulation (EU) No [2017/1151][WLTP].
 
     ``fuel_carbon_content_percentage``
@@ -77,7 +77,7 @@ Model Inputs
         (= *positive ignition*) or a *compression ignition* one.
 
     ``engine_capacity``
-        the total volume of all the cylinders of the engine, expressed in cubic
+        the total volume of all the cylinders of the engine expressed in cubic
         centimeters [cc].
 
     ``engine_stroke``
@@ -89,14 +89,15 @@ Model Inputs
         expressed in revolutions per minute [rpm].
 
     ``engine_n_cylinders``
-        it specifies the maximum number of engine cylinder. The default is *4*.
+        it specifies the maximum number of the engine cylinders. The default is
+        *4*.
 
     ``engine_idle_fuel_consumption``
         measures the fuel consumption of the vehicle in warm conditions during
         idling. The idling fuel consumption of the vehicle, expressed in grams
         of fuel per second [gFuel/sec] should be measured when:
 
-        - velocity of the vehicle is 0,
+        - the velocity of the vehicle is 0,
         - the start-stop system is disengaged,
         - the battery state of charge is at balance conditions.
 
@@ -122,7 +123,7 @@ Model Inputs
         least provide the following information:
 
         - nominal width of the tyre, in [mm];
-        - ratio of height to width [%]; and
+        - the ratio of height to width [%]; and
         - the load index (e.g., 195/55R16).
 
         In case that the front and rear wheels are equipped with tyres of
@@ -134,12 +135,12 @@ Model Inputs
         declared as input to |co2mpas|.
 
     ``gear_box_type``
-        the type of gear box among automatic transmission, manual transmission,
+        the type of gearbox among automatic transmission, manual transmission,
         continuously variable transmission (CVT) or planetary (exclusively for
         hybrid vehicles fitted with a planetary gearset).
 
     ``start_stop_activation_time``
-        is the the time elapsed from the beginning of the NEDC test to the first
+        is the time elapsed from the beginning of the NEDC test to the first
         time the Start-Stop system is enabled, expressed in seconds [s].
 
     ``alternator_nominal_voltage``
@@ -156,7 +157,7 @@ Model Inputs
         Annex XXI to Regulation (EU) No [2017/1151][WLTP].
 
     ``calibration.initial_temperature WLTP-H``
-        Initial temperature of the test cell during the WLTP test. It is used
+        The initial temperature of the test cell during the WLTP test. It is used
         to calibrate the thermal model. The default value =23 °C.
 
     ``calibration.initial_temperature WLTP-L``
@@ -172,10 +173,10 @@ Model Inputs
         see relevant sheet (gear_box_ratios).
 
     ``full_load_speeds``
-        T1 map speed. See relavant sheet (T1_map).
+        T1 map speed. See relevant sheet (T1_map).
 
     ``full_load_powers``
-        T1 map POWER. See relavant sheet (T1_map).
+        T1 map POWER. See relevant sheet (T1_map).
 
 Road Loads
 ----------
@@ -187,7 +188,7 @@ Road Loads
 
     ``f0 WLTP-H``
          set the F0 road load coefficient for WLTP-H. This scalar corresponds
-         to the rolling resistance force [N], when the angle slope is 0.
+         to the rolling resistance force [N] when the angle slope is 0.
 
     ``f1 WLTP-H``
         set the F1 road load coefficient for WLTP-H. Defined by Dyno procedure
@@ -202,7 +203,7 @@ Road Loads
 
     ``f0 NEDC-H``
         set the F0 road load coefficient for NEDC-H. This scalar corresponds to
-        the rolling resistance force [N], when the angle slope is 0.
+        the rolling resistance force [N] when the angle slope is 0.
 
     ``f1 NEDC-H``
         set the F1 road load coefficient for NEDC-H. Defined by Dyno procedure
@@ -257,12 +258,12 @@ Targets
 Drive Mode
 ----------
     ``n_wheel_drive WLTP-H``
-        specify whether WLTP-H test is conducted on 2-wheel driving or 4-wheel
-        driving. The default is 2-wheel drive.
+        specify whether the WLTP-H test is conducted on 2-wheel driving or 4-wheel
+        driving. The default is a 2-wheel drive.
 
     ``n_wheel_drive NEDC-H``
          specify whether the NEDC-H test is conducted on 2-wheel driving or
-         4-wheel driving. The default is 2-wheel drive.
+         4-wheel driving. The default is a 2-wheel drive.
 
 
 Technologies
@@ -270,7 +271,7 @@ Technologies
     ``engine_is_turbo``
         if the air intake of the engine is equipped with any kind of forced
         induction system set like a turbocharger or supercharger, then set it to
-        1; otherwise set it to 0. The default value is 1.
+        1; otherwise, set it to 0. The default value is 1.
 
     ``has_start_stop``
         the start-stop system shuts down the engine of the vehicle during idling
@@ -286,12 +287,12 @@ Technologies
     ``has_torque_converter``
         set it to 1 if the vehicle is equipped with this technology otherwise,
         set it to 0.
-        For manual transmission vehicles the default is 0.
-        For automatic tranmission vehicles, the default is 1.
-        For vehicles with continuously variable transmission, the default is 0.
+        For manual transmission vehicles, the default is 0.
+        For automatic transmission vehicles, the default is 1.
+        For vehicles with a continuous variable transmission, the default is 0.
 
     ``fuel_saving_at_strategy``
-        setting it to 1 allows |co2mpas| to use a gear at constant speed driving
+        setting it to 1 allows |co2mpas| to use gear at constant speed driving
         higher than when in transient conditions, resulting in a reduction of
         the fuel consumption. The default is 1.
 
@@ -311,9 +312,9 @@ Technologies
         the same value used for NEDC physical tests.
 
     ``engine_has_variable_valve_actuation``
-        this input includes a range of technologies which are used to enable
-        variable valve event timing, duration and/or lift. The term, as set, i
-        ncludes Valve Timing Control (VTC)—also referred to as Variable Valve
+        this input includes a range of technologies that are used to enable
+        variable valve event timing, duration and/or lift. The term, as set,
+        includes Valve Timing Control (VTC)—also referred to as Variable Valve
         Timing (VVT) systems and Variable Valve Lift (VVL) or a combination of
         these systems (phasing, timing and lift variation). Set it to 1 if the
         vehicle is equipped with such a system; otherwise, set it to 0.
@@ -326,7 +327,7 @@ Technologies
     ``active_cylinder_ratios``
         This technology allows the deactivation of one or more cylinders under
         specific conditions predefined in the |co2mpas| code. The implementation
-        in |co2mpas| allows to use different deactivation ratios.
+        in |co2mpas| allows using different deactivation ratios.
         In the case of an 8-cylinder engine, a 50% deactivation (4 cylinders off
         ) or a 25% deactivation ratio (2 cylinders off) are plausible.
         |co2mpas| selects the optimal ratio at each point from the plausible
@@ -346,7 +347,7 @@ Technologies
         The default is 0.
 
     ``has_lean_burn``
-        the lean burn (LB) technology refers to the burning of fuel with an
+        the lean-burn (LB) technology refers to the burning of fuel with an
         excess of air in an internal combustion engine. All ``compression ignition``
         vehicles are supposed to be equipped with *LB* by default therefore for
         ``compression ignition`` this must be set to 0.
@@ -359,7 +360,7 @@ Technologies
         circuit using a heat-exchanger, heating storage system or other methods
         for directing engine waste-heat to the gearbox.
         Gearbox mounting and other passive systems (encapsulation) should not be
-        considered. In case the vehicle is equipped with the described gear box
+        considered. In case the vehicle is equipped with the described gearbox
         thermal management system, set it to 1; otherwise, set it to 0.
         The default is 0.
 
@@ -385,7 +386,7 @@ Dyne - Vehicle Configuration
 ----------------------------
     ``n_dyno_axes WLTP-H``
         the WLTP regulation states that WLTP tests should be performed using
-        a dyno with 2 rotating axis. Therefore, the default value for this
+        a dyno with 2 rotating axes. Therefore, the default value for this
         variable is 2. I can be set to 1 if one rotating axis dyno was used
         during the WLTP-H test.
 
@@ -426,7 +427,7 @@ Hybrids - Inputs
         maximum torque output of motor P0 [Nm].
 
     ``motor_p0_speed_ratio``
-        ratio between motor P0 speed and engine speed [-] (e.g. motor P0
+        the ratio between motor P0 speed and engine speed [-] (e.g. motor P0
         connected to the engine belt with ratio equal to 3 is spinning three
         times faster than the engine).
 
@@ -437,7 +438,7 @@ Hybrids - Inputs
         maximum torque output of motor P1 [Nm].
 
     ``motor_p1_speed_ratio``
-        ratio between motor P1 speed and engine speed [-] (e.g. motor P1
+        the ratio between motor P1 speed and engine speed [-] (e.g. motor P1
         connected to the engine crankshaft with ratio equal to 3 is spinning
         three times faster than the engine).
 
@@ -448,7 +449,7 @@ Hybrids - Inputs
         maximum torque output of motor P2 [Nm].
 
     ``motor_p2_speed_ratio``
-        ratio between motor P2 speed and transmission input speed [-] (motor P2
+        the ratio between motor P2 speed and transmission input speed [-] (motor P2
         speed is proportional to wheels rotational speed multiplied by the final
         drive ratio and the transmission gear ratio).
 
@@ -469,7 +470,7 @@ Hybrids - Inputs
         maximum torque output of motor P3 front [Nm].
 
     ``motor_p3_front_speed_ratio``
-        ratio between motor P3 front speed and final drive input speed [-]
+        the ratio between motor P3 front speed and final drive input speed [-]
         (motor P3 front speed is proportional to wheels rotational speed
         multiplied by the final drive ratio).
 
@@ -522,7 +523,7 @@ Time Series
 
     ``bag_phases``
         array to associate time values with different bag phases (this can be
-        used to modify the phases duration from the default values).
+        used to modify the duration of the phases from the default values).
 
     ``engine_speeds_out``
         engine rotational speed [rpm].
@@ -539,15 +540,15 @@ Time Series
         alternator is supplying power to the low-voltage electrical system).
 
     ``service_battery_currents``
-        current flowing through the service battery [A] (current is positive
-        when battery is being charged, negative when discharged).
+        the current flowing through the service battery [A] (current is positive
+        when the battery is being charged, negative when discharged).
 
     ``drive_battery_voltages``
         voltage of the drive battery [V].
 
     ``drive_battery_currents``
-        current flowing through the drive battery [A] (current is positive when
-        battery is being charged, negative when discharged).
+        the current flowing through the drive battery [A] (current is positive
+        when the battery is being charged, negative when discharged).
 
     ``dcdc_converter_currents``
         current flowing through the DCDC converter measured on the low-voltage
@@ -557,7 +558,7 @@ Time Series
 General Terms
 -------------
     ``type-approval``
-        is the authority that grants that a vehicle is conform to the EU
+        is the authority that grants that a vehicle conforms to the EU
         Regulation.
 
     ``EU legislations``

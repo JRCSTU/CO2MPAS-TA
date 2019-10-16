@@ -42,7 +42,7 @@ Python-3.6+. It runs either as a *console command* or as a
 
 History
 -------
-The *European Commission* has introduced the *WLTP* as test procedure for the
+The *European Commission* has introduced the *WLTP* as the test procedure for the
 type I test of the European type-approval of Light-duty vehicles as of
 September 2017. Its introduction has required the adaptation of |CO2|
 certification and monitoring procedures set by European regulations (443/2009,
@@ -54,13 +54,13 @@ The European Regulation setting the conditions for using |co2mpas| can be
 found in `the Comitology Register
 <http://ec.europa.eu/transparency/regcomitology/index.cfm?do=search.documentdetail&dos_id=0&ds_id=45835&version=2>`_
 after its adoption by the *Climate Change Committee* which took place on
-June 23, 2016 and its 2nd vote for modifications, on April 27, 2017.
+June 23, 2016, and its 2nd vote for modifications, in April 27, 2017.
 .. _end-intro:
 .. _start-install:
 
 Installation
 ============
-There are two installation procedures that can be followed:
+Two installation procedures can be followed:
 
 - `Official (for type approval)`_
 - `Ordinary (for developers and/or researchers)`_
@@ -79,7 +79,7 @@ and then execute it (see the steps shown in the video below).
     Your browser does not support the video tag.
     </video>
 
-After the installation, two icons will appear in your desktop: one for the GUI
+After the installation, two icons will appear on your desktop: one for the GUI
 and one for the console.
 
     .. image:: _static/image/icons.png

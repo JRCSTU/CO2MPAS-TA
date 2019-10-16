@@ -5,7 +5,7 @@ This section describes the data naming convention used in |co2mpas| input
 template to construct the *data-values tree*, i.e. the input of the simulation
 model. There are two naming conventions in the excel file:
 
-- the **sheet-name** name is composed by 5 parts, all optionals, but at least
+- the **sheet-name** name is composed of 5 parts, all optional, but at least
   one of the first 4 must be present::
 
                   base.input.precondition.WLTP-H.ts
@@ -82,7 +82,7 @@ sheet_type
 There are three sheet types, which are parsed according to their contained data:
 
    - **pl** [parsed range is ``#A1:__``]: table of scalar and time-depended
-     values used into the simulation plan as variation from the base model.
+     values used into the simulation plan as a variation from the base model.
    - **pa** [parsed range is ``#B2:C_``]: scalar or not time-depended
      values (e.g. ``r_dynamic``, ``gear_box_ratios``, ``full_load_speeds``).
    - **ts** [parsed range is ``#A2:__``]: time-depended values (e.g.
@@ -93,12 +93,12 @@ There are three sheet types, which are parsed according to their contained data:
    If it is not defined, the default value follows these rules:
    When **scope** is ``plan``, the sheet is parsed as **pl**.
    If **scope** is ``base`` and **cycle** is missing in the **sheet-name**,
-   the sheet is parsed as **pa**, otherwise it is parsed as **ts**.
+   the sheet is parsed as **pa**, otherwise, it is parsed as **ts**.
 
 Simulation plan
 ===============
 Variations to the base model must be inserted in the provided additional sheets,
-characterized by the plan. prefix. These sheets consists of tables composed by
+characterized by the plan. prefix. These sheets consist of tables composed by
 rows, each row is a single simulation, and columns, the parameters that the user
 wishes to vary; the columns can contain the following special names:
 
