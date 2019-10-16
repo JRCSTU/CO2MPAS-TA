@@ -1,6 +1,6 @@
-######
-F.A.Q.
-######
+###
+FAQ
+###
 
 This page contains the most Frequently Asked Questions regarding |CO2MPAS|
 model, regulation and inputs.
