@@ -1,7 +1,7 @@
 Changelog
 =========
 
-``v4.X.X``, DATE: "NAME" Release
+``v4.X.X``, DATE: "WINE" Release
 --------------------------------
 
 blablabla
@@ -11,122 +11,134 @@ Important changes
 
 Model
 ~~~~~
-Added Hybrids electric vehicles
+Added Hybrids electric vehicles: model planetary as parallel (:gh:`516`)
+Split `p4_motor` in `p4_motor_front` and `p4_motor_rear`.
+Add function to identify `engine_speeds_out_hot` for hybrids.
+Include starter time calibration into `start_stop_hybrid_params`
+Add `default_start_stop_activation_time` function.Correct identification of
+warm up phases.
+(:gh:`541`) Correct hybrid serial/planetary power flow.
+Change calibration limit.
+Correct identification of catalyst warm up.
+
+Improved the stability of the thermal model (:gh:`458`, :gh:`498`, :gh:`516`)
+Filter temperature for calculating derivatives.
+
+Gearbox identification has been corrected and improved (:gh:`551`), add
+calculation of the `gear_box_mean_efficiency_guess`.
+
+Battery: :gh:`540`: Add functions to calculate, Add `BatteryModel` class.
+Add dcdc model.
+Add drive battery model. Reorganize the service battery model.
+Correct calculation flow of `drive_battery_voltages`.
+Add limitation of charging currents.
+Correct calculation of `drive_battery_voltages`.
+Correct ServiceBatteryModel for dcdc prediction.
+Correct identification of `service_battery_capacity` and soc limits.
+Add missing data connection.
+Correct starter bugs.
+Correct sign convention.
+Add starter power to service battery.
+correct calculation of `drive_battery_currents`.
+
+Alternator: Add default current when vehicle is hybrid.
+Use `clutch_tc_powers` instead `gear_box_powers_in`.
+Restructure alternator model.
+Add alternator model.
+
+Motor: Added p0, p1, p2, p3, p4, model.
+Add functions to calculate `motor_px_maximum_torque`.
+Split p3 in front and rear.
+Add functions to calculate `motor_pi_maximum_power`, `motor_pi_rated_speed`,
+`motor_pi_maximum_torque`, etc.
+Modify motors models outputs.
+Add starter model.
+Correct dsp after rebase.
+Correct `motor_p4_speed_ratio` default value.
+Correct P3 input.
+Correct format documentation.
 
 
 IO Data
 ~~~~~~~
+The input excel file has been updated to version 3.1.0. (:gh:`544`).
+
+- Fields for the inputs of the hybrids electric vehicles have been created, see
+  section `Hybrids-Inputs <https://co2mpas.readthedocs.io/en/stable/glossary.html#dice>`_
+  in the glossary.
+
+- *dice.regulation* has been added, see section
+  `DICE <https://co2mpas.readthedocs.io/en/stable/glossary.html#hybrids-inputs>`_ in the glossary.
 
 DICE
 ~~~~
+Updated the dice plugin version.
+
 
 Demo Files
 ~~~~~~~~~~
+This time only 3 demo files are available (:gh:`544`, :gh:`538`):
+
+1. *co2mpas_conventional.xlsx*: conventional vehicle,
+2. *co2mpas_simplan.xlsx*: sample simulation plan,
+3. *co2mpas_hybrid.xlsx*: hybrid parallel vehicle.
+
+Documentation
+~~~~~~~~~~~~~
+All documentation has been reviewed and updated (:gh:`533`); FAQ
+(:gh:`533`, :gh:`540`) and Contributing to |co2mpas| have been added as new
+sections.
 
 Known Limitations
 -----------------
-1) Certain programs (for example Skype) could be pre-empting (or reserving)
-some tcp/ip ports and therefore could conflict with co2mpas graphical interface
-that tries to launch a webserver on a port in the higher range (> 10000)
+1. Certain programs (for example Skype) could be pre-empting (or reserving)
+   some tcp/ip ports and therefore could conflict with co2mpas graphical interface
+   that tries to launch a webserver on a port in the higher range (> 10000)
 
-2) Certain antivirus (for example Avast) could include python in the list of
-malicious software; however, this is not to be considered harmful. If this
-happens the antivirs should be disabled when running co2mpas, or a special
-exclusion should be granted to the co2mpas executable.
+2. Certain antivirus (for example Avast) could include python in the list of
+   malicious software; however, this is not to be considered harmful. If this
+   happens the antivirs should be disabled when running co2mpas, or a special
+   exclusion should be granted to the co2mpas executable.
 
-Feat
-~~~~
-- (doc) :gh:`533`: Rephrased one sentence.
-- (write): Add extended information of packages to output file.
-Fix
-~~~
-- (doc) :gh:`540`: Added question on drive_battery_technology.
-- (selector): Ensure `enable_selector`.
-- (thermal): Add engine is hot in thermal.
-- (manual): Correct driveability rule.
-- (gear_box): Correct gear identification in manual transmission.
-- (gear_box): Correct gear identification.
-- (write): Ensure JSON format.
+
 
 v4.1.1 (2019-10-11)
 -------------------
-Feat
-~~~~
-- (doc) :gh:`533`: Added 2 terms in the glossary.
-- (doc) :gh:`533`: Improved model.rst .
-- (doc) :gh:`533`: Updated simulation plan in 'names'.
-- (core): Add co2mpas as readable format.
-- (cli): Add log config variable.
-- (doc) :gh:`533`: Added icons explanation in installation.
-- (dice): Update dice version 4.0.0.
-- (doc) :gh:`533`: Add more comments to cli messages.
-- (doc) :gh:`533`: Refactor and update whole doc.
-- (doc): Rearrange documentation content.
+
 Fix
 ~~~
 - (cvt): Correct model selection for CVT.
-- (doc) :gh:`533`: Correct indentation.
 - (engine): Correct `alternator_powers` sign.
 - (model): Correct error in default_value.
 - (physical): Remove division warning.
 - (final_drive): Correct function args.
-- (doc) :gh:`533`: Add video download_demo.
 - (final_drive): Correct `final_drive_ratios` calculation.
-- (tutorial) :gh:`533`: Update output results and add model plot.
-- (doc) :gh:`533`: Update sync part in tutorial.
-- (doc) :gh:`533`: Add image gui_start_up.
 - (co2) :gh:`539`: Correct p_overrun percentage.
-- (tutorial) :gh:`533`: Update run ta section of tutorial and add links.
-- (doc) :gh:`533`: Format glossary.
-- (doc) :gh:`533`: Correct doc version.
-- (tutorial) :gh:`533`: Update run section of tutorial.
-- (sync): Create folder to save output.
-- (setup): Set `pandalone` and `wltp` versions.
-- (convert): Make `_get_installed_packages` stable.
-- (load): Correct inputs.
-- (doc) :gh:`533`: Add video to tutorial.
-- (doc) :gh:`533`: Update videos & images.
 - (control) :gh:`550`: Set a default `_start_stop_model` when it cannot
   be calibrated.
 - (load): Remove double waring of input file version.
-- (gear_box) :gh:`551`: Correct index error.
 - (fc) :gh:`552`: Remove warning.
 - (co2) :gh:`539`: Correct inputs of
   `calculate_corrected_co2_emission_for_conventional_nedc`.
-- (template): Add missing link.
-- (doc) :gh:`533`: Restructure format.
 - (co2) :gh:`539`: Change default value of `speed_distance_correction`.
 - (co2) :gh:`539`: Normalise formula for default Kco2 NEDC correction.
 - (write): Remove pip warning.
-- (doc) :gh:`533`: Update tutorial.
-- (doc) :gh:`533`: Update glossary.
-- (doc,faq) :gh:`533`: Update faq format.
-- (hybrid): Model planetary as parallel.
-Other
-~~~~~
-- , :gh:`533`: Update model description and move images.
+
+
 v4.1.0 (2019-10-06)
 -------------------
+
 Feat
 ~~~~
-- (template, demos) :gh:`544`: Update input template and demos.
 - (co2): Add `calculate_fuel_heating_value` function.
-- (dice): Update dice plugin version.
 - (core): Add model configuration file log msg.
 - (co2) :gh:`539`: Add RCB correction for hybrid in NEDC.
 - (load): Read dice data from `.co2mpas.ta` file.
 - (co2) :gh:`539`: Add formulas to correct the co2 emission according to
   the regulation.
 - (co2): Add module to calculate co2 emission.
-- (doc,faq) :gh:`533`: Add FAQ file.
-- (motors): Add functions to calculate `motor_px_maximum_torque`.
 - (validate) :gh:`542`: Add variable `is_hybrid` to `dice`.
-- (thermal) :gh:`538`: Revert changes.
-- (battery) :gh:`540`: Correct bug when `drive_battery_technology` is
-  unknown.
 - (template) :gh:`516`: Add hybrid inputs to template.
-- (battery) :gh:`540`: Add functions to calculate
-  `drive_battery_n_parallel_cells`.
 - (schema) :gh:`540`: Add field `drive_battery_technology_type`.
 - (driver) :gh:`509`: Add plugin configuration functions.
 - (planetary, defaults) :gh:`536`: Add function to define if the vehicle
@@ -134,13 +146,9 @@ Feat
 - (planetary, defaults) :gh:`536`: Add defaults for planetary.
 - (planetary) :gh:`536`: Add planetary model.
 - (gui) :gh:`508`: Add plugin configuration for gui CLI.
-- (hybrid) :gh:`516`: Split `p4_motor` in `p4_motor_front` and
-  `p4_motor_rear`.
 - (cli) :gh:`509`: Add `CO2MPAS_HOME` env.
 - (driver) :gh:`509`: Add plugin configuration functions.
 - (wheels) :gh:`507`: Add PAX tyre code.
-- (hybrid) :gh:`516`: Include starter time calibration into
-  `start_stop_hybrid_params`.
 - (dcdc) :gh:`516`: Add calculation of `dcdc_converter_electric_powers`
   from `dcdc_converter_electric_powers_demand`.
 - (catalyst) :gh:`516`: Add `catalyst_power_model`.
@@ -149,30 +157,21 @@ Feat
 - (cold_start) :gh:`516`: Simplify cold start model, improve thermal,
   and remove `clutch_tc_speeds`.
 - (driver) :gh:`509`: Remove unused module.
-- (gear_box) :gh:`516`: Add calculation of the
-  `gear_box_mean_efficiency_guess`.
 - (ems) :gh:`516`: Search for serial optimal when battery current is >=
   0.
 - (report): Add `delta_state_of_charge` for service and drive batteries.
 - (ems) :gh:`516`: Add function to calculate `hybrid_modes` from
   `on_engine`.
 - (dcdc) :gh:`516`: Add function to calculate `dcdc_currents`.
-- (motors) :gh:`516`: Split p3 in front and rear.
 - (engine) :gh:`498`: Filter unfeasible `engine_temperature_derivatives`
   in calibration.
 - (setup) :gh:`523`: Add env `ENABLE_SETUP_LONG_DESCRIPTION`.
 - (ems) :gh:`516`: Simplify identification of `catalyst_warm_up`.
-- (engine) :gh:`516`: Add function to identify `engine_speeds_out_hot`
-  for hybrids.
-- (gear_box) :gh:`516`: Improve gear identification from engine speed.
 - (dcdc) :gh:`516`: Add default current when vehicle is not hybrid.
-- (alternator) :gh:`516`: Add default current when vehicle is hybrid.
 - (starter) :gh:`516`: Add `delta_time_engine_starter` to
   `StarterModel`.
 - (control) :gh:`516`: Add functions to identify motors power split.
-- (thermal): Improve thermal model.
-- (gear_box): Vectorize gear identification.
-- (selector) :gh:`516`: Update selectors.
+ (selector) :gh:`516`: Update selectors.
 - (clutch_tc) :gh:`516`: Add data `clutch_tc_speeds`.
 - (engine) :gh:`516`: Make thermal model function of
   `gross_engine_powers_out`.
@@ -187,45 +186,16 @@ Feat
 - (electric) :gh:`516`: Move alternator status model as service battery
   status model.
 - (control) :gh:`516`: Add energy management strategy model.
-- (gear_box) :gh:`516`: Add `gear_box_mean_efficiency`
 - (engine) :gh:`516`: Add function `define_fuel_map` to create a rater
   `fuel_map`.
-- (motors) :gh:`516`: Add functions to calculate
-  `motor_pi_maximum_power`, `motor_pi_rated_speed`,
-  `motor_pi_maximum_torque`, etc.
 - (clutch_tc) :gh:`516`: Add `clutch_tc_mean_efficiency`.
 - (final_drive) :gh:`516`: Add `final_drive_mean_efficiency`.
-- (battery) :gh:`516`: Add `BatteryModel` class.
-- (alternator) :gh:`516`: Use `clutch_tc_powers` instead
-  `gear_box_powers_in`.
 - (control) :gh:`516`: Add new control model.
-- (motors) :gh:`516`: Add calculation of `engine_speeds_out`,
-  `wheel_speeds`, `final_drive_speeds_in`, `gear_box_speeds_in` from
-  motors speeds.
 - (dcdc) :gh:`516`: Add calculation of `dcdc_converter_electric_powers`
   from currents.
 - (physical) :gh:`516`: Add motors mechanical power to drive line.
 - (electrics) :gh:`516`: Update inputs/outputs to physical model.
-- (batteries) :gh:`516`: Add dcdc model.
 - (electrics) :gh:`516`: Map batteries and motors model.
-- (motors) :gh:`516`: Modify motors models outputs.
-- (battery:drive) :gh:`516`: Add calculation of
-  `motors_electric_powers`.
-- (motors:alternator) :gh:`516`: Restructure alternator model.
-- (motors) :gh:`516`: Add alternator model.
-- (motors:starter) :gh:`516`: Add starter model.
-- (alternator) :gh:`516`: Move
-  `identify_service_battery_state_of_charge_balance_and_window` to
-  alternator model.
-- (motors) :gh:`516`: Add `calculate_motors_electric_powers` func.
-- (motors) :gh:`516`: Add p1 model.
-- (motors) :gh:`516`: Add p2 model.
-- (motors) :gh:`516`: Add p4 model.
-- (battery:drive) :gh:`516`: Add drive battery model.
-- (battery:service) :gh:`516`: Reorganize the service battery model.
-- (motors) :gh:`516`: Add p0 model.
-- (motors) :gh:`516`: Add p3 model.
-- (motors) :gh:`516`: Add p4 model.
 - (clutch_tc) :gh:`515`: Simplify clutch model, implement VDI253 model
   for torque converter, and add flag to disable speed prediction.
 - (driver) :gh:`509`: Add maximum velocity limitation.
@@ -242,7 +212,6 @@ Feat
 - (electrics) :gh:`509`: Update for unlimited steps `ElectricModel`.
 - (engine) :gh:`509`: Update for unlimited steps `EngineModel`.
 - (git): Add ignore for `DICE_KEYS` folder.
-- (gear_box) :gh:`509`: Update for unlimited steps `GearBoxModel`.
 - (final_drive) :gh:`509`: Update for unlimited steps `FinalDriveModel`.
 - (wheel) :gh:`509`: Update for unlimited steps `WheelsModel`.
 - (cli): Add test case for `syncing` cmd.
@@ -251,13 +220,11 @@ Feat
 - (plot): Add simulation id to solution name.
 - (cli): Add `--template-type` option to `template` cmd.
 - (cli): Add test cases for `template`, `demo`, `conf`.
+
 Fix
 ~~~
-- (hybrid): Remove warning.
 - (co2): Correct calculation of corrected_co2_emission_value for nedc
   hybrid.
-- (battery): Correct calculation flow of `drive_battery_voltages`.
-- (hybrid): Add `default_start_stop_activation_time` function.
 - (selector) :gh:`541`: Add `initial_drive_battery_state_of_charge` as
   model data.
 - (fc) :gh:`517`: Correct rule safe numpy error.
@@ -271,37 +238,20 @@ Fix
 - (core) :gh:`546`: Correct import order for setting the defaults
   variable.
 - (acr) :gh:`517`: Add `engine_inertia_powers_losses` for applying acr.
-- (hybrid) :gh:`541`: Correct error all nan.
 - (core) :gh:`546`: Correct import order for setting the defaults
   variable.
-- (hybrid): Correct identification of warm up phases.
 - (write): collect installed packs with pip & conda cmds, only if
   present...
-- (hybrid) :gh:`541`: Correct hybrid serial/planetary power flow.
 - (vehicle): Correct calculation of the distance.
 - (write): Correct model output format.
 - (model): Add missing prediction data.
 - (write): Replace `pip` with `conda` to freeze pkgs names.
-- (doc) :gh:`533`: Correct documentation.
-- (doc) :gh:`533`: Remove un-valid references.
-- (doc) :gh:`533`: Remove unused parameters.
 - (load): Add flag validation for declaration mode.
-- (doc,faq) :gh:`533`: Update faq.
-- (doc,faq) :gh:`533`: Text enhancement.
-- (doc,faq) :gh:`533`: Delete unneeded line.
-- (doc) :gh:`533`: Update documentation skeleton.
 - (core): Correct `output_template` option.
-- (demos): Update demos for conventional vehicles.
-- (template): Correct `service_battery_nominal_voltage` inputs.
 - (load) :gh:`542`: Correct `service_battery` inputs.
 - (load) :gh:`542`: Activate `enable_selector` flag.
-- (output) :gh:`534`: Add dice data to output file.
-- (output) :gh:`534`: Fix report layout.
-- (output) :gh:`534`: Correct flags output.
-- (demo) :gh:`538`: Correct declared co2 emission in demo file.
 - (planetary) :gh:`536`: Correct Calculation of serial and electric
   powers.
-- (batteries) :gh:`516`: Add limitation of charging currents.
 - (planetary) :gh:`536`: Correct sign of maximum power of planetary
   motor P2.
 - (planetary) :gh:`536`: Correct bug for NEDC speed profile.
@@ -312,13 +262,7 @@ Fix
 - (setup) :gh:`526`: Fix xgboost version to avoid `WARNING: reg:linear
   is now deprecated`.
 - (after_treat): Ensure not nan.
-- (hybrid) :gh:`516`: Change calibration limit.
-- (git): Ignore venv.
-- (hybrid,starter) :gh:`516`: Correct minor bugs.
 - (conventional) :gh:`516`: Correct definition of `hybrid_modes`.
-- (catalyst, hybrid) :gh:`516`: Correct identification of catalyst warm
-  up.
-- (hybrid) :gh:`516`: Remove unused variable.
 - (control, catalyst) :gh:`516`: Unify catalyst parameters and
   calculation.
 - (control) :gh:`516`: Correct reference.
@@ -326,33 +270,21 @@ Fix
 - PEP8.
 - (electrics) :gh:`516`: Remove unused link.
 - (defaults): Remove unused function defaults.
-- (gear_box) :gh:`516`: Correct identification when there is only one
-  gear.
 - (cmv): Correct bug when only one gear.
 - (electrics) :gh:`516`: Correct missing links and minor bugs.
 - (ems) :gh:`516`: Correct broadcast error.
-- (motors) :gh:`516`: Correct links.
-- (thermal) :gh:`458`, :gh:`498`, :gh:`516`: Filter temperature for
-  calculating derivatives + improve stability.
 - (setup) :gh:`514`: Remove `nose` from `setup_requires`.
 - (build): Improve cleaning.
 - (requirements): Correct `beautifulsoup4` requirement.
 - (report) :gh:`516`: Change chart `service_battery_powers`-->
   `service_battery_electric_powers`.
-- (template) :gh:`516`: Add missing model scores in output file.
 - (electrics) :gh:`516`: Correct service battery load vector [kW]..
 - (electrics) :gh:`516`: Correct calculation order.
 - (test): Correct test case for conf file.
 - (load) :gh:`529`: Correct file loader.
 - (engine): Improve identification of `on_idle`.
 - (ems) :gh:`516`: Correct function to identify the `catalyst_warm_up`.
-- (gear_box) :gh:`516`: Improve gear identification.
 - (engine) :gh:`530`: Correct mean absolute error with weights.
-- (batteries) :gh:`516`: Correct calculation of
-  `drive_battery_voltages`.
-- (batteries) :gh:`516`: Correct calculation of DC/DC current in
-  `DriveBatteryModel`.
-- (thermal): Remove warning.
 - (ems) :gh:`516`: Correct calculation order of `engine_speeds_out_hot`.
 - (ems) :gh:`516`: Avoid mode fluctuation in prediction.
 - (ems) :gh:`516`: Compare parallel or serial excluding starter
@@ -365,21 +297,16 @@ Fix
 - (ems) :gh:`516`: Remove warnings.
 - (engine) :gh:`516`: Remove default value for `is_hybrid`.
 - (electrics) :gh:`516`: Add missing links.
-- (excel): Correct data parser when id starts with a space.
 - (clutch_tc) :gh:`516`: Split calculation of `clutch_tc_powers`.
 - (ems) :gh:`516`: Ensure AMPGO reproducibility.
 - (co2mpas): Remove prediction loop.
 - (ems): Improve speed performances of `StartStopHybrid.fit`.
 - (ems): Add missing doc.
-- (gear_box): Correct gear identification.
 - (electrics) :gh:`516`: Update power calculation wit efficiency.
 - (batteries) :gh:`516`: Correct missing inputs.
 - (selector) :gh:`516`: Update selector for electrics and start/stop.
 - (electrics) :gh:`516`: Simplify losses.
 - (control) :gh:`516`: Add domains + correct `predict_hybrid_modes`.
-- (battery) :gh:`516`: Correct ServiceBatteryModel for dcdc prediction.
-- (batteries) :gh:`516`: Correct identification of
-  `service_battery_capacity` and soc limits.
 - (electric) :gh:`516`: Simplify status model of service battery.
 - (electric) :gh:`516`: Simplify status model of service battery.
 - (co2_emission) :gh:`516`: Correct definition of fuel map.
@@ -392,25 +319,9 @@ Fix
 - (sync): Correct reference.
 - (final_drive) :gh:`516`: Simplify and correct final drive model
   efficiency.
-- (gear_box) :gh:`516`: Correct bug to identify gears.
 - (physical) :gh:`516`: Use `gear_box_speeds_in` to identify the
   `r_dynamic`.
-- (batteries) :gh:`516`: Add missing data connection.
-- (batteries) :gh:`516`: Correct starter bugs.
-- (batteries) :gh:`516`: Correct sign convention.
-- (gear_box) :gh:`516`: Use `gear_box_speeds_in` to calibrate the gear
-  box.
-- (batteries:service) :gh:`516`: Add starter power to service battery.
-- (electrics) :gh:`516`: Correct models inputs/outputs.
-- (battery:drive) :gh:`516`: Correct calculation of
-  `drive_battery_currents`.
-- (battery:drive) :gh:`516`: Correct typo input name.
-- (motors) :gh:`516`: Correct dsp after rebase.
-- (motors:p4) :gh:`516`: Correct `motor_p4_speed_ratio` default value.
-- (motors) :gh:`516`: Correct P3 input.
-- (motors:p4) :gh:`516`: Correct format documentation.
 - (driver) :gh:`509`: Remove unneeded equation.
-- (gear_box) :gh:`509`: Correct gear box logic.
 - (co2) :gh:`509`: Remove division warning.
 - (co2mpas): Correct bug in `_yield_files` function.
 - (driver) :gh:`509`: Enable `driver_style_ratio` and
@@ -430,8 +341,6 @@ Fix
 - (torque_converter) :gh:`515`: Introduce the m1000 curve.
 - (vehicle) :gh:`509`: Split `traction_acceleration_limits` into
   `traction_deceleration_limit` and `traction_acceleration_limit`.
-- (gear_box) :gh:`509`: Split the identification of first and last
-  gear_box_ratios.
 - (torque_converter) :gh:`509`: Correct bug in `next` method.
 - (driver) :gh:`509`: Correct WLTP cycle velocity prediction.
 - (at_gear) :gh:`509`: Revert correction of `correct_gear_full_load`
@@ -448,16 +357,12 @@ Fix
   `path_distances`, and `path_elevations`.
 - (physical) :gh:`509`: Add wildcard to `path_velocities`,
   `path_distances`, and `path_elevations`.
-- (template) :gh:`503`: Correct documentation for dice parameters.
 - (start_stop) :gh:`512`: Consider `start_stop_activation_time` in the
   S/S calibration.
 - (electrics) :gh:`509`: Postpone use of `times` vector in
   `ElectricModel` formulas.
 - (final_drive) :gh:`509`: Correct `FinalDriveModel` formulas.
 - (vehicle) :gh:`509`: Correct `VehicleModel` formulas.
-- (gear_box, engine, electrics) :gh:`509`: Correct bugs on prediction
-  models.
-- (gear_box) :gh:`509`: Correct delta time.
 - (cli): Correct opening of web interface in windows.
 - (write): Correct variable name of ta writing function.
 - (load): Correct schema for models.
@@ -474,14 +379,11 @@ Fix
 - (cli): Correct x- and y- label default.
 - (co2mpas) :gh:`506`: Add initialization of pandalone filters.
 - (co2mpas) :gh:`506`: Error in mkdir and demos folder.
-- (doc) :gh:`506`: Broken link.
 - (write) :gh:`506`: `makedirs` if output folder does not exist.
 - (co2mpas) :gh:`506`: Correct behaviour of simulation plan.
 - (co2mpas) :gh:`506`: Correct behaviour of input_domains.
-- Update copyright.
 - (sim:physical): Avoid domain warnings.
-- (sim:demos): Add dice parameter incomplete.
-- (sim:input): Add dice parameter incomplete.
+
 
 ``v3.0.0``, 29-Jan-2019: "VOLO" Release
 ---------------------------------------
@@ -547,8 +449,8 @@ IO Data
 ~~~~~~~
 - Input-file version from 3.0.0 --> **3.0.1**.
   - It hosts few modifications after interactions with users.
-  - The input file contained in this release cannot run in older co2mpas
-    releases in the _TA_ mode.
+  - The input file contained in this release cannot run in older |co2mpas|
+  releases in the _TA_ mode.
 
 DICE
 ~~~~
@@ -561,9 +463,9 @@ Demo Files
 - The input-file changed, and we have prepared new demo files to help the users
   adjust. Since we do not distribute an **AllInOne** package, you may download the new files:
    - from the console:
-   ```console
-   co2mpas demo --download
-   ```
+     ```console
+     co2mpas demo --download
+     ```
 
    - From this `link <https://github.com/JRCSTU/allinone/tree/master/Archive/Apps/.co2mpas-demos>`_
 
@@ -908,7 +810,7 @@ doc: Just to fix site and *PyPi* landing page.
    3. ``co2gui``: :file:`{root}/pCO2GUI`
    4. ``co2deps``: :file:`{root}/pCO2DEPS`
    5. ``co2mpas[pindeps]``: :file:`{root}`
-   - ``WebStamper``: :file:`{root}/pWebStamper`
+   6. ``WebStamper``: :file:`{root}/pWebStamper`
 
   - Also extracted ``io`` extras from ``co2sim`` dependencies.
 
@@ -947,7 +849,7 @@ Intermediate releases for ``1.9.x``:
 
     - ``baseapp --> cmdlets`` not to confuse with ``base`` module.
     - ``dice --> cli`` not to confuse with ``dicer`` module and
-    the too-overloaded :term;`dice`.
+      the too-overloaded :term;`dice`.
 
 - enh: replace old output-clipping machinery in ``tstamp recv`` with
   shrink-slice.
@@ -974,16 +876,15 @@ Intermediate releases for ``1.9.x``:
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 - FEAT: Finished implementing the GUI "Stamp" button
   (it appends also new-dice *tar*, see :gh:`378`).
-  - Retrofitted `project dice` command into a new "DICER" class, working as
-    *a sequencer of commands* to dice new **or existing** projects
-    through *WebStamper* only.
-
-    Specifically now it compares the given files with the ones already in the project.
-    Manual intervention is still needed in abnormal cases
-    (``--recertify``, over-writing files, etc).
-  - Added  WebAPI + `co2dice tstamp wstamp` cli-commands to check stamps
-    and connectivity to WebStamper.
-  - Renamed cmd ``project dice --> dicer`` not to overload the *dice* word; it is
+- Retrofitted `project dice` command into a new "DICER" class, working as
+  *a sequencer of commands* to dice new **or existing** projects through
+  *WebStamper* only.
+  Specifically now it compares the given files with the ones already in the project.
+  Manual intervention is still needed in abnormal cases (``--recertify``,
+  over-writing files, etc).
+- Added  WebAPI + `co2dice tstamp wstamp` cli-commands to check stamps and
+    connectivity to WebStamper.
+- Renamed cmd ``project dice --> dicer`` not to overload the *dice* word; it is
     a *sequencer* after all.
 
 - feat: rename ``-W=~/co2dice.reports.txt --> ~/.co2dice/reports.txt`` to reuse dice folder.
@@ -1444,7 +1345,7 @@ CO2 model
 
 
 IO & Data:
-~~~~~~~~~
+~~~~~~~~~~
 - fix(xlsx, :gh:`426`): excel validation formulas on input-template & demos did
   not accept *vehicle-family-id* with single-digit TA-ids.
 - :gh:`314`, gh:`410`: MOVED MOST DEMO-FILES to AIO archive - 2 files are left.
