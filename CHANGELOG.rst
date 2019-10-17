@@ -1,9 +1,8 @@
 Changelog
 =========
 
-``v4.X.X``, DATE: "WINE" Release
---------------------------------
-
+v4.1.3 (2019-08-31): **Wine** Release
+-------------------------------------
 |co2mpas| project has been split in multiple repositories (:gh:`506`). The
 `current <https://github.com/JRCSTU/CO2MPAS-TA>`_ repository contains just the
 |co2mpas| model. The other functionalities are installed as extra (i.e.,
@@ -11,150 +10,93 @@ Changelog
 `GUI <https://github.com/JRCSTU/co2mpas_gui>`_,
 `sync <https://github.com/vinci1it2000/syncing>`_).
 
+
+Major changes
+~~~~~~~~~~~~~
+The following chapters describe the major changes.
+
+GUI
+^^^
 A new graphical user interface (`GUI <https://github.com/JRCSTU/co2mpas_gui>`_)
 has replaced the previous one.
 
+Documentation
+^^^^^^^^^^^^^
 All documentation has been reviewed and updated (:gh:`533`, :gh:`540`). There
 are two new sections: FAQ, and Contributing to |co2mpas|. The documentation is
 now hosted by readthedocs (see the `site <https://co2mpas.readthedocs.io>`_).
 
-Important changes
------------------
-
-Model
-~~~~~
-Added Hybrids electric vehicles: model planetary as parallel (:gh:`516`, :gh:`536`, :gh:`540`, :gh:`541`)
- Added p0, p1, p2, p3, p4, model.
-
-Improved the stability of the thermal model (:gh:`458`, :gh:`498`, :gh:`516`)
-Filter temperature for calculating derivatives.
-
-Gearbox identification has been corrected and improved (:gh:`551`).
-
-Alternator: Add default current when vehicle is hybrid.
-Use `clutch_tc_powers` instead `gear_box_powers_in`.
-Restructure alternator model.
-Add alternator model.
-
-
-I/O Data
-~~~~~~~~
-- Fields for the inputs of the hybrids electric vehicles have been created, see
-  section `Hybrids-Inputs <https://co2mpas.readthedocs.io/en/stable/glossary.html#dice>`_
-  in the glossary.
-
-
-Files
-~~~~~
+I/O Data & Demo
+^^^^^^^^^^^^^^^
 The input excel file has been updated to version 3.1.0. (:gh:`544`) according to
 the latest amendments to Regulations (EU) 2017/1152 and 2017/1153 of 2019.
 
-The demo files
-This time only 3 demo files are available (:gh:`544`, :gh:`538`):
+The demo files have been updated and 3 files are available
+(:gh:`544`, :gh:`538`):
 
-1. *co2mpas_conventional.xlsx*: conventional vehicle,
-2. *co2mpas_simplan.xlsx*: sample simulation plan,
-3. *co2mpas_hybrid.xlsx*: hybrid parallel vehicle.
+    1. *co2mpas_conventional.xlsx*: conventional vehicle,
+    2. *co2mpas_simplan.xlsx*: sample simulation plan,
+    3. *co2mpas_hybrid.xlsx*: hybrid parallel vehicle.
 
-DICE
-~~~~
-
-- *dice.regulation* has been added, see section
-  `DICE <https://co2mpas.readthedocs.io/en/stable/glossary.html#hybrids-inputs>`_ in the glossary.
-
-Updated the dice plugin version.
-
-
-
-Documentation
-~~~~~~~~~~~~~
-
+Model
+^^^^^
+- Implementation of Hybrids Electric Models for parallel, planetary, and serial
+  architectures (:gh:`516`, :gh:`536`, :gh:`540`, :gh:`541`). It consists of
+  nine electric motors (i.e., P0, P1, P2 planetary, P2, P3 front, P3 rear,
+  P4 front, P4 rear, and starter), one DC/DC converter, and two batteries
+  (i.e., service and drive batteries).
+- Improve the stability of: the thermal model (:gh:`458`, :gh:`498`, :gh:`516`),
+  the gearbox identification (:gh:`551`), and the alternator model.
+- Correct the calibration of the Start/Stop model (:gh:`512`).
+- Update of the torque converter model according to VDI253 standard (:gh:`515`).
+- Refine the cylinder deactivation model (:gh:`517`).
+- Implement parser for PAX tyre code (:gh:`507`).
+- Add formulas to calculate the corrected |co2| emissions according to the
+  WLTP and NEDC regulations (:gh:`539`).
 
 Known Limitations
------------------
+~~~~~~~~~~~~~~~~~
 1. Certain programs (for example Skype) could be pre-empting (or reserving)
-   some tcp/ip ports and therefore could conflict with co2mpas graphical interface
-   that tries to launch a webserver on a port in the higher range (> 10000)
-
+   some tcp/ip ports and therefore could conflict with |co2mpas| graphical
+   interface that tries to launch a webserver on a port in the higher range
+   (> 10000).
 2. Certain antivirus (for example Avast) could include python in the list of
    malicious software; however, this is not to be considered harmful. If this
-   happens the antivirus should be disabled when running co2mpas, or a special
-   exclusion should be granted to the co2mpas executable.
+   happens the antivirus should be disabled when running |co2mpas|, or a special
+   exclusion should be granted to the |co2mpas| executable.
 
-
-Fix
-~~~
-- (co2) :gh:`539`: Correct p_overrun percentage.
-- (co2) :gh:`539`: Correct inputs of
-  `calculate_corrected_co2_emission_for_conventional_nedc`.
-- (co2) :gh:`539`: Change default value of `speed_distance_correction`.
-- (co2) :gh:`539`: Normalise formula for default Kco2 NEDC correction.
-
-Feat
-~~~~
-- (co2) :gh:`539`: Add RCB correction for hybrid in NEDC.
-- (co2) :gh:`539`: Add formulas to correct the co2 emission according to
-  the regulation.
-- (wheels) :gh:`507`: Add PAX tyre code.
-- (engine) :gh:`498`: Filter unfeasible `engine_temperature_derivatives`
-  in calibration.
-- (clutch_tc) :gh:`515`: Simplify clutch model, implement VDI253 model
-  for torque converter, and add flag to disable speed prediction.
-
-Fix
-~~~
-- (co2): Correct calculation of corrected_co2_emission_value for nedc
-  hybrid.
-- (fc) :gh:`517`: Correct rule safe numpy error.
-- (co2) :gh:`539`: Correct indices of phases.
-- (utils): Remove deprecation warning for yaml.
-- (fc) :gh:`517`: Add `cylinder_deactivation_valid_phases` for fc
-  calculation.
-- (fc) :gh:`517`: Correct format.
-- (acr) :gh:`517`: Add `engine_inertia_powers_losses` for applying acr.
-- (engine): Improve identification of `on_idle`.
-- (clutch_tc) :gh:`515`: Remove unused function.
-- (torque_converter) :gh:`515`: Correct typo.
-- (torque_converter) :gh:`515`: Add parameters for the m1000 curve.
-- (torque_converter) :gh:`515`: Add missing default.
-- (torque_converter) :gh:`515`: Introduce the m1000 curve.
-- (start_stop) :gh:`512`: Consider `start_stop_activation_time` in the
-  S/S calibration.
-
-``v3.0.0``, 29-Jan-2019: "VOLO" Release
----------------------------------------
+v3.0.0 (2019-01-29): "VOLO" Release
+-----------------------------------
 
 |co2mpas| 3.0.X becomes official on February 1st, 2019.
 
 - There will be an overlapping period with the previous official |co2mpas| version
   **2.0.0** of 2 weeks (until February 15th).
-
 - This release incorporates the amendments of the Regulation (EU) 2017/1153,
   `2018/2043 <https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32018R2043&from=EN)>`_
   of 18 December 2018 to the Type Approval procedure along with few fixes on the
   software.
-
 - The engineering-model is 100% the same with the
   `2.1.0, 30-Nov-2018: "DADO" Release <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2sim-v2.1.0>`_
   and the version-bump (2.X.X --> 3.X.X) is just a facilitation for the users,
   to recognize which release is suitable for the amended Correlation Regulations.
-
 - The Type Approval mode (_TA_) of this release is **incompatible** with all
   previous Input File versions. The _Batch_ mode, for engineering purposes,
   remains compatible.
-
 - the _TA_ mode of this release generates a single "_.zip_" output that contains
   all files used and generated by |co2mpas|.
-
 - This release is comprised of 4 python packages:
-  `co2sim <https://pypi.org/project/co2sim/3.0.0/>`_, `co2dice <https://pypi.org/project/co2dice/3.0.0/>`_,
-  `co2gui <https://pypi.org/project/co2gui/3.0.0/>`_ and `co2mpas <https://pypi.org/project/co2mpas/3.0.0/>`_.
+  `co2sim <https://pypi.org/project/co2sim/3.0.0/>`_,
+  `co2dice <https://pypi.org/project/co2dice/3.0.0/>`_,
+  `co2gui <https://pypi.org/project/co2gui/3.0.0/>`_, and
+  `co2mpas <https://pypi.org/project/co2mpas/3.0.0/>`_.
 
 Installation
 ~~~~~~~~~~~~
 This release will not be distributed as an **AllInOne** (AIO) package. It is
-based on the `2.0.0, 31-Aug-2018: "Unleash" Release <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r2.0.0>`_,
-launched on 1 September 2018. There are two options of installation:
+based on the `2.0.0, 31-Aug-2018: "Unleash" Release
+<https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r2.0.0>`_, launched
+on 1 September 2018. There are two options of installation:
 
   1. Install it in your current working `AIO-v2.0.0 <https://github.com/JRCSTU/co2mpas/releases/tag/co2mpas-r2.0.0>`_.
   2. **Preferably** in a clean `AIO-v2.0.0 <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r2.0.0>`_,
@@ -206,8 +148,8 @@ Demo Files
    - From this `link <https://github.com/JRCSTU/allinone/tree/master/Archive/Apps/.co2mpas-demos>`_
 
 
-``v2.0.0``, 31 Aug 2018: "Unleash"
-----------------------------------
+v4.1.3 (2018-08-31): "Unleash" Release
+--------------------------------------
 Changes since 1.7.4.post0:
 
 BREAKING:
@@ -265,19 +207,15 @@ BREAKING:
 
 Model:
 ~~~~~~
-
 - feat(co2_emissions): Add ``engine_n_cylinders`` as input value and a TA
   parameter.
-
 - feat(ta): New TA output file.
 
   Running CO2MPAS in TA mode, will produce an extra file containing the DICE
   report. This file will be used in the feature version of DICE.
 
 - feat(core): Improve calibration performances 60%.
-
 - feat(manual): Add a manual prediction model according GTR.
-
 - feat(gearbox): Add utility to design gearbox ratios if they cannot be
   identified based on ``maximum_velocity`` and ``maximum_vehicle_laden_mass``.
 
@@ -285,7 +223,6 @@ Model:
 
 - fix(co2mpas_template.xlsx): The parameter "Vehicle Family ID" changes to
   "Interpolation Family ID".
-
 - fix(co2mpas_template.xlsx): Meta data.
 
   Add additional sheets for meta data.
@@ -293,7 +230,6 @@ Model:
   the user can voluntarily add data related to the all WLTP tests held for
   a specific Interpolation Family ID.
   Since this addition is optional, the cells are colored orange.
-
 - fix(vehicle): Default ``n_dyno_axes`` as function of
   ``n_wheel_drive`` for wltp (4wd-->2d, 2wd-->1d).
 
@@ -307,29 +243,20 @@ Model:
 
   If only n_dyno_axes is selected, then the default for
   ``n_wheel_drive`` is always 2.
-
 - fix(vva): Remove ``_check_vva``.
-
   ``engine_has_variable_valve_actuation = True`` and
   ``ignition_type = 'compression'`` is permitted.
-
 - fix(ki_factor): Rename ``ki_factor`` to ``ki_multiplicative`` and add
   ``ki_additive value``.
-
 - fix(start_stop): Disable ``start_stop_activation_time`` when
   ``has_start_stop == True``.
-
 - fix(co2_emission): Disable ``define_idle_fuel_consumption_model`` when
   `idle_fuel_consumption` is not given.
-
 - fix(ta): Disable function `define_idle_fuel_consumption_model`
   and `default_start_stop_activation_time`.
-
 - fix(electrics): Improve calculation of state of charges.
-
 - fix(at): Correct ``correct_gear_full_load`` method using the best gear
   instead the minimum when there is not sufficient power.
-
 
 IO Data
 ~~~~~~~
@@ -1099,14 +1026,12 @@ Known Limitations
 - The ``co2mpas modelgraph`` command cannot plot flow-diagrams if Internet
   Explorer (IE) is the default browser.
 
-
 GUI
 ~~~
 - feat: ``co2gui`` command  does not block, and stores logs in temporary-file.
   It launches this file in a text-editor in case of failures.
 - feat: remember position and size between launches (stored in *persistent* JSON
   file).
-
 
 AIO
 ~~~
@@ -1126,3 +1051,4 @@ AIO
 
 
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
+.. |co2| replace:: CO\ :sub:`2`
