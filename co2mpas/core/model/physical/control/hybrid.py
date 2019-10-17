@@ -161,7 +161,7 @@ def define_drive_line_efficiencies(
     """
     return (
         1.0, final_drive_mean_efficiency, gear_box_mean_efficiency,
-        clutch_tc_mean_efficiency, planetary_mean_efficiency,
+        planetary_mean_efficiency, clutch_tc_mean_efficiency,
         belt_mean_efficiency
     )
 
@@ -1601,8 +1601,8 @@ def identify_motors_electric_powers_v1(
     :rtype: tuple[numpy.array]
     """
     drive_line_efficiencies = (
-        1.0, final_drive_mean_efficiency, gear_box_mean_efficiency_guess, .99,
-        planetary_mean_efficiency, belt_mean_efficiency
+        1.0, final_drive_mean_efficiency, gear_box_mean_efficiency_guess,
+        planetary_mean_efficiency, .99, belt_mean_efficiency
     )
     return identify_motors_electric_powers(
         HEV(drive_line_efficiencies, motors_efficiencies), hybrid_modes,
