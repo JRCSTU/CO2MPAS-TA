@@ -1556,7 +1556,7 @@ def identify_motors_electric_powers_v1(
         final_drive_mean_efficiency, gear_box_mean_efficiency_guess,
         planetary_mean_efficiency, belt_mean_efficiency, motors_efficiencies,
         hybrid_modes, motive_powers, motors_maximums_powers,
-        motors_electric_powers):
+        motors_electric_powers, has_motor_p2_planetary):
     """
     Identify motors electric power split [kW].
 
@@ -1596,13 +1596,18 @@ def identify_motors_electric_powers_v1(
         Cumulative motors electric power [kW].
     :type motors_electric_powers: numpy.array
 
+    :param has_motor_p2_planetary:
+        Has the vehicle a motor in planetary P2?
+    :type has_motor_p2_planetary: bool
+
     :return:
         Motors electric powers [kW].
     :rtype: tuple[numpy.array]
     """
     drive_line_efficiencies = (
         1.0, final_drive_mean_efficiency, gear_box_mean_efficiency_guess,
-        planetary_mean_efficiency, .99, belt_mean_efficiency
+        planetary_mean_efficiency, 1.0 if has_motor_p2_planetary else .99,
+        belt_mean_efficiency
     )
     return identify_motors_electric_powers(
         HEV(drive_line_efficiencies, motors_efficiencies), hybrid_modes,
