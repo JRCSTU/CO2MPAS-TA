@@ -24,7 +24,7 @@ _base_params = r"""
     ((?P<stage>(precondition|calibration|prediction))s?(\.|\s+))?
     ((?P<cycle>WLTP([-_]{1}[HLP]{1})?|
                NEDC([-_]{1}[HL]{1})?|
-               ALL)(recon)?(\.|\s+))?
+               ALL([-_]{1}[HL]{1})?)(recon)?(\.|\s+))?
     (?P<param>[^\s.]*)\s*$
     |
     ^((?P<scope>base)(\.|\s+))?
@@ -33,7 +33,7 @@ _base_params = r"""
     ((?P<param>[^\s.]*))?
     ((.|\s+)(?P<cycle>WLTP([-_]{1}[HLP]{1})?|
                       NEDC([-_]{1}[HL]{1})?|
-                      ALL)(recon)?)?\s*$
+                      ALL([-_]{1}[HL]{1})?)(recon)?)?\s*$
 """
 
 _flag_params = r"""^(?P<scope>flag)(\.|\s+)(?P<flag>(input_version|vehicle_family_id))\s*$"""
@@ -65,7 +65,7 @@ _re_params_name = regex.compile(
                     ((precondition|calibration|prediction)s?)|
                     (WLTP([-_]{1}[HLP]{1})?|
                      NEDC([-_]{1}[HL]{1})?|
-                     ALL)(recon)?))\s*$
+                     ALL([-_]{1}[HL]{1})?)(recon)?))\s*$
         |
     """ + _flag_params + r"""
         |
@@ -83,7 +83,7 @@ _base_sheet = r"""
     ((?P<stage>(precondition|calibration|prediction))s?(\.|\s+)?)?
     ((?P<cycle>WLTP([-_]{1}[HLP]{1})?|
                NEDC([-_]{1}[HL]{1})?|
-               ALL)(recon)?(\.|\s+)?)?
+               ALL([-_]{1}[HL]{1})?)(recon)?(\.|\s+)?)?
     (?P<type>(pa|ts|pl))?\s*$
 """
 
@@ -151,14 +151,17 @@ def _isempty(val):
 # noinspection PyUnusedLocal
 def _get_cycle(cycle=None, usage=None, **kw):
     if cycle is None or cycle == 'all':
-        cycle = ('nedc_h', 'nedc_l', 'wltp_h', 'wltp_l')
+        cycle = 'nedc_h', 'nedc_l', 'wltp_h', 'wltp_l'
         if cycle == 'all':
             cycle += 'wltp_p',
-
     elif cycle == 'wltp':
-        cycle = ('wltp_h', 'wltp_l')
+        cycle = 'wltp_h', 'wltp_l'
     elif cycle == 'nedc':
-        cycle = ('nedc_h', 'nedc_l')
+        cycle = 'nedc_h', 'nedc_l'
+    elif cycle in ('all-h', 'all_h'):
+        cycle = 'nedc_h', 'wltp_h'
+    elif cycle == ('all-l', 'all_l'):
+        cycle = 'nedc_l', 'wltp_l'
     elif isinstance(cycle, str):
         cycle = cycle.replace('-', '_')
 

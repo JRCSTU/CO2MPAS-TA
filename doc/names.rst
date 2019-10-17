@@ -71,6 +71,8 @@ cycle
    - ``wltp-l``: *WLTP Low* cycle data.
    - ``nedc`` [default]: shortcut to set values for ``nedc-h`` & ``nedc-l``.
    - ``wltp`` [default]: shortcut to set values for ``wltp-h`` & ``wltp-l``.
+   - ``all-h``: shortcut to set values for ``nedc-h`` and ``wltp-h``.
+   - ``all-l``: shortcut to set values for ``nedc-l`` and ``wltp-l``.
    - ``all``: shortcut to set values for ``nedc`` and ``wltp``.
 
 param
