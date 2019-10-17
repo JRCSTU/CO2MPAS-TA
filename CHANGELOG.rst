@@ -11,9 +11,9 @@ v4.1.3 (2019-08-31): **Wine** Release
 `sync <https://github.com/vinci1it2000/syncing>`_).
 
 
-Major changes
-~~~~~~~~~~~~~
-The following chapters describe the major changes.
+Important changes:
+~~~~~~~~~~~~~~~~~~
+The main changes done in this release regards:
 
 GUI
 ^^^
@@ -24,14 +24,14 @@ Documentation
 ^^^^^^^^^^^^^
 All documentation has been reviewed and updated (:gh:`533`, :gh:`540`). There
 are two new sections: FAQ, and Contributing to |co2mpas|. The documentation is
-now hosted by readthedocs (see the `site <https://co2mpas.readthedocs.io>`_).
+now stored in Read the Docs (see the `site <https://co2mpas.readthedocs.io>`_).
 
 I/O Data & Demo
 ^^^^^^^^^^^^^^^
-The input excel file has been updated to version 3.1.0. (:gh:`544`) according to
-the latest amendments to Regulations (EU) 2017/1152 and 2017/1153 of 2019.
+The input excel file has been updated to version 3.1.0. (:gh:`544`), as per the
+2019 amendments to Regulations (EU) 2017/1152 and 2017/1153.
 
-The demo files have been updated and 3 files are available
+The demo files have been reviewed and now 3 files are available
 (:gh:`544`, :gh:`538`):
 
     1. *co2mpas_conventional.xlsx*: conventional vehicle,
@@ -40,19 +40,19 @@ The demo files have been updated and 3 files are available
 
 Model
 ^^^^^
-- Implementation of Hybrids Electric Models for parallel, planetary, and serial
+- Implemented Hybrids Electric Model for parallel, planetary, and serial
   architectures (:gh:`516`, :gh:`536`, :gh:`540`, :gh:`541`). It consists of
   nine electric motors (i.e., P0, P1, P2 planetary, P2, P3 front, P3 rear,
   P4 front, P4 rear, and starter), one DC/DC converter, and two batteries
   (i.e., service and drive batteries).
-- Improve the stability of: the thermal model (:gh:`458`, :gh:`498`, :gh:`516`),
-  the gearbox identification (:gh:`551`), and the alternator model.
-- Correct the calibration of the Start/Stop model (:gh:`512`).
-- Update of the torque converter model according to VDI253 standard (:gh:`515`).
-- Refine the cylinder deactivation model (:gh:`517`).
-- Implement parser for PAX tyre code (:gh:`507`).
-- Add formulas to calculate the corrected |co2| emissions according to the
-  WLTP and NEDC regulations (:gh:`539`).
+- Improved the stability of the thermal model (:gh:`458`, :gh:`498`, :gh:`516`),
+  the gearbox identification (:gh:`551`) and the alternator model.
+- Corrected the calibration of the Start/Stop model (:gh:`512`).
+- Updated the torque converter model according to VDI253 standard (:gh:`515`).
+- Refined the cylinder deactivation model (:gh:`517`).
+- Implemented parser for PAX tyre code (:gh:`507`).
+- Added formulas to calculate the corrected |co2| emissions according to WLTP
+  and NEDC regulations (:gh:`539`).
 
 Known Limitations
 ~~~~~~~~~~~~~~~~~
@@ -64,6 +64,8 @@ Known Limitations
    malicious software; however, this is not to be considered harmful. If this
    happens the antivirus should be disabled when running |co2mpas|, or a special
    exclusion should be granted to the |co2mpas| executable.
+3. If Co2mpas is installed in Windows 7 not up to date, the installation process
+   might fail.
 
 v3.0.0 (2019-01-29): "VOLO" Release
 -----------------------------------
@@ -116,8 +118,8 @@ on 1 September 2018. There are two options of installation:
    pip install co2mpas==3.0.0
    ```
 
-Important Changes since `2.1.0` release
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Important Changes
+~~~~~~~~~~~~~~~~~
 
 Model
 ~~~~~
@@ -139,7 +141,8 @@ DICE
 Demo Files
 ~~~~~~~~~~
 - The input-file changed, and we have prepared new demo files to help the users
-  adjust. Since we do not distribute an **AllInOne** package, you may download the new files:
+  adjust. Since we do not distribute an **AllInOne** package, you may download
+  the new files:
    - from the console:
      ```console
      co2mpas demo --download
@@ -148,14 +151,14 @@ Demo Files
    - From this `link <https://github.com/JRCSTU/allinone/tree/master/Archive/Apps/.co2mpas-demos>`_
 
 
-v4.1.3 (2018-08-31): "Unleash" Release
+v2.0.0 (2018-08-31): "Unleash" Release
 --------------------------------------
 Changes since 1.7.4.post0:
 
 BREAKING:
 ~~~~~~~~~
 1. The ``pip`` utility contained in the old AIO is outdated (9.0.1) and
-   cannot correctly install the transitive dependencies of new ``co2mpas``, even
+   cannot correctly install the transitive dependencies of new ``|co2mpas|``, even
    for development purposes.  Please upgrade your ``pip`` before following the
    installation or upgrade instructions for developers (e.g. in :term:`AIO`
    use ``../Apps/WinPython/scripts/upgrade_pip.bat``).
@@ -166,7 +169,7 @@ BREAKING:
        OLD: FT-TA-WMI-yyyy-nnnn
        NEW: FT-nnnnnnnnnnnnnnn-WMI-x
 
-3. The co2mpas python package has been splitted (see :gh:`408`), and is now
+3. The |co2mpas| python package has been splitted (see :gh:`408`), and is now
    served by 4 python packages listed below.  In practice this means that you
    can still receive bug-fixes and new features for the DICE or the GUI, while
    keeping the simulation-model intact.
@@ -185,7 +188,6 @@ BREAKING:
 
    4. ``co2mpas``: installs all of the above, and ``[io,plot]`` extras.
 
-
    The relationships between the sub-projects are depicted below::
 
        co2sim[io,plot]
@@ -203,7 +205,6 @@ BREAKING:
 
          pip uninstall -y co2sim co2dice co2gui co2mpas
          pip install co2sim co2dice co2gui co2mpas -U
-
 
 Model:
 ~~~~~~
@@ -275,13 +276,11 @@ IO Data
 - drop: remove deprecated  ``co2mpas gui`` sub-command - ``co2gui`` top-level
   command is the norm since January 2017.
 
-
 Dice
 ~~~~
 - FEAT: Added a new **"Stamp" button** on the GUI, stamping with *WebStamper*
   in the background in one step; internally it invokes the new ``dicer`` command
   (see below)(:gh:`378`).
-
 - FEAT: Added the simplified top-level sub-command ``co2dice dicer`` which
   executes *a sequencer of commands* to dice new **or existing** project
   through *WebStamper*, in a single step.::
@@ -295,15 +294,11 @@ Dice
   Otherwise (or on network error), falling back to cli commands is needed,
   similar to what is done with abnormal cases such as ``--recertify``,
   over-writing files, etc.
-
 - All dice-commands and *WebStamper* now also work with files, since *Dices*
   can potentially be MBs in size; **Copy + Paste** becomes problematic in these
   cases.
-
 - Added low-level ``co2dice tstamp wstamp`` cli-command that Stamps a
   pre-generated :term:`Dice` through *WebStamper*.
-
-
 - FEAT: The commands ``co2dice dicer|init|append|report|recv|parse`` and
   ``co2dice tstamp wstamp``, support one or more ``--write-file <path>/-W``
   options, to and every time they run,  they can *append* or *overwrite* into
@@ -320,7 +315,6 @@ Dice
 
     - ``c.ReportsKeeper.default_reports_fpath`` configuration property, and/or
     - :envvar:`CO2DICE_REPORTS_FPATH` (the env-var takes precedence).
-
 - feat: command ``co2dice project report <report-index>`` can retrieve older
   reports (not just the latest one).  Negative indexes count from the end, and
   need a trick to use them::
@@ -329,20 +323,16 @@ Dice
 
   There is still no higher-level command to retrieveing *Stamps*
   (an old *known limitation*); internal git commands can do this.
-
 - drop: deprecate all email-stamper commands; few new enhancements were applied
   on them.
-
 - feat(:gh:`466`, :gh:`467`, io, dice):
   Add ``--with-inputs`` on ``co2dice project init|append|report|dicer`` commands
   that override flag in user-data `.xlsx` file, and attached all inputs
   encrypted in dice.
-
 - feat: add 2 sub-commands in `report` standalone command::
 
       co2dice report extract  # that's the old `co2dice report`
       co2dice report unlock   # unlocks encrypted inputs in dice/stamps
-
 - feat(dice): all dice commands accept ``--quiet/-q`` option that
   along with ``--verbose/-v`` they control the eventual logging-level.
 
@@ -354,7 +344,6 @@ Dice
   (see :gh:`476`, :gh:`479`).
 
 - doc: small fixes on help-text of project commands.
-
 - feat(dice): prepare the new-dice functionality of ``tar``\ing everything
   (see :gh:`480`).
 
@@ -362,9 +351,7 @@ Dice
   by :envvar:`ENCRYPTION_KEYS_PATH`, works for dice-2 but not yet respected
   by the old-dice commands;
   must revive :git:`4de77ea1e`.
-
 - refact: renamed various internal classes and modules for clarity.
-
 
 Various
 ~~~~~~~
@@ -378,7 +365,6 @@ Various
 - feat: provide a *docker* script, ensuring correct *numpy-base+MKL* installed
   in *conda* requirements.
 - WebStamp: split-off `v1.9.0a1` as separate sub-project in sources.
-
 
 Known Limitations
 ~~~~~~~~~~~~~~~~~
@@ -397,23 +383,19 @@ Known Limitations
   - All previous known limitations regarding :term:`mail-stamper` still apply.
     But these commands are now *deprecated*.
 
-
 Intermediate releases for ``2.0.x``:
 ------------------------------------
 .. Note::
   - Releases with ``r`` prefix signify version published in *PyPi*.
   - Releases with ``v`` prefix signify internal milestones.
 
-
-``co2mpas-r2.0.0.post0``, 1 Sep 2018
+``|co2mpas|-r2.0.0.post0``, 1 Sep 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 doc: Just to fix site and *PyPi* landing page.
-
 
 ``r2.0.0``, 31 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~
 - fix: hide excess warnings.
-
 
 ``co2sim/co2gui: v2.0.0rc3``, ``co2dice/webstamper: v2.0.0rc1``, 30 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -422,47 +404,37 @@ doc: Just to fix site and *PyPi* landing page.
   ("server-failure") even on client mistakes;  now they became http-error=400.
 - fix: eliminate minor deprecation warning about XGBoost(seed=) keyword.
 
-
 ``v2.0.0rc2`` for ``co2sim`` & ``co2gui``, 28 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - FIX: add data (xlsx-files & icons) to `co2sim` & `co2gui` wheels.
 - ``v2.0.0rc1`` tried but didn't deliver due to missing package-data folders.
 
-
 ``v2.0.0rc0``, 24 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - DROP: make ``co2deps`` pinning-versions project disappear into the void,
   from where it came from, last milestone.
-
   Adding a moribund co2-project into PyPi (until `pip bug pypa/pip#3878
   <https://github.com/pypa/pip#3878>`_ gets fixed) is a waste of effort.
-
 - ENH: extracted ``plot`` extras from ``co2sim`` dependencies.
   Significant work on all project dependencies (:gh:`408`, :gh:`427` & :gh:`463`).
-
   Coupled with the new ``wltp-0.1.0a3`` & ``pandalone-0.2.4.post1`` releases,
-  now it is possible to use co2mpas-simulator with narrowed-down dependencies
+  now it is possible to use |co2mpas|-simulator with narrowed-down dependencies
   (see docker-image size reduction, above).
-
 - REFACT: separated DICE from SIM subprojects until really necessary
   (e.g. when extracting data from appended files).  Some code-repetition needed,
   started moving utilities from ``__main__.py`` into own util-modules, at least
   for `co2dice`.
-
 - ENH: update alpine-GCC in *docker* with recent instructions,and eventually
   used the debian image, which ends up the same size with less fuzz.
   Docker-image  `co2sim` wheel is now created *outside of docker* with
   its proper version-id of visible; paths updated, scripts enhanced,
   files documented.
-
 - ENH: `setup.py` does not prevent from running in old Python versions
   (e.g to build *wheels* in Py-2, also in :gh:`408`).
-
 - feat: dice-report encryption supports multiple recipients.
 - feat: gui re-reads configurations on each DICE-button click.
 - chore: add *GNU Makefiles* for rudimentary support to clean, build and
   maintain the new sub-projectrs.
-
 
 ``v2.0.0b0``, 20 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -482,8 +454,6 @@ doc: Just to fix site and *PyPi* landing page.
   ``WstampSpec.recpients`` parameter if modified by the user-on-the-spot).
 - enh: dice log-messages denote reports with line-numberss (not char-nums).
 
-
-
 Intermediate releases for ``1.9.x``:
 ------------------------------------
 
@@ -494,17 +464,14 @@ Intermediate releases for ``1.9.x``:
 - enh: possible to mute email-stamper deprecations with ``EmailStamperWarning.mute``.
 - enh: RELAX I/O file-pairing rule for ``dicer`` cmd, any 2 io-files is now ok.
 
-
 ``v1.9.2rc0``, 14 Aug 2018 (BROKEN GUI)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - ENH: Add logging-timestamps in ``~/.co2dice/reports.txt`` maintained by
   the :class:`ReportsKeeper`(renamed from ``FileWritingMixin``) which now supports
   writing to multiple files through the tested *logging* library.
-
 - enh: make location of the `reports.txt` file configurable with:
     - ``c.ReportsKeeper.default_reports_fpath`` property and
     - :envvar:`CO2DICE_REPORTS_FPATH` (env-var takes precedence).
-
 - REFACT: move DicerCMD (& DicerSpec) in their own files and render them
   top-level sub-commands.
 
@@ -516,11 +483,8 @@ Intermediate releases for ``1.9.x``:
 
 - enh: replace old output-clipping machinery in ``tstamp recv`` with
   shrink-slice.
-
 - enh: teach GUI to also use HTTP-sessions (like ``dicer`` command does).
-
 - GUI-state behavior was still not mature.
-
 
 ``r1.9.1b1``, 13 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -533,7 +497,6 @@ Intermediate releases for ``1.9.x``:
 - doc: Add glossary terms for links from new data in the excel input-file .
 - doc: updated the dice changes for the forthcoming major-release, above
 - dev: add "scafolding" to facilitate developing dice-button.
-
 
 ``v1.9.1b0``, 10 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -549,14 +512,12 @@ Intermediate releases for ``1.9.x``:
     connectivity to WebStamper.
 - Renamed cmd ``project dice --> dicer`` not to overload the *dice* word; it is
     a *sequencer* after all.
-
 - feat: rename ``-W=~/co2dice.reports.txt --> ~/.co2dice/reports.txt`` to reuse dice folder.
 - drop: removed `co2dice project tstamp` command, deprecated since 5-may-2017.
 - enh: `project dicer` cmd uses HTTP-sessions when talking to WebStamper, but
   not the GUI button yet.
 - fix: ``-W--write-fpath`` works more reliably, and by defaults it writes into
   renamed :file:`~/.co2dice/reports.txt`.
-
 
 ``v1.9.1a2``, 10 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -570,7 +531,6 @@ Fixes and features for the GUI *Stamp-button* and supporting ``project dice`` co
     1. :term:`Dice report`;
     2. :term:`Stamp`  (or any errors received from :term:`WebStamper`;
     3. :term:`Decision`.
-
 - doc: deprecate all email-stamper commands; few new enhancements were applied
   on them.
 - drop: remove deprecated  ``co2mpas gui`` cmd - `co2gui` is the norm since Jan 2017.
@@ -578,7 +538,6 @@ Fixes and features for the GUI *Stamp-button* and supporting ``project dice`` co
 - refact: extract dice-cmd functionality into its own Spec class.
 - sources: move ``tkui.py`` into it's own package. (needs re-install from sources).
 - WIP: Add GUI "Stamp" button that appends also new-dice *tar* (see :gh:`378`).
-
 
 ``v1.9.1a1``, 10 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -592,11 +551,9 @@ Implement the new ``project dice`` command.
   (not just the latest).  For *Stamps*, internal git commands are still needed.
 - WIP: Add GUI "Stamp" button.
 
-
 ``r1.9.0b2``, 7 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~
 Version in *PyPi* deemed OK for release.  Mostly doc-changes since `b1`.
-
 
 ``v1.9.0b1``, 2 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -609,44 +566,32 @@ Not released in *PyPi*.
 
   so they can write directly results (i.e. report) in local files, and avoid
   printing big output to the console (see :gh:`466`).
-
   *WebStamper* also works now with files, since files can potentially be Mbs
   in size.
-
 - feat(dice): teach dice commands ``--quiet/-q`` option that along with ``--verbose/-v``
   they control logging-level.
-
   It is actually possible to give multiple `-q` / `-v` in the command line,
   and the verbose level is an algebraic additions of all of them, starting
   from *INFO* level.
-
   BUT if any -v is given, the `Spec.verbosed` trait-parameter is set to true.
   (see :gh:`476`, :gh:`479`).
-
 - feat(dice): prepare the new-dice functionality of taring everything
   (see :gh:`480`).
-
   Add ``flag.encrypt_inputs`` in input-xlsx file, configured
   by :envvar:`ENCRYPTION_KEYS_PATH`, but not yet respected by the dice commands;
   must revive :git:`4de77ea1e`.
-
 - feat(WebStamper): Support Upload dice-reports from local-files & Download
   Stamp to local-files.
-
 - fix(dice): fix redirection/piping of commands.
-
 - fix(site): Update to latest `schedula-2.3.x` to fix site-generation
   (see :gh:`476`, :git:`e534168b`).
-
 - enh(doc): Update all copyright notices to "2018".
 - refact(sources): start using ``__main__.py`` also for dice, but without
   putting too much code in it, just for :pep:`366` relative-imports to work.
 
-
 ``r1.9.0b0``, 31 Jul 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 1st release with new-dice functionality.
-
 
 ``v1.9.0a2``, 11 Jul 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -656,7 +601,6 @@ IO Data:
 ^^^^^^^^
 - IO: Input-template provide separate H/L fields for both *ki multiplicative* and
   *Ki additive* parameters.
-
 
 ``v1.9.0a1``, 5 Jul 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -672,16 +616,13 @@ have changed forward-incompatibly.  Very roughly tested (see :gh:`472`).
 
 - BREAK: Bumped input-file version from ``2.2.8 --> 2.3.0``.  And improved
   file-version comparison (:term:`Semantic Versioning`)
-
 - fix: completed transition to *polyversion* monorepo scheme.
-
 - docker: ensure correct *numpy-base+MKL* installed in *conda* requirements.
 
 Model:
 ^^^^^^
 - FIX: Gear-model does not dance (:gh:`427`).
 - fix: remove some pandas warnings
-
 
 Intermediate releases for ``1.8.x``:
 ------------------------------------
@@ -694,7 +635,6 @@ from `mono-project --> monorepo` (switch will complete in next tag).
 - feat(:gh:`466`, :gh:`467`, io, dice):
   Add ``--with-inputs`` on ``report`` commands that override flag in
   user-data `.xlsx` file, and attached all inputs encrypted in dice.
-
 - Add 2 sub-commands in `report` standalone command::
 
       co2dice report extract  # that's the old `co2dice report`
@@ -703,7 +643,6 @@ from `mono-project --> monorepo` (switch will complete in next tag).
 - testing :gh:`375`:
   - dice: need *pytest* to run its TCs.
   - dice: cannot run all tests together, only one module by one.  All pass
-
 
 ``v1.8.0a1``, 7 Jun 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -716,7 +655,6 @@ from `mono-project --> monorepo` (switch will complete in next tag).
 ``v1.8.0a0``, 6 Jun 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~
 PINNED REQUIRED VERSIONS, served with AIO-1.8.1a1
-
 
 ``v1.8.0.dev1``, 29 May 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -747,14 +685,12 @@ Pre-``v1.8.0.dev0``, 15 Nov 2017
   This is not affecting the TA mode.
 - Dice & WebStamper updates...
 
-
 Intermediate releases for ``1.7.x``:
 ------------------------------------
 
 ``v1.7.4.post3``, 10 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Settled dependencies for :command:`pip` and :command:`conda` environments.
-
 
 ``v1.7.4.post2``, 8 Aug 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -785,13 +721,11 @@ Backport fixes to facilitate comparisons with forthcoming release 1.9+.
 - Fix conflicting `dill` requirement.
 - Fix piping dice-commands to stdout.
 
-
 v1.7.4.post0, 11 Dec 2017
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 Never released in *PyPi*, just for fixes for WebStamper and the site for "Toketos".
 
 - feat(wstamp): cache last sender+recipient in cookies.
-
 
 v1.7.4, 15 Nov 2017: "Toketos"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -800,7 +734,6 @@ v1.7.4, 15 Nov 2017: "Toketos"
 
 - fix(co2p, :gh:`448`): `tparse` checks stamp is on last-tag (unless forced).
   Was a "Known limitation" of previous versions.
-
 
 v1.7.3.post0, 16 Oct 2017
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -834,8 +767,6 @@ it is still possible to parse anyone tstamp on the project - no check against
 the hash-1 performed.  So practically in this case, the history of the project
 is corrupted.
 
-
-
 v1.7.3, 16 August 2017: "T-REA" Release
 ---------------------------------------
 - Dice & model fine-tuning.
@@ -855,21 +786,17 @@ The Dice:
 
   You have to modify your configurations and set ``GpgSpec.master_key`` to your
   newly-generated key, and **re-encrypt your passowords in persist file.**
-
 - feat(config): dice commands would complain if config-file(s) missing; remember to
   transfer your configurations from your old AIO (with all changes needed).
-
 - feat(AIO): prepare for installing AIO in *multi-user/shared* environments;
   the important environment variable is ``HOME`` (read ``[AIO]/.co2mpad_env.bat``
   file and run ``co2dice config paths`` command).  Enhanced ``Cmd.config_paths``
   parameter to properly work with *persistent* JSON file even if a list of
   "overlayed" files/folders is given.
-
 - feat(config): enhance ``co2dice config (desc | show | paths)`` commands
   to provide help-text and configured values for specific classes & params
   and all interesting variables affecting configurations.
   (alternatives to the much  coarser ``--help`` and ``--help-all`` options).
-
 - Tstamping & networking:
 
   - feat(:gh:`382`): enhance handling of email encodings on send/recv:
@@ -894,7 +821,6 @@ The Dice:
   - ``(t)recv``: BCC-addresses were treated as CCs; ``--raw`` STDOUT was corrupted;
     emails received
   - feat(report): print out the key used to sign dice-report.
-
 - Projects:
 
   - feat(project): store tstamp-email verbatim, and sign 2nd HASH report.
@@ -921,30 +847,24 @@ Known Limitations
   - Microsoft Outlook Servers are known to corrupt the dice-emails; depending
     on the version and the configurations, most of the times they can be fixed.
     If not, as a last resort, another email-account may be used.
-
     A permanent solution to the problem is will be provided when the
-    the *Exchange Web Services (EWS)* protocol is implemented in *co2mpas*.
-
+    the *Exchange Web Services (EWS)* protocol is implemented in *|co2mpas|*.
   - On *Yahoo* servers, the ``TstampReceiver.subject_prefix`` param must not
     contain any brackets (``[]``).  The are included by default, so you have to
     modify that in your configs.
-
   - Using GMail accounts to send Dice may not(!) receive the reply-back "Proof of
     Posting" reply (or it may delay up to days).  Please perform tests to discover that,
     and use another email-provided if that's the case.
-
     Additionally, Google's security provisions for some countries may be too
     strict to allow SMTP/IMAP access.  In all cases, you need to enable allow
     `less secure apps <https://support.google.com/accounts/answer/6010255>`_ to
     access your account.
-
   - Some combinations of outbound & inbound accounts for dice reports and timsestamps
     may not work due to `DMARC restrictions <https://en.wikipedia.org/wiki/DMARC>`_.
     JRC will offer more alternative "paths" for running Dices.  All major providers
     (Google, Yahoo, Microsoft) will not allow your dice-report to be stamped and forwarded
     to ``TstampSender.stamp_recipients`` other than the Comission; you may (or may not)
     receive "bounce" emails explaining that.
-
   - There is no high level command to view the stamp for some project;
     Assuming your project is in ``sample`` or ``nosample`` state, use this cmd::
 
@@ -954,14 +874,12 @@ Known Limitations
   This does not change the odds for ``SAMPLE``/``NOSAMPLE`` but it does affect
   the odds for double-testing *Low* vs *High* vehicles (4 vs 5).
 
-
 Datasync
 ~~~~~~~~
 - :gh:`390`: Datasync was producing 0 values in the first and/or in the last
   cells. This has been fixed extending the given signal with the first and last
   values.
 - :gh:`424`: remove buggy interpolation methods.
-
 
 Model-changes
 ~~~~~~~~~~~~~
@@ -1006,13 +924,12 @@ CO2 model
   identification and disabling the first two steps in the calibration. Optimize
   the parameters that define the gearbox, torque, and power losses.
 
-
 IO & Data:
 ~~~~~~~~~~
 - fix(xlsx, :gh:`426`): excel validation formulas on input-template & demos did
   not accept *vehicle-family-id* with single-digit TA-ids.
 - :gh:`314`, gh:`410`: MOVED MOST DEMO-FILES to AIO archive - 2 files are left.
-  Updated ``co2mpas demo`` command to use them if found; add ``--download``
+  Updated ``|co2mpas| demo`` command to use them if found; add ``--download``
   option to get the very latest from Internet.
 - main: rename logging option ``--quite`` --> ``--quiet``.
 - :gh:`380`: Add cycle scores to output template.
@@ -1047,7 +964,7 @@ AIO
     <https://github.com/gitpython-developers/GitPython/pull/639>`_).
 
 - Use ``[AIO]`` to signify the ALLINONE base-folder in the documentation; use it
-  in co2mpas to suppress excessive development warnings.
+  in |co2mpas| to suppress excessive development warnings.
 
 
 .. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
