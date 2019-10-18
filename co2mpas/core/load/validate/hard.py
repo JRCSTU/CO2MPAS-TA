@@ -211,6 +211,21 @@ def _check_relative_electric_energy_change(data, *args):
         pass
 
 
+# noinspection PyUnusedLocal
+def _check_gear_box(data, *args):
+    c = ('gear_box_type', 'is_hybrid')
+    try:
+        gear_box_type, is_hybrid = sh.selector(c, data, output_type='list')
+        if gear_box_type == 'planetary' and not is_hybrid:
+            msg = "`gear_box_type` cannot be 'planetary' when " \
+                  "`is_hybrid = False`." \
+                  "Hence, set `gear_box_type != 'planetary'` or " \
+                  "set `is_hybrid = True`!"
+            return c, msg
+    except KeyError:  # `c` is not in `data`.
+        pass
+
+
 def _hard_validation(data, usage, stage=None, cycle=None, *args):
     if usage in ('input', 'target', 'meta'):
         checks = (
@@ -223,7 +238,8 @@ def _hard_validation(data, usage, stage=None, cycle=None, *args):
             _warn_vva,
             _check_scr,
             _check_has_torque_converter,
-            _check_relative_electric_energy_change
+            _check_relative_electric_energy_change,
+            _check_gear_box
         )
         for check in checks:
             c = check(data, usage, stage, cycle, *args)
