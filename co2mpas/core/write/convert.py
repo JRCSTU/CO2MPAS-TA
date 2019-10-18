@@ -444,7 +444,7 @@ def _pipe2list(pipe, i=0, source=()):
             d['error'] = v['error']
 
         j, s = v['task'][2]
-        n = s.workflow.node.get(j, {})
+        n = s.workflow.nodes.get(j, {})
         if 'duration' in n:
             d['duration'] = n['duration']
 
