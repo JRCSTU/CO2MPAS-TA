@@ -3,8 +3,8 @@ Changelog
 
 v4.1.3 (2019-08-31): **Wine** Release
 -------------------------------------
-|co2mpas| project has been split in multiple repositories (:gh:`506`). The
-`current <https://github.com/JRCSTU/CO2MPAS-TA>`_ repository contains just the
+|co2mpas| project has been split into multiple repositories (:gh:`506`). The
+`current <https://github.com/JRCSTU/CO2MPAS-TA>`_ repository contains just
 |co2mpas| model. The other functionalities are installed as extra (i.e.,
 `DICE <https://github.com/JRCSTU/DICE>`_,
 `GUI <https://github.com/JRCSTU/co2mpas_gui>`_,
@@ -13,7 +13,7 @@ v4.1.3 (2019-08-31): **Wine** Release
 
 Important changes:
 ~~~~~~~~~~~~~~~~~~
-The main changes done in this release regards:
+The main changes made in this release regards:
 
 GUI
 ^^^
@@ -58,7 +58,7 @@ Known Limitations
 ~~~~~~~~~~~~~~~~~
 1. Certain programs (for example Skype) could be pre-empting (or reserving)
    some tcp/ip ports and therefore could conflict with |co2mpas| graphical
-   interface that tries to launch a webserver on a port in the higher range
+   interface that tries to launch a web server on a port in the higher range
    (> 10000).
 2. Certain antivirus (for example Avast) could include python in the list of
    malicious software; however, this is not to be considered harmful. If this
@@ -80,7 +80,7 @@ v3.0.0 (2019-01-29): "VOLO" Release
   software.
 - The engineering-model is 100% the same with the
   `2.1.0, 30-Nov-2018: "DADO" Release <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2sim-v2.1.0>`_
-  and the version-bump (2.X.X --> 3.X.X) is just a facilitation for the users,
+  and the version-bump (2.X.X --> 3.X.X) is just facilitation for the users,
   to recognize which release is suitable for the amended Correlation Regulations.
 - The Type Approval mode (_TA_) of this release is **incompatible** with all
   previous Input File versions. The _Batch_ mode, for engineering purposes,
@@ -98,7 +98,7 @@ Installation
 This release will not be distributed as an **AllInOne** (AIO) package. It is
 based on the `2.0.0, 31-Aug-2018: "Unleash" Release
 <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r2.0.0>`_, launched
-on 1 September 2018. There are two options of installation:
+on 1 September 2018. There are two options for installation:
 
   1. Install it in your current working `AIO-v2.0.0 <https://github.com/JRCSTU/co2mpas/releases/tag/co2mpas-r2.0.0>`_.
   2. **Preferably** in a clean `AIO-v2.0.0 <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r2.0.0>`_,
@@ -122,46 +122,46 @@ Important Changes
 ~~~~~~~~~~~~~~~~~
 
 Model
-~~~~~
+^^^^^
 No model changes.
 
 IO Data
-~~~~~~~
+^^^^^^^
 - Input-file version from 3.0.0 --> **3.0.1**.
-  - It hosts few modifications after interactions with users.
+  - It hosts a few modifications after interactions with users.
   - The input file contained in this release cannot run in older |co2mpas|
   releases in the _TA_ mode.
 
 DICE
-~~~~
-- The old DICE2 is deprecated, and must not be used after 15th of February,
+^^^^
+- The old DICE2 is deprecated, and must not be used after the 15th of February,
 - it is replaced by the centralized DICE3 server. There will be a new procedure
   to configure the keys to _sign_ and _encrypt_ the data.
 
 Demo Files
-~~~~~~~~~~
+^^^^^^^^^^
 - The input-file changed, and we have prepared new demo files to help the users
   adjust. Since we do not distribute an **AllInOne** package, you may download
   the new files:
-   - from the console:
+
+  - from the console:
      ```console
      co2mpas demo --download
      ```
 
-   - From this `link <https://github.com/JRCSTU/allinone/tree/master/Archive/Apps/.co2mpas-demos>`_
+  - From this `link <https://github.com/JRCSTU/allinone/tree/master/Archive/Apps/.co2mpas-demos>`_
 
 
 v2.0.0 (2018-08-31): "Unleash" Release
 --------------------------------------
 Changes since 1.7.4.post0:
 
-BREAKING:
+Breaking:
 ~~~~~~~~~
 1. The ``pip`` utility contained in the old AIO is outdated (9.0.1) and
    cannot correctly install the transitive dependencies of new ``|co2mpas|``, even
    for development purposes.  Please upgrade your ``pip`` before following the
-   installation or upgrade instructions for developers (e.g. in :term:`AIO`
-   use ``../Apps/WinPython/scripts/upgrade_pip.bat``).
+   installation or upgrade instructions for developers.
 
 2. The ``vehicle_family_id`` format has changed (but old format is still
    supported)::
@@ -206,8 +206,8 @@ BREAKING:
          pip uninstall -y co2sim co2dice co2gui co2mpas
          pip install co2sim co2dice co2gui co2mpas -U
 
-Model:
-~~~~~~
+Model
+^^^^^
 - feat(co2_emissions): Add ``engine_n_cylinders`` as input value and a TA
   parameter.
 - feat(ta): New TA output file.
@@ -260,9 +260,9 @@ Model:
   instead the minimum when there is not sufficient power.
 
 IO Data
-~~~~~~~
+^^^^^^^
 - BREAK: Bumped input-file version from ``2.2.8 --> 2.3.0``.  And improved
-  file-version comparison (:term:`Semantic Versioning`)
+  file-version comparison
 
 - CHANGE: Changed :term:`vehicle_family_id` format, but old format is still
   supported (:gh:`473`)::
@@ -277,7 +277,7 @@ IO Data
   command is the norm since January 2017.
 
 Dice
-~~~~
+^^^^
 - FEAT: Added a new **"Stamp" button** on the GUI, stamping with *WebStamper*
   in the background in one step; internally it invokes the new ``dicer`` command
   (see below)(:gh:`378`).
@@ -285,12 +285,11 @@ Dice
   executes *a sequencer of commands* to dice new **or existing** project
   through *WebStamper*, in a single step.::
 
-      co2dice dicer -i co2mpas_demo-1.xlsx -o O/20180812_213917-co2mpas_demo-1.xlsx
+   co2dice dicer -i co2mpas_demo-1.xlsx -o O/20180812_213917-co2mpas_demo-1.xlsx
 
   Specifically when the project exists, e.g. when clicking again the *GUI-button,
   it compares the given files *bit-by-bit* with the ones present already in the
   project, and proceeds *only when there are no differences.
-
   Otherwise (or on network error), falling back to cli commands is needed,
   similar to what is done with abnormal cases such as ``--recertify``,
   over-writing files, etc.
@@ -298,15 +297,15 @@ Dice
   can potentially be MBs in size; **Copy + Paste** becomes problematic in these
   cases.
 - Added low-level ``co2dice tstamp wstamp`` cli-command that Stamps a
-  pre-generated :term:`Dice` through *WebStamper*.
+  pre-generated Dice through *WebStamper*.
 - FEAT: The commands ``co2dice dicer|init|append|report|recv|parse`` and
   ``co2dice tstamp wstamp``, support one or more ``--write-file <path>/-W``
   options, to and every time they run,  they can *append* or *overwrite* into
   all given ``<path>`` these 3 items as they are generated/received:
 
-    1. :term:`Dice report`;
-    2. :term:`Stamp`  (or any errors received from :term:`WebStamper`;
-    3. :term:`Decision`.
+    1. Dice report;
+    2. Stamp (or any errors received from WebStamper);
+    3. Decision.
 
   By default, one ``<path>`` is always ``~/.co2dice/reports.txt``, so this
   becomes the de-facto "keeper" of all reports exchanged (to mitigate a *known
@@ -354,14 +353,14 @@ Dice
 - refact: renamed various internal classes and modules for clarity.
 
 Various
-~~~~~~~
+^^^^^^^
 - FIX: Support `pip >= 10+` (see :ghp:`26`).
 - break: changed cmd-line scripts entry-points; if you install from sources,
   remember to run first: :code:`pip install -e {co2mpas-dir}`
 - Pinned versions of dependencies affecting the accuracy of the calculations,
   to achieve stronger reproducibility; these dependent libraries are shiped
   with AIO (see :gh:`427`).
-- Accurate versioning of project with :term:`polyvers`.
+- Accurate versioning of project with polyvers.
 - feat: provide a *docker* script, ensuring correct *numpy-base+MKL* installed
   in *conda* requirements.
 - WebStamp: split-off `v1.9.0a1` as separate sub-project in sources.
@@ -373,14 +372,14 @@ Known Limitations
 - DICE:
   - Fixed known limitation of `1.7.3` (:gh:`448`) of importing stamps from an
     older duplicate dice.
-  - It is not possible to ``-recertify`` from ``nedc`` state
-    (when mored files have been appended after stamping).
+  - It is not possible to ``-recertify`` from ``nedc`` state (when mored files
+    have been appended after stamping).
   - There is still no high level command to view Stamps (see low-level command
     in the old known limitation item).
-    But :term:`stamp`\s received are now save in :file:`~/.co2dice/reports.txt`
-    (along with :term:`dice`\s and :term:`decision`\s).
+    But stamp\s received are now save in :file:`~/.co2dice/reports.txt`
+    (along with dice\s and decision\s).
   - The decision-number generated still never includes the numbers 10, 20, …90.
-  - All previous known limitations regarding :term:`mail-stamper` still apply.
+  - All previous known limitations regarding mail-stamper still apply.
     But these commands are now *deprecated*.
 
 Intermediate releases for ``2.0.x``:
@@ -390,7 +389,7 @@ Intermediate releases for ``2.0.x``:
   - Releases with ``v`` prefix signify internal milestones.
 
 ``|co2mpas|-r2.0.0.post0``, 1 Sep 2018
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 doc: Just to fix site and *PyPi* landing page.
 
 ``r2.0.0``, 31 Aug 2018
@@ -470,17 +469,16 @@ Intermediate releases for ``1.9.x``:
   the :class:`ReportsKeeper`(renamed from ``FileWritingMixin``) which now supports
   writing to multiple files through the tested *logging* library.
 - enh: make location of the `reports.txt` file configurable with:
+
     - ``c.ReportsKeeper.default_reports_fpath`` property and
     - :envvar:`CO2DICE_REPORTS_FPATH` (env-var takes precedence).
 - REFACT: move DicerCMD (& DicerSpec) in their own files and render them
   top-level sub-commands.
-
   Also renamed modules:
 
     - ``baseapp --> cmdlets`` not to confuse with ``base`` module.
     - ``dice --> cli`` not to confuse with ``dicer`` module and
       the too-overloaded :term;`dice`.
-
 - enh: replace old output-clipping machinery in ``tstamp recv`` with
   shrink-slice.
 - enh: teach GUI to also use HTTP-sessions (like ``dicer`` command does).
@@ -528,9 +526,9 @@ Fixes and features for the GUI *Stamp-button* and supporting ``project dice`` co
   ``--write-file=~/.co2dice/reports.txt`` file, so every time they run,
   they *APPENDED* into this file these 3 items:
 
-    1. :term:`Dice report`;
-    2. :term:`Stamp`  (or any errors received from :term:`WebStamper`;
-    3. :term:`Decision`.
+    1. Dice report;
+    2. Stamp  (or any errors received from the WebStamper);
+    3. Decision.
 - doc: deprecate all email-stamper commands; few new enhancements were applied
   on them.
 - drop: remove deprecated  ``co2mpas gui`` cmd - `co2gui` is the norm since Jan 2017.
@@ -597,14 +595,14 @@ Not released in *PyPi*.
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 - WebStamp: split-off `v1.9.0a1` as separate sub-project in sources.
 
-IO Data:
-^^^^^^^^
+IO Data
+^^^^^^^
 - IO: Input-template provide separate H/L fields for both *ki multiplicative* and
   *Ki additive* parameters.
 
 ``v1.9.0a1``, 5 Jul 2018
 ~~~~~~~~~~~~~~~~~~~~~~~~
-Bumped *minor* number to signify that the :term:`VF_ID` and input-file version
+Bumped *minor* number to signify that the VF_ID and input-file version
 have changed forward-incompatibly.  Very roughly tested (see :gh:`472`).
 (`v1.9.0a0` was a checkpoint after `VF_ID` preliminary changes).
 
@@ -615,12 +613,12 @@ have changed forward-incompatibly.  Very roughly tested (see :gh:`472`).
         NEW: FT-nnnnnnnnnnnnnnn-WMI-x
 
 - BREAK: Bumped input-file version from ``2.2.8 --> 2.3.0``.  And improved
-  file-version comparison (:term:`Semantic Versioning`)
+  file-version comparison (Semantic Versioning)
 - fix: completed transition to *polyversion* monorepo scheme.
 - docker: ensure correct *numpy-base+MKL* installed in *conda* requirements.
 
-Model:
-^^^^^^
+Model
+^^^^^
 - FIX: Gear-model does not dance (:gh:`427`).
 - fix: remove some pandas warnings
 
@@ -730,15 +728,15 @@ Never released in *PyPi*, just for fixes for WebStamper and the site for "Toketo
 v1.7.4, 15 Nov 2017: "Toketos"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - feat(dice, :gh:`447`): Allow skipping ``tsend -n`` command to facilitate
-  :term:`WebStamper`, and transition from ``tagged`` --> ``sample`` / ``nosample``.
+  WebStamper, and transition from ``tagged`` --> ``sample`` / ``nosample``.
 
 - fix(co2p, :gh:`448`): `tparse` checks stamp is on last-tag (unless forced).
   Was a "Known limitation" of previous versions.
 
 v1.7.3.post0, 16 Oct 2017
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-- feat(co2p): The new option ``--recertify`` to ``co2dice project append`` allows to extend
-  certification files for some vehile-family with new ones
+- feat(co2p): The new option ``--recertify`` to ``co2dice project append`` allows
+  to extend certification files for some vehile-family with new ones
 
   .. Note::
      The old declaration-files are ALWAYS retained in the history of "re-certified"
@@ -773,8 +771,8 @@ v1.7.3, 16 August 2017: "T-REA" Release
 - Includes changes also from **RETRACTED** ``v1.6.1.post0``, 13 July 2017,
   "T-bone" release.
 
-The Dice:
-~~~~~~~~~
+DICE
+~~~~
 - feat(config): stop accepting test-key (``'CBBB52FF'``); you would receive this
   error message::
 
