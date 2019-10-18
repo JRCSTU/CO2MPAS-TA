@@ -195,6 +195,22 @@ def _check_has_torque_converter(data, *args):
         return s, msg
 
 
+# noinspection PyUnusedLocal
+def _check_relative_electric_energy_change(data, *args):
+    c = ('relative_electric_energy_change', 'transition_cycle_index')
+    try:
+        reec, n = sh.selector(c, data, output_type='list')
+        b = np.array(reec) < .04
+        if not (b.shape[0] and b.sum() == 1 and b[-1]):
+            msg = '{} must have only the last value <.04!'.format(c[0])
+            return c[:-1], msg
+        if len(reec) != n + 1:
+            msg = '`len({}) != {} + 1`!'.format(*c)
+            return c, msg
+    except KeyError:  # `c` is not in `data`.
+        pass
+
+
 def _hard_validation(data, usage, stage=None, cycle=None, *args):
     if usage in ('input', 'target', 'meta'):
         checks = (
@@ -206,7 +222,8 @@ def _hard_validation(data, usage, stage=None, cycle=None, *args):
             _check_full_load,
             _warn_vva,
             _check_scr,
-            _check_has_torque_converter
+            _check_has_torque_converter,
+            _check_relative_electric_energy_change
         )
         for check in checks:
             c = check(data, usage, stage, cycle, *args)

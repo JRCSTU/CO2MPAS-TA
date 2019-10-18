@@ -601,8 +601,12 @@ def define_data_schema(read=True):
         'correct_start_stop_with_gears': _bool,
         'enable_phases_willans': _bool,
         'enable_willans': _bool,
+        'has_engine_idle_coasting': _bool,
+        'has_engine_off_coasting': _bool,
         'fuel_map': dictarray,
+        'transition_cycle_index': positive_int,
         'alternator_charging_currents': tuplefloat2,
+        'relative_electric_energy_change': tuplefloat,
         'alternator_current_model': _alternator_current_model(read=read),
         'dcdc_current_model': _alternator_current_model(read=read),
         'service_battery_status_model': _service_battery_status_model(
