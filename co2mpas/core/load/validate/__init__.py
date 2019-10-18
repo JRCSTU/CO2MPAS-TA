@@ -197,21 +197,11 @@ def validate_dice(dice=None):
         Validated DICE data.
     :rtype: dict
     """
-    from ..schema import define_dice_schema
-    inputs, errors, validate = {}, {}, define_dice_schema().validate
-    for k, v in sorted((dice or {}).items()):
-        _add_validated_input(inputs, validate, ('dice', k), v, errors)
-
-    if inputs.get('extension') and inputs.get('wltp_retest', '-') != '-':
-        sh.get_nested_dicts(errors, 'dice')['extension'] = (
-            "Invalid combination `dice.extension == True` and "
-            "`dice.wltp_retest != '-'`. Please set `dice.extension = False` "
-            "or set `dice.wltp_retest = '-'`!"
-        )
-
-    if _log_errors_msg(errors):
-        return sh.NONE
-    return inputs
+    try:
+        from co2mpas_dice.verify import validate_dice
+        return validate_dice(dice)
+    except ImportError:
+        return dice or {}
 
 
 @sh.add_function(dsp, outputs=['is_hybrid'], **_kw)
