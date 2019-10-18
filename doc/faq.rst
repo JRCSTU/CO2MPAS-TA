@@ -50,8 +50,8 @@ Visit our GitHub repository
 `CO2MPAS-TA <https://github.com/JRCSTU/CO2MPAS-TA/>`_ to download |CO2MPAS| .
 Subscribe to  `issue #8 <https://github.com/JRCSTU/CO2MPAS-TA/issues/8>`_ 
 to get notifications for the new |CO2MPAS| releases.
-** You can find the documentation in the
-`wiki <https://github.com/JRCSTU/CO2MPAS-TA/wiki/>`_. **
+You can find the documentation in the
+`wiki <https://github.com/JRCSTU/CO2MPAS-TA/wiki/>`_ .
 
 Is |CO2MPAS| free and will it be in the future?
 -----------------------------------------------
@@ -65,8 +65,8 @@ What is |CO2MPAS| physical background and which formulas are applied?
 ---------------------------------------------------------------------
 |CO2MPAS| is a backward-looking longitudinal-dynamics |CO2| and
 fuel-consumption simulator for light-duty M1 & N1 vehicles (cars and vans).
-**To check the formulas the user can visit the functions' 
-description pages: .....** 
+To check the formulas the user can visit the
+`functions' description pages <https://co2mpas.readthedocs.io/en/stable/tutorial.html#co2mpas-model>`_.
 
 Where can the user find information on the status of the validation?
 --------------------------------------------------------------------
@@ -135,8 +135,10 @@ official laboratory-measured ones.
 The user can input the velocity profile followed, road grade, 
 extra auxiliaries losses, extra passengers, different road loads, temperatures, 
 etc. 
-The user will find an example file when downloading the demo files. 
-**Also, please check the instructions.**        
+The user will find an example file when downloading the
+`demo <https://co2mpas.readthedocs.io/en/stable/tutorial.html#download-demo-files>`_
+files.
+
 
 Is the usage of internal / development signals allowed (if equivalence is shown)?
 ---------------------------------------------------------------------------------
