@@ -328,7 +328,7 @@ def predict_after_treatment_warm_up_phases(
     :rtype: numpy.array
     """
     phases = np.zeros_like(times, bool)
-    if after_treatment_warm_up_duration:
+    if after_treatment_warm_up_duration and on_engine.any():
         indices = co2_utl.index_phases(on_engine)
         indices = indices[np.append(not is_cycle_hot, np.diff(
             times[indices].ravel()
