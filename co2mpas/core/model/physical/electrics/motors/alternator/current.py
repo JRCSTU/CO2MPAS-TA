@@ -88,14 +88,15 @@ class AlternatorCurrentModel:
 
     # noinspection PyProtectedMember
     def _fit_model(self, X, Y, in_mask=(), out_mask=()):
-        opt = {
-            'random_state': 0,
-            'max_depth': 2,
-            'n_estimators': int(min(300.0, 0.25 * (len(X) - 1))) or 1
-        }
         from sklearn.pipeline import Pipeline
         from ....engine._thermal import _SelectFromModel
-        model = self.base_model(**opt)
+        # noinspection PyArgumentEqualDefault
+        model = self.base_model(
+            random_state=0,
+            max_depth=2,
+            objective='reg:squarederror',
+            n_estimators=int(min(300.0, 0.25 * (len(X) - 1))) or 1
+        )
         model = Pipeline([
             ('feature_selection', _SelectFromModel(
                 model, '0.8*median', in_mask=in_mask, out_mask=out_mask

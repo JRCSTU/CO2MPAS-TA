@@ -134,7 +134,9 @@ class ThermalModel:
         from sklearn.pipeline import Pipeline
         # noinspection PyArgumentEqualDefault
         opt = dict(
-            base_estimator=_XGBRegressor(random_state=0),
+            base_estimator=_XGBRegressor(
+                random_state=0, objective='reg:squarederror'
+            ),
             random_state=0, min_samples=0.85, max_trials=10
         )
         t = np.append(

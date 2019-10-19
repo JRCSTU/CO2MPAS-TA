@@ -83,7 +83,8 @@ def calibrate_clutch_speed_model(
         mdl = _XGBRegressor(
             max_depth=2,
             n_estimators=int(min(300., 0.25 * (len(y) - 1))),
-            random_state=0
+            random_state=0,
+            objective='reg:squarederror'
         )
         mdl = Pipeline([
             ('feature_selection', _SelectFromModel(mdl, '0.8*median')),

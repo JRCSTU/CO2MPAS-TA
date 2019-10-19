@@ -172,7 +172,7 @@ if __name__ == '__main__':
             'schema',
             'scipy',
             'wltp<1',
-            'xgboost<=0.82',
+            'xgboost>=0.90',
             'statsmodels'
         ],
         entry_points={

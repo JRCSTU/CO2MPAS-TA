@@ -45,7 +45,8 @@ class CVT:
         self.model = self.base_model(
             random_state=0,
             max_depth=3,
-            n_estimators=int(min(300.0, 0.25 * (len(y) - 1)))
+            n_estimators=int(min(300.0, 0.25 * (len(y) - 1))),
+            objective='reg:squarederror'
         )
         self.model.fit(X, y)
         return self
