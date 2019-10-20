@@ -81,11 +81,12 @@ following steps:
 
 Download demo files
 -------------------
-|co2mpas| contains 3 demo-files that can be used as a starting point to try out:
+|co2mpas| contains 4 demo-files that can be used as a starting point to try out:
 
 1. *co2mpas_conventional.xlsx*: conventional vehicle,
 2. *co2mpas_simplan.xlsx*: sample simulation plan,
-3. *co2mpas_hybrid.xlsx*: hybrid parallel vehicle.
+3. *co2mpas_hybrid.xlsx*: hybrid parallel vehicle,
+4. *co2mpas_plugin.xlsx*: hybrid plugin vehicle.
 
 Check the video to see how to download them. For more information use the
 command ``co2mpas demo -h`` or check the

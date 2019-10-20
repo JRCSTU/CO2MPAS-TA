@@ -31,12 +31,13 @@ I/O Data & Demo
 The input excel file has been updated to version 3.1.0. (:gh:`544`), as per the
 2019 amendments to Regulations (EU) 2017/1152 and 2017/1153.
 
-The demo files have been reviewed and now 3 files are available
+The demo files have been reviewed and now four files are available
 (:gh:`544`, :gh:`538`):
 
     1. *co2mpas_conventional.xlsx*: conventional vehicle,
     2. *co2mpas_simplan.xlsx*: sample simulation plan,
     3. *co2mpas_hybrid.xlsx*: hybrid parallel vehicle.
+    4. *co2mpas_plugin.xlsx*: hybrid plugin vehicle.
 
 Model
 ^^^^^
