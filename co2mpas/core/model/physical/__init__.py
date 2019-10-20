@@ -546,18 +546,19 @@ dsp.add_dispatcher(
         'co2_emission_EUDC', 'engine_max_power', 'engine_stroke', 'engine_type',
         'atct_family_correction_factor', 'cycle_type', 'distances', 'is_hybrid',
         'drive_battery_delta_state_of_charge', 'after_treatment_warm_up_phases',
+        'drive_battery_nominal_voltage', 'drive_battery_capacity', 'is_plugin',
         'service_battery_electric_powers', 'force_on_engine', 'co2_emissions',
-        'drive_battery_nominal_voltage', 'drive_battery_electric_powers',
-        'kco2_wltp_correction_factor', 'kco2_nedc_correction_factor',
-        'drive_battery_capacity', 'accelerations',
+        'drive_battery_electric_powers', 'kco2_wltp_correction_factor',
+        'kco2_nedc_correction_factor', 'accelerations',
     ),
     outputs=(
         'phases_willans_factors', 'phases_co2_emissions', 'fuel_carbon_content',
         'fuel_carbon_content_percentage', 'phases_distances', 'willans_factors',
+        'declared_sustaining_co2_emission_value', 'kco2_wltp_correction_factor',
         'corrected_co2_emission_value', 'rcb_correction', 'fuel_heating_value',
         'declared_co2_emission_value', 'co2_emission_value', 'phases_indices',
         'phases_fuel_consumptions', 'optimal_efficiency', 'ki_multiplicative',
-        'kco2_wltp_correction_factor', 'kco2_nedc_correction_factor',
+        'kco2_nedc_correction_factor',
     )
 )
 

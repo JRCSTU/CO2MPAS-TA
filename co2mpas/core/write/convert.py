@@ -266,7 +266,9 @@ def _summary_map():
         'co2_emission_UDC': 'UDC',
         'co2_emission_EUDC': 'EUDC',
         'co2_emission_value': 'value',
-        'declared_co2_emission_value': 'declared_value',
+        'declared_co2_emission_value': 'value',
+        'corrected_co2_emission_value': 'value',
+        'declared_sustaining_co2_emission_value': 'value',
         'vehicle_mass': 'mass',
     }
     return _map

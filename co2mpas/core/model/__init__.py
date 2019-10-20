@@ -58,7 +58,7 @@ _prediction_data = [
     'motor_p3_front_speed_ratio', 'motor_p3_rear_speed_ratio',
     'motor_p4_front_speed_ratio', 'motor_p4_rear_speed_ratio',
     'rcb_correction', 'speed_distance_correction',
-    'atct_family_correction_factor'
+    'atct_family_correction_factor', 'is_plugin'
 ]
 
 _prediction_data_ts = ['times', 'velocities', 'gears']

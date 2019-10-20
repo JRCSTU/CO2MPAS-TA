@@ -61,7 +61,7 @@ def _log_errors_msg(errors):
 
 def _mode_parser(
         type_approval_mode, declaration_mode, hard_validation, inputs, errors,
-        is_hybrid=None):
+        is_hybrid=None, is_plugin=None):
     """
     Parse input data for the declaration mode.
 
@@ -93,7 +93,8 @@ def _mode_parser(
     if type_approval_mode or declaration_mode:
         from co2mpas_dice.declaration import declaration_validation
         inputs, errors = declaration_validation(
-            type_approval_mode, inputs, errors, is_hybrid=is_hybrid
+            type_approval_mode, inputs, errors, is_hybrid=is_hybrid,
+            is_plugin=is_plugin
         )
 
     if hard_validation:
@@ -108,14 +109,18 @@ _kw = dict(inputs_kwargs=True, inputs_defaults=True)
 
 @sh.add_function(dsp, outputs=['validated_base'], **_kw)
 def validate_base(
-        is_hybrid, base=None, declaration_mode=False, hard_validation=False,
-        enable_selector=False, type_approval_mode=False):
+        is_hybrid, is_plugin, base=None, declaration_mode=False,
+        hard_validation=False, enable_selector=False, type_approval_mode=False):
     """
     Validate base data.
 
     :param is_hybrid:
         Is the vehicle hybrid?
     :type is_hybrid: bool
+
+    :param is_plugin:
+        Is the vehicle plugin hybrid?
+    :type is_plugin: bool
 
     :param base:
         Base data.
@@ -144,7 +149,8 @@ def validate_base(
     i, e = _validate_base_with_schema(base or {})
 
     i, e = _mode_parser(
-        type_approval_mode, declaration_mode, hard_validation, i, e, is_hybrid
+        type_approval_mode, declaration_mode, hard_validation, i, e, is_hybrid,
+        is_plugin
     )
 
     if _log_errors_msg(e):
@@ -204,8 +210,8 @@ def validate_dice(dice=None):
         return dice or {}
 
 
-@sh.add_function(dsp, outputs=['is_hybrid'], **_kw)
-def get_is_hybrid(validated_dice):
+@sh.add_function(dsp, outputs=['is_hybrid', 'is_plugin'], **_kw)
+def get_is_hybrid_and_is_plugin(validated_dice):
     """
     Return if the vehicle is hybrid.
 
@@ -214,10 +220,10 @@ def get_is_hybrid(validated_dice):
     :type validated_dice: dict
 
     :return:
-        Is the vehicle hybrid?
+        Is the vehicle hybrid and plugin?
     :rtype: bool
     """
-    return validated_dice.get('is_hybrid')
+    return validated_dice.get('is_hybrid'), validated_dice.get('is_plugin')
 
 
 @sh.add_function(dsp, outputs=['validated_flag'], **_kw)
@@ -256,14 +262,18 @@ def validate_flag(flag=None, declaration_mode=False, type_approval_mode=False):
 
 @sh.add_function(dsp, outputs=['validated_plan'], **_kw)
 def validate_plan(
-        is_hybrid, plan=None, declaration_mode=False, hard_validation=False,
-        type_approval_mode=False):
+        is_hybrid, is_plugin, plan=None, declaration_mode=False,
+        hard_validation=False, type_approval_mode=False):
     """
     Validate plan data.
 
     :param is_hybrid:
         Is the vehicle hybrid?
     :type is_hybrid: bool
+
+    :param is_plugin:
+        Is the vehicle plugin hybrid?
+    :type is_plugin: bool
 
     :param plan:
         Plan data.
@@ -311,7 +321,7 @@ def validate_plan(
 
         e = _mode_parser(
             type_approval_mode, declaration_mode, hard_validation, i, e,
-            is_hybrid
+            is_hybrid, is_plugin
         )[1]
         add(sh.combine_dicts({'data': data}, base=sh.selector(keys, d)))
 

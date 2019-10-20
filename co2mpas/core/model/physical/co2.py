@@ -726,10 +726,18 @@ dsp.add_function(
     outputs=['corrected_co2_emission_value'],
     input_domain=_domain_calculate_corrected_co2_emission_for_conventional_nedc
 )
+dsp.add_data('is_plugin', dfl.values.is_plugin)
 dsp.add_function(
-    function=sh.bypass,
-    inputs=['corrected_co2_emission_value'],
-    outputs=['declared_co2_emission_value']
+    function=sh.add_args(sh.bypass),
+    inputs=['is_plugin', 'corrected_co2_emission_value'],
+    outputs=['declared_co2_emission_value'],
+    input_domain=co2_utl.check_first_arg_false
+)
+dsp.add_function(
+    function=sh.add_args(sh.bypass),
+    inputs=['is_plugin', 'corrected_co2_emission_value'],
+    outputs=['declared_sustaining_co2_emission_value'],
+    input_domain=co2_utl.check_first_arg
 )
 
 
