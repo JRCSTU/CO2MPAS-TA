@@ -118,14 +118,15 @@ Install extras
 ^^^^^^^^^^^^^^
 Some additional functionality is enabled installing the following extras:
 
-- cli: enables the command line interface.
-- sync: enables the time series synchronization tool (i.e., ``syncing``
-  previously named ``datasync``).
-- gui: enables the graphical user interface.
-- plot: enables to plot the |co2mpas| model and the workflow of each run.
-- io: enables to read/write excel files.
-- dice: enables the Type Approval mode.
-- driver: enables the driver model.
+- ``cli``: enables the command line interface.
+- ``sync``: enables the time series synchronization tool (i.e.,
+  `syncing <https://github.com/vinci1it2000/syncing>`_ previously named
+  ``datasync``).
+- ``gui``: enables the graphical user interface.
+- ``plot``: enables to plot the |co2mpas| model and the workflow of each run.
+- ``io``: enables to read/write excel files.
+- ``dice``: enables the Type Approval mode.
+- ``driver``: enables the driver model.
 
 To install co2mpas and all extras, do:
 
