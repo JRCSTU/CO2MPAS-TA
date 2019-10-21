@@ -61,40 +61,12 @@ def _log_errors_msg(errors):
 
 def _mode_parser(
         type_approval_mode, declaration_mode, hard_validation, inputs, errors,
-        is_hybrid=None, is_plugin=None):
-    """
-    Parse input data for the declaration mode.
-
-    :param type_approval_mode:
-        Is launched for TA?
-    :type type_approval_mode: bool
-
-    :param declaration_mode:
-        Use only the declaration data.
-    :type declaration_mode: bool
-
-    :param hard_validation:
-        Add extra data validations.
-    :type hard_validation: bool
-
-    :param inputs:
-        Input data.
-    :type inputs: dict
-
-    :param errors:
-        Errors container.
-    :type errors: dict
-
-    :return:
-        Parsed input data and errors container.
-    :rtype: dict, dict
-    """
+        input_type=None):
 
     if type_approval_mode or declaration_mode:
         from co2mpas_dice.declaration import declaration_validation
         inputs, errors = declaration_validation(
-            type_approval_mode, inputs, errors, is_hybrid=is_hybrid,
-            is_plugin=is_plugin
+            type_approval_mode, inputs, errors, input_type=input_type
         )
 
     if hard_validation:
@@ -109,18 +81,14 @@ _kw = dict(inputs_kwargs=True, inputs_defaults=True)
 
 @sh.add_function(dsp, outputs=['validated_base'], **_kw)
 def validate_base(
-        is_hybrid, is_plugin, base=None, declaration_mode=False,
-        hard_validation=False, enable_selector=False, type_approval_mode=False):
+        input_type, base=None, declaration_mode=False, hard_validation=False,
+        enable_selector=False, type_approval_mode=False):
     """
     Validate base data.
 
-    :param is_hybrid:
-        Is the vehicle hybrid?
-    :type is_hybrid: bool
-
-    :param is_plugin:
-        Is the vehicle plugin hybrid?
-    :type is_plugin: bool
+    :param input_type:
+        Type of file input.
+    :type input_type: str
 
     :param base:
         Base data.
@@ -149,8 +117,7 @@ def validate_base(
     i, e = _validate_base_with_schema(base or {})
 
     i, e = _mode_parser(
-        type_approval_mode, declaration_mode, hard_validation, i, e, is_hybrid,
-        is_plugin
+        type_approval_mode, declaration_mode, hard_validation, i, e, input_type
     )
 
     if _log_errors_msg(e):
@@ -210,20 +177,20 @@ def validate_dice(dice=None):
         return dice or {}
 
 
-@sh.add_function(dsp, outputs=['is_hybrid', 'is_plugin'], **_kw)
-def get_is_hybrid_and_is_plugin(validated_dice):
+@sh.add_function(dsp, outputs=['input_type'], **_kw)
+def get_input_type(validated_dice):
     """
-    Return if the vehicle is hybrid.
+    Return the input type.
 
     :param validated_dice:
         Validated DICE data.
     :type validated_dice: dict
 
     :return:
-        Is the vehicle hybrid and plugin?
-    :rtype: bool
+        Type of file input.
+    :rtype: str
     """
-    return validated_dice.get('is_hybrid'), validated_dice.get('is_plugin')
+    return validated_dice.get('input_type')
 
 
 @sh.add_function(dsp, outputs=['validated_flag'], **_kw)
@@ -262,18 +229,14 @@ def validate_flag(flag=None, declaration_mode=False, type_approval_mode=False):
 
 @sh.add_function(dsp, outputs=['validated_plan'], **_kw)
 def validate_plan(
-        is_hybrid, is_plugin, plan=None, declaration_mode=False,
-        hard_validation=False, type_approval_mode=False):
+        input_type, plan=None, declaration_mode=False, hard_validation=False,
+        type_approval_mode=False):
     """
     Validate plan data.
 
-    :param is_hybrid:
-        Is the vehicle hybrid?
-    :type is_hybrid: bool
-
-    :param is_plugin:
-        Is the vehicle plugin hybrid?
-    :type is_plugin: bool
+    :param input_type:
+        Type of file input.
+    :type input_type: str
 
     :param plan:
         Plan data.
@@ -321,7 +284,7 @@ def validate_plan(
 
         e = _mode_parser(
             type_approval_mode, declaration_mode, hard_validation, i, e,
-            is_hybrid, is_plugin
+            input_type
         )[1]
         add(sh.combine_dicts({'data': data}, base=sh.selector(keys, d)))
 
