@@ -676,9 +676,6 @@ dsp.add_data(
 )
 
 
-@sh.add_function(
-    dsp, inputs_kwargs=True, outputs=['corrected_co2_emission_value']
-)
 def calculate_corrected_co2_emission(
         rcb_corrected_co2_emission_value, ki_multiplicative, ki_additive,
         atct_family_correction_factor=1.0):
@@ -711,6 +708,27 @@ def calculate_corrected_co2_emission(
     return v * atct_family_correction_factor
 
 
+dsp.add_data('is_plugin', dfl.values.is_plugin)
+dsp.add_function(
+    function=sh.add_args(calculate_corrected_co2_emission),
+    inputs=[
+        'is_plugin', 'rcb_corrected_co2_emission_value', 'ki_multiplicative',
+        'ki_additive', 'atct_family_correction_factor'
+    ],
+    outputs=['corrected_co2_emission_value'],
+    input_domain=co2_utl.check_first_arg_false
+)
+dsp.add_function(
+    function=sh.add_args(calculate_corrected_co2_emission),
+    inputs=[
+        'is_plugin', 'rcb_corrected_co2_emission_value', 'ki_multiplicative',
+        'ki_additive', 'atct_family_correction_factor'
+    ],
+    outputs=['corrected_sustaining_co2_emission_value'],
+    input_domain=co2_utl.check_first_arg
+)
+
+
 # noinspection PyUnusedLocal
 def _domain_calculate_corrected_co2_emission_for_conventional_nedc(
         cycle_type, is_hybrid, *args):
@@ -726,18 +744,15 @@ dsp.add_function(
     outputs=['corrected_co2_emission_value'],
     input_domain=_domain_calculate_corrected_co2_emission_for_conventional_nedc
 )
-dsp.add_data('is_plugin', dfl.values.is_plugin)
 dsp.add_function(
-    function=sh.add_args(sh.bypass),
-    inputs=['is_plugin', 'corrected_co2_emission_value'],
-    outputs=['declared_co2_emission_value'],
-    input_domain=co2_utl.check_first_arg_false
+    function=sh.bypass,
+    inputs=['corrected_co2_emission_value'],
+    outputs=['declared_co2_emission_value']
 )
 dsp.add_function(
-    function=sh.add_args(sh.bypass),
-    inputs=['is_plugin', 'corrected_co2_emission_value'],
-    outputs=['declared_sustaining_co2_emission_value'],
-    input_domain=co2_utl.check_first_arg
+    function=sh.bypass,
+    inputs=['corrected_sustaining_co2_emission_value'],
+    outputs=['declared_sustaining_co2_emission_value']
 )
 
 

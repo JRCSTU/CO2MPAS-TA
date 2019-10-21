@@ -173,7 +173,8 @@ def _get_phases_values(data, what='co2_emission', base=None):
 def _get_summary_results(data):
     res = {}
     for k in ('declared_co2_emission', 'corrected_co2_emission', 'co2_emission',
-              'fuel_consumption', 'declared_sustaining_co2_emission'):
+              'fuel_consumption', 'declared_sustaining_co2_emission',
+              'corrected_sustaining_co2_emission'):
         _get_phases_values(data, what=k, base=res)
     keys = ('f0', 'f1', 'f2', 'vehicle_mass', 'gear_box_type', 'has_start_stop',
             'r_dynamic', 'ki_multiplicative', 'ki_addittive', 'fuel_type',

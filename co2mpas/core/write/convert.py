@@ -268,6 +268,7 @@ def _summary_map():
         'co2_emission_value': 'value',
         'declared_co2_emission_value': 'value',
         'corrected_co2_emission_value': 'value',
+        'corrected_sustaining_co2_emission_value': 'value',
         'declared_sustaining_co2_emission_value': 'value',
         'vehicle_mass': 'mass',
     }
