@@ -101,10 +101,12 @@ based on the `2.0.0, 31-Aug-2018: "Unleash" Release
 <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r2.0.0>`_, launched
 on 1 September 2018. There are two options for installation:
 
-  1. Install it in your current working `AIO-v2.0.0 <https://github.com/JRCSTU/co2mpas/releases/tag/co2mpas-r2.0.0>`_.
-  2. **Preferably** in a clean `AIO-v2.0.0 <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r2.0.0>`_,
+  1. Install it in your current working `AIO-v2.0.0`_.
+  2. **Preferably** in a clean `AIO-v2.0.0`_,
      to have the possibility to use the old |co2mpas|-v2.0.0 + DICE2 for the
      two-week overlapping period;
+
+.. _AIO-v2.0.0: https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r2.0.0
 
 - To install:
    ```console
@@ -288,9 +290,9 @@ Dice
 
    co2dice dicer -i co2mpas_demo-1.xlsx -o O/20180812_213917-co2mpas_demo-1.xlsx
 
-  Specifically when the project exists, e.g. when clicking again the *GUI-button,
-  it compares the given files *bit-by-bit* with the ones present already in the
-  project, and proceeds *only when there are no differences.
+  Specifically when the project exists, e.g. when clicking again the
+  *GUI-button*, it compares the given files *bit-by-bit* with the ones present
+  already in the project, and proceeds *only when there are no differences*.
   Otherwise (or on network error), falling back to cli commands is needed,
   similar to what is done with abnormal cases such as ``--recertify``,
   over-writing files, etc.
@@ -333,6 +335,7 @@ Dice
 
       co2dice report extract  # that's the old `co2dice report`
       co2dice report unlock   # unlocks encrypted inputs in dice/stamps
+
 - feat(dice): all dice commands accept ``--quiet/-q`` option that
   along with ``--verbose/-v`` they control the eventual logging-level.
 
@@ -371,6 +374,7 @@ Known Limitations
 - Reproducibility of results has been greatly enhanced, with quasi-identical
   results in different platforms (*linux/Windows*).
 - DICE:
+
   - Fixed known limitation of `1.7.3` (:gh:`448`) of importing stamps from an
     older duplicate dice.
   - It is not possible to ``-recertify`` from ``nedc`` state (when mored files
