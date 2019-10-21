@@ -8,3 +8,5 @@
     - Dimitrios Komnos <dimitrios.komnos@ext.ec.europa.eu>
     - Ignacio Iker Prado Rujas <Ignacio-Iker.Prado-Rujas@ext.ec.europa.eu>
     - Kostis Anagnostopoulos <kostis.anagnostopoulos@ext.ec.europa.eu>
+    - Francesca Saporiti <francesca.saporiti@ext.ec.europa.eu>
+    - Alessandro Tansini <alessandro.tansini@ec.europa.eu>
