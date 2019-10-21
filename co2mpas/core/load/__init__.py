@@ -136,6 +136,10 @@ if _dice is not None:
         filters=[functools.partial(sh.map_list, [{}, 'dice'])],
         input_domain=functools.partial(check_file_format, ext=('.co2mpas',))
     )
+else:
+    dsp.add_data(
+        'encryption_keys_passwords', description='Encryption keys passwords.'
+    )
 
 
 @sh.add_function(dsp, inputs_kwargs=True, outputs=['data'])

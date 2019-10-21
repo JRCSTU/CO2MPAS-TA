@@ -125,6 +125,12 @@ if _dice is not None:
         outputs=_out,
         input_domain=check_first_arg
     )
+else:
+    dsp.add_data('base', description='Base data.')
+    dsp.add_data('excel_input', description='Excel input file.')
+    dsp.add_data('encryption_keys', description='Encryption keys for TA mode.')
+    dsp.add_data('meta', description='Meta data.')
+    dsp.add_data('sign_key', description='User signature key for TA mode.')
 
 
 @sh.add_function(dsp)
