@@ -220,7 +220,7 @@ class Functions(co2_utl.Constants):
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class calculate_cylinder_deactivation_valid_phases(co2_utl.Constants):
         #: Engine inertia  [kW].
-        LIMIT = 0.3
+        LIMIT = 0.0001
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class calculate_drive_battery_n_parallel_cells_v1(co2_utl.Constants):
