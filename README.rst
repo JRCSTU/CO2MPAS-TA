@@ -8,19 +8,21 @@
 |co2mpas|: Vehicle simulator predicting NEDC |CO2| emissions from WLTP
 ######################################################################
 
-:official:      | `3.0.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-v3.0.0>`_: from 01-Feb-2019 to 20-Oct-2019
-                | `4.1.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r4.1.4>`_: from 28-Oct-2019
-:release:       4.1.4
-:rel_date:      2019-10-21 01:40:00
-:home:          http://co2mpas.io/
-:repository:    https://github.com/JRCSTU/CO2MPAS-TA
-:pypi-repo:     https://pypi.org/project/co2mpas/
-:keywords:      CO2, fuel-consumption, WLTP, NEDC, vehicle, automotive,
-                EU, JRC, IET, STU, correlation, back-translation, policy,
-                monitoring, M1, N1, simulator, engineering, scientific
-:developers:    .. include:: AUTHORS.rst
-:copyright:     2015-2019 European Commission (`JRC <https://ec.europa.eu/jrc/>`_)
-:license:       `EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_
+:official:         | `3.0.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-v3.0.0>`_: from 01-Feb-2019 to 20-Oct-2019
+                   | `4.1.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-r4.1.4>`_: from 28-Oct-2019
+:release:          4.1.4
+:rel_date:         2019-10-21 01:40:00
+:home:             http://co2mpas.readthedocs.io/
+:repository:       https://github.com/JRCSTU/CO2MPAS-TA
+:pypi-repo:        https://pypi.org/project/co2mpas/
+:keywords:         CO2, fuel-consumption, WLTP, NEDC, vehicle, automotive,
+                   EU, JRC, IET, STU, correlation, back-translation, policy,
+                   monitoring, M1, N1, simulator, engineering, scientific
+:mail box:         |CO2MPAS| Team: <JRC-CO2MPAS@ec.europa.eu>
+:current devel:    .. include:: AUTHORS.rst
+:past devel:       .. include:: PAST_AUTHORS.rst
+:copyright:        2015-2019 European Commission (`JRC <https://ec.europa.eu/jrc/>`_)
+:license:          `EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_
 
 .. _end-info:
 .. _start-intro:

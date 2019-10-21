@@ -1,12 +1,11 @@
-- CO\ :sub:`2`\ MPAS-Team <JRC-CO2MPAS@ec.europa.eu>:
-    - Vincenzo Arcidiacono <vincenzo.arcidiacono@ext.ec.europa.eu>
-    - Stefanos Tsiamakis <stefanos.tsiakmakis@jrc.ec.europa.eu>
-    - Georgios Fontaras <georgios.fontaras@ec.europa.eu>
-    - Biagio Ciuffo <biagio.ciuffo@ec.europa.eu>
-    - Victor Valverde <victor.valverde-morales@ec.europa.eu>
-    - Jelica Pavlovic <jelica.pavlovic@ec.europa.eu>
-    - Dimitrios Komnos <dimitrios.komnos@ext.ec.europa.eu>
-    - Ignacio Iker Prado Rujas <Ignacio-Iker.Prado-Rujas@ext.ec.europa.eu>
-    - Kostis Anagnostopoulos <kostis.anagnostopoulos@ext.ec.europa.eu>
-    - Francesca Saporiti <francesca.saporiti@ext.ec.europa.eu>
-    - Alessandro Tansini <alessandro.tansini@ec.europa.eu>
+    - Anagnostopoulos Kostis <ankostis@gmail>
+    - Arcidiacono Vincenzo <vincenzo.arcidiacono@ext.ec.europa.eu>
+    - Ciuffo Biagio <biagio.ciuffo@ec.europa.eu>
+    - Corsi Stefano <stefano.corsi@ext.ec.europa.eu>
+    - Fontaras Georgios <georgios.fontaras@ec.europa.eu>
+    - Komnos Dimitrios <dimitrios.komnos@ext.ec.europa.eu>
+    - Pavlovic Jelica <jelica.pavlovic@ec.europa.eu>
+    - Prado Rujas Ignacio Iker<iker.prado-rujas@ext.ec.europa.eu>
+    - Saporiti Francesca <francesca.saporiti@ext.ec.europa.eu>
+    - Tansini Alessandro <alessandro.tansini@ec.europa.eu>
+
