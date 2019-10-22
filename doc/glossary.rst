@@ -113,7 +113,7 @@ Model Inputs
 
     ``final_drive_ratio``
         It is the ratio of gearbox output shaft to driven wheel revolutions. If
-        the vehicle has more than 1 final drive ratio, it has to be left blank
+        the vehicle has more than one final drive ratio, it has to be left blank
         and use the ``final_drive_ratios``.
 
     ``final_drive_ratios``
@@ -473,8 +473,10 @@ Model Inputs
 
     ``motor_p3_front_speed_ratio``
         The ratio between motor P3 front speed and final drive input speed [-]
-        (motor P3 front speed is proportional to wheels rotational speed
-        multiplied by the final drive ratio).
+        (motor P3 front speed is equal to wheels rotational speed multiplied by
+        the final drive ratio and ), where final drive input speed is
+        the rotational speed of the shaft downstream the gearbox (therefore it's
+        part of the engine driveline).
 
     ``motor_p3_rear_maximum_power``
         Maximum power (i.e., the rated power) output of motor P3 rear [kW].
@@ -485,23 +487,33 @@ Model Inputs
     ``motor_p3_rear_speed_ratio``
         The ratio between motor P3 rear speed and final drive input speed [-]
         (motor P3 rear speed is proportional to wheels rotational speed
-        multiplied by the final drive ratio).
+        multiplied by the final drive ratio), where final drive input speed is
+        the rotational speed of the shaft downstream the gearbox (therefore it's
+        part of the engine driveline).
 
     ``motor_p4_front_maximum_power``
         Maximum power (i.e., the rated power) output of motor P4 front [kW].
+        When two P4 motors are present on the same axle, their specifications
+        have to be combined to obtain an equivalent single motor in P4 position.
 
     ``motor_p4_front_maximum_torque``
-        Maximum torque output of motor P4 front [Nm].
+        Maximum torque output of motor P4 front [Nm]. When two P4 motors are
+        present on the same axle, their specifications have to be combined to
+        obtain an equivalent single motor in P4 position.
 
     ``motor_p4_front_speed_ratio``
         The ratio between motor P4 front speed and wheels speed [-] (motor P4
         front speed is proportional to wheels rotational speed).
 
     ``motor_p4_rear_maximum_power``
-        Maximum power (i.e., the rated power) output of motor P4 rear [kW].
+        Maximum power (i.e., the rated power) output of motor P4 rear [kW]. When
+        two P4 motors are present on the same axle, their specifications have to
+        be combined to obtain an equivalent single motor in P4 position.
 
     ``motor_p4_rear_maximum_torque``
-        Maximum torque output of motor P4 rear [Nm].
+        Maximum torque output of motor P4 rear [Nm]. When two P4 motors are
+        present on the same axle, their specifications have to be combined to
+        obtain an equivalent single motor in P4 position.
 
     ``motor_p4_rear_speed_ratio``
         The ratio between motor P4 rear speed and wheels speed [-] (motor P4
