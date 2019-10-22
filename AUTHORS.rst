@@ -1,4 +1,4 @@
-    - Anagnostopoulos Kostis <ankostis@gmail>
+    - Anagnostopoulos Kostis <kostis.anagnostopoulos@ext.ec.europa.eu>
     - Arcidiacono Vincenzo <vincenzo.arcidiacono@ext.ec.europa.eu>
     - Ciuffo Biagio <biagio.ciuffo@ec.europa.eu>
     - Corsi Stefano <stefano.corsi@ext.ec.europa.eu>
