@@ -18,6 +18,7 @@ pdir = osp.abspath(osp.join(cdir, '../co2mpas'))
 
 @ddt.ddt
 class CLI(unittest.TestCase):
+    # noinspection PyMissingOrEmptyDocstring
     def setUp(self):
         import functools
         from co2mpas.cli import cli
@@ -65,6 +66,7 @@ class CLI(unittest.TestCase):
                     'Demo file (%s) is not as expected!' % fpath
                 )
 
+    # noinspection PyTypeChecker
     @ddt.idata((
             (osp.join(fdir, 'conventional.co2mpas.ta'), osp.join(pdir, 'demos'),
              '-EK', osp.join(fdir, 'keys/secret.co2mpas.keys'),
@@ -81,13 +83,18 @@ class CLI(unittest.TestCase):
             result = self.invoke(('run',) + options)
             self.assertEqual(result.exit_code, 0)
             cols = 'declared_value', 'prediction', 'output'
+            cols1 = ('declared_sustaining_value',) + cols[1:]
             df = pd.read_excel(
                 glob.glob(osp.join(kw['output_folder'], '*-summary.xlsx'))[0],
                 header=[0, 1, 2, 3, 4], skiprows=[5]
             )
             df.set_index(list(df.columns[:2]), inplace=True)
             df.rename_axis(['id', 'base'], inplace=True)
-            df = df.droplevel(-1).droplevel(-1, 1).swaplevel(0, -1, 1)[cols].T
+            df = df.droplevel(-1).droplevel(-1, 1).swaplevel(0, -1, 1)
+            if cols1 in df:
+                df = df[cols].fillna(value=df[cols1]).T
+            else:
+                df = df[cols].T
             cycles = {
                 tuple(map('{}-co2mpas_simplan'.format, (
                     'invert_cycles', 'rts_cycle', 'manual', 'hot',
