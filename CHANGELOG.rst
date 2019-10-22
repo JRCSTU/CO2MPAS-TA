@@ -65,7 +65,7 @@ Known Limitations
    malicious software; however, this is not to be considered harmful. If this
    happens the antivirus should be disabled when running |co2mpas|, or a special
    exclusion should be granted to the |co2mpas| executable.
-3. If Co2mpas is installed in Windows 7 not up to date, the installation process
+3. If |co2mpas| is installed in Windows 7 not up to date, the installation process
    might fail.
 
 v3.0.0 (2019-01-29): "VOLO" Release
