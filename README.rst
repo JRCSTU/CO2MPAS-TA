@@ -15,7 +15,7 @@
 :home:             http://co2mpas.readthedocs.io/
 :repository:       https://github.com/JRCSTU/CO2MPAS-TA
 :pypi-repo:        https://pypi.org/project/co2mpas/
-:keywords:         CO2, fuel-consumption, WLTP, NEDC, vehicle, automotive,
+:keywords:         |CO2|, fuel-consumption, WLTP, NEDC, vehicle, automotive,
                    EU, JRC, IET, STU, correlation, back-translation, policy,
                    monitoring, M1, N1, simulator, engineering, scientific
 :mail box:         |CO2MPAS| Team: <JRC-CO2MPAS@ec.europa.eu>
