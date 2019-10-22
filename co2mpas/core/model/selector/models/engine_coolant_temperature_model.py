@@ -37,7 +37,7 @@ targets = outputs
 metrics = sh.map_list(targets, co2_utl.mae)
 
 #: Upper score limits to raise the warnings.
-up_limit = sh.map_list(targets, 3)
+up_limit = sh.map_list(targets, 4)
 
 #: Prediction model.
 # noinspection PyProtectedMember
