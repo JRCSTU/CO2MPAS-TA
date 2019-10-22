@@ -211,7 +211,7 @@ just once and re-use them for other subsequent predictions, where only some
 inputs are different (e.g., ``times``, ``velocities``, ``vehicle_mass``, etc.).
 
 To run the simulation plan upload it as an input file, and run it as described in
-`the previous section <Engineering mode>`_ .
+the previous section (i.e., `Engineering mode`_).
 
 .. admonition:: Output files
 

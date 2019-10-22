@@ -26,7 +26,7 @@ model, regulation and inputs.
 
   - `Where to find the correlation regulation?`_
   - `Should CO2MPAS be used for each car or each family ID?`_
-  - `Is it possible to do a physical test, instead of accepting CO2MPAS results?`_
+  - `Is it possible to do a physical test instead of accepting CO2MPAS results?`_
   - `What is DICE and who should use it?`_
   - `What are the verification and deviation factors, and when do they need to be recorded?`_
 
