@@ -58,7 +58,7 @@ in eight macro-models:
   #. :py:obj:`control <control_model>`: start/stop strategy or ECMS.
 
 Model selection
----------------
+===============
 The default model selection criteria (i.e., when ``enable_selector == False``)
 are to use the calibrated models from *WLTP-H* data to predict *WLTP-H* and
 *NEDC-H* and from *WLTP_L* data to predict *WLTP-L* and *NEDC-L* (this logic is
@@ -85,8 +85,8 @@ from various metrics comparing **inputs** against **predictions**.
 .. |CO2MPAS| replace:: CO\ :sub:`2`\ MPAS
 .. |CO2| replace:: CO\ :sub:`2`
 
-Hybrid Electric Vehicles Model
-------------------------------
+Hybrid electric vehicles model
+==============================
 Hybrid Electric Vehicles (HEVs) have more complex driveline layouts and control
 strategies compared to conventional vehicles. Their driveline integrates one or
 more electric machines for supporting propulsion and/or charging the drive
@@ -99,47 +99,42 @@ many different vehicle architectures as possible through a unique driveline
 virtual architecture.
 
 Hybrid electric architectures
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------
 Three main architectures can be identified for HEVs driveline:
 
-#. Parallel
-#. Serial
-#. Planetary
-
-**Parallel** hybrids are similar to conventional vehicles as the engine produces
-mechanical power that is directly used for propulsion; also, engine rotational
-speed is a function of the rotational speed of the wheels according to the
-reduction/multiplication effect applied by final drive and gearbox
-(when present). The electrical machines are used to regenerate braking energy
-and optimise the load of the engine, but they cannot adjust the rotational speed
-of the engine when a gear is selected. **Serial** hybrids have an additional
-degree of freedom for the optimisation, as both the load and the rotational
-speed of the engine can be selected by the controller. This is possible due to
-the lack of a mechanical coupling between the engine and the wheels. Therefore,
-a serial hybrid is always propelled by the electric machines and the engine is
-used to generate electrical energy that is used for propulsion or battery
-charging. The **planetary** architecture is instead a driveline configuration
-that can accomplish, to some extent, the operation of the two architectures
-previously mentioned. The engine can provide mechanical power that is directly
-used for propulsion, but at the same time, its rotational speed can be adjusted
-by the controller becoming independent from wheel speed. This system normally
-replaces the conventional transmissions (gearboxes and CVTs) as it can adjust
-the reduction gear ratios to any wanted value, and it integrates two electric
-machines (one generating and the other one consuming electrical energy).
+#. **Parallel** hybrids are similar to conventional vehicles as the engine
+   produces mechanical power that is directly used for propulsion; also, engine
+   rotational speed is a function of the rotational speed of the wheels
+   according to the reduction/multiplication effect applied by final drive and
+   gearbox (when present). The electrical machines are used to regenerate
+   braking energy and optimise the load of the engine, but they cannot adjust
+   the rotational speed of the engine when a gear is selected.
+#. **Serial** hybrids have an additional degree of freedom for the optimisation,
+   as both the load and the rotational speed of the engine can be selected by
+   the controller. This is possible due to the lack of a mechanical coupling
+   between the engine and the wheels. Therefore, a serial hybrid is always
+   propelled by the electric machines and the engine is used to generate
+   electrical energy that is used for propulsion or battery charging.
+#. **Planetary** architecture is instead a driveline configuration that can
+   accomplish, to some extent, the operation of the two architectures previously
+   mentioned. The engine can provide mechanical power that is directly used for
+   propulsion, but at the same time, its rotational speed can be adjusted by the
+   controller becoming independent from wheel speed. This system normally
+   replaces the conventional transmissions (gearboxes and CVTs) as it can adjust
+   the reduction gear ratios to any wanted value, and it integrates two electric
+   machines (one generating and the other one consuming electrical energy).
 
 .. image:: _static/image/driveline_hybrids.png
    :width: 100%
-   :alt: |co2mpas| Driveline configurations for hybrid electric vehicles
+   :alt: |co2mpas| driveline configurations for hybrid electric vehicles
    :align: center
 
-
 Electric power system
-^^^^^^^^^^^^^^^^^^^^^
-The Electric Power System (EPS) of HEVs includes the following main components:
+---------------------
+The Electric Power System (EPS) of HEVs is composed by three main components:
 
-- Electric machines
-- Drive battery
-- Service battery
+- Electric machines (P0, P1, P2, P2_pla, P3f, P3r, P4f, and P4r),
+- Batteries (Drive and Service, i.e. high and low voltage batteries), and
 - DC/DC converter
 
 The electric machines convert electrical energy into mechanical energy when they
@@ -152,97 +147,29 @@ consumers and charge the service battery when needed.
 
 .. image:: _static/image/electric_system.png
    :width: 65%
-   :alt: |co2mpas| Electric power system for hybrid electric vehicles
+   :alt: |co2mpas| electric power system for hybrid electric vehicles
    :align: center
 
-Drive battery model
-"""""""""""""""""""
-
-The efficiency of the drive battery is modeled using the **equivalent-circuit
-cell model**. The drive battery is seen as a set of battery cells with equal
-characteristics and size, with a certain combination of cells in series and
-circuits in parallel. Each cell of the battery suffers of a power loss that is
-proportional to the cell internal resistance R0 and the current flowing through
-it, that is transformed to heat. The performance obtained by the battery is then
-calculated by considering how many cells in series and parallel are constituting
-the battery.
+The efficiency of the **drive battery** is modeled using the
+**equivalent-circuit cell model** (see image below). The drive battery is seen
+as a set of battery cells with equal characteristics and size, with a certain
+combination of cells in series and circuits in parallel. Each cell of the
+battery suffers of a power loss that is proportional to the cell internal
+resistance *R0* and the current flowing through it, that is transformed to heat.
+The performance obtained by the battery is then calculated by considering how
+many cells in series and parallel are constituting the battery.
 
 .. image:: _static/image/battery_model.png
    :width: 65%
-   :alt: |co2mpas| Drive battery efficiency modeling
+   :alt: |co2mpas| drive battery efficiency modeling
    :align: center
 
-- input: drive battery power
-- output: drive battery voltage, drive battery current
-
-**Equations**
-
-to scale between battery-level and cell-level
-
-.. math::
-  V_{battery} = V_{cell} * n_{cell}^{series}
-
-.. math::
-  I_{battery} = I_{cell} * n_{cell}^{parallel}
-
-.. math::
-  P_{battery} = P_{cell} * n_{cell}^{series} * n_{cell}^{parallel}
-
-to determine battery cell current and voltage for a given power output
-
-.. math::
-  V_{cell}=  \frac{OCV + \sqrt{OCV^2−4∗R0∗P_{cell}}}{2}
-
-.. math::
-  P_{cell} = V_{cell} * I_{cell}
-
-Drive Battery State of Charge (SOC) calculation
-
-.. math::
-  SOC(t) = SOC_{0} + \frac{\int{I_{battery}(t)dt * \eta_{c}}}{Q_{battery}*3600}*100 [\%]
-
-where :math:`SOC_{0}` is the initial SOC [%], :math:`\eta_c` is the coulombic
-efficiency [-] and :math:`Q_{battery}` is the drive battery actual capacity [Ah].
-
-Control strategies for powertrain operation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Control strategy
+----------------
 The control unit of an HEV runs an optimisation strategy to control the hybrid
 powertrain and assign the target power to each component (engine and electric
-machines). The most widely adopted strategy is the **Equivalent Consumption
-Minimisation Strategy** (**ECMS**), which assigns an equivalent cost - in terms
-of fuel - to electrical energy use. The strategy evaluates the combination of
-engine and drive battery power that minimises the overall equivalent energy
-consumption.
-
-Power-split calculation
-"""""""""""""""""""""""
-- input: motive power
-- output: engine power, battery power
-
-**Equations**
-
-Calculation of the engine power and battery power combinations to satisfy the
-motive power request at wheels. This produces values for engine power and
-battery power in array or matrix form. An accurate representation of driveline
-efficiencies is necessary for this step. In |co2mpas|, this calculation is
-performed by calling the component sub-models involved (final drive, gearbox,
-drive battery) that return the efficiencies of the components for the different
-power combinations.
-
-.. math::
-  engine\_powers, battery\_powers = calculate\_power\_combinations(motive\_power)
-
-With the engine power and battery power arrays or matrices produced in the
-previous step, the equivalent fuel consumption is calculated for every
-combination.
-
-.. math::
-  fc_{tot} = fc_{engine}(engine\_powers) + fc_{battery}(battery\_powers)
-
-Finally, the ECMS function is called and the combination that returns the
-minimum equivalent fuel consumption is obtained.
-
-.. math::
-  opt\_engine\_power, opt\_battery\_power = argmin(fc_{tot})
-
-
+machines). The adopted strategy adopted in |co2mpas| is the **Equivalent
+Consumption Minimisation Strategy** (**ECMS**), which assigns an equivalent
+cost - in terms of fuel - to electrical energy use. The strategy evaluates the
+combination of engine and drive battery power that minimises the overall
+equivalent energy consumption.
