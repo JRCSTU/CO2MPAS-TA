@@ -66,7 +66,7 @@ What is |CO2MPAS| physical background and which formulas are applied?
 |CO2MPAS| is a backward-looking longitudinal-dynamics |CO2| and
 fuel-consumption simulator for light-duty M1 & N1 vehicles (cars and vans).
 To check the formulas the user can visit the
-`functions' description pages <https://co2mpas.readthedocs.io/en/stable/tutorial.html#co2mpas-model>`_.
+`functions' description pages <https://co2mpas.readthedocs.io/en/stable/model.html#co2mpas-model>`_.
 
 Where can the user find information on the status of the validation?
 --------------------------------------------------------------------
@@ -158,12 +158,12 @@ manufacturer.
 How to insert a new `drive_battery_technology` for hybrid electric vehicles?
 ----------------------------------------------------------------------------
 For TA: the parameter already contains a preselection of
-`drive batteries technologies <https://co2mpas.readthedocs.io/en/stable/glossary.html#drive_battery_technology>`_
+`drive batteries technologies <https://co2mpas.readthedocs.io/en/stable/glossary.html#term-drive-battery-technology>`_
 as a drop-down menu. If you need to insert a different technology, please contact
 us at jrc-co2mpas@ec.europa.eu.
 
 For non TA: the parameter already contains a preselection of
-`drive batteries technologies <https://co2mpas.readthedocs.io/en/stable/glossary.html#drive_battery_technology>`_
+`drive batteries technologies <https://co2mpas.readthedocs.io/en/stable/glossary.html#term-drive-battery-technology>`_
 as a drop-down menu. If you need to insert a different technology, you should
 remove the "data validation rule" of the excel input file, insert the new data
 and proceed with the co2mpas run.
@@ -179,35 +179,34 @@ Below some useful links:
   `REGULATION (EU) 2017/1153, <https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:02017R1153-20190201&from=EN>`_
 - The correlation regulation for light commercial vehicles
   `REGULATION (EU) 2017/1152 <https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:02017R1152-20190201&from=EN>`_
-- Also, in this `document, <https://ec.europa.eu/clima/sites/clima/files/transport/vehicles/cars/docs/faq_wltp_correlation_en.pdf](https://ec.europa.eu/clima/sites/clima/files/transport/vehicles/cars/docs/faq_wltp_correlation_en.pdf>`_
+- Also, in this `document, <https://ec.europa.eu/clima/sites/clima/files/transport/vehicles/cars/docs/faq_wltp_correlation_en.pdf>`_
   the reader will find some frequently asked questions regarding the correlation
   procedure.
 
 Should |CO2MPAS| be used for each car or each family ID?
 --------------------------------------------------------
-For each interpolation family ID. 
+For each interpolation family ID (IFID).
 Vehicle-H and Vehicle-L are utilized to define the interpolation line of
 Interpolation Family ID.
 
-Is it possible to do a physical test, instead of accepting |CO2MPAS| results?   
------------------------------------------------------------------------------
-Yes, there are cases when |CO2MPAS|
-does not need to be used and a physical test shall be performed instead.
-**where are they described?**
+Is it possible to do a physical test instead of accepting |CO2MPAS| results?
+----------------------------------------------------------------------------
+Yes, there are cases when |CO2MPAS| results can be discarded and a physical test
+can be performed instead. For more details, check
+`Annex I, 3.2.2. <https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02017R1153-20190201>`_
 
 What is DICE and who should use it?
 -----------------------------------
-DICE is the tool assigning a random number to each IDIF type approved. 
+DICE is the tool assigning a random number to each IFID type approved.
 It is used only for type approving purposes, by designated users. 
 
 What are the verification and deviation factors, and when do they need to be recorded?
 --------------------------------------------------------------------------------------
 These values need to be recorded when the random number is 90, or above,
-and the |CO2MPAS| deviation is equal or higher than 4 percent.
+and the |CO2MPAS| deviation is LESS than 4 percent.
 For more details please refer to the correlation regulation.
 
 .. |CO2MPAS| replace:: CO\ :sub:`2`\ MPAS
 .. |CO2| replace:: CO\ :sub:`2`
 .. _DG CLIMA's note: https://ec.europa.eu/clima/sites/clima/files/transport/vehicles/cars/docs/correlation_implementation_information_en.pdf 
 
- 
