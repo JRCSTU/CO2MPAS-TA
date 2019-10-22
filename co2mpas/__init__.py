@@ -478,7 +478,9 @@ def save_summary(summary, output_summary_file, start_time):
         key=lambda x: _sort_key(x, p_keys=('cycle', 'stage', 'usage', 'param'))
     ))
     if not df.columns.empty:
-        df.columns = pd.MultiIndex.from_tuples(_add_units(df.columns))
+        df.columns = pd.MultiIndex.from_tuples(_add_units(
+            df.columns, short=False
+        ))
 
     os.makedirs(osp.dirname(output_summary_file) or '.', exist_ok=True)
     with pd.ExcelWriter(output_summary_file) as writer:

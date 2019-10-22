@@ -178,6 +178,10 @@ def plot(cache_folder, host, port):
     help='Do not save vehicle outputs, just the summary.'
 )
 @click.option(
+    '-AS', '--augmented-summary', is_flag=True,
+    help='More outputs to the summary.'
+)
+@click.option(
     '-HV', '--hard-validation', is_flag=True, help='Add extra data validations.'
 )
 @click.option(

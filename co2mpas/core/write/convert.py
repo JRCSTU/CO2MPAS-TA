@@ -246,8 +246,18 @@ def _scores2df(data):
 
 
 @functools.lru_cache(None)
-def _summary_map():
-    _map = {
+def _summary_map(short=True):
+    keys = (
+        'declared_sustaining_co2_emission_value', 'declared_co2_emission_value',
+        'corrected_sustaining_co2_emission_value', 'co2_emission_value',
+        'corrected_co2_emission_value',
+    )
+    if short:
+        _map = {k: 'value' for k in keys}
+    else:
+        _map = {k: k.replace('co2_emission_', '') for k in keys}
+
+    _map.update({
         'co2_params a': 'a',
         'co2_params a2': 'a2',
         'co2_params b': 'b',
@@ -265,13 +275,9 @@ def _summary_map():
         'co2_emission_extra_high': 'extra_high',
         'co2_emission_UDC': 'UDC',
         'co2_emission_EUDC': 'EUDC',
-        'co2_emission_value': 'value',
-        'declared_co2_emission_value': 'value',
-        'corrected_co2_emission_value': 'value',
-        'corrected_sustaining_co2_emission_value': 'value',
-        'declared_sustaining_co2_emission_value': 'value',
         'vehicle_mass': 'mass',
-    }
+    })
+
     return _map
 
 
@@ -336,8 +342,8 @@ def _param_units():
     return units
 
 
-def _add_units(gen, default=' '):
-    p_map = _summary_map().get
+def _add_units(gen, default=' ', short=True):
+    p_map = _summary_map(short=short).get
     units = functools.partial(_search_unit, _param_units(), default)
     return [k[:-1] + (p_map(k[-1], k[-1]), units(*k)) for k in gen]
 

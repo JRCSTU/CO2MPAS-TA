@@ -481,12 +481,17 @@ def format_report_output_data(output_data):
     return report
 
 
-def _extract_summary_from_summary(report, extracted):
+def _extract_summary_from_summary(report, extracted, augmented_summary=False):
     n = ('summary', 'results')
+    keys = (
+        'corrected_sustaining_co2_emission', 'declared_sustaining_co2_emission',
+        'declared_co2_emission', 'co2_emission', 'corrected_co2_emission',
+    )
+    if augmented_summary:
+        keys += 'fuel_consumption',
     if sh.are_in_nested_dicts(report, *n):
         for j, w in sh.get_nested_dicts(report, *n).items():
-            if j in ('declared_co2_emission', 'co2_emission',
-                     'fuel_consumption', 'declared_sustaining_co2_emission'):
+            if j in keys:
                 for k, v in sh.stack_nested_keys(w, depth=3):
                     if v:
                         sh.get_nested_dicts(extracted, *k).update(v)
@@ -504,35 +509,41 @@ def _format_dict(gen, str_format='%s', func=lambda x: x):
     return {str_format % k: func(v) for k, v in gen}
 
 
-def _extract_summary_from_output(report, extracted):
+def _extract_summary_from_output(report, extracted, augmented_summary=False):
     for k, v in sh.stack_nested_keys(report.get('output', {}), depth=2):
         k = k[::-1]
         for u, i, j in _param_names_values(v.get('pa', {})):
             o = {}
-            if i == 'co2_params_calibrated':
-                o = _format_dict(j.valuesdict().items(), 'co2_params %s')
-            elif i == 'calibration_status':
-                o = _format_dict(enumerate(j), 'status co2_params step %d',
-                                 lambda x: x[0])
-            elif i == 'willans_factors':
-                o = j
-            elif i == 'phases_willans_factors':
-                for n, m in enumerate(j):
-                    o.update(_format_dict(m.items(), '%s phase {}'.format(n)))
-            elif i == 'co2_rescaling_scores':
-                o = sh.map_list(
-                    ['rescaling_mean', 'rescaling_std', 'rescaling_n'], *j
-                )
-            elif i in ('has_sufficient_power',):
+            if i in ('has_sufficient_power',):
                 o = {i: j}
+            elif augmented_summary:
+                if i == 'co2_params_calibrated':
+                    o = _format_dict(j.valuesdict().items(), 'co2_params %s')
+                elif i == 'calibration_status':
+                    o = _format_dict(
+                        enumerate(j), 'status co2_params step %d',
+                        lambda x: x[0]
+                    )
+                elif i == 'willans_factors':
+                    o = j
+                elif i == 'phases_willans_factors':
+                    for n, m in enumerate(j):
+                        o.update(_format_dict(
+                            m.items(), '%s phase {}'.format(n)
+                        ))
+                elif i == 'co2_rescaling_scores':
+                    o = sh.map_list(
+                        ['rescaling_mean', 'rescaling_std', 'rescaling_n'], *j
+                    )
 
             if o:
                 sh.get_nested_dicts(extracted, *(k + (u,))).update(o)
 
 
-def _extract_summary_from_model_scores(report, extracted):
+def _extract_summary_from_model_scores(
+        report, extracted, augmented_summary=False):
     n = ('data', 'calibration', 'model_scores', 'model_selections')
-    if not sh.are_in_nested_dicts(report, *n):
+    if not augmented_summary or not sh.are_in_nested_dicts(report, *n):
         return False
 
     sel = sh.get_nested_dicts(report, *n)
@@ -564,8 +575,8 @@ def _extract_summary_from_model_scores(report, extracted):
     return True
 
 
-@sh.add_function(dsp, outputs=['summary'])
-def extract_summary(report):
+@sh.add_function(dsp, outputs=['summary'], inputs_kwargs=True)
+def extract_summary(report, augmented_summary=False):
     """
     Extract a summary report.
 
@@ -579,10 +590,10 @@ def extract_summary(report):
     """
     extracted = {}
 
-    _extract_summary_from_summary(report, extracted)
+    _extract_summary_from_summary(report, extracted, augmented_summary)
 
-    _extract_summary_from_output(report, extracted)
+    _extract_summary_from_output(report, extracted, augmented_summary)
 
-    _extract_summary_from_model_scores(report, extracted)
+    _extract_summary_from_model_scores(report, extracted, augmented_summary)
 
     return extracted

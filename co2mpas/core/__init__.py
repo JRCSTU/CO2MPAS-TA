@@ -38,7 +38,7 @@ dsp = sh.BlueDispatcher(
 _cmd_flags = [
     'only_summary', 'hard_validation', 'declaration_mode', 'enable_selector',
     'type_approval_mode', 'encryption_keys', 'sign_key', 'output_template',
-    'output_folder', 'encryption_keys_passwords'
+    'output_folder', 'encryption_keys_passwords', 'augmented_summary'
 ]
 
 
@@ -67,7 +67,8 @@ def parse_cmd_flags(cmd_flags=None):
         'sign_key': None,
         'output_template': sh.NONE,
         'encryption_keys_passwords': None,
-        'output_folder': './outputs'
+        'output_folder': './outputs',
+        'augmented_summary': False
     })
     flags['declaration_mode'] |= flags['type_approval_mode']
     flags['hard_validation'] |= flags['declaration_mode']
@@ -135,7 +136,7 @@ def parse_solution(solution):
 
 dsp.add_dispatcher(
     dsp=_report,
-    inputs=['output_data'],
+    inputs=['output_data', 'augmented_summary'],
     outputs=['report', 'summary'],
 )
 
