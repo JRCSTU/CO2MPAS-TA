@@ -1,7 +1,7 @@
 Changelog
 =========
 
-v4.1.5 (2019-10-28): **Wine** Release
+v4.1.6 (2019-10-28): **Wine** Release
 -------------------------------------
 |co2mpas| project has been split into multiple repositories (:gh:`506`). The
 `current <https://github.com/JRCSTU/CO2MPAS-TA>`_ repository contains just
