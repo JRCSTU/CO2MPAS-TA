@@ -1,4 +1,4 @@
 -r base.pip
 
-syncing
+syncing>=1.0.4
 pandas>=0.21.0
