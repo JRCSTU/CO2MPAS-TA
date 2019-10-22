@@ -32,7 +32,7 @@ class CLI(unittest.TestCase):
             ('folder/temp.xlsx', '-TT', 'input'),
             ('folder/temp.xlsx', '-TT', 'output')
     ))
-    def test_template(self, options):
+    def test_0_template(self, options):
         from co2mpas.cli import template
         kw = template.make_context('template', list(options)).params
         rfp = osp.join(pdir, 'templates/%s_template.xlsx' % kw['template_type'])
@@ -50,7 +50,7 @@ class CLI(unittest.TestCase):
             ('demos',),
             ('demo/inputs',)
     ))
-    def test_demo(self, options):
+    def test_1_demo(self, options):
         import glob
         from co2mpas.cli import demo
         kw = demo.make_context('demo', list(options)).params
@@ -66,12 +66,64 @@ class CLI(unittest.TestCase):
                 )
 
     @ddt.idata((
+            (osp.join(fdir, 'conventional.co2mpas.ta'), osp.join(pdir, 'demos'),
+             '-EK', osp.join(fdir, 'keys/secret.co2mpas.keys'),
+             '-KP', osp.join(fdir, 'keys/secret.passwords'), '-OS'),
+            (osp.join(pdir, 'demos'), '-TA', '-EK',
+             osp.join(fdir, 'keys/dice.co2mpas.keys')),
+    ))
+    def test_2_run(self, options):
+        import glob
+        import pandas as pd
+        from co2mpas.cli import run
+        kw = run.make_context('run', list(options)).params
+        with self.runner.isolated_filesystem():
+            result = self.invoke(('run',) + options)
+            self.assertEqual(result.exit_code, 0)
+            cols = 'declared_value', 'prediction', 'output'
+            df = pd.read_excel(
+                glob.glob(osp.join(kw['output_folder'], '*-summary.xlsx'))[0],
+                header=[0, 1, 2, 3, 4], skiprows=[5]
+            )
+            df.set_index(list(df.columns[:2]), inplace=True)
+            df.rename_axis(['id', 'base'], inplace=True)
+            df = df.droplevel(-1).droplevel(-1, 1).swaplevel(0, -1, 1)[cols].T
+            cycles = {
+                tuple(map('{}-co2mpas_simplan'.format, (
+                    'invert_cycles', 'rts_cycle', 'manual', 'hot',
+                    'alternator_efficiency', 'lights', 'biofuel', 'slope',
+                    'cylinder_deactivation', 'road'
+                ))) + ('change_base-co2mpas_conventional',): {
+                    'wltp_h', 'wltp_l'
+                },
+                ('co2mpas_conventional', 'co2mpas_simplan',
+                 'conventional.co2mpas') +
+                tuple(
+                    map('{}-co2mpas_simplan'.format, ('nedc_cycle', 'tyre'))
+                ): {'wltp_h', 'wltp_l', 'nedc_h', 'nedc_l'},
+                ('co2mpas_hybrid', 'co2mpas_plugin'): {'wltp_h', 'nedc_h'},
+            }
+
+            for k, v in df.items():
+                v = v.dropna().to_dict()
+                if k == 'conventional.co2mpas' and 'co2mpas_conventional' in df:
+                    self.assertEqual(
+                        v, df['co2mpas_conventional'].dropna().to_dict()
+                    )
+                for i, c in cycles.items():  # predicted cycles.
+                    if k in i:
+                        self.assertSetEqual(c, set(v))
+                        break
+                else:
+                    raise ValueError(f'{k} is not contemplated!')
+
+    @ddt.idata((
             (),
             ('temp.yaml',),
             ('conf/temp.yaml',),
             ('conf/temp.yaml', '-MC', osp.join(fdir, 'conf.yaml'))
     ))
-    def test_conf(self, options):
+    def test_3_conf(self, options):
         import yaml
         import schedula as sh
         from co2mpas.defaults import dfl
@@ -88,45 +140,3 @@ class CLI(unittest.TestCase):
                 with open(kw['model_conf'], 'rb') as f:
                     for k, v in sh.stack_nested_keys(yaml.load(f)):
                         self.assertEqual(r[k], v)
-
-    @ddt.idata((
-            (osp.join(fdir, 'input.co2mpas.ta'), osp.join(pdir, 'demos'),
-             '-EK', osp.join(fdir, 'keys/secret.co2mpas.keys'),
-             '-KP', osp.join(fdir, 'keys/secret.passwords'), '-OS'),
-            (osp.join(pdir, 'demos', 'co2mpas_demo-1.xlsx'), '-TA',
-             '-EK', osp.join(fdir, 'keys/dice.co2mpas.keys')),
-    ))
-    def test_run(self, options):
-        import glob
-        import pandas as pd
-        from co2mpas.cli import run
-        kw = run.make_context('run', list(options)).params
-        with self.runner.isolated_filesystem():
-            result = self.invoke(('run',) + options)
-            self.assertEqual(result.exit_code, 0)
-            cols = 'declared_value', 'prediction', 'output'
-            df = pd.read_excel(
-                glob.glob(osp.join(kw['output_folder'], '*-summary.xlsx'))[0],
-                header=[0, 1, 2, 3, 4], index_col=[0, 1]
-            ).droplevel(-1).droplevel(-1, 1).swaplevel(0, -1, 1)[cols].T
-            cycles = {
-                tuple(map('{}-co2mpas_simplan'.format, (
-                    'invert_cycles', 'rts_cycle', 'manual', 'hot',
-                    'alternator_efficiency', 'lights', 'biofuel', 'slope',
-                    'cylinder_deactivation', 'road'
-                ))) + ('change_base-co2mpas_demo-1',): {'wltp_h', 'wltp_l'},
-                ('co2mpas_demo-1', 'co2mpas_simplan', 'input.co2mpas') + tuple(
-                    map('{}-co2mpas_simplan'.format, ('nedc_cycle', 'tyre'))
-                ): {'wltp_h', 'wltp_l', 'nedc_h', 'nedc_l'}
-            }
-
-            for k, v in df.items():
-                v = v.dropna().to_dict()
-                if k == 'input.co2mpas' and 'co2mpas_demo-1' in df:
-                    self.assertEqual(v, df['co2mpas_demo-1'].dropna().to_dict())
-                for i, c in cycles.items():  # predicted cycles.
-                    if k in i:
-                        self.assertSetEqual(c, set(v))
-                        break
-                else:
-                    raise ValueError(f'{k} is not contemplated!')

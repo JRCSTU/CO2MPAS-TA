@@ -1,6 +1,6 @@
 INF: 222222.0
 functions:
   __constants__:
-    default_fuel_density:
+    default_specific_gear_shifting:
       __constants__:
-        ENABLE: True
+        SPECIFIC_GEAR_SHIFTING: CMV
