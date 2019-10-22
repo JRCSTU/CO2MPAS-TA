@@ -90,9 +90,9 @@ Hybrid Electric Vehicles Model
 Hybrid Electric Vehicles (HEVs) have more complex driveline layouts and control
 strategies compared to conventional vehicles. Their driveline integrates one or
 more electric machines for supporting propulsion and/or charging the drive
-battery, with the aim of regenerating braking power, using the engine at a more
-optimal operating point or even switching it off when appropriate. Therefore,
-additional components are needed for the simulation of their operation: electric
+battery, to regenerate braking power, using the engine at a more optimal
+operating point or even switching it off when appropriate. Therefore, additional
+components are needed for the simulation of their operation: electric
 machines, drive battery and DC/DC converter. The vehicle powertrain model of
 |co2mpas| is developed in a way to capture and replicate the operation of as
 many different vehicle architectures as possible through a unique driveline
@@ -108,7 +108,7 @@ Three main architectures can be identified for HEVs driveline:
 
 **Parallel** hybrids are similar to conventional vehicles as the engine produces
 mechanical power that is directly used for propulsion; also, engine rotational
-speed is function of the rotational speed of the wheels according to the
+speed is a function of the rotational speed of the wheels according to the
 reduction/multiplication effect applied by final drive and gearbox
 (when present). The electrical machines are used to regenerate braking energy
 and optimise the load of the engine, but they cannot adjust the rotational speed
@@ -121,7 +121,7 @@ used to generate electrical energy that is used for propulsion or battery
 charging. The **planetary** architecture is instead a driveline configuration
 that can accomplish, to some extent, the operation of the two architectures
 previously mentioned. The engine can provide mechanical power that is directly
-used for propulsion, but at the same time its rotational speed can be adjusted
+used for propulsion, but at the same time, its rotational speed can be adjusted
 by the controller becoming independent from wheel speed. This system normally
 replaces the conventional transmissions (gearboxes and CVTs) as it can adjust
 the reduction gear ratios to any wanted value, and it integrates two electric
@@ -143,7 +143,7 @@ The Electric Power System (EPS) of HEVs includes the following main components:
 - DC/DC converter
 
 The electric machines convert electrical energy into mechanical energy when they
-need to propel the vehicle, and mechanical energy into electrical during
+need to propel the vehicle and mechanical energy into electrical during
 regenerative braking or battery charging. This electrical energy, consumed or
 generated, is exchanged with the drive battery. The DC/DC converter is the
 component in charge of allowing the energy exchange between the drive battery
@@ -160,7 +160,7 @@ Drive battery model
 
 The efficiency of the drive battery is modeled using the **equivalent-circuit
 cell model**. The drive battery is seen as a set of battery cells with equal
-characteristics and size, with a certain combinations of cells in series and
+characteristics and size, with a certain combination of cells in series and
 circuits in parallel. Each cell of the battery suffers of a power loss that is
 proportional to the cell internal resistance R0 and the current flowing through
 it, that is transformed to heat. The performance obtained by the battery is then
@@ -224,17 +224,17 @@ Power-split calculation
 Calculation of the engine power and battery power combinations to satisfy the
 motive power request at wheels. This produces values for engine power and
 battery power in array or matrix form. An accurate representation of driveline
-efficiencies is necessary in this step. In |co2mpas|, this calculation is
+efficiencies is necessary for this step. In |co2mpas|, this calculation is
 performed by calling the component sub-models involved (final drive, gearbox,
-drive battery) that return the components efficiencies for the different power
-combinations.
+drive battery) that return the efficiencies of the components for the different
+power combinations.
 
 .. math::
   engine\_powers, battery\_powers = calculate\_power\_combinations(motive\_power)
 
-With the engine power and battery power arrays or matrixes produced in the
+With the engine power and battery power arrays or matrices produced in the
 previous step, the equivalent fuel consumption is calculated for every
-ombination.
+combination.
 
 .. math::
   fc_{tot} = fc_{engine}(engine\_powers) + fc_{battery}(battery\_powers)
