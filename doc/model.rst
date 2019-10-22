@@ -11,9 +11,9 @@ clicking on them.
 .. _model_diagram:
 
 .. dispatcher:: dsp
-   :opt: depth=1, index=True
+   :opt: index=True
    :alt: Flow-diagram of the execution of various Stages and Cycles sub-models.
-   :width: 640
+   :width: 100%
 
    >>> from co2mpas.core.model import dsp
    >>> import schedula
