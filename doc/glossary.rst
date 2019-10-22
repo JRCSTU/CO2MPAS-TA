@@ -380,12 +380,12 @@ Model Inputs
     ``n_dyno_axes``
         It defines the Dyno rotating axis used during the test.
 
-    ``kco2_wltp_correction_factor WLTP``
+    ``kco2_wltp_correction_factor``
         |CO2|-emission correction coefficient (KCO2) for charge sustaining
         battery energy balance correction. Paragraph 2.3.2 of Appendix 2 of
         Sub-Annex 8 to Annex XXI to Regulation (EU) 2017/1151.
 
-    ``kco2_nedc_correction_factor NEDC``
+    ``kco2_nedc_correction_factor``
         |CO2|-emission correction coefficient (KCO2) for charge sustaining
         battery energy balance correction. Paragraph 5.3.5 of Annex 8 of UNECE
         Regulation No. 101 Rev.3.
@@ -397,7 +397,7 @@ Model Inputs
         engine nor the final drive side (the branch that goes to the motor P2
         planetary, referred to as the planetary side in this documentation).
 
-    ``drive_battery_initial_state_of_charge``
+    ``initial_drive_battery_state_of_charge``
         It is the initial state of charge of the drive battery at the beginning
         of the test.
 
