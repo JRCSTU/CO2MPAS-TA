@@ -237,9 +237,10 @@ How to use it:
 
 
 .. admonition:: conf.yaml
+
     - **conf.yaml works ONLY in engineering mode.**
     - the file will be rewritten every time you upload a new one, and it will
-    always be named conf.yaml
+      always be named conf.yaml
 
 Simulation plan
 ---------------
