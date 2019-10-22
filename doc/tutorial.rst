@@ -199,6 +199,48 @@ This section explains how to run |co2mpas| in engineering mode:
     - A |co2mpas| output per file, named as ``<timestamp>-<file-name>.xlsx``.
     - A summary file like :ref:`above <ta_results>`.
 
+
+Physical model configuration file
+---------------------------------
+The configuration file (.yaml) is used to overwrite the default variables of the
+physical model.
+
+Input file:
+
+    - download the conf.yaml template from the GUI as shown in the image below.
+
+    .. image:: _static/image/download_conf.png
+       :width: 100%
+       :alt: |co2mpas| configuration file
+       :align: center
+
+    - modify it according to your parameters.
+
+How to use it:
+
+    - Upload a new configuration file as shown in the picture.
+
+    .. image:: _static/image/conf_1.png
+       :width: 100%
+       :alt: |co2mpas| configuration file
+       :align: center
+
+
+    - Flag the checkbox *use custom configuration file* under **Advanced options**.
+
+    .. image:: _static/image/conf_2.png
+       :width: 100%
+       :alt: |co2mpas| configuration file
+       :align: center
+
+    - Run you input file as described in the `Engineering mode`_ section.
+
+
+.. admonition:: conf.yaml
+    - **conf.yaml works ONLY in engineering mode.**
+    - the file will be rewritten every time you upload a new one, and it will
+    always be named conf.yaml
+
 Simulation plan
 ---------------
 The simulation plan is an input file containing some extra parameters/sheets
