@@ -19,7 +19,10 @@ models = ['after_treatment_speed_model', 'after_treatment_warm_up_duration',
           'after_treatment_cooling_duration']
 
 #: Inputs required to run the model.
-inputs = ['times', 'on_engine', 'engine_speeds_out_hot', 'is_cycle_hot']
+inputs = [
+    'times', 'on_engine', 'engine_speeds_out_hot', 'is_cycle_hot', 'on_idle',
+    'is_hybrid'
+]
 
 #: Relevant outputs of the model.
 outputs = ['engine_speeds_base']

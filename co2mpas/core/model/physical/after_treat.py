@@ -409,7 +409,8 @@ def predict_after_treatment_warm_up_phases(
 
 @sh.add_function(dsp, outputs=['after_treatment_speeds_delta'])
 def predict_after_treatment_speeds_delta(
-        after_treatment_speed_model, times, after_treatment_warm_up_phases):
+        after_treatment_speed_model, times, after_treatment_warm_up_phases,
+        on_idle, is_hybrid):
     """
     Predicts the engine speed delta due to the after treatment warm up [RPM].
 
@@ -425,6 +426,14 @@ def predict_after_treatment_speeds_delta(
         Phases when engine speed is affected by the after treatment warm up [-].
     :type after_treatment_warm_up_phases: numpy.array
 
+    :param on_idle:
+        If the engine is on idle [-].
+    :type on_idle: numpy.array
+
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
     :return:
         Engine speed delta due to the after treatment warm up [RPM].
     :rtype: numpy.array
@@ -433,4 +442,6 @@ def predict_after_treatment_speeds_delta(
     if after_treatment_speed_model:
         for i, j in co2_utl.index_phases(after_treatment_warm_up_phases):
             ds[i:j + 1] = after_treatment_speed_model(times[i:j + 1] - times[i])
+        if not is_hybrid:
+            ds[~on_idle] = 0
     return np.nan_to_num(ds)
