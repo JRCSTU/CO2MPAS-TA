@@ -19,8 +19,7 @@
                    EU, JRC, IET, STU, correlation, back-translation, policy,
                    monitoring, M1, N1, simulator, engineering, scientific
 :mail box:         |CO2MPAS| Team: <JRC-CO2MPAS@ec.europa.eu>
-:current devel:    .. include:: AUTHORS.rst
-:past devel:       .. include:: PAST_AUTHORS.rst
+:team:             .. include:: AUTHORS.rst
 :copyright:        2015-2019 European Commission (`JRC <https://ec.europa.eu/jrc/>`_)
 :license:          `EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_
 

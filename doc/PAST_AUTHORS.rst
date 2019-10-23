@@ -1,1 +1,0 @@
-.. include:: ../PAST_AUTHORS.rst
