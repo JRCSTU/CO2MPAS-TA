@@ -517,7 +517,7 @@ dsp.add_dispatcher(
         'after_treatment_cooling_duration', 'after_treatment_warm_up_duration',
         'after_treatment_speeds_delta', 'after_treatment_power_model', 'times',
         'engine_speeds_base', 'idle_engine_speed', 'is_cycle_hot', 'on_engine',
-        'gears',
+        'gears', 'is_hybrid', 'engine_starts'
     ),
     outputs=(
         'after_treatment_power_model', 'after_treatment_speed_model', 'on_idle',

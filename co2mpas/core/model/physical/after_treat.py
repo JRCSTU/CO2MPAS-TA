@@ -10,6 +10,7 @@ Functions and `dsp` model to model the after treatment.
 import numpy as np
 import schedula as sh
 import co2mpas.utils as co2_utl
+from co2mpas.defaults import dfl
 
 dsp = sh.BlueDispatcher(
     name='After treatment', description='Models the after treatment.'
@@ -80,13 +81,17 @@ def identify_on_idle(
     on_idle[b] = 1
     for i, j in sh.pairwise(_shift(on_idle)):
         if not on_idle[i] and times[j - 1] - times[i] <= 2:
-            on_idle[i:j] = True
+            on_idle[i:j] = 1
     return co2_utl.clear_fluctuations(times, on_idle, 4).astype(bool)
 
 
-@sh.add_function(dsp, outputs=['after_treatment_warm_up_phases'])
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['after_treatment_warm_up_phases']
+)
 def identify_after_treatment_warm_up_phases(
-        times, engine_speeds_out, engine_speeds_out_hot, on_idle):
+        times, engine_speeds_out, engine_speeds_out_hot, on_idle, on_engine,
+        idle_engine_speed, velocities, engine_starts, stop_velocity,
+        is_hybrid=False):
     """
     Identifies when engine speed is affected by the after treatment warm up [-].
 
@@ -106,36 +111,73 @@ def identify_after_treatment_warm_up_phases(
         If the engine is on idle [-].
     :type on_idle: numpy.array
 
+    :param on_engine:
+        If the engine is on [-].
+    :type on_engine: numpy.array
+
+    :param idle_engine_speed:
+        Engine speed idle median and std [RPM].
+    :type idle_engine_speed: (float, float)
+
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array
+
+    :param engine_starts:
+        When the engine starts [-].
+    :type engine_starts: numpy.array
+
+    :param stop_velocity:
+        Maximum velocity to consider the vehicle stopped [km/h].
+    :type stop_velocity: float
+
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
     :return:
         Phases when engine speed is affected by the after treatment warm up [-].
     :rtype: numpy.array
     """
-    # noinspection PyProtectedMember
-    i = np.where(on_idle)[0]
-    phases = np.zeros_like(times, int)
-    with np.errstate(divide='ignore', invalid='ignore'):
-        # noinspection PyUnresolvedReferences
-        phases[i[~co2_utl.get_inliers(
-            engine_speeds_out[i] / engine_speeds_out_hot[i], 2, np.nanmedian,
-            co2_utl.mad
-        )[0]]] = 1
-    phases = co2_utl.median_filter(times, phases, 5)
-    phases = co2_utl.clear_fluctuations(times, phases, 5).astype(bool)
-    i = co2_utl.index_phases(phases)
-    b = np.diff(times[i], axis=1) > 5
-    i = i[b.ravel()]
-    phases[:] = False
-    if i.shape[0]:
-        i, j = i[0]
+    from .control import identify_engine_starts
+    i, phases = np.where(on_idle)[0], np.zeros_like(times, int)
+    start = engine_starts.copy()
+    if is_hybrid:
+        with np.errstate(divide='ignore', invalid='ignore'):
+            r = engine_speeds_out[i] / engine_speeds_out_hot[i]
+            b = ~co2_utl.get_inliers(r, 2, np.nanmedian, co2_utl.mad)[0]
+        phases[i[b]] = 1
+    else:
+        ds = np.abs(engine_speeds_out[i] - engine_speeds_out_hot[i])
+        phases[i[ds > idle_engine_speed[1]]] = 1
+        start |= identify_engine_starts(velocities > stop_velocity)
+    for i, j in np.searchsorted(times, times[start, None] + [-2, 5 + dfl.EPS]):
+        phases[i:j], start[i:j] = 0, True
+    phases = co2_utl.median_filter(times, phases, 4)
+    phases = co2_utl.clear_fluctuations(times, phases, 4).astype(bool)
+    indices = co2_utl.index_phases(phases)
+    if is_hybrid:
+        indices = indices[(np.diff(times[indices], axis=1) > 10).ravel()][:1]
+    else:
+        b, f = identify_engine_starts(~on_engine), False
+        for i, j in np.searchsorted(times, times[b, None] + [-5, 2 + dfl.EPS]):
+            b[i:j] = f
+            f = True
+        b = (on_idle & ~start) | b | (times > np.min(times[on_engine]) + 200)
+        indices = indices[:co2_utl.argmax(b[indices[:, 1]])]
+    phases[:], n = False, len(times)
+    for i, j in indices:
         while i and on_idle.take(i - 1, mode='clip'):
             i -= 1
         phases[i:j + 1] = True
     return phases
 
 
-@sh.add_function(dsp, outputs=['after_treatment_warm_up_duration'])
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['after_treatment_warm_up_duration']
+)
 def identify_after_treatment_warm_up_duration(
-        times, after_treatment_warm_up_phases):
+        times, after_treatment_warm_up_phases, is_hybrid=False):
     """
     Identify after treatment warm up duration [s].
 
@@ -147,19 +189,27 @@ def identify_after_treatment_warm_up_duration(
         Phases when engine speed is affected by the after treatment warm up [-].
     :type after_treatment_warm_up_phases: numpy.array
 
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
     :return:
         After treatment warm up duration [s].
     :rtype: float
     """
     i = co2_utl.index_phases(after_treatment_warm_up_phases)
     if i.shape[0]:
+        if not is_hybrid:
+            return float(np.diff(times[i.ravel()[[0, -1]]]))
         return float(np.mean(np.diff(times[i], axis=1)))
     return .0
 
 
-@sh.add_function(dsp, outputs=['after_treatment_cooling_duration'])
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['after_treatment_cooling_duration']
+)
 def identify_after_treatment_cooling_duration(
-        times, after_treatment_warm_up_phases):
+        times, after_treatment_warm_up_phases, is_hybrid=False):
     """
     Identify after treatment cooling duration [s].
 
@@ -171,12 +221,16 @@ def identify_after_treatment_cooling_duration(
         Phases when engine speed is affected by the after treatment warm up [-].
     :type after_treatment_warm_up_phases: numpy.array
 
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
     :return:
         After treatment cooling duration [s].
     :rtype: float
     """
     i = co2_utl.index_phases(after_treatment_warm_up_phases)
-    if i.shape[0] > 2:
+    if is_hybrid and i.shape[0] > 2:
         return float(np.mean(np.diff(times[i].ravel())[1::2]))
     return float('inf')
 
@@ -231,9 +285,12 @@ def calculate_engine_speeds_base(
     return engine_speeds_out_hot + after_treatment_speeds_delta
 
 
-@sh.add_function(dsp, outputs=['after_treatment_speed_model'])
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['after_treatment_speed_model']
+)
 def calibrate_after_treatment_speed_model(
-        times, after_treatment_warm_up_phases, after_treatment_speeds_delta):
+        times, after_treatment_warm_up_phases, after_treatment_speeds_delta,
+        is_hybrid=False):
     """
     Calibrates the engine after treatment speed model.
 
@@ -249,6 +306,10 @@ def calibrate_after_treatment_speed_model(
         Engine speed delta due to the after treatment warm up [RPM].
     :type after_treatment_speeds_delta: numpy.array
 
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
     :return:
         After treatment speed model.
     :rtype: function
@@ -257,15 +318,18 @@ def calibrate_after_treatment_speed_model(
         from sklearn.isotonic import IsotonicRegression
         x, y, model = [], [], IsotonicRegression(increasing=False)
         for i, j in co2_utl.index_phases(after_treatment_warm_up_phases):
-            x.extend(times[i:j + 1] - times[i])
+            x.extend(times[i:j + 1] - (times[i] if is_hybrid else 0.0))
             y.extend(after_treatment_speeds_delta[i:j + 1])
         # noinspection PyUnresolvedReferences
         return model.fit(x, y).predict
 
 
-@sh.add_function(dsp, outputs=['after_treatment_power_model'])
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['after_treatment_power_model']
+)
 def calibrate_after_treatment_power_model(
-        times, after_treatment_warm_up_phases, engine_powers_out):
+        times, after_treatment_warm_up_phases, engine_powers_out,
+        is_hybrid=False):
     """
     Calibrates the engine after treatment speed model.
 
@@ -281,6 +345,10 @@ def calibrate_after_treatment_power_model(
         Engine power vector [kW].
     :type engine_powers_out: numpy.array
 
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
     :return:
         After treatment speed model.
     :rtype: function
@@ -289,7 +357,7 @@ def calibrate_after_treatment_power_model(
         from sklearn.isotonic import IsotonicRegression
         x, y = [], []
         for i, j in co2_utl.index_phases(after_treatment_warm_up_phases):
-            t = times[i:j + 1] - times[i]
+            t = times[i:j + 1] - (times[i] if is_hybrid else 0.0)
             x.extend(t)
             y.extend(co2_utl.median_filter(t, engine_powers_out[i:j + 1], 4))
         # noinspection PyUnresolvedReferences
