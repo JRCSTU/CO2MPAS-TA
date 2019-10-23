@@ -125,7 +125,7 @@ def define_tau_function(after_treatment_temperature_threshold):
     f = sci_sta.lognorm(max(s, dfl.EPS), 0, temp_mean).cdf
 
     def _tau_function(t0, t1, temp):
-        return t0 - (t1 - t0) * f(temp + 273)
+        return t0 + (t1 - t0) * f(temp + 273)
 
     return _tau_function
 

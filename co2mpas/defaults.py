@@ -722,9 +722,9 @@ class Functions(co2_utl.Constants):
                 # 'min': -3.17876, 'max': -1.1025}),
                 ('l2', {'value': -0.0025, 'max': 0.0}),
                 # 'min': -0.00796, 'max': 0.0}),b
-                ('t1', {'value': 3.5, 'min': 0.0}),  # 'max': 8.0},
+                ('t1', {'value': 3.5, 'min': 0.0, 'max': 8.0}),
                 ('dt', {'value': 1.0, 'min': 0.0}),
-                ('t0', {'expr': 't1 + dt', 'value': 4.5}),  # 'max': 8.0},
+                ('t0', {'expr': 't1 + dt', 'value': 4.5, 'max': 8.0}),
             ],
             'positive natural aspiration': [
                 ('a', {'value': 0.4851, 'min': 0.0}),
@@ -739,9 +739,9 @@ class Functions(co2_utl.Constants):
                 # 'min': -3.27698, 'max': -1.72066},
                 ('l2', {'value': -0.00286, 'max': 0.0}),
                 # 'min': -0.00577, 'max': 0.0},
-                ('t1', {'value': 3.5, 'min': 0.0}),  # 'max': 8.0},
+                ('t1', {'value': 3.5, 'min': 0.0, 'max': 8.0}),
                 ('dt', {'value': 1.0, 'min': 0.0}),
-                ('t0', {'expr': 't1 + dt', 'value': 4.5}),  # 'max': 8.0},
+                ('t0', {'expr': 't1 + dt', 'value': 4.5, 'max': 8.0}),
             ],
             'compression': [
                 ('a', {'value': 0.391197, 'min': 0.0}),
@@ -757,9 +757,9 @@ class Functions(co2_utl.Constants):
                 # 'min': -2.2856, 'max': -0.82022},
                 ('l2', {'value': -0.0076, 'max': 0.0}),
                 # 'min': -0.01852, 'max': 0.0},
-                ('t1', {'value': 3.5, 'min': 0.0}),  # 'max': 8.0},
+                ('t1', {'value': 3.5, 'min': 0.0, 'max': 8.0}),
                 ('dt', {'value': 1.0, 'min': 0.0}),
-                ('t0', {'expr': 't1 + dt', 'value': 4.5}),  # 'max': 8.0},
+                ('t0', {'expr': 't1 + dt', 'value': 4.5, 'max': 8.0}),
             ]
         }
 
