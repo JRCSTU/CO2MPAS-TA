@@ -1,7 +1,6 @@
 .. image:: doc/_static/image/banner.png
    :width: 100%
 
-.. _start-pypi:
 .. _start-info:
 
 ######################################################################
@@ -25,6 +24,7 @@
 
 .. _end-info:
 .. _start-intro:
+.. _start-pypi:
 
 What is |co2mpas|?
 ==================
@@ -135,8 +135,8 @@ To install co2mpas and all extras, do:
 
     $ pip install co2mpas[all]
 
-.. _end-install:
 .. _end-pypi:
+.. _end-install:
 .. _start-quick:
 
 Quick Start
