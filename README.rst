@@ -1,7 +1,6 @@
 .. image:: doc/_static/image/banner.png
    :width: 100%
 
-.. _start-pypi:
 .. _start-info:
 
 ######################################################################
@@ -24,6 +23,7 @@
 :license:          `EUPL 1.1+ <https://joinup.ec.europa.eu/software/page/eupl>`_
 
 .. _end-info:
+.. _start-pypi:
 .. _start-intro:
 
 What is |co2mpas|?
