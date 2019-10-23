@@ -389,7 +389,9 @@ class BatteryStatusModel:
     def _fit_charge(self, charging_statuses, state_of_charges, times):
         b = charging_statuses[1:] == 1
         self.max, self.min = 100.0, 0.0
-        if b.any():
+        if b.all():
+            self.min = max(state_of_charges)
+        elif b.any():
             from sklearn.tree import DecisionTreeClassifier
             charge = DecisionTreeClassifier(random_state=0, max_depth=3)
             X = np.column_stack(
@@ -435,7 +437,7 @@ class BatteryStatusModel:
         elif _max:
             self.max = _max = min(self.max, max(0.0, max(_max)))
             self.min = _max - min_delta_soc
-        elif b.any():
+        elif b.any() and not b.all():
             balance = _identify_balance_soc(times, state_of_charges)
             # noinspection PyTypeChecker
             std = np.sqrt(np.mean((balance - state_of_charges) ** 2)) * 2
