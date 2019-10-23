@@ -351,8 +351,9 @@ dsp.add_dispatcher(
         'alternator_electric_powers', 'dcdc_converter_electric_powers', 'times',
         'service_battery_initialization_time', 'service_battery_status_model',
         'service_battery_electric_powers_supply_threshold', 'motive_powers',
-        'service_battery_state_of_charges', 'service_battery_capacity',
-        'service_battery_state_of_charge_balance_window', 'engine_starts',
+        'service_battery_state_of_charges', 'engine_starts', 'is_hybrid',
+        'service_battery_state_of_charge_balance_window',
+        'service_battery_capacity',
     ),
     outputs=(
         'service_battery_initialization_time', 'service_battery_status_model',

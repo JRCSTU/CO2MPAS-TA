@@ -231,6 +231,7 @@ def identify_service_battery_initialization_time(
         )
 
         j = min(i, int(n / 2))
+        # noinspection PyArgumentEqualDefault
         model = _XGBRegressor(
             random_state=0,
             max_depth=2,
@@ -352,7 +353,9 @@ def _identify_balance_soc(times, state_of_charges):
 
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class BatteryStatusModel:
-    def __init__(self, bers_pred=None, min_soc=0.0, max_soc=100.0):
+    def __init__(self, bers_pred=None, charge_pred=None, min_soc=0.0,
+                 max_soc=100.0):
+        self.charge = charge_pred or (lambda X: np.zeros(len(X), dtype=bool))
         self.bers = bers_pred
         self.max = max_soc
         self.min = min_soc
@@ -386,7 +389,8 @@ class BatteryStatusModel:
         return self.bers
 
     # noinspection PyShadowingNames
-    def _fit_charge(self, charging_statuses, state_of_charges, times):
+    def _fit_charge(self, charging_statuses, state_of_charges, times,
+                    is_hybrid):
         b = charging_statuses[1:] == 1
         self.max, self.min = 100.0, 0.0
         if b.all():
@@ -403,6 +407,10 @@ class BatteryStatusModel:
                 np.ones(100), np.linspace(soc.min(), soc.max(), 100)
             ))
             s = np.where(charge.predict(X))[0]
+            if is_hybrid:
+                self.charge = lambda x: [x[0][0] == 1]
+            else:
+                self.charge = charge.predict
             if s.shape[0]:
                 self.min, self.max = X[s[0], 1], X[s[-1], 1]
         self._fit_boundaries(charging_statuses, state_of_charges, times)
@@ -445,14 +453,15 @@ class BatteryStatusModel:
             self.max = min(balance + std, 100.0)
             self.min = max(balance - std, 0.0)
 
-    def fit(self, times, charging_statuses, state_of_charges, motive_powers):
+    def fit(self, is_hybrid, times, charging_statuses, state_of_charges,
+            motive_powers):
 
         i = co2_utl.argmax(charging_statuses != 3)
 
         status, soc = charging_statuses[i:], state_of_charges[i:]
 
         self._fit_bers(status, motive_powers[i:])
-        self._fit_charge(status, soc, times[i:])
+        self._fit_charge(status, soc, times[i:], is_hybrid)
 
         return self
 
@@ -460,10 +469,11 @@ class BatteryStatusModel:
         status = 0
 
         if soc < 100:
+            func = self.charge
             if time < init_time:
                 status = 3
 
-            elif soc < self.min or (prev == 1 and soc <= self.max):
+            elif soc < self.min or (soc <= self.max and func([[prev, soc]])[0]):
                 status = 1
 
             elif has_energy_rec and self.bers([(power,)])[0]:
@@ -474,10 +484,14 @@ class BatteryStatusModel:
 
 @sh.add_function(dsp, outputs=['service_battery_status_model'], weight=10)
 def calibrate_service_battery_status_model(
-        times, service_battery_charging_statuses,
+        is_hybrid, times, service_battery_charging_statuses,
         service_battery_state_of_charges, motive_powers):
     """
     Calibrates the service battery charging status model.
+
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
 
     :param times:
         Time vector [s].
@@ -501,7 +515,7 @@ def calibrate_service_battery_status_model(
     :rtype: callable
     """
     return BatteryStatusModel().fit(
-        times, service_battery_charging_statuses,
+        is_hybrid, times, service_battery_charging_statuses,
         service_battery_state_of_charges, motive_powers
     )
 
@@ -528,7 +542,9 @@ def define_service_battery_status_model(
     m = service_battery_state_of_charge_balance
     w = service_battery_state_of_charge_balance_window / 2
     return BatteryStatusModel(
-        bers_pred=lambda x: [x[0][0] < 0], min_soc=m - w, max_soc=m + w
+        charge_pred=lambda x: [x[0][0] == 1],
+        bers_pred=lambda x: [x[0][0] < 0],
+        min_soc=m - w, max_soc=m + w
     )
 
 
