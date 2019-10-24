@@ -24,7 +24,6 @@
 
 .. _end-info:
 .. _start-intro:
-.. _start-pypi:
 
 What is |co2mpas|?
 ==================
@@ -43,8 +42,8 @@ Python-3.6+. It runs either as a *console command* or as a
 
 History
 -------
-The *European Commission* has introduced the *WLTP* as the test procedure for the
-type I test of the European type-approval of Light-duty vehicles as of
+The *European Commission* has introduced the *WLTP* as the test procedure for
+the type I test of the European type-approval of Light-duty vehicles as of
 September 2017. Its introduction has required the adaptation of |CO2|
 certification and monitoring procedures set by European regulations (443/2009,
 510/2011, 1152/EUR/2017 and 1153/EUR/2017). European Commission’s *Joint
@@ -69,7 +68,7 @@ Two installation procedures can be followed:
 Official (for type approval)
 ----------------------------
 To install |co2mpas| you have to download the
-`installer <https://github.com/JRCSTU/CO2MPAS-TA/archive/co2mpas-v4.1.7.exe>`_
+`installer <https://github.com/JRCSTU/CO2MPAS-TA/archive/co2mpas-v4.1.8.exe>`_
 and then execute it (see the steps shown in the video below).
 
 .. raw:: html
@@ -85,7 +84,7 @@ and one for the console.
 
     .. image:: _static/image/icons.png
        :width: 50%
-       :alt: |co2mpas| icons
+       :alt: co2mpas desktop icons
        :align: center
 
 .. admonition:: IT Requirements
@@ -103,6 +102,7 @@ and one for the console.
 
 Ordinary (for developers and/or researchers)
 --------------------------------------------
+.. _start-install-dev:
 To install |co2mpas| use (with root privileges):
 
 .. code-block:: console
@@ -128,7 +128,7 @@ Some additional functionality is enabled installing the following extras:
 - ``plot``: enables to plot the |co2mpas| model and the workflow of each run.
 - ``io``: enables to read/write excel files.
 - ``dice``: enables the Type Approval mode.
-- ``driver``: enables the driver model.
+- ``driver``: enables the driver model (currently is not available).
 
 To install co2mpas and all extras, do:
 
@@ -136,7 +136,7 @@ To install co2mpas and all extras, do:
 
     $ pip install co2mpas[all]
 
-.. _end-pypi:
+.. _end-install-dev:
 .. _end-install:
 .. _start-quick:
 

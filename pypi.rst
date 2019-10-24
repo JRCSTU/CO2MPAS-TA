@@ -1,6 +1,12 @@
 .. include:: README.rst
-    :start-after: .. _start-pypi:
-    :end-before: .. _end-pypi:
+    :start-after: .. _start-intro:
+    :end-before: .. _end-intro:
+
+Installation
+============
+.. include:: README.rst
+    :start-after: .. _start-install-dev:
+    :end-before: .. _end-install-dev:
 
 .. include:: README.rst
     :start-after: .. _start-sub:
