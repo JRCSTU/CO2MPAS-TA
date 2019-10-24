@@ -69,7 +69,7 @@ Two installation procedures can be followed:
 Official (for type approval)
 ----------------------------
 To install |co2mpas| you have to download the
-`installer <https://github.com/JRCSTU/CO2MPAS-TA/archive/co2mpas-v4.1.2.exe>`_
+`installer <https://github.com/JRCSTU/CO2MPAS-TA/archive/co2mpas-v4.1.7.exe>`_
 and then execute it (see the steps shown in the video below).
 
 .. raw:: html
@@ -94,7 +94,7 @@ and one for the console.
    minimum IT requirements are mandatory:
 
    - 64-bit Intel or AMD processor (x86_64, aka x64, aka AMD64),
-   - Microsoft Windows 7, or later,
+   - Microsoft Windows 7 SP1, or later,
    - 4 GB RAM (more recommended),
    - 4 GB hard disk storage for installing the software,
    - Execution-rights to the installation folder (but no Admin-rights),

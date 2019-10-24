@@ -65,8 +65,26 @@ Known Limitations
    malicious software; however, this is not to be considered harmful. If this
    happens the antivirus should be disabled when running |co2mpas|, or a special
    exclusion should be granted to the |co2mpas| executable.
-3. If |co2mpas| is installed in Windows 7 not up to date, the installation process
-   might fail.
+3. If |co2mpas| is installed in Windows 7 without ServicePack-1, you will get an
+   error like the following::
+
+        Error loading Python DLL 'C:\Users\admin\AppData\Local\Temp\_MEI60402\python36.dll'.
+        LoadLibrary: The specified procedure could not be found.
+        Error loading Python DLL 'C:\Users\admin\AppData\Local\Temp\_MEI59722\python36.dll'.
+        LoadLibrary: The specified procedure could not be found.
+        Delete file: C:\apps\co2mpas\pkgs\env.txt
+        Output folder: C:\apps\co2mpas\conda-meta
+        Extract: history
+        Creating CO2MPAS menus...
+        Error loading Python DLL 'C:\Users\admin\AppData\Local\Temp\_MEI51722\python36.dll'.
+        LoadLibrary: The specified procedure could not be found.
+        Execute: "C:\apps\co2mpas\pythonw.exe" -E -s "C:\apps\co2mpas\Lib\_nsis.py" mkdirs
+        Running post install...
+        Execute: "C:\apps\co2mpas\pythonw.exe" -E -s "C:\apps\co2mpas\Lib\_nsis.py" post_install
+        Created uninstaller: C:\apps\co2mpas\Uninstall-CO2MPAS.exe
+        Completed
+4. If you use Internet Explorer version 9 or earlier, you might experience some
+   problems.
 
 v3.0.0 (2019-01-29): "VOLO" Release
 -----------------------------------
