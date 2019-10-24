@@ -84,7 +84,8 @@ Known Limitations
         Created uninstaller: C:\apps\co2mpas\Uninstall-CO2MPAS.exe
         Completed
 4. If you use Internet Explorer version 9 or earlier, you might experience some
-   problems.
+   problems (i.e., impossible to choose the input file for the synchronisation,
+   etc..).
 
 v3.0.0 (2019-01-29): "VOLO" Release
 -----------------------------------

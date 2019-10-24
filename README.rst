@@ -99,6 +99,7 @@ and one for the console.
    - 4 GB hard disk storage for installing the software,
    - Execution-rights to the installation folder (but no Admin-rights),
    - (optional) Excel, to view & edit simulation’s input and output files.
+   - Chrome/Firefox/Safari/Edge or IExplore 10+
 
 Ordinary (for developers and/or researchers)
 --------------------------------------------
