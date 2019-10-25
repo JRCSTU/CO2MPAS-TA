@@ -10,6 +10,7 @@ Documentation:
 GUI:
     - Anagnostopoulos Kostis <kostis.anagnostopoulos@ext.ec.europa.eu>
     - Corsi Stefano <stefano.corsi@ext.ec.europa.eu>
+    - Makie Ashenafi <ashenafi.makie@ext.ec.europa.eu>
 Legislation:
     - Fontaras Georgios <georgios.fontaras@ec.europa.eu>
     - Pavlovic Jelica <jelica.pavlovic@ec.europa.eu>
