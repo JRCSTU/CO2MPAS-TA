@@ -83,7 +83,7 @@ if __name__ == '__main__':
     from setuptools import setup, find_packages
 
     proj_ver = read_project_version()
-    url = 'https://github.com/JRCTSU/%s-ta' % name
+    url = 'https://github.com/JRCSTU/%s-ta' % name
     download_url = '%s/tarball/v%s' % (url, proj_ver)
     project_urls = collections.OrderedDict((
         ('Documentation', 'http://%s.readthedocs.io' % name),
