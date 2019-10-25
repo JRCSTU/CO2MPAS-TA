@@ -233,7 +233,7 @@ To launch the |co2mpas| GUI from the console, you can use the following
 command::
 
     ## Open the GUI of co2mpas.
-    $ co2mpas gui
+    $ co2wui run
 
 .. image:: _static/image/gui_start_up.png
    :width: 100%

@@ -27,6 +27,6 @@ Supervision:
     - Konstantinidis Spyridon <Spyridon.konstantinidis@ext.ec.europa.eu>
 Tester:
     - Komnos Dimitrios <dimitrios.komnos@ext.ec.europa.eu>
-    - Makie Ashenafi <ashenafi.amkie@ext.ec.europa.eu>
+    - Makie Ashenafi <ashenafi.makie@ext.ec.europa.eu>
     - Prado Rujas Ignacio Iker <iker.prado-rujas@ext.ec.europa.eu>
 
