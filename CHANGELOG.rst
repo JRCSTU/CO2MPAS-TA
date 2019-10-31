@@ -7,7 +7,7 @@ v4.1.8 (2019-10-24): **Wine** Release
 `current <https://github.com/JRCSTU/CO2MPAS-TA>`_ repository contains just
 |co2mpas| model. The other functionalities are installed as extra (i.e.,
 `DICE <https://github.com/JRCSTU/DICE>`_,
-`GUI <https://github.com/JRCSTU/co2mpas_gui>`_,
+`GUI <https://github.com/JRCSTU/co2wui>`_,
 `sync <https://github.com/vinci1it2000/syncing>`_).
 
 
@@ -17,7 +17,7 @@ The main changes made in this release regards:
 
 GUI
 ^^^
-A new graphical user interface (`GUI <https://github.com/JRCSTU/co2mpas_gui>`_)
+A new graphical user interface (`GUI <https://github.com/JRCSTU/co2wui>`_)
 has replaced the previous one.
 
 Documentation

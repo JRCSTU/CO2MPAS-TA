@@ -1,9 +1,9 @@
 Contributing to co2mpas
 =======================
 
-If you want to contribute to **co2mpas** and make it better, your help is very
-welcome. The contribution should be sent by a *pull request*. Next sections will
-explain how to implement and submit a new functionality:
+If you want to contribute to |co2mpas| and improve it, your help is very
+welcome. Your contribution should be sent by a *pull request*. Next sections
+explains how to implement and submit a new functionality:
 
 - clone the repository
 - implement a new functionality
@@ -11,7 +11,7 @@ explain how to implement and submit a new functionality:
 
 Clone the repository
 --------------------
-The first step to contribute to **co2mpas** is to clone the repository:
+The first step to contribute to |co2mpas| is to clone the repository:
 
 - Create a personal `fork <https://help.github.com/articles/fork-a-repo/
   #fork-an-example-repository>`_ of the `co2mpas <https://github.com/
@@ -45,7 +45,7 @@ How to open a pull request
 Well done! Your contribution is ready to be submitted:
 
 - Squash your commits into a single commit with git's
-  `interactive rebase <https://help.github.com/articles/interactive-rebase>`_.
+  `interactive rebase <https://help.github.com/en/github/using-git/about-git-rebase>`_.
   Create a new branch if necessary. Always write your commit messages in the
   present tense. Your commit message should describe what the commit, when
   applied, does to the code – not what you did to the code.
@@ -56,3 +56,6 @@ Well done! Your contribution is ready to be submitted:
   Target the project's ``dev`` branch!
 - Once the *pull request* is approved and merged you can pull the changes from
   ``upstream`` to your local repo and delete your extra branch(es).
+
+.. |co2mpas| replace:: CO\ :sub:`2`\ MPAS
+
