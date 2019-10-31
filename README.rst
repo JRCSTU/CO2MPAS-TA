@@ -8,7 +8,7 @@
 ######################################################################
 
 :official:         | `3.0.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-v3.0.0>`_: from 01-Feb-2019 to 01-Jan-2020
-                   | `4.1.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-v4.1.8>`_: from 31-Oct-2019
+                   | `4.1.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v4.1.8>`_: from 31-Oct-2019
 :release:          4.1.8
 :rel_date:         2019-10-24 14:30:00
 :home:             http://co2mpas.readthedocs.io/
