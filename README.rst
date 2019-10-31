@@ -55,6 +55,7 @@ found in `the Comitology Register
 <http://ec.europa.eu/transparency/regcomitology/index.cfm?do=search.documentdetail&dos_id=0&ds_id=45835&version=2>`_
 after its adoption by the *Climate Change Committee* which took place on
 June 23, 2016, and its 2nd vote for modifications, in April 27, 2017.
+
 .. _end-intro:
 .. _start-install:
 
@@ -97,12 +98,13 @@ and one for the console.
    - 4 GB RAM (more recommended),
    - 4 GB hard disk storage for installing the software,
    - Execution-rights to the installation folder (but no Admin-rights),
-   - (optional) Excel, to view & edit simulation’s input and output files.
-   - Chrome/Firefox/Safari/Edge or IExplore 10+
+   - (optional) Excel, to view & edit simulation’s input and output files,
+   - Chrome/Firefox/Safari/Edge or IExplore 10+.
 
 Ordinary (for developers and/or researchers)
 --------------------------------------------
 .. _start-install-dev:
+
 To install |co2mpas| use (with root privileges):
 
 .. code-block:: console
