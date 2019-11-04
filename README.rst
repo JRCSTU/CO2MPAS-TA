@@ -8,9 +8,9 @@
 ######################################################################
 
 :official:         | `3.0.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-v3.0.0>`_: from 01-Feb-2019 to 01-Jan-2020
-                   | `4.1.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v4.1.8>`_: from 31-Oct-2019
-:release:          4.1.8
-:rel_date:         2019-10-24 14:30:00
+                   | `4.1.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v4.1.9>`_: from 31-Oct-2019
+:release:          4.1.9
+:rel_date:         2019-11-04 15:30:00
 :home:             http://co2mpas.readthedocs.io/
 :repository:       https://github.com/JRCSTU/CO2MPAS-TA
 :pypi-repo:        https://pypi.org/project/co2mpas/
@@ -69,7 +69,7 @@ Two installation procedures can be followed:
 Official (for type approval)
 ----------------------------
 To install |co2mpas| you have to download the
-`installer <https://github.com/JRCSTU/CO2MPAS-TA/releases/download/v4.1.8/co2mpas-4.1.8-jrcstu-Windows-x86_64.exe>`_
+`installer <https://github.com/JRCSTU/CO2MPAS-TA/releases/download/v4.1.9/installer.exe>`_
 and then execute it (see the steps shown in the video below).
 
 .. raw:: html

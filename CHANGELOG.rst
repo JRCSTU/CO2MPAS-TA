@@ -1,6 +1,16 @@
 Changelog
 =========
 
+v4.1.9 (2019-11-04)
+-------------------
+Fix
+~~~
+- (excel): Correct parser for all-l.
+- (schema): Correct error message for input file version.
+- (template): Correct wrong cell reference.
+- (setup): Fixed link setup.
+
+
 v4.1.8 (2019-10-24): **Wine** Release
 -------------------------------------
 |co2mpas| project has been split into multiple repositories (:gh:`506`). The

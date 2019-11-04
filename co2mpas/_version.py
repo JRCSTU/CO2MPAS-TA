@@ -13,14 +13,14 @@ __all__ = ['__version__', '__updated__', '__title__', '__author__',
            '__license__', '__copyright__', '__file_version__', '__uri__']
 
 #: Authoritative project's PEP 440 version.
-__version__ = version = "4.1.8"  # Also update README.rst
+__version__ = version = "4.1.9"  # Also update README.rst
 
 #: The :term:`Semantic Version` for Input/Output files.
 __file_version__ = "3.1.1"
 
 # Please UPDATE TIMESTAMP WHEN BUMPING VERSIONS AND BEFORE RELEASE.
 #: Release date.
-__updated__ = "2019-10-24 14:30:00"
+__updated__ = "2019-11-04 15:30:00"
 
 __title__ = 'co2mpas'
 
