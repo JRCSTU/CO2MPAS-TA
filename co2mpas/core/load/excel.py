@@ -160,7 +160,7 @@ def _get_cycle(cycle=None, usage=None, **kw):
         cycle = 'nedc_h', 'nedc_l'
     elif cycle in ('all-h', 'all_h'):
         cycle = 'nedc_h', 'wltp_h'
-    elif cycle == ('all-l', 'all_l'):
+    elif cycle in ('all-l', 'all_l'):
         cycle = 'nedc_l', 'wltp_l'
     elif isinstance(cycle, str):
         cycle = cycle.replace('-', '_')
