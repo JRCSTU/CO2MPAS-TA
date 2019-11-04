@@ -785,14 +785,14 @@ def _input_version(error=None, read=True, **kwargs):
             return True
 
         if got_vinfo[:1] != exp_vinfo[:1]:
-            msg = "Input-file version %s is incompatible with expected %s).\n" \
+            msg = "Input-file version %s is incompatible with expected %s.\n" \
                   "  More failures may happen."
 
         elif got_vinfo[:2] > exp_vinfo[:2]:
             msg = "Input-file version %s comes from the (incompatible) " \
-                  "future (> %s)).\n  More failures may happen."
+                  "future (> %s).\n  More failures may happen."
         else:
-            msg = "Input-file version %s is old (< %s))." \
+            msg = "Input-file version %s is old (< %s)." \
                   "\n  You may need to update it, to use new fields."
         log.warning(msg, input_version, exp_ver)
         return True
