@@ -198,7 +198,8 @@ def calibrate_m1000_curve_factor(
     )
 
     def _err(factor):
-        return mae(ds, np.nan_to_num(predict((gbs, gbt / factor)) - es))
+        e = mae(ds, np.nan_to_num(predict((gbs, gbt / factor)) - es))
+        return np.float32(e)
 
     return fmin(_err, default_m1000_curve_factor(full_load_curve))
 

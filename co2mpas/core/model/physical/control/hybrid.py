@@ -220,6 +220,7 @@ def _invert(y, xp, fp):
     with np.errstate(divide='ignore', invalid='ignore'):
         x = xp[:-1] + (np.diff(xp) / np.diff(fp)) * (y[:, None] - fp[:-1])
         b = (xp[:-1] - dfl.EPS <= x) & (x <= (xp[1:] + dfl.EPS))
+        # noinspection PyUnresolvedReferences
         return x[np.arange(b.shape[0]), np.nanargmax(b, 1)], y
 
 
@@ -286,7 +287,7 @@ def _interp(x, xp, fp):
         return (x - x0) * np.where(np.isclose(dx, 0), 0, dy / dx) + y0, x
 
 
-# noinspection PyMissingOrEmptyDocstring
+# noinspection PyMissingOrEmptyDocstring,PyArgumentEqualDefault
 class HEV:
     def __init__(self, drive_line_efficiencies, motors_efficiencies):
 
@@ -544,6 +545,7 @@ def define_serial_motor_maximum_power_function(
     def calculate_serial_motor_maximum_power(engine_speed, final_drive_speed):
         es = np.atleast_1d(engine_speed)
         ps = func(engine_speed, final_drive_speed, planetary_ratio)
+        # noinspection PyArgumentEqualDefault
         return np.pad(
             np.column_stack((
                 planet_f(ps * motor_p2_planetary_speed_ratio),
@@ -698,6 +700,7 @@ class EMS:
                motors_maximums_powers, engine_speeds_out=None,
                ice_power_losses=None, battery_power_losses=0, opt=True):
         hev, fc, n = self.hev_power_model, self.fuel_map_model, 200
+        # noinspection PyArgumentEqualDefault
         pi, pb, bps_ev = hev.ice_power(motive_powers, np.pad(
             motors_maximums_powers[:, :-3], ((0, 0), (0, 3)), 'constant'
         ))
@@ -1104,9 +1107,9 @@ class StartStopHybrid:
         def _(x):
             x = x.valuesdict()
             time = x['starter_time']
-            return np.maximum(0, s * (self._k(x, soc) - np.where(
+            return np.float32(np.maximum(0, s * (self._k(x, soc) - np.where(
                 ~on_engine, *self.reference(ems_data, time)['k_reference'].T
-            )[b].T)).sum()
+            )[b].T)).sum())
 
         p = lmfit.Parameters()
         starter_time = self.starter_model.time
