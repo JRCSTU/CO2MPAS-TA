@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v4.1.10 (2019-11-07)
+--------------------
+Fix
+~~~
+- (optimization) :gh:`561`: Use float32 for fmin error function.
+
 v4.1.9 (2019-11-04)
 -------------------
 Fix
