@@ -69,7 +69,7 @@ Two installation procedures can be followed:
 Official (for type approval)
 ----------------------------
 To install |co2mpas| you have to download the
-`installer <https://github.com/JRCSTU/CO2MPAS-TA/releases/download/v4.1.10/installer.exe>`_
+`installer <https://github.com/JRCSTU/CO2MPAS-TA/releases/download/v4.1.10/co2mpas-4.1.10-28715563-Windows-x86_64.exe>`_
 and then execute it (see the steps shown in the video below).
 
 .. raw:: html
