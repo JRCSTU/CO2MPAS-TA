@@ -324,8 +324,15 @@ Model Inputs
     ``has_periodically_regenerating_systems``
         It specifies if the vehicle is equipped with periodically regenerating
         systems (anti-pollution devices such as catalytic converter or
-        particulate trap) a periodical regeneration process in less than
-        *4000 km* of normal vehicle operation is required.
+        particulate trap). During cycles where regeneration occurs, 
+        emission standards need not apply. 
+        If a periodic regeneration occurs at least once per Type 1 test 
+        and has already occurred at least once during vehicle preparation 
+        or the distance between two successive periodic regenerations 
+        is more than 4000 km of driving repeated Type 1 tests, 
+        it does not require a special test procedure. 
+        In this case, Ki factor should be set to 1.0 (``ki_multiplicative``), 
+        or 0.0 (``ki_additive``).
 
     ``engine_has_variable_valve_actuation``
         It specifies if the engine is equipped with technologies that are used
