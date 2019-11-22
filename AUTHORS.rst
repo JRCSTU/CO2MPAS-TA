@@ -1,33 +1,33 @@
 DICE:
-    - Anagnostopoulos Kostis <kostis.anagnostopoulos@ext.ec.europa.eu>
-    - Arcidiacono Vincenzo <vincenzo.arcidiacono@ext.ec.europa.eu>
-    - Maineri Lorenzo <lorenzo.maineri@ext.ec.europa.eu>
+    - Kostis Anagnostopoulos <kostis.anagnostopoulos@ext.ec.europa.eu>
+    - Vincenzo Arcidiacono <vincenzo.arcidiacono@ext.ec.europa.eu>
+    - Lorenzo Maineri <lorenzo.maineri@ext.ec.europa.eu>
 Documentation:
-    - Arcidiacono Vincenzo <vincenzo.arcidiacono@ext.ec.europa.eu>
-    - Komnos Dimitrios <dimitrios.komnos@ext.ec.europa.eu>
-    - Saporiti Francesca <francesca.saporiti@ext.ec.europa.eu>
-    - Tansini Alessandro <alessandro.tansini@ec.europa.eu>
+    - Vincenzo Arcidiacono <vincenzo.arcidiacono@ext.ec.europa.eu>
+    - Dimitrios Komnos <dimitrios.komnos@ext.ec.europa.eu>
+    - Francesca Saporiti <francesca.saporiti@ext.ec.europa.eu>
+    - Alessandro Tansini <alessandro.tansini@ec.europa.eu>
 GUI:
-    - Anagnostopoulos Kostis <kostis.anagnostopoulos@ext.ec.europa.eu>
-    - Corsi Stefano <stefano.corsi@ext.ec.europa.eu>
-    - Makie Ashenafi <ashenafi.makie@ext.ec.europa.eu>
+    - Kostis Anagnostopoulos <kostis.anagnostopoulos@ext.ec.europa.eu>
+    - Stefano Corsi <stefano.corsi@ext.ec.europa.eu>
+    - Ashenafi Makie <ashenafi.makie@ext.ec.europa.eu>
 Legislation:
-    - Fontaras Georgios <georgios.fontaras@ec.europa.eu>
-    - Pavlovic Jelica <jelica.pavlovic@ec.europa.eu>
+    - Georgios Fontaras <georgios.fontaras@ec.europa.eu>
+    - Jelica Pavlovic <jelica.pavlovic@ec.europa.eu>
 Model:
-    - Arcidiacono Vincenzo <vincenzo.arcidiacono@ext.ec.europa.eu>
-    - Fontaras Georgios <georgios.fontaras@ec.europa.eu>
-    - Pavlovic Jelica <jelica.pavlovic@ec.europa.eu>
-    - Tansini Alessandro <alessandro.tansini@ec.europa.eu>
+    - Vincenzo Arcidiacono <vincenzo.arcidiacono@ext.ec.europa.eu>
+    - Georgios Fontaras <georgios.fontaras@ec.europa.eu>
+    - Jelica Pavlovic <jelica.pavlovic@ec.europa.eu>
+    - Alessandro Tansini <alessandro.tansini@ec.europa.eu>
 Past contributors:
-    - Ciuffo Biagio <biagio.ciuffo@ec.europa.eu>
-    - Tsiamakis Stefanos <stsiakma@gmail.com>
-    - Valverde Victor <victor.valverde-morales@ec.europa.eu>
+    - Biagio Ciuffo <biagio.ciuffo@ec.europa.eu>
+    - Stefanos Tsiamakis <stsiakma@gmail.com>
+    - Victor Valverde <victor.valverde-morales@ec.europa.eu>
 Supervision:
-    - Fontaras Georgios <georgios.fontaras@ec.europa.eu>
-    - Konstantinidis Spyridon <Spyridon.konstantinidis@ext.ec.europa.eu>
+    - Georgios Fontaras <georgios.fontaras@ec.europa.eu>
+    - Spyridon Konstantinidis <Spyridon.konstantinidis@ext.ec.europa.eu>
 Tester:
-    - Komnos Dimitrios <dimitrios.komnos@ext.ec.europa.eu>
-    - Makie Ashenafi <ashenafi.makie@ext.ec.europa.eu>
-    - Prado Rujas Ignacio Iker <iker.prado-rujas@ext.ec.europa.eu>
+    - Dimitrios Komnos <dimitrios.komnos@ext.ec.europa.eu>
+    - Ashenafi Makie <ashenafi.makie@ext.ec.europa.eu>
+    - Iker Prado Rujas <iker.prado-rujas@ext.ec.europa.eu>
 
