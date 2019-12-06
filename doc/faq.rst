@@ -31,7 +31,7 @@ model, regulation and inputs.
   - `What are the verification and deviation factors, and when do they need to be recorded?`_
 
 *For more questions, please visit:* 
-https://github.com/JRCSTU/CO2MPAS-TA/wiki/F-A-Q
+https://github.com/JRCSTU/CO2MPAS-TA/wiki/FAQ
 
 General
 =======
