@@ -46,12 +46,9 @@ of `DG CLIMA's note`_.
 
 Where can the user download the latest version of the |CO2MPAS|?
 ----------------------------------------------------------------
-Visit our GitHub repository
-`CO2MPAS-TA <https://github.com/JRCSTU/CO2MPAS-TA/>`_ to download |CO2MPAS| .
-Subscribe to  `issue #8 <https://github.com/JRCSTU/CO2MPAS-TA/issues/8>`_ 
-to get notifications for the new |CO2MPAS| releases.
-You can find the documentation in the
-`wiki <https://github.com/JRCSTU/CO2MPAS-TA/wiki/>`_ .
+To download the |CO2MPAS| latest version click `here <https://co2mpas.readthedocs.io/en/stable>`_.
+To be notified of every |CO2MPAS| release, **watch** our GitHub
+`repository <https://github.com/JRCSTU/CO2MPAS-TA>`_.
 
 Is |CO2MPAS| free and will it be in the future?
 -----------------------------------------------
