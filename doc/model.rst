@@ -10,14 +10,9 @@ clicking on them.
 
 .. _model_diagram:
 
-.. dispatcher:: dsp
-   :opt: index=True
-   :alt: Flow-diagram of the execution of various Stages and Cycles sub-models.
-   :width: 100%
+.. raw:: html
 
-   >>> from co2mpas.core.model import dsp
-   >>> import schedula
-   >>> dsp = dsp.register(memo={})
+    <iframe frameBorder="0" src="https://jrcstu.github.io/co2mpas/model/?url=https://jrcstu.github.io/co2mpas/model/core/CO2MPAS_model.html" height="500px" width="100%" allowfullscreen></iframe>
 
 The execution of |co2mpas| model for a single vehicle is a procedure in three
 sequential stages:
