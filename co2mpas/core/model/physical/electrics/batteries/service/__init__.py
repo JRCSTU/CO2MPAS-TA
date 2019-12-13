@@ -6,6 +6,16 @@
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
 """
 Functions and `dsp` model to model the service battery (low voltage).
+
+Sub-Modules:
+
+.. currentmodule:: co2mpas.core.model.physical.electrics.batteries.service
+
+.. autosummary::
+    :nosignatures:
+    :toctree: service/
+
+    status
 """
 import functools
 import numpy as np
