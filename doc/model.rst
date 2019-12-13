@@ -65,7 +65,7 @@ are to use the calibrated models from *WLTP-H* data to predict *WLTP-H* and
 applied in type-approval mode).
 
 On the contrary, if the selector is enabled, the function
-:py:func:`extract_calibrated_model <co2mpas.core.model.extract_calibrated_model>`
+:py:func:`extract_calibrated_model <co2mpas.core.model.selector.dsp>`
 detects/selects the best macro-model for prediction (from *WLTP-H* or *WLTP-L*).
 The selection is performed according to the model's score, which is the model
 capability to reproduce the input data, i.e. a weighted average of all computed
