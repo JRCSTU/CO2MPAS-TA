@@ -529,7 +529,7 @@ Model Inputs
 
 Time Series
 -----------
-
+.. glossary::
     ``times``
         It is the time vector [s].
 
@@ -583,6 +583,7 @@ Time Series
 
 General Terms
 -------------
+.. glossary::
     ``type-approval``
         It is the authority that grants that a vehicle conforms to the EU
         Regulation.
