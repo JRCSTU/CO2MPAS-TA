@@ -218,6 +218,13 @@ class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+    class select_best_model(co2_utl.Constants):
+        #: Model selector mapping.
+        MAP = {None: {
+            'wltp_h': ('nedc_h', 'wltp_h'), 'wltp_l': ('nedc_l', 'wltp_l')
+        }}
+
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class calculate_cylinder_deactivation_valid_phases(co2_utl.Constants):
         #: Engine inertia  [kW].
         LIMIT = 0.0001

@@ -96,6 +96,7 @@ def calculate_errors(references, predictions, metrics, metrics_kwargs):
     except TypeError:
         return {}
 
+
 def _check_limit(limit, errors, check=lambda e, l: e <= l):
     it = set(limit).intersection(errors)
     return {k: check(errors[k], limit[k]) for k in it}
@@ -350,7 +351,9 @@ def select_best_model(rank, enable_selector, selector_id=''):
 
     models, _map = {}, {}
     if not enable_selector:
-        _map = {'wltp_h': ('nedc_h', 'wltp_h'), 'wltp_l': ('nedc_l', 'wltp_l')}
+        from co2mpas.defaults import dfl
+        _map = dfl.functions.select_best_model.MAP
+        _map = _map.get(selector_id, _map[None])
 
     for i, (score, scores, err, name, mdl) in enumerate(rank):
         k = ((sh.NONE,) if enable_selector and i == 0 else ())
