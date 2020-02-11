@@ -115,7 +115,7 @@ def _compare(t, o, metrics):
                     res[k] = m
             except Exception:
                 pass
-    except ValueError:
+    except (ValueError, TypeError):
         pass
     return res
 
@@ -495,6 +495,13 @@ def _extract_summary_from_summary(report, extracted, augmented_summary=False):
                 for k, v in sh.stack_nested_keys(w, depth=3):
                     if v:
                         sh.get_nested_dicts(extracted, *k).update(v)
+    n = ('summary', 'comparison')
+    if augmented_summary and sh.are_in_nested_dicts(report, *n):
+        comp = sh.get_nested_dicts(report, *n)
+        for k, v in sh.stack_nested_keys(comp, key=('comparison',), depth=2):
+            sh.get_nested_dicts(extracted, *k[::-1]).update({
+                '/'.join(i): j for i, j in sh.stack_nested_keys(v)
+            })
 
 
 def _param_names_values(data):
@@ -583,6 +590,10 @@ def extract_summary(report, augmented_summary=False):
     :param report:
         Vehicle output report.
     :type report: dict
+
+    :param augmented_summary:
+        Add more outputs to the summary.
+    :type augmented_summary: bool
 
     :return:
         Summary report.
