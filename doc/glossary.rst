@@ -31,9 +31,8 @@ DICE
         The family identifier code of the parent.
 
     ``regulation``
-        It indicates which regulation have been followed. For example, if the
-        vehicle is HDV-derived van and followed 5.8.2 of Annex VIII to
-        Regulation (EU) No 582/2011.
+        It indicates if WLTP test has been performed in accordance with point
+        5.1.2 of Annex VIII to Regulation (EU) No 582/2011.
 
     ``vehicle_family_id``
         The family identifier code shall consist of one unique string of
