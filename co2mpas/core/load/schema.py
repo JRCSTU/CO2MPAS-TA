@@ -458,6 +458,8 @@ def define_data_schema(read=True):
         length=2,
         read=read
     )
+    _float = _type(type=float, read=read)
+    _float = Or(_float, And(str, Use(lambda x: x.replace(',', '.')), _float))
     tuplefloat = _type(type=And(Use(tuple), (_type(float),)), read=read)
     dictstrdict = _dict(format={str: dict}, read=read)
     ordictstrdict = _ordict(format={str: dict}, read=read)
@@ -529,6 +531,7 @@ def define_data_schema(read=True):
         'gear_box_type': _select(
             types=('manual', 'automatic', 'cvt', 'planetary'), read=read
         ),
+        'initial_temperature': _float,
         'ignition_type': _select(types=('positive', 'compression'), read=read),
         'start_stop_activation_time': positive,
         'alternator_nominal_voltage': positive,
@@ -737,7 +740,7 @@ def define_data_schema(read=True):
         pass
 
     schema = {Optional(k): Or(Empty(), v) for k, v in schema.items()}
-    schema[Optional(str)] = Or(_type(type=float, read=read), np_array)
+    schema[Optional(str)] = Or(_float, np_array)
 
     if not read:
         def _f(x):
