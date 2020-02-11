@@ -128,6 +128,12 @@ def parse_solution(solution):
             if v:
                 d = sh.get_nested_dicts(res, 'target', 'prediction')
                 d[k] = sh.combine_dicts(v, d.get(k, {}))
+    from co2mpas.defaults import dfl
+    if dfl.functions.parse_solution.CALIBRATION_AS_TARGETS:
+        pred = sh.get_nested_dicts(res, 'target', 'prediction')
+        pred.update(sh.combine_nested_dicts(sh.get_nested_dicts(
+            res, 'output', 'calibration'
+        ), pred, depth=2))
 
     res['pipe'] = solution.pipe
 

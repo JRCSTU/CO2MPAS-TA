@@ -218,6 +218,11 @@ class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
+    class parse_solution(co2_utl.Constants):
+        #: Use all calibration outputs as relative prediction targets.
+        CALIBRATION_AS_TARGETS = False
+
+    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class select_best_model(co2_utl.Constants):
         #: Model selector mapping.
         MAP = {None: {
