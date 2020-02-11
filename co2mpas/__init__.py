@@ -25,7 +25,6 @@ import webbrowser
 import os.path as osp
 import schedula as sh
 from co2mpas._version import *
-from co2mpas.utils import check_first_arg
 
 log = logging.getLogger(__name__)
 dsp = sh.BlueDispatcher(name='process')
@@ -451,7 +450,7 @@ def define_output_summary_file(cmd_flags, timestamp):
     return osp.join(fp, '%s-summary.xlsx' % timestamp)
 
 
-@sh.add_function(dsp, outputs=['run'], input_domain=check_first_arg)
+@sh.add_function(dsp, outputs=['run'], input_domain=lambda *args: bool(args[0]))
 def save_summary(summary, output_summary_file, start_time):
     """
     Save CO2MPAS model configurations.
