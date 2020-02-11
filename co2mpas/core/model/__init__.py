@@ -18,7 +18,7 @@ Sub-Modules:
     physical
     selector
 """
-
+import numpy as np
 import schedula as sh
 from .physical import dsp as _physical
 from .selector import dsp as _selector, calibration_cycles, prediction_cycles
@@ -27,41 +27,6 @@ dsp = sh.BlueDispatcher(
     name='CO2MPAS model',
     description='Calibrates the models with WLTP data and predicts NEDC cycle.'
 )
-
-_prediction_data = [
-    'angle_slope', 'alternator_nominal_voltage', 'alternator_efficiency',
-    'battery_capacity', 'cycle_type', 'cycle_name', 'engine_capacity',
-    'engine_stroke', 'final_drive_efficiency', 'final_drive_ratios',
-    'frontal_area', 'final_drive_ratio', 'engine_thermostat_temperature',
-    'aerodynamic_drag_coefficient', 'fuel_type', 'ignition_type',
-    'gear_box_type', 'engine_max_power', 'engine_speed_at_max_power',
-    'rolling_resistance_coeff', 'time_cold_hot_transition',
-    'engine_idle_fuel_consumption', 'engine_type', 'engine_is_turbo',
-    'engine_fuel_lower_heating_value', 'has_start_stop',
-    'has_energy_recuperation', 'fuel_carbon_content_percentage',
-    'f0', 'f1', 'f2', 'vehicle_mass', 'full_load_speeds',
-    'plateau_acceleration', 'full_load_powers', 'fuel_saving_at_strategy',
-    'stand_still_torque_ratio', 'lockup_speed_ratio',
-    'change_gear_window_width', 'alternator_start_window_width',
-    'stop_velocity', 'min_time_engine_on_after_start',
-    'min_engine_on_speed', 'max_velocity_full_load_correction',
-    'is_hybrid', 'tyre_code', 'engine_has_cylinder_deactivation',
-    'active_cylinder_ratios', 'engine_has_variable_valve_actuation',
-    'has_torque_converter', 'has_gear_box_thermal_management',
-    'has_lean_burn', 'ki_additive', 'ki_multiplicative', 'n_wheel_drive',
-    'has_periodically_regenerating_systems', 'n_dyno_axes',
-    'has_selective_catalytic_reduction', 'has_exhausted_gas_recirculation',
-    'start_stop_activation_time', 'engine_n_cylinders',
-    'initial_drive_battery_state_of_charge',
-    'motor_p0_speed_ratio', 'motor_p1_speed_ratio',
-    'motor_p2_speed_ratio', 'motor_p2_planetary_speed_ratio',
-    'motor_p3_front_speed_ratio', 'motor_p3_rear_speed_ratio',
-    'motor_p4_front_speed_ratio', 'motor_p4_rear_speed_ratio',
-    'rcb_correction', 'speed_distance_correction',
-    'atct_family_correction_factor', 'is_plugin'
-]
-
-_prediction_data_ts = ['times', 'velocities', 'gears']
 
 _physical = sh.SubDispatch(_physical)
 
@@ -133,40 +98,41 @@ dsp.add_data(
     dsp, inputs=['output.calibration.wltp_l', 'data.prediction.models_wltp_l',
                  'input.prediction.wltp_l'], outputs=['data.prediction.wltp_l']
 )
-def select_prediction_data(data, *new_data):
+def select_prediction_data(calibration_data, models_data, user_data):
     """
     Selects the data required to predict the CO2 emissions with CO2MPAS model.
 
-    :param data:
-        Output data.
-    :type data: dict
+    :param calibration_data:
+        Output data of calibration stage
+    :type calibration_data: dict
 
-    :param new_data:
-        New data.
-    :type new_data: dict
+    :param models_data:
+        Calibrated models for prediction stage.
+    :type models_data: dict
+
+    :param user_data:
+        User input data of prediction stage.
+    :type user_data: dict
 
     :return:
         Data required to predict the CO2 emissions with CO2MPAS model.
     :rtype: dict
     """
-
-    ids = _prediction_data
     from co2mpas.defaults import dfl
-    if not dfl.functions.select_prediction_data.theoretical:
-        ids = ids + _prediction_data_ts
-
-    data = sh.selector(ids, data, allow_miss=True)
-
-    if new_data:
-        new_data = sh.combine_dicts(*new_data)
-        data = sh.combine_dicts(data, new_data)
-
-    if 'gears' in data and 'gears' not in new_data:
-        if data.get('gear_box_type', 0) == 'automatic' or \
-                len(data.get('velocities', ())) != len(data['gears']):
-            data.pop('gears')
-
-    return data
+    kw = dict(calibration=calibration_data, models=models_data, user=user_data)
+    data, xp = [], None
+    for k, v in dfl.functions.select_prediction_data.prediction_data[::-1]:
+        d = kw[k]
+        if v != 'all':
+            d = sh.selector(v, d, allow_miss=True)
+        if 'times' in d:
+            if xp is None:
+                xp = d['times']
+            else:
+                x, inter = d['times'], np.interp
+                d = {k: inter(x, xp, fp) for k, fp in d.items() if k != 'times'}
+        data.append(d)
+    return sh.combine_dicts(*data[::-1])
 
 
 dsp.add_data(
