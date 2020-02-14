@@ -123,15 +123,15 @@ def _compare(t, o, metrics):
 def _compare_outputs_vs_targets(data):
     res = {}
     metrics = _get_metrics()
+    with np.errstate(divide='ignore', invalid='ignore'):
+        for k, t in sh.stack_nested_keys(data.get('target', {}), depth=3):
+            if not sh.are_in_nested_dicts(data, 'output', *k):
+                continue
 
-    for k, t in sh.stack_nested_keys(data.get('target', {}), depth=3):
-        if not sh.are_in_nested_dicts(data, 'output', *k):
-            continue
-
-        o = sh.get_nested_dicts(data, 'output', *k)
-        v = _compare(t, o, metrics=metrics)
-        if v:
-            sh.get_nested_dicts(res, *k[:-1])[k[-1]] = v
+            o = sh.get_nested_dicts(data, 'output', *k)
+            v = _compare(t, o, metrics=metrics)
+            if v:
+                sh.get_nested_dicts(res, *k[:-1])[k[-1]] = v
 
     return res
 
