@@ -485,10 +485,10 @@ def _extract_summary_from_summary(report, extracted, augmented_summary=False):
     n = ('summary', 'results')
     keys = (
         'corrected_sustaining_co2_emission', 'declared_sustaining_co2_emission',
-        'declared_co2_emission', 'co2_emission', 'corrected_co2_emission',
+        'declared_co2_emission', 'co2_emission', 'corrected_co2_emission'
     )
     if augmented_summary:
-        keys += 'fuel_consumption',
+        keys += 'fuel_consumption', 'vehicle'
     if sh.are_in_nested_dicts(report, *n):
         for j, w in sh.get_nested_dicts(report, *n).items():
             if j in keys:
