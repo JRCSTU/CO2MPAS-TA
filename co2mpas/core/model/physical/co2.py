@@ -171,6 +171,26 @@ def merge_wltp_phases_co2_emission(
             co2_emission_extra_high)
 
 
+dsp.add_function(
+    function_id='split_wltp_phases_co2_emission',
+    function=sh.add_args(sh.bypass),
+    inputs=['cycle_type', 'phases_co2_emissions'],
+    outputs=[
+        'co2_emission_low', 'co2_emission_medium', 'co2_emission_high',
+        'co2_emission_extra_high'
+    ],
+    input_domain=lambda cycle, phases: (cycle, len(phases)) == ('WLTP', 4)
+)
+
+dsp.add_function(
+    function_id='split_nedc_phases_co2_emission',
+    function=sh.add_args(sh.bypass),
+    inputs=['cycle_type', 'phases_co2_emissions'],
+    outputs=['co2_emission_UDC', 'co2_emission_EUDC'],
+    input_domain=lambda cycle, phases: (cycle, len(phases)) == ('NEDC', 2)
+)
+
+
 # noinspection PyPep8Naming
 @sh.add_function(dsp, outputs=['phases_co2_emissions'])
 def merge_wltp_phases_co2_emission(co2_emission_UDC, co2_emission_EUDC):
