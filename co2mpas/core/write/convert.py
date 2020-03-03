@@ -47,7 +47,7 @@ def _get_doc_description():
     for k, v in d.data_nodes.items():
         if k in doc_descriptions or v['type'] != 'data':
             continue
-        des = d.search_node_description(k)[0]
+        des = d.get_node(k, node_attr='description')[0]
         if not des or len(des.split(' ')) > 4:
 
             unit = _re_units.search(des)
