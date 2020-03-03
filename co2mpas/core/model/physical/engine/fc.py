@@ -14,6 +14,7 @@ import numpy as np
 import schedula as sh
 from co2mpas.defaults import dfl
 import co2mpas.utils as co2_utl
+from numbers import Number
 
 dsp = sh.BlueDispatcher(
     name='Engine fuel consumption sub model',
@@ -461,7 +462,7 @@ def _ABC(
     A = a2 / acr2 + (b2 / acr2) * n_speeds
     B = a / acr + (b / acr + (c / acr) * n_speeds) * n_speeds
     C = l + l2 * n_speeds ** 2
-    if n_temperatures is not 1:
+    if not isinstance(n_temperatures, Number) or n_temperatures != 1:
         C *= np.power(n_temperatures, -t)
     C -= n_powers / acr
 

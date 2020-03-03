@@ -11,6 +11,7 @@ import numpy as np
 import schedula as sh
 from co2mpas.defaults import dfl
 import co2mpas.utils as co2_utl
+from numbers import Number
 
 dsp = sh.BlueDispatcher(
     name='ems',
@@ -338,9 +339,10 @@ class HEV:
                  engine_powers_out=None, ice_power_losses=0,
                  battery_power_losses=0):
         pi, pb, bps = self.ice_power(motive_powers, motors_maximums_powers)
-        if ice_power_losses is not 0:
+        if not isinstance(ice_power_losses, Number) or ice_power_losses != 0:
             pi += np.asarray(ice_power_losses).ravel()[None, :]
-        if battery_power_losses is not 0:
+        if (not isinstance(battery_power_losses, Number) or
+                battery_power_losses != 0):
             pb += np.asarray(battery_power_losses).ravel()[None, :]
         if engine_powers_out is not None:
             pb, pi = _interp(engine_powers_out, pi.T, pb.T)
