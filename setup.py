@@ -159,7 +159,7 @@ if __name__ == '__main__':
             'Topic :: Scientific/Engineering',
             "Topic :: Scientific/Engineering :: Information Analysis",
         ],
-        obsoletes=['co2mpas (< 3.0)'],
+        obsoletes=['co2mpas (< 4.0)'],
         python_requires='>=3.5',
         install_requires=[
             'PyYAML',
@@ -171,7 +171,7 @@ if __name__ == '__main__':
             'numpy',
             'schema',
             'scipy',
-            'wltp<1',
+            'wltp',
             'xgboost>=0.90',
             'statsmodels'
         ],
