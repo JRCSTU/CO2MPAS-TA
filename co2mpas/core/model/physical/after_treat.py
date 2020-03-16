@@ -79,7 +79,7 @@ def identify_on_idle(
     on_idle[i[ds > idle_engine_speed[1]]] = 1
     on_idle = co2_utl.median_filter(times, on_idle, 4)
     on_idle[b] = 1
-    for i, j in sh.pairwise(_shift(on_idle)):
+    for i, j in co2_utl.pairwise(_shift(on_idle)):
         if not on_idle[i] and times[j - 1] - times[i] <= 2:
             on_idle[i:j] = 1
     return co2_utl.clear_fluctuations(times, on_idle, 4).astype(bool)

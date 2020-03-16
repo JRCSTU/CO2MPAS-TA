@@ -11,6 +11,7 @@ import copy
 import numpy as np
 import schedula as sh
 from .cmv import CMV
+import co2mpas.utils as co2_utl
 from co2mpas.defaults import dfl
 from .core import prediction_gears_gsm
 
@@ -60,7 +61,7 @@ class GSPV(CMV):
 
         self.velocity_speed_ratios = velocity_speed_ratios
 
-        it = zip(velocities, motive_powers, sh.pairwise(gears))
+        it = zip(velocities, motive_powers, co2_utl.pairwise(gears))
 
         for v, p, (g0, g1) in it:
             if v > stop_velocity and g0 != g1:

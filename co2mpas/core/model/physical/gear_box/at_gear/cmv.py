@@ -11,6 +11,7 @@ import itertools
 import collections
 import numpy as np
 import schedula as sh
+import co2mpas.utils as co2_utl
 from co2mpas.defaults import dfl
 from .core import prediction_gears_gsm, define_gear_filter
 
@@ -42,7 +43,7 @@ def _correct_gsv(gsv, stop_velocity):
     def func(x):
         return not x and float('inf') or 1 / x
 
-    for v0, v1 in sh.pairwise(gsv.values()):
+    for v0, v1 in co2_utl.pairwise(gsv.values()):
         up0, s0, down1, s1 = v0[1][0], v0[1][1][1], v1[0][0], v1[0][1][1]
 
         if down1 + s1 <= v0[0]:
@@ -114,7 +115,7 @@ def _identify_gear_shifting_velocity_limits(gears, velocities, stop_velocity):
 
     limits = {}
 
-    for v, (g0, g1) in zip(velocities, sh.pairwise(gears)):
+    for v, (g0, g1) in zip(velocities, co2_utl.pairwise(gears)):
         if v >= stop_velocity and g0 != g1:
             limits[g0] = limits.get(g0, [[], []])
             limits[g0][int(g0 < g1)].append(v)

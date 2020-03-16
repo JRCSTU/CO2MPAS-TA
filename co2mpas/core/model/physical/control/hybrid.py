@@ -449,7 +449,7 @@ def identify_hybrid_modes(
     mode = co2_utl.clear_fluctuations(times, mode, 4).astype(int)
     mode[~on_engine] = 0
     with np.errstate(divide='ignore', invalid='ignore'):
-        for i, j in sh.pairwise(_shift(mode)):
+        for i, j in co2_utl.pairwise(_shift(mode)):
             if mode[i] and times[j - 1] - times[i] < 5:
                 if _correlation_coefficient(es[i:j], gbs[i:j]) < .6:
                     mode[i:j] = 3 - mode[i]

@@ -15,6 +15,7 @@ import functools
 import numpy as np
 import os.path as osp
 import schedula as sh
+import co2mpas.utils as co2_utl
 from collections import Iterable, OrderedDict
 from schema import Schema, Use, And, Or, Optional, SchemaError
 
@@ -395,7 +396,7 @@ def _dir(error=None, **kwargs):
 
 
 def _is_sorted(iterable, key=lambda a, b: a <= b):
-    return all(key(a, b) for a, b in sh.pairwise(iterable))
+    return all(key(a, b) for a, b in co2_utl.pairwise(iterable))
 
 
 # noinspection PyUnresolvedReferences

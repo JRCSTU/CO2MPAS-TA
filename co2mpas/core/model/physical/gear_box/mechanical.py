@@ -156,9 +156,9 @@ def _calibrate_gsm(
         max(_vsr): {True: [dfl.INF]}
     }
     shifts = np.unique(sum(map(_shift, (on_engine, anomalies)), []))
-    for i, j in sh.pairwise(shifts):
+    for i, j in co2_utl.pairwise(shifts):
         if on_engine[i:j].all() and not anomalies[i:j].any():
-            for v in np.array(list(sh.pairwise(_shift(gear[i:j])))) + i:
+            for v in np.array(list(co2_utl.pairwise(_shift(gear[i:j])))) + i:
                 if j != v[1]:
                     v, (g, ng) = velocities[slice(*v)], gear[[v[1] - 1, v[1]]]
                     up = g < ng
@@ -277,7 +277,7 @@ def identify_gears_v1(
     anomalies = co2_utl.clear_fluctuations(
         times, anomalies.astype(int), change_gear_window_width
     )
-    for i, j in sh.pairwise(_shift(gears)):
+    for i, j in co2_utl.pairwise(_shift(gears)):
         anomalies[i:j] = anomalies[i:j].mean() > .3
 
     gsm = _calibrate_gsm(

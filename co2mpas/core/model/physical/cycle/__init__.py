@@ -21,6 +21,7 @@ Sub-Modules:
 """
 import numpy as np
 import schedula as sh
+import co2mpas.utils as co2_utl
 from co2mpas.defaults import dfl
 from .NEDC import dsp as _nedc_cycle, is_manual
 from .WLTP import dsp as _wltp_cycle
@@ -168,4 +169,4 @@ def select_phases_integration_times(cycle_type):
 
     from co2mpas.defaults import dfl
     v = dfl.functions.select_phases_integration_times.INTEGRATION_TIMES
-    return tuple(sh.pairwise(v[cycle_type.upper()]))
+    return tuple(co2_utl.pairwise(v[cycle_type.upper()]))
