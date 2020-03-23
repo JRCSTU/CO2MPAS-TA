@@ -144,6 +144,29 @@ def calculate_final_drive_powers_in(
     return np.where(p > 0, eff, 1 / eff) * p
 
 
+@sh.add_function(dsp, outputs=['final_drive_powers_out'])
+def calculate_final_drive_powers_out(
+        final_drive_powers_in, final_drive_efficiency):
+    """
+    Calculate final drive power out [kW].
+
+    :param final_drive_powers_in:
+        Final drive power in [kW].
+    :type final_drive_powers_in: numpy.array | float
+
+    :param final_drive_efficiency:
+        Final drive efficiency [-].
+    :type final_drive_efficiency: float
+
+    :return:
+        Final drive power out [kW].
+    :rtype: numpy.array | float
+    """
+    return calculate_final_drive_powers_in(
+        final_drive_powers_in, 1 / final_drive_efficiency
+    )
+
+
 @sh.add_function(dsp, outputs=['final_drive_torques_in'])
 def calculate_final_drive_torques_in(
         final_drive_powers_in, final_drive_speeds_in):

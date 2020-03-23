@@ -86,7 +86,7 @@ dsp.add_dispatcher(
         'curb_mass', 'elevations', 'frontal_area', 'has_roof_box', 'road_loads',
         'unladen_mass', 'inertial_factor', 'vehicle_height', 'vehicle_category',
         'tyre_state', 'vehicle_mass', 'f0', 'path_distances', 'path_elevations',
-        'f2',
+        'wheel_powers', 'f2',
     ),
     outputs=(
         'wheel_drive_load_fraction', 'traction_acceleration_limit', 'curb_mass',
@@ -102,16 +102,16 @@ dsp.add_dispatcher(
     dsp_id='wheels_model',
     dsp=_wheels,
     inputs=(
-        'accelerations', 'change_gear_window_width', 'engine_speeds_out',
-        'final_drive_ratios', 'gear_box_ratios', 'gears', 'idle_engine_speed',
-        'motive_powers', 'plateau_acceleration', 'r_dynamic', 'r_wheels',
-        'gear_box_speeds_in', 'on_engine', 'tyre_dimensions', 'stop_velocity',
-        'tyre_dynamic_rolling_coefficient', 'tyre_code', 'velocities', 'times',
-        'velocity_speed_ratios'
+        'final_drive_ratios', 'gear_box_ratios', 'gears', 'velocities', 'times',
+        'tyre_dynamic_rolling_coefficient', 'tyre_code', 'plateau_acceleration',
+        'gear_box_speeds_in', 'idle_engine_speed', 'stop_velocity', 'on_engine',
+        'engine_speeds_out', 'tyre_dimensions', 'accelerations', 'wheel_powers',
+        'change_gear_window_width', 'velocity_speed_ratios', 'motive_powers',
+        'r_dynamic', 'r_wheels',
     ),
     outputs=(
         'r_dynamic', 'r_wheels', 'tyre_code', 'wheel_powers', 'wheel_speeds',
-        'tyre_dynamic_rolling_coefficient', 'wheel_torques',
+        'tyre_dynamic_rolling_coefficient', 'wheel_torques'
     ),
     inp_weight={'r_dynamic': 3}
 )
@@ -142,18 +142,44 @@ def calculate_final_drive_powers_out(
     return wheel_powers - motor_p4_front_powers - motor_p4_rear_powers
 
 
+@sh.add_function(dsp, outputs=['wheel_powers'])
+def calculate_wheel_powers(
+        final_drive_powers_out, motor_p4_front_powers, motor_p4_rear_powers):
+    """
+    Calculate the power at the wheels [kW].
+
+    :param final_drive_powers_out:
+        Final drive power out [kW].
+    :type final_drive_powers_out: numpy.array | float
+
+    :param motor_p4_front_powers:
+        Power at motor P4 front [kW].
+    :type motor_p4_front_powers: numpy.array | float
+
+    :param motor_p4_rear_powers:
+        Power at motor P4 rear [kW].
+    :type motor_p4_rear_powers: numpy.array | float
+
+    :return:
+        Power at the wheels [kW].
+    :rtype: numpy.array | float
+    """
+    return final_drive_powers_out + motor_p4_front_powers + motor_p4_rear_powers
+
+
 dsp.add_dispatcher(
     include_defaults=True,
     dsp_id='final_drive_model',
     dsp=_final_drive,
     inputs=(
-        'final_drive_efficiency', 'final_drive_ratio', 'final_drive_ratios',
-        'gear_box_type', 'gears', 'n_wheel_drive', 'n_gears',
-        'final_drive_powers_out', {'wheel_speeds': 'final_drive_speeds_out'}
+        'final_drive_efficiency', 'final_drive_ratio', 'n_wheel_drive', 'gears',
+        'final_drive_powers_out', 'final_drive_powers_in', 'final_drive_ratios',
+        'gear_box_type', 'n_gears', {'wheel_speeds': 'final_drive_speeds_out'}
     ),
     outputs=(
-        'final_drive_powers_in', 'final_drive_ratios', 'final_drive_speeds_in',
-        'final_drive_torques_in', 'final_drive_mean_efficiency'
+        'final_drive_torques_in', 'final_drive_ratios', 'final_drive_speeds_in',
+        'final_drive_mean_efficiency', 'final_drive_powers_out',
+        'final_drive_powers_in',
     )
 )
 
@@ -181,6 +207,31 @@ def calculate_gear_box_powers_out(
     :rtype: numpy.array | float
     """
     return final_drive_powers_in - motor_p3_front_powers - motor_p3_rear_powers
+
+
+@sh.add_function(dsp, outputs=['final_drive_powers_in'])
+def calculate_final_drive_powers_in(
+        gear_box_powers_out, motor_p3_front_powers, motor_p3_rear_powers):
+    """
+    Calculate final drive power in [kW].
+
+    :param gear_box_powers_out:
+        Gear box power vector [kW].
+    :type gear_box_powers_out: numpy.array | float
+
+    :param motor_p3_front_powers:
+        Power at motor P3 front [kW].
+    :type motor_p3_front_powers: numpy.array | float
+
+    :param motor_p3_rear_powers:
+        Power at motor P3 rear [kW].
+    :type motor_p3_rear_powers: numpy.array | float
+
+    :return:
+        Final drive power in [kW].
+    :rtype: numpy.array | float
+    """
+    return gear_box_powers_out + motor_p3_front_powers + motor_p3_rear_powers
 
 
 dsp.add_dispatcher(
