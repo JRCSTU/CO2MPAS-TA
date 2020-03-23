@@ -193,7 +193,10 @@ def run_sitemap(sitemap, cache_folder, host, port):
     :type port: int
     :return:
     """
+    import flask
+    import datetime
     import numpy as np
+    flask.Flask.send_file_max_age_default = datetime.timedelta(seconds=0)
     np.set_printoptions(threshold=np.inf)
     site = sitemap.site(cache_folder, host=host, port=port).run()
     webbrowser.open(site.url)
