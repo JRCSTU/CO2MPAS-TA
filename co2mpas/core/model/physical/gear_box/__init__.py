@@ -89,7 +89,10 @@ dsp.add_function(
 @sh.add_function(
     dsp, inputs_kwargs=True, outputs=['gear_box_mean_efficiency_guess']
 )
-@sh.add_function(dsp, outputs=['gear_box_mean_efficiency_guess'], weight=90)
+@sh.add_function(
+    dsp, function_id='calculate_gear_box_mean_efficiency_guess_v1',
+    outputs=['gear_box_mean_efficiency_guess'], weight=90
+)
 def calculate_gear_box_mean_efficiency_guess(
         motive_powers, final_drive_mean_efficiency, gear_box_loss_model, times,
         gear_box_speeds_in, gear_box_speeds_out, min_engine_on_speed,
