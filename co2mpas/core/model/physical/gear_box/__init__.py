@@ -16,14 +16,16 @@ Sub-Modules:
     :toctree: gear_box/
 
     at_gear
-    manual
     cvt
+    manual
     mechanical
+    planet
     thermal
 """
 
 import math
 import functools
+import collections
 import numpy as np
 import schedula as sh
 from co2mpas.defaults import dfl
@@ -32,7 +34,7 @@ from .at_gear import dsp as _at_gear
 from .mechanical import dsp as _mechanical
 from .manual import dsp as _manual
 from .planet import dsp as _planet_model
-from co2mpas.utils import List, reject_outliers
+from co2mpas.utils import reject_outliers
 
 dsp = sh.BlueDispatcher(
     name='Gear box model', description='Models the gear box.'
@@ -531,18 +533,13 @@ class GearBoxLosses:
                     gear_box_torques=None):
         gear_box_temperatures[0] = self.initial_gear_box_temperature
         if gear_box_torques is None:
-            # noinspection PyUnusedLocal
-            def get_gear_box_torque(i):
-                return None
-        else:
-            def get_gear_box_torque(i):
-                return gear_box_torques[i]
+            gear_box_torques = collections.defaultdict(lambda: None)[1]
 
         def _next(i):
             j = i + 1
             dt = len(times) > j and times[j] - times[i] or 0
             return self._thermal(
-                gear_box_temperatures[i], get_gear_box_torque(i), gears[i], dt,
+                gear_box_temperatures[i], gear_box_torques[i], gears[i], dt,
                 gear_box_powers_out[i], gear_box_speeds_out[i],
                 gear_box_speeds_in[i]
             )
@@ -656,16 +653,19 @@ def calculate_gear_box_efficiencies_torques_temperatures(
     .. note:: Torque entering the gearbox can be from engine side
        (power mode or from wheels in motoring mode).
     """
-    temp, to_in, eff = List(), List(), List()
+    temp, to_in, eff = np.empty((3, times.shape[0]), float)
 
     func = gear_box_loss_model.init_losses(
         temp, times, gear_box_powers_out, gear_box_speeds_out,
         gear_box_speeds_in, gears, gear_box_torques
     )
     for i in range(times.shape[0]):
-        temp[i + 1], to_in[i], eff[i] = func(i)
-    temp = np.minimum(engine_thermostat_temperature - 5, temp[:-1].toarray())
-    return temp, to_in.toarray(), eff.toarray()
+        t, to_in[i], eff[i] = func(i)
+        try:
+            temp[i + 1] = t
+        except IndexError:
+            pass
+    return np.minimum(engine_thermostat_temperature - 5, temp), to_in, eff
 
 
 @sh.add_function(dsp, outputs=['gear_box_powers_in'])
