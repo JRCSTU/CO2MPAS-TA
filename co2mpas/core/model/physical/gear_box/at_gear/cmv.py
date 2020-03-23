@@ -337,7 +337,7 @@ class CMV(collections.OrderedDict):
                 return matrix[gear][index]
         return _next
 
-    def predict(self, times, velocities, accelerations, motive_powers,
+    def predict(self, times, velocities, accelerations, motive_powers=None,
                 engine_coolant_temperatures=None,
                 correct_gear=lambda g, *args: g,
                 gear_filter=define_gear_filter()):
@@ -354,8 +354,8 @@ class CMV(collections.OrderedDict):
 
         return gears
 
-    def init_gear(self, gears, times, velocities, accelerations, motive_powers,
-                  engine_coolant_temperatures=None,
+    def init_gear(self, gears, times, velocities, accelerations,
+                  motive_powers=None, engine_coolant_temperatures=None,
                   correct_gear=lambda g, *args: g):
 
         next_g = self._init_gear(

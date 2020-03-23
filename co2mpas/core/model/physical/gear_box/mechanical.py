@@ -175,12 +175,15 @@ def _calibrate_gsm(
     return gsm
 
 
-@sh.add_function(dsp, outputs=['gears'], weight=10)
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['gears'], weight=10)
+@sh.add_function(
+    dsp, function_id='identify_gears_v2', outputs=['gears'], weight=20
+)
 def identify_gears_v1(
-        times, velocities, accelerations, motive_powers, on_engine,
+        times, velocities, accelerations, on_engine,
         engine_speeds_out, velocity_speed_ratios, stop_velocity,
         plateau_acceleration, change_gear_window_width, idle_engine_speed,
-        correct_gear):
+        correct_gear, motive_powers=None):
     """
     Identifies gear time series [-].
 
