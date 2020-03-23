@@ -1356,7 +1356,7 @@ def calculate_extended_phases_distances(
     """
     from ..co2 import calculate_phases_distances, identify_phases_indices
     indices = identify_phases_indices(times, extended_phases_integration_times)
-    return calculate_phases_distances(times, indices, velocities)
+    return calculate_phases_distances(indices, velocities)
 
 
 @sh.add_function(dsp, outputs=['extended_phases_co2_emissions'])
@@ -1382,7 +1382,7 @@ def calculate_extended_phases_co2_emissions(
         return np.nan_to_num(x / extended_phases_distances)
 
 
-dsp.add_function(function=sh.bypass, weight=300, inputs=[
+dsp.add_function(function=sh.bypass, weight=sh.inf(10, 300), inputs=[
     'phases_integration_times', 'cumulative_co2_emissions', 'phases_distances'
 ], outputs=[
     'extended_phases_integration_times', 'extended_cumulative_co2_emissions',
