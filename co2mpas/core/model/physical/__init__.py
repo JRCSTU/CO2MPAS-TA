@@ -192,34 +192,35 @@ dsp.add_dispatcher(
         'maximum_vehicle_laden_mass', 'maximum_velocity', 'min_engine_on_speed',
         'engine_coolant_temperatures', 'engine_mass', 'engine_max_power', 'MVL',
         'initial_gear_box_temperature', 'gear_box_temperature_references', 'f0',
-        'change_gear_window_width', 'idle_engine_speed', 'cycle_type', 'times',
-        'full_load_speeds', 'gear_box_efficiency_constants', 'gear_box_ratios',
-        'CMV', 'CMV_Cold_Hot', 'CVT', 'DTGS', 'GSPV', 'GSPV_Cold_Hot', 'gears',
-        'engine_thermostat_temperature', 'final_drive_ratios', 'accelerations',
-        'r_dynamic', 'road_loads', 'specific_gear_shifting', 'stop_velocity',
-        'engine_max_speed', 'engine_max_torque', 'engine_speed_at_max_power',
-        'first_gear_box_ratio', 'fuel_saving_at_strategy', 'full_load_curve',
-        'engine_speed_at_max_velocity', 'engine_speeds_out', 'gear_box_type',
-        'gear_box_efficiency_parameters_cold_hot', 'use_dt_gear_shifting',
-        'max_velocity_full_load_correction', 'motive_powers', 'n_gears',
-        'on_engine', 'plateau_acceleration', 'time_cold_hot_transition',
-        'last_gear_box_ratio', 'final_drive_mean_efficiency',
-        'gear_box_speeds_in', 'velocity_speed_ratios', 'gear_box_powers_out', {
+        'time_cold_hot_transition', 'specific_gear_shifting', 'full_load_curve',
+        'gear_box_speeds_in', 'engine_speeds_out', 'gear_box_type', 'on_engine',
+        'CMV', 'CMV_Cold_Hot', 'engine_max_torque', 'engine_speed_at_max_power',
+        'gear_box_powers_in', 'CVT', 'idle_engine_speed', 'cycle_type', 'times',
+        'engine_thermostat_temperature', 'last_gear_box_ratio', 'stop_velocity',
+        'engine_speed_at_max_velocity', 'first_gear_box_ratio', 'motive_powers',
+        'change_gear_window_width', 'gear_box_powers_out', 'final_drive_ratios',
+        'gear_box_efficiency_parameters_cold_hot', 'GSPV_Cold_Hot', 'r_dynamic',
+        'final_drive_mean_efficiency', 'accelerations', 'velocity_speed_ratios',
+        'fuel_saving_at_strategy', 'use_dt_gear_shifting', 'road_loads', 'DTGS',
+        'gear_box_efficiency_constants', 'engine_max_speed', 'n_gears', 'gears',
+        'plateau_acceleration', 'full_load_speeds', 'gear_box_ratios', 'GSPV',
+        'max_velocity_full_load_correction',
+        {
             'final_drive_speeds_in': 'gear_box_speeds_out',
             'initial_engine_temperature': 'initial_gear_box_temperature',
             'initial_temperature': 'initial_gear_box_temperature'
         }
     ),
     outputs=(
-        'CMV', 'CMV_Cold_Hot', 'CVT', 'DTGS', 'GSPV', 'GSPV_Cold_Hot', 'MVL',
-        'engine_speed_at_max_velocity', 'equivalent_gear_box_heat_capacity',
-        'first_gear_box_ratio', 'gear_box_efficiencies', 'gear_box_powers_in',
-        'gear_box_ratios', 'gear_box_speeds_in', 'gear_box_temperatures',
         'gear_box_torque_losses', 'gear_box_torques_in', 'gear_shifts', 'gears',
-        'last_gear_box_ratio', 'max_gear', 'max_speed_velocity_ratio',
-        'maximum_velocity', 'specific_gear_shifting', 'velocity_speed_ratios',
-        'speed_velocity_ratios', 'n_gears', 'gear_box_mean_efficiency',
-        'gear_box_mean_efficiency_guess'
+        'gear_box_ratios', 'gear_box_speeds_in', 'gear_box_temperatures', 'MVL',
+        'equivalent_gear_box_heat_capacity', 'max_speed_velocity_ratio', 'GSPV',
+        'gear_box_efficiencies', 'speed_velocity_ratios', 'last_gear_box_ratio',
+        'gear_box_mean_efficiency_guess', 'gear_box_mean_efficiency', 'n_gears',
+        'engine_speed_at_max_velocity', 'first_gear_box_ratio', 'GSPV_Cold_Hot',
+        'specific_gear_shifting', 'velocity_speed_ratios', 'gear_box_powers_in',
+        'gear_box_powers_out', 'maximum_velocity', 'CMV_Cold_Hot', 'CMV', 'CVT',
+        'max_gear', 'DTGS',
     ),
     inp_weight={'initial_temperature': 5}
 )
@@ -245,6 +246,26 @@ def calculate_clutch_tc_powers_out(gear_box_powers_in, motor_p2_powers):
     return gear_box_powers_in - motor_p2_powers
 
 
+@sh.add_function(dsp, outputs=['gear_box_powers_in'])
+def calculate_gear_box_powers_in(clutch_tc_powers_out, motor_p2_powers):
+    """
+    Calculate clutch or torque converter power out [kW].
+
+    :param clutch_tc_powers_out:
+        Clutch or torque converter power out [kW].
+    :type clutch_tc_powers_out: numpy.array | float
+
+    :param motor_p2_powers:
+        Power at motor P2 [kW].
+    :type motor_p2_powers: numpy.array | float
+
+    :return:
+        Gear box power vector [kW].
+    :rtype: numpy.array | float
+    """
+    return clutch_tc_powers_out + motor_p2_powers
+
+
 dsp.add_dispatcher(
     include_defaults=True,
     dsp=_clutch_torque_converter,
@@ -255,15 +276,15 @@ dsp.add_dispatcher(
         'engine_speeds_out_hot', 'm1000_curve_ratios', 'clutch_window', 'gears',
         'torque_converter_speed_model', 'm1000_curve_factor', 'full_load_curve',
         'engine_max_speed', 'idle_engine_speed', 'accelerations', 'gear_shifts',
-        'clutch_tc_powers_out', 'gear_box_speeds_in', 'stop_velocity', 'times',
-        'lockup_speed_ratio', 'clutch_speed_model', 'gear_box_type',
-        'velocities',
+        'lockup_speed_ratio', 'clutch_speed_model', 'clutch_tc_powers', 'times',
+        'clutch_tc_powers_out', 'gear_box_speeds_in', 'stop_velocity',
+        'gear_box_type', 'velocities',
     ),
     outputs=(
-        'clutch_speed_model', 'clutch_phases', 'clutch_tc_mean_efficiency',
+        'clutch_tc_powers_out', 'clutch_phases', 'clutch_tc_mean_efficiency',
         'clutch_window', 'clutch_tc_speeds_delta', 'has_torque_converter',
         'lockup_speed_ratio', 'stand_still_torque_ratio', 'm1000_curve_factor',
-        'torque_converter_speed_model', 'clutch_tc_powers'
+        'torque_converter_speed_model', 'clutch_tc_powers', 'clutch_speed_model'
     )
 )
 

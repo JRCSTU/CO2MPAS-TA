@@ -252,10 +252,11 @@ def calculate_clutch_tc_efficiencies(
     return k_factor_curve(ratios) * ratios
 
 
+# noinspection PyIncorrectDocstring
 @sh.add_function(dsp, outputs=['clutch_tc_powers'])
 def calculate_clutch_tc_powers(
         clutch_tc_efficiencies, gear_box_speeds_in, clutch_tc_powers_out,
-        engine_speeds_out):
+        engine_speeds_out, _i=1):
     """
     Calculates the power that flows in the clutch or torque converter [kW].
 
@@ -281,7 +282,40 @@ def calculate_clutch_tc_powers(
     """
     b = gear_box_speeds_in >= engine_speeds_out
     eff = np.where(clutch_tc_efficiencies == 0, 1, clutch_tc_efficiencies)
-    return clutch_tc_powers_out * np.where(b, eff, 1 / eff)
+    return clutch_tc_powers_out * np.where(b, *(eff, 1 / eff)[::_i])
+
+
+@sh.add_function(dsp, outputs=['clutch_tc_powers_out'])
+def calculate_clutch_tc_powers_out(
+        clutch_tc_efficiencies, gear_box_speeds_in, clutch_tc_powers,
+        engine_speeds_out):
+    """
+    Calculates the clutch or torque converter power out [kW].
+
+    :param clutch_tc_efficiencies:
+        Clutch or torque converter efficiency [-].
+    :type clutch_tc_efficiencies: numpy.array
+
+    :param gear_box_speeds_in:
+        Gear box speed vector [RPM].
+    :type gear_box_speeds_in: numpy.array
+
+    :param clutch_tc_powers:
+        Clutch or torque converter power [kW].
+    :type clutch_tc_powers: numpy.array
+
+    :param engine_speeds_out:
+        Engine speed [RPM].
+    :type engine_speeds_out: numpy.array
+
+    :return:
+        Clutch or torque converter power out [kW].
+    :rtype: numpy.array
+    """
+    return calculate_clutch_tc_powers(
+        clutch_tc_efficiencies, gear_box_speeds_in, clutch_tc_powers,
+        engine_speeds_out, _i=-1
+    )
 
 
 # noinspection PyMissingOrEmptyDocstring
