@@ -426,7 +426,8 @@ dsp.add_dispatcher(
         'engine_idle_fuel_consumption', 'after_treatment_speeds_delta', 'times',
         'active_cylinder_ratios', 'alternator_powers', 'engine_mass', 'on_idle',
         'initial_engine_temperature', 'motor_p2_planetary_powers', 'fuel_type',
-        'phases_co2_emissions', 'engine_max_torque', 'phases_distances', {
+        'gross_engine_powers_out', 'phases_co2_emissions', 'engine_max_torque',
+        'phases_distances', {
             'initial_temperature': 'initial_engine_temperature'
         }
     ),
@@ -450,8 +451,8 @@ dsp.add_dispatcher(
         'has_exhausted_gas_recirculation', 'active_lean_burns', 'co2_emissions',
         'engine_fuel_lower_heating_value', 'calibration_status', 'brake_powers',
         'engine_idle_fuel_consumption', 'active_variable_valves', 'engine_mass',
+        'max_engine_coolant_temperature', 'full_load_curve', 'clutch_tc_powers',
         'engine_speeds_out_hot', 'fuel_carbon_content', 'engine_max_torque',
-        'max_engine_coolant_temperature', 'full_load_curve',
     ),
     inp_weight={'initial_temperature': 5}
 )

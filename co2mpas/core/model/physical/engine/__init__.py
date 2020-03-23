@@ -627,6 +627,48 @@ def calculate_gross_engine_powers_out(
     return p
 
 
+@sh.add_function(dsp, outputs=['clutch_tc_powers'])
+def calculate_clutch_tc_powers(
+        gross_engine_powers_out, belt_efficiency, alternator_powers,
+        motor_p0_powers, motor_p1_powers, motor_p2_planetary_powers):
+    """
+    Calculates the clutch or torque converter power [kW] from gross engine kW.
+
+    :param gross_engine_powers_out:
+        Gross engine power (pre-losses) [kW].
+    :type gross_engine_powers_out: numpy.array
+
+    :param belt_efficiency:
+        Belt efficiency [-].
+    :type belt_efficiency: float
+
+    :param alternator_powers:
+        Alternator power [kW].
+    :type alternator_powers: numpy.array
+
+    :param motor_p0_powers:
+        Power at motor P0 [kW].
+    :type motor_p0_powers: numpy.array
+
+    :param motor_p1_powers:
+        Power at motor P1 [kW].
+    :type motor_p1_powers: numpy.array
+
+    :param motor_p2_planetary_powers:
+        Power at planetary motor P2 [kW].
+    :type motor_p2_planetary_powers: numpy.array
+
+    :return:
+        Clutch or torque converter power [kW].
+    :rtype: numpy.array
+    """
+    p = np.where(motor_p0_powers < 0, belt_efficiency, 1 / belt_efficiency)
+    p *= motor_p0_powers
+    p += gross_engine_powers_out + alternator_powers + motor_p1_powers
+    p += motor_p2_planetary_powers
+    return p
+
+
 @sh.add_function(dsp, outputs=['min_available_engine_powers_out'])
 def calculate_min_available_engine_powers_out(
         engine_stroke, engine_capacity, initial_friction_params,
@@ -681,6 +723,34 @@ def calculate_max_available_engine_powers_out(
     """
 
     return full_load_curve(engine_speeds_out)
+
+
+@sh.add_function(dsp, outputs=['gross_engine_powers_out'])
+def calculate_gross_engine_powers_out_v1(
+        engine_powers_out, auxiliaries_power_losses,
+        engine_inertia_powers_losses):
+    """
+    Calculates the gross engine power (pre-losses) [kW].
+
+    :param engine_powers_out:
+        Engine power vector [kW].
+    :type engine_powers_out: numpy.array
+
+    :param engine_inertia_powers_losses:
+        Engine power losses due to inertia [kW].
+    :type engine_inertia_powers_losses: numpy.array
+
+    :param auxiliaries_power_losses:
+        Engine power losses due to engine auxiliaries [kW].
+    :type auxiliaries_power_losses: numpy.array
+
+    :return:
+        Gross engine power (pre-losses) [kW].
+    :rtype: numpy.array
+    """
+    gross_engine_powers_out = engine_powers_out - auxiliaries_power_losses
+    gross_engine_powers_out -= engine_inertia_powers_losses
+    return gross_engine_powers_out
 
 
 @sh.add_function(
