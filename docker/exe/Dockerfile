@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 ARG WINE_VERSION=winehq-staging
 ARG PYTHON_VERSION=3.7.2
-ARG PYINSTALLER_VERSION=3.4
+ARG PYINSTALLER_VERSION=3.6
 
 # we need wine for this all to work, so we'll use the PPA
 RUN set -x \
@@ -91,3 +91,7 @@ COPY ./docker/exe/cli.py /src/cli.py
 COPY ./docker/exe/co2mpas.spec /src/co2mpas.spec
 RUN pyinstaller --clean -y --dist /dist co2mpas.spec
 RUN chown -R --reference=. /dist
+RUN echo 'alias co2mpas="wine /dist/co2mpas/co2mpas.exe"' >> ~/.bashrc
+
+RUN mkdir /data
+WORKDIR /data
