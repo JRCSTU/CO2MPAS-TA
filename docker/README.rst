@@ -16,11 +16,11 @@ To create work folders and then fill input with sample-vehicles:
 
 To run CO2MPAS with batch cmd:
 
-`$ docker run -it --rm -v $(pwd):/data vinci1it2000/co2mpas-debian:latest co2mpas batch /data/input -O /data/output -D flag.engineering_mode=True`
+`$ docker run -it --rm -v $(pwd):/data vinci1it2000/co2mpas-debian:latest co2mpas run /data/input -O /data/output`
 
 You can run a specific version changing tag `latest` with the desired version:
 
-`$ docker run -it --rm -v $(pwd):/data vinci1it2000/co2mpas-debian:2.0.0 co2mpas batch /data/input -O /data/output -D flag.engineering_mode=True`
+`$ docker run -it --rm -v $(pwd):/data vinci1it2000/co2mpas-debian:vX.X.X co2mpas run /data/input -O /data/output`
 
 Build docker images
 -------------------
