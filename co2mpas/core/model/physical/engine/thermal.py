@@ -168,10 +168,16 @@ def predict_engine_coolant_temperatures(
 
 
 # noinspection PyPep8Naming
-@sh.add_function(dsp, outputs=['engine_thermostat_temperature'])
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['engine_thermostat_temperature']
+)
+@sh.add_function(
+    dsp, function_id='identify_engine_thermostat_temperature_v1',
+    weight=sh.inf(11, 100), outputs=['engine_thermostat_temperature']
+)
 def identify_engine_thermostat_temperature(
         idle_engine_speed, times, accelerations, engine_coolant_temperatures,
-        gear_box_powers_out, engine_speeds_out):
+        engine_speeds_out, gear_box_powers_out=None):
     """
     Identifies thermostat engine temperature and its limits [°C].
 
@@ -203,11 +209,13 @@ def identify_engine_thermostat_temperature(
         Engine thermostat temperature [°C].
     :rtype: float
     """
+    args = engine_speeds_out, accelerations
+    if gear_box_powers_out is not None:
+        args += gear_box_powers_out,
     from ._thermal import _build_samples, _XGBRegressor
     X, Y = _build_samples(
         _derivative(times, engine_coolant_temperatures),
-        engine_coolant_temperatures, gear_box_powers_out, engine_speeds_out,
-        accelerations
+        engine_coolant_temperatures, *args
     )
     X, Y = np.column_stack((Y, X[:, 1:])), X[:, 0]
     t_max, t_min = Y.max(), Y.min()
@@ -218,8 +226,8 @@ def identify_engine_thermostat_temperature(
         random_state=0, objective='reg:squarederror'
     ).fit(X[b], Y[b])
     ratio = np.arange(1, 1.5, 0.1) * idle_engine_speed[0]
-    spl = np.zeros((len(ratio), 4))
-    spl[:, 2] = ratio
+    spl = np.zeros((len(ratio), X.shape[1]))
+    spl[:, 1] = ratio
     # noinspection PyTypeChecker
     return float(np.median(model.predict(spl)))
 
