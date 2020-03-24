@@ -263,7 +263,6 @@ dsp.add_dispatcher(
         }
     ),
     outputs=(
-        'gear_box_torque_losses', 'gear_box_torques_in', 'gear_shifts', 'gears',
         'gear_box_ratios', 'gear_box_speeds_in', 'gear_box_temperatures', 'MVL',
         'equivalent_gear_box_heat_capacity', 'max_speed_velocity_ratio', 'GSPV',
         'gear_box_efficiencies', 'speed_velocity_ratios', 'last_gear_box_ratio',
@@ -271,7 +270,7 @@ dsp.add_dispatcher(
         'engine_speed_at_max_velocity', 'first_gear_box_ratio', 'GSPV_Cold_Hot',
         'specific_gear_shifting', 'velocity_speed_ratios', 'gear_box_powers_in',
         'gear_box_powers_out', 'maximum_velocity', 'CMV_Cold_Hot', 'CMV', 'CVT',
-        'max_gear', 'DTGS',
+        'gear_box_torques_in', 'gear_shifts', 'gears', 'max_gear', 'DTGS',
     ),
     inp_weight={'initial_temperature': 5}
 )
