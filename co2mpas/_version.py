@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python
 #
-# Copyright 2015-2019 European Commission (JRC);
+# Copyright 2015-2020 European Commission (JRC);
 # Licensed under the EUPL (the 'Licence');
 # You may not use this work except in compliance with the Licence.
 # You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
@@ -30,7 +30,7 @@ __license__ = 'EUPL, see LICENSE.txt'
 
 __uri__ = "https://co2mpas.io"
 
-__copyright__ = "Copyright (C) 2015-2019 European Commission (JRC)"
+__copyright__ = "Copyright (C) 2015-2020 European Commission (JRC)"
 
 if __name__ == '__main__':
     import sys
