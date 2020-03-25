@@ -945,3 +945,91 @@ def apply_f0_correction(f0_uncorrected, correct_f0):
     if correct_f0:
         return f0_uncorrected - 6.0
     return f0_uncorrected
+
+
+dsp.add_data('_f0', None, sh.inf(2, 0))
+dsp.add_data('_f1', None, sh.inf(2, 0))
+dsp.add_data('_f2', None, sh.inf(2, 0))
+dsp.add_data('_vehicle_mass', None, sh.inf(2, 0))
+
+dsp.add_function(function=sh.bypass, inputs=['f0'], outputs=['_f0'])
+dsp.add_function(function=sh.bypass, inputs=['f1'], outputs=['_f1'])
+dsp.add_function(function=sh.bypass, inputs=['f2'], outputs=['_f2'])
+dsp.add_function(
+    function=sh.bypass, inputs=['vehicle_mass'], outputs=['_vehicle_mass']
+)
+
+
+@sh.add_function(
+    dsp, inputs_kwargs=True, outputs=['f0', 'f1', 'f2', 'vehicle_mass']
+)
+def identify_vehicle_mass_and_road_loads(
+        inertial_factor, velocities, accelerations, angle_slopes, wheel_powers,
+        _f0=None, _f1=None, _f2=None, _vehicle_mass=None):
+    """
+    Identifies vehicle road loads and its mass [N, N/(km/h), N/(km/h)^2, kg].
+
+    :param inertial_factor:
+        Factor that considers the rotational inertia [%].
+    :type inertial_factor: float
+
+    :param velocities:
+        Velocity vector [km/h].
+    :type velocities: numpy.array
+
+    :param accelerations:
+        Acceleration vector [m/s2].
+    :type accelerations: numpy.array
+
+    :param angle_slopes:
+        Angle slope vector [rad].
+    :type angle_slopes: numpy.array
+
+    :param wheel_powers:
+        Power at the wheels [kW].
+    :type wheel_powers: numpy.array
+
+    :param _f0:
+        User input for rolling resistance force [N] when angle_slope == 0.
+    :type _f0: float
+
+    :param _f1:
+        User input for f1.
+    :type _f1: float
+
+    :param _f2:
+        User input for f2.
+    :type _f2: float
+
+    :param _vehicle_mass:
+        User input for vehicle mass [kg].
+    :type _vehicle_mass: float
+
+    :return:
+        The vehicle road loads and its mass [N, N/(km/h), N/(km/h)^2, kg].
+    :rtype: tuple[float]
+    """
+    b = wheel_powers > 0
+    matrix = np.column_stack((
+        calculate_rolling_resistance(1, angle_slopes[b]),  # f0
+        calculate_velocity_resistances(1, velocities[b]),  # f1
+        calculate_aerodynamic_resistances(1, velocities[b]),  # f2
+        calculate_climbing_force(1, angle_slopes[b])  # vehicle_mass
+
+    ))
+    matrix[:, 3] += accelerations[b] + calculate_rotational_inertia_forces(
+        1, inertial_factor, accelerations[b]
+    )
+    matrix = calculate_motive_powers(matrix, velocities[b, None])
+    x = {'f0': _f0, 'f1': _f1, 'f2': _f2, 'vehicle_mass': _vehicle_mass}
+    mask, sol, y = np.ones((4,), bool), {}, wheel_powers[b]
+    for i, (k, v) in enumerate(sorted(x.items())):
+        if v is not None:
+            mask[i] = False
+            matrix[:, i] *= v
+            y -= matrix[:, i]
+            sol[k] = v
+    matrix, keys = matrix[:, mask], sorted(set(x) - set(sol))
+    return tuple(map(float, sh.selector(sorted(x), sh.combine_dicts(sh.map_list(
+        keys, *np.linalg.lstsq(matrix, y, rcond=None)[0]
+    ), base=sol), output_type='list')))
