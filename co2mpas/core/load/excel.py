@@ -7,7 +7,7 @@
 """
 Functions to read inputs from excel.
 """
-
+import io
 import math
 import regex
 import logging
@@ -36,7 +36,9 @@ _base_params = r"""
                       ALL([-_]{1}[HL]{1})?)(recon)?)?\s*$
 """
 
-_flag_params = r"""^(?P<scope>flag)(\.|\s+)(?P<flag>(input_version|vehicle_family_id))\s*$"""
+_flag_params = r"""
+^(?P<scope>flag)(\.|\s+)(?P<flag>(input_version|vehicle_family_id))\s*$
+"""
 
 _dice_params = r"""^(?P<scope>dice)(\.|\s+)(?P<dice>[^\s.]*)\s*$"""
 
@@ -379,26 +381,27 @@ def parse_excel_file(input_file_name, input_file):
     # noinspection PyProtectedMember
     from pandalone.xleash.io._xlrd import _open_sheet_by_name_or_index
 
-    xl_file, res, plans = pd.ExcelFile(input_file), {'base': {}}, []
-    for sheet_name in xl_file.sheet_names:
-        match = _re_input_sheet_name.match(sheet_name.strip(' '))
-        if not match:
-            log.debug("Sheet name '%s' cannot be parsed!", sheet_name)
-            continue
-        match = {k: v.lower() for k, v in match.groupdict().items() if v}
-        # noinspection PyProtectedMember
-        sheet = _open_sheet_by_name_or_index(xl_file.book, 'book', sheet_name)
-        is_plan = match.get('scope', None) == 'plan'
-        if is_plan:
-            r = {'plan': pd.DataFrame()}
-        else:
-            r = {}
-        r = _parse_sheet(match, sheet, sheet_name, res=r)
-        if is_plan:
-            plans.append(r['plan'])
-        else:
-            _add_times_base(r, **match)
-            sh.combine_nested_dicts(r, depth=5, base=res)
+    res, plans = {'base': {}}, []
+    with pd.ExcelFile(io.BytesIO(input_file.read())) as xl:
+        for sheet_name in xl.sheet_names:
+            match = _re_input_sheet_name.match(sheet_name.strip(' '))
+            if not match:
+                log.debug("Sheet name '%s' cannot be parsed!", sheet_name)
+                continue
+            match = {k: v.lower() for k, v in match.groupdict().items() if v}
+            # noinspection PyProtectedMember
+            sheet = _open_sheet_by_name_or_index(xl.book, 'book', sheet_name)
+            is_plan = match.get('scope', None) == 'plan'
+            if is_plan:
+                r = {'plan': pd.DataFrame()}
+            else:
+                r = {}
+            r = _parse_sheet(match, sheet, sheet_name, res=r)
+            if is_plan:
+                plans.append(r['plan'])
+            else:
+                _add_times_base(r, **match)
+                sh.combine_nested_dicts(r, depth=5, base=res)
 
     for k, v in sh.stack_nested_keys(res['base'], depth=3):
         if k[0] != 'target':
