@@ -210,6 +210,8 @@ class CorrectGear:
     def correct_gear_full_load(
             self, gear, i, gears, times, velocities, accelerations,
             motive_powers, engine_coolant_temperatures, next_gear):
+        if motive_powers is None:
+            return gear
         vel = velocities[i]
         if vel > self.max_velocity_full_load_corr or gear <= self.min_gear:
             return gear
@@ -236,6 +238,8 @@ class CorrectGear:
     def correct_driveability_rules(
             self, gear, i, gears, times, velocities, accelerations,
             motive_powers, engine_coolant_temperatures, next_gear):
+        if motive_powers is None:
+            return gear
         if len(times) > len(motive_powers):
             times = times[:-1]
         if i == 0:
