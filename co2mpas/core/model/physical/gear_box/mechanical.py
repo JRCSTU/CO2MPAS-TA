@@ -280,7 +280,7 @@ def identify_gears_v1(
     anomalies = co2_utl.clear_fluctuations(
         times, anomalies.astype(int), change_gear_window_width
     )
-    for i, j in co2_utl.pairwise(_shift(gears)):
+    for i, j in co2_utl.pairwise(_shift(np.where(b, -1, gears))):
         anomalies[i:j] = anomalies[i:j].mean() > .3
 
     gsm = _calibrate_gsm(
