@@ -14,6 +14,9 @@ import co2mpas.utils as co2_utl
 #: Container of node default values.
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class Values(co2_utl.Constants):
+    #: Minimum distance between points for the elevation interpolation [m].
+    minimum_elevation_distance = 30
+
     #: Is the vehicle plugin hybrid?
     is_plugin = False
 

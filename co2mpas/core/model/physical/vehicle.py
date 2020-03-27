@@ -584,13 +584,17 @@ def calculate_f1(f2):
 
 dsp.add_data('angle_slope', dfl.values.angle_slope)
 dsp.add_data('path_elevations', wildcard=True)
-
-
-@sh.add_function(dsp, outputs=['slope_model'])
-@sh.add_function(
-    dsp, inputs=['path_distances', 'path_elevations'], outputs=['slope_model']
+dsp.add_data(
+    'minimum_elevation_distance', dfl.values.minimum_elevation_distance
 )
-def define_slope_model(distances, elevations):
+
+
+@sh.add_function(dsp, inputs_kwargs=True, outputs=['slope_model'])
+@sh.add_function(
+    dsp, inputs_kwargs=True, inputs=['path_distances', 'path_elevations'],
+    outputs=['slope_model']
+)
+def define_slope_model(distances, elevations, minimum_elevation_distance=30):
     """
     Returns the angle slope model [rad].
 
@@ -602,14 +606,27 @@ def define_slope_model(distances, elevations):
         Elevation vector [m].
     :type elevations: numpy.array
 
+    :param minimum_elevation_distance:
+        Minimum distance between points for the elevation interpolation [m].
+    :type minimum_elevation_distance: numpy.array
+
     :return:
         Angle slope model [rad].
     :rtype: function
     """
     from scipy.interpolate import InterpolatedUnivariateSpline as Spl
-    i = np.append([0], np.where(np.diff(distances) > dfl.EPS)[0] + 1)
+    if minimum_elevation_distance > dfl.EPS:
+        i, dm = [0, len(distances) - 1], distances[
+            0] + minimum_elevation_distance
+        for j, d in enumerate(distances[1:]):
+            if d > dm:
+                dm = distances[j] + minimum_elevation_distance
+                i.append(j)
+        i = np.unique(i)
+    else:
+        i = np.append([0], np.where(np.diff(distances) > dfl.EPS)[0] + 1)
     func = Spl(distances[i], elevations[i]).derivative()
-    return lambda d: np.arctan(func(d))
+    return lambda x: np.arctan(func(x))
 
 
 @sh.add_function(dsp, outputs=['slope_model'], weight=5)
