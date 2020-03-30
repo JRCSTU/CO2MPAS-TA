@@ -559,9 +559,13 @@ def define_serial_motor_maximum_power_function(
     return calculate_serial_motor_maximum_power
 
 
+dsp.add_data('min_engine_on_speed', dfl.values.min_engine_on_speed)
+
+
 @sh.add_function(dsp, outputs=['engine_power_losses_function'])
 def define_engine_power_losses_function(
-        engine_moment_inertia, auxiliaries_torque_loss, auxiliaries_power_loss):
+        engine_moment_inertia, auxiliaries_torque_loss, auxiliaries_power_loss,
+        min_engine_on_speed):
     """
     Define engine power losses function.
 
@@ -577,6 +581,10 @@ def define_engine_power_losses_function(
         Constant power loss due to engine auxiliaries [kW].
     :type auxiliaries_power_loss: float
 
+    :param min_engine_on_speed:
+        Minimum engine speed to consider the engine to be on [RPM].
+    :type min_engine_on_speed: float
+
     :return:
         Engine power losses function.
     :rtype: function
@@ -589,13 +597,14 @@ def define_engine_power_losses_function(
 
     # noinspection PyMissingOrEmptyDocstring
     def engine_power_losses_function(times, engine_speeds, inertia=True):
-        p = 0
-        if inertia:
-            p = ine_p(times, engine_speeds, engine_moment_inertia)
-        return p + aux_p(
+        p = aux_p(
             aux_t(times, auxiliaries_torque_loss), engine_speeds,
             np.ones_like(engine_speeds, bool), auxiliaries_power_loss
         )
+        if inertia:
+            p += ine_p(times, engine_speeds, engine_moment_inertia)
+
+        return np.where(engine_speeds < min_engine_on_speed, 0, p)
 
     return engine_power_losses_function
 

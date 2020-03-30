@@ -563,8 +563,7 @@ dsp.add_dispatcher(
         'motor_p4_rear_electric_powers', 'engine_thermostat_temperature',
         'motor_p4_front_maximum_powers', 'motor_p4_rear_maximum_powers',
         'planetary_mean_efficiency', 'has_motor_p2_planetary',
-        'motor_p1_efficiency',
-
+        'motor_p1_efficiency', 'min_engine_on_speed',
     ),
     outputs=(
         'correct_start_stop_with_gears', 'start_stop_activation_time', 'ecms_s',
