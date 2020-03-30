@@ -125,25 +125,32 @@ class GSPV(CMV):
             limits[k] = [(f(X), X) for f, x in zip(func, X)]
         return limits
 
-    def plot(self):
-        import matplotlib.pylab as plt
+    def fig(self):
+        import itertools
+        import plotly.graph_objs as go
+        from plotly.colors import DEFAULT_PLOTLY_COLORS
+        colors = itertools.cycle(DEFAULT_PLOTLY_COLORS)
+        fig = go.Figure()
         for k, v in self.limits.items():
-            kv = {}
-            for (s, l), (x, y) in zip((('down', '--'), ('up', '-')), v):
+            color = next(colors)
+            for (s, l), (x, y) in zip((('down', 'dash'), ('up', None)), v):
                 if x[0] < dfl.INF:
-                    kv['label'] = 'Gear %d:%s-shift' % (k, s)
-                    kv['linestyle'] = l
-                    # noinspection PyProtectedMember
-                    kv['color'] = plt.plot(x, y, **kv)[0]._color
+                    fig.add_trace(go.Scatter(
+                        name='Gear %d:%s-shift' % (k, s), x=x, y=y,
+                        line=dict(color=color, dash=l), mode='lines'
+                    ))
             cy, cx = self.cloud[k][1]
             if cx[0] < dfl.INF:
-                kv.pop('label')
-                kv['linestyle'] = ''
-                kv['marker'] = 'o'
-                plt.plot(cx, cy, **kv)
-        plt.legend(loc='best')
-        plt.xlabel('Velocity [km/h]')
-        plt.ylabel('Power [kW]')
+                fig.add_trace(go.Scatter(
+                    x=cx, y=cy, marker=dict(color=color), mode='markers',
+                    showlegend=False
+                ))
+        fig.update_layout(
+            title=self.__class__.__name__,
+            xaxis_title="Velocity [km/h]",
+            yaxis_title="Power [kW]"
+        )
+        return fig
 
     def _init_gear(self, times, velocities, accelerations, motive_powers,
                    engine_coolant_temperatures):

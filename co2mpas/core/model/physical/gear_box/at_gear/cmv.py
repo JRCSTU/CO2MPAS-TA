@@ -294,18 +294,25 @@ class CMV(collections.OrderedDict):
 
         return self
 
-    def plot(self):
-        import matplotlib.pylab as plt
+    def fig(self):
+        import itertools
+        import plotly.graph_objs as go
+        from plotly.colors import DEFAULT_PLOTLY_COLORS
+        colors = itertools.cycle(DEFAULT_PLOTLY_COLORS)
+        fig = go.Figure()
         for k, v in self.items():
-            kv = {}
-            for (s, l), x in zip((('down', '--'), ('up', '-')), v):
+            color = next(colors)
+            for (s, l), x in zip((('down', 'dash'), ('up', None)), v):
                 if x < dfl.INF:
-                    kv['label'] = 'Gear %d:%s-shift' % (k, s)
-                    kv['linestyle'] = l
-                    # noinspection PyProtectedMember
-                    kv['color'] = plt.plot([x] * 2, [0, 1], **kv)[0]._color
-        plt.legend(loc='best')
-        plt.xlabel('Velocity [km/h]')
+                    fig.add_trace(go.Scatter(
+                        name='Gear %d:%s-shift' % (k, s), x=[x] * 2, y=[0, 1],
+                        line=dict(color=color, dash=l), mode='lines'
+                    ))
+        fig.update_layout(
+            title=self.__class__.__name__,
+            xaxis_title="Velocity [km/h]"
+        )
+        return fig
 
     def _init_gear(self, times, velocities, accelerations, motive_powers,
                    engine_coolant_temperatures):

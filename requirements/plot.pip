@@ -1,6 +1,6 @@
 -r base.pip
 
-matplotlib
+plotly
 
 flask
 regex

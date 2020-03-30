@@ -256,6 +256,29 @@ class FuelMapModel:
     def __call__(self, speed, power):
         return self.fc((speed, power))
 
+    def fig(self):
+        import plotly.graph_objs as go
+        (s, p), fc = self.fc.grid, self.fc.values
+        x, y = self.power_speed(p), self.full_load_curve(s)
+        xp = self.full_load_curve.keywords['xp']
+        fp = self.full_load_curve.keywords['fp']
+        fig = go.Figure(data=[
+            go.Scatter3d(
+                z=np.nan_to_num(self(s, y)), x=s, y=y, mode='lines',
+                line=dict(color='red', width=10)
+            ),
+            go.Scatter3d(
+                z=np.nan_to_num(self(xp, fp)), x=xp, y=fp, mode='markers',
+                marker=dict(color='red', size=10)
+            ),
+            go.Scatter3d(
+                z=np.nan_to_num(self(x, p)), x=x, y=p, mode='lines',
+                line=dict(color='green', width=10)
+            ),
+            go.Surface(z=fc.T, x=s, y=p, colorscale='Blues', showscale=False)
+        ])
+        return fig
+
 
 @sh.add_function(dsp, outputs=['fuel_map_model'])
 def define_fuel_map_model(fuel_map, full_load_curve):
