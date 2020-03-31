@@ -35,6 +35,7 @@ CO2MPAS_HOME = os.environ.get('CO2MPAS_HOME', '.')
 
 log_config = dict(format="%(asctime)-15s:%(levelname)5.5s:%(name)s:%(message)s")
 
+
 class _Logger(logging.Logger):
     # noinspection PyMissingOrEmptyDocstring
     def setLevel(self, level):
@@ -54,7 +55,6 @@ click_log.basic_config(logger)
     'co2mpas', context_settings=dict(help_option_names=['-h', '--help'])
 )
 @click.version_option(__version__)
-@click_log.simple_verbosity_option(logger)
 def cli():
     """
     CO2MPAS command line tool.
@@ -70,6 +70,7 @@ def cli():
     '-TT', '--template-type', type=click.Choice(['input', 'output']),
     help='Template file type.', default='input', show_default=True
 )
+@click_log.simple_verbosity_option(logger)
 def template(**inputs):
     """
     Writes a CO2MPAS input/output template into OUTPUT_FILE.
@@ -84,6 +85,7 @@ def template(**inputs):
     'output-folder', default='./inputs', required=False,
     type=click.Path(writable=True, file_okay=False)
 )
+@click_log.simple_verbosity_option(logger)
 def demo(output_folder):
     """
     Writes a CO2MPAS demo files into OUTPUT_FOLDER.
@@ -102,6 +104,7 @@ def demo(output_folder):
     '-MC', '--model-conf', type=click.Path(exists=True),
     help='Model-configuration file path `.yaml`.'
 )
+@click_log.simple_verbosity_option(logger)
 def conf(output_file, **kwargs):
     """
     Writes a CO2MPAS model-configuration file into OUTPUT_FILE.
@@ -126,6 +129,7 @@ def conf(output_file, **kwargs):
     '-P', '--port', help='Port of the webserver.', default=5000, type=int,
     show_default=True
 )
+@click_log.simple_verbosity_option(logger)
 def plot(cache_folder, host, port):
     """
     Plots the full CO2MPAS model into CACHE_FOLDER.
@@ -205,6 +209,7 @@ def plot(cache_folder, host, port):
     default='./DICE_KEYS/secret.passwords', type=click.Path(),
     show_default=True
 )
+@click_log.simple_verbosity_option(logger)
 def run(input_files, cache_folder, host, port, plot_workflow, **kwargs):
     """
     Run CO2MPAS for all files into INPUT_FILES.

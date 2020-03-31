@@ -14,9 +14,10 @@ Define SYNCING the command line interface.
 """
 import os
 import click
+import click_log
 import os.path as osp
 import schedula as sh
-from syncing.cli import cli
+from syncing.cli import cli, logger
 
 _sync_params = {p.name: p for p in cli.commands['sync'].params}
 _sync_params['reference_name'].default = 'theoretical'
@@ -42,6 +43,7 @@ _sync_params['y_label'].default = ('velocities',)
     '-GB', '--gear-box-type', default='automatic', show_default=True,
     type=click.Choice(['manual', 'automatic']), help='Gear box type.'
 )
+@click_log.simple_verbosity_option(logger)
 def template(output_file, cycle_type, gear_box_type, wltp_class):
     """
     Writes a sample template OUTPUT_FILE.
