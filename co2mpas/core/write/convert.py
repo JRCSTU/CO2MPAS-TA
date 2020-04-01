@@ -76,18 +76,18 @@ def _time_series2df(data, data_descriptions):
     return pd.DataFrame(df)
 
 
-def _parameters2df(data, data_descriptions, write_schema):
+def _parameters2df(data, data_descriptions, write_validator):
     import schema
-    validate, df = write_schema.validate, []
+    df = []
     for k, v in data.items():
         try:
-            for param_id, vl in validate({_param_parts(k)['param']: v}).items():
-                if vl is not sh.NONE:
-                    df.append({
-                        'Parameter': _parse_name(param_id, data_descriptions),
-                        'Model Name': k,
-                        'Value': vl
-                    })
+            param_id, vl = write_validator(_param_parts(k)['param'], v)
+            if vl is not sh.NONE:
+                df.append({
+                    'Parameter': _parse_name(param_id, data_descriptions),
+                    'Model Name': k,
+                    'Value': vl
+                })
         except schema.SchemaError as ex:
             raise ValueError(k, v, ex)
 
@@ -103,15 +103,15 @@ def _parameters2df(data, data_descriptions, write_schema):
 def _cycle2df(data):
     res, out = {}, data.get('output', {})
     from .excel import _sheet_name
-    from ..load.schema import define_data_schema
-    write_schema = define_data_schema(read=False)
+    from ..load.schema import define_data_validation
+    write_validator = define_data_validation(read=False)
     data_descriptions = _get_doc_description()
     for k, v in sh.stack_nested_keys(out, key=('output',), depth=3):
         n, k = _sheet_name(k), k[-1]
         if 'ts' == k:
             df = _time_series2df(v, data_descriptions)
         elif 'pa' == k:
-            df = _parameters2df(v, data_descriptions, write_schema)
+            df = _parameters2df(v, data_descriptions, write_validator)
         else:
             continue
 
@@ -403,7 +403,7 @@ def _co2mpas_info2df(start_time, main_flags=None):
     import socket
     import datetime
     from co2mpas import __version__
-    from ..load.schema import define_flags_schema
+    from ..load.schema import define_flags_validation
     time_elapsed = (datetime.datetime.today() - start_time).total_seconds()
     hostname = socket.gethostname()
     info = [
@@ -414,7 +414,8 @@ def _co2mpas_info2df(start_time, main_flags=None):
     ]
 
     if main_flags:
-        main_flags = define_flags_schema(read=False).validate(main_flags)
+        validate = define_flags_validation(read=False)
+        main_flags = dict(validate(k, v) for k, v in main_flags.items())
         info.extend(sorted(main_flags.items()))
     import pandas as pd
     df = pd.DataFrame(info, columns=['Parameter', 'Value'])

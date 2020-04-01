@@ -30,7 +30,10 @@ dsp = sh.BlueDispatcher(
 def _add_validated_input(data, validate, keys, value, errors):
     from schema import SchemaError
     try:
-        k, v = next(iter(validate({keys[-1]: value}).items()))
+        try:
+            k, v = validate(keys[-1], value)
+        except TypeError:
+            k, v = next(iter(validate({keys[-1]: value}).items()))
         if v is not sh.NONE:
             data[k] = v
             return v
@@ -40,8 +43,8 @@ def _add_validated_input(data, validate, keys, value, errors):
 
 
 def _validate_base_with_schema(data, depth=4):
-    from ..schema import define_data_schema
-    inputs, errors, validate = {}, {}, define_data_schema().validate
+    from ..schema import define_data_validation
+    inputs, errors, validate = {}, {}, define_data_validation()
     for k, v in sorted(sh.stack_nested_keys(data, depth=depth)):
         d = sh.get_nested_dicts(inputs, *k[:-1])
         _add_validated_input(d, validate, k, v, errors)
@@ -214,8 +217,8 @@ def validate_flag(flag=None, declaration_mode=False, type_approval_mode=False):
         Validated flags data.
     :rtype: dict
     """
-    from ..schema import define_flags_schema
-    inputs, errors, validate = {}, {}, define_flags_schema().validate
+    from ..schema import define_flags_validation
+    inputs, errors, validate = {}, {}, define_flags_validation()
     for k, v in sorted((flag or {}).items()):
         _add_validated_input(inputs, validate, ('flag', k), v, errors)
     if declaration_mode or type_approval_mode:
@@ -266,10 +269,10 @@ def validate_plan(
         return []
     import os.path as osp
     from ..excel import _parse_values as parse_key
-    from ..schema import define_data_schema as _schema
+    from ..schema import define_data_validation as _schema
 
     validated_plan, e, keys = [], {}, {'id', 'base', 'run_base'}
-    validate, add = _schema().validate, validated_plan.append
+    validate, add = _schema(), validated_plan.append
 
     for _, d in pd.DataFrame(plan or []).iterrows():
         d = dict(d.dropna(how='all'))

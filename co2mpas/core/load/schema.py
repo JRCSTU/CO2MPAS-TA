@@ -325,11 +325,6 @@ def _compare_str(s, **kwargs):
 
 
 # noinspection PyUnusedLocal
-def _convert_str(old_str, new_str, **kwargs):
-    return And(Use(str), Or(old_str, new_str), Use(lambda x: new_str))
-
-
-# noinspection PyUnusedLocal
 def _tyre_code(error=None, **kwargs):
     error = error or 'invalid tyre code!'
     # noinspection PyProtectedMember
@@ -399,9 +394,18 @@ def _is_sorted(iterable, key=lambda a, b: a <= b):
     return all(key(a, b) for a, b in co2_utl.pairwise(iterable))
 
 
+def _validator(schema, convert, default, k, v):
+    if k in schema:
+        default = schema[k]
+    elif k.lower() in convert:
+        k = convert[k.lower()]
+        default = schema[k]
+    return k, default.validate(v)
+
+
 # noinspection PyUnresolvedReferences
 @functools.lru_cache(None)
-def define_data_schema(read=True):
+def define_data_validation(read=True):
     """
     Define data schema.
 
@@ -411,7 +415,7 @@ def define_data_schema(read=True):
 
     :return:
         Data schema.
-    :rtype: schema.Schema
+    :rtype: function
     """
     cmv = _cmv(read=read)
     dtc = _dtc(read=read)
@@ -469,20 +473,43 @@ def define_data_schema(read=True):
     dictarray = _dict(format={str: np_array}, read=read)
     tyre_code = _tyre_code(read=read)
     tyre_dimensions = _tyre_dimensions(read=read)
+    convert = {
+        'cvt': 'CVT',
+        'cmv': 'CMV',
+        'cmv_cold_hot': 'CMV_Cold_Hot',
+        'dtgs': 'DTGS',
+        'gspv': 'GSPV',
+        'gspv_cold_hot': 'CMV_Cold_Hot',
+        'mvl': 'MVL',
+        'ki_factor': 'ki_multiplicative',
+        'engine_max_speed_at_max_power': 'engine_speed_at_max_power',
+        'battery_voltage': 'service_battery_nominal_voltage',
+        'battery_capacity': 'service_battery_capacity',
+        'state_of_charge_balance': 'service_battery_state_of_charge_balance',
+        'state_of_charge_balance_window':
+            'service_battery_state_of_charge_balance_window',
+        'initial_state_of_charge': 'initial_service_battery_state_of_charge',
+        'co2_emission_udc': 'co2_emission_UDC',
+        'co2_emission_eudc': 'co2_emission_EUDC',
+        'eco_mode': 'fuel_saving_at_strategy',
+        'electric_load': 'service_battery_load',
+        'alternator_statuses': 'service_battery_charging_statuses',
+        'battery_currents': 'service_battery_currents',
+        'state_of_charges': 'service_battery_state_of_charges',
+        'obd_velocities': 'obd_velocities'
+    }
 
     schema = {
-        _compare_str('CVT'): cvt,
-        _compare_str('CMV'): cmv,
-        _compare_str('CMV_Cold_Hot'): gsch,
-        _compare_str('DTGS'): dtc,
-        _compare_str('GSPV'): gspv,
-        _compare_str('GSPV_Cold_Hot'): gsch,
-        _compare_str('MVL'): _mvl(read=read),
+        'CVT': cvt,
+        'CMV': cmv,
+        'CMV_Cold_Hot': gsch,
+        'DTGS': dtc,
+        'GSPV': gspv,
+        'GSPV_Cold_Hot': gsch,
+        'MVL': _mvl(read=read),
         'engine_n_cylinders': positive_int,
         'lock_up_tc_limits': tuplefloat2,
-        _convert_str(
-            'ki_factor', 'ki_multiplicative'
-        ): greater_than_one,
+        'ki_multiplicative': greater_than_one,
         'ki_additive': positive,
         'drive_battery_technology': string,
         'drive_battery_n_cells': greater_than_one_int,
@@ -507,9 +534,7 @@ def define_data_schema(read=True):
         'engine_capacity': positive,
         'engine_stroke': positive,
         'engine_max_power': positive,
-        _convert_str(
-            'engine_max_speed_at_max_power', 'engine_speed_at_max_power'
-        ): positive,
+        'engine_speed_at_max_power': positive,
         'engine_max_speed': positive,
         'engine_max_torque': positive,
         'idle_engine_speed_median': positive,
@@ -536,15 +561,11 @@ def define_data_schema(read=True):
         'ignition_type': _select(types=('positive', 'compression'), read=read),
         'start_stop_activation_time': positive,
         'alternator_nominal_voltage': positive,
-        _convert_str('battery_voltage',
-                     'service_battery_nominal_voltage'): positive,
-        _convert_str('battery_capacity', 'service_battery_capacity'): positive,
-        _convert_str('state_of_charge_balance',
-                     'service_battery_state_of_charge_balance'): limits,
-        _convert_str('state_of_charge_balance_window',
-                     'service_battery_state_of_charge_balance_window'): limits,
-        _convert_str('initial_state_of_charge',
-                     'initial_service_battery_state_of_charge'): limits,
+        'service_battery_nominal_voltage': positive,
+        'service_battery_capacity': positive,
+        'service_battery_state_of_charge_balance': limits,
+        'service_battery_state_of_charge_balance_window': limits,
+        'initial_service_battery_state_of_charge': limits,
         'idle_engine_speed_std': positive,
         'alternator_nominal_power': positive,
         'alternator_efficiency': _limits(limits=(0, 1), read=read),
@@ -573,8 +594,8 @@ def define_data_schema(read=True):
         'co2_emission_high': positive,
         'co2_emission_extra_high': positive,
 
-        _compare_str('co2_emission_UDC'): positive,
-        _compare_str('co2_emission_EUDC'): positive,
+        'co2_emission_UDC': positive,
+        'co2_emission_EUDC': positive,
         'co2_emission_value': positive,
         'declared_co2_emission_value': positive,
         'n_dyno_axes': positive_int,
@@ -601,7 +622,7 @@ def define_data_schema(read=True):
         'is_cycle_hot': _bool,
         'is_serial': _bool,
         'use_dt_gear_shifting': _bool,
-        _convert_str('eco_mode', 'fuel_saving_at_strategy'): _bool,
+        'fuel_saving_at_strategy': _bool,
         'correct_start_stop_with_gears': _bool,
         'enable_phases_willans': _bool,
         'enable_willans': _bool,
@@ -639,7 +660,7 @@ def define_data_schema(read=True):
             type=And(Use(list), [(bool, Or(parameters, None))]), length=4,
             read=read
         ),
-        _convert_str('electric_load', 'service_battery_load'): tuplefloat2,
+        'service_battery_load': tuplefloat2,
         'engine_thermostat_temperature_window': tuplefloat2,
         'engine_temperature_regression_model':
             _engine_temperature_regression_model(read=read),
@@ -690,12 +711,11 @@ def define_data_schema(read=True):
         'alternator_currents': np_array,
         'active_cylinders': np_array,
         'alternator_powers': np_array,
-        _convert_str('alternator_statuses',
-                     'service_battery_charging_statuses'): np_array_int,
+        'service_battery_charging_statuses': np_array_int,
         'auxiliaries_power_losses': np_array,
         'auxiliaries_torque_loss_factors': tuplefloat,
         'auxiliaries_torque_losses': np_array,
-        _convert_str('battery_currents', 'service_battery_currents'): np_array,
+        'service_battery_currents': np_array,
         'clutch_tc_powers': np_array,
         'clutch_tc_speeds_delta': np_array,
         'co2_emissions': np_array,
@@ -724,11 +744,10 @@ def define_data_schema(read=True):
         'clutch_phases': np_array_bool,
         'after_treatment_warm_up_phases': np_array_bool,
         'on_idle': np_array_bool,
-        _convert_str('state_of_charges',
-                     'service_battery_state_of_charges'): np_array,
+        'service_battery_state_of_charges': np_array,
         'times': np_array_sorted,
         'velocities': np_array_greater_than_minus_one,
-        _compare_str('obd_velocities'): np_array_greater_than_minus_one,
+        'obd_velocities': np_array_greater_than_minus_one,
         'wheel_powers': np_array,
         'wheel_speeds': np_array,
         'wheel_torques': np_array,
@@ -736,12 +755,12 @@ def define_data_schema(read=True):
     try:
         from co2mpas_driver.co2mpas import plugin_schema
 
-        schema = plugin_schema(schema)
+        schema, convert = plugin_schema(schema, convert)
     except ImportError:
         pass
 
-    schema = {Optional(k): Or(Empty(), v) for k, v in schema.items()}
-    schema[Optional(str)] = Or(_float, np_array)
+    schema = {k: Or(Empty(), v) for k, v in schema.items()}
+    schema[sh.NONE] = Or(_float, np_array)
 
     if not read:
         def _f(x):
@@ -749,7 +768,7 @@ def define_data_schema(read=True):
 
         schema = {k: And(v, Or(_f, Use(str))) for k, v in schema.items()}
 
-    return Schema(schema)
+    return functools.partial(_validator, schema, convert, schema.pop(sh.NONE))
 
 
 vehicle_family_id_pattern = r'''
@@ -805,7 +824,7 @@ def _input_version(error=None, read=True, **kwargs):
 
 
 @functools.lru_cache(None)
-def define_flags_schema(read=True):
+def define_flags_validation(read=True):
     """
     Define flag schema.
 
@@ -815,7 +834,7 @@ def define_flags_schema(read=True):
 
     :return:
         Flag schema.
-    :rtype: schema.Schema
+    :rtype: function
     """
     string = _string(read=read)
     isfile = _file(read=read)
@@ -823,24 +842,24 @@ def define_flags_schema(read=True):
     _bool = _type(type=bool, read=read)
 
     schema = {
-        _compare_str('input_version'): _input_version(read=read),
-        _compare_str('model_conf'): isfile,
-        _compare_str('encryption_keys'): string,
-        _compare_str('encryption_keys_passwords'): string,
-        _compare_str('sign_key'): string,
+        'input_version': _input_version(read=read),
+        'model_conf': isfile,
+        'encryption_keys': string,
+        'encryption_keys_passwords': string,
+        'sign_key': string,
 
-        _compare_str('hard_validation'): _bool,
-        _compare_str('enable_selector'): _bool,
-        _compare_str('declaration_mode'): _bool,
-        _compare_str('only_summary'): _bool,
-        _compare_str('augmented_summary'): _bool,
-        _compare_str('type_approval_mode'): _bool,
+        'hard_validation': _bool,
+        'enable_selector': _bool,
+        'declaration_mode': _bool,
+        'only_summary': _bool,
+        'augmented_summary': _bool,
+        'type_approval_mode': _bool,
 
-        _compare_str('output_template'): isfile,
-        _compare_str('output_folder'): isdir,
+        'output_template': isfile,
+        'output_folder': isdir,
     }
 
-    schema = {Optional(k): Or(Empty(), v) for k, v in schema.items()}
+    schema = {k: Or(Empty(), v) for k, v in schema.items()}
 
     if not read:
         def _f(x):
@@ -848,4 +867,4 @@ def define_flags_schema(read=True):
 
         schema = {k: And(v, Or(_f, Use(str))) for k, v in schema.items()}
 
-    return Schema(schema)
+    return functools.partial(_validator, schema, {k: k for k in schema}, None)

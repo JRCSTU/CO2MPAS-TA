@@ -99,6 +99,7 @@ Known Limitations
         Execute: "C:\apps\co2mpas\pythonw.exe" -E -s "C:\apps\co2mpas\Lib\_nsis.py" post_install
         Created uninstaller: C:\apps\co2mpas\Uninstall-CO2MPAS.exe
         Completed
+
 4. If you use Internet Explorer version 9 or earlier, you might experience some
    problems (i.e., impossible to choose the input file for the synchronisation,
    etc..).
