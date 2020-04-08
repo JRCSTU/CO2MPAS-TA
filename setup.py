@@ -103,8 +103,7 @@ if __name__ == '__main__':
         'sync': ['syncing>=1.0.4', 'pandas>=0.21.0'],
         'plot': ['flask', 'regex', 'graphviz', 'Pygments', 'lxml',
                  'beautifulsoup4', 'jinja2', 'docutils', 'plotly'],
-        'io': ['pandas>=0.21.0', 'dill', 'regex', 'pandalone[xlrd]<0.3',
-               'xlrd', 'asteval']
+        'io': ['pandas>=0.21.0', 'dill', 'regex', 'xlref', 'xlrd', 'asteval']
     }
     extras['dice'] = ['co2mpas_dice>=4.0.5'] + extras['io']
     # noinspection PyTypeChecker

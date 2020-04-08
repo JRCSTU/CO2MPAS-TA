@@ -11,10 +11,10 @@ import io
 import math
 import regex
 import logging
-import functools
 import collections
 import os.path as osp
 import schedula as sh
+from xlref.parser import Ref, _re_xl_ref_parser
 
 log = logging.getLogger(__name__)
 
@@ -116,10 +116,26 @@ _re_input_sheet_name = regex.compile(r'|'.join(
 _re_space_dot = regex.compile(r'(\s*\.\s*|\s+)')
 
 _xl_ref = {
-    'pa': '#%s!B2:C_:["pipe", ["dict", "recurse"]]',
-    'ts': '#%s!A2(R):.3:RD:["df", {"header": 0}]',
-    'pl': '#%s!A1(R):._:R:"recurse"'
+    'pa': '#%s!B2:C_[{"fun": "dict", "value": "ref"}]',
+    'ts': '#%s!A2(R):._:RD["T", "dict"]',
+    'pl': '#%s!A1(R):._:R["recursive"]'
 }
+
+
+class Rererence(Ref):
+    _re = regex.compile(
+        _re_xl_ref_parser.pattern.replace('?P<filters>', '?P<filters>:?\s*'),
+        _re_xl_ref_parser.flags
+    )
+
+    def _match(self, ref):
+        d = super(Rererence, self)._match(ref)
+        if (d.get('filters') or '').startswith(':'):
+            d['filters'] = None
+            if d['nd_col'] == d['nd_row'] == '.' and d['nd_mov']:
+                d['range_exp'] = d['nd_mov'] + (d['range_exp'] or '')
+                d['nd_mov'] = None
+        return d
 
 
 # noinspection PyShadowingBuiltins,PyUnusedLocal
@@ -240,33 +256,15 @@ def _parse_values(data, default=None, where=''):
             yield key, v
 
 
-# noinspection PyProtectedMember
-@functools.lru_cache(None)
-def _lasso_filters():
-    from pandalone.xleash._filter import install_default_filters
-    from pandalone.xleash._pandas_filters import install_filters
-
-    filters = {}
-    install_default_filters(filters)
-    install_filters(filters)
-    return filters
-
-
-def _parse_sheet(match, sheet, sheet_name, res=None):
+def _parse_sheet(match, parent, sheet_name, res=None):
     if res is None:
         res = {}
 
+    import pandas as pd
     sh_type = _get_sheet_type(**match)
-    # noinspection PyProtectedMember
-    from pandalone.xleash._lasso import lasso
-    data = lasso(
-        _xl_ref[sh_type] % sheet_name, sheet=sheet,
-        available_filters=_lasso_filters()
-    )
-
+    data = Rererence(_xl_ref[sh_type] % sheet_name, parent, parent.cache).values
     if sh_type == 'pl':
         try:
-            import pandas as pd
             data = pd.DataFrame(data[1:], columns=data[0])
         except IndexError:
             return None
@@ -281,6 +279,7 @@ def _parse_sheet(match, sheet, sheet_name, res=None):
         data.dropna(how='all', inplace=True)
         data.dropna(axis=1, how='all', inplace=True)
     elif sh_type == 'ts':
+        data = pd.DataFrame(data)
         data.dropna(how='all', inplace=True)
         data.dropna(axis=1, how='all', inplace=True)
         # noinspection PyProtectedMember
@@ -293,7 +292,11 @@ def _parse_sheet(match, sheet, sheet_name, res=None):
             raise ValueError(msg.format(drop, sheet_name))
         data = data.to_dict('list')
     else:
-        data = {k: v for k, v in data.items() if k}
+        import numpy as np
+        data = {
+            k: v for k, v in data.items()
+            if k and not pd.isnull(np.ravel(v)).any()
+        }
 
     for k, v in _parse_values(data, match, "in sheet '%s'" % sheet_name):
         sh.get_nested_dicts(res, *k[:-1])[k[-1]] = v
@@ -378,25 +381,24 @@ def parse_excel_file(input_file_name, input_file):
     :rtype: dict
     """
     import pandas as pd
-    # noinspection PyProtectedMember
-    from pandalone.xleash.io._xlrd import _open_sheet_by_name_or_index
-
+    input_file.seek(0)
     res, plans = {'base': {}}, []
     with pd.ExcelFile(io.BytesIO(input_file.read())) as xl:
+        parent = Ref('#A1')
+        parent.ref['fpath'] = input_file_name
+        parent.cache[input_file_name] = parent.ref['xl_book'] = xl
         for sheet_name in xl.sheet_names:
             match = _re_input_sheet_name.match(sheet_name.strip(' '))
             if not match:
                 log.debug("Sheet name '%s' cannot be parsed!", sheet_name)
                 continue
             match = {k: v.lower() for k, v in match.groupdict().items() if v}
-            # noinspection PyProtectedMember
-            sheet = _open_sheet_by_name_or_index(xl.book, 'book', sheet_name)
             is_plan = match.get('scope', None) == 'plan'
             if is_plan:
                 r = {'plan': pd.DataFrame()}
             else:
                 r = {}
-            r = _parse_sheet(match, sheet, sheet_name, res=r)
+            r = _parse_sheet(match, parent, sheet_name, res=r)
             if is_plan:
                 plans.append(r['plan'])
             else:
@@ -409,4 +411,5 @@ def parse_excel_file(input_file_name, input_file):
             v['cycle_name'] = v.get('cycle_name', k[-1]).upper()
 
     res['plan'] = _finalize_plan(res, plans, input_file_name).to_dict('records')
+
     return res

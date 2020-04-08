@@ -67,17 +67,6 @@ def _multi_index_df2excel(writer, shname, df, index=True, **kw):
             raise ex
 
 
-def _get_defaults(func):
-    import inspect
-    a = inspect.getfullargspec(func)
-    defaults = {}
-    if a.defaults:
-        defaults.update(zip(a.args[::-1], a.defaults[::-1]))
-    if a.kwonlydefaults:
-        defaults.update(a.kwonlydefaults)
-    return defaults
-
-
 def _index_levels(index):
     # noinspection PyBroadException
     try:
@@ -87,29 +76,19 @@ def _index_levels(index):
 
 
 # noinspection PyUnusedLocal
-def _get_corner(df, startcol=0, startrow=0, index=False, header=True, **kw):
-    import json
-    import xlrd
-    ref = {}
-
+def _get_corner(df, startcol=0, startrow=0, index=True, header=True):
     if header:
         i = _index_levels(df.columns)
-        ref['header'] = list(range(i))
         startrow += i
 
         import pandas as pd
         if index and isinstance(df.columns, pd.MultiIndex):
-            ref['skiprows'] = [i + 1]
             startrow += 1
 
     if index:
         i = _index_levels(df.index)
-        ref['index_col'] = list(range(i))
         startcol += i
-    landing = xlrd.cellname(startrow, startcol)
-    ref = json.dumps(ref, sort_keys=True)
-    ref = '{}(L):..(DR):LURD:["df", {}]'.format(landing, ref)
-    return startrow, startcol, ref
+    return startrow, startcol
 
 
 def _convert_index(k):
@@ -184,37 +163,30 @@ def _df2excel(writer, shname, df, k0=0, named_ranges=('columns', 'rows'), **kw):
     import pandas as pd
     if isinstance(df, pd.DataFrame) and not df.empty:
         _multi_index_df2excel(writer, shname, df, **kw)
-        defaults = _get_defaults(df.to_excel)
-        defaults.update(kw)
-        kw = defaults
 
-        startrow, startcol, ref = _get_corner(df, **kw)
+        startrow, startcol = _get_corner(df, **kw)
 
-        ref_name = (shname, df.name) if hasattr(df, 'name') else (shname,)
-        ref = {'.'.join(ref_name): '#%s!%s' % (shname, ref)}
         if named_ranges:
             _add_named_ranges(df, writer, shname, startrow, startcol,
                               named_ranges, k0)
 
-        return (startrow, startcol), ref
+        return startrow, startcol
 
 
 def _write_sheets(writer, sheet_name, data, down=True, **kw):
     import pandas as pd
     if isinstance(data, pd.DataFrame):
-        return [_df2excel(writer, sheet_name, data, **kw)]
+        return _df2excel(writer, sheet_name, data, **kw)
     else:
-        refs = []
+        corner = None
         for d in data:
-            ref = _write_sheets(writer, sheet_name, d, down=not down, **kw)
-            refs.extend(ref)
-            if ref[-1]:
-                corner = ref[-1][0]
+            corner = _write_sheets(writer, sheet_name, d, down=not down, **kw)
+            if corner:
                 if down:
                     kw['startrow'] = d.shape[0] + corner[0] + 2
                 else:
                     kw['startcol'] = d.shape[1] + corner[1] + 2
-        return refs
+        return corner
 
 
 def _sheet_name(tags):
@@ -287,13 +259,12 @@ def write_to_excel(dfs, output_template):
         Excel output file.
     :rtype: io.BytesIO
     """
-    import pandas as pd
     log.debug(
         'Writing into xl-file based on template(%s)...', output_template
     )
     writer, fd = _clone_excel(output_template)
 
-    xlref, calculate_sheets, charts = [], sorted(writer.sheets), []
+    calculate_sheets, charts = sorted(writer.sheets), []
     for k, v in sorted(dfs.items(), key=_sort_sheets):
         if not k.startswith('graphs.'):
             down = True
@@ -306,8 +277,7 @@ def write_to_excel(dfs, output_template):
                 kw = {'named_ranges': ()}
             else:
                 kw = {}
-
-            xlref.extend(_write_sheets(writer, k, v, down=down, **kw))
+            _write_sheets(writer, k, v, down=down, **kw)
         else:
             try:
                 sheet = writer.book.add_worksheet(k)
@@ -317,14 +287,6 @@ def write_to_excel(dfs, output_template):
 
     for sheet, v in charts:
         _chart2excel(writer, sheet, v)
-
-    if xlref:
-        xlref = sorted(sh.combine_dicts(*[x[1] for x in xlref]).items())
-        xlref = pd.DataFrame(xlref)
-        xlref.set_index([0], inplace=True)
-        _df2excel(
-            writer, 'xlref', xlref, named_ranges=(), index=True, header=False
-        )
 
     writer.save()
     return fd

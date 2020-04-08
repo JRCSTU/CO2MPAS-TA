@@ -176,7 +176,7 @@ def _np_array(dtype=None, error=None, read=True, **kwargs):
     dtype = dtype or float
     error = error or 'cannot be parsed as np.array dtype={}!'.format(dtype)
     if read:
-        c = Use(lambda x: np.asarray(x, dtype=dtype))
+        c = Use(lambda x: np.asarray(x, dtype=dtype).ravel())
         return Or(And(str, _eval(
             c, usersyms={'np.array': np.array}
         )), c, And(_type(), c), Empty(), error=error)
@@ -203,7 +203,7 @@ def _np_array_positive(dtype=None, error=None, read=True,
     error = error or 'cannot be parsed because it should be an ' \
                      'np.array dtype={} and positive!'.format(dtype)
     if read:
-        c = And(Use(lambda x: np.asarray(x, dtype=dtype)), check)
+        c = And(Use(lambda x: np.asarray(x, dtype=dtype).ravel()), check)
         return Or(And(str, _eval(
             c, usersyms={'np.array': np.array}
         )), c, And(_type(), c), Empty(), error=error)
