@@ -346,28 +346,41 @@ class DriveBatteryModel:
 
     # noinspection PyAttributeOutsideInit
     def compile(self):
-        n = self.np / self.r0
-        self.c_b, self.c_ac4 = -self.ocv * n / 2, 1e3 / self.ns * n
-        self.c_b2 = self.c_b ** 2
+        self._ocv = self.ocv * self.ns / 1e3
+        self.constant = self.r0 <= 0
 
         self.v_b = self.ocv * self.ns / 2
-        self.v_ac4 = self.ns / n * 1e3
         self.v_b2 = self.v_b ** 2
 
-        self._ocv = self.ocv * self.ns / 1e3
-        self._r0 = self.ns / n / 1e3
+        if self.constant:
+            self._r0 = self.v_ac4 = 0
+        else:
+            n = self.np / self.r0
+            self.c_b, self.c_ac4 = -self.ocv * n / 2, 1e3 / self.ns * n
+            self.c_b2 = self.c_b ** 2
+
+            self.v_ac4 = self.ns / n * 1e3
+
+            self._r0 = self.ns / n / 1e3
 
     def fit(self, currents, voltages):
         from sklearn.linear_model import RANSACRegressor
         m = RANSACRegressor(random_state=0)
-        m.fit(currents[:, None], voltages)
-        r0, ocv = float(m.estimator_.coef_), float(m.estimator_.intercept_)
+        try:
+            m.fit(currents[:, None], voltages)
+            r0, ocv = float(m.estimator_.coef_), float(m.estimator_.intercept_)
+        except ValueError:  # RANSAC failure switch to constant model.
+            r0 = ocv = dfl.EPS
+        if r0 <= dfl.EPS:
+            r0, ocv = 0, np.mean(voltages)
         self.r0 = r0 * self.np / self.ns
         self.ocv = ocv / self.ns
         self.compile()
         return self
 
     def currents(self, powers):
+        if self.constant:
+            return powers / self._ocv
         cur = np.sqrt(np.maximum(self.c_b2 + self.c_ac4 * powers, 0)) + self.c_b
         return cur
 
