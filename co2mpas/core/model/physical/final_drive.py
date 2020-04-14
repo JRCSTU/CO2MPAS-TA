@@ -141,7 +141,7 @@ def calculate_final_drive_powers_in(
     :rtype: numpy.array | float
     """
     eff, p = final_drive_efficiency, final_drive_powers_out
-    return np.where(p > 0, eff, 1 / eff) * p
+    return np.where(p < 0, eff, 1 / eff) * p
 
 
 @sh.add_function(dsp, outputs=['final_drive_powers_out'])
