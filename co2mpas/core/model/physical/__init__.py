@@ -497,8 +497,8 @@ dsp.add_dispatcher(
         'engine_idle_fuel_consumption', 'after_treatment_speeds_delta', 'times',
         'active_cylinder_ratios', 'alternator_powers', 'engine_mass', 'on_idle',
         'initial_engine_temperature', 'motor_p2_planetary_powers', 'fuel_type',
-        'gross_engine_powers_out', 'phases_co2_emissions', 'engine_max_torque',
-        'phases_distances', {
+        'gross_engine_powers_out', 'phases_co2_emissions',  'engine_max_torque',
+        'after_treatment_warm_up_phases', 'phases_distances',  {
             'initial_temperature': 'initial_engine_temperature'
         }
     ),
@@ -507,7 +507,7 @@ dsp.add_dispatcher(
         'idle_engine_speed_median', 'idle_engine_speed_std', 'full_load_powers',
         'engine_temperature_regression_model', 'engine_speeds_out', 'fuel_type',
         'engine_thermostat_temperature', 'engine_thermostat_temperature_window',
-        'after_treatment_temperature_threshold', 'engine_type', 'ignition_type',
+        'engine_type', 'ignition_type',
         'co2_params_calibrated', 'co2_params_initial_guess', 'active_cylinders',
         'initial_friction_params', 'engine_moment_inertia', 'engine_powers_out',
         'extended_phases_co2_emissions', 'gross_engine_powers_out', 'is_hybrid',

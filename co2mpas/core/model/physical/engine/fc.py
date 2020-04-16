@@ -77,65 +77,10 @@ def calculate_brake_mean_effective_pressures(
     return np.nan_to_num(p)
 
 
-@sh.add_function(dsp, outputs=['after_treatment_temperature_threshold'])
-def calculate_after_treatment_temperature_threshold(
-        engine_thermostat_temperature, initial_engine_temperature):
-    """
-    Calculates the engine coolant temperature when the after treatment system
-    is warm [°C].
-
-    :param engine_thermostat_temperature:
-        Engine thermostat temperature [°C].
-    :type engine_thermostat_temperature: float
-
-    :param initial_engine_temperature:
-        Initial engine temperature [°C].
-    :type initial_engine_temperature: float
-
-    :return:
-        Engine coolant temperature threshold when the after treatment system is
-        warm [°C].
-    :rtype: (float, float)
-    """
-
-    ti = 273 + initial_engine_temperature
-    t = (273 + engine_thermostat_temperature) / ti - 1
-    temp_mean = 40 * t + initial_engine_temperature
-    temp_end = 40 * t ** 2 + temp_mean
-
-    return temp_mean, temp_end
-
-
-@sh.add_function(dsp, outputs=['tau_function'])
-def define_tau_function(after_treatment_temperature_threshold):
-    """
-    Defines tau-function of the extended Willans curve.
-
-    :param after_treatment_temperature_threshold:
-        Engine coolant temperature threshold when the after treatment system is
-        warm [°C].
-    :type after_treatment_temperature_threshold: (float, float)
-
-    :return:
-        Tau-function of the extended Willans curve.
-    :rtype: callable
-    """
-    import scipy.stats as sci_sta
-    temp_mean, temp_end = np.array(after_treatment_temperature_threshold) + 273
-    s = np.log(temp_end / temp_mean) / sci_sta.norm.ppf(0.95)
-    f = sci_sta.lognorm(max(s, dfl.EPS), 0, temp_mean).cdf
-
-    def _tau_function(t0, t1, temp):
-        return t0 + (t1 - t0) * f(temp + 273)
-
-    return _tau_function
-
-
 @sh.add_function(dsp, outputs=['extended_integration_times'])
 def calculate_extended_integration_times(
-        times, velocities, on_engine, phases_integration_times,
-        engine_coolant_temperatures, after_treatment_temperature_threshold,
-        stop_velocity):
+        times, velocities, on_engine, phases_integration_times, stop_velocity,
+        after_treatment_warm_up_phases):
     """
     Calculates the extended integration times [-].
 
@@ -155,14 +100,9 @@ def calculate_extended_integration_times(
         Cycle phases integration times [s].
     :type phases_integration_times: tuple
 
-    :param engine_coolant_temperatures:
-        Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
-
-    :param after_treatment_temperature_threshold:
-        Engine coolant temperature threshold when the after treatment system is
-        warm [°C].
-    :type after_treatment_temperature_threshold: (float, float)
+    :param after_treatment_warm_up_phases:
+        Phases when engine speed is affected by the after treatment warm up [-].
+    :type after_treatment_warm_up_phases: numpy.array
 
     :param stop_velocity:
         Maximum velocity to consider the vehicle stopped [km/h].
@@ -172,7 +112,7 @@ def calculate_extended_integration_times(
         Extended cycle phases integration times [s].
     :rtype: tuple
     """
-
+    from ..gear_box.mechanical import _shift
     lv, pit = np.zeros(velocities.size + 2), np.unique(phases_integration_times)
     lv[1:-1] = np.asarray(velocities <= stop_velocity, int)
     indices = np.where(np.diff(lv) != 0)[0].reshape(-1, 2)
@@ -189,12 +129,9 @@ def calculate_extended_integration_times(
             t = (t0 + t1) / 2
         split_points.append(t)
     try:
-        i = np.searchsorted(
-            engine_coolant_temperatures,
-            (after_treatment_temperature_threshold[1],)
-        )[0]
-        if not lv[i + 1]:
-            split_points.append(times[i])
+        for i in _shift(after_treatment_warm_up_phases):
+            if not lv[i + 1]:
+                split_points.append(times[i])
     except IndexError:
         pass
 
@@ -497,7 +434,6 @@ class FMEP:
                  acr_full_bmep_curve_percentage=0.5,
                  acr_max_mean_piston_speeds=12.0,
                  acr_min_mean_piston_speeds=3.0,
-                 acr_after_treatment_temp=-273.0,
                  has_variable_valve_actuation=False,
                  has_lean_burn=False,
                  lb_max_mean_piston_speeds=12.0,
@@ -517,7 +453,6 @@ class FMEP:
         self.fbc = full_bmep_curve
 
         self.has_cylinder_deactivation = has_cylinder_deactivation
-        self.acr_after_treatment_temp = float(acr_after_treatment_temp)
         self.acr_max_mean_piston_speeds = float(acr_max_mean_piston_speeds)
         self.acr_min_mean_piston_speeds = float(acr_min_mean_piston_speeds)
         self.acr_fbc_percentage = acr_full_bmep_curve_percentage
@@ -583,10 +518,7 @@ class FMEP:
         if self.has_cylinder_deactivation and self.active_cylinder_ratios and \
                 'acr' not in params:
             l = a['acr']
-            at_n_temp = _normalized_engine_coolant_temperatures(
-                self.acr_after_treatment_temp, params['trg']
-            )
-            b = (n_temp > at_n_temp) & (n_powers > 0)
+            b = n_powers > 0
             b &= (self.acr_min_mean_piston_speeds < n_speeds)
             b &= (n_speeds < self.acr_max_mean_piston_speeds)
             if acr_valid is not None:
@@ -715,7 +647,7 @@ def define_fmep_model(
         active_cylinder_ratios, engine_has_cylinder_deactivation,
         engine_has_variable_valve_actuation, has_lean_burn,
         has_exhausted_gas_recirculation, has_selective_catalytic_reduction,
-        engine_type, idle_engine_speed, after_treatment_temperature_threshold):
+        engine_type, idle_engine_speed):
     """
     Defines the vehicle FMEP model.
 
@@ -763,11 +695,6 @@ def define_fmep_model(
         Engine speed idle median and std [RPM].
     :type idle_engine_speed: (float, float)
 
-    :param after_treatment_temperature_threshold:
-        Engine coolant temperature threshold when the after treatment system is
-        warm [°C].
-    :type after_treatment_temperature_threshold: (float, float)
-
     :return:
         Vehicle FMEP model.
     :rtype: FMEP
@@ -794,7 +721,6 @@ def define_fmep_model(
         acr_full_bmep_curve_percentage=acr_fbcp,
         acr_max_mean_piston_speeds=bmep(acr_maps, engine_stroke),
         acr_min_mean_piston_speeds=bmep(acr_mips, engine_stroke),
-        acr_after_treatment_temp=after_treatment_temperature_threshold[0],
         has_variable_valve_actuation=engine_has_variable_valve_actuation,
         has_lean_burn=has_lean_burn,
         lb_max_mean_piston_speeds=bmep(lb_mps, engine_stroke),
@@ -972,8 +898,8 @@ def _normalized_engine_coolant_temperatures(
 def _calculate_co2_emissions(
         time_series, engine_fuel_lower_heating_value, idle_engine_speed,
         engine_stroke, engine_capacity, idle_fuel_consumption_model,
-        fuel_carbon_content, min_engine_on_speed, tau_function, fmep_model,
-        params, sub_values=None):
+        fuel_carbon_content, min_engine_on_speed, fmep_model, params,
+        sub_values=None):
     """
     Calculates CO2 emissions [CO2g/s].
 
@@ -1011,10 +937,6 @@ def _calculate_co2_emissions(
         Minimum engine speed to consider the engine to be on [RPM].
     :type min_engine_on_speed: float
 
-    :param tau_function:
-        Tau-function of the extended Willans curve.
-    :type tau_function: callable
-
     :param fmep_model:
         Engine FMEP model.
     :type fmep_model: FMEP
@@ -1037,10 +959,11 @@ def _calculate_co2_emissions(
     p = params.valuesdict()
     # namespace shortcuts
     if sub_values is not None:
-        e_s, e_p, e_t, n_s, n_p, acr_v = time_series[:, sub_values]
+        e_s, e_p, e_t, n_s, n_p, acr_v, wu_p = time_series[:, sub_values]
     else:
-        e_s, e_p, e_t, n_s, n_p, acr_v = time_series
+        e_s, e_p, e_t, n_s, n_p, acr_v, wu_p = time_series
     lhv, acr_v = engine_fuel_lower_heating_value, acr_v.astype(bool)
+    wu_p = wu_p.astype(bool)
     idle_fc_model = idle_fuel_consumption_model.consumption
     fc, ac, vva, lb, egr = np.zeros((5, len(e_p)), dtype=float)
     ac[:] = 1
@@ -1060,12 +983,9 @@ def _calculate_co2_emissions(
         fc[b], ac[b], vva[b], lb[b], egr[b] = idle_fc_model(p)
         b = ~n & _b
     else:
-        p['t'] = tau_function(p['t0'], p['t1'], e_t)
+        p['t'] = np.where(wu_p, p['t0'], p['t1'])
         n_t = _normalized_engine_coolant_temperatures(e_t, p['trg'])
-        at_n_temp = _normalized_engine_coolant_temperatures(
-            fmep_model.acr_after_treatment_temp, p['trg']
-        )
-        ac_phases = (n_t > at_n_temp) & acr_v
+        ac_phases = ~wu_p & acr_v
         ec_p0 = _apply_ac_phases(
             _calculate_p0, fmep_model, p, engine_capacity, engine_stroke,
             idle_cutoff, lhv, ac_phases=ac_phases
@@ -1095,10 +1015,10 @@ def _calculate_co2_emissions(
 def define_co2_emissions_model(
         engine_speeds_out, engine_powers_out, mean_piston_speeds,
         brake_mean_effective_pressures, engine_coolant_temperatures, on_engine,
-        cylinder_deactivation_valid_phases, engine_fuel_lower_heating_value,
-        idle_engine_speed, engine_stroke, engine_capacity,
-        idle_fuel_consumption_model, fuel_carbon_content, min_engine_on_speed,
-        tau_function, fmep_model):
+        cylinder_deactivation_valid_phases, after_treatment_warm_up_phases,
+        engine_fuel_lower_heating_value,idle_engine_speed, engine_stroke,
+        engine_capacity, idle_fuel_consumption_model, fuel_carbon_content,
+        min_engine_on_speed, fmep_model):
     """
     Returns CO2 emissions model (see :func:`calculate_co2_emissions`).
 
@@ -1130,6 +1050,10 @@ def define_co2_emissions_model(
         Valid activation phases for cylinder deactivation.
     :type cylinder_deactivation_valid_phases: numpy.array
 
+    :param after_treatment_warm_up_phases:
+        Phases when engine speed is affected by the after treatment warm up [-].
+    :type after_treatment_warm_up_phases: numpy.array
+
     :param engine_fuel_lower_heating_value:
         Fuel lower heating value [kJ/kg].
     :type engine_fuel_lower_heating_value: float
@@ -1158,10 +1082,6 @@ def define_co2_emissions_model(
         Minimum engine speed to consider the engine to be on [RPM].
     :type min_engine_on_speed: float
 
-    :param tau_function:
-        Tau-function of the extended Willans curve.
-    :type tau_function: callable
-
     :param fmep_model:
         Engine FMEP model.
     :type fmep_model: FMEP
@@ -1174,14 +1094,14 @@ def define_co2_emissions_model(
     ts = (
         engine_speeds_out, engine_powers_out, engine_coolant_temperatures,
         mean_piston_speeds, brake_mean_effective_pressures,
-        cylinder_deactivation_valid_phases
+        cylinder_deactivation_valid_phases, after_treatment_warm_up_phases
     )
 
     model = functools.partial(
         _calculate_co2_emissions, np.array(ts, copy=False),
         engine_fuel_lower_heating_value, idle_engine_speed, engine_stroke,
         engine_capacity, idle_fuel_consumption_model, fuel_carbon_content,
-        min_engine_on_speed, tau_function, fmep_model
+        min_engine_on_speed, fmep_model
     )
 
     return model

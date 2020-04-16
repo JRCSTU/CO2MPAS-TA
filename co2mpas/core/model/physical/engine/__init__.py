@@ -995,11 +995,11 @@ dsp.add_dispatcher(
         'calibration_status', 'fuel_consumptions', 'engine_powers_out', 'times',
         'engine_speeds_out', 'full_load_powers', 'full_bmep_curve', 'on_engine',
         'full_load_speeds', 'engine_capacity', 'stop_velocity', 'has_lean_burn',
-        'initial_engine_temperature', 'active_cylinder_ratios', 'engine_stroke',
         'has_exhausted_gas_recirculation', 'fuel_carbon_content', 'engine_type',
         'engine_coolant_temperatures', 'mean_piston_speeds', 'phases_distances',
         'co2_normalization_references', 'phases_co2_emissions', 'is_cycle_hot',
-        'engine_inertia_powers_losses', 'co2_params', 'fuel_type', {
+        'active_cylinder_ratios', 'engine_stroke', 'co2_params', 'fuel_type',
+        'after_treatment_warm_up_phases', 'engine_inertia_powers_losses', {
             'co2_params_calibrated': ('co2_params_calibrated', 'co2_params'),
             'engine_idle_fuel_consumption': (
                 'engine_idle_fuel_consumption',
@@ -1008,7 +1008,7 @@ dsp.add_dispatcher(
         }),
     outputs=(
         'active_lean_burns', 'co2_rescaling_scores', 'co2_params_initial_guess',
-        'after_treatment_temperature_threshold', 'engine_idle_fuel_consumption',
+        'engine_idle_fuel_consumption',
         'identified_co2_emissions', 'co2_emissions_model', 'calibration_status',
         'initial_friction_params', 'active_variable_valves', 'active_cylinders',
         'fuel_carbon_content', 'fuel_consumptions', 'co2_emissions', 'fuel_map',

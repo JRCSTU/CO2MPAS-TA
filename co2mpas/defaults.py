@@ -219,6 +219,13 @@ class Values(co2_utl.Constants):
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
+    class default_after_treatment_warm_up_duration(co2_utl.Constants):
+        #: After treatment warm up duration for conventional vehicles [s].
+        duration = 60
+
+    class default_after_treatment_cooling_duration(co2_utl.Constants):
+        #: After treatment cooling duration for conventional vehicles [s].
+        duration = float('inf')
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class parse_solution(co2_utl.Constants):

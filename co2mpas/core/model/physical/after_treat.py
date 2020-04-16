@@ -205,6 +205,42 @@ def identify_after_treatment_warm_up_duration(
     return .0
 
 
+@sh.add_function(dsp, outputs=['after_treatment_warm_up_duration'])
+def default_after_treatment_warm_up_duration(is_hybrid):
+    """
+    Returns the default after treatment warm up duration [s].
+
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
+    :return:
+        After treatment warm up duration [s].
+    :rtype: float
+    """
+    if is_hybrid:
+        return sh.NONE
+    return dfl.functions.default_after_treatment_warm_up_duration.duration
+
+
+@sh.add_function(dsp, outputs=['after_treatment_cooling_duration'])
+def default_after_treatment_cooling_duration(is_hybrid):
+    """
+    Returns the default after treatment cooling duration [s].
+
+    :param is_hybrid:
+        Is the vehicle hybrid?
+    :type is_hybrid: bool
+
+    :return:
+        After treatment cooling duration [s].
+    :rtype: float
+    """
+    if is_hybrid:
+        return sh.NONE
+    return dfl.functions.default_after_treatment_cooling_duration.duration
+
+
 @sh.add_function(
     dsp, inputs_kwargs=True, outputs=['after_treatment_cooling_duration']
 )
