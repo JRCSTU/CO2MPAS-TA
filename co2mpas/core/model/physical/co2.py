@@ -193,9 +193,9 @@ dsp.add_function(
 
 # noinspection PyPep8Naming
 @sh.add_function(dsp, outputs=['phases_co2_emissions'])
-def merge_wltp_phases_co2_emission(co2_emission_UDC, co2_emission_EUDC):
+def merge_nedc_phases_co2_emission(co2_emission_UDC, co2_emission_EUDC):
     """
-    Merges WLTP phases co2 emission.
+    Merges NEDC phases co2 emission.
 
     :param co2_emission_UDC:
         CO2 emission on UDC NEDC phase [CO2g/km].
