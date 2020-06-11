@@ -384,7 +384,7 @@ def parse_excel_file(input_file_name, input_file):
     input_file.seek(0)
     res, plans = {'base': {}}, []
     with pd.ExcelFile(io.BytesIO(input_file.read())) as xl:
-        parent = Ref('#A1')
+        parent = Rererence('#A1')
         parent.ref['fpath'] = input_file_name
         parent.cache[input_file_name] = parent.ref['xl_book'] = xl
         for sheet_name in xl.sheet_names:
