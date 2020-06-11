@@ -99,7 +99,8 @@ class AlternatorCurrentModel:
         )
         model = Pipeline([
             ('feature_selection', _SelectFromModel(
-                model, '0.8*median', in_mask=in_mask, out_mask=out_mask
+                model, threshold='0.8*median', in_mask=in_mask,
+                out_mask=out_mask
             )),
             ('classification', model)
         ])

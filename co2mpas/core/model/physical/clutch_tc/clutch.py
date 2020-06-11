@@ -87,7 +87,8 @@ def calibrate_clutch_speed_model(
             objective='reg:squarederror'
         )
         mdl = Pipeline([
-            ('feature_selection', _SelectFromModel(mdl, '0.8*median')),
+            ('feature_selection',
+             _SelectFromModel(mdl, threshold='0.8*median')),
             ('classification', mdl)
         ])
         mdl.fit(X, y)

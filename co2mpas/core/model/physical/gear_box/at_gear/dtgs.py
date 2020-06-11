@@ -34,7 +34,7 @@ class DTGS:
         model = self.tree
         self.model = Pipeline([
             ('feature_selection', _SelectFromModel(
-                model, '0.8*median', in_mask=(0, 1)
+                model, threshold='0.8*median', in_mask=(0, 1)
             )),
             ('classification', model)
         ])
