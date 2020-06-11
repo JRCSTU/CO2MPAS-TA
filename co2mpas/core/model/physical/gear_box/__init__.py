@@ -553,7 +553,7 @@ def calculate_gear_box_mean_efficiency_guess(
     )
     h, c = func(), func(phase='cold')
     return identify_gear_box_mean_efficiency(calculate_gear_box_efficiencies(
-        p, calculate_gear_box_powers_in(calculate_gear_box_temperatures(
+        p, calculate_gear_box_powers(calculate_gear_box_temperatures(
             p, h, c, initial_gear_box_temperature, 100, times,
             equivalent_gear_box_heat_capacity, gear_box_temperature_references
         ), h, c, gear_box_temperature_references)
