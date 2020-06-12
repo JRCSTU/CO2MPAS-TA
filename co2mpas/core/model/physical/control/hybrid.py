@@ -1015,6 +1015,36 @@ def calculate_ems_data(
     )
 
 
+def _filter_warm_up(
+        times, warm_up, on_engine, engine_thermostat_temperature, is_cycle_hot,
+        engine_coolant_temperatures, hybrid_modes=None):
+    if hybrid_modes is None:
+        hybrid_modes = np.ones_like(times) * 2
+    indices, temp = co2_utl.index_phases(warm_up), engine_coolant_temperatures
+    b = np.diff(temp[indices], axis=1) > 4
+    b &= temp[indices[:, 0], None] < (engine_thermostat_temperature - 10)
+    b &= np.diff(times[indices], axis=1) > 5
+    b &= np.apply_along_axis(
+        lambda a: np.in1d(2, hybrid_modes[slice(*a)]), 1, indices
+    )
+    t_cool = dfl.functions.identify_after_treatment_warm_up_phases.cooling_time
+    t0 = is_cycle_hot and times[0] + t_cool or 0
+    warming_phases = np.zeros_like(on_engine, bool)
+    for i, j in co2_utl.index_phases(on_engine):
+        warming_phases[i:j + 1] = times[i] >= t0
+        t0 = times[j] + t_cool
+
+    warm_up = np.zeros_like(warm_up, bool)
+    for i, j in indices[b.ravel()]:
+        if warming_phases[i]:
+            while i and warming_phases.take(i - 1, mode='clip'):
+                i -= 1
+            while hybrid_modes[j] == 1 and j > i:
+                j -= 1
+            warm_up[i:j + 1] = True
+    return warm_up
+
+
 @sh.add_function(
     dsp, inputs_kwargs=True, outputs=['after_treatment_warm_up_phases']
 )
@@ -1077,29 +1107,10 @@ def identify_after_treatment_warm_up_phases(
     warm_up = co2_utl.clear_fluctuations(times, warm_up, 5).astype(bool)
     if not warm_up.any():
         return warm_up
-    indices, temp = co2_utl.index_phases(warm_up), engine_coolant_temperatures
-    b = np.diff(temp[indices], axis=1) > 4
-    b &= temp[indices[:, 0], None] < (engine_thermostat_temperature - 10)
-    b &= np.diff(times[indices], axis=1) > 5
-    b &= np.apply_along_axis(
-        lambda a: np.in1d(2, hybrid_modes[slice(*a)]), 1, indices
+    return _filter_warm_up(
+        times, warm_up, on_engine, engine_thermostat_temperature, is_cycle_hot,
+        engine_coolant_temperatures, hybrid_modes
     )
-    t_cool = dfl.functions.identify_after_treatment_warm_up_phases.cooling_time
-    t0 = is_cycle_hot and times[0] + t_cool or 0
-    warming_phases = np.zeros_like(on_engine, bool)
-    for i, j in co2_utl.index_phases(on_engine):
-        warming_phases[i:j + 1] = times[i] >= t0
-        t0 = times[j] + t_cool
-
-    warm_up[:] = False
-    for i, j in indices[b.ravel()]:
-        if warming_phases[i]:
-            while i and warming_phases.take(i - 1, mode='clip'):
-                i -= 1
-            while hybrid_modes[j] == 1 and j > i:
-                j -= 1
-            warm_up[i:j + 1] = True
-    return warm_up
 
 
 @sh.add_function(dsp, outputs=['force_on_engine'])

@@ -999,7 +999,8 @@ dsp.add_dispatcher(
         'engine_coolant_temperatures', 'mean_piston_speeds', 'phases_distances',
         'co2_normalization_references', 'phases_co2_emissions', 'is_cycle_hot',
         'active_cylinder_ratios', 'engine_stroke', 'co2_params', 'fuel_type',
-        'after_treatment_warm_up_phases', 'engine_inertia_powers_losses', {
+        'after_treatment_warm_up_phases', 'engine_inertia_powers_losses',
+        'is_hybrid',{
             'co2_params_calibrated': ('co2_params_calibrated', 'co2_params'),
             'engine_idle_fuel_consumption': (
                 'engine_idle_fuel_consumption',
