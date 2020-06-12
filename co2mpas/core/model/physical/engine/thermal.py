@@ -72,7 +72,7 @@ def identify_max_engine_coolant_temperature(engine_coolant_temperatures):
 def calibrate_engine_temperature_regression_model(
         engine_thermostat_temperature, engine_coolant_temperatures, velocities,
         engine_temperature_derivatives, on_engine, engine_speeds_out,
-        accelerations):
+        accelerations, after_treatment_warm_up_phases):
     """
     Calibrates an engine temperature regression model to predict engine
     temperatures.
@@ -112,15 +112,16 @@ def calibrate_engine_temperature_regression_model(
     from ._thermal import ThermalModel
     return ThermalModel(engine_thermostat_temperature).fit(
         engine_coolant_temperatures, engine_temperature_derivatives, on_engine,
-        velocities, engine_speeds_out, accelerations
+        velocities, engine_speeds_out, accelerations,
+        after_treatment_warm_up_phases
     )
 
 
 @sh.add_function(dsp, outputs=['engine_coolant_temperatures'])
 def predict_engine_coolant_temperatures(
         engine_temperature_regression_model, times, on_engine, velocities,
-        engine_speeds_out, accelerations, initial_engine_temperature,
-        max_engine_coolant_temperature):
+        engine_speeds_out, accelerations,after_treatment_warm_up_phases,
+        initial_engine_temperature, max_engine_coolant_temperature):
     """
     Predicts the engine temperature [°C].
 
@@ -162,8 +163,8 @@ def predict_engine_coolant_temperatures(
     """
     return engine_temperature_regression_model(
         times, on_engine, velocities, engine_speeds_out, accelerations,
-        initial_temperature=initial_engine_temperature,
-        max_temp=max_engine_coolant_temperature
+        after_treatment_warm_up_phases, max_temp=max_engine_coolant_temperature,
+        initial_temperature=initial_engine_temperature
     )
 
 

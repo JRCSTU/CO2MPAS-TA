@@ -130,7 +130,8 @@ class ThermalModel:
 
     # noinspection PyProtectedMember,PyPep8Naming
     def fit(self, engine_coolant_temperatures, engine_temperature_derivatives,
-            on_engine, velocities, engine_speeds_out, accelerations):
+            on_engine, velocities, engine_speeds_out, accelerations,
+            after_treatment_warm_up_phases):
         from sklearn.pipeline import Pipeline
         # noinspection PyArgumentEqualDefault
         opt = dict(
@@ -143,7 +144,8 @@ class ThermalModel:
             [engine_coolant_temperatures[0]], engine_coolant_temperatures[:-1]
         )
         x = np.column_stack((
-            velocities, t, np.zeros_like(t), engine_speeds_out, accelerations
+            velocities, t, np.zeros_like(t), engine_speeds_out, accelerations,
+            after_treatment_warm_up_phases
         ))
         n = self.ntemp
         x[np.searchsorted(t, (self.thermostat,))[0]:, 2] = 1
@@ -164,16 +166,17 @@ class ThermalModel:
         return self
 
     def __call__(self, times, on_engine, velocities, engine_speeds_out,
-                 accelerations, initial_temperature=23, max_temp=100.0):
+                 accelerations, after_treatment_warm_up_phases,
+                 initial_temperature=23, max_temp=100.0):
         t, temp = initial_temperature, np.zeros_like(times, dtype=float)
         it = enumerate(zip(
             np.ediff1d(times, to_begin=0), on_engine, velocities, accelerations,
-            engine_speeds_out,
+            after_treatment_warm_up_phases, engine_speeds_out,
         ))
-        x, t0, hot = np.array([[.0] * 5]), self.thermostat + self.ntemp, False
-        for i, (dt, b, v, a, s) in it:
+        x, t0, hot = np.array([[.0] * 6]), self.thermostat + self.ntemp, False
+        for i, (dt, b, v, a, atp, s) in it:
             hot |= t > self.thermostat
-            x[:] = v, t0 - t, hot, s, a
+            x[:] = v, t0 - t, hot, s, a, atp
             t += (self.on(x[:, 1:]) if b else self.off(x[:, :2])) * dt
             temp[i] = t = min(t, max_temp)
         return temp

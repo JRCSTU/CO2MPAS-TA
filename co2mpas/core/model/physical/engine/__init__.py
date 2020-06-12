@@ -477,7 +477,7 @@ dsp.add_dispatcher(
         'engine_thermostat_temperature_window', 'engine_thermostat_temperature',
         'engine_temperature_regression_model', 'idle_engine_speed', 'on_engine',
         'engine_coolant_temperatures', 'gear_box_powers_out', 'accelerations',
-        'engine_speeds_out', 'velocities',
+        'engine_speeds_out', 'velocities', 'after_treatment_warm_up_phases'
     ),
     outputs=(
         'engine_thermostat_temperature_window', 'engine_thermostat_temperature',
