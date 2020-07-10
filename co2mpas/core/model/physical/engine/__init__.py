@@ -458,9 +458,9 @@ dsp.add_dispatcher(
     include_defaults=True,
     dsp=_idle,
     inputs=(
-        'idle_engine_speed_median', 'idle_engine_speed_std',
-        'min_engine_on_speed', 'stop_velocity', 'velocities',
-        'engine_speeds_out', 'idle_engine_speed',
+        'idle_engine_speed_std', 'idle_engine_speed', 'velocities', 'is_hybrid',
+        'idle_engine_speed_median', 'min_engine_on_speed', 'engine_speeds_out',
+        'stop_velocity'
     ),
     outputs=(
         'idle_engine_speed_median', 'idle_engine_speed_std',
@@ -1000,7 +1000,7 @@ dsp.add_dispatcher(
         'co2_normalization_references', 'phases_co2_emissions', 'is_cycle_hot',
         'active_cylinder_ratios', 'engine_stroke', 'co2_params', 'fuel_type',
         'after_treatment_warm_up_phases', 'engine_inertia_powers_losses',
-        'is_hybrid',{
+        'is_hybrid', {
             'co2_params_calibrated': ('co2_params_calibrated', 'co2_params'),
             'engine_idle_fuel_consumption': (
                 'engine_idle_fuel_consumption',

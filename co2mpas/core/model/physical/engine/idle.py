@@ -10,6 +10,7 @@ Functions and `dsp` model to model the idle engine speed.
 import numpy as np
 import schedula as sh
 from co2mpas.defaults import dfl
+import co2mpas.utils as co2_utl
 
 dsp = sh.BlueDispatcher(
     name='calculate_idle_engine_speed',
@@ -18,7 +19,6 @@ dsp = sh.BlueDispatcher(
 dsp.add_data('idle_engine_speed_std', dfl.values.idle_engine_speed_std, 20)
 
 
-@sh.add_function(dsp, outputs=['idle_model_detector'], weight=100)
 def define_idle_model_detector(
         velocities, engine_speeds_out, stop_velocity, min_engine_on_speed):
     """
@@ -53,6 +53,18 @@ def define_idle_model_detector(
     model = _IdleDetector(eps=dfl.functions.define_idle_model_detector.EPS)
     model.fit(x)
     return model
+
+
+dsp.add_function(
+    function=sh.add_args(define_idle_model_detector),
+    inputs=[
+        'is_hybrid', 'velocities', 'engine_speeds_out', 'stop_velocity',
+        'min_engine_on_speed'
+    ],
+    outputs=['idle_model_detector'],
+    weight=100,
+    input_domain=co2_utl.check_first_arg
+)
 
 
 @sh.add_function(dsp, outputs=['idle_engine_speed_median'])
