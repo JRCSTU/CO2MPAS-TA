@@ -616,7 +616,7 @@ dsp.add_dispatcher(
     inputs=(
         'CMV', 'CMV_Cold_Hot', 'DTGS', 'GSPV', 'GSPV_Cold_Hot', 'MVL', 'times',
         'accelerations', 'change_gear_window_width', 'cycle_type', 'gears',
-        'engine_coolant_temperatures', 'engine_speeds_out', 'full_load_curve',
+        'engine_temperatures', 'engine_speeds_out', 'full_load_curve',
         'fuel_saving_at_strategy', 'max_velocity_full_load_correction',
         'idle_engine_speed', 'stop_velocity', 'time_cold_hot_transition',
         'motive_powers', 'plateau_acceleration', 'specific_gear_shifting',

@@ -477,13 +477,14 @@ dsp.add_dispatcher(
         'engine_thermostat_temperature_window', 'engine_thermostat_temperature',
         'engine_temperature_regression_model', 'idle_engine_speed', 'on_engine',
         'engine_coolant_temperatures', 'gear_box_powers_out', 'accelerations',
-        'engine_speeds_out', 'velocities', 'after_treatment_warm_up_phases'
+        'engine_speeds_out', 'velocities', 'after_treatment_warm_up_phases',
+        'temperature_shift'
     ),
     outputs=(
         'engine_thermostat_temperature_window', 'engine_thermostat_temperature',
         'engine_temperature_regression_model', 'max_engine_coolant_temperature',
         'engine_temperature_derivatives', 'engine_coolant_temperatures',
-        'initial_engine_temperature',
+        'initial_engine_temperature', 'engine_temperatures', 'temperature_shift'
     )
 )
 
@@ -996,7 +997,7 @@ dsp.add_dispatcher(
         'engine_speeds_out', 'full_load_powers', 'full_bmep_curve', 'on_engine',
         'full_load_speeds', 'engine_capacity', 'stop_velocity', 'has_lean_burn',
         'has_exhausted_gas_recirculation', 'fuel_carbon_content', 'engine_type',
-        'engine_coolant_temperatures', 'mean_piston_speeds', 'phases_distances',
+        'engine_temperatures', 'mean_piston_speeds', 'phases_distances',
         'co2_normalization_references', 'phases_co2_emissions', 'is_cycle_hot',
         'active_cylinder_ratios', 'engine_stroke', 'co2_params', 'fuel_type',
         'after_treatment_warm_up_phases', 'engine_inertia_powers_losses',

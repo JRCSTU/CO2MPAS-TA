@@ -30,7 +30,7 @@ models = [
 #: Inputs required to run the model.
 inputs = [
     'idle_engine_speed', 'full_load_curve', 'accelerations', 'motive_powers',
-    'engine_speeds_out', 'engine_coolant_temperatures', 'plateau_acceleration',
+    'engine_speeds_out', 'engine_temperatures', 'plateau_acceleration',
     'time_cold_hot_transition', 'times', 'stop_velocity', 'cycle_type',
     'use_dt_gear_shifting', 'specific_gear_shifting', 'velocity_speed_ratios',
     'velocities', 'MVL', 'fuel_saving_at_strategy', 'change_gear_window_width',

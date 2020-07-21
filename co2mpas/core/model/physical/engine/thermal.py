@@ -24,9 +24,39 @@ def _derivative(times, temp):
     return sci_misc.derivative(func, times, dx=par.dx, order=par.order)
 
 
+@sh.add_function(dsp, outputs=['engine_temperatures', 'temperature_shift'])
+def calculate_engine_temperatures(
+        engine_thermostat_temperature, times, engine_coolant_temperatures,
+        on_engine):
+    from statsmodels.nonparametric.smoothers_lowess import lowess
+    from syncing.model import dsp
+    par = dfl.functions.calculate_engine_temperature_derivatives
+    temp = lowess(
+        engine_coolant_temperatures, times, is_sorted=True,
+        frac=par.tw * len(times) / (times[-1] - times[0]) ** 2, missing='none'
+    )[:, 1].ravel()
+    i = np.searchsorted(temp, engine_thermostat_temperature)
+    shifts = dsp({
+        'reference_name': 'ref', 'data': {
+            'ref': {'x': times[:i], 'y': on_engine[:i]},
+            'data': {'x': times[:i], 'y': _derivative(times[:i], temp[:i])}
+        }
+    }, ['shifts'])['shifts']
+    if not (-20 <= shifts['data'] <= 30):
+        shifts['data'] = 0
+    sol = dsp({
+        'shifts': shifts, 'reference_name': 'ref', 'data': {
+            'ref': {'x': times},
+            'data': {'x': times, 'y': temp}
+        },
+        'interpolation_method': 'cubic'
+    })
+    return sol['resampled']['data']['y'], shifts['data']
+
+
 @sh.add_function(dsp, outputs=['engine_temperature_derivatives'])
 def calculate_engine_temperature_derivatives(
-        times, engine_coolant_temperatures):
+        times, engine_temperatures):
     """
     Calculates the derivative of the engine temperature [°C/s].
 
@@ -42,13 +72,7 @@ def calculate_engine_temperature_derivatives(
         Derivative of the engine temperature [°C/s].
     :rtype: numpy.array
     """
-    from statsmodels.nonparametric.smoothers_lowess import lowess
-    par = dfl.functions.calculate_engine_temperature_derivatives
-    temp = lowess(
-        engine_coolant_temperatures, times, is_sorted=True,
-        frac=par.tw * len(times) / (times[-1] - times[0]) ** 2, missing='none'
-    )[:, 1].ravel()
-    return _derivative(times, temp)
+    return _derivative(times, engine_temperatures)
 
 
 @sh.add_function(dsp, outputs=['max_engine_coolant_temperature'])
@@ -64,13 +88,12 @@ def identify_max_engine_coolant_temperature(engine_coolant_temperatures):
         Maximum engine coolant temperature [°C].
     :rtype: float
     """
-
     return engine_coolant_temperatures.max()
 
 
 @sh.add_function(dsp, outputs=['engine_temperature_regression_model'])
 def calibrate_engine_temperature_regression_model(
-        engine_thermostat_temperature, engine_coolant_temperatures, velocities,
+        engine_thermostat_temperature, engine_temperatures, velocities,
         engine_temperature_derivatives, on_engine, engine_speeds_out,
         accelerations, after_treatment_warm_up_phases):
     """
@@ -111,16 +134,16 @@ def calibrate_engine_temperature_regression_model(
     """
     from ._thermal import ThermalModel
     return ThermalModel(engine_thermostat_temperature).fit(
-        engine_coolant_temperatures, engine_temperature_derivatives, on_engine,
+        engine_temperatures, engine_temperature_derivatives, on_engine,
         velocities, engine_speeds_out, accelerations,
         after_treatment_warm_up_phases
     )
 
 
-@sh.add_function(dsp, outputs=['engine_coolant_temperatures'])
-def predict_engine_coolant_temperatures(
+@sh.add_function(dsp, outputs=['engine_temperatures'])
+def predict_engine_temperatures(
         engine_temperature_regression_model, times, on_engine, velocities,
-        engine_speeds_out, accelerations,after_treatment_warm_up_phases,
+        engine_speeds_out, accelerations, after_treatment_warm_up_phases,
         initial_engine_temperature, max_engine_coolant_temperature):
     """
     Predicts the engine temperature [°C].
@@ -166,6 +189,20 @@ def predict_engine_coolant_temperatures(
         after_treatment_warm_up_phases, max_temp=max_engine_coolant_temperature,
         initial_temperature=initial_engine_temperature
     )
+
+
+@sh.add_function(dsp, outputs=['engine_coolant_temperatures'])
+def calculate_engine_coolant_temperatures(
+        times, engine_temperatures, temperature_shift):
+    from syncing.model import dsp
+    sol = dsp({
+        'shifts': {'data': -temperature_shift}, 'data': {
+            'ref': {'x': times},
+            'data': {'x': times, 'y': engine_temperatures}
+        },
+        'reference_name': 'ref', 'interpolation_method': 'cubic'
+    })
+    return sol['resampled']['data']['y']
 
 
 # noinspection PyPep8Naming
@@ -259,7 +296,7 @@ def identify_engine_thermostat_temperature_window(
 
 
 @sh.add_function(dsp, outputs=['initial_engine_temperature'])
-def identify_initial_engine_temperature(engine_coolant_temperatures):
+def identify_initial_engine_temperature(engine_temperatures):
     """
     Identifies initial engine temperature [°C].
 
@@ -271,5 +308,4 @@ def identify_initial_engine_temperature(engine_coolant_temperatures):
         Initial engine temperature [°C].
     :rtype: float
     """
-
-    return float(engine_coolant_temperatures[0])
+    return float(engine_temperatures[0])

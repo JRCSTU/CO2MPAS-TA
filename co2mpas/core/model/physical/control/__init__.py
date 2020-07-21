@@ -148,7 +148,7 @@ dsp.add_dispatcher(
         'motor_p3_front_maximum_powers', 'motor_p3_rear_electric_powers',
         'motor_p4_front_maximum_powers', 'motor_p4_rear_maximum_powers',
         'motor_p4_front_maximum_power', 'motor_p3_front_maximum_power',
-        'engine_coolant_temperatures', 'motor_p3_rear_maximum_power',
+        'engine_temperatures', 'motor_p3_rear_maximum_power',
         'motor_p4_rear_maximum_power', 'motor_p4_front_efficiency',
         'planetary_mean_efficiency', 'has_motor_p2_planetary',
         'min_engine_on_speed', {'is_hybrid': sh.SINK},

@@ -173,7 +173,7 @@ class CorrectGear:
 
     def basic_correct_gear(
             self, gear, i, gears, times, velocities, accelerations,
-            motive_powers, engine_coolant_temperatures, next_gear):
+            motive_powers, engine_temperatures, next_gear):
 
         v, vel = velocities[i], velocities
 
@@ -197,7 +197,7 @@ class CorrectGear:
     # noinspection PyUnusedLocal
     def correct_gear_mvl(
             self, gear, i, gears, times, velocities, accelerations,
-            motive_powers, engine_coolant_temperatures, next_gear):
+            motive_powers, engine_temperatures, next_gear):
         return self.mvl.predict(velocities[i], accelerations[i], gear)
 
     def fit_correct_gear_full_load(
@@ -209,7 +209,7 @@ class CorrectGear:
 
     def correct_gear_full_load(
             self, gear, i, gears, times, velocities, accelerations,
-            motive_powers, engine_coolant_temperatures, next_gear):
+            motive_powers, engine_temperatures, next_gear):
         if motive_powers is None:
             return gear
         vel = velocities[i]
@@ -237,7 +237,7 @@ class CorrectGear:
     # noinspection PyUnresolvedReferences
     def correct_driveability_rules(
             self, gear, i, gears, times, velocities, accelerations,
-            motive_powers, engine_coolant_temperatures, next_gear):
+            motive_powers, engine_temperatures, next_gear):
         if motive_powers is None:
             return gear
         if len(times) > len(motive_powers):
@@ -439,11 +439,11 @@ class CorrectGear:
         return gear
 
     def __call__(self, gear, i, gears, times, velocities, accelerations,
-                 motive_powers, engine_coolant_temperatures, next_gear):
+                 motive_powers, engine_temperatures, next_gear):
         for f in self.pipe:
             gear = f(
                 gear, i, gears, times, velocities, accelerations, motive_powers,
-                engine_coolant_temperatures, next_gear
+                engine_temperatures, next_gear
             )
         return gear
 
@@ -732,9 +732,9 @@ dsp.add_dispatcher(
     input_domain=dt_domain('DTGS'),
     dsp=_dtgs,
     inputs=(
+        'engine_temperatures', 'gear_filter', 'gears', 'motive_powers', 'times',
         'velocity_speed_ratios', 'velocities', 'accelerations', 'correct_gear',
-        'engine_coolant_temperatures', 'gear_filter', 'gears', 'motive_powers',
-        'times', 'DTGS', {
+        'DTGS', {
             'specific_gear_shifting': sh.SINK, 'use_dt_gear_shifting': sh.SINK
         }
     ),

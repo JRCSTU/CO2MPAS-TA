@@ -1017,10 +1017,10 @@ def calculate_ems_data(
 
 def _filter_warm_up(
         times, warm_up, on_engine, engine_thermostat_temperature, is_cycle_hot,
-        engine_coolant_temperatures, hybrid_modes=None):
+        engine_temperatures, hybrid_modes=None):
     if hybrid_modes is None:
         hybrid_modes = np.ones_like(times) * 2
-    indices, temp = co2_utl.index_phases(warm_up), engine_coolant_temperatures
+    indices, temp = co2_utl.index_phases(warm_up), engine_temperatures
     b = np.diff(temp[indices], axis=1) > 4
     b &= temp[indices[:, 0], None] < (engine_thermostat_temperature - 10)
     b &= np.diff(times[indices], axis=1) > 5
@@ -1049,7 +1049,7 @@ def _filter_warm_up(
     dsp, inputs_kwargs=True, outputs=['after_treatment_warm_up_phases']
 )
 def identify_after_treatment_warm_up_phases(
-        times, engine_powers_out, engine_coolant_temperatures, on_engine,
+        times, engine_powers_out, engine_temperatures, on_engine,
         engine_thermostat_temperature, ems_data, hybrid_modes,
         is_cycle_hot=False):
     """
@@ -1063,9 +1063,9 @@ def identify_after_treatment_warm_up_phases(
         Engine power vector [kW].
     :type engine_powers_out: numpy.array
 
-    :param engine_coolant_temperatures:
+    :param engine_temperatures:
         Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
+    :type engine_temperatures: numpy.array
 
     :param on_engine:
         If the engine is on [-].
@@ -1109,7 +1109,7 @@ def identify_after_treatment_warm_up_phases(
         return warm_up
     return _filter_warm_up(
         times, warm_up, on_engine, engine_thermostat_temperature, is_cycle_hot,
-        engine_coolant_temperatures, hybrid_modes
+        engine_temperatures, hybrid_modes
     )
 
 

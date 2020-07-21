@@ -18,7 +18,7 @@ name = 'engine_coolant_temperature_model'
 #: Parameters that constitute the model.
 models = [
     'engine_temperature_regression_model', 'max_engine_coolant_temperature',
-    'engine_thermostat_temperature'
+    'engine_thermostat_temperature', 'temperature_shift'
 ]
 
 #: Inputs required to run the model.

@@ -25,7 +25,7 @@ class DTGS:
         self.velocity_speed_ratios = velocity_speed_ratios
 
     def fit(self, gears, velocities, accelerations, motive_powers,
-            engine_coolant_temperatures):
+            engine_temperatures):
         i = np.arange(-1, gears.shape[0] - 1)
         i[0] = 0
         # noinspection PyProtectedMember
@@ -40,7 +40,7 @@ class DTGS:
         ])
         X = np.column_stack((
             gears[i], velocities, accelerations, motive_powers,
-            engine_coolant_temperatures
+            engine_temperatures
         ))
         self.model.fit(X, gears)
 
@@ -48,12 +48,12 @@ class DTGS:
         return self
 
     def _init_gear(self, times, velocities, accelerations, motive_powers,
-                   engine_coolant_temperatures):
+                   engine_temperatures):
         from co2mpas.utils import List
         predict = self.model.predict
         pars = (
             velocities, accelerations, motive_powers,
-            engine_coolant_temperatures
+            engine_temperatures
         )
 
         if any(isinstance(v, List) for v in pars) or np.isnan(pars[-1]).any():
@@ -62,7 +62,7 @@ class DTGS:
             def _next(gear, i):
                 x[:, :] = (
                     gear, velocities[i], accelerations[i], motive_powers[i],
-                    engine_coolant_temperatures[i]
+                    engine_temperatures[i]
                 )
                 return predict(x)[0]
         else:
@@ -94,7 +94,7 @@ class DTGS:
 @sh.add_function(dsp, outputs=['DTGS'])
 def calibrate_gear_shifting_decision_tree(
         velocity_speed_ratios, gears, velocities, accelerations, motive_powers,
-        engine_coolant_temperatures):
+        engine_temperatures):
     """
     Calibrates a decision tree to predict gears.
 
@@ -118,9 +118,9 @@ def calibrate_gear_shifting_decision_tree(
         Motive power [kW].
     :type motive_powers: numpy.array
 
-    :param engine_coolant_temperatures:
+    :param engine_temperatures:
         Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
+    :type engine_temperatures: numpy.array
 
     :returns:
         A decision tree to predict gears.
@@ -129,7 +129,7 @@ def calibrate_gear_shifting_decision_tree(
 
     model = DTGS(velocity_speed_ratios).fit(
         gears, velocities, accelerations, motive_powers,
-        engine_coolant_temperatures
+        engine_temperatures
     )
     return model
 
@@ -146,7 +146,7 @@ def prediction_gears_gsm(*a):
         Predicted gears.
     :rtype: numpy.array
     """
-    return _prediction_gears_gsm(*a[:-1], engine_coolant_temperatures=a[-1])
+    return _prediction_gears_gsm(*a[:-1], engine_temperatures=a[-1])
 
 
 prediction_gears_gsm.__doc__ = _prediction_gears_gsm.__doc__
@@ -154,7 +154,7 @@ dsp.add_function(
     function=prediction_gears_gsm,
     inputs=[
         'correct_gear', 'gear_filter', 'DTGS', 'times', 'velocities',
-        'accelerations', 'motive_powers', 'engine_coolant_temperatures'
+        'accelerations', 'motive_powers', 'engine_temperatures'
     ],
     outputs=['gears']
 )

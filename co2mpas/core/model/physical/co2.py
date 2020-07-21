@@ -780,7 +780,7 @@ def calculate_willans_factors(
         co2_params_calibrated, engine_fuel_lower_heating_value, engine_stroke,
         engine_capacity, min_engine_on_speed, fmep_model, engine_speeds_out,
         engine_powers_out, times, velocities, accelerations, motive_powers,
-        engine_coolant_temperatures, missing_powers, angle_slopes):
+        engine_temperatures, missing_powers, angle_slopes):
     """
     Calculates the Willans factors.
 
@@ -834,9 +834,9 @@ def calculate_willans_factors(
         Motive power [kW].
     :type motive_powers: numpy.array
 
-    :param engine_coolant_temperatures:
+    :param engine_temperatures:
         Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
+    :type engine_temperatures: numpy.array
 
     :param missing_powers:
         Missing engine power [kW].
@@ -953,9 +953,9 @@ def calculate_willans_factors(
         f['av_neg_motive_powers'] = av(motive_powers[b], weights=_w)  # [kW]
         f['sec_neg_mov_pow'] = np.sum(_w)  # [s]
 
-    f['init_temp'] = engine_coolant_temperatures[0]  # [°C]
-    f['av_temp'] = av(engine_coolant_temperatures, weights=w)  # [°C]
-    f['end_temp'] = engine_coolant_temperatures[-1]  # [°C]
+    f['init_temp'] = engine_temperatures[0]  # [°C]
+    f['av_temp'] = av(engine_temperatures, weights=w)  # [°C]
+    f['end_temp'] = engine_temperatures[-1]  # [°C]
 
     return f
 
@@ -973,7 +973,7 @@ dsp.add_function(
         'engine_fuel_lower_heating_value', 'engine_stroke', 'engine_capacity',
         'min_engine_on_speed', 'fmep_model', 'engine_speeds_out',
         'engine_powers_out', 'times', 'velocities', 'accelerations',
-        'motive_powers', 'engine_coolant_temperatures', 'missing_powers',
+        'motive_powers', 'engine_temperatures', 'missing_powers',
         'angle_slopes'
     ],
     outputs=['willans_factors'],
@@ -985,7 +985,7 @@ def calculate_phases_willans_factors(
         params, engine_fuel_lower_heating_value, engine_stroke, engine_capacity,
         min_engine_on_speed, fmep_model, times, phases_indices,
         engine_speeds_out, engine_powers_out, velocities, accelerations,
-        motive_powers, engine_coolant_temperatures, missing_powers,
+        motive_powers, engine_temperatures, missing_powers,
         angle_slopes):
     """
     Calculates the Willans factors for each phase.
@@ -1044,9 +1044,9 @@ def calculate_phases_willans_factors(
         Motive power [kW].
     :type motive_powers: numpy.array
 
-    :param engine_coolant_temperatures:
+    :param engine_temperatures:
         Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
+    :type engine_temperatures: numpy.array
 
     :param missing_powers:
         Missing engine power [kW].
@@ -1094,7 +1094,7 @@ def calculate_phases_willans_factors(
             engine_capacity, min_engine_on_speed, fmep_model,
             engine_speeds_out[i:j], engine_powers_out[i:j], times[i:j],
             velocities[i:j], accelerations[i:j], motive_powers[i:j],
-            engine_coolant_temperatures[i:j], missing_powers[i:j],
+            engine_temperatures[i:j], missing_powers[i:j],
             angle_slopes[i:j]
         ))
 
@@ -1114,7 +1114,7 @@ dsp.add_function(
         'engine_fuel_lower_heating_value', 'engine_stroke', 'engine_capacity',
         'min_engine_on_speed', 'fmep_model', 'times', 'phases_indices',
         'engine_speeds_out', 'engine_powers_out', 'velocities', 'accelerations',
-        'motive_powers', 'engine_coolant_temperatures', 'missing_powers',
+        'motive_powers', 'engine_temperatures', 'missing_powers',
         'angle_slopes'
     ],
     outputs=['phases_willans_factors'],

@@ -868,8 +868,8 @@ def _apply_ac_phases(func, fmep_model, params, *args, ac_phases=None):
         return np.where(ac_phases, res_with_ac, func(fmep_model, p, *args))
 
 
-def _normalized_engine_coolant_temperatures(
-        engine_coolant_temperatures, temperature_target):
+def _normalized_engine_temperatures(
+        engine_temperatures, temperature_target):
     """
     Calculates the normalized engine coolant temperatures [-].
 
@@ -877,9 +877,9 @@ def _normalized_engine_coolant_temperatures(
         Engine coolant temperatures are first converted in kelvin and then
         normalized. The results is between ``[0, 1]``.
 
-    :param engine_coolant_temperatures:
+    :param engine_temperatures:
         Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
+    :type engine_temperatures: numpy.array
 
     :param temperature_target:
         Normalization temperature [°C].
@@ -889,7 +889,7 @@ def _normalized_engine_coolant_temperatures(
         Normalized engine coolant temperature [-].
     :rtype: numpy.array
     """
-    temp = (engine_coolant_temperatures + 273.0) / (temperature_target + 273.0)
+    temp = (engine_temperatures + 273.0) / (temperature_target + 273.0)
     if isinstance(temp, np.ndarray):
         temp[np.searchsorted(temp, (1,))[0]:] = 1
     return np.minimum(1, temp)
@@ -984,7 +984,7 @@ def _calculate_co2_emissions(
         b = ~n & _b
     else:
         p['t'] = np.where(wu_p, p['t0'], p['t1'])
-        n_t = _normalized_engine_coolant_temperatures(e_t, p['trg'])
+        n_t = _normalized_engine_temperatures(e_t, p['trg'])
         ac_phases = ~wu_p & acr_v
         ec_p0 = _apply_ac_phases(
             _calculate_p0, fmep_model, p, engine_capacity, engine_stroke,
@@ -1014,7 +1014,7 @@ def _calculate_co2_emissions(
 @sh.add_function(dsp, outputs=['co2_emissions_model'])
 def define_co2_emissions_model(
         engine_speeds_out, engine_powers_out, mean_piston_speeds,
-        brake_mean_effective_pressures, engine_coolant_temperatures, on_engine,
+        brake_mean_effective_pressures, engine_temperatures, on_engine,
         cylinder_deactivation_valid_phases, after_treatment_warm_up_phases,
         engine_fuel_lower_heating_value, idle_engine_speed, engine_stroke,
         engine_capacity, idle_fuel_consumption_model, fuel_carbon_content,
@@ -1038,9 +1038,9 @@ def define_co2_emissions_model(
         Engine brake mean effective pressure vector [bar].
     :type brake_mean_effective_pressures: numpy.array
 
-    :param engine_coolant_temperatures:
+    :param engine_temperatures:
         Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
+    :type engine_temperatures: numpy.array
 
     :param on_engine:
         If the engine is on [-].
@@ -1092,7 +1092,7 @@ def define_co2_emissions_model(
     """
 
     ts = (
-        engine_speeds_out, engine_powers_out, engine_coolant_temperatures,
+        engine_speeds_out, engine_powers_out, engine_temperatures,
         mean_piston_speeds, brake_mean_effective_pressures,
         cylinder_deactivation_valid_phases, after_treatment_warm_up_phases
     )
@@ -1113,7 +1113,7 @@ def define_co2_emissions_model(
 )
 def define_co2_emissions_model_hybrid_calibration(
         is_hybrid, engine_speeds_out, engine_powers_out, mean_piston_speeds,
-        brake_mean_effective_pressures, engine_coolant_temperatures, on_engine,
+        brake_mean_effective_pressures, engine_temperatures, on_engine,
         cylinder_deactivation_valid_phases, times,
         engine_thermostat_temperature, is_cycle_hot,
         engine_fuel_lower_heating_value, idle_engine_speed, engine_stroke,
@@ -1142,9 +1142,9 @@ def define_co2_emissions_model_hybrid_calibration(
         Engine brake mean effective pressure vector [bar].
     :type brake_mean_effective_pressures: numpy.array
 
-    :param engine_coolant_temperatures:
+    :param engine_temperatures:
         Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
+    :type engine_temperatures: numpy.array
 
     :param on_engine:
         If the engine is on [-].
@@ -1206,11 +1206,11 @@ def define_co2_emissions_model_hybrid_calibration(
     from ..control.hybrid import _filter_warm_up
     after_treatment_warm_up_phases = _filter_warm_up(
         times, on_engine, on_engine, engine_thermostat_temperature,
-        is_cycle_hot, engine_coolant_temperatures
+        is_cycle_hot, engine_temperatures
     )
     return define_co2_emissions_model(
         engine_speeds_out, engine_powers_out, mean_piston_speeds,
-        brake_mean_effective_pressures, engine_coolant_temperatures, on_engine,
+        brake_mean_effective_pressures, engine_temperatures, on_engine,
         cylinder_deactivation_valid_phases, after_treatment_warm_up_phases,
         engine_fuel_lower_heating_value, idle_engine_speed, engine_stroke,
         engine_capacity, idle_fuel_consumption_model, fuel_carbon_content,
@@ -1503,7 +1503,7 @@ def _rescaling_score(times, rescaling_matrix, k):
 def identify_co2_emissions(
         co2_emissions_model, co2_params_initial_guess, times,
         extended_phases_integration_times, extended_cumulative_co2_emissions,
-        engine_coolant_temperatures, is_cycle_hot, velocities, stop_velocity):
+        engine_temperatures, is_cycle_hot, velocities, stop_velocity):
     """
     Identifies instantaneous CO2 emission vector [CO2g/s].
 
@@ -1527,9 +1527,9 @@ def identify_co2_emissions(
         Extended cumulative CO2 of cycle phases [CO2g].
     :type extended_cumulative_co2_emissions: numpy.array
 
-    :param engine_coolant_temperatures:
+    :param engine_temperatures:
         Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
+    :type engine_temperatures: numpy.array
 
     :param is_cycle_hot:
         Is an hot cycle?
@@ -1564,7 +1564,7 @@ def identify_co2_emissions(
 
     if d.enable_first_step or d.enable_second_step or d.enable_third_step:
         calibrate = functools.partial(
-            calibrate_co2_params, is_cycle_hot, engine_coolant_temperatures,
+            calibrate_co2_params, is_cycle_hot, engine_temperatures,
             co2_emissions_model, _1st_step=d.enable_first_step,
             _2nd_step=d.enable_second_step, _3rd_step=d.enable_third_step,
         )
@@ -1655,10 +1655,10 @@ def _set_attr(params, data, default=False, attr='vary'):
     return params
 
 
-def _identify_cold_phase(p, is_cycle_hot, engine_coolant_temperatures):
-    cold = np.zeros_like(engine_coolant_temperatures, dtype=bool)
+def _identify_cold_phase(p, is_cycle_hot, engine_temperatures):
+    cold = np.zeros_like(engine_temperatures, dtype=bool)
     if not is_cycle_hot:
-        i = co2_utl.argmax(engine_coolant_temperatures >= p['trg'].value)
+        i = co2_utl.argmax(engine_temperatures >= p['trg'].value)
         cold[:i] = True
     return cold
 
@@ -1732,7 +1732,7 @@ def _calibrate_model_params(
 # noinspection PyUnresolvedReferences
 @sh.add_function(dsp, outputs=['co2_params_calibrated', 'calibration_status'])
 def calibrate_co2_params(
-        is_cycle_hot, engine_coolant_temperatures, co2_emissions_model,
+        is_cycle_hot, engine_temperatures, co2_emissions_model,
         identified_co2_emissions, co2_params_identified,
         _1st_step=dfl.functions.calibrate_co2_params.enable_first_step,
         _2nd_step=dfl.functions.calibrate_co2_params.enable_second_step,
@@ -1741,9 +1741,9 @@ def calibrate_co2_params(
     Calibrates the CO2 emission model parameters (a2, b2, a, b, c, l, l2, t, trg
     ).
 
-    :param engine_coolant_temperatures:
+    :param engine_temperatures:
         Engine coolant temperature vector [°C].
-    :type engine_coolant_temperatures: numpy.array
+    :type engine_temperatures: numpy.array
 
     :param co2_emissions_model:
         CO2 emissions model (co2_emissions = models(params)).
@@ -1784,7 +1784,7 @@ def calibrate_co2_params(
     p = copy.deepcopy(co2_params_identified)
 
     # Identify cold and hot phases.
-    cold = _identify_cold_phase(p, is_cycle_hot, engine_coolant_temperatures)
+    cold = _identify_cold_phase(p, is_cycle_hot, engine_temperatures)
     hot = ~cold
 
     # Definition of thermal and willans parameters.
