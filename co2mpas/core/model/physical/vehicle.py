@@ -560,7 +560,6 @@ def calculate_f0(vehicle_mass, rolling_resistance_coeff):
         Rolling resistance force [N] when angle_slope == 0.
     :rtype: float
     """
-
     return vehicle_mass * 9.81 * rolling_resistance_coeff
 
 

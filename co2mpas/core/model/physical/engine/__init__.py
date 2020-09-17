@@ -213,7 +213,7 @@ def calculate_full_load_powers(full_load_torques, full_load_speeds):
     return calculate_wheel_powers(full_load_torques, full_load_speeds)
 
 
-@sh.add_function(dsp, outputs=['full_load_torques'])
+@sh.add_function(dsp, outputs=['full_load_speeds'])
 def calculate_full_load_speeds(full_load_powers, full_load_torques):
     """
     Calculates T1 map speed vector [RPM].
