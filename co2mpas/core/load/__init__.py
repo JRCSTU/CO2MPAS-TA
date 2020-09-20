@@ -120,7 +120,9 @@ if _dice is not None:
         inputs=_inp,
         outputs=['raw_data'],
         filters=[functools.partial(sh.map_list, [_out])],
-        input_domain=functools.partial(check_file_format, ext=('.co2mpas.ta',))
+        input_domain=functools.partial(check_file_format, ext=(
+            '.co2mpas.ta','.dice.ta'
+        ))
     )
 
     _out, _inp = ['data', 'dice'], ['input_file_name', 'input_file']

@@ -161,8 +161,8 @@ def _index_dict(error=None, **kwargs):
 
     def _f(x):
         return {k: v for k, v in enumerate(x, start=1)}
-
-    return Or(s, And(_dict(), c), And(_type(), Use(_f), c), error=error)
+    _tuple = Or(tuple, Use(lambda x: tuple(np.asarray(x).ravel())))
+    return Or(s, And(_dict(), c), And(_type(type=_tuple), Use(_f), c), error=error)
 
 
 def _np_array2list(x):
@@ -458,14 +458,15 @@ def define_data_validation(read=True):
     np_array_int = _np_array(dtype=int, read=read)
     _bool = _type(type=bool, read=read)
     function = _function(read=read)
+    _tuple = Use(lambda x: tuple(np.asarray(x).ravel()))
     tuplefloat2 = _type(
-        type=And(Use(tuple), (_type(float),)),
+        type=And(_tuple, (_type(float),)),
         length=2,
         read=read
     )
     _float = _type(type=float, read=read)
     _float = Or(_float, And(str, Use(lambda x: x.replace(',', '.')), _float))
-    tuplefloat = _type(type=And(Use(tuple), (_type(float),)), read=read)
+    tuplefloat = _type(type=And(_tuple, (_type(float),)), read=read)
     dictstrdict = _dict(format={str: dict}, read=read)
     ordictstrdict = _ordict(format={str: dict}, read=read)
     parameters = _parameters(read=read)
@@ -688,7 +689,7 @@ def define_data_validation(read=True):
         'k5': positive_int,
         'max_gear': positive_int,
         'hybrid_modes': np_array_int,
-        'road_loads': _type(type=And(Use(tuple), (_type(float),)),
+        'road_loads': _type(type=And(_tuple, (_type(float),)),
                             length=3,
                             read=read),
         'start_stop_model': function,

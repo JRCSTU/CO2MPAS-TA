@@ -14,7 +14,7 @@ import logging
 import collections
 import os.path as osp
 import schedula as sh
-from xlref.parser import Ref, _re_xl_ref_parser
+from xlref.parser import Ref, _re_xl_ref_parser, FILTERS
 
 log = logging.getLogger(__name__)
 
@@ -120,6 +120,25 @@ _xl_ref = {
     'ts': '#%s!A2(R):._:RD["T", "dict"]',
     'pl': '#%s!A1(R):._:R["recursive"]'
 }
+
+
+def _vector(parent, x):
+    from pandas import notnull
+    x = x.ravel()
+    return x if notnull(x).any() else []
+
+
+def _idict(parent, x):
+    return dict(enumerate(x, 1))
+
+
+def _empty(parent, x):
+    return x if len(x) else None
+
+
+FILTERS['empty'] = _empty
+FILTERS['idict'] = _idict
+FILTERS['vector'] = _vector
 
 
 class Rererence(Ref):
