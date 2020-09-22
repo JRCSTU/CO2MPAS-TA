@@ -218,9 +218,9 @@ def wait_site(site):
     site.shutdown()
 
 
-def _yield_files(
-        *paths, cache=None,
-        ext=('co2mpas.ta','dice.ta', 'co2mpas', 'xlsx', 'dill', 'xls')):
+def _yield_files(*paths, cache=None, ext=(
+        'co2mpas.ta', 'dice.ta', 'wet.ta', 'co2mpas', 'xlsx', 'dill', 'xls'
+)):
     import glob
     cache = set() if cache is None else cache
     for path in paths:
