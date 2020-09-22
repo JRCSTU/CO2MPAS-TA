@@ -156,7 +156,7 @@ def _type(type=None, error=None, length=None, **kwargs):
 # noinspection PyUnusedLocal
 def _index_dict(error=None, **kwargs):
     error = error or 'cannot be parsed as {}!'.format({int: float})
-    c = {int: Use(float)}
+    c = {Use(int): Use(float)}
     s = And(dict, c)
 
     def _f(x):
