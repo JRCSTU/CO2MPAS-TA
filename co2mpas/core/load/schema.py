@@ -161,8 +161,10 @@ def _index_dict(error=None, **kwargs):
 
     def _f(x):
         return {k: v for k, v in enumerate(x, start=1)}
+
     _tuple = Or(tuple, Use(lambda x: tuple(np.asarray(x).ravel())))
-    return Or(s, And(_dict(), c), And(_type(type=_tuple), Use(_f), c), error=error)
+    return Or(s, And(_dict(), c), And(_type(type=_tuple), Use(_f), c),
+              error=error)
 
 
 def _np_array2list(x):
@@ -328,9 +330,13 @@ def _compare_str(s, **kwargs):
 def _tyre_code(error=None, **kwargs):
     error = error or 'invalid tyre code!'
     # noinspection PyProtectedMember
-    from ..model.physical.wheels import _re_tyre_code_iso, _re_tyre_code_numeric
-    c = Or(_re_tyre_code_iso.match, _re_tyre_code_numeric.match)
-    return And(str, c, error=error)
+    from ..model.physical.wheels import (
+        _re_tyre_code_iso, _re_tyre_code_numeric, _re_tyre_code_pax
+    )
+    return And(str, Or(
+        _re_tyre_code_iso.match, _re_tyre_code_numeric.match,
+        _re_tyre_code_pax.match
+    ), error=error)
 
 
 # noinspection PyUnusedLocal
