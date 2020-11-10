@@ -406,6 +406,7 @@ def parse_excel_file(input_file_name, input_file):
         parent = Rererence('#A1')
         parent.ref['fpath'] = input_file_name
         parent.cache[input_file_name] = parent.ref['xl_book'] = xl
+        xl.sheet_indices = {k.lower(): i for i, k in enumerate(xl.sheet_names)}
         for sheet_name in xl.sheet_names:
             match = _re_input_sheet_name.match(sheet_name.strip(' '))
             if not match:
