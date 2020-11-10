@@ -256,7 +256,7 @@ dsp.add_data('rcb_correction', dfl.values.rcb_correction)
 @sh.add_function(dsp, outputs=['speed_distance_correction'])
 def default_speed_distance_correction(is_hybrid):
     """
-    Returns if speed distance correction is to be applied.
+    Returns if speed distance correction has to be applied.
 
     :param is_hybrid:
         Is the vehicle hybrid?
