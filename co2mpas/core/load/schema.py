@@ -590,6 +590,9 @@ def define_data_validation(read=True):
         'full_load_torques': np_array,
         'full_load_powers': np_array,
 
+        'capped_velocity': positive,
+        'maximum_velocity': positive,
+        'vehicle_mass_running_order': positive,
         'vehicle_mass': positive,
         'f0_uncorrected': positive,
         'f2': positive,
