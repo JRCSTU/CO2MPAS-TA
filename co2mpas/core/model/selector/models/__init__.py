@@ -32,8 +32,8 @@ import numpy as np
 import schedula as sh
 
 log = logging.getLogger(__name__)
-calibration_cycles = ('wltp_h', 'wltp_l')
-prediction_cycles = ('nedc_h', 'nedc_l', 'wltp_h', 'wltp_l')
+calibration_cycles = 'wltp_h', 'wltp_l', 'wltp_m'
+prediction_cycles = 'nedc_h', 'nedc_l', 'wltp_h', 'wltp_l', 'wltp_m'
 
 _select_data = functools.partial(sh.selector, allow_miss=True)
 _map_list = functools.partial(sh.map_list, ['calibrated_models', 'data'])

@@ -236,7 +236,9 @@ class Functions(co2_utl.Constants):
     class select_best_model(co2_utl.Constants):
         #: Model selector mapping.
         MAP = {None: {
-            'wltp_h': ('nedc_h', 'wltp_h'), 'wltp_l': ('nedc_l', 'wltp_l')
+            'wltp_h': ('nedc_h', 'wltp_h'),
+            'wltp_l': ('nedc_l', 'wltp_l'),
+            'wltp_m': ('wltp_m',)
         }}
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming

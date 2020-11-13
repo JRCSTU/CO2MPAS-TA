@@ -184,8 +184,10 @@ def _param_orders():
         'scope': ('plan', 'flag', 'base'),
         'usage': ('target', 'output', 'input', 'data'),
         'stage': ('precondition', 'prediction', 'calibration'),
-        'cycle': ('all', 'nedc_h', 'nedc_l', 'wltp_h', 'wltp_l', 'wltp_p'),
-        'type': ('pa', 'ts', 'pl'),
+        'cycle': (
+            'all', 'nedc_h', 'nedc_l', 'wltp_h', 'wltp_l','wltp_m', 'wltp_p'
+        ),
+        'type': ('pa', 'ts', 'pl', 'mt'),
         'param': param
     }
     _map = {k: {j: str(i).zfill(3) for i, j in enumerate(v)}

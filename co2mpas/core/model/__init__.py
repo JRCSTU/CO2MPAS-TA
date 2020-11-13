@@ -32,11 +32,21 @@ _physical = sh.SubDispatch(_physical)
 
 dsp.add_data(
     data_id='input.calibration.wltp_h',
-    description='User input data of WLTP-H calibration stage.'
+    description='User input data of WLTP-H calibration stage.',
+    default_value=None,
+    filters=[lambda x: {} if x is None else x]
 )
 dsp.add_data(
     data_id='input.calibration.wltp_l',
-    description='User input data of WLTP-L calibration stage.'
+    description='User input data of WLTP-L calibration stage.',
+    default_value=None,
+    filters=[lambda x: {} if x is None else x]
+)
+dsp.add_data(
+    data_id='input.calibration.wltp_m',
+    description='User input data of WLTP-M calibration stage.',
+    default_value=None,
+    filters=[lambda x: {} if x is None else x]
 )
 dsp.add_data(
     data_id='output.calibration.wltp_h',
@@ -45,6 +55,10 @@ dsp.add_data(
 dsp.add_data(
     data_id='output.calibration.wltp_l',
     description='Output data of WLTP-L calibration stage.'
+)
+dsp.add_data(
+    data_id='output.calibration.wltp_m',
+    description='Output data of WLTP-M calibration stage.'
 )
 dsp.add_function(
     function_id='calibrate_with_wltp_h',
@@ -63,14 +77,29 @@ dsp.add_function(
     description='Wraps all functions needed to calibrate the models to '
                 'predict CO2 emissions.'
 )
+dsp.add_function(
+    function_id='calibrate_with_wltp_m',
+    function=_physical,
+    inputs=['input.calibration.wltp_m'],
+    outputs=['output.calibration.wltp_m'],
+    description='Wraps all functions needed to calibrate the models to '
+                'predict CO2 emissions.'
+)
 
 dsp.add_data(
-    data_id='input.prediction.wltp_h', default_value={},
-    description='User input data of WLTP-H prediction stage.'
+    data_id='input.prediction.wltp_h', default_value=None,
+    description='User input data of WLTP-H prediction stage.',
+    filters=[lambda x: {} if x is None else x]
 )
 dsp.add_data(
-    data_id='input.prediction.wltp_l', default_value={},
-    description='User input data of WLTP-L prediction stage.'
+    data_id='input.prediction.wltp_l', default_value=None,
+    description='User input data of WLTP-L prediction stage.',
+    filters=[lambda x: {} if x is None else x]
+)
+dsp.add_data(
+    data_id='input.prediction.wltp_m', default_value=None,
+    description='User input data of WLTP-M prediction stage.',
+    filters=[lambda x: {} if x is None else x]
 )
 dsp.add_data(
     data_id='data.prediction.models_wltp_h',
@@ -81,12 +110,20 @@ dsp.add_data(
     description='Calibrated models for WLTP-L prediction stage.'
 )
 dsp.add_data(
+    data_id='data.prediction.models_wltp_m',
+    description='Calibrated models for WLTP-M prediction stage.'
+)
+dsp.add_data(
     data_id='data.prediction.wltp_h',
     description='Input data of WLTP-H prediction stage.'
 )
 dsp.add_data(
     data_id='data.prediction.wltp_l',
     description='Input data of WLTP-L prediction stage.'
+)
+dsp.add_data(
+    data_id='data.prediction.wltp_m',
+    description='Input data of WLTP-M prediction stage.'
 )
 
 
@@ -97,6 +134,10 @@ dsp.add_data(
 @sh.add_function(
     dsp, inputs=['output.calibration.wltp_l', 'data.prediction.models_wltp_l',
                  'input.prediction.wltp_l'], outputs=['data.prediction.wltp_l']
+)
+@sh.add_function(
+    dsp, inputs=['output.calibration.wltp_m', 'data.prediction.models_wltp_m',
+                 'input.prediction.wltp_m'], outputs=['data.prediction.wltp_m']
 )
 def select_prediction_data(calibration_data, models_data, user_data):
     """
@@ -141,8 +182,8 @@ dsp.add_data(
 )
 dsp.add_data(
     data_id='enable_selector', default_value=False,
-    description='Enable the selection of the best model to predict both '
-                'H/L cycles.'
+    description='Enable the selection of the best model to predict '
+                'H/L/M cycles.'
 )
 dsp.add_data(
     data_id='data.calibration.model_scores',
@@ -159,7 +200,8 @@ dsp.add_function(
     ),
     inputs=[
         'enable_selector', 'input.prediction.models',
-        'output.calibration.wltp_h', 'output.calibration.wltp_l'
+        'output.calibration.wltp_h', 'output.calibration.wltp_l',
+        'output.calibration.wltp_m'
     ],
     outputs=['data.calibration.model_scores'] + [
         'data.prediction.%s' % k for k in _prediction_models
@@ -173,6 +215,10 @@ dsp.add_data(
 dsp.add_data(
     data_id='output.prediction.wltp_l',
     description='Output data of WLTP-L prediction stage.'
+)
+dsp.add_data(
+    data_id='output.prediction.wltp_m',
+    description='Output data of WLTP-M prediction stage.'
 )
 dsp.add_function(
     function_id='predict_wltp_h',
@@ -188,7 +234,14 @@ dsp.add_function(
     inputs=['data.prediction.wltp_l'],
     outputs=['output.prediction.wltp_l'],
     description='Wraps all functions needed to predict CO2 emissions.'
+)
 
+dsp.add_function(
+    function_id='predict_wltp_m',
+    function=_physical,
+    inputs=['data.prediction.wltp_m'],
+    outputs=['output.prediction.wltp_m'],
+    description='Wraps all functions needed to predict CO2 emissions.'
 )
 
 dsp.add_data(

@@ -115,15 +115,14 @@ def parse_solution(solution):
         CO2MPAS outputs.
     :rtype: dict[dict]
     """
-
+    from .model.selector import calibration_cycles
     res = {}
     for k, v in solution.items():
         k = k.split('.')
         sh.get_nested_dicts(res, *k[:-1])[k[-1]] = v
-
     for k, v in list(sh.stack_nested_keys(res, depth=3)):
         n, k = k[:-1], k[-1]
-        if n == ('output', 'calibration') and k in ('wltp_l', 'wltp_h'):
+        if n == ('output', 'calibration') and k in calibration_cycles:
             v = sh.selector(('co2_emission_value',), v, allow_miss=True)
             if v:
                 d = sh.get_nested_dicts(res, 'target', 'prediction')

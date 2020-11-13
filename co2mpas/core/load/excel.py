@@ -22,19 +22,15 @@ log = logging.getLogger(__name__)
 _base_params = r"""
     ^((?P<scope>base)(\.|\s+))?
     ((?P<usage>(target|input|output|data))s?(\.|\s+))?
-    ((?P<stage>(precondition|calibration|prediction))s?(\.|\s+))?
-    ((?P<cycle>WLTP([-_]{1}[HLP]{1})?|
-               NEDC([-_]{1}[HL]{1})?|
-               ALL([-_]{1}[HL]{1})?)(recon)?(\.|\s+))?
+    ((?P<stage>(calibration|prediction))s?(\.|\s+))?
+    ((?P<cycle>(WLTP|NEDC|ALL)([-_][HLMP])?)(\.|\s+))?
     (?P<param>[^\s.]*)\s*$
     |
     ^((?P<scope>base)(\.|\s+))?
     ((?P<usage>(target|input|output|data))s?(\.|\s+))?
     ((?P<stage>(precondition|calibration|prediction))s?(\.|\s+))?
     ((?P<param>[^\s.]*))?
-    ((.|\s+)(?P<cycle>WLTP([-_]{1}[HLP]{1})?|
-                      NEDC([-_]{1}[HL]{1})?|
-                      ALL([-_]{1}[HL]{1})?)(recon)?)?\s*$
+    ((.|\s+)(?P<cycle>(WLTP|NEDC|ALL)([-_][HLMP])?))?\s*$
 """
 
 _flag_params = r"""
@@ -44,7 +40,8 @@ _flag_params = r"""
 _dice_params = r"""^(?P<scope>dice)(\.|\s+)(?P<dice>[^\s.]*)((\.|\s+)ALL)?\s*$"""
 
 _meta_params = r"""
-    ^(?P<scope>meta)(\.|\s+)((?P<meta>.+)(\.|\s+))?((?P<param>[^\s.]+))((\.|\s+)ALL)?\s*$
+    ^(?P<scope>meta)(\.|\s+)((?P<meta>.+)(\.|\s+))?((?P<param>[^\s.]+))
+    ((.|\s+)(?P<cycle>(WLTP|NEDC|ALL)([-_][HLMP])?))?\s*$
 """
 
 _plan_params = r"""
@@ -66,9 +63,7 @@ _re_params_name = regex.compile(
         ^(?P<param>((plan|base|flag|dice)|
                     (target|input|output|data|meta)|
                     ((precondition|calibration|prediction)s?)|
-                    (WLTP([-_]{1}[HLP]{1})?|
-                     NEDC([-_]{1}[HL]{1})?|
-                     ALL([-_]{1}[HL]{1})?)(recon)?))\s*$
+                    ((WLTP|NEDC|ALL)([-_][HLMP])?)))\s*$
         |
     """ + _flag_params + r"""
         |
@@ -84,9 +79,7 @@ _base_sheet = r"""
     ^((?P<scope>base)(\.|\s+)?)?
     ((?P<usage>(target|input|output|data))s?(\.|\s+)?)?
     ((?P<stage>(precondition|calibration|prediction))s?(\.|\s+)?)?
-    ((?P<cycle>WLTP([-_]{1}[HLP]{1})?|
-               NEDC([-_]{1}[HL]{1})?|
-               ALL([-_]{1}[HL]{1})?)(recon)?(\.|\s+)?)?
+    ((?P<cycle>(WLTP|NEDC|ALL)([-_][HLMP])?)(\.|\s+)?)?
     (?P<type>(pa|ts|pl|mt))?\s*$
 """
 
@@ -198,17 +191,19 @@ def _isempty(val):
 # noinspection PyUnusedLocal
 def _get_cycle(cycle=None, usage=None, **kw):
     if cycle is None or cycle == 'all':
-        cycle = 'nedc_h', 'nedc_l', 'wltp_h', 'wltp_l'
+        cycle = 'nedc_h', 'nedc_l', 'wltp_h', 'wltp_l', 'wltp_m'
         if cycle == 'all':
             cycle += 'wltp_p',
     elif cycle == 'wltp':
-        cycle = 'wltp_h', 'wltp_l'
+        cycle = 'wltp_h', 'wltp_l', 'wltp_m'
     elif cycle == 'nedc':
         cycle = 'nedc_h', 'nedc_l'
     elif cycle in ('all-h', 'all_h'):
         cycle = 'nedc_h', 'wltp_h'
     elif cycle in ('all-l', 'all_l'):
         cycle = 'nedc_l', 'wltp_l'
+    elif cycle in ('all-m', 'all_m'):
+        cycle = 'wltp_m',
     elif isinstance(cycle, str):
         cycle = cycle.replace('-', '_')
 
