@@ -12,6 +12,7 @@ import math
 import regex
 import logging
 import collections
+import numpy as np
 import os.path as osp
 import schedula as sh
 from xlref.parser import Ref, _re_xl_ref_parser, FILTERS
@@ -37,13 +38,13 @@ _base_params = r"""
 """
 
 _flag_params = r"""
-^(?P<scope>flag)(\.|\s+)(?P<flag>(input_version|vehicle_family_id))\s*$
+^(?P<scope>flag)(\.|\s+)(?P<flag>(input_version|vehicle_family_id))((\.|\s+)ALL)?\s*$
 """
 
-_dice_params = r"""^(?P<scope>dice)(\.|\s+)(?P<dice>[^\s.]*)\s*$"""
+_dice_params = r"""^(?P<scope>dice)(\.|\s+)(?P<dice>[^\s.]*)((\.|\s+)ALL)?\s*$"""
 
 _meta_params = r"""
-    ^(?P<scope>meta)(\.|\s+)((?P<meta>.+)(\.|\s+))?((?P<param>[^\s.]+))\s*$
+    ^(?P<scope>meta)(\.|\s+)((?P<meta>.+)(\.|\s+))?((?P<param>[^\s.]+))((\.|\s+)ALL)?\s*$
 """
 
 _plan_params = r"""
@@ -86,15 +87,15 @@ _base_sheet = r"""
     ((?P<cycle>WLTP([-_]{1}[HLP]{1})?|
                NEDC([-_]{1}[HL]{1})?|
                ALL([-_]{1}[HL]{1})?)(recon)?(\.|\s+)?)?
-    (?P<type>(pa|ts|pl))?\s*$
+    (?P<type>(pa|ts|pl|mt))?\s*$
 """
 
-_flag_sheet = r"""^(?P<scope>flag)((\.|\s+)(?P<type>(pa|ts|pl)))?\s*$"""
+_flag_sheet = r"""^(?P<scope>flag)((\.|\s+)(?P<type>(pa|ts|pl|mt)))?\s*$"""
 
-_dice_sheet = r"""^(?P<scope>dice)((\.|\s+)(?P<type>(pa|ts|pl)))?\s*$"""
+_dice_sheet = r"""^(?P<scope>dice)((\.|\s+)(?P<type>(pa|ts|pl|mt)))?\s*$"""
 
 _meta_sheet = r"""
-    ^(?P<scope>meta)((\.|\s+)(?P<meta>.+))?(\.|\s+)(?P<type>(pa|ts|pl))\s*$
+    ^(?P<scope>meta)((\.|\s+)(?P<meta>.+))?(\.|\s+)(?P<type>(pa|ts|pl|mt))\s*$
 """
 
 _plan_sheet = r"""
@@ -118,8 +119,16 @@ _re_space_dot = regex.compile(r'(\s*\.\s*|\s+)')
 _xl_ref = {
     'pa': '#%s!B2:C_[{"fun": "dict", "value": "ref"}]',
     'ts': '#%s!A2(R):._:RD["T", "dict"]',
-    'pl': '#%s!A1(R):._:R["recursive"]'
+    'pl': '#%s!A1(R):._:R["recursive"]',
+    'mt': '#%s!B1:._:R["recursive", "matrix"]'
 }
+
+
+def _matrix(parent, x):
+    from pandas import isnull
+    b, f = np.append([False], ~isnull(x[0][1:])), '{}.{}'.format
+    keys = [None if isnull(k) else f(k, c) for k in x[1:, 0] for c in x[0][b]]
+    return dict(zip(keys, x[1:, b].ravel()))
 
 
 def _vector(parent, x):
@@ -139,6 +148,7 @@ def _empty(parent, x):
 FILTERS['empty'] = _empty
 FILTERS['idict'] = _idict
 FILTERS['vector'] = _vector
+FILTERS['matrix'] = _matrix
 
 
 class Rererence(Ref):
@@ -227,7 +237,10 @@ def _parse_key(scope='base', usage='input', **match):
         yield scope, match['dice']
     elif scope == 'meta':
         meta = _re_space_dot.sub(match.get('meta', ''), '.').replace('-', '_')
-        yield scope, meta, match['param']
+        param = match['param']
+        if match.get('cycle', 'ALL') != 'ALL':
+            param = match['cycle'] + param
+        yield scope, meta, param
     elif scope == 'plan':
         if 'param' in match:
             m = _re_params_name.match('.'.join((scope, match['param'])))
