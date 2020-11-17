@@ -23,14 +23,14 @@ _base_params = r"""
     ^((?P<scope>base)(\.|\s+))?
     ((?P<usage>(target|input|output|data))s?(\.|\s+))?
     ((?P<stage>(calibration|prediction))s?(\.|\s+))?
-    ((?P<cycle>(WLTP|NEDC|ALL)([-_][HLMP])?)(\.|\s+))?
+    ((?P<cycle>(WLTP|NEDC|ALL)([-_][HLM])?)(\.|\s+))?
     (?P<param>[^\s.]*)\s*$
     |
     ^((?P<scope>base)(\.|\s+))?
     ((?P<usage>(target|input|output|data))s?(\.|\s+))?
-    ((?P<stage>(precondition|calibration|prediction))s?(\.|\s+))?
+    ((?P<stage>(calibration|prediction))s?(\.|\s+))?
     ((?P<param>[^\s.]*))?
-    ((.|\s+)(?P<cycle>(WLTP|NEDC|ALL)([-_][HLMP])?))?\s*$
+    ((.|\s+)(?P<cycle>(WLTP|NEDC|ALL)([-_][HLM])?))?\s*$
 """
 
 _flag_params = r"""
@@ -41,7 +41,7 @@ _dice_params = r"""^(?P<scope>dice)(\.|\s+)(?P<dice>[^\s.]*)((\.|\s+)ALL)?\s*$""
 
 _meta_params = r"""
     ^(?P<scope>meta)(\.|\s+)((?P<meta>.+)(\.|\s+))?((?P<param>[^\s.]+))
-    ((.|\s+)(?P<cycle>(WLTP|NEDC|ALL)([-_][HLMP])?))?\s*$
+    ((.|\s+)(?P<cycle>(WLTP|NEDC|ALL)([-_][HLM])?))?\s*$
 """
 
 _plan_params = r"""
@@ -62,8 +62,8 @@ _re_params_name = regex.compile(
     r"""
         ^(?P<param>((plan|base|flag|dice)|
                     (target|input|output|data|meta)|
-                    ((precondition|calibration|prediction)s?)|
-                    ((WLTP|NEDC|ALL)([-_][HLMP])?)))\s*$
+                    ((calibration|prediction)s?)|
+                    ((WLTP|NEDC|ALL)([-_][HLM])?)))\s*$
         |
     """ + _flag_params + r"""
         |
@@ -78,8 +78,8 @@ _re_params_name = regex.compile(
 _base_sheet = r"""
     ^((?P<scope>base)(\.|\s+)?)?
     ((?P<usage>(target|input|output|data))s?(\.|\s+)?)?
-    ((?P<stage>(precondition|calibration|prediction))s?(\.|\s+)?)?
-    ((?P<cycle>(WLTP|NEDC|ALL)([-_][HLMP])?)(\.|\s+)?)?
+    ((?P<stage>(calibration|prediction))s?(\.|\s+)?)?
+    ((?P<cycle>(WLTP|NEDC|ALL)([-_][HLM])?)(\.|\s+)?)?
     (?P<type>(pa|ts|pl|mt))?\s*$
 """
 
@@ -192,8 +192,6 @@ def _isempty(val):
 def _get_cycle(cycle=None, usage=None, **kw):
     if cycle is None or cycle == 'all':
         cycle = 'nedc_h', 'nedc_l', 'wltp_h', 'wltp_l', 'wltp_m'
-        if cycle == 'all':
-            cycle += 'wltp_p',
     elif cycle == 'wltp':
         cycle = 'wltp_h', 'wltp_l', 'wltp_m'
     elif cycle == 'nedc':
@@ -213,9 +211,7 @@ def _get_cycle(cycle=None, usage=None, **kw):
 # noinspection PyUnusedLocal
 def _get_default_stage(stage=None, cycle=None, usage=None, **kw):
     if stage is None:
-        if cycle == 'wltp_p':
-            stage = 'precondition'
-        elif 'nedc' in cycle or usage == 'target':
+        if 'nedc' in cycle or usage == 'target':
             stage = 'prediction'
         else:
             stage = 'calibration'
