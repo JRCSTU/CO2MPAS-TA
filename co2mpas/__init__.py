@@ -11,7 +11,7 @@ Defines the file processing chain model `dsp`.
 
 .. autosummary::
     :nosignatures:
-    :toctree: _build/co2mpas/
+    :toctree: toctree/co2mpas/
 
     ~core
     ~cli
