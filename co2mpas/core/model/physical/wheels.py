@@ -17,6 +17,50 @@ dsp = sh.BlueDispatcher(
 )
 
 
+@sh.add_function(dsp, outputs=['tyre_code'], weight=11)
+def define_tyre_code_v1(wheel_drive, front_tyre_code):
+    """
+    Defines the tyre code (e.g.,P225/70R14).
+
+    :param wheel_drive:
+        Wheel drive (i.e., front, rear, front+rear).
+    :type wheel_drive: str
+
+    :param front_tyre_code:
+        Front wheel tyre code (e.g.,P225/70R14).
+    :type front_tyre_code: str
+
+    :return:
+        Tyre code (e.g.,P225/70R14).
+    :rtype: str
+    """
+    if 'front' in wheel_drive:
+        return front_tyre_code
+    return sh.NONE
+
+
+@sh.add_function(dsp, outputs=['tyre_code'], weight=10)
+def define_tyre_code(wheel_drive, rear_tyre_code):
+    """
+    Defines the tyre code (e.g.,P225/70R14).
+
+    :param wheel_drive:
+        Wheel drive (i.e., front, rear, front+rear).
+    :type wheel_drive: str
+
+    :param rear_tyre_code:
+        Rear wheel tyre code (e.g.,P225/70R14).
+    :type rear_tyre_code: str
+
+    :return:
+        Tyre code (e.g.,P225/70R14).
+    :rtype: str
+    """
+    if 'rear' in wheel_drive:
+        return rear_tyre_code
+    return sh.NONE
+
+
 def calculate_wheel_power(velocities, accelerations, road_loads, vehicle_mass):
     """
     Calculates the wheel power [kW].

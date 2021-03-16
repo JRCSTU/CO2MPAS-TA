@@ -524,6 +524,11 @@ def define_data_validation(read=True):
         'drive_battery_n_parallel_cells': greater_than_one_int,
         'tyre_dimensions': tyre_dimensions,
         'tyre_code': tyre_code,
+        'front_tyre_code': tyre_code,
+        'rear_tyre_code': tyre_code,
+        'wheel_drive': _select(
+            types=('front', 'rear', 'front+rear'), read=read
+        ),
         'wltp_base_model': _dict(format=dict, read=read),
         'fuel_type': _select(types=(
             'gasoline', 'diesel', 'LPG', 'NG', 'ethanol', 'biodiesel',
@@ -559,7 +564,7 @@ def define_data_validation(read=True):
                               read=read),
         'downscale_phases': tuplefloat,
         'electrical_hybridization_degree': _select(
-            types=('mild', 'full', 'plugin', 'electric'), read=read
+            types=('none', 'mild', 'full', 'plugin', 'electric'), read=read
         ),
         'gear_box_type': _select(
             types=('manual', 'automatic', 'cvt', 'planetary'), read=read

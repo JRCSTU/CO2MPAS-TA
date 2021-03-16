@@ -115,6 +115,72 @@ def identify_drive_battery_capacity(
     return func(times, drive_battery_currents, drive_battery_state_of_charges)
 
 
+@sh.add_function(dsp, outputs=['drive_battery_capacity_kwh'])
+def calculate_drive_battery_capacity_kwh(
+        drive_battery_capacity, drive_battery_nominal_voltage):
+    """
+    Calculate drive battery capacity [kWh].
+
+    :param drive_battery_capacity:
+        Drive battery capacity [Ah].
+    :type drive_battery_capacity: float
+
+    :param drive_battery_nominal_voltage:
+        Drive battery nominal voltage [V].
+    :type drive_battery_nominal_voltage: float
+
+    :return:
+        Drive battery capacity [kWh].
+    :rtype: float
+    """
+    from .service import calculate_service_battery_capacity_kwh as func
+    return func(drive_battery_capacity, drive_battery_nominal_voltage)
+
+
+@sh.add_function(dsp, outputs=['drive_battery_capacity'])
+def calculate_drive_battery_capacity(
+        drive_battery_capacity_kwh, drive_battery_nominal_voltage):
+    """
+    Calculate drive battery capacity [Ah].
+
+    :param drive_battery_capacity_kwh:
+        Drive battery capacity [kWh].
+    :type drive_battery_capacity_kwh: float
+
+    :param drive_battery_nominal_voltage:
+        Drive battery nominal voltage [V].
+    :type drive_battery_nominal_voltage: float
+
+    :return:
+        Drive battery capacity [Ah].
+    :rtype: float
+    """
+    from .service import calculate_service_battery_capacity as func
+    return func(drive_battery_capacity_kwh, drive_battery_nominal_voltage)
+
+
+@sh.add_function(dsp, outputs=['drive_battery_nominal_voltage'])
+def calculate_drive_battery_nominal_voltage(
+        drive_battery_capacity_kwh, drive_battery_capacity):
+    """
+    Calculate drive battery nominal voltage [V].
+
+    :param drive_battery_capacity_kwh:
+        Drive battery capacity [kWh].
+    :type drive_battery_capacity_kwh: float
+
+    :param drive_battery_capacity:
+        Drive battery capacity [Ah].
+    :type drive_battery_capacity: float
+
+    :return:
+        Drive battery nominal voltage [V].
+    :rtype: float
+    """
+    from .service import calculate_service_battery_nominal_voltage as func
+    return func(drive_battery_capacity_kwh, drive_battery_capacity)
+
+
 @sh.add_function(dsp, outputs=['drive_battery_electric_powers'])
 def calculate_drive_battery_electric_powers(
         drive_battery_currents, drive_battery_voltages):

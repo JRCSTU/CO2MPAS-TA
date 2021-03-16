@@ -62,7 +62,7 @@ def _check_sign_currents(data, *args):
         s = check_sign_currents(*a)
         if not all(s):
             s = ' and '.join([k for k, v in zip(c, s) if not v])
-            msg = "Probably '{}' have the wrong sign!".format(s)
+            msg = "Probably '{}' have/has the wrong sign!".format(s)
             return c, msg
     except KeyError:  # `c` is not in `data`.
         pass

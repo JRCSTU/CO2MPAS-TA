@@ -52,6 +52,69 @@ def calculate_service_battery_currents(
     return service_battery_electric_powers * c
 
 
+@sh.add_function(dsp, outputs=['service_battery_capacity_kwh'])
+def calculate_service_battery_capacity_kwh(
+        service_battery_capacity, service_battery_nominal_voltage):
+    """
+    Calculate service battery capacity [kWh].
+
+    :param service_battery_capacity:
+        Service battery capacity [Ah].
+    :type service_battery_capacity: float
+
+    :param service_battery_nominal_voltage:
+        Service battery nominal voltage [V].
+    :type service_battery_nominal_voltage: float
+
+    :return:
+        Service battery capacity [kWh].
+    :rtype: float
+    """
+    return service_battery_capacity * service_battery_nominal_voltage / 1000.0
+
+
+@sh.add_function(dsp, outputs=['service_battery_capacity'])
+def calculate_service_battery_capacity(
+        service_battery_capacity_kwh, service_battery_nominal_voltage):
+    """
+    Calculate service battery capacity [Ah].
+
+    :param service_battery_capacity_kwh:
+        Service battery capacity [kWh].
+    :type service_battery_capacity_kwh: float
+
+    :param service_battery_nominal_voltage:
+        Service battery nominal voltage [V].
+    :type service_battery_nominal_voltage: float
+
+    :return:
+        Service battery capacity [Ah].
+    :rtype: float
+    """
+    return service_battery_capacity_kwh * 1000 / service_battery_nominal_voltage
+
+
+@sh.add_function(dsp, outputs=['service_battery_nominal_voltage'])
+def calculate_service_battery_nominal_voltage(
+        service_battery_capacity_kwh, service_battery_capacity):
+    """
+    Calculate service battery nominal voltage [V].
+
+    :param service_battery_capacity_kwh:
+        Service battery capacity [kWh].
+    :type service_battery_capacity_kwh: float
+
+    :param service_battery_capacity:
+        Service battery capacity [Ah].
+    :type service_battery_capacity: float
+
+    :return:
+        Service battery nominal voltage [V].
+    :rtype: float
+    """
+    return service_battery_capacity_kwh * 1000 / service_battery_capacity
+
+
 @sh.add_function(dsp, outputs=['service_battery_currents'], weight=sh.inf(1, 0))
 def calculate_service_battery_currents_v1(
         service_battery_capacity, times, service_battery_state_of_charges):

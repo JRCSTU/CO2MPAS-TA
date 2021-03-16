@@ -44,18 +44,19 @@ dsp.add_dispatcher(
         'service_battery_initialization_time', 'service_battery_status_model',
         'service_battery_electric_powers_supply', 'service_battery_currents',
         'dcdc_converter_electric_powers', 'service_battery_state_of_charges',
-        'service_battery_loads', 'dcdc_current_model',
+        'service_battery_capacity_kwh', 'service_battery_loads',
+        'dcdc_current_model',
     ),
     outputs=(
         'service_battery_charging_statuses', 'service_battery_state_of_charges',
+        'service_battery_delta_state_of_charge', 'service_battery_capacity_kwh',
         'initial_service_battery_state_of_charge', 'service_battery_currents',
         'service_battery_state_of_charge_balance', 'service_battery_capacity',
         'service_battery_initialization_time', 'service_battery_status_model',
-        'service_battery_delta_state_of_charge', 'service_battery_loads',
-        'service_battery_electric_powers', 'service_battery_model',
+        'service_battery_electric_powers', 'service_battery_loads',
         'service_battery_electric_powers_supply_threshold',
         'service_battery_state_of_charge_balance_window',
-        'service_battery_load',
+        'service_battery_model', 'service_battery_load',
     ),
     include_defaults=True
 )
@@ -75,7 +76,8 @@ dsp.add_dispatcher(
         'motor_p3_front_electric_powers', 'motor_p3_rear_electric_powers',
         'motor_p4_front_electric_powers', 'motor_p4_rear_electric_powers',
         'drive_battery_nominal_voltage', 'motor_p2_electric_powers',
-        'drive_battery_technology', 'drive_battery_n_cells',
+        'drive_battery_capacity_kwh', 'drive_battery_technology',
+        'drive_battery_n_cells',
     ),
     outputs=(
         'drive_battery_n_series_cells', 'drive_battery_ocv', 'drive_battery_r0',
@@ -84,8 +86,8 @@ dsp.add_dispatcher(
         'initial_drive_battery_state_of_charge', 'drive_battery_capacity',
         'drive_battery_state_of_charges', 'drive_battery_nominal_voltage',
         'drive_battery_electric_powers', 'motors_electric_powers',
-        'drive_battery_currents', 'drive_battery_n_cells',
-        'drive_battery_loads',
+        'drive_battery_capacity_kwh', 'drive_battery_currents',
+        'drive_battery_n_cells', 'drive_battery_loads',
     ),
     include_defaults=True
 )

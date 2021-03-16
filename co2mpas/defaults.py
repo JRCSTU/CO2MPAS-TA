@@ -8,6 +8,7 @@
 """
 Constants for the CO2MPAS physical model.
 """
+import schedula as sh
 import co2mpas.utils as co2_utl
 
 
@@ -136,8 +137,8 @@ class Values(co2_utl.Constants):
     #: Final drive ratio [-].
     final_drive_ratio = 1.0
 
-    #: Number of wheel drive [-].
-    n_wheel_drive = 2
+    #: Wheel drive (i.e., front, rear, front+rear).
+    wheel_drive = 'front'
 
     #: Apply the eco-mode gear shifting?
     fuel_saving_at_strategy = True
@@ -978,6 +979,7 @@ class Functions(co2_utl.Constants):
     class default_initial_drive_battery_state_of_charge(co2_utl.Constants):
         # default initial state of charge of the drive battery [%].
         initial_state_of_charge = {
+            'none': sh.NONE,
             'mild': 50,
             'full': 60,
             'plugin': 70,

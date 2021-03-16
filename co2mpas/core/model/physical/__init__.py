@@ -106,8 +106,8 @@ dsp.add_dispatcher(
         'tyre_dynamic_rolling_coefficient', 'tyre_code', 'plateau_acceleration',
         'gear_box_speeds_in', 'idle_engine_speed', 'stop_velocity', 'on_engine',
         'engine_speeds_out', 'tyre_dimensions', 'accelerations', 'wheel_powers',
-        'change_gear_window_width', 'velocity_speed_ratios', 'motive_powers',
-        'r_dynamic', 'r_wheels',
+        'velocity_speed_ratios', 'front_tyre_code', 'motive_powers', 'r_wheels',
+        'change_gear_window_width', 'rear_tyre_code', 'wheel_drive', 'r_dynamic'
     ),
     outputs=(
         'r_dynamic', 'r_wheels', 'tyre_code', 'wheel_powers', 'wheel_speeds',
@@ -174,12 +174,13 @@ dsp.add_dispatcher(
     inputs=(
         'final_drive_efficiency', 'final_drive_ratio', 'n_wheel_drive', 'gears',
         'final_drive_powers_out', 'final_drive_powers_in', 'final_drive_ratios',
-        'gear_box_type', 'n_gears', {'wheel_speeds': 'final_drive_speeds_out'}
+        'gear_box_type', 'n_gears', 'wheel_drive',
+        {'wheel_speeds': 'final_drive_speeds_out'}
     ),
     outputs=(
         'final_drive_torques_in', 'final_drive_ratios', 'final_drive_speeds_in',
         'final_drive_mean_efficiency', 'final_drive_powers_out',
-        'final_drive_powers_in',
+        'final_drive_powers_in', 'n_wheel_drive'
     )
 )
 
@@ -402,9 +403,10 @@ dsp.add_dispatcher(
         'electrical_hybridization_degree', 'drive_battery_n_parallel_cells',
         'drive_battery_state_of_charges', 'drive_battery_electric_powers',
         'dcdc_converter_electric_powers', 'drive_battery_nominal_voltage',
+        'service_battery_capacity_kwh', 'drive_battery_capacity_kwh',
         'service_battery_currents', 'drive_battery_technology',
-        'drive_battery_capacity', 'service_battery_capacity',
-        'drive_battery_n_cells', 'drive_battery_voltages',
+        'service_battery_capacity', 'drive_battery_capacity',
+        'drive_battery_voltages', 'drive_battery_n_cells',
     ),
     outputs=(
         'motor_p0_electric_powers', 'motor_p0_maximum_power', 'motor_p0_powers',
@@ -466,8 +468,9 @@ dsp.add_dispatcher(
         'initial_service_battery_state_of_charge', 'service_battery_capacity',
         'service_battery_electric_powers', 'service_battery_nominal_voltage',
         'dcdc_converter_electric_powers_demand', 'starter_nominal_voltage',
-        'drive_battery_electric_powers', 'drive_battery_currents',
+        'drive_battery_electric_powers', 'drive_battery_capacity_kwh',
         'drive_battery_nominal_voltage', 'motors_electric_powers',
+        'drive_battery_currents', 'service_battery_capacity_kwh'
     )
 )
 

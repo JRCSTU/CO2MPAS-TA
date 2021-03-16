@@ -101,7 +101,25 @@ def calculate_final_drive_speeds_in(
     return final_drive_speeds_out * final_drive_ratio_vector
 
 
-dsp.add_data('n_wheel_drive', dfl.values.n_wheel_drive)
+dsp.add_data('wheel_drive', dfl.values.wheel_drive)
+
+
+@sh.add_function(dsp, outputs=['n_wheel_drive'])
+def define_n_wheel_drive(wheel_drive):
+    """
+    Defines the default number of wheel drive [-].
+
+    :param wheel_drive:
+        Wheel drive (i.e., front, rear, front+rear).
+    :type wheel_drive: str
+
+    :return:
+        Number of wheel drive [-].
+    :rtype: int
+    """
+    if 'front+rear' == wheel_drive:
+        return 4
+    return 2
 
 
 @sh.add_function(dsp, outputs=['final_drive_efficiency'])
