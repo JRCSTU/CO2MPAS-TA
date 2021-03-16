@@ -403,10 +403,13 @@ def parse_excel_file(input_file_name, input_file):
         Raw input data.
     :rtype: dict
     """
+    import xlref
     import pandas as pd
     input_file.seek(0)
     res, plans = {'base': {}}, []
-    with pd.ExcelFile(io.BytesIO(input_file.read())) as xl:
+    ext = osp.splitext(input_file_name.lower())[1][1:]
+    engine = xlref.Ref._engines.get(ext, xlref.Ref._engines[None])
+    with pd.ExcelFile(io.BytesIO(input_file.read()), engine=engine) as xl:
         parent = Rererence('#A1')
         parent.ref['fpath'] = osp.abspath(input_file_name)
         parent.cache[parent.ref['fpath']] = parent.ref['xl_book'] = xl
