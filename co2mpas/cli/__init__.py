@@ -90,7 +90,7 @@ def demo(output_folder):
     """
     Writes a CO2MPAS demo files into OUTPUT_FOLDER.
 
-    OUTPUT_FOLDER: Folder path. [default: ./inputs]]
+    OUTPUT_FOLDER: Folder path. [default: ./inputs]
     """
     return _process({'output_folder': output_folder}, ['demo', 'done'])
 
