@@ -120,7 +120,10 @@ _xl_ref = {
 def _matrix(parent, x):
     from pandas import isnull
     b, f = np.append([False], ~isnull(x[0][1:])), '{}.{}'.format
-    keys = [None if isnull(k) else f(k, c) for k in x[1:, 0] for c in x[0][b]]
+    keys = [
+        None if isnull(k) else f(k.strip(' '), c.strip(' '))
+        for k in x[1:, 0] for c in x[0][b]]
+
     return dict(zip(keys, x[1:, b].ravel()))
 
 
