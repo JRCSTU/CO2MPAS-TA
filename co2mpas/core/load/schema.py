@@ -17,7 +17,7 @@ import os.path as osp
 import schedula as sh
 import co2mpas.utils as co2_utl
 from collections import Iterable, OrderedDict
-from schema import Schema, Use, And, Or, Optional, SchemaError
+from schema import Schema, Use, And, Or, SchemaError
 
 log = logging.getLogger(__name__)
 
@@ -117,7 +117,7 @@ def _dict(format=None, error=None, read=True, pformat=pprint.pformat, **kwargs):
 def _ordict(format=None, error=None, read=True, **kwargs):
     format = format or {int: float}
     msg = 'should be a OrderedDict with this format {}!'
-    error = error or msg.format(format)
+    error = error or msg.format(format).replace('{', '{{').replace('}', '}}')
     c = Use(OrderedDict)
     if read:
         return _eval(
@@ -156,6 +156,7 @@ def _type(type=None, error=None, length=None, **kwargs):
 # noinspection PyUnusedLocal
 def _index_dict(error=None, **kwargs):
     error = error or 'cannot be parsed as {}!'.format({int: float})
+    error = error.replace('{', '{{').replace('}', '}}')
     c = {Use(int): Use(float)}
     s = And(dict, c)
 
