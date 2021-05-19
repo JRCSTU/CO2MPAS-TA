@@ -110,7 +110,7 @@ _re_input_sheet_name = regex.compile(r'|'.join(
 _re_space_dot = regex.compile(r'(\s*\.\s*|\s+)')
 
 _xl_ref = {
-    'pa': '#%s!B2:C_[{"fun": "dict", "value": "ref"}]',
+    'pa': '#%s!B2:C_[{"fun": "dict", "key": "ref", "value": "ref"}]',
     'ts': '#%s!A2(R):._:RD["T", "dict"]',
     'pl': '#%s!A1(R):._:R[{"fun": "recursive", "dtype": "object"}]',
     'mt': '#%s!B1:._:R[{"fun": "recursive", "dtype": "object"}, "matrix"]'
