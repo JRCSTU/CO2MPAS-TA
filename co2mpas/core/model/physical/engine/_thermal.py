@@ -93,6 +93,7 @@ class NoDelta:
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class _SafeRANSACRegressor(RANSACRegressor):
     def fit(self, X, y, **kwargs):
+        X = X.copy()
         try:
             return super(_SafeRANSACRegressor, self).fit(X, y, **kwargs)
         except ValueError as ex:
@@ -159,9 +160,9 @@ class ThermalModel:
             ('regression', _SafeRANSACRegressor(**opt))
         ]).fit(x[b, 1:], engine_temperature_derivatives[b]).predict
         b = ~on_engine
-        if b.all():
+        if b.any():
             self.off = _SafeRANSACRegressor(**opt).fit(
-                x[b, :2], engine_temperature_derivatives[b]
+                x[b, :2].copy(), engine_temperature_derivatives[b]
             ).predict
         return self
 

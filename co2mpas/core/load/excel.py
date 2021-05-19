@@ -112,8 +112,8 @@ _re_space_dot = regex.compile(r'(\s*\.\s*|\s+)')
 _xl_ref = {
     'pa': '#%s!B2:C_[{"fun": "dict", "value": "ref"}]',
     'ts': '#%s!A2(R):._:RD["T", "dict"]',
-    'pl': '#%s!A1(R):._:R["recursive"]',
-    'mt': '#%s!B1:._:R["recursive", "matrix"]'
+    'pl': '#%s!A1(R):._:R[{"fun": "recursive", "dtype": "object"}]',
+    'mt': '#%s!B1:._:R[{"fun": "recursive", "dtype": "object"}, "matrix"]'
 }
 
 
@@ -407,8 +407,12 @@ def parse_excel_file(input_file_name, input_file):
     :rtype: dict
     """
     import xlref
+    import warnings
     import pandas as pd
     input_file.seek(0)
+    warnings.filterwarnings(
+        'ignore', 'Conditional Formatting', UserWarning, 'openpyxl'
+    )
     res, plans = {'base': {}}, []
     ext = osp.splitext(input_file_name.lower())[1][1:]
     engine = xlref.Ref._engines.get(ext, xlref.Ref._engines[None])
