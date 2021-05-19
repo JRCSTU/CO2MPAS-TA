@@ -81,6 +81,9 @@ class _SelectFromModel(SelectFromModel):
         self._cache_support_mask = mask
         return mask
 
+    def transform(self, X):
+        return super(_SelectFromModel, self).transform(X).copy()
+
 
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class NoDelta:
@@ -93,7 +96,6 @@ class NoDelta:
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class _SafeRANSACRegressor(RANSACRegressor):
     def fit(self, X, y, **kwargs):
-        X = X.copy()
         try:
             return super(_SafeRANSACRegressor, self).fit(X, y, **kwargs)
         except ValueError as ex:
