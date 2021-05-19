@@ -597,6 +597,10 @@ def define_data_validation(read=True):
         'full_load_powers': np_array,
 
         'capped_velocity': positive,
+        'has_capped_velocity': _bool,
+        'maximum_velocity_range': _select(
+            types=tuple(map(str, range(151))) + ('>150',), read=read
+        ),
         'maximum_velocity': positive,
         'vehicle_mass_running_order': positive,
         'vehicle_mass': positive,
