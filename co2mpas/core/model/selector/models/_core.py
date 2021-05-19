@@ -8,6 +8,8 @@
 Functions to define a sub-model from a dsp.
 """
 
+_cache_sub_model = {}
+
 
 def define_sub_model(dsp, inputs, outputs, models):
     """
@@ -33,9 +35,13 @@ def define_sub_model(dsp, inputs, outputs, models):
         A sub-model.
     :rtype: schedula.Dispatcher
     """
+    sub_id = dsp.name, tuple(inputs), tuple(outputs), tuple(models)
+    if sub_id in _cache_sub_model:
+        return _cache_sub_model[sub_id].copy()
     assert not set(models).difference(dsp.nodes), models
     sub = dsp.shrink_dsp(set(inputs or []).union(models), outputs)
     assert set(sub.nodes).issuperset(set(inputs).union(outputs)), models
+    _cache_sub_model[sub_id] = sub
     return sub
 
 
