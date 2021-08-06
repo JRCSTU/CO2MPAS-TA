@@ -235,9 +235,61 @@ def calculate_curb_mass(unladen_mass, fuel_mass):
 
 
 @sh.add_function(dsp, outputs=['vehicle_mass'])
+def calculate_vehicle_mass_v1(
+        test_mass, vehicle_mass_running_order, n_dyno_axes):
+    """
+    Calculate vehicle mass [kg].
+
+    :param test_mass:
+        Test mass according to WLTP regulation 2017/1151 [kg].
+    :type test_mass: float
+
+    :param vehicle_mass_running_order:
+        Mass of the vehicle in running order [kg].
+    :type vehicle_mass_running_order: float
+
+    :param n_dyno_axes:
+        Number of dyno axes [-].
+    :type n_dyno_axes: int
+
+    :return:
+        Vehicle mass [kg].
+    :rtype: float
+    """
+    if n_dyno_axes == 1:
+        return test_mass + (vehicle_mass_running_order + 25) * .015
+    return test_mass
+
+@sh.add_function(dsp, outputs=['test_mass'])
+def calculate_test_mass(
+        vehicle_mass, vehicle_mass_running_order, n_dyno_axes):
+    """
+    Calculate test mass according to WLTP regulation 2017/1151 [kg]
+
+    :param vehicle_mass:
+         Vehicle mass [kg].
+    :type vehicle_mass: float
+
+    :param vehicle_mass_running_order:
+        Mass of the vehicle in running order [kg].
+    :type vehicle_mass_running_order: float
+
+    :param n_dyno_axes:
+        Number of dyno axes [-].
+    :type n_dyno_axes: int
+
+    :return:
+        Test mass according to WLTP regulation 2017/1151 [kg].
+    :rtype: float
+    """
+    if n_dyno_axes == 1:
+        return vehicle_mass - (vehicle_mass_running_order + 25) * .015
+    return vehicle_mass
+
+@sh.add_function(dsp, outputs=['vehicle_mass'])
 def calculate_vehicle_mass(unladen_mass, passengers_mass, cargo_mass):
     """
-    Calculate vehicle_mass [kg].
+    Calculate vehicle mass [kg].
 
     :param unladen_mass:
         Unladen mass [kg].

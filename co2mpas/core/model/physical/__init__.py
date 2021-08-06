@@ -86,14 +86,14 @@ dsp.add_dispatcher(
         'curb_mass', 'elevations', 'frontal_area', 'has_roof_box', 'road_loads',
         'unladen_mass', 'inertial_factor', 'vehicle_height', 'vehicle_category',
         'tyre_state', 'vehicle_mass', 'f0', 'path_distances', 'path_elevations',
-        'wheel_powers', 'f2',
+        'wheel_powers', 'f2', 'test_mass', 'vehicle_mass_running_order'
     ),
     outputs=(
         'wheel_drive_load_fraction', 'traction_acceleration_limit', 'curb_mass',
         'traction_deceleration_limit', 'inertial_factor', 'motive_powers', 'f0',
         'static_friction', 'accelerations', 'angle_slopes', 'n_dyno_axes', 'f1',
         'unladen_mass', 'vehicle_mass', 'velocities', 'road_loads', 'distances',
-        'f2'
+        'f2', 'test_mass'
     )
 )
 
