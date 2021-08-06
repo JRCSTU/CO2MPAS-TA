@@ -791,33 +791,6 @@ def define_data_validation(read=True):
     return functools.partial(_validator, schema, convert, schema.pop(sh.NONE))
 
 
-vehicle_family_id_pattern = r'''
-    (?:
-        (IP|RL|RM|PR) - (\d{2}) - ([A-Z0-9_]{2,3}) - (\d{4}) - (\d{4})
-    )
-    |
-    (?:
-        IP - ([A-Z0-9_]{2,15}) - ([A-Z0-9_]{3}) - ([01])
-    )
-'''
-_vehicle_family_id_regex = re.compile('(?x)^%s$' % vehicle_family_id_pattern)
-invalid_vehicle_family_id_msg = (
-    "Invalid VF_ID '%s'!"
-    "\n  New format is 'IP-nnn-WMI-x', where nnn is (2, 15) chars "
-    "of A-Z, 0-9, or underscore(_),"
-    "\n  (old format 'FT-ta-WMI-yyyy-nnnn' is still acceptable)."
-)
-
-
-def _vehicle_family_id(error=None, **kwargs):
-    def _m(s):
-        if not _vehicle_family_id_regex.match(s):
-            raise SchemaError(invalid_vehicle_family_id_msg % s)
-        return True
-
-    return And(_string(**kwargs), _m, error=error)
-
-
 def _input_version(error=None, read=True, **kwargs):
     def _check_data_version(input_version):
         from co2mpas import __file_version__ as exp_ver
