@@ -20,32 +20,36 @@ from xlref.parser import Ref, _re_xl_ref_parser, FILTERS
 log = logging.getLogger(__name__)
 
 _base_params = r"""
-    ^((?P<scope>base)(\.|\s+))?
-    ((?P<usage>(target|input|output|data))s?(\.|\s+))?
-    ((?P<stage>(calibration|prediction))s?(\.|\s+))?
-    ((?P<cycle>(WLTP|NEDC|ALL)([-_][HLM])?)(\.|\s+))?
+    ^((?P<scope>base)[.\s]+)?
+    ((?P<usage>(target|input|output|data))s?[.\s]+)?
+    ((?P<stage>(calibration|prediction))s?[.\s]+)?
+    ((?P<cycle>(WLTP|NEDC|ALL)([-_][HLM])?)[.\s]+)?
     (?P<param>[^\s.]*)\s*$
     |
-    ^((?P<scope>base)(\.|\s+))?
-    ((?P<usage>(target|input|output|data))s?(\.|\s+))?
-    ((?P<stage>(calibration|prediction))s?(\.|\s+))?
+    ^((?P<scope>base)[.\s]+)?
+    ((?P<usage>(target|input|output|data))s?[.\s]+)?
+    ((?P<stage>(calibration|prediction))s?[.\s]+)?
     ((?P<param>[^\s.]*))?
     ((.|\s+)(?P<cycle>(WLTP|NEDC|ALL)([-_][HLM])?))?\s*$
 """
 
 _flag_params = r"""
-^(?P<scope>flag)(\.|\s+)(?P<flag>(input_version|vehicle_family_id))((\.|\s+)ALL)?\s*$
+^(?P<scope>flag)[.\s]+(?P<flag>(input_version|vehicle_family_id))([.\s]+ALL)?\s*$
 """
 
-_dice_params = r"""^(?P<scope>dice)(\.|\s+)(?P<dice>[^\s.]*)((\.|\s+)ALL)?\s*$"""
+_dice_params = r"""
+    ^(?P<scope>dice)[.\s]+(?P<dice>.+)[.\s]+ALL\s*$
+    |
+    ^(?P<scope>dice)[.\s]+(?P<dice>.+)\s*$    
+"""
 
 _meta_params = r"""
-    ^(?P<scope>meta)(\.|\s+)((?P<meta>.+)(\.|\s+))?((?P<param>[^\s.]+))
+    ^(?P<scope>meta)[.\s]+((?P<meta>.+)[.\s]+)?((?P<param>[^\s.]+))
     ((.|\s+)(?P<cycle>(WLTP|NEDC|ALL)([-_][HLM])?))?\s*$
 """
 
 _plan_params = r"""
-    ^(?P<scope>plan)(\.|\s+)(
+    ^(?P<scope>plan)[.\s]+(
      (?P<index>(id|base|run_base))\s*$
      |
 """ + _flag_params.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
@@ -76,23 +80,23 @@ _re_params_name = regex.compile(
     """ + _base_params, regex.IGNORECASE | regex.X | regex.DOTALL)
 
 _base_sheet = r"""
-    ^((?P<scope>base)(\.|\s+)?)?
-    ((?P<usage>(target|input|output|data))s?(\.|\s+)?)?
-    ((?P<stage>(calibration|prediction))s?(\.|\s+)?)?
-    ((?P<cycle>(WLTP|NEDC|ALL)([-_][HLM])?)(\.|\s+)?)?
+    ^((?P<scope>base)([.\s]+)?)?
+    ((?P<usage>(target|input|output|data))s?([.\s]+)?)?
+    ((?P<stage>(calibration|prediction))s?([.\s]+)?)?
+    ((?P<cycle>(WLTP|NEDC|ALL)([-_][HLM])?)([.\s]+)?)?
     (?P<type>(pa|ts|pl|mt))?\s*$
 """
 
-_flag_sheet = r"""^(?P<scope>flag)((\.|\s+)(?P<type>(pa|ts|pl|mt)))?\s*$"""
+_flag_sheet = r"""^(?P<scope>flag)([.\s]+(?P<type>(pa|ts|pl|mt)))?\s*$"""
 
-_dice_sheet = r"""^(?P<scope>dice)((\.|\s+)(?P<type>(pa|ts|pl|mt)))?\s*$"""
+_dice_sheet = r"""^(?P<scope>dice)([.\s]+(?P<type>(pa|ts|pl|mt)))?\s*$"""
 
 _meta_sheet = r"""
-    ^(?P<scope>meta)((\.|\s+)(?P<meta>.+))?(\.|\s+)(?P<type>(pa|ts|pl|mt))\s*$
+    ^(?P<scope>meta)([.\s]+(?P<meta>.+))?[.\s]+(?P<type>(pa|ts|pl|mt))\s*$
 """
 
 _plan_sheet = r"""
-    ^(?P<scope>plan)((\.|\s+)(
+    ^(?P<scope>plan)([.\s]+(
 """ + _flag_sheet.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
      |
 """ + _dice_sheet.replace('<scope>', '<v_scope>').replace('^(', '(') + r"""
