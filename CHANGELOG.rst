@@ -1,6 +1,122 @@
 Changelog
 =========
 
+v4.2.0 (2021-10-01)
+-------------------
+Feat
+~~~~
+- (template): Update input template according to JET.
+- (core): Update copyright.
+- (core): Update copyright.
+- (excel): Enable input dictionary merging.
+- (schema): Add `has_capped_velocity` and `maximum_velocity_range`
+  parameters.
+- (models): Speedup model creation.
+- (core): Update model according to cars-data database.
+- (excel): Drop precondition stage.
+- (excel): Add `WLTP-M` cycle.
+- (schema): Add `maximum_velocity`, `capped_velocity`, and
+  `vehicle_mass_running_order` params.
+- (excel): Add parser for `matrix` sheets.
+- (core): Modify input file according to new DICE4.
+- (engine): Implement temperature time-shift.
+- (thermal): Add `after_treatment_warm_up_phases` to calibrate the
+  thermal model.
+- (fc): Replace tau function with `after_treatment_warm_up_phases`.
+- (load): Use `xlref` instead of `pandalone`.
+- (load): Improve schema parser performances.
+- (hybrid): Add feature to plot the `FuelMapModel` and replace
+  `matplotlib` with `plotly`.
+- (vehicle): Filter out close elevation points.
+- (vehicle): Add formula to identify vehicle road loads and vehicle
+  mass.
+- (clutch_tc): Add formulas to calculate `wheel_powers` from
+  `gear_box_powers_out`.
+- (clutch_tc): Add formulas to calculate `gear_box_powers_in` from
+  `clutch_tc_powers`.
+- (engine): Add formulas to calculate `clutch_tc_powers` from
+  `engine_powers_out`.
+- (docker): Add script to extract the exe distribution.
+- (gear_box): Add alternative `engine_thermostat_temperature`
+  identification when missing `gear_box_powers_out`.
+- (gear_box): Add alternative `gears` identification when missing
+  `motive_powers`.
+- (utils): Add `pairwise` function.
+- (report): Add all vehicle summary info to augmented summary.
+- (co2): Add scalar values to outputs for phases_co2_emissions.
+- (report): Remove `numpy` warnings when comparing outputs vs targets.
+- (summary): Add all comparisons in the augmented summary.
+- (model): Add default to configure WLTP selection data.
+- (selector): Add default to use all wltp input data as target in
+  calibration.
+- (selector): Add default to modify selector strategy.
+
+Fix
+~~~
+- (excel): Update dice parameter parser.
+- (schema): Remove unused functions.
+- (excel): Add function to calculate vehicle mass from test mass.
+- (excel): Remove `xgboost` warning.
+- (schema): Correct schema error on error formatting.
+- (excel): Remove `openpyxl` and `xgboost` warning.
+- (excel): Ensure correct excel parsing of matrix tables.
+- (load): Ensure excel reading specifying the engine.
+- (cli): Correct typo.
+- (excel): Rename `.wet.ta` file extension to `.jet.ta`.
+- (excel): Ensure remote reading using xlref.
+- (rtd): Correct documentation rendering in `rtd`.
+- (excel): Update parser according to new `xlref`.
+- (schema): Add pax into validation schema.
+- (load): Add new file extension `.wet.ta`.
+- (load): Correct parser for gear box ratios.
+- (engine): Correct wrong link to calculate `full_load_speeds`.
+- (engine): Disable `idle_model_detector` in case of hybrids.
+- (hybrid): Add simple fc calibration model for hybrids to bypass
+  `after_treatment_warm_up_phases`.
+- (excel): Correct Ref class.
+- (demos): Correct missing data in simplan.
+- (co2): Correct wrong function name.
+- (gear_box): Correct missing formula.
+- (physical): Remove warnings.
+- (final_drive) :gh:`571`: Correct calculation of final drive powers.
+- (batteries) :gh:`570`: Implement constant model (i.e. r0 = 0).
+- (templates): Remove unused hidden dice report.
+- (cli): Correct logging level.
+- (hybrid): Correct calculation of engine power losses when speed is
+  zero.
+- (gear_box): Correct gears identification for hybrid.
+- (templates) :gh:`567`: Correct typo in NEDC-L cell.
+- (gear_box): Correct bug when `motive_powers is None`.
+- (ta): Correct early closure of input file.
+- (gear_box): Restructure loss model and correct thermal calculation.
+- (gear_box): Improve performance of
+  `calculate_gear_box_efficiencies_torques_temperatures` function.
+- (docker): Updater pyinstaller version to 3.6.
+- (docker): Correct requirements.
+- (plot): Remove page caching from dsp plot.
+- (fc): Correct calculation order for extended phases.
+- (docker): Correct build script.
+- (setup): Remove wtlp limitation dependency that brakes the setup.
+- (physical): Remove syntax error warning.
+- (write): Use `get_node` instead `search_node_description`.
+- (cli) :gh:`564`: Correct bug of `co2mpas sync template` cli.
+- (core): Avoid numpy when import just co2mpas.
+- (schema): Improve float parser.
+- (doc): Add glossary links for `Time Series` and `General Terms`.
+- (doc): Add iframe with interactive model graph.
+- (doc): Add missing sub-model doc.
+- (doc): Correct `extract_calibrated_model` link.
+- (faq): FAQ link corrected.
+- (faq): Updated where to download.
+- (doc): Description of `has_periodically_regenerating_systems`
+  according to 2017/1151.
+- (doc) :gh:`563`: Change to name, surname of the team members.
+- (docs): executable name.
+
+Other
+~~~~~
+- Update copyright.
+
 v4.1.10 (2019-11-07)
 --------------------
 Fix
