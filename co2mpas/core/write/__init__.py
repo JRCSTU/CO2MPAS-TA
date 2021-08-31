@@ -111,7 +111,7 @@ if _dice is not None:
     _out, _inp = ['output_file_name', 'output_file'], [
         'excel_input', 'base', 'start_time', 'excel_output', 'output_folder',
         'report', 'encryption_keys', 'meta', 'sign_key', 'dice', 'timestamp',
-        'co2mpas_version'
+        'co2mpas_version', 'flag'
     ]
 
     # noinspection PyProtectedMember,PyTypeChecker
