@@ -63,11 +63,11 @@ Installation
 ============
 Two installation procedures can be followed:
 
-- `Official (for type approval)`_
-- `Ordinary (for developers and/or researchers)`_
+- `All in one`_
+- `Ordinary`_
 
-Official (for type approval)
-----------------------------
+All in one
+----------
 To install |co2mpas| you have to download the
 `installer <https://github.com/JRCSTU/CO2MPAS-TA/releases/download/v4.1.10/co2mpas-4.1.10-28715563-Windows-x86_64.exe>`_
 and then execute it (see the steps shown in the video below).
@@ -90,8 +90,7 @@ and one for the console.
 
 .. admonition:: IT Requirements
 
-   To run |co2mpas| for Type Approval purposes (i.e |co2mpas| official) some
-   minimum IT requirements are mandatory:
+   To run |co2mpas| some minimum IT requirements are mandatory:
 
    - 64-bit Intel or AMD processor (x86_64, aka x64, aka AMD64),
    - Microsoft Windows 7 SP1, or later,
@@ -101,8 +100,8 @@ and one for the console.
    - (optional) Excel, to view & edit simulation’s input and output files,
    - Chrome/Firefox/Safari/Edge or IExplore 10+.
 
-Ordinary (for developers and/or researchers)
---------------------------------------------
+Ordinary
+--------
 .. _start-install-dev:
 
 To install |co2mpas| use (with root privileges):
@@ -129,7 +128,6 @@ Some additional functionality is enabled installing the following extras:
 - ``gui``: enables the graphical user interface.
 - ``plot``: enables to plot the |co2mpas| model and the workflow of each run.
 - ``io``: enables to read/write excel files.
-- ``dice``: enables the Type Approval mode.
 - ``driver``: enables the driver model (currently is not available).
 
 To install co2mpas and all extras, do:
@@ -147,14 +145,14 @@ Quick Start
 The following steps are basic commands to get familiar with |co2mpas| procedural
 workflow using the command line interface:
 
-- `Run in engineering mode`_
+- `Run`_
 - `Input file`_
 - `Data synchronization`_
 - `GUI start-up`_
 
-Run in engineering mode
------------------------
-To run |co2mpas| in engineering mode with some sample data, you have to:
+Run
+---
+To run |co2mpas| with some sample data, you have to:
 
 1. Generate some demo files inside the ``./input`` folder, to get familiar with
    the input data (for more info check
@@ -164,8 +162,8 @@ To run |co2mpas| in engineering mode with some sample data, you have to:
     $ co2mpas demo ./input
     $ start ./input/co2mpas_conventional.xlsx
 
-2. Run |co2mpas| in engineering mode and inspect the results in the ``./output``
-   folder. The workflow is plotted on the browser (for more info check the
+2. Run |co2mpas| and inspect the results in the ``./output`` folder.
+The workflow is plotted on the browser (for more info check the
    `link <_build/co2mpas/co2mpas.cli.html#co2mpas-run>`__)::
 
     ## Run co2mpas and open the output folder.

@@ -2,8 +2,8 @@ Glossary
 ========
 this page lists and explains the terms used in the input file.
 
-DICE
-----
+GENERAL
+-------
 .. glossary::
 
     ``extension``

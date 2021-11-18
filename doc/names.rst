@@ -41,7 +41,7 @@ scope
 -----
 
    - ``base`` [default]: input to |co2mpas| simulation model.
-   - ``dice``: input for dice (to run type approval mode).
+   - ``dice``: input for dice.
    - ``meta``: meta data of the vehicle test.
    - ``plan``: data used to run a simulation plan and overwrite the inputs of
      the simulation model.

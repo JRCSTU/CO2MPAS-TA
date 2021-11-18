@@ -56,8 +56,7 @@ Model selection
 ===============
 The default model selection criteria (i.e., when ``enable_selector == False``)
 are to use the calibrated models from *WLTP-H* data to predict *WLTP-H* and
-*NEDC-H* and from *WLTP_L* data to predict *WLTP-L* and *NEDC-L* (this logic is
-applied in type-approval mode).
+*NEDC-H* and from *WLTP_L* data to predict *WLTP-L* and *NEDC-L*.
 
 On the contrary, if the selector is enabled, the function
 :py:func:`extract_calibrated_model <co2mpas.core.model.selector.dsp>`

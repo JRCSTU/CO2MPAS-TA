@@ -11,8 +11,6 @@ tutorials:
   - `Download demo files`_
 - `Run`_
 
-  - `Type approval mode`_
-  - `Engineering mode`_
   - `Simulation plan`_
 - `Model plot`_
 
@@ -103,75 +101,10 @@ command ``co2mpas demo -h`` or check the
 
 Run
 ===
-This section displays three ways to run |co2mpas|. For more information use
-the command ``co2mpas run -h`` or check the
-`link <_build/co2mpas/co2mpas.cli.html#co2mpas-run>`__.
-
-Type approval mode
-------------------
-The Type Approval command simulates the NEDC fuel consumption and CO2 emissions
-of the given vehicle. To produce the NEDC predictions, |co2mpas| utilizes only
-the declaration inputs. If it finds some extra/missing inputs, a warning is
-raised and no results are produced. To successfully run |co2mpas| in type
-approval mode, see the following steps:
-
-.. _upload_file:
-
-1. Upload your file/s (multiple files are accepted):
-
-.. raw:: html
-
-    <p>
-      <video width="100%" height="%100" controls playsinline preload="metadata">
-        <source src="_static/video/run_simulation_TA_1.mp4" type="video/mp4">
-      Your browser does not support the video tag.
-      </video>
-    </p>
-
-2. Switch TA mode ON and click run:
-
-.. raw:: html
-
-    <p>
-      <video width="100%" height="%100" controls playsinline preload="metadata">
-        <source src="_static/video/run_simulation_TA_2.mp4" type="video/mp4">
-      Your browser does not support the video tag.
-      </video>
-    </p>
-
-.. _download_results:
-
-3. Get the results:
-
-.. raw:: html
-
-    <p>
-      <video width="100%" height="%100" controls playsinline preload="metadata">
-        <source src="_static/video/run_simulation_TA_3.mp4" type="video/mp4">
-      Your browser does not support the video tag.
-      </video>
-    </p>
-
-.. _ta_results:
-.. admonition:: Output files of the type-approval run.
-
-    - A zip folder per vehicle, named as ``<ip-name>.co2mpas.zip``.
-      This contains 4 files:
-
-        - ``<ip-name>.co2mpas.hash.txt``: Contains the **correlation hash**.
-        - ``<ip-name>.co2mpas.input``: Raw |co2mpas| input file.
-        - ``<ip-name>.co2mpas.output``: |co2mpas| results.
-        - ``<ip-name>.co2mpas.ta``: **Correlation output report** to be uploaded
-          on `dice server <https://dice.jrc.ec.europa.eu>`_.
-    - A summary file, named as ``<timestamp>-summary.xlsx``, that contains the
-      relevant output results.
-
-Engineering mode
-----------------
-This section explains how to run |co2mpas| in engineering mode:
+This section explains how to run |co2mpas|:
 
 1. Upload excel file/s (see :ref:`previous video <upload_file>`),
-2. Switch TA mode ON and click run:
+2. click run:
 
 .. raw:: html
 
@@ -194,7 +127,7 @@ This section explains how to run |co2mpas| in engineering mode:
 3. Get the results  (see the :ref:`previous video <download_results>`).
 
 .. _eng_results:
-.. admonition:: Output files of engineering mode run.
+.. admonition:: Output files.
 
     - A |co2mpas| output per file, named as ``<timestamp>-<file-name>.xlsx``.
     - A summary file like :ref:`above <ta_results>`.
@@ -233,12 +166,8 @@ How to use it:
        :alt: |co2mpas| configuration file
        :align: center
 
-    - Run you input file as described in the `Engineering mode`_ section.
-
-
 .. admonition:: conf.yaml
 
-    - **conf.yaml works ONLY in engineering mode.**
     - the file will be rewritten every time you upload a new one, and it will
       always be named conf.yaml
 
@@ -254,7 +183,7 @@ just once and re-use them for other subsequent predictions, where only some
 inputs are different (e.g., ``times``, ``velocities``, ``vehicle_mass``, etc.).
 
 To run the simulation plan upload it as an input file, and run it as described in
-the previous section (i.e., `Engineering mode`_).
+the previous section.
 
 .. admonition:: Output files
 
@@ -262,9 +191,6 @@ the previous section (i.e., `Engineering mode`_).
     - A |co2mpas| output per **variation**, named as
       ``<timestamp>-<variation-id>-<file-name>.xlsx``.
     - A summary file like :ref:`above <ta_results>`.
-
-.. note::
-    The simulation plan cannot run in type-approval mode.
 
 Model plot
 ==========

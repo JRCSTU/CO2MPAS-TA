@@ -7,7 +7,6 @@ model, regulation and inputs.
 
 - `General`_
 
-  - `Is the use of CO2MPAS correlation tool mandatory for all light-duty vehicles?`_
   - `Where can the user download the latest version of the CO2MPAS?`_
   - `Is CO2MPAS free and will it be in the future?`_
   - `What is CO2MPAS physical background and which formulas are applied?`_
@@ -15,34 +14,18 @@ model, regulation and inputs.
   - `Where can the user find CO2MPAS workshop material?`_
 - `Model`_
 
-  - `What is the difference between Type Approval mode and engineering mode in CO2MPAS run?`_
   - `What is the Data synchronization tool and how does it work?`_
   - `What is the model selector?`_
   - `Is it possible to simulate other cycles than NEDC or WLTP? How about real on-road tests?`_
   - `Is the usage of internal / development signals allowed (if equivalence is shown)?`_
-  - `What is the start-stop (S/S) activation time? What might happen if the user declares it wrong?`_
+  - `What is the start-stop (S/S) activation time?`_
   - `How to insert a new drive_battery_technology for hybrid electric vehicles?`_
-- `Regulation`_
-
-  - `Where to find the correlation regulation?`_
-  - `Should CO2MPAS be used for each car or each family ID?`_
-  - `Is it possible to do a physical test instead of accepting CO2MPAS results?`_
-  - `What is DICE and who should use it?`_
-  - `What are the verification and deviation factors, and when do they need to be recorded?`_
 
 *For more questions, please visit:* 
 https://github.com/JRCSTU/CO2MPAS-TA/wiki/FAQ
 
 General
 =======
-
-Is the use of |CO2MPAS| correlation tool mandatory for all light-duty vehicles?
--------------------------------------------------------------------------------
-No, the use of |CO2MPAS| is not compulsory for hybrids and plug-in hybrids,
-double testing is allowed instead.
-For all the other technologies, the use of the correlation tool is mandatory.
-For more information and updates please see refer to point 3 
-of `DG CLIMA's note`_. 
 
 Where can the user download the latest version of the |CO2MPAS|?
 ----------------------------------------------------------------
@@ -90,19 +73,6 @@ Workshop material is always uploaded in the
 Model
 =====
 
-What is the difference between Type Approval mode and engineering mode in |CO2MPAS| run?
-----------------------------------------------------------------------------------------
-In Type Approval mode |CO2MPAS| simulates the NEDC |CO2| emission 
-of the given vehicle fully aligned to the WLTP-NEDC correlation Regulation. 
-If |CO2MPAS| finds some extra input it will raise a warning and it will not 
-produce any result. 
-The same will happen in the case of missing inputs. 
-The engineering mode provides the user with full control of the tool. 
-By using the engineering mode, 
-all the running flags become available to the user. 
-Moreover, the user can provide additional inputs beyond the declaration ones 
-and check their effect on the NEDC |CO2| prediction. 
-
 What is the Data synchronization tool and how does it work?
 -----------------------------------------------------------
 Synchronization of data from different sources is essential for robust results.
@@ -136,72 +106,22 @@ The user will find an example file when downloading the
 `demo <https://co2mpas.readthedocs.io/en/stable/tutorial.html#download-demo-files>`_
 files.
 
-
 Is the usage of internal / development signals allowed (if equivalence is shown)?
 ---------------------------------------------------------------------------------
 OBD signals are regulated and the only one to be used.
 
-What is the start-stop (S/S) activation time? What might happen if the user declares it wrong?
-----------------------------------------------------------------------------------------------
+What is the start-stop (S/S) activation time?
+---------------------------------------------
 S/S is the time elapsed from the beginning of the NEDC test to the first time
 the Start-Stop system is enabled, expressed in seconds [s].
-S/S is one of the variables that are subject to verification in case of random
-testing. If during verification test (random test) S/S activation time declared
-in |CO2MPAS| is lower than the span between the beginning of the NEDC test and
-the first engine stop, that will result in Verification Factor equal to 1 and
-this will have implications on the entire fleet of the specific vehicle
-manufacturer.
 
 How to insert a new `drive_battery_technology` for hybrid electric vehicles?
 ----------------------------------------------------------------------------
-For TA: the parameter already contains a preselection of
-`drive batteries technologies <https://co2mpas.readthedocs.io/en/stable/glossary.html#term-drive-battery-technology>`_
-as a drop-down menu. If you need to insert a different technology, please contact
-us at jrc-co2mpas@ec.europa.eu.
-
-For non TA: the parameter already contains a preselection of
+The parameter already contains a preselection of
 `drive batteries technologies <https://co2mpas.readthedocs.io/en/stable/glossary.html#term-drive-battery-technology>`_
 as a drop-down menu. If you need to insert a different technology, you should
 remove the "data validation rule" of the excel input file, insert the new data
 and proceed with the co2mpas run.
-
-Regulation
-==========
-
-Where to find the correlation regulation?
------------------------------------------
-Below some useful links: 
- 
-- The correlation regulation for passenger vehicles
-  `REGULATION (EU) 2017/1153, <https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:02017R1153-20190201&from=EN>`_
-- The correlation regulation for light commercial vehicles
-  `REGULATION (EU) 2017/1152 <https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:02017R1152-20190201&from=EN>`_
-- Also, in this `document, <https://ec.europa.eu/clima/sites/clima/files/transport/vehicles/cars/docs/faq_wltp_correlation_en.pdf>`_
-  the reader will find some frequently asked questions regarding the correlation
-  procedure.
-
-Should |CO2MPAS| be used for each car or each family ID?
---------------------------------------------------------
-For each interpolation family ID (IFID).
-Vehicle-H and Vehicle-L are utilized to define the interpolation line of
-Interpolation Family ID.
-
-Is it possible to do a physical test instead of accepting |CO2MPAS| results?
-----------------------------------------------------------------------------
-Yes, there are cases when |CO2MPAS| results can be discarded and a physical test
-can be performed instead. For more details, check
-`Annex I, 3.2.2. <https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:02017R1153-20190201>`_
-
-What is DICE and who should use it?
------------------------------------
-DICE is the tool assigning a random number to each IFID type approved.
-It is used only for type approving purposes, by designated users. 
-
-What are the verification and deviation factors, and when do they need to be recorded?
---------------------------------------------------------------------------------------
-These values need to be recorded when the random number is 90, or above,
-and the |CO2MPAS| deviation is LESS than 4 percent.
-For more details please refer to the correlation regulation.
 
 .. |CO2MPAS| replace:: CO\ :sub:`2`\ MPAS
 .. |CO2| replace:: CO\ :sub:`2`
