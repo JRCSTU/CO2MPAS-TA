@@ -217,7 +217,7 @@ def _rcb_correction(
         alternator_efficiency):
     # noinspection PyProtectedMember
     par = dfl.functions._rcb_correction.WILLANS
-    dco2 = -phases_delta_energy / phases_distances
+    dco2 = np.nan_to_num(-phases_delta_energy / phases_distances)
     dco2 *= par[fuel_type][engine_type] * 0.0036 / alternator_efficiency
     return dco2
 

@@ -242,4 +242,4 @@ def predict_service_battery_flows(
     """
     service_battery_model.reset()
     it = zip(times, motive_powers, accelerations, on_engine, starter_currents)
-    return np.array([service_battery_model(*a) for a in it]).T
+    return np.array([service_battery_model(*a) for a in it], float).T

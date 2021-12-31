@@ -260,6 +260,7 @@ def calculate_vehicle_mass_v1(
         return test_mass + (vehicle_mass_running_order + 25) * .015
     return test_mass
 
+
 @sh.add_function(dsp, outputs=['test_mass'])
 def calculate_test_mass(
         vehicle_mass, vehicle_mass_running_order, n_dyno_axes):
@@ -285,6 +286,7 @@ def calculate_test_mass(
     if n_dyno_axes == 1:
         return vehicle_mass - (vehicle_mass_running_order + 25) * .015
     return vehicle_mass
+
 
 @sh.add_function(dsp, outputs=['vehicle_mass'])
 def calculate_vehicle_mass(unladen_mass, passengers_mass, cargo_mass):
@@ -693,7 +695,11 @@ def define_slope_model_v1(angle_slope):
         Angle slope model [rad].
     :rtype: function
     """
-    return np.vectorize(lambda *args: angle_slope, otypes=[float])
+
+    def slope_model(distances):
+        return np.full(distances.shape, angle_slope, float)
+
+    return slope_model
 
 
 @sh.add_function(dsp, outputs=['angle_slopes'])
