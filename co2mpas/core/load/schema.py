@@ -175,11 +175,14 @@ def _np_array2list(x):
 
 
 # noinspection PyUnusedLocal
-def _np_array(dtype=None, error=None, read=True, **kwargs):
+def _np_array(dtype=None, error=None, read=True, ravel=True, **kwargs):
     dtype = dtype or float
     error = error or 'cannot be parsed as np.array dtype={}!'.format(dtype)
     if read:
-        c = Use(lambda x: np.asarray(x, dtype=dtype).ravel())
+        if ravel:
+            c = Use(lambda x: np.asarray(x, dtype=dtype).ravel())
+        else:
+            c = Use(lambda x: np.asarray(x, dtype=dtype))
         return Or(And(str, _eval(
             c, usersyms={'np.array': np.array}
         )), c, And(_type(), c), Empty(), error=error)
@@ -201,12 +204,16 @@ def _check_np_array_positive(x):
 
 # noinspection PyUnusedLocal
 def _np_array_positive(dtype=None, error=None, read=True,
-                       check=_check_np_array_positive, **kwargs):
+                       check=_check_np_array_positive, ravel=True, **kwargs):
     dtype = dtype or float
     error = error or 'cannot be parsed because it should be an ' \
                      'np.array dtype={} and positive!'.format(dtype)
     if read:
-        c = And(Use(lambda x: np.asarray(x, dtype=dtype).ravel()), check)
+        c = And(
+            Use(lambda x: np.asarray(x, dtype=dtype)),
+            Use(lambda x: x.ravel() if ravel else x),
+            check
+        )
         return Or(And(str, _eval(
             c, usersyms={'np.array': np.array}
         )), c, And(_type(), c), Empty(), error=error)
