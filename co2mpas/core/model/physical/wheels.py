@@ -460,7 +460,7 @@ _re_tyre_code_iso = regex.compile(
     (?P<nominal_section_width>(\d){3})\s*
     \/\s*
     (?P<aspect_ratio>(\d){2,3})?
-    ((\s*(?P<carcass>[a-z])\s*)|\s+)
+    ((\s*(?P<speed_rating>[a-z])?\s*(?P<carcass>[a-z])\s*)|\s+)
     (?P<rim_diameter>(\d){1,2}(\.(\d){1,2})?)
     (\s+(?P<use>C))?
     (\s+(?P<load_index>(\d){2,3}(/(\d){2,3})?)\s*
@@ -493,6 +493,15 @@ _re_tyre_code_pax = regex.compile(
     (\s*(?P<load_index>(\d){2,3})\s*
      (?P<speed_rating>[a-z]))?\s*
     (\s*(?P<additional_marks>.*))?
+    """, regex.IGNORECASE | regex.X | regex.DOTALL)
+
+_re_tyre_code_euro = regex.compile(
+    r"""
+    ^(?P<use>([a-z]){1,2})?\s*
+    (?P<nominal_section_width>(\d){3})\s*
+    ((\s*(?P<speed_rating>[a-z])?\s*(?P<carcass>[a-z])\s*)|\s+)
+    (?P<rim_diameter>(\d){1,2}(\.(\d){1,2})?)
+    (\s+(?P<additional_marks>.*))?$
     """, regex.IGNORECASE | regex.X | regex.DOTALL)
 
 
@@ -532,7 +541,8 @@ def calculate_tyre_dimensions(tyre_code):
     it = [
         ('iso', _re_tyre_code_iso),
         ('numeric', _re_tyre_code_numeric),
-        ('pax', _re_tyre_code_pax)
+        ('pax', _re_tyre_code_pax),
+        ('euro', _re_tyre_code_euro)
     ]
     for c, _r in it:
         try:
@@ -541,6 +551,8 @@ def calculate_tyre_dimensions(tyre_code):
             if c == 'numeric' and 'aspect_ratio' not in m:
                 b = m['nominal_section_width'].split('.')[-1][-1] == '5'
                 m['aspect_ratio'] = '82' if b else '92'
+            elif c == 'euro' and 'aspect_ratio' not in m:
+                m['aspect_ratio'] = '80'
             return _format_tyre_dimensions(m)
         except (AttributeError, schema.SchemaError):
             pass
