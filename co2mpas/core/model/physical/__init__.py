@@ -636,6 +636,7 @@ dsp.add_dispatcher(
         'corrected_co2_emission_value', 'rcb_correction', 'fuel_heating_value',
         'corrected_sustaining_co2_emission_value', 'co2_emission_extra_high',
         'ki_multiplicative', 'co2_emission_UDC', 'phases_indices',
+        'fuel_density', 'engine_fuel_lower_heating_value'
     )
 )
 
