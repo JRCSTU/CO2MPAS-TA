@@ -50,6 +50,11 @@ class AlternatorCurrentModel:
         self.init_mask = None
         self.base_model = _XGBRegressor
 
+    def _fit_charging_currents(self, X, y):
+        gb_power, acc = X[:, -2:].T
+        b = (gb_power > 0) | ((gb_power == 0) & (acc >= 0))
+        return np.median(y[b]), np.median(y[~b])
+
     def predict(self, X, init_time=0.0):
         X = np.asarray(X)
         times = X[:, 0]
@@ -69,9 +74,16 @@ class AlternatorCurrentModel:
         X, Y = _build_samples(currents, soc, statuses, *args)
         if b[i:].any():
             self.model, self.mask = self._fit_model(X[i:][b[i:]], Y[i:][b[i:]])
+            self.alternator_charging_currents = self._fit_charging_currents(
+                X[i:][b[i:]], Y[i:][b[i:]]
+            )
         elif b[:i].any():
             self.model, self.mask = self._fit_model(X[b], Y[b])
+            self.alternator_charging_currents = self._fit_charging_currents(
+                X[b], Y[b]
+            )
         else:
+            self.alternator_charging_currents = 0, 0
             self.model = lambda *args, **kwargs: [0.0]
             self.mask = np.array((0,))
         self.mask += 1
@@ -109,7 +121,7 @@ class AlternatorCurrentModel:
         return model.steps[-1][-1].predict, mask
 
     def __call__(self, time, soc, status, *args):
-        arr = np.array([(time, soc, status) + args])
+        arr = np.array([(time, soc, status) + args], float)
         if status == 3:
             return min(0.0, self.init_model(arr[:, self.init_mask])[0])
         return min(0.0, self.model(arr[:, self.mask])[0])
