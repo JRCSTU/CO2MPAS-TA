@@ -21,6 +21,16 @@ from schema import Schema, Use, And, Or, SchemaError
 
 log = logging.getLogger(__name__)
 
+_re_1 = re.compile('(?<!})}(?!})')
+_re_2 = re.compile('(?<!{){(?!{)')
+
+
+def _format_error(error):
+    if error:
+        error = _re_1.sub('}}', error)
+        error = _re_2.sub('{{', error)
+    return error
+
 
 # noinspection PyMissingOrEmptyDocstring
 class Empty:
@@ -50,20 +60,20 @@ def _function(error=None, read=True, **kwargs):
         return f
 
     if read:
-        error = error or 'should be a function!'
+        error = _format_error(error or 'should be a function!')
         return _eval(Use(_check_function), error=error)
     return And(_check_function, Use(lambda x: sh.NONE), error=error)
 
 
 # noinspection PyUnusedLocal
 def _string(error=None, **kwargs):
-    error = error or 'should be a string!'
+    error = _format_error(error or 'should be a string!')
     return Use(str, error=error)
 
 
 # noinspection PyUnusedLocal
 def _select(types=(), error=None, **kwargs):
-    error = error or 'should be one of {}!'.format(types)
+    error = _format_error(error or 'should be one of {}!'.format(types))
     types = {k.lower(): k for k in types}
     return And(str, Use(lambda x: types[x.lower()]), error=error)
 
@@ -74,13 +84,13 @@ def _check_positive(x):
 
 # noinspection PyUnusedLocal,PyShadowingBuiltins
 def _positive(type=float, error=None, check=_check_positive, **kwargs):
-    error = error or 'should be as {} and positive!'.format(type)
+    error = _format_error(error or 'should be as {} and positive!'.format(type))
     return And(Use(type), check, error=error)
 
 
 # noinspection PyUnusedLocal
 def _limits(limits=(0, 100), error=None, **kwargs):
-    error = error or 'should be {} <= x <= {}!'.format(*limits)
+    error = _format_error(error or 'should be {} <= x <= {}!'.format(*limits))
 
     def _check_limits(x):
         return limits[0] <= x <= limits[1]
@@ -95,7 +105,7 @@ _usersyms = {
 
 # noinspection PyUnusedLocal
 def _eval(s, error=None, usersyms=None, **kwargs):
-    error = error or 'cannot be eval!'
+    error = _format_error(error or 'cannot be eval!')
     from asteval import Interpreter
     usersyms = sh.combine_dicts(_usersyms, usersyms or {})
     return Or(And(str, Use(Interpreter(usersyms=usersyms).eval), s), s,
@@ -106,6 +116,7 @@ def _eval(s, error=None, usersyms=None, **kwargs):
 def _dict(format=None, error=None, read=True, pformat=pprint.pformat, **kwargs):
     format = And(dict, format or {int: float})
     error = error or 'should be a dict with this format {}!'.format(format)
+    error = _format_error(error)
     c = Use(lambda x: {k: v for k, v in dict(x).items() if v is not None})
     if read:
         return _eval(Or(Empty(), And(c, Or(Empty(), format))), error=error)
@@ -117,7 +128,7 @@ def _dict(format=None, error=None, read=True, pformat=pprint.pformat, **kwargs):
 def _ordict(format=None, error=None, read=True, **kwargs):
     format = format or {int: float}
     msg = 'should be a OrderedDict with this format {}!'
-    error = error or msg.format(format).replace('{', '{{').replace('}', '}}')
+    error = _format_error(error or msg.format(format))
     c = Use(OrderedDict)
     if read:
         return _eval(
@@ -144,19 +155,22 @@ def _type(type=None, error=None, length=None, **kwargs):
     type = type or tuple
     usersyms = {getattr(type, '__name__', 'type'): type}
     if length is not None:
-        error = error or 'should be as {} and ' \
-                         'with a length of {}!'.format(type, length)
+        error = _format_error(
+            error or 'should be as {} and with a length of {}!'.format(
+                type, length
+            )
+        )
         return And(_type(type=type), _check_length(length), error=error)
     if not isinstance(type, (Use, Schema, And, Or)):
         type = Or(type, Use(type))
-    error = error or 'should be as {}!'.format(type)
+    error = _format_error(error or 'should be as {}!'.format(type))
     return _eval(type, error=error, usersyms=usersyms)
 
 
 # noinspection PyUnusedLocal
 def _index_dict(error=None, **kwargs):
     error = error or 'cannot be parsed as {}!'.format({int: float})
-    error = error.replace('{', '{{').replace('}', '}}')
+    error = _format_error(error)
     c = {Use(int): Use(float)}
     s = And(dict, c)
 
@@ -177,7 +191,9 @@ def _np_array2list(x):
 # noinspection PyUnusedLocal
 def _np_array(dtype=None, error=None, read=True, ravel=True, **kwargs):
     dtype = dtype or float
-    error = error or 'cannot be parsed as np.array dtype={}!'.format(dtype)
+    error = _format_error(
+        error or 'cannot be parsed as np.array dtype={}!'.format(dtype)
+    )
     if read:
         if ravel:
             c = Use(lambda x: np.asarray(x, dtype=dtype).ravel())
@@ -206,8 +222,10 @@ def _check_np_array_positive(x):
 def _np_array_positive(dtype=None, error=None, read=True,
                        check=_check_np_array_positive, ravel=True, **kwargs):
     dtype = dtype or float
-    error = error or 'cannot be parsed because it should be an ' \
-                     'np.array dtype={} and positive!'.format(dtype)
+    error = _format_error(
+        error or 'cannot be parsed because it should be an ' \
+                 'np.array dtype={} and positive!'.format(dtype)
+    )
     if read:
         c = And(
             Use(lambda x: np.asarray(x, dtype=dtype)),
@@ -226,6 +244,7 @@ def _np_array_positive(dtype=None, error=None, read=True,
 
 # noinspection PyUnusedLocal
 def _alternator_current_model(error=None, read=True, **kwargs):
+    error = _format_error(error)
     if read:
         from ..model.physical.electrics.motors.alternator.current import (
             AlternatorCurrentModel
@@ -236,6 +255,7 @@ def _alternator_current_model(error=None, read=True, **kwargs):
 
 # noinspection PyUnusedLocal
 def _service_battery_status_model(error=None, read=True, **kwargs):
+    error = _format_error(error)
     if read:
         from ..model.physical.electrics.batteries.service.status import (
             BatteryStatusModel
@@ -248,6 +268,7 @@ def _service_battery_status_model(error=None, read=True, **kwargs):
 
 # noinspection PyUnusedLocal
 def _engine_temperature_regression_model(error=None, read=True, **kwargs):
+    error = _format_error(error)
     if read:
         # noinspection PyProtectedMember
         from ..model.physical.engine._thermal import ThermalModel
@@ -260,6 +281,7 @@ def _engine_temperature_regression_model(error=None, read=True, **kwargs):
 
 # noinspection PyUnusedLocal
 def _fmep_model(error=None, read=True, **kwargs):
+    error = _format_error(error)
     if read:
         from ..model.physical.engine.fc import FMEP
         return _type(type=FMEP, error=error)
@@ -268,30 +290,35 @@ def _fmep_model(error=None, read=True, **kwargs):
 
 # noinspection PyUnusedLocal
 def _cmv(error=None, **kwargs):
+    error = _format_error(error)
     from ..model.physical.gear_box.at_gear.cmv import CMV
     return _type(type=CMV, error=error)
 
 
 # noinspection PyUnusedLocal
 def _mvl(error=None, **kwargs):
+    error = _format_error(error)
     from ..model.physical.gear_box.at_gear import MVL
     return _type(type=MVL, error=error)
 
 
 # noinspection PyUnusedLocal
 def _gspv(error=None, **kwargs):
+    error = _format_error(error)
     from ..model.physical.gear_box.at_gear.gspv import GSPV
     return _type(type=GSPV, error=error)
 
 
 # noinspection PyUnusedLocal
 def _gsch(error=None, **kwargs):
+    error = _format_error(error)
     from ..model.physical.gear_box.at_gear.gspv_ch import GSMColdHot
     return _type(type=GSMColdHot, error=error)
 
 
 # noinspection PyUnusedLocal
 def _dtc(error=None, read=True, **kwargs):
+    error = _format_error(error)
     if read:
         from ..model.physical.gear_box.at_gear.dtgs import DTGS
         return _type(type=DTGS, error=error)
@@ -300,6 +327,7 @@ def _dtc(error=None, read=True, **kwargs):
 
 # noinspection PyUnusedLocal
 def _cvt(error=None, read=True, **kwargs):
+    error = _format_error(error)
     if read:
         from ..model.physical.gear_box.cvt import CVT
         return _type(type=CVT, error=error)
@@ -322,6 +350,7 @@ def _str2parameters(data):
 
 
 def _parameters(error=None, read=True):
+    error = _format_error(error)
     if read:
         from lmfit import Parameters
         return And(Use(_str2parameters), _type(type=Parameters, error=error))
@@ -337,6 +366,7 @@ def _compare_str(s, **kwargs):
 # noinspection PyUnusedLocal
 def _tyre_code(error=None, **kwargs):
     error = error or 'invalid tyre code!'
+    error = _format_error(error)
     # noinspection PyProtectedMember
     from ..model.physical.wheels import (
         _re_tyre_code_iso, _re_tyre_code_numeric, _re_tyre_code_pax
@@ -350,6 +380,7 @@ def _tyre_code(error=None, **kwargs):
 # noinspection PyUnusedLocal
 def _tyre_dimensions(error=None, **kwargs):
     error = error or 'invalid format for tyre dimensions!'
+    error = _format_error(error)
     # noinspection PyProtectedMember
     from ..model.physical.wheels import _format_tyre_dimensions
     return And(_dict(format=dict), Use(_format_tyre_dimensions), error=error)
@@ -381,6 +412,7 @@ def check_phases_separated(x):
 # noinspection PyUnusedLocal
 def _bag_phases(error=None, read=True, **kwargs):
     er = 'Phases must be separated!'
+    error = _format_error(error)
     if read:
         return And(_np_array(read=read),
                    Schema(check_phases_separated, error=er), error=error)
@@ -391,12 +423,14 @@ def _bag_phases(error=None, read=True, **kwargs):
 # noinspection PyUnusedLocal
 def _file(error=None, **kwargs):
     er = 'Must be a file!'
+    error = _format_error(error)
     return And(_string(), Schema(osp.isfile, error=er), error=error)
 
 
 # noinspection PyUnusedLocal
 def _dir(error=None, **kwargs):
     er = 'Must be a directory!'
+    error = _format_error(error)
 
     def _fun(x):
         return not osp.exists(x) or osp.isdir(x)
@@ -757,6 +791,7 @@ def define_data_validation(read=True):
         'final_drive_speeds_in': np_array,
         'final_drive_torques_in': np_array,
         'fuel_consumptions': np_array,
+        'fuel_consumptions_liters': np_array,
         'gear_box_efficiencies': np_array,
         'gear_box_powers_in': np_array,
         'gear_box_speeds_in': np_array,
