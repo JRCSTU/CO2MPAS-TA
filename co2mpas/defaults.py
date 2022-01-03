@@ -220,6 +220,7 @@ class Values(co2_utl.Constants):
 # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
 class Functions(co2_utl.Constants):
     ENABLE_ALL_FUNCTIONS = False
+
     class default_after_treatment_warm_up_duration(co2_utl.Constants):
         #: After treatment warm up duration for conventional vehicles [s].
         duration = 60
@@ -414,11 +415,6 @@ class Functions(co2_utl.Constants):
 
         #: Start-stop activation time threshold [s].
         threshold = 30
-
-    # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
-    class define_idle_fuel_consumption_model(co2_utl.Constants):
-        #: Enable function?
-        ENABLE = False
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class calculate_last_gear_box_ratio_v1(co2_utl.Constants):
@@ -1010,9 +1006,6 @@ class Functions(co2_utl.Constants):
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class default_fuel_lower_heating_value(co2_utl.Constants):
-        #: Enable function?
-        ENABLE = False
-
         #: Fuel lower heating value [kJ/kg].
         LHV = {
             'gasoline': 43200.0,
@@ -1027,9 +1020,6 @@ class Functions(co2_utl.Constants):
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
     class default_fuel_carbon_content(co2_utl.Constants):
-        #: Enable function?
-        ENABLE = False
-
         #: Fuel carbon content [CO2g/g].
         CARBON_CONTENT = {
             'gasoline': 3.17,

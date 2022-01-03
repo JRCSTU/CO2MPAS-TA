@@ -309,19 +309,10 @@ def define_idle_fuel_consumption_model(
         Idle fuel consumption model.
     :rtype: IdleFuelConsumptionModel
     """
-    d = dfl.functions
-
-    if idle_fuel_consumption_initial_guess is not None or \
-            d.ENABLE_ALL_FUNCTIONS or \
-            d.define_idle_fuel_consumption_model.ENABLE:
-        model = IdleFuelConsumptionModel(
-            idle_fuel_consumption_initial_guess).fit(
-            idle_engine_speed, engine_capacity, engine_stroke,
-            engine_fuel_lower_heating_value, fmep_model
-        )
-
-        return model
-    return sh.NONE
+    return IdleFuelConsumptionModel(idle_fuel_consumption_initial_guess).fit(
+        idle_engine_speed, engine_capacity, engine_stroke,
+        engine_fuel_lower_heating_value, fmep_model
+    )
 
 
 @sh.add_function(

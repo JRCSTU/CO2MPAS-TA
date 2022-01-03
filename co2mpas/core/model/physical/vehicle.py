@@ -234,9 +234,11 @@ def calculate_curb_mass(unladen_mass, fuel_mass):
     return unladen_mass - fuel_mass
 
 
-@sh.add_function(dsp, outputs=['vehicle_mass'])
+@sh.add_function(
+    dsp, outputs=['vehicle_mass'], input_domain=lambda n, *a: n == 1
+)
 def calculate_vehicle_mass_v1(
-        test_mass, vehicle_mass_running_order, n_dyno_axes):
+        n_dyno_axes, test_mass, vehicle_mass_running_order):
     """
     Calculate vehicle mass [kg].
 
@@ -256,9 +258,16 @@ def calculate_vehicle_mass_v1(
         Vehicle mass [kg].
     :rtype: float
     """
-    if n_dyno_axes == 1:
-        return test_mass + (vehicle_mass_running_order + 25) * .015
-    return test_mass
+    return test_mass + (vehicle_mass_running_order + 25) * .015
+
+
+dsp.add_function(
+    function_id='calculate_vehicle_mass_v2',
+    function=sh.add_args(sh.bypass),
+    inputs=['n_dyno_axes', 'test_mass'],
+    outputs=['vehicle_mass'],
+    input_domain=lambda n, *a: n != 1
+)
 
 
 @sh.add_function(dsp, outputs=['test_mass'])

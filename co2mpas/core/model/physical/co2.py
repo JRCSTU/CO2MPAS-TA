@@ -1292,10 +1292,7 @@ def default_engine_fuel_lower_heating_value(fuel_type):
         Fuel lower heating value [kJ/kg].
     :rtype: float
     """
-    d = dfl.functions
-    if d.ENABLE_ALL_FUNCTIONS or d.default_fuel_lower_heating_value.ENABLE:
-        return d.default_fuel_lower_heating_value.LHV[fuel_type]
-    return sh.NONE
+    return dfl.functions.default_fuel_lower_heating_value.LHV[fuel_type]
 
 
 @sh.add_function(dsp, outputs=['fuel_carbon_content'], weight=3)
@@ -1312,10 +1309,7 @@ def default_fuel_carbon_content(fuel_type):
         Fuel carbon content [CO2g/g].
     :rtype: float
     """
-    d = dfl.functions
-    if d.ENABLE_ALL_FUNCTIONS or d.default_fuel_carbon_content.ENABLE:
-        return d.default_fuel_carbon_content.CARBON_CONTENT[fuel_type]
-    return sh.NONE
+    return dfl.functions.default_fuel_carbon_content.CARBON_CONTENT[fuel_type]
 
 
 @sh.add_function(dsp, outputs=['fuel_carbon_content'])

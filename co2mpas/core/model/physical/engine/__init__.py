@@ -458,8 +458,8 @@ dsp.add_dispatcher(
     include_defaults=True,
     dsp=_idle,
     inputs=(
-        'idle_engine_speed_std', 'idle_engine_speed', 'velocities', 'is_hybrid',
         'idle_engine_speed_median', 'min_engine_on_speed', 'engine_speeds_out',
+        'idle_engine_speed_std', 'idle_engine_speed', 'velocities',
         'stop_velocity'
     ),
     outputs=(
