@@ -501,8 +501,8 @@ dsp.add_dispatcher(
         'active_cylinder_ratios', 'alternator_powers', 'engine_mass', 'on_idle',
         'initial_engine_temperature', 'motor_p2_planetary_powers', 'fuel_type',
         'gross_engine_powers_out', 'phases_co2_emissions', 'engine_max_torque',
-        'after_treatment_warm_up_phases', 'phases_distances',
-        'temperature_shift', {
+        'after_treatment_warm_up_phases', 'phases_distances', 'fuel_density',
+        'fuel_consumptions_liters', 'temperature_shift', {
             'initial_temperature': 'initial_engine_temperature'
         }
     ),
@@ -527,7 +527,8 @@ dsp.add_dispatcher(
         'engine_idle_fuel_consumption', 'active_variable_valves', 'engine_mass',
         'max_engine_coolant_temperature', 'full_load_curve', 'clutch_tc_powers',
         'engine_speeds_out_hot', 'fuel_carbon_content', 'engine_temperatures',
-        'engine_max_torque', 'ignition_type', 'engine_type', 'temperature_shift'
+        'fuel_consumptions_liters', 'engine_max_torque', 'ignition_type',
+        'engine_type', 'temperature_shift'
     ),
     inp_weight={'initial_temperature': 5}
 )
@@ -624,7 +625,7 @@ dsp.add_dispatcher(
         'drive_battery_electric_powers', 'engine_temperatures', 'accelerations',
         'drive_battery_nominal_voltage', 'drive_battery_capacity', 'is_plugin',
         'service_battery_electric_powers', 'force_on_engine', 'co2_emissions',
-        'kco2_wltp_correction_factor',
+        'kco2_wltp_correction_factor', 'fuel_consumptions_liters'
     ),
     outputs=(
         'phases_willans_factors', 'phases_co2_emissions', 'fuel_carbon_content',
@@ -633,10 +634,10 @@ dsp.add_dispatcher(
         'kco2_nedc_correction_factor', 'co2_emission_high', 'co2_emission_EUDC',
         'phases_fuel_consumptions', 'co2_emission_medium', 'optimal_efficiency',
         'declared_co2_emission_value', 'co2_emission_value', 'co2_emission_low',
-        'corrected_co2_emission_value', 'rcb_correction', 'fuel_heating_value',
+        'ki_multiplicative', 'phases_indices', 'fuel_consumptions_liters_value',
+        'corrected_co2_emission_value', 'fuel_heating_value', 'rcb_correction',
+        'engine_fuel_lower_heating_value', 'fuel_density', 'co2_emission_UDC',
         'corrected_sustaining_co2_emission_value', 'co2_emission_extra_high',
-        'ki_multiplicative', 'co2_emission_UDC', 'phases_indices',
-        'fuel_density', 'engine_fuel_lower_heating_value'
     )
 )
 

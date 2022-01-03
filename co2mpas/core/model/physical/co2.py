@@ -1369,3 +1369,15 @@ def calculate_fuel_heating_value(engine_fuel_lower_heating_value, fuel_density):
     :rtype: float
     """
     return engine_fuel_lower_heating_value * fuel_density / 36e5
+
+
+@sh.add_function(dsp, outputs=['fuel_consumptions_liters_value'])
+def calculate_fuel_consumptions_liters_value(times, fuel_consumptions_liters):
+    """
+
+    :param times:
+    :param fuel_consumptions_liters:
+    :return:
+    """
+    from scipy.integrate import cumtrapz
+    return cumtrapz(fuel_consumptions_liters / 3600, times, initial=0)

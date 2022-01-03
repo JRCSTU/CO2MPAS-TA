@@ -1001,7 +1001,7 @@ dsp.add_dispatcher(
         'co2_normalization_references', 'phases_co2_emissions', 'is_cycle_hot',
         'active_cylinder_ratios', 'engine_stroke', 'co2_params', 'fuel_type',
         'after_treatment_warm_up_phases', 'engine_inertia_powers_losses',
-        'is_hybrid', {
+        'fuel_consumptions_liters', 'is_hybrid', 'fuel_density', {
             'co2_params_calibrated': ('co2_params_calibrated', 'co2_params'),
             'engine_idle_fuel_consumption': (
                 'engine_idle_fuel_consumption',
@@ -1017,7 +1017,7 @@ dsp.add_dispatcher(
         'extended_phases_integration_times', 'mean_piston_speeds', 'fmep_model',
         'active_exhausted_gas_recirculations', 'extended_phases_co2_emissions',
         'has_exhausted_gas_recirculation', 'engine_fuel_lower_heating_value',
-        'co2_params_calibrated'
+        'co2_params_calibrated', 'fuel_consumptions_liters'
     ),
     inp_weight={'co2_params': dfl.EPS}
 )

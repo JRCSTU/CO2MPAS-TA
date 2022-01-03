@@ -1909,6 +1909,26 @@ def calculate_fuel_consumptions(co2_emissions, fuel_carbon_content):
     return co2_emissions / fuel_carbon_content
 
 
+@sh.add_function(dsp, outputs=['fuel_consumptions'])
+def calculate_fuel_consumptions(fuel_consumptions_liters, fuel_density):
+    """
+    Calculates the instantaneous fuel consumption vector [g/s].
+
+    :param fuel_consumptions_liters:
+        The instantaneous fuel consumption vector [L/h].
+    :type fuel_consumptions_liters: numpy.array
+
+    :param fuel_density:
+        Fuel density [g/l].
+    :type fuel_density: float
+
+    :return:
+        The instantaneous fuel consumption vector [g/s].
+    :rtype: numpy.array
+    """
+    return fuel_consumptions_liters * (fuel_density / 3600.0)
+
+
 @sh.add_function(dsp, outputs=['co2_emissions'])
 def calculate_co2_emissions(fuel_consumptions, fuel_carbon_content):
     """
@@ -1927,3 +1947,23 @@ def calculate_co2_emissions(fuel_consumptions, fuel_carbon_content):
     :rtype: numpy.array
     """
     return fuel_consumptions * fuel_carbon_content
+
+
+@sh.add_function(dsp, outputs=['fuel_consumptions_liters'])
+def calculate_fuel_consumptions_liters(fuel_consumptions, fuel_density):
+    """
+    Calculates the instantaneous fuel consumption vector [g/s].
+
+    :param fuel_consumptions_liters:
+        The instantaneous fuel consumption vector [L/h].
+    :type fuel_consumptions_liters: numpy.array
+
+    :param fuel_density:
+        Fuel density [g/l].
+    :type fuel_density: float
+
+    :return:
+        The instantaneous fuel consumption vector [g/s].
+    :rtype: numpy.array
+    """
+    return fuel_consumptions / (fuel_density / 3600.0)
