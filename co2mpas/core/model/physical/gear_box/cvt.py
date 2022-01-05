@@ -49,6 +49,7 @@ class CVT:
             objective='reg:squarederror'
         )
         self.model.fit(X, y)
+        self.model.cache_params()
         return self
 
     # noinspection PyUnusedLocal

@@ -92,6 +92,9 @@ def calibrate_clutch_speed_model(
             ('classification', mdl)
         ])
         mdl.fit(X, y)
+        mdl.steps[0][1].estimator_.cache_params()
+        mdl.steps[0][1].estimator.cache_params()
+        mdl.steps[1][1].cache_params()
         if mae(mdl.predict(X), y) < mae(0, y):
             keys = 'accelerations', 'velocities', 'gear_box_speeds_in', 'gears'
 

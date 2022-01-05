@@ -117,6 +117,9 @@ class AlternatorCurrentModel:
             ('classification', model)
         ])
         model.fit(X, Y)
+        model.steps[0][1].estimator_.cache_params()
+        model.steps[0][1].estimator.cache_params()
+        model.steps[1][1].cache_params()
         mask = np.where(model.steps[0][-1]._get_support_mask())[0]
         return model.steps[-1][-1].predict, mask
 

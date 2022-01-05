@@ -123,6 +123,15 @@ class _XGBRegressor(xgb.XGBRegressor):
         else:
             super(_XGBRegressor, self).__setattr__(key, 0)
 
+    def cache_params(self):
+        self._cache_params = {}
+
+    def get_params(self, deep=True):
+        params = getattr(self, '_cache_params', {})
+        if deep not in params:
+            params[deep] = super(_XGBRegressor, self).get_params(deep)
+        return params[deep]
+
 
 # noinspection PyMethodMayBeStatic,PyMethodMayBeStatic,PyMissingOrEmptyDocstring
 class ThermalModel:
@@ -155,17 +164,25 @@ class ThermalModel:
         x[:, 1] = np.round((self.thermostat + n - x[:, 1]) / n) * n
         b = on_engine & (np.abs(engine_temperature_derivatives) > dfl.EPS)
         # noinspection PyArgumentEqualDefault
-        self.on = Pipeline([
+        model = Pipeline([
             ('selection', _SelectFromModel(
                 opt['base_estimator'], threshold='0.8*median', in_mask=(0, 2)
             )),
             ('regression', _SafeRANSACRegressor(**opt))
-        ]).fit(x[b, 1:], engine_temperature_derivatives[b]).predict
+        ]).fit(x[b, 1:], engine_temperature_derivatives[b])
+        model.steps[0][1].estimator_.cache_params()
+        model.steps[0][1].estimator.cache_params()
+        model.steps[1][1].base_estimator.cache_params()
+        model.steps[1][1].estimator_.cache_params()
+        self.on = model.predict
         b = ~on_engine
         if b.any():
-            self.off = _SafeRANSACRegressor(**opt).fit(
+            model = _SafeRANSACRegressor(**opt).fit(
                 x[b, :2].copy(), engine_temperature_derivatives[b]
-            ).predict
+            )
+            model._estimator.cache_params()
+            model.estimator.cache_params()
+            self.off = model.predict
         return self
 
     def __call__(self, times, on_engine, velocities, engine_speeds_out,
