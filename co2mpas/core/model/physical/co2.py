@@ -728,7 +728,23 @@ def calculate_corrected_co2_emission(
     return v * atct_family_correction_factor
 
 
-dsp.add_data('is_plugin', dfl.values.is_plugin)
+@sh.add_function(dsp, True, True, outputs=['is_plugin'])
+def default_is_plugin(input_type=None):
+    """
+    Returns if the vehicle is a plugin.
+
+    :param input_type:
+        Input file type.
+    :type input_type: str
+
+    :return:
+        Is the vehicle a plugin?
+    :rtype: bool
+    """
+
+    return str(input_type).upper() == 'OVC-HEV' or dfl.values.is_plugin
+
+
 dsp.add_function(
     function=sh.add_args(calculate_corrected_co2_emission),
     inputs=[

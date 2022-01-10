@@ -233,6 +233,8 @@ def _parse_key(scope='base', usage='input', **match):
         yield scope, match['flag']
     elif scope == 'dice':
         yield scope, match['dice']
+        if match['dice'] == 'input_type':
+            yield from _parse_key(cycle='all', param='input_type')
     elif scope == 'meta':
         meta = _re_space_dot.sub(match.get('meta', ''), '.').replace('-', '_')
         param = match['param']

@@ -625,7 +625,8 @@ dsp.add_dispatcher(
         'drive_battery_electric_powers', 'engine_temperatures', 'accelerations',
         'drive_battery_nominal_voltage', 'drive_battery_capacity', 'is_plugin',
         'service_battery_electric_powers', 'force_on_engine', 'co2_emissions',
-        'kco2_wltp_correction_factor', 'fuel_consumptions_liters'
+        'kco2_wltp_correction_factor', 'fuel_consumptions_liters',
+        'input_type'
     ),
     outputs=(
         'phases_willans_factors', 'phases_co2_emissions', 'fuel_carbon_content',
@@ -638,6 +639,7 @@ dsp.add_dispatcher(
         'corrected_co2_emission_value', 'fuel_heating_value', 'rcb_correction',
         'engine_fuel_lower_heating_value', 'fuel_density', 'co2_emission_UDC',
         'corrected_sustaining_co2_emission_value', 'co2_emission_extra_high',
+        'is_plugin'
     )
 )
 

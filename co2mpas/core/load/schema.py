@@ -726,6 +726,7 @@ def define_data_validation(read=True):
         'engine_temperature_regression_model':
             _engine_temperature_regression_model(read=read),
         'engine_type': string,
+        'input_type': string,
         'starter_model': function,
         'drive_battery_model': function,
         'motor_p0_maximum_power_function': function,
