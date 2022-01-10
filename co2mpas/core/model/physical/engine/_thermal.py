@@ -180,8 +180,8 @@ class ThermalModel:
             model = _SafeRANSACRegressor(**opt).fit(
                 x[b, :2].copy(), engine_temperature_derivatives[b]
             )
-            model._estimator.cache_params()
-            model.estimator.cache_params()
+            model.estimator_.cache_params()
+            model.base_estimator.cache_params()
             self.off = model.predict
         return self
 
