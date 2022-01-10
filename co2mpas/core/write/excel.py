@@ -10,8 +10,8 @@ Functions to write outputs on an excel file.
 import regex
 import logging
 import itertools
-import collections
 import schedula as sh
+from collections.abc import Iterable
 
 log = logging.getLogger(__name__)
 
@@ -93,7 +93,7 @@ def _get_corner(df, startcol=0, startrow=0, index=True, header=True):
 
 
 def _convert_index(k):
-    if not isinstance(k, collections.Iterable):
+    if not isinstance(k, Iterable):
         k = (str(k),)
     elif isinstance(k, str):
         k = (k,)

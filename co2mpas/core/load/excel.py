@@ -15,6 +15,7 @@ import collections
 import numpy as np
 import os.path as osp
 import schedula as sh
+from collections.abc import Iterable
 from xlref.parser import Ref, _re_xl_ref_parser, FILTERS
 
 log = logging.getLogger(__name__)
@@ -153,7 +154,7 @@ FILTERS['matrix'] = _matrix
 
 class Rererence(Ref):
     _re = regex.compile(
-        _re_xl_ref_parser.pattern.replace('?P<filters>', '?P<filters>:?\s*'),
+        _re_xl_ref_parser.pattern.replace('?P<filters>', r'?P<filters>:?\s*'),
         _re_xl_ref_parser.flags
     )
 
@@ -184,7 +185,7 @@ def _get_sheet_type(
 def _check_none(v):
     if v is None:
         return True
-    elif isinstance(v, collections.Iterable) and not isinstance(v, str) \
+    elif isinstance(v, Iterable) and not isinstance(v, str) \
             and len(v) <= 1:
         # noinspection PyTypeChecker
         return _check_none(next(iter(v))) if len(v) == 1 else True

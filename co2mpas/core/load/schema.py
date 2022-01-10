@@ -16,7 +16,8 @@ import numpy as np
 import os.path as osp
 import schedula as sh
 import co2mpas.utils as co2_utl
-from collections import Iterable, OrderedDict
+from collections import OrderedDict
+from collections.abc import Iterable
 from schema import Schema, Use, And, Or, SchemaError
 
 log = logging.getLogger(__name__)

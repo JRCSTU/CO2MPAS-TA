@@ -27,9 +27,9 @@ Sub-Modules:
 """
 import logging
 import functools
-import collections
 import numpy as np
 import schedula as sh
+from collections.abc import Iterable
 
 log = logging.getLogger(__name__)
 calibration_cycles = 'wltp_h', 'wltp_l', 'wltp_m'
@@ -229,7 +229,7 @@ def _mdl_errors(mdl, data_id, err_func):
 
 
 def _mean(values, weights=None):
-    if isinstance(weights, collections.Iterable):
+    if isinstance(weights, Iterable):
         values = [v * w for v, w in zip(values, weights) if w]
 
     v = np.asarray(values)
