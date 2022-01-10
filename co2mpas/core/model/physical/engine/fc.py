@@ -399,23 +399,25 @@ def _ABC(
 
 # noinspection PyPep8Naming
 def _fuel_ABC(n_speeds, **kw):
-    return _ABC(n_speeds, **_tech_mult_factors(**kw))
+    with np.errstate(under='ignore'):
+        return _ABC(n_speeds, **_tech_mult_factors(**kw))
 
 
 # noinspection PyPep8Naming
 def _calculate_fc(A, B, C):
-    b = np.array(A, dtype=bool)
-    if b.all():
-        v = np.sqrt(np.abs(B ** 2 - 4.0 * A * C))
-        return (-B + v) / (2 * A), v
-    elif ~b.all():
-        return -C / B, B
-    else:
-        fc, v = np.zeros_like(C), np.zeros_like(C)
-        fc[b], v[b] = _calculate_fc(A[b], B[b], C[b])
-        b = ~b
-        fc[b], v[b] = _calculate_fc(A[b], B[b], C[b])
-        return fc, v
+    with np.errstate(under='ignore'):
+        b = np.array(A, dtype=bool)
+        if b.all():
+            v = np.sqrt(np.abs(B ** 2 - 4.0 * A * C))
+            return (-B + v) / (2 * A), v
+        elif ~b.all():
+            return -C / B, B
+        else:
+            fc, v = np.zeros_like(C), np.zeros_like(C)
+            fc[b], v[b] = _calculate_fc(A[b], B[b], C[b])
+            b = ~b
+            fc[b], v[b] = _calculate_fc(A[b], B[b], C[b])
+            return fc, v
 
 
 # noinspection PyMissingOrEmptyDocstring

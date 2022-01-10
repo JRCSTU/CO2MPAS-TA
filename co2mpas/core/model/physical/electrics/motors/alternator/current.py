@@ -53,6 +53,8 @@ class AlternatorCurrentModel:
     def _fit_charging_currents(self, X, y):
         gb_power, acc = X[:, -2:].T
         b = (gb_power > 0) | ((gb_power == 0) & (acc >= 0))
+        if b.all() or ~b.all():
+            return (np.median(y),) * 2
         return np.median(y[b]), np.median(y[~b])
 
     def predict(self, X, init_time=0.0):
