@@ -1,6 +1,35 @@
 Changelog
 =========
 
+v4.3.0 (2022-01-13)
+-------------------
+Feat
+~~~~
+- (bin): Add bin folder to publish the repo.
+- (doc): Update copyright.
+- (doc): Update documentation.
+- (input): Update input template.
+- (core): Improve speed performances.
+- (load): Calculate default `is_plugin` from `input_type`.
+- (core): Improve speed performances.
+- (physical): Enable, simplify, and refactor some function.
+- (physical): Add `fuel_consumptions_liters` and
+  `fuel_consumptions_liters_value` calculations.
+- (physical): Add useful outputs.
+- (wheels): Add `euro` tyre code.
+- (physical): Remove minor warnings.
+- (alternator): Add calibration for `alternator_charging_currents`.
+- (schema): Make ravel optional.
+- (dice): Add flag as inputs.
+
+Fix
+~~~
+- (core): Correct some deprecation warning.
+- (core): Correct some deprecation warning.
+- (load): Correct error message formatting error.
+- (doc): deleted all reference to TAA.
+- (faq): Glossary corrected.
+
 v4.2.0 (2021-10-01)
 -------------------
 Feat
