@@ -6,9 +6,6 @@
 ######################################################################
 |co2mpas|: Vehicle simulator predicting NEDC |CO2| emissions from WLTP
 ######################################################################
-
-:official:         | `3.0.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/co2mpas-v3.0.0>`_: from 01-Feb-2019 to 01-Jan-2020
-                   | `4.1.X <https://github.com/JRCSTU/CO2MPAS-TA/releases/tag/v4.1.10>`_: from 31-Oct-2019 to 30-Sep-2021
 :release:          4.2.0
 :rel_date:         2021-10-01 00:00:00
 :home:             http://co2mpas.readthedocs.io/
@@ -61,47 +58,6 @@ June 23, 2016, and its 2nd vote for modifications, in April 27, 2017.
 
 Installation
 ============
-Two installation procedures can be followed:
-
-- `All in one`_
-- `Ordinary`_
-
-All in one
-----------
-To install |co2mpas| you have to download the
-`installer <https://github.com/JRCSTU/CO2MPAS-TA/releases/download/v4.1.10/co2mpas-4.1.10-28715563-Windows-x86_64.exe>`_
-and then execute it (see the steps shown in the video below).
-
-.. raw:: html
-
-    <video width="100%" height="%100" controls playsinline preload="metadata">
-      <source src="_static/video/install.mp4" type="video/mp4">
-      <source src="doc/_static/video/install.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-    </video>
-
-After the installation, two icons will appear on your desktop: one for the GUI
-and one for the console.
-
-    .. image:: _static/image/icons.png
-       :width: 50%
-       :alt: co2mpas desktop icons
-       :align: center
-
-.. admonition:: IT Requirements
-
-   To run |co2mpas| some minimum IT requirements are mandatory:
-
-   - 64-bit Intel or AMD processor (x86_64, aka x64, aka AMD64),
-   - Microsoft Windows 7 SP1, or later,
-   - 4 GB RAM (more recommended),
-   - 4 GB hard disk storage for installing the software,
-   - Execution-rights to the installation folder (but no Admin-rights),
-   - (optional) Excel, to view & edit simulation’s input and output files,
-   - Chrome/Firefox/Safari/Edge or IExplore 10+.
-
-Ordinary
---------
 .. _start-install-dev:
 
 To install |co2mpas| use (with root privileges):
@@ -134,7 +90,7 @@ To install co2mpas and all extras, do:
 
 .. code-block:: console
 
-    $ pip install co2mpas[all]
+    $ pip install 'co2mpas[all]'
 
 .. _end-install-dev:
 .. _end-install:
@@ -148,7 +104,6 @@ workflow using the command line interface:
 - `Run`_
 - `Input file`_
 - `Data synchronization`_
-- `GUI start-up`_
 
 Run
 ---
@@ -163,7 +118,7 @@ To run |co2mpas| with some sample data, you have to:
     $ start ./input/co2mpas_conventional.xlsx
 
 2. Run |co2mpas| and inspect the results in the ``./output`` folder.
-The workflow is plotted on the browser (for more info check the
+   The workflow is plotted on the browser (for more info check the
    `link <_build/co2mpas/co2mpas.cli.html#co2mpas-run>`__)::
 
     ## Run co2mpas and open the output folder.
@@ -226,19 +181,6 @@ to:
 
     ## Open the synchronized data.
     $ start ./sync/wltp.sync.xlsx
-
-GUI start-up
-------------
-To launch the |co2mpas| GUI from the console, you can use the following
-command::
-
-    ## Open the GUI of co2mpas.
-    $ co2wui run
-
-.. image:: _static/image/gui_start_up.png
-   :width: 100%
-   :alt: GUI start-up
-   :align: center
 
 .. _end-quick:
 .. _start-sub:

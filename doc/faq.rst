@@ -40,7 +40,6 @@ To maintain it under the current EUPL license, any modifications made to the
 program, or a copy of it, must be licensed in the same way:
 `EUPL <https://eupl.eu/>`_.
 
-
 What is |CO2MPAS| physical background and which formulas are applied?
 ---------------------------------------------------------------------
 |CO2MPAS| is a backward-looking longitudinal-dynamics |CO2| and
@@ -50,15 +49,9 @@ To check the formulas the user can visit the
 
 Where can the user find information on the status of the validation?
 --------------------------------------------------------------------
-Detailed validation reports are provided together with every release of
+Detailed validation reports are provided together with every major release of
 |CO2MPAS| in the `validation chapter <http://jrcstu.github.io/co2mpas/>`_ of
 the wiki.
-Here the latest 3 reports: 
-
-- `manual <http://jrcstu.github.io/co2mpas/v2.0.x/validation_manual_cases.html>`_;    
-- `automatic <http://jrcstu.github.io/co2mpas/v2.0.x/validation_automatic_cases.html>`_;   
-- and `real cars <http://jrcstu.github.io/co2mpas/v2.0.x/validation_real_cases.html>`_, 
-  respectively;
 
 Validation is performed as well by independent contractors (LAT) of DG CLIMA. 
 Moreover, some stakeholders have conducted independent validation 
@@ -79,16 +72,16 @@ Synchronization of data from different sources is essential for robust results.
 |CO2MPAS| `syncing` tool uses a common signal as a reference. 
 To avoid time-aligned signals, we advise using the velocity present on the
 dyno and the obd at the same time.
-`syncing` tool will shift and re-sample the other signals 
-according to the reference signal provided. 
+`syncing` tool will shift and re-sample the other signals according to the
+reference signal provided.
 The user is allowed to apply different ways of re-sampling the original signals. 
 For more information, please see the instructions.  
 
 What is the model selector?
 ---------------------------
-|CO2MPAS| consists of several models. If the user provides both WLTP-H and WLTP-L
-data, the same models will be calibrated twice, according to the data provided
-by each configuration.
+|CO2MPAS| consists of several models. If the user provides both WLTP-H and
+WLTP-L data, the same models will be calibrated twice, according to the data
+provided by each configuration.
 If the option *model selector* is switched on, |CO2MPAS| will use the model that
 provides the best scores, no matter if the model was calibrated with another
 cycle. For example, if the alternator model of the High configuration is better,
@@ -96,12 +89,11 @@ the same model will be used to predict the Low configuration as well.
 
 Is it possible to simulate other cycles than NEDC or WLTP? How about real on-road tests?
 ----------------------------------------------------------------------------------------
-Yes, |CO2MPAS| can simulate other cycles, as well as on-road tests. 
-The user can simulate using several extra parameters beyond the
-official laboratory-measured ones. 
-The user can input the velocity profile followed, road grade, 
-extra auxiliaries losses, extra passengers, different road loads, temperatures, 
-etc. 
+Yes, |CO2MPAS| can simulate other cycles, as well as on-road tests. The user can
+simulate using several extra parameters beyond the official laboratory-measured
+ones.
+The user can input the velocity profile followed, road grade, extra auxiliaries
+losses, extra passengers, different road loads, temperatures, etc.
 The user will find an example file when downloading the
 `demo <https://co2mpas.readthedocs.io/en/stable/tutorial.html#download-demo-files>`_
 files.
