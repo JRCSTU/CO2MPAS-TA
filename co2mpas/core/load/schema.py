@@ -523,6 +523,12 @@ def define_data_validation(read=True):
     dictarray = _dict(format={str: np_array}, read=read)
     tyre_code = _tyre_code(read=read)
     tyre_dimensions = _tyre_dimensions(read=read)
+    maximum_velocity_range = _select(
+        types=tuple(map(str, range(151))) + ('>150',), read=read
+    )
+    maximum_velocity_range = Or(
+        And(Use(int), Use(str), maximum_velocity_range), maximum_velocity_range
+    )
     convert = {
         'cvt': 'CVT',
         'cmv': 'CMV',
@@ -640,9 +646,7 @@ def define_data_validation(read=True):
 
         'capped_velocity': positive,
         'has_capped_velocity': _bool,
-        'maximum_velocity_range': _select(
-            types=tuple(map(str, range(151))) + ('>150',), read=read
-        ),
+        'maximum_velocity_range': maximum_velocity_range,
         'maximum_velocity': positive,
         'vehicle_mass_running_order': positive,
         'vehicle_mass': positive,
