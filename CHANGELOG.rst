@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v4.3.1 (2022-02-03)
+-------------------
+Fix
+~~~
+- (schema): Correct maximum velocity range schema.
+
 v4.3.0 (2022-01-13)
 -------------------
 Feat
