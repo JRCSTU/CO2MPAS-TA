@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v4.3.2 (2022-02-07)
+-------------------
+Fix
+~~~
+- (schema): Correct f0 schema according to JET.
+
 v4.3.1 (2022-02-03)
 -------------------
 Fix
