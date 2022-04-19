@@ -445,15 +445,11 @@ def calculate_air_density(air_temperature, atmospheric_pressure):
 dsp.add_data('has_roof_box', dfl.values.has_roof_box)
 
 
-@sh.add_function(dsp, outputs=['f2'], weight=5)
-def calculate_f2(
-        air_density, aerodynamic_drag_coefficient, frontal_area, has_roof_box):
+@sh.add_function(dsp, outputs=['aerodynamic_drag_area'], weight=4)
+def calculate_aerodynamic_drag_value(
+        aerodynamic_drag_coefficient, frontal_area, has_roof_box):
     """
-    Calculates the f2 coefficient [N/(km/h)^2].
-
-    :param air_density:
-        Air density [kg/m3].
-    :type air_density: float
+    Calculates the aerodynamic drag area [m2].
 
     :param aerodynamic_drag_coefficient:
         Aerodynamic drag coefficient [-].
@@ -462,22 +458,42 @@ def calculate_f2(
     :param frontal_area:
         Frontal area of the vehicle [m2].
     :type frontal_area: float
-    
+
     :param has_roof_box:
          Has the vehicle a roof box? [-].
     :type has_roof_box: bool
 
     :return:
-        As used in the dyno and defined by respective guidelines [N/(km/h)^2].
+        Aerodynamic drag area [m2].
     :rtype: float
     """
 
-    c = aerodynamic_drag_coefficient * frontal_area * air_density
+    c = aerodynamic_drag_coefficient * frontal_area
 
     if has_roof_box:
         c *= dfl.functions.calculate_f2.roof_box
 
-    return 0.5 * c / 3.6 ** 2
+    return c
+
+
+@sh.add_function(dsp, outputs=['f2'])
+def calculate_f2(air_density, aerodynamic_drag_area):
+    """
+    Calculates the f2 coefficient [N/(km/h)^2].
+
+    :param air_density:
+        Air density [kg/m3].
+    :type air_density: float
+
+    :param aerodynamic_drag_area:
+        Aerodynamic drag area [m2].
+    :type aerodynamic_drag_area: float
+
+    :return:
+        As used in the dyno and defined by respective guidelines [N/(km/h)^2].
+    :rtype: float
+    """
+    return aerodynamic_drag_area * (0.5 * air_density / 3.6 ** 2)
 
 
 dsp.add_data('tyre_state', dfl.values.tyre_state)
