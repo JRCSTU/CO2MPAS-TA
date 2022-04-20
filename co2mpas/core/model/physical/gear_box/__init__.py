@@ -116,7 +116,7 @@ def get_gear_box_efficiency_constants(has_torque_converter, gear_box_type):
     :rtype: dict
     """
     PARAMS = dfl.functions.get_gear_box_efficiency_constants.PARAMS
-    return PARAMS[has_torque_converter and gear_box_type != 'cvt']
+    return PARAMS[has_torque_converter and gear_box_type not in ('cvt', 'none')]
 
 
 def _linear(x, m, q):
@@ -572,8 +572,8 @@ def is_manual(kwargs):
 
 
 # noinspection PyMissingOrEmptyDocstring
-def is_cvt(kwargs):
-    return kwargs.get('gear_box_type') == 'cvt'
+def is_cvt_or_none(kwargs):
+    return kwargs.get('gear_box_type') in ('cvt', 'none')
 
 
 # noinspection PyMissingOrEmptyDocstring
@@ -663,7 +663,7 @@ dsp.add_dispatcher(
         'gear_box_speeds_in', 'correct_gear', 'gears', 'max_gear',
         'max_speed_velocity_ratio', {'CVT': ('CVT', 'gear_shifting_model')}
     ),
-    input_domain=is_cvt
+    input_domain=is_cvt_or_none
 )
 
 dsp.add_dispatcher(

@@ -321,7 +321,7 @@ def calculate_clutch_tc_powers_out(
 # noinspection PyMissingOrEmptyDocstring
 def clutch_domain(kwargs):
     b = not kwargs.get('has_torque_converter', True)
-    return b or kwargs.get('gear_box_type') == 'cvt'
+    return b or kwargs.get('gear_box_type') in ('cvt', 'none')
 
 
 dsp.add_dispatcher(
@@ -346,7 +346,7 @@ dsp.add_dispatcher(
 # noinspection PyMissingOrEmptyDocstring
 def torque_converter_domain(kwargs):
     b = kwargs.get('has_torque_converter')
-    return b and kwargs.get('gear_box_type') != 'cvt'
+    return b and not kwargs.get('gear_box_type') in ('cvt', 'none')
 
 
 dsp.add_dispatcher(

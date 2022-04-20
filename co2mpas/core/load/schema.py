@@ -616,7 +616,7 @@ def define_data_validation(read=True):
             types=('none', 'mild', 'full', 'plugin', 'electric'), read=read
         ),
         'gear_box_type': _select(
-            types=('manual', 'automatic', 'cvt', 'planetary'), read=read
+            types=('manual', 'automatic', 'cvt', 'planetary', 'none'), read=read
         ),
         'initial_temperature': _float,
         'ignition_type': _select(types=('positive', 'compression'), read=read),

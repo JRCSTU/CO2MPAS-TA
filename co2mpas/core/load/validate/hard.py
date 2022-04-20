@@ -216,10 +216,10 @@ def _check_gear_box(data, *args):
     c = ('gear_box_type', 'is_hybrid')
     try:
         gear_box_type, is_hybrid = sh.selector(c, data, output_type='list')
-        if gear_box_type == 'planetary' and not is_hybrid:
-            msg = "`gear_box_type` cannot be 'planetary' when " \
+        if gear_box_type in ('planetary', 'none') and not is_hybrid:
+            msg = f"`gear_box_type` cannot be '{gear_box_type}' when " \
                   "`is_hybrid = False`." \
-                  "Hence, set `gear_box_type != 'planetary'` or " \
+                  f"Hence, set `gear_box_type != '{gear_box_type}'` or " \
                   "set `is_hybrid = True`!"
             return c, msg
     except KeyError:  # `c` is not in `data`.
