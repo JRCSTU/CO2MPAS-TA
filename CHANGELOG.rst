@@ -1,6 +1,17 @@
 Changelog
 =========
 
+v4.3.3 (2022-11-07)
+-------------------
+Feat
+~~~~
+- (core): Add new option `none` for `gear_box_type`.
+- (vehicle): Add `aerodynamic_drag_area` data node and calculation.
+
+Fix
+~~~
+- (cycle): Add missing default.
+
 v4.3.2 (2022-02-07)
 -------------------
 Fix
