@@ -62,6 +62,7 @@ def define_wltp_base_model(wltp_base_model):
 
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp=_vel,
     inputs=(
         'times', 'base_model', 'velocities', 'speed_velocity_ratios',

@@ -11,7 +11,6 @@ import io
 import math
 import regex
 import logging
-import collections
 import numpy as np
 import os.path as osp
 import schedula as sh
