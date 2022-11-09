@@ -133,11 +133,9 @@ def _dd2df(dd, index=None, depth=0, col_key=None, row_key=None):
         df.columns = pd.MultiIndex.from_tuples([k + (i,) for i in df.columns])
         frames.append(df)
 
-    df = pd.concat(frames, **sh.selector(
-        inspect.getfullargspec(pd.concat).args,
-        dict(copy=False, axis=1, verify_integrity=True, sort=False),
-        allow_miss=True
-    ))
+    df = pd.concat(
+        frames, copy=False, axis=1, sort=False, verify_integrity=True
+    )
 
     if col_key is not None:
         ax = sorted(df.columns, key=col_key)
