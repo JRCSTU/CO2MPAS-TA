@@ -1,6 +1,15 @@
 Changelog
 =========
 
+v4.3.4 (2022-11-09)
+-------------------
+Fix
+~~~
+- (write): Correct dataframe concatenation.
+- (gear_box): Correct `CMV` model conversion.
+- (alternator): Correct `default_model` of `AlternatorCurrentModel`.
+- (core): Correct missing requirements and defaults.
+
 v4.3.3 (2022-11-07)
 -------------------
 Feat

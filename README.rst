@@ -6,8 +6,8 @@
 ######################################################################
 |co2mpas|: Vehicle simulator predicting NEDC |CO2| emissions from WLTP
 ######################################################################
-:release:          4.3.3
-:rel_date:         2022-11-07 16:45:00
+:release:          4.3.4
+:rel_date:         2022-11-09 15:45:00
 :home:             http://co2mpas.readthedocs.io/
 :repository:       https://github.com/JRCSTU/CO2MPAS-TA
 :pypi-repo:        https://pypi.org/project/co2mpas/
