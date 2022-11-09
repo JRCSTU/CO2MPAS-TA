@@ -37,7 +37,7 @@ def define_alternator_current_model(alternator_charging_currents):
 class AlternatorCurrentModel:
     def __init__(self, alternator_charging_currents=(0, 0)):
         def default_model(X):
-            time, prev_soc, alt_status, gb_power, acc = X.T
+            gb_power, acc =  X.T[-2:]
             b = gb_power > 0 or (gb_power == 0 and acc >= 0)
 
             return np.where(b, *alternator_charging_currents)
