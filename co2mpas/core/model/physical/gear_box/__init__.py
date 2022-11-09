@@ -661,7 +661,7 @@ dsp.add_dispatcher(
     ),
     outputs=(
         'gear_box_speeds_in', 'correct_gear', 'gears', 'max_gear',
-        'max_speed_velocity_ratio', {'CVT': ('CVT', 'gear_shifting_model')}
+        'max_speed_velocity_ratio', {'CVT': ('CVT', 'gear_shifting_model_raw')}
     ),
     input_domain=is_cvt_or_none
 )

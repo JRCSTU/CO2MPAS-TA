@@ -152,7 +152,7 @@ def _convert_limits(lu, vsr, n_vsr, stop_velocity=dfl.values.stop_velocity):
             if k == n0:
                 l = lu.get(k, (stop_velocity,))[0]
             if k == n1:
-                u = lu.get(k, (None, dfl.INF))[1]
+                u = dfl.INF
         res[k] = [l, u]
     return res
 
