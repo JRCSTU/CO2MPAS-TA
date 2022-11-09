@@ -172,7 +172,8 @@ if __name__ == '__main__':
             'scipy',
             'wltp',
             'xgboost>=0.90',
-            'statsmodels'
+            'statsmodels',
+            'syncing>=1.0.4'
         ],
         entry_points={
             'console_scripts': [

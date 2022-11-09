@@ -28,6 +28,7 @@ dsp = sh.BlueDispatcher(
 )
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='motors',
     dsp=_motors,
     inputs=(
@@ -122,11 +123,11 @@ dsp.add_dispatcher(
         'has_motor_p2_planetary', 'has_motor_p2', 'has_motor_p3_front',
         'has_motor_p3_rear', 'has_motor_p4_front', 'has_motor_p4_rear',
         'is_hybrid', 'planetary_mean_efficiency',
-    ),
-    include_defaults=True
+    )
 )
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='batteries',
     dsp=_batteries,
     inputs=(
@@ -175,8 +176,7 @@ dsp.add_dispatcher(
         'drive_battery_nominal_voltage', 'drive_battery_capacity_kwh',
         'service_battery_currents', 'service_battery_load',
         'dcdc_current_model',
-    ),
-    include_defaults=True
+    )
 )
 
 dsp.add_function(

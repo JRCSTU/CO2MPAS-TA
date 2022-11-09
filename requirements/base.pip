@@ -10,3 +10,4 @@ scipy
 wltp
 xgboost>=0.90
 statsmodels
+syncing>=1.0.4

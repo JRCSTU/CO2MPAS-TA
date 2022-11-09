@@ -114,6 +114,7 @@ def calculate_alternator_electric_powers_v1(
 
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='current_model',
     dsp=_current,
     inputs=(

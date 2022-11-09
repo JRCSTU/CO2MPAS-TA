@@ -30,6 +30,7 @@ dsp = sh.BlueDispatcher(
 )
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='service_battery',
     dsp=_service,
     inputs=(
@@ -57,11 +58,11 @@ dsp.add_dispatcher(
         'service_battery_electric_powers_supply_threshold',
         'service_battery_state_of_charge_balance_window',
         'service_battery_model', 'service_battery_load',
-    ),
-    include_defaults=True
+    )
 )
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='drive_battery',
     dsp=_drive,
     inputs=(
@@ -88,11 +89,11 @@ dsp.add_dispatcher(
         'drive_battery_electric_powers', 'motors_electric_powers',
         'drive_battery_capacity_kwh', 'drive_battery_currents',
         'drive_battery_n_cells', 'drive_battery_loads',
-    ),
-    include_defaults=True
+    )
 )
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='dcdc_converter',
     dsp=_dcdc,
     inputs=(
@@ -105,6 +106,5 @@ dsp.add_dispatcher(
     outputs=(
         'dcdc_converter_electric_powers_demand', 'dcdc_current_model',
         'dcdc_converter_electric_powers', 'dcdc_converter_currents'
-    ),
-    include_defaults=True
+    )
 )

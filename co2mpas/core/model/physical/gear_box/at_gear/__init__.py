@@ -686,6 +686,7 @@ def at_domain(method):
 
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='cmv_model',
     dsp=_cmv,
     input_domain=at_domain('CMV'),
@@ -728,6 +729,7 @@ def dt_domain(method):
 
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='dtgs_model',
     input_domain=dt_domain('DTGS'),
     dsp=_dtgs,
@@ -742,6 +744,7 @@ dsp.add_dispatcher(
 )
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='gspv_model',
     dsp=_gspv,
     input_domain=at_domain('GSPV'),

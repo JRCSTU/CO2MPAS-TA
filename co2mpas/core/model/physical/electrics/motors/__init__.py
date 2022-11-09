@@ -38,6 +38,7 @@ from .starter import dsp as _starter
 dsp = sh.BlueDispatcher(name='Motors', description='Models the vehicle motors.')
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='alternator',
     dsp=_alternator,
     inputs=(
@@ -50,11 +51,11 @@ dsp.add_dispatcher(
     outputs=(
         'alternator_current_model', 'alternator_currents', 'alternator_powers',
         'alternator_electric_powers'
-    ),
-    include_defaults=True
+    )
 )
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='motor_p0',
     dsp=_p0,
     inputs=(
@@ -68,11 +69,11 @@ dsp.add_dispatcher(
         'motor_p0_maximum_torque', 'motor_p0_speed_ratio', 'motor_p0_torques',
         'motor_p0_maximum_powers', 'motor_p0_rated_speed', 'motor_p0_speeds',
         'engine_speeds_out', 'motor_p0_maximum_power_function', 'has_motor_p0',
-    ),
-    include_defaults=True
+    )
 )
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='motor_p1',
     dsp=_p1,
     inputs=(
@@ -86,11 +87,11 @@ dsp.add_dispatcher(
         'motor_p1_maximum_torque', 'motor_p1_speed_ratio', 'motor_p1_torques',
         'motor_p1_maximum_powers', 'motor_p1_rated_speed', 'motor_p1_speeds',
         'engine_speeds_out', 'motor_p1_maximum_power_function', 'has_motor_p1',
-    ),
-    include_defaults=True
+    )
 )
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='motor_p2_planetary',
     dsp=_planet,
     inputs=(
@@ -110,11 +111,11 @@ dsp.add_dispatcher(
         'motor_p2_planetary_maximum_powers', 'motor_p2_planetary_rated_speed',
         'motor_p2_planetary_maximum_power_function', 'has_motor_p2_planetary',
         'motor_p2_planetary_torques', 'planetary_mean_efficiency',
-    ),
-    include_defaults=True
+    )
 )
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='motor_p2',
     dsp=_p2,
     inputs=(
@@ -128,11 +129,11 @@ dsp.add_dispatcher(
         'motor_p2_maximum_torque', 'motor_p2_speed_ratio', 'motor_p2_torques',
         'motor_p2_maximum_powers', 'motor_p2_rated_speed', 'motor_p2_speeds',
         'gear_box_speeds_in', 'has_motor_p2',
-    ),
-    include_defaults=True
+    )
 )
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='motor_p3',
     dsp=_p3,
     inputs=(
@@ -159,11 +160,11 @@ dsp.add_dispatcher(
         'motor_p3_rear_speed_ratio', 'motor_p3_rear_torques',
         'motor_p3_rear_maximum_powers', 'motor_p3_rear_rated_speed',
         'motor_p3_rear_speeds', 'has_motor_p3_rear', 'final_drive_speeds_in'
-    ),
-    include_defaults=True
+    )
 )
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='motor_p4',
     dsp=_p4,
     inputs=(
@@ -189,11 +190,11 @@ dsp.add_dispatcher(
         'motor_p4_rear_speed_ratio', 'motor_p4_rear_torques',
         'motor_p4_rear_maximum_powers', 'motor_p4_rear_rated_speed',
         'motor_p4_rear_speeds', 'has_motor_p3_rear', 'wheel_speeds'
-    ),
-    include_defaults=True
+    )
 )
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='starter',
     dsp=_starter,
     inputs=(
@@ -203,8 +204,7 @@ dsp.add_dispatcher(
     outputs=(
         'starter_electric_powers', 'starter_powers', 'starter_currents',
         'starter_model', 'delta_time_engine_starter'
-    ),
-    include_defaults=True
+    )
 )
 
 

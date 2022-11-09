@@ -416,6 +416,7 @@ def calculate_service_battery_delta_state_of_charge(
 
 
 dsp.add_dispatcher(
+    include_defaults=True,
     dsp_id='status_model',
     dsp=_status,
     inputs=(
