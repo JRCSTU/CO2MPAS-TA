@@ -2,7 +2,7 @@ Model:
     - Vincenzo Arcidiacono <vincenzo.arcidiacono@ext.ec.europa.eu>
     - Georgios Fontaras <georgios.fontaras@ec.europa.eu>
     - Dimitrios Komnos <dimitrios.komnos@ext.ec.europa.eu>
-    - Jelica Pavlovic <jelica.pavlovic@ec.europa.eu>
+    - Jelica Pavlovic <jelica.pavlovic@ext.ec.europa.eu>
     - Alessandro Tansini <alessandro.tansini@ec.europa.eu>
 
 Documentation:
