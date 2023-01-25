@@ -75,10 +75,10 @@ copyright = '2015-2022, European Commission (JRC)'  # @ReservedAssignment
 author = 'see AUTHORS.rst'
 
 extlinks = {
-    'gh': ('https://github.com/JRCSTU/co2mpas/issues/%s', '#'),
-    'ghp': ('https://github.com/JRCSTU/CO2MPAS-TA/issues/%s', '#'),
-    'aio': ('https://github.com/JRCSTU/JRCSTU/allinone/%s', '#'),
-    'git': ('https://github.com/JRCSTU/co2mpas/commit/%s', ''),
+    'gh': ('https://github.com/JRCSTU/co2mpas/issues/%s', '#%s'),
+    'ghp': ('https://github.com/JRCSTU/CO2MPAS-TA/issues/%s', '#%s'),
+    'aio': ('https://github.com/JRCSTU/JRCSTU/allinone/%s', '#%s'),
+    'git': ('https://github.com/JRCSTU/co2mpas/commit/%s', '#%s'),
 }
 
 # The version info for the project you're documenting, acts as replacement for
