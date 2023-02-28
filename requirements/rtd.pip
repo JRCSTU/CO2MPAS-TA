@@ -1,4 +1,4 @@
-schedula[sphinx] >= 0.3.2
+schedula[sphinx] >= 1.4.9
 sphinx-click
 click
 click-log

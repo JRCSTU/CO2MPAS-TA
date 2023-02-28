@@ -1,5 +1,5 @@
 PyYAML
-schedula>=0.3.2
+schedula>=1.4.9
 tqdm
 scikit-learn
 regex
