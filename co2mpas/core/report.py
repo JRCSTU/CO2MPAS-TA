@@ -101,7 +101,7 @@ def _compare(t, o, metrics):
 
     def _asarray(*x):
         x = np.asarray(x)
-        if x.dtype is np.dtype(np.bool):
+        if x.dtype is np.dtype(bool):
             x = np.asarray(x, dtype=int)
         return x
 

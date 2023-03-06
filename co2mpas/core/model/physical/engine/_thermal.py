@@ -39,10 +39,10 @@ def _filter_temperature_samples(X, Y, on_engine, thermostat):
 
 # noinspection PyMissingOrEmptyDocstring
 class _SelectFromModel(SelectFromModel):
-    def __init__(self, *args, in_mask=(), out_mask=(), **kwargs):
-        super(_SelectFromModel, self).__init__(*args, **kwargs)
-        self._in_mask = in_mask
-        self._out_mask = out_mask
+    def __init__(self,estimator,*, threshold=None, in_mask=(), out_mask=()):
+        super(_SelectFromModel, self).__init__(estimator, threshold=threshold)
+        self.in_mask = in_mask
+        self.out_mask = out_mask
         self._cache_support_mask = None
 
     def fit(self, *args, **kwargs):
@@ -73,10 +73,10 @@ class _SelectFromModel(SelectFromModel):
             )
             mask = sfm._get_support_mask()
 
-        for i in self._out_mask:
+        for i in self.out_mask:
             mask[i] = False
 
-        for i in self._in_mask:
+        for i in self.in_mask:
             mask[i] = True
         self._cache_support_mask = mask
         return mask
@@ -147,7 +147,7 @@ class ThermalModel:
         from sklearn.pipeline import Pipeline
         # noinspection PyArgumentEqualDefault
         opt = dict(
-            base_estimator=_XGBRegressor(
+            estimator=_XGBRegressor(
                 random_state=0, objective='reg:squarederror'
             ),
             random_state=0, min_samples=0.85, max_trials=10
@@ -166,13 +166,13 @@ class ThermalModel:
         # noinspection PyArgumentEqualDefault
         model = Pipeline([
             ('selection', _SelectFromModel(
-                opt['base_estimator'], threshold='0.8*median', in_mask=(0, 2)
+                opt['estimator'], threshold='0.8*median', in_mask=(0, 2)
             )),
             ('regression', _SafeRANSACRegressor(**opt))
         ]).fit(x[b, 1:], engine_temperature_derivatives[b])
         model.steps[0][1].estimator_.cache_params()
         model.steps[0][1].estimator.cache_params()
-        model.steps[1][1].base_estimator.cache_params()
+        model.steps[1][1].estimator.cache_params()
         model.steps[1][1].estimator_.cache_params()
         self.on = model.predict
         b = ~on_engine
@@ -181,7 +181,7 @@ class ThermalModel:
                 x[b, :2].copy(), engine_temperature_derivatives[b]
             )
             model.estimator_.cache_params()
-            model.base_estimator.cache_params()
+            model.estimator.cache_params()
             self.off = model.predict
         return self
 
@@ -197,6 +197,6 @@ class ThermalModel:
         for i, (dt, b, v, a, atp, s) in it:
             hot |= t > self.thermostat
             x[:] = v, t0 - t, hot, s, a, atp
-            t += (self.on(x[:, 1:]) if b else self.off(x[:, :2])) * dt
+            t += float(self.on(x[:, 1:]) if b else self.off(x[:, :2])) * dt
             temp[i] = t = min(t, max_temp)
         return temp

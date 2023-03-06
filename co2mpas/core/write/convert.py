@@ -108,7 +108,7 @@ def _cycle2df(data):
     data_descriptions = _get_doc_description()
     for k, v in sh.stack_nested_keys(out, key=('output',), depth=3):
         n, k = _sheet_name(k), k[-1]
-        if 'ts' == k:
+        if 'ts' == k and 'times' in v:
             df = _time_series2df(v, data_descriptions)
         elif 'pa' == k:
             df = _parameters2df(v, data_descriptions, write_validator)

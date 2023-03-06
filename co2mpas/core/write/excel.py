@@ -17,23 +17,21 @@ log = logging.getLogger(__name__)
 
 
 def _clone_excel(file_name):
-    from urllib.error import URLError
-    import openpyxl
-    try:
-        from urllib.request import urlopen
-        book = openpyxl.load_workbook(urlopen(file_name))
-    except (ValueError, URLError):
-        with open(file_name, 'rb') as file:
-            book = openpyxl.load_workbook(file)
     import io
     import pandas as pd
+    from urllib.request import urlopen
+    from urllib.error import URLError
     fd = io.BytesIO()
+    try:
+        fd.write(urlopen(file_name))
+    except (ValueError, URLError):
+        with open(file_name, 'rb') as file:
+            fd.write(file.read())
+
     # noinspection PyTypeChecker
     writer = pd.ExcelWriter(
-        fd, engine='openpyxl', optimized_write=True, write_only=True
+        fd, engine='openpyxl', mode='a', if_sheet_exists='overlay'
     )
-    writer.book = book
-    writer.sheets.update(dict((ws.title, ws) for ws in book.worksheets))
     return writer, fd
 
 
@@ -289,5 +287,5 @@ def write_to_excel(dfs, output_template):
     for sheet, v in charts:
         _chart2excel(writer, sheet, v)
 
-    writer.save()
+    writer.close()
     return fd
