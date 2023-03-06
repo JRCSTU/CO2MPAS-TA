@@ -644,7 +644,7 @@ dsp.add_dispatcher(
         'velocity_speed_ratios', 'engine_speed_at_max_power', 'velocities',
         'accelerations', 'times', {'gear_box_type': sh.SINK}
     ),
-    outputs=('gears', 'correct_gear', {
+    outputs=('gears', 'correct_gear', 'engine_max_speed_95',{
         'MGS': ('MGS', 'gear_shifting_model_raw')
     }),
     input_domain=is_manual

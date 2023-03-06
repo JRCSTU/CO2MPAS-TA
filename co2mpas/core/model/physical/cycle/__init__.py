@@ -58,17 +58,22 @@ dsp.add_dispatcher(
     include_defaults=True,
     dsp=_wltp_cycle,
     inputs=(
-        'accelerations', 'downscale_factor', 'motive_powers',
-        'downscale_factor_threshold', 'downscale_phases', 'engine_max_power',
+        'accelerations', 'motive_powers', 'engine_max_power', 'wltp_class',
         'engine_speed_at_max_power', 'full_load_curve', 'gear_box_type',
         'gears', 'idle_engine_speed', 'speed_velocity_ratios', 'max_velocity',
         'max_speed_velocity_ratio', 'inertial_factor', 'road_loads', 'times',
-        'unladen_mass', 'vehicle_mass', 'velocities', 'wltp_base_model',
-        'engine_max_speed', 'wltp_class', {'cycle_type': sh.SINK}
+        'unladen_mass', 'vehicle_mass', 'velocities', 'maximum_velocity_range',
+        'has_capped_velocity', 'engine_max_speed', 'idle_engine_speed_median',
+        "hs_n_min1", "hs_n_min12", "hs_n_min2d", "hs_n_min2", "hs_n_min3",
+        "hs_n_min3a", "hs_n_min3d", "hs_n_min3as", "hs_n_min3ds", "hs_t_start",
+        "hs_supp0", "hs_excl1", "hs_autom", "hs_n_lim", 'engine_max_speed_95',
+        'n_gears', 'full_load_powers', 'full_load_speeds',
+        'enable_manual_wltp_gearshift', {'cycle_type': sh.SINK}
     ),
     outputs=(
         'theoretical_motive_powers', 'gears', 'initial_temperature', 'max_time',
-        'velocities', 'theoretical_velocities'
+        'velocities', 'theoretical_velocities', 'wltp_class', 'times',
+        'theoretical_gears'
     ),
     input_domain=is_wltp
 )

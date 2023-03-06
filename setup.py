@@ -171,6 +171,7 @@ if __name__ == '__main__':
             'schema',
             'scipy',
             'wltp',
+            'wltp-jrshift',
             'xgboost>=0.90',
             'statsmodels',
             'syncing>=1.0.4'

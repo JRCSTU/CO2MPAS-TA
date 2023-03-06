@@ -173,6 +173,9 @@ class Values(co2_utl.Constants):
     #: Enable the calculation of Willans coefficients for the cycle?
     enable_willans = False
 
+    #: Enable the manual gearshift from WLTP regulation?
+    enable_manual_wltp_gearshift = True
+
     #: Alternator efficiency [-].
     alternator_efficiency = 0.67
 
@@ -209,8 +212,6 @@ class Values(co2_utl.Constants):
     #: WLTP base model params.
     wltp_base_model = {}
 
-    #: Velocity downscale factor threshold [-].
-    downscale_factor_threshold = 0.01
 
     #: Empirical value in case of CVT [-].
     tyre_dynamic_rolling_coefficient = 3.05 / 3.14

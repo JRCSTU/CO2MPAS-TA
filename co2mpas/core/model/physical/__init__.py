@@ -57,17 +57,22 @@ dsp.add_dispatcher(
     dsp=_cycle,
     inputs=(
         'max_speed_velocity_ratio', 'engine_speed_at_max_power', 'unladen_mass',
-        'downscale_factor_threshold', 'speed_velocity_ratios', 'k1', 'k2', 'k5',
-        'idle_engine_speed', 'downscale_phases', 'engine_max_power', 'max_gear',
         'engine_max_speed', 'full_load_curve', 'accelerations', 'motive_powers',
         'gear_box_type', 'road_loads', 'cycle_type', 'wltp_class', 'bag_phases',
-        'downscale_factor', 'inertial_factor', 'vehicle_mass', 'times', 'gears',
-        'time_sample_frequency', 'wltp_base_model', 'max_velocity', 'max_time',
-        'velocities',
+        'time_sample_frequency', 'has_capped_velocity', 'max_gear', 'max_time',
+        'idle_engine_speed', 'engine_max_power', 'gears', 'max_velocity', 'k2',
+        'speed_velocity_ratios', 'velocities', 'maximum_velocity_range', 'k1',
+        'inertial_factor', 'vehicle_mass', 'times', 'k5',
+        'idle_engine_speed_median', 'enable_manual_wltp_gearshift',
+        "hs_n_min1", "hs_n_min12", "hs_n_min2d", "hs_n_min2", "hs_n_min3",
+        "hs_n_min3a", "hs_n_min3d", "hs_n_min3as", "hs_n_min3ds", "hs_t_start",
+        "hs_supp0", "hs_excl1", "hs_autom", "hs_n_lim", 'engine_max_speed_95',
+        'n_gears', 'full_load_powers', 'full_load_speeds',
     ),
     outputs=(
         'initial_temperature', 'phases_integration_times', 'times', 'gears',
-        'velocities', 'theoretical_motive_powers', 'theoretical_velocities'
+        'velocities', 'theoretical_motive_powers', 'theoretical_velocities',
+        'theoretical_gears'
     )
 )
 
@@ -273,6 +278,7 @@ dsp.add_dispatcher(
         'specific_gear_shifting', 'velocity_speed_ratios', 'gear_box_powers_in',
         'gear_box_powers_out', 'maximum_velocity', 'CMV_Cold_Hot', 'CMV', 'CVT',
         'gear_box_torques_in', 'gear_shifts', 'gears', 'max_gear', 'DTGS',
+        'engine_max_speed_95'
     ),
     inp_weight={'initial_temperature': 5}
 )

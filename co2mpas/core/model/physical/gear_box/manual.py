@@ -206,7 +206,7 @@ def correct_gear_v4(
     return cg
 
 
-@sh.add_function(dsp, outputs=['gears'], weight=sh.inf(1, 0), inputs=[
+@sh.add_function(dsp, outputs=['gears'], weight=sh.inf(1, 150), inputs=[
     'correct_gear', 'MGS', 'times', 'velocities', 'accelerations',
     'motive_powers'
 ])

@@ -17,13 +17,14 @@ Sub-Modules:
     :toctree: WLTP/
 
     vel
+    gears
 """
 import logging
-import copy
 import schedula as sh
 from ..NEDC import is_manual
 from co2mpas.defaults import dfl
 from .vel import dsp as _vel
+from .gears import dsp as _gears
 
 logging.getLogger('wltp.experiment').setLevel(logging.WARNING)
 log = logging.getLogger(__name__)
@@ -37,43 +38,21 @@ dsp.add_data(
     'initial_temperature', dfl.values.initial_temperature_WLTP,
     description='Initial temperature of the test cell [°C].'
 )
-dsp.add_data(
-    'max_time', dfl.values.max_time_WLTP, 5, description='Maximum time [s].'
-)
-dsp.add_data('wltp_base_model', copy.deepcopy(dfl.values.wltp_base_model))
-
-
-@sh.add_function(dsp, outputs=['base_model'])
-def define_wltp_base_model(wltp_base_model):
-    """
-    Defines WLTP base model.
-
-    :param wltp_base_model:
-        WLTP base model params.
-    :type wltp_base_model: dict
-
-    :return:
-        WLTP base model.
-    :rtype: dict
-    """
-    import wltp.model as wltp_mdl
-    # noinspection PyProtectedMember
-    return sh.combine_dicts(wltp_mdl._get_model_base(), wltp_base_model)
-
 
 dsp.add_dispatcher(
     include_defaults=True,
     dsp=_vel,
     inputs=(
-        'times', 'base_model', 'velocities', 'speed_velocity_ratios',
-        'inertial_factor', 'downscale_phases', 'max_velocity',
-        'downscale_factor', 'downscale_factor_threshold', 'vehicle_mass',
-        'unladen_mass', 'road_loads', 'engine_max_power', 'wltp_class',
-        'engine_speed_at_max_power', 'max_speed_velocity_ratio'
+        'times', 'velocities', 'speed_velocity_ratios', 'inertial_factor',
+        'max_velocity', 'vehicle_mass', 'wltp_class', 'unladen_mass',
+        'road_loads', 'engine_max_power', 'engine_speed_at_max_power',
+        'max_speed_velocity_ratio', 'maximum_velocity_range',
+        'has_capped_velocity'
     ),
     outputs=(
-        'theoretical_motive_powers',
-        {'theoretical_velocities': ('theoretical_velocities', 'velocities')}
+        'theoretical_motive_powers', 'max_time', 'wltp_class',
+        {'theoretical_velocities': ('theoretical_velocities', 'velocities'),
+         'theoretical_times': ('theoretical_times', 'times')}
     )
 )
 
@@ -81,7 +60,7 @@ dsp.add_dispatcher(
 def wltp_gears(
         full_load_curve, velocities, accelerations, motive_powers,
         speed_velocity_ratios, idle_engine_speed, engine_speed_at_max_power,
-        engine_max_power, engine_max_speed, base_model, initial_gears=None):
+        engine_max_power, engine_max_speed, initial_gears=None):
     """
     Returns the gear shifting profile according to WLTP [-].
 
@@ -121,10 +100,6 @@ def wltp_gears(
         Maximum allowed engine speed [RPM].
     :type engine_max_speed: float
 
-    :param base_model:
-        WLTP base model params.
-    :type base_model: dict
-
     :param initial_gears:
         Initial gear vector [-].
     :type initial_gears: numpy.array
@@ -135,6 +110,9 @@ def wltp_gears(
     """
     import numpy as np
     import wltp.experiment as wltp_exp
+    import wltp.model as wltp_mdl
+    # noinspection PyProtectedMember
+    base_model = wltp_mdl._get_model_base()
     n_min_drive = None
     svr = [v for k, v in sorted(speed_velocity_ratios.items()) if k]
     idle = idle_engine_speed[0]
@@ -182,13 +160,61 @@ def wltp_gears(
     return gears
 
 
+def domain_gearshift(kwargs):
+    b = kwargs.get('gear_box_type') == 'manual'
+    return b and kwargs.get('enable_manual_wltp_gearshift')
+
+
+dsp.add_data(
+    'enable_manual_wltp_gearshift', dfl.values.enable_manual_wltp_gearshift
+)
+dsp.add_dispatcher(
+    include_defaults=True,
+    dsp=_gears,
+    weight=sh.inf(1, 0),
+    input_domain=domain_gearshift,
+    inputs={
+        'enable_manual_wltp_gearshift': sh.SINK,
+        'gear_box_type': sh.SINK,
+        "full_load_speeds": "full_load_speeds",
+        "full_load_powers": "full_load_powers",
+        "asm_margin": "asm_margin",
+        "n_gears": "NoOfGears",
+        "engine_max_speed_95": "Max95EngineSpeed",
+        'engine_max_power': 'RatedEnginePower',
+        'engine_speed_at_max_power': 'RatedEngineSpeed',
+        'speed_velocity_ratios': 'speed_velocity_ratios',
+        'idle_engine_speed_median': 'IdlingEngineSpeed',
+        'vehicle_mass': 'VehicleTestMass',
+        'road_loads': 'road_loads',
+        "times": "TraceTimesInput",
+        "velocities": "RequiredVehicleSpeedsInput",
+        "hs_n_min1": "MinDriveEngineSpeed1st",
+        "hs_n_min12": "MinDriveEngineSpeed1stTo2nd",
+        "hs_n_min2d": "MinDriveEngineSpeed2ndDecel",
+        "hs_n_min2": "MinDriveEngineSpeed2nd",
+        "hs_n_min3": "MinDriveEngineSpeedGreater2nd",
+        "hs_n_min3a": "MinDriveEngineSpeedGreater2ndAccel",
+        "hs_n_min3d": "MinDriveEngineSpeedGreater2ndDecel",
+        "hs_n_min3as": "MinDriveEngineSpeedGreater2ndAccelStartPhase",
+        "hs_n_min3ds": "MinDriveEngineSpeedGreater2ndDecelStartPhase",
+        "hs_t_start": "TimeEndOfStartPhase",
+        "hs_supp0": "SuppressGear0DuringDownshifts",
+        "hs_excl1": "ExcludeCrawlerGear",
+        "hs_autom": "AutomaticClutchOperation",
+        "hs_n_lim": "EngineSpeedLimitVMax",
+        'gears': 'InitialGearsFinalAfterClutch',
+        'theoretical_gears': 'InitialGearsFinalAfterClutch'
+    },
+    outputs={'InitialGearsFinalAfterClutch': ('theoretical_gears', 'gears')}
+)
+
 dsp.add_function(
     function=sh.add_args(wltp_gears),
     inputs=(
         'gear_box_type', 'full_load_curve', 'velocities', 'accelerations',
         'motive_powers', 'speed_velocity_ratios', 'idle_engine_speed',
-        'engine_speed_at_max_power', 'engine_max_power', 'engine_max_speed',
-        'base_model'
+        'engine_speed_at_max_power', 'engine_max_power', 'engine_max_speed'
     ),
     outputs=['gears'],
     input_domain=is_manual,
