@@ -516,7 +516,8 @@ class Functions(co2_utl.Constants):
         #: Aerodynamic drag coefficients function of vehicle category [-].
         cw = {
             'A': 0.34, 'B': 0.31, 'C': 0.29, 'D': 0.30, 'E': 0.30, 'F': 0.28,
-            'S': 0.29, 'M': 0.32, 'J': 0.38
+            'S': 0.29, 'M': 0.32, 'J': 0.38,
+            'G': 0.29, 'H': 0.29, 'I': 0.32, 'K': 0.38, 'L': 0.32, 'N': 0.38
         }
 
     # noinspection PyMissingOrEmptyDocstring,PyPep8Naming
