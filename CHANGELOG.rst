@@ -1,6 +1,21 @@
 Changelog
 =========
 
+v4.3.5 (2023-11-13)
+-------------------
+Feat
+~~~~
+- (defaults): Add missing `aerodynamic_drag_coefficients`.
+- (wheels): Add `Z`+ carcass.
+- (cycle): Integrate `gearshift` library.
+- (core): Update schedula version.
+Fix
+~~~
+- (excel): Correct excel chart definition.
+- (core): Correct type errors.
+- (core): Correct warning and bugs related to `sklearn` or `pandas`.
+- (doc): Fixed authors and FMB.
+
 v4.3.4 (2022-11-09)
 -------------------
 Fix
