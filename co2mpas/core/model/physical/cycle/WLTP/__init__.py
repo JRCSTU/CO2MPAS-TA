@@ -168,6 +168,7 @@ def domain_gearshift(kwargs):
 dsp.add_data(
     'enable_manual_wltp_gearshift', dfl.values.enable_manual_wltp_gearshift
 )
+dsp.add_data('n_gears', filters=[int])
 dsp.add_dispatcher(
     include_defaults=True,
     dsp=_gears,

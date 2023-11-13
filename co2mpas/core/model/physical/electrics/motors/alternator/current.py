@@ -126,10 +126,10 @@ class AlternatorCurrentModel:
         return model.steps[-1][-1].predict, mask
 
     def __call__(self, time, soc, status, *args):
-        arr = np.array([(time, soc, status) + args], float)
+        arr = np.array([tuple(map(float, (time, soc, status) + args))], float)
         if status == 3:
-            return min(0.0, self.init_model(arr[:, self.init_mask])[0])
-        return min(0.0, self.model(arr[:, self.mask])[0])
+            return float(min(0.0, self.init_model(arr[:, self.init_mask])[0]))
+        return float(min(0.0, self.model(arr[:, self.mask])[0]))
 
 
 @sh.add_function(dsp, outputs=['alternator_current_model'])

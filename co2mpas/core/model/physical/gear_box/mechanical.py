@@ -487,7 +487,7 @@ def identify_n_gears(gear_box_ratios):
         Number of gears [-].
     :rtype: int
     """
-    return max(gear_box_ratios)
+    return int(max(gear_box_ratios))
 
 
 @sh.add_function(dsp, outputs=['velocity_speed_ratios'], weight=48)

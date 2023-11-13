@@ -558,6 +558,7 @@ def identify_kco2_wltp_correction_factor(
     b = np.array(b)
     m = RANSACRegressor(
         random_state=0,
+        min_samples=2,
         estimator=Lasso(random_state=0, positive=True)
     ).fit(e[b, None], co2[b])
     return float(m.estimator_.coef_)
