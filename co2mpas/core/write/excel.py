@@ -121,19 +121,29 @@ def _ranges_by_row(df, startrow, startcol):
 
 
 def _add_named_ranges(df, writer, shname, startrow, startcol, named_ranges, k0):
+    from openpyxl.workbook.defined_name import DefinedName
     ref = '!'.join([shname, '%s'])
-    # noinspection PyBroadException
-    try:
-        define_name = writer.book.define_name
+    if isinstance(writer.book.defined_names, dict):
+        from openpyxl.utils import absolute_coordinate
+        ws = writer.sheets[shname]
 
         def _create_named_range(ref_n, ref_r):
-            define_name(ref % ref_n, ref % ref_r)
-    except Exception:  # Use other pkg.
-        define_name = writer.book.create_named_range
-        scope = writer.book.index(writer.sheets[shname])
+            ws.defined_names.add(DefinedName(
+                ref % ref_n, attr_text=ref % absolute_coordinate(ref_r)
+            ))
+    else:
+        # noinspection PyBroadException
+        try:
+            define_name = writer.book.define_name
 
-        def _create_named_range(ref_n, ref_r):
-            define_name(ref_n, value=ref % ref_r, scope=scope)
+            def _create_named_range(ref_n, ref_r):
+                define_name(ref % ref_n, ref % ref_r)
+        except Exception:  # Use other pkg.
+            define_name = writer.book.create_named_range
+            scope = writer.book.index(writer.sheets[shname])
+
+            def _create_named_range(ref_n, ref_r):
+                define_name(ref_n, value=ref % ref_r, scope=scope)
 
     tag = ()
     if hasattr(df, 'name'):
@@ -202,11 +212,24 @@ def _data_ref(ref):
 
 def _chart2excel(writer, sheet, charts):
     import xlrd
-    from openpyxl.chart import ScatterChart, Series
+    from openpyxl.chart import ScatterChart
+    from openpyxl.chart.series_factory import SeriesFactory as Series
 
-    sn = writer.book.sheetnames
-    named_ranges = {'%s!%s' % (sn[d.localSheetId], d.name): d.value
-                    for d in writer.book.defined_names.definedName}
+    it = writer.book.defined_names
+    if isinstance(it, dict):
+        named_ranges = {}
+        for sn, ws in writer.sheets.items():
+            named_ranges.update({
+                d.name: d.value
+                for d in ws.defined_names.values()
+            })
+    else:
+        sn = writer.book.sheetnames
+        named_ranges = {
+            '%s!%s' % (sn[d.localSheetId], d.name): d.value
+            for d in it.definedName
+        }
+
     m, h, w = 3, 7.94, 13.55
 
     for i, (k, v) in enumerate(sorted(charts.items())):
