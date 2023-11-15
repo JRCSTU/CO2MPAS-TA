@@ -118,9 +118,8 @@ if __name__ == '__main__':
         name=name,
         version=proj_ver,
         packages=find_packages(exclude=[
-            'test', 'test.*',
-            'doc', 'doc.*',
-            'appveyor'
+            'tests', 'tests.*',
+            'doc', 'doc.*'
         ]),
         url=url,
         project_urls=project_urls,
